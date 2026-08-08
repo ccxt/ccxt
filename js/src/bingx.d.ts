@@ -1,5 +1,5 @@
 import Exchange from './abstract/bingx.js';
-import type { LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, NullableDict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, DepositWithdrawFees } from './base/types.js';
+import type { LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, NullableDict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, DepositWithdrawFees, PositionModeInfo } from './base/types.js';
 /**
  * @class bingx
  * @augments Exchange
@@ -591,7 +591,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     /**
@@ -630,7 +630,7 @@ export default class bingx extends Exchange {
      * @param {string} [params.side] hedged: ['long' or 'short']. one way: ['both']
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bingx#fetchMyTrades
@@ -723,10 +723,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    fetchPositionMode(symbol?: Str, params?: {}): Promise<{
-        info: any;
-        hedged: boolean;
-    }>;
+    fetchPositionMode(symbol?: Str, params?: {}): Promise<PositionModeInfo>;
     /**
      * @method
      * @name bingx#setPositionMode
@@ -737,7 +734,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bingx#editOrder

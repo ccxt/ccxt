@@ -31,7 +31,8 @@ const KNOWN_TYPES = new Set([
     'Position', 'FundingRate', 'FundingRates', 'FundingRateHistory',
     'OpenInterest', 'OpenInterests', 'Liquidation',
     'LeverageTier', 'LeverageTiers', 'Leverage', 'Leverages',
-    'MarginMode', 'MarginModes', 'MarginModification',
+    'MarginMode', 'MarginModes', 'MarginModification', 'MarginLoan',
+    'Status', 'PositionModeInfo',
     'Transaction', 'DepositAddress', 'TransferEntry',
     'LedgerEntry', 'TradingFeeInterface', 'TradingFees',
     'Greeks', 'Option', 'OptionChain', 'Conversion',
@@ -39,6 +40,7 @@ const KNOWN_TYPES = new Set([
     'BorrowInterest', 'CrossBorrowRate', 'CrossBorrowRates',
     'IsolatedBorrowRate', 'IsolatedBorrowRates',
     'FundingHistory', 'DepositWithdrawFee', 'DepositWithdrawFees',
+    'OrderBooks',
     'OrderRequest', 'CancellationRequest', 'WithdrawalResponse',
     // native dedicated prediction-market types (io.github.ccxt.types.Prediction*)
     'PredictionTicker', 'PredictionTickers', 'PredictionOrder', 'PredictionTrade', 'PredictionPosition', 'PredictionOrderBook', 'PredictionTradingFee', 'PredictionOpenInterest', 'PredictionSettlement',
@@ -51,6 +53,14 @@ function isNumberType(t: string) { return t === 'Num' || t === 'number' || t ===
 function isIntegerType(t: string) { return t !== undefined && t.toLowerCase() === 'int'; }
 function isBooleanType(t: string) { return t === 'boolean' || t === 'Bool'; }
 function isObjectType(t: string) { return t === 'any' || t === 'unknown' || t === 'Dict' || t === 'Object' || t === 'Dictionary<any>' || (t?.startsWith('{') && t?.endsWith('}')); }
+
+// TS type aliases (`export type X = Y | undefined`) whose Java class carries
+// the non-null name. Kept out of KNOWN_TYPES because emitting `new X(res)`
+// for the alias name would be a `cannot find symbol` at compile time.
+const KNOWN_TYPE_ALIASES: Record<string, string> = {
+    'Market': 'MarketInterface',
+    'Currency': 'CurrencyInterface',
+};
 
 function tsTypeToJavaType(tsType: string | undefined, isReturn = false): string {
     if (!tsType) return 'Object';
@@ -74,11 +84,15 @@ function tsReturnTypeToJava(methodName: string, tsReturnType: string): { javaTyp
 
     if (inner.endsWith('[]')) {
         const elem = inner.slice(0, -2);
-        if (KNOWN_TYPES.has(elem)) return { javaType: `List<${elem}>`, isArray: true, elementType: elem };
+        const className = KNOWN_TYPE_ALIASES[elem] ?? elem;
+        if (KNOWN_TYPES.has(className)) return { javaType: `List<${className}>`, isArray: true, elementType: className };
         if (elem === 'string') return { javaType: 'List<String>', isArray: true, elementType: null };
         return null;
     }
-    if (KNOWN_TYPES.has(inner)) return { javaType: inner, isArray: false, elementType: null };
+    {
+        const className = KNOWN_TYPE_ALIASES[inner] ?? inner;
+        if (KNOWN_TYPES.has(className)) return { javaType: className, isArray: false, elementType: null };
+    }
     if (isIntegerType(inner) || inner === 'number' && methodName === 'fetchTime') return { javaType: 'Long', isArray: false, elementType: null };
     if (isNumberType(inner)) return { javaType: 'Double', isArray: false, elementType: null };
     if (isStringType(inner)) return { javaType: 'String', isArray: false, elementType: null };

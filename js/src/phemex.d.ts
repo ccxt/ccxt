@@ -28,7 +28,7 @@ export default class phemex extends Exchange {
     fetchCurrencies(params?: {}): Promise<Currencies>;
     parseCurrency(rawCurrency: Dict): CurrencyInterface;
     customParseBidAsk(bidask: any, priceKey?: number, amountKey?: number, market?: Market): number[];
-    customParseOrderBook(orderbook: any, symbol: any, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: number, amountKey?: number, market?: Market): any;
+    customParseOrderBook(orderbook: any, symbol: any, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: number, amountKey?: number, market?: Market): Dict;
     /**
      * @method
      * @name phemex#fetchOrderBook
@@ -356,7 +356,7 @@ export default class phemex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name phemex#setPositionMode
@@ -367,7 +367,7 @@ export default class phemex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name phemex#fetchLeverageTiers

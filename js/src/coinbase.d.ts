@@ -3,6 +3,23 @@ import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook,
 /**
  * @class coinbase
  * @augments Exchange
+ * @description This is the retail Coinbase.com exchange class, covering the Advanced Trade API - the successor
+ * of the former Coinbase Pro after the Pro/retail unification. Use this class for regular Coinbase.com accounts
+ * and API keys created at coinbase.com. For the institutional Coinbase Exchange API (exchange.coinbase.com,
+ * application-gated credentials) see the separate coinbaseexchange class, and for Coinbase International
+ * derivatives see coinbaseinternational. Historical Coinbase Pro trading data lives in the retail account and
+ * is accessible through this class.
+ *
+ * Instantiation with CDP (Cloud Developer Platform) keys, the current key format, see https://github.com/ccxt/ccxt/issues/23771:
+ *
+ *     const exchange = new ccxt.coinbase ({
+ *         'apiKey': 'organizations/{org_id}/apiKeys/{key_id}', // the full "name" field from the CDP key file
+ *         'secret': '-----BEGIN EC PRIVATE KEY-----\n...\n-----END EC PRIVATE KEY-----\n', // the "privateKey" field, keep the newlines
+ *     });
+ *
+ * No password/passphrase is used - that field belonged to the old Coinbase Pro keys. If the secret travels
+ * through an env var or json config, literal backslash-n sequences instead of real newlines will break the
+ * signature - pass the PEM exactly as issued.
  */
 export default class coinbase extends Exchange {
     describe(): any;
@@ -495,7 +512,7 @@ export default class coinbase extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/?id=deposit-id-structure}
      */
-    fetchDepositMethodIds(params?: {}): Promise<any[]>;
+    fetchDepositMethodIds(params?: {}): Promise<Dict[]>;
     /**
      * @method
      * @name coinbase#fetchDepositMethodId
@@ -512,7 +529,7 @@ export default class coinbase extends Exchange {
         verified: boolean | undefined;
         tag: Str;
     }>;
-    parseDepositMethodIds(ids: any, params?: {}): any[];
+    parseDepositMethodIds(ids: any, params?: {}): Dict[];
     parseDepositMethodId(depositId: any): {
         info: any;
         id: Str;
@@ -634,7 +651,7 @@ export default class coinbase extends Exchange {
      * @returns {any[]} An account structure <https://docs.ccxt.com/?id=account-structure>
      */
     fetchPortfolioDetails(portfolioUuid: string, params?: {}): Promise<any[]>;
-    parsePortfolioDetails(portfolioData: Dict): any[];
+    parsePortfolioDetails(portfolioData: Dict): Dict[];
     createAuthToken(seconds: Int, method?: Str, url?: Str, useEddsa?: boolean): string;
     nonce(): number;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {

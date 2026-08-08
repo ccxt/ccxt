@@ -570,7 +570,7 @@ func (this *P2b) FetchPosition(symbol string, options ...ccxt.FetchPositionOptio
 func (this *P2b) FetchPositionHistory(symbol string, options ...ccxt.FetchPositionHistoryOptions) ([]ccxt.Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *P2b) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]any, error) {
+func (this *P2b) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (ccxt.PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *P2b) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccxt.Position, error) {
@@ -588,7 +588,7 @@ func (this *P2b) FetchPositionsRisk(options ...ccxt.FetchPositionsRiskOptions) (
 func (this *P2b) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchPremiumIndexOHLCVOptions) ([]ccxt.OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *P2b) FetchStatus(params ...any) (map[string]any, error) {
+func (this *P2b) FetchStatus(params ...any) (ccxt.Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *P2b) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions) (ccxt.Ticker, error) {
@@ -723,7 +723,7 @@ func (this *P2b) FetchBalanceWs(params ...any) (ccxt.Balances, error) {
 func (this *P2b) FetchClosedOrdersWs(options ...ccxt.FetchClosedOrdersWsOptions) ([]ccxt.Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *P2b) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]any, error) {
+func (this *P2b) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *P2b) FetchMyTradesWs(options ...ccxt.FetchMyTradesWsOptions) ([]ccxt.Trade, error) {
@@ -768,7 +768,7 @@ func (this *P2b) FetchTradesWs(symbol string, options ...ccxt.FetchTradesWsOptio
 func (this *P2b) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *P2b) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *P2b) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *P2b) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {

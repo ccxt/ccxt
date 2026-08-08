@@ -57,6 +57,8 @@ public class LunoCore extends LunoApi
                 put( "fetchCrossBorrowRates", false );
                 put( "fetchCurrencies", true );
                 put( "fetchDepositAddress", true );
+                put( "fetchDepositWithdrawFee", true );
+                put( "fetchDepositWithdrawFees", false );
                 put( "fetchFundingHistory", false );
                 put( "fetchFundingInterval", false );
                 put( "fetchFundingIntervals", false );
@@ -137,66 +139,146 @@ public class LunoCore extends LunoApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "exchange", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "markets", 1 );
+                        put( "markets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "exchangePrivate", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "candles", 1 );
-                        put( "move", 1 );
-                        put( "move/list_moves", 1 );
-                        put( "transfers", 1 );
+                        put( "candles", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "move", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "move/list_moves", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "transfers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "convert", 1 );
-                        put( "move", 1 );
+                        put( "convert", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "move", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "orderbook", 1 );
-                        put( "orderbook_top", 1 );
-                        put( "ticker", 1 );
-                        put( "tickers", 1 );
-                        put( "trades", 1 );
+                        put( "orderbook", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orderbook_top", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "ticker", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "tickers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "accounts/{id}/pending", 1 );
-                        put( "accounts/{id}/transactions", 1 );
-                        put( "balance", 1 );
-                        put( "beneficiaries", 1 );
-                        put( "send/networks", 1 );
-                        put( "fee_info", 1 );
-                        put( "funding_address", 1 );
-                        put( "listorders", 1 );
-                        put( "listtrades", 1 );
-                        put( "send_fee", 1 );
-                        put( "orders/{id}", 1 );
-                        put( "withdrawals", 1 );
-                        put( "withdrawals/{id}", 1 );
-                        put( "transfers", 1 );
-                        put( "users/linked", 1 );
+                        put( "accounts/{id}/pending", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "accounts/{id}/transactions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "balance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "beneficiaries", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "send/networks", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "fee_info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "funding_address", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "listorders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "listtrades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "send_fee", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orders/{id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "withdrawals", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "withdrawals/{id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "transfers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "users/linked", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "accounts", 1 );
-                        put( "address/validate", 1 );
-                        put( "postorder", 1 );
-                        put( "marketorder", 1 );
-                        put( "stoporder", 1 );
-                        put( "funding_address", 1 );
-                        put( "withdrawals", 1 );
-                        put( "send", 1 );
-                        put( "oauth2/grant", 1 );
-                        put( "beneficiaries", 1 );
+                        put( "accounts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "address/validate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "postorder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "marketorder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "stoporder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "funding_address", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "withdrawals", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "send", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "oauth2/grant", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "beneficiaries", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "put", new java.util.HashMap<String, Object>() {{
-                        put( "accounts/{id}/name", 1 );
+                        put( "accounts/{id}/name", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "delete", new java.util.HashMap<String, Object>() {{
-                        put( "withdrawals/{id}", 1 );
-                        put( "beneficiaries/{id}", 1 );
+                        put( "withdrawals/{id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "beneficiaries/{id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -1041,7 +1123,8 @@ public class LunoCore extends LunoApi
             }
             symbols = this.marketSymbols(symbols);
             Object response = (this.publicGetTickers(parameters)).join();
-            Object tickers = this.indexBy(Helpers.GetValue(response, "tickers"), "pair");
+            Object rawTickers = this.safeList(response, "tickers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object tickers = this.indexBy(rawTickers, "pair");
             Object ids = Helpers.objectKeys(tickers);
             Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
@@ -1893,6 +1976,47 @@ public class LunoCore extends LunoApi
             put( "address", LunoCore.this.safeString(depositAddress, "address") );
             put( "tag", LunoCore.this.safeString(depositAddress, "name") );
         }};
+    }
+
+    /**
+     * @method
+     * @name luno#fetchDepositWithdrawFee
+     * @description fetch the fee for sending (withdrawing) a currency to a specific address; luno quotes the network fee per destination, so an address is required, see https://github.com/ccxt/ccxt/issues/25830
+     * @see https://www.luno.com/en/developers/api#tag/Send/operation/SendFee
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.address the destination address luno should quote the send fee for (required by the exchange)
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFee(Object code, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object address = this.safeString(parameters, "address");
+            if (Helpers.isTrue(Helpers.isEqual(address, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositWithdrawFee() requires an \"address\" parameter - luno quotes the send fee per destination address")) ;
+            }
+            (this.loadMarkets()).join();
+            Object currency = this.currency(code);
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "currency", Helpers.GetValue(currency, "id") );
+            }};
+            Object response = (this.privateGetSendFee(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "currency": "XBT",
+            //         "fee": "0.00015"
+            //     }
+            //
+            Object result = this.depositWithdrawFee(response);
+            Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", this.safeNumber(response, "fee"));
+            Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "percentage", false);
+            return this.assignDefaultDepositWithdrawFees(result, currency);
+        });
+
     }
 
     public Object sign(Object path, Object... optionalArgs)

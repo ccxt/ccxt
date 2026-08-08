@@ -108,56 +108,56 @@ class zaif(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'depth/{pair}': 1,
-                        'currencies/{pair}': 1,
-                        'currencies/all': 1,
-                        'currency_pairs/{pair}': 1,
-                        'currency_pairs/all': 1,
-                        'last_price/{pair}': 1,
-                        'ticker/{pair}': 1,
-                        'trades/{pair}': 1,
+                        'depth/{pair}': {'cost': 1},
+                        'currencies/{pair}': {'cost': 1},
+                        'currencies/all': {'cost': 1},
+                        'currency_pairs/{pair}': {'cost': 1},
+                        'currency_pairs/all': {'cost': 1},
+                        'last_price/{pair}': {'cost': 1},
+                        'ticker/{pair}': {'cost': 1},
+                        'trades/{pair}': {'cost': 1},
                     },
                 },
                 'private': {
                     'post': {
-                        'active_orders': 5,  # 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
-                        'cancel_order': 5,
-                        'deposit_history': 5,
-                        'get_id_info': 5,
-                        'get_info': 10,  # 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
-                        'get_info2': 5,  # 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
-                        'get_personal_info': 5,
-                        'trade': 5,
-                        'trade_history': 50,  # 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
-                        'withdraw': 5,
-                        'withdraw_history': 5,
+                        'active_orders': {'cost': 5},  # 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
+                        'cancel_order': {'cost': 5},
+                        'deposit_history': {'cost': 5},
+                        'get_id_info': {'cost': 5},
+                        'get_info': {'cost': 10},  # 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
+                        'get_info2': {'cost': 5},  # 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
+                        'get_personal_info': {'cost': 5},
+                        'trade': {'cost': 5},
+                        'trade_history': {'cost': 50},  # 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
+                        'withdraw': {'cost': 5},
+                        'withdraw_history': {'cost': 5},
                     },
                 },
                 'ecapi': {
                     'post': {
-                        'createInvoice': 1,  # unverified
-                        'getInvoice': 1,
-                        'getInvoiceIdsByOrderNumber': 1,
-                        'cancelInvoice': 1,
+                        'createInvoice': {'cost': 1},  # unverified
+                        'getInvoice': {'cost': 1},
+                        'getInvoiceIdsByOrderNumber': {'cost': 1},
+                        'cancelInvoice': {'cost': 1},
                     },
                 },
                 'tlapi': {
                     'post': {
-                        'get_positions': 66,  # 10 in 60 seconds = 0.166 per second => cost = 10 / 0.166 = 66
-                        'position_history': 66,  # 10 in 60 seconds
-                        'active_positions': 5,  # 20 in 10 seconds
-                        'create_position': 33,  # 3 in 10 seconds = 0.3 per second => cost = 10 / 0.3 = 33
-                        'change_position': 33,  # 3 in 10 seconds
-                        'cancel_position': 33,  # 3 in 10 seconds
+                        'get_positions': {'cost': 66},  # 10 in 60 seconds = 0.166 per second => cost = 10 / 0.166 = 66
+                        'position_history': {'cost': 66},  # 10 in 60 seconds
+                        'active_positions': {'cost': 5},  # 20 in 10 seconds
+                        'create_position': {'cost': 33},  # 3 in 10 seconds = 0.3 per second => cost = 10 / 0.3 = 33
+                        'change_position': {'cost': 33},  # 3 in 10 seconds
+                        'cancel_position': {'cost': 33},  # 3 in 10 seconds
                     },
                 },
                 'fapi': {
                     'get': {
-                        'groups/{group_id}': 1,  # testing
-                        'last_price/{group_id}/{pair}': 1,
-                        'ticker/{group_id}/{pair}': 1,
-                        'trades/{group_id}/{pair}': 1,
-                        'depth/{group_id}/{pair}': 1,
+                        'groups/{group_id}': {'cost': 1},  # testing
+                        'last_price/{group_id}/{pair}': {'cost': 1},
+                        'ticker/{group_id}/{pair}': {'cost': 1},
+                        'trades/{group_id}/{pair}': {'cost': 1},
+                        'depth/{group_id}/{pair}': {'cost': 1},
                     },
                 },
             },
@@ -518,12 +518,13 @@ class zaif(Exchange, ImplicitAPI):
         #          }, ...
         #      ]
         #
-        numTrades = len(response)
+        trades = self.to_array(response)
+        numTrades = len(trades)
         if numTrades == 1:
-            firstTrade = response[0]
+            firstTrade = self.safe_dict(trades, 0, {})
             if not firstTrade:
-                response = []
-        return self.parse_trades(response, market, since, limit)
+                trades = []
+        return self.parse_trades(trades, market, since, limit)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
@@ -551,9 +552,10 @@ class zaif(Exchange, ImplicitAPI):
             'price': price,
         }
         response = self.privatePostTrade(self.extend(request, params))
+        data = self.safe_dict(response, 'return', {})
         return self.safe_order({
             'info': response,
-            'id': str(response['return']['order_id']),
+            'id': str(data['order_id']),
         }, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -666,7 +668,8 @@ class zaif(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['currency_pair'] = market['id']
         response = self.privatePostActiveOrders(self.extend(request, params))
-        return self.parse_orders(response['return'], market, since, limit)
+        data = self.safe_dict(response, 'return', {})
+        return self.parse_orders(data, market, since, limit)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -697,7 +700,8 @@ class zaif(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['currency_pair'] = market['id']
         response = self.privatePostTradeHistory(self.extend(request, params))
-        return self.parse_orders(response['return'], market, since, limit)
+        data = self.safe_dict(response, 'return', {})
+        return self.parse_orders(data, market, since, limit)
 
     def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """

@@ -87,14 +87,126 @@ public class BitbnsCore extends BitbnsApi
             }} );
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "www", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("order/fetchMarkets", "order/fetchTickers", "order/fetchOrderbook", "order/getTickerWithVolume", "exchangeData/ohlc", "exchangeData/orderBook", "exchangeData/tradedetails")) );
+                    put( "get", new java.util.HashMap<String, Object>() {{
+                        put( "order/fetchMarkets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "order/fetchTickers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "order/fetchOrderbook", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "order/getTickerWithVolume", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "exchangeData/ohlc", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "exchangeData/orderBook", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "exchangeData/tradedetails", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
                 }} );
                 put( "v1", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("platform/status", "tickers", "orderbook/sell/{symbol}", "orderbook/buy/{symbol}")) );
-                    put( "post", new java.util.ArrayList<Object>(java.util.Arrays.asList("currentCoinBalance/EVERYTHING", "getApiUsageStatus/USAGE", "getOrderSocketToken/USAGE", "currentCoinBalance/{symbol}", "orderStatus/{symbol}", "depositHistory/{symbol}", "withdrawHistory/{symbol}", "withdrawHistoryAll/{symbol}", "depositHistoryAll/{symbol}", "listOpenOrders/{symbol}", "listOpenStopOrders/{symbol}", "getCoinAddress/{symbol}", "placeSellOrder/{symbol}", "placeBuyOrder/{symbol}", "buyStopLoss/{symbol}", "sellStopLoss/{symbol}", "cancelOrder/{symbol}", "cancelStopLossOrder/{symbol}", "listExecutedOrders/{symbol}", "placeMarketOrder/{symbol}", "placeMarketOrderQnty/{symbol}")) );
+                    put( "get", new java.util.HashMap<String, Object>() {{
+                        put( "platform/status", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "tickers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orderbook/sell/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orderbook/buy/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
+                    put( "post", new java.util.HashMap<String, Object>() {{
+                        put( "currentCoinBalance/EVERYTHING", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "getApiUsageStatus/USAGE", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "getOrderSocketToken/USAGE", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "currentCoinBalance/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orderStatus/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "depositHistory/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "withdrawHistory/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "withdrawHistoryAll/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "depositHistoryAll/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "listOpenOrders/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "listOpenStopOrders/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "getCoinAddress/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "placeSellOrder/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "placeBuyOrder/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "buyStopLoss/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "sellStopLoss/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancelOrder/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancelStopLossOrder/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "listExecutedOrders/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "placeMarketOrder/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "placeMarketOrderQnty/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
                 }} );
                 put( "v2", new java.util.HashMap<String, Object>() {{
-                    put( "post", new java.util.ArrayList<Object>(java.util.Arrays.asList("orders", "cancel", "getordersnew", "marginOrders")) );
+                    put( "post", new java.util.HashMap<String, Object>() {{
+                        put( "orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancel", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "getordersnew", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "marginOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
                 }} );
             }} );
             put( "fees", new java.util.HashMap<String, Object>() {{
@@ -258,9 +370,10 @@ public class BitbnsCore extends BitbnsApi
             //     ]
             //
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+            Object rawMarkets = this.toArray(response);
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawMarkets)); i++)
             {
-                Object market = Helpers.GetValue(response, i);
+                Object market = Helpers.GetValue(rawMarkets, i);
                 Object id = this.safeString(market, "id");
                 Object baseId = this.safeString(market, "base");
                 Object quoteId = this.safeString(market, "quote");
@@ -1431,7 +1544,7 @@ public class BitbnsCore extends BitbnsApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object urls = ((Object)this.urls);
+        Object urls = this.urls;
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(urls, "api"), api))))
         {
             throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " does not have a testnet/sandbox URL for "), api), " endpoints")) ;

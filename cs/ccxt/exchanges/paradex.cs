@@ -137,127 +137,349 @@ public partial class paradex : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "bbo/{market}", 1 },
-                        { "bbo/{market}/interactive", 1 },
-                        { "funding/data", 1 },
-                        { "markets", 1 },
-                        { "markets/history", 1 },
-                        { "markets/klines", 1 },
-                        { "markets/settlement-price", 1 },
-                        { "markets/summary", 1 },
-                        { "orderbook/{market}", 1 },
-                        { "orderbook/{market}/impact-price", 1 },
-                        { "orderbook/{market}/interactive", 1 },
-                        { "insurance", 1 },
-                        { "jwks.json", 1 },
-                        { "onboarding", 1 },
-                        { "referrals/config", 1 },
-                        { "staking/config", 1 },
-                        { "system/announcements", 1 },
-                        { "system/config", 1 },
-                        { "system/portfolio-margin-config", 1 },
-                        { "system/state", 1 },
-                        { "system/time", 1 },
-                        { "system/volume-tiers", 1 },
-                        { "trades", 1 },
-                        { "vaults", 1 },
-                        { "vaults/balance", 1 },
-                        { "vaults/config", 1 },
-                        { "vaults/history", 1 },
-                        { "vaults/positions", 1 },
-                        { "vaults/summary", 1 },
-                        { "vaults/transfers", 1 },
-                        { "xp/fee-config", 1 },
-                        { "xp/public-transfers", 1 },
-                        { "xp/transfer/{transfer_id}", 1 },
+                        { "bbo/{market}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "bbo/{market}/interactive", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding/data", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "markets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "markets/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "markets/klines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "markets/settlement-price", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "markets/summary", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbook/{market}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbook/{market}/impact-price", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbook/{market}/interactive", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "insurance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "jwks.json", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "onboarding", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "referrals/config", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "staking/config", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "system/announcements", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "system/config", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "system/portfolio-margin-config", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "system/state", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "system/time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "system/volume-tiers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vaults", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vaults/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vaults/config", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vaults/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vaults/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vaults/summary", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vaults/transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "xp/fee-config", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "xp/public-transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "xp/transfer/{transfer_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "account", 1 },
-                        { "account/compliance", 1 },
-                        { "account/history", 1 },
-                        { "account/info", 1 },
-                        { "account/margin", 1 },
-                        { "account/profile", 1 },
-                        { "account/settings", 1 },
-                        { "account/subaccounts", 1 },
-                        { "account/summary", 1 },
-                        { "balance", 1 },
-                        { "fills", 1 },
-                        { "funding/payments", 1 },
-                        { "positions", 1 },
-                        { "tradebusts", 1 },
-                        { "transactions", 1 },
-                        { "account/keys/subkeys", 1 },
-                        { "account/keys/subkeys/{public_key}", 1 },
-                        { "account/tokens", 1 },
-                        { "algo/orders", 1 },
-                        { "algo/orders-history", 1 },
-                        { "algo/orders/{algo_id}", 1 },
-                        { "block-trades", 1 },
-                        { "block-trades/{block_trade_id}", 1 },
-                        { "block-trades/{block_trade_id}/offers", 1 },
-                        { "block-trades/{block_trade_id}/offers/{offer_id}", 1 },
-                        { "liquidations", 1 },
-                        { "orders", 1 },
-                        { "orders-history", 1 },
-                        { "orders/by_client_id/{client_id}", 1 },
-                        { "orders/{order_id}", 1 },
-                        { "referrals/qr-code", 1 },
-                        { "referrals/summary", 1 },
-                        { "staking/history", 1 },
-                        { "staking/summary", 1 },
-                        { "transfers", 1 },
-                        { "vaults/account-summary", 1 },
-                        { "vaults/mine", 1 },
-                        { "xp/account-balance", 1 },
-                        { "xp/transfers", 1 },
+                        { "account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/compliance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/margin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/profile", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/settings", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/subaccounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/summary", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fills", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding/payments", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tradebusts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/keys/subkeys", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/keys/subkeys/{public_key}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/tokens", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "algo/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "algo/orders-history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "algo/orders/{algo_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "block-trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "block-trades/{block_trade_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "block-trades/{block_trade_id}/offers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "block-trades/{block_trade_id}/offers/{offer_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "liquidations", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders-history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/by_client_id/{client_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "referrals/qr-code", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "referrals/summary", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "staking/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "staking/summary", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vaults/account-summary", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vaults/mine", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "xp/account-balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "xp/transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "account/compliance", 1 },
-                        { "account/margin/{market}", 1 },
-                        { "account/profile/market_max_slippage/{market}", 1 },
-                        { "account/profile/notifications", 1 },
-                        { "account/profile/notifications/last_seen", 1 },
-                        { "account/profile/referral_code", 1 },
-                        { "account/profile/refresh_inventory", 1 },
-                        { "account/profile/size_currency_display", 1 },
-                        { "account/profile/username", 1 },
-                        { "account/referrer", 1 },
-                        { "account/settings/trading_value_display", 1 },
-                        { "account/keys/subkeys/activate", 1 },
-                        { "account/keys/subkeys", 1 },
-                        { "account/tokens", 1 },
-                        { "algo/orders", 1 },
-                        { "auth", 1 },
-                        { "block-trades", 1 },
-                        { "block-trades/{block_trade_id}/execute", 1 },
-                        { "block-trades/{block_trade_id}/offers", 1 },
-                        { "block-trades/{block_trade_id}/offers/{offer_id}/execute", 1 },
-                        { "onboarding", 1 },
-                        { "orders", 1 },
-                        { "orders/batch", 1 },
-                        { "v2/auth", 1 },
-                        { "v2/onboarding", 1 },
-                        { "vaults", 1 },
-                        { "xp/transfer", 1 },
+                        { "account/compliance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/margin/{market}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/profile/market_max_slippage/{market}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/profile/notifications", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/profile/notifications/last_seen", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/profile/referral_code", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/profile/refresh_inventory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/profile/size_currency_display", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/profile/username", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/referrer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/settings/trading_value_display", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/keys/subkeys/activate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/keys/subkeys", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/tokens", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "algo/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "block-trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "block-trades/{block_trade_id}/execute", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "block-trades/{block_trade_id}/offers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "block-trades/{block_trade_id}/offers/{offer_id}/execute", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "onboarding", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/batch", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/auth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/onboarding", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vaults", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "xp/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
-                        { "account/profile", 1 },
-                        { "account/keys/subkeys/{public_key}", 1 },
-                        { "orders/{order_id}", 1 },
+                        { "account/profile", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/keys/subkeys/{public_key}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "account/keys/subkeys/{public_key}", 1 },
-                        { "account/tokens/{lookup_id}", 1 },
-                        { "algo/orders/{algo_id}", 1 },
-                        { "block-trades/{block_trade_id}", 1 },
-                        { "block-trades/{block_trade_id}/offers/{offer_id}", 1 },
-                        { "orders", 1 },
-                        { "orders/batch", 1 },
-                        { "orders/by_client_id/{client_id}", 1 },
-                        { "orders/{order_id}", 1 },
+                        { "account/keys/subkeys/{public_key}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/tokens/{lookup_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "algo/orders/{algo_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "block-trades/{block_trade_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "block-trades/{block_trade_id}/offers/{offer_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/batch", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/by_client_id/{client_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -1376,7 +1598,7 @@ public partial class paradex : Exchange
         // }
         //
         ((IDictionary<string,object>)this.options)["systemConfig"] = response;
-        return response;
+        return this.safeDict(this.options, "systemConfig", new Dictionary<string, object>() {});
     }
 
     public async virtual Task<object> prepareParadexDomain(object l1 = null)

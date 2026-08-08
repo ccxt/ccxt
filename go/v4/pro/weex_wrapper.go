@@ -1217,7 +1217,7 @@ func (this *Weex) FetchPosition(symbol string, options ...ccxt.FetchPositionOpti
 func (this *Weex) FetchPositionHistory(symbol string, options ...ccxt.FetchPositionHistoryOptions) ([]ccxt.Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Weex) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]any, error) {
+func (this *Weex) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (ccxt.PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Weex) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccxt.Position, error) {
@@ -1235,7 +1235,7 @@ func (this *Weex) FetchPositionsRisk(options ...ccxt.FetchPositionsRiskOptions) 
 func (this *Weex) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchPremiumIndexOHLCVOptions) ([]ccxt.OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Weex) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Weex) FetchStatus(params ...any) (ccxt.Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Weex) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions) (ccxt.Ticker, error) {
@@ -1370,7 +1370,7 @@ func (this *Weex) FetchBalanceWs(params ...any) (ccxt.Balances, error) {
 func (this *Weex) FetchClosedOrdersWs(options ...ccxt.FetchClosedOrdersWsOptions) ([]ccxt.Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Weex) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Weex) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Weex) FetchMyTradesWs(options ...ccxt.FetchMyTradesWsOptions) ([]ccxt.Trade, error) {
@@ -1415,7 +1415,7 @@ func (this *Weex) FetchTradesWs(symbol string, options ...ccxt.FetchTradesWsOpti
 func (this *Weex) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Weex) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Weex) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Weex) WatchLiquidations(symbol string, options ...ccxt.WatchLiquidationsOptions) ([]ccxt.Liquidation, error) {

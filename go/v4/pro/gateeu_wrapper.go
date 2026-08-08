@@ -344,7 +344,7 @@ func (this *Gateeu) FetchPosition(symbol string, options ...ccxt.FetchPositionOp
 func (this *Gateeu) FetchPositionHistory(symbol string, options ...ccxt.FetchPositionHistoryOptions) ([]ccxt.Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Gateeu) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]any, error) {
+func (this *Gateeu) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (ccxt.PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Gateeu) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccxt.Position, error) {
@@ -362,7 +362,7 @@ func (this *Gateeu) FetchPositionsRisk(options ...ccxt.FetchPositionsRiskOptions
 func (this *Gateeu) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchPremiumIndexOHLCVOptions) ([]ccxt.OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Gateeu) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Gateeu) FetchStatus(params ...any) (ccxt.Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Gateeu) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions) (ccxt.Ticker, error) {
@@ -497,7 +497,7 @@ func (this *Gateeu) FetchBalanceWs(params ...any) (ccxt.Balances, error) {
 func (this *Gateeu) FetchClosedOrdersWs(options ...ccxt.FetchClosedOrdersWsOptions) ([]ccxt.Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Gateeu) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Gateeu) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Gateeu) FetchMyTradesWs(options ...ccxt.FetchMyTradesWsOptions) ([]ccxt.Trade, error) {
@@ -542,7 +542,7 @@ func (this *Gateeu) FetchTradesWs(symbol string, options ...ccxt.FetchTradesWsOp
 func (this *Gateeu) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Gateeu) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Gateeu) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Gateeu) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {

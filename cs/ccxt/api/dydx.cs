@@ -11,271 +11,379 @@ public partial class dydx : Exchange
 {
     public dydx (object args = null): base(args) {}
 
+    /// <summary>Calls the indexerGetAddressesAddress endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetAddressesAddress (object parameters = null)
     {
         return await this.callAsync ("indexerGetAddressesAddress",parameters);
     }
 
+    /// <summary>Calls the indexerGetAddressesAddressParentSubaccountNumberNumber endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetAddressesAddressParentSubaccountNumberNumber (object parameters = null)
     {
         return await this.callAsync ("indexerGetAddressesAddressParentSubaccountNumberNumber",parameters);
     }
 
+    /// <summary>Calls the indexerGetAddressesAddressSubaccountNumberSubaccountNumber endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetAddressesAddressSubaccountNumberSubaccountNumber (object parameters = null)
     {
         return await this.callAsync ("indexerGetAddressesAddressSubaccountNumberSubaccountNumber",parameters);
     }
 
+    /// <summary>Calls the indexerGetAssetPositions endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetAssetPositions (object parameters = null)
     {
         return await this.callAsync ("indexerGetAssetPositions",parameters);
     }
 
+    /// <summary>Calls the indexerGetAssetPositionsParentSubaccountNumber endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetAssetPositionsParentSubaccountNumber (object parameters = null)
     {
         return await this.callAsync ("indexerGetAssetPositionsParentSubaccountNumber",parameters);
     }
 
+    /// <summary>Calls the indexerGetCandlesPerpetualMarketsMarket endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetCandlesPerpetualMarketsMarket (object parameters = null)
     {
         return await this.callAsync ("indexerGetCandlesPerpetualMarketsMarket",parameters);
     }
 
+    /// <summary>Calls the indexerGetComplianceScreenAddress endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetComplianceScreenAddress (object parameters = null)
     {
         return await this.callAsync ("indexerGetComplianceScreenAddress",parameters);
     }
 
+    /// <summary>Calls the indexerGetFills endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetFills (object parameters = null)
     {
         return await this.callAsync ("indexerGetFills",parameters);
     }
 
+    /// <summary>Calls the indexerGetFillsParentSubaccountNumber endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetFillsParentSubaccountNumber (object parameters = null)
     {
         return await this.callAsync ("indexerGetFillsParentSubaccountNumber",parameters);
     }
 
+    /// <summary>Calls the indexerGetFundingPayments endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetFundingPayments (object parameters = null)
     {
         return await this.callAsync ("indexerGetFundingPayments",parameters);
     }
 
+    /// <summary>Calls the indexerGetFundingPaymentsParentSubaccount endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetFundingPaymentsParentSubaccount (object parameters = null)
     {
         return await this.callAsync ("indexerGetFundingPaymentsParentSubaccount",parameters);
     }
 
+    /// <summary>Calls the indexerGetHeight endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetHeight (object parameters = null)
     {
         return await this.callAsync ("indexerGetHeight",parameters);
     }
 
+    /// <summary>Calls the indexerGetHistoricalPnl endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetHistoricalPnl (object parameters = null)
     {
         return await this.callAsync ("indexerGetHistoricalPnl",parameters);
     }
 
+    /// <summary>Calls the indexerGetHistoricalPnlParentSubaccountNumber endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetHistoricalPnlParentSubaccountNumber (object parameters = null)
     {
         return await this.callAsync ("indexerGetHistoricalPnlParentSubaccountNumber",parameters);
     }
 
+    /// <summary>Calls the indexerGetHistoricalBlockTradingRewardsAddress endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetHistoricalBlockTradingRewardsAddress (object parameters = null)
     {
         return await this.callAsync ("indexerGetHistoricalBlockTradingRewardsAddress",parameters);
     }
 
+    /// <summary>Calls the indexerGetHistoricalFundingMarket endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetHistoricalFundingMarket (object parameters = null)
     {
         return await this.callAsync ("indexerGetHistoricalFundingMarket",parameters);
     }
 
+    /// <summary>Calls the indexerGetHistoricalTradingRewardAggregationsAddress endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetHistoricalTradingRewardAggregationsAddress (object parameters = null)
     {
         return await this.callAsync ("indexerGetHistoricalTradingRewardAggregationsAddress",parameters);
     }
 
+    /// <summary>Calls the indexerGetOrderbooksPerpetualMarketMarket endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetOrderbooksPerpetualMarketMarket (object parameters = null)
     {
         return await this.callAsync ("indexerGetOrderbooksPerpetualMarketMarket",parameters);
     }
 
+    /// <summary>Calls the indexerGetOrders endpoint.</summary>
+    /// <returns>a JSON array (runtime type: List<object>)</returns>
     public async Task<object> indexerGetOrders (object parameters = null)
     {
         return await this.callAsync ("indexerGetOrders",parameters);
     }
 
+    /// <summary>Calls the indexerGetOrdersParentSubaccountNumber endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetOrdersParentSubaccountNumber (object parameters = null)
     {
         return await this.callAsync ("indexerGetOrdersParentSubaccountNumber",parameters);
     }
 
+    /// <summary>Calls the indexerGetOrdersOrderId endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetOrdersOrderId (object parameters = null)
     {
         return await this.callAsync ("indexerGetOrdersOrderId",parameters);
     }
 
+    /// <summary>Calls the indexerGetPerpetualMarkets endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetPerpetualMarkets (object parameters = null)
     {
         return await this.callAsync ("indexerGetPerpetualMarkets",parameters);
     }
 
+    /// <summary>Calls the indexerGetPerpetualPositions endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetPerpetualPositions (object parameters = null)
     {
         return await this.callAsync ("indexerGetPerpetualPositions",parameters);
     }
 
+    /// <summary>Calls the indexerGetPerpetualPositionsParentSubaccountNumber endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetPerpetualPositionsParentSubaccountNumber (object parameters = null)
     {
         return await this.callAsync ("indexerGetPerpetualPositionsParentSubaccountNumber",parameters);
     }
 
+    /// <summary>Calls the indexerGetScreen endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetScreen (object parameters = null)
     {
         return await this.callAsync ("indexerGetScreen",parameters);
     }
 
+    /// <summary>Calls the indexerGetSparklines endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetSparklines (object parameters = null)
     {
         return await this.callAsync ("indexerGetSparklines",parameters);
     }
 
+    /// <summary>Calls the indexerGetTime endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetTime (object parameters = null)
     {
         return await this.callAsync ("indexerGetTime",parameters);
     }
 
+    /// <summary>Calls the indexerGetTradesPerpetualMarketMarket endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetTradesPerpetualMarketMarket (object parameters = null)
     {
         return await this.callAsync ("indexerGetTradesPerpetualMarketMarket",parameters);
     }
 
+    /// <summary>Calls the indexerGetTransfers endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetTransfers (object parameters = null)
     {
         return await this.callAsync ("indexerGetTransfers",parameters);
     }
 
+    /// <summary>Calls the indexerGetTransfersBetween endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetTransfersBetween (object parameters = null)
     {
         return await this.callAsync ("indexerGetTransfersBetween",parameters);
     }
 
+    /// <summary>Calls the indexerGetTransfersParentSubaccountNumber endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetTransfersParentSubaccountNumber (object parameters = null)
     {
         return await this.callAsync ("indexerGetTransfersParentSubaccountNumber",parameters);
     }
 
+    /// <summary>Calls the indexerGetVaultV1MegavaultHistoricalPnl endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetVaultV1MegavaultHistoricalPnl (object parameters = null)
     {
         return await this.callAsync ("indexerGetVaultV1MegavaultHistoricalPnl",parameters);
     }
 
+    /// <summary>Calls the indexerGetVaultV1MegavaultPositions endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetVaultV1MegavaultPositions (object parameters = null)
     {
         return await this.callAsync ("indexerGetVaultV1MegavaultPositions",parameters);
     }
 
+    /// <summary>Calls the indexerGetVaultV1VaultsHistoricalPnl endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetVaultV1VaultsHistoricalPnl (object parameters = null)
     {
         return await this.callAsync ("indexerGetVaultV1VaultsHistoricalPnl",parameters);
     }
 
+    /// <summary>Calls the indexerGetPerpetualMarketSparklines endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetPerpetualMarketSparklines (object parameters = null)
     {
         return await this.callAsync ("indexerGetPerpetualMarketSparklines",parameters);
     }
 
+    /// <summary>Calls the indexerGetPerpetualMarketsTicker endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetPerpetualMarketsTicker (object parameters = null)
     {
         return await this.callAsync ("indexerGetPerpetualMarketsTicker",parameters);
     }
 
+    /// <summary>Calls the indexerGetPerpetualMarketsTickerOrderbook endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetPerpetualMarketsTickerOrderbook (object parameters = null)
     {
         return await this.callAsync ("indexerGetPerpetualMarketsTickerOrderbook",parameters);
     }
 
+    /// <summary>Calls the indexerGetTradesPerpetualMarketTicker endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetTradesPerpetualMarketTicker (object parameters = null)
     {
         return await this.callAsync ("indexerGetTradesPerpetualMarketTicker",parameters);
     }
 
+    /// <summary>Calls the indexerGetHistoricalFundingTicker endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetHistoricalFundingTicker (object parameters = null)
     {
         return await this.callAsync ("indexerGetHistoricalFundingTicker",parameters);
     }
 
+    /// <summary>Calls the indexerGetCandlesTickerResolution endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetCandlesTickerResolution (object parameters = null)
     {
         return await this.callAsync ("indexerGetCandlesTickerResolution",parameters);
     }
 
+    /// <summary>Calls the indexerGetAddressesAddressSubaccounts endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetAddressesAddressSubaccounts (object parameters = null)
     {
         return await this.callAsync ("indexerGetAddressesAddressSubaccounts",parameters);
     }
 
+    /// <summary>Calls the indexerGetAddressesAddressSubaccountNumberSubaccountNumberAssetPositions endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetAddressesAddressSubaccountNumberSubaccountNumberAssetPositions (object parameters = null)
     {
         return await this.callAsync ("indexerGetAddressesAddressSubaccountNumberSubaccountNumberAssetPositions",parameters);
     }
 
+    /// <summary>Calls the indexerGetAddressesAddressSubaccountNumberSubaccountNumberPerpetualPositions endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetAddressesAddressSubaccountNumberSubaccountNumberPerpetualPositions (object parameters = null)
     {
         return await this.callAsync ("indexerGetAddressesAddressSubaccountNumberSubaccountNumberPerpetualPositions",parameters);
     }
 
+    /// <summary>Calls the indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders (object parameters = null)
     {
         return await this.callAsync ("indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders",parameters);
     }
 
+    /// <summary>Calls the indexerGetFillsParentSubaccount endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetFillsParentSubaccount (object parameters = null)
     {
         return await this.callAsync ("indexerGetFillsParentSubaccount",parameters);
     }
 
+    /// <summary>Calls the indexerGetHistoricalPnlParentSubaccount endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> indexerGetHistoricalPnlParentSubaccount (object parameters = null)
     {
         return await this.callAsync ("indexerGetHistoricalPnlParentSubaccount",parameters);
     }
 
+    /// <summary>Calls the nodeRpcGetAbciInfo endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> nodeRpcGetAbciInfo (object parameters = null)
     {
         return await this.callAsync ("nodeRpcGetAbciInfo",parameters);
     }
 
+    /// <summary>Calls the nodeRpcGetBlock endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> nodeRpcGetBlock (object parameters = null)
     {
         return await this.callAsync ("nodeRpcGetBlock",parameters);
     }
 
+    /// <summary>Calls the nodeRpcGetBroadcastTxAsync endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> nodeRpcGetBroadcastTxAsync (object parameters = null)
     {
         return await this.callAsync ("nodeRpcGetBroadcastTxAsync",parameters);
     }
 
+    /// <summary>Calls the nodeRpcGetBroadcastTxSync endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> nodeRpcGetBroadcastTxSync (object parameters = null)
     {
         return await this.callAsync ("nodeRpcGetBroadcastTxSync",parameters);
     }
 
+    /// <summary>Calls the nodeRpcGetTx endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> nodeRpcGetTx (object parameters = null)
     {
         return await this.callAsync ("nodeRpcGetTx",parameters);
     }
 
+    /// <summary>Calls the nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress (object parameters = null)
     {
         return await this.callAsync ("nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress",parameters);
     }
 
+    /// <summary>Calls the nodeRestPostCosmosTxV1beta1Encode endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> nodeRestPostCosmosTxV1beta1Encode (object parameters = null)
     {
         return await this.callAsync ("nodeRestPostCosmosTxV1beta1Encode",parameters);
     }
 
+    /// <summary>Calls the nodeRestPostCosmosTxV1beta1Simulate endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> nodeRestPostCosmosTxV1beta1Simulate (object parameters = null)
     {
         return await this.callAsync ("nodeRestPostCosmosTxV1beta1Simulate",parameters);

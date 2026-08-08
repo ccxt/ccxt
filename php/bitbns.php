@@ -82,52 +82,52 @@ class bitbns extends Exchange {
             'api' => array(
                 'www' => array(
                     'get' => array(
-                        'order/fetchMarkets',
-                        'order/fetchTickers',
-                        'order/fetchOrderbook',
-                        'order/getTickerWithVolume',
-                        'exchangeData/ohlc', // ?coin=${coin_name}&page=${page}
-                        'exchangeData/orderBook',
-                        'exchangeData/tradedetails',
+                        'order/fetchMarkets' => array( 'cost' => 1 ),
+                        'order/fetchTickers' => array( 'cost' => 1 ),
+                        'order/fetchOrderbook' => array( 'cost' => 1 ),
+                        'order/getTickerWithVolume' => array( 'cost' => 1 ),
+                        'exchangeData/ohlc' => array( 'cost' => 1 ),
+                        'exchangeData/orderBook' => array( 'cost' => 1 ),
+                        'exchangeData/tradedetails' => array( 'cost' => 1 ),
                     ),
                 ),
                 'v1' => array(
                     'get' => array(
-                        'platform/status',
-                        'tickers',
-                        'orderbook/sell/{symbol}',
-                        'orderbook/buy/{symbol}',
+                        'platform/status' => array( 'cost' => 1 ),
+                        'tickers' => array( 'cost' => 1 ),
+                        'orderbook/sell/{symbol}' => array( 'cost' => 1 ),
+                        'orderbook/buy/{symbol}' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'currentCoinBalance/EVERYTHING',
-                        'getApiUsageStatus/USAGE',
-                        'getOrderSocketToken/USAGE',
-                        'currentCoinBalance/{symbol}',
-                        'orderStatus/{symbol}',
-                        'depositHistory/{symbol}',
-                        'withdrawHistory/{symbol}',
-                        'withdrawHistoryAll/{symbol}',
-                        'depositHistoryAll/{symbol}',
-                        'listOpenOrders/{symbol}',
-                        'listOpenStopOrders/{symbol}',
-                        'getCoinAddress/{symbol}',
-                        'placeSellOrder/{symbol}',
-                        'placeBuyOrder/{symbol}',
-                        'buyStopLoss/{symbol}',
-                        'sellStopLoss/{symbol}',
-                        'cancelOrder/{symbol}',
-                        'cancelStopLossOrder/{symbol}',
-                        'listExecutedOrders/{symbol}',
-                        'placeMarketOrder/{symbol}',
-                        'placeMarketOrderQnty/{symbol}',
+                        'currentCoinBalance/EVERYTHING' => array( 'cost' => 1 ),
+                        'getApiUsageStatus/USAGE' => array( 'cost' => 1 ),
+                        'getOrderSocketToken/USAGE' => array( 'cost' => 1 ),
+                        'currentCoinBalance/{symbol}' => array( 'cost' => 1 ),
+                        'orderStatus/{symbol}' => array( 'cost' => 1 ),
+                        'depositHistory/{symbol}' => array( 'cost' => 1 ),
+                        'withdrawHistory/{symbol}' => array( 'cost' => 1 ),
+                        'withdrawHistoryAll/{symbol}' => array( 'cost' => 1 ),
+                        'depositHistoryAll/{symbol}' => array( 'cost' => 1 ),
+                        'listOpenOrders/{symbol}' => array( 'cost' => 1 ),
+                        'listOpenStopOrders/{symbol}' => array( 'cost' => 1 ),
+                        'getCoinAddress/{symbol}' => array( 'cost' => 1 ),
+                        'placeSellOrder/{symbol}' => array( 'cost' => 1 ),
+                        'placeBuyOrder/{symbol}' => array( 'cost' => 1 ),
+                        'buyStopLoss/{symbol}' => array( 'cost' => 1 ),
+                        'sellStopLoss/{symbol}' => array( 'cost' => 1 ),
+                        'cancelOrder/{symbol}' => array( 'cost' => 1 ),
+                        'cancelStopLossOrder/{symbol}' => array( 'cost' => 1 ),
+                        'listExecutedOrders/{symbol}' => array( 'cost' => 1 ),
+                        'placeMarketOrder/{symbol}' => array( 'cost' => 1 ),
+                        'placeMarketOrderQnty/{symbol}' => array( 'cost' => 1 ),
                     ),
                 ),
                 'v2' => array(
                     'post' => array(
-                        'orders',
-                        'cancel',
-                        'getordersnew',
-                        'marginOrders',
+                        'orders' => array( 'cost' => 1 ),
+                        'cancel' => array( 'cost' => 1 ),
+                        'getordersnew' => array( 'cost' => 1 ),
+                        'marginOrders' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -216,7 +216,7 @@ class bitbns extends Exchange {
         ));
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -276,8 +276,9 @@ class bitbns extends Exchange {
         //     )
         //
         $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $market = $response[$i];
+        $rawMarkets = $this->to_array($response);
+        for ($i = 0; $i < count($rawMarkets); $i++) {
+            $market = $rawMarkets[$i];
             $id = $this->safe_string($market, 'id');
             $baseId = $this->safe_string($market, 'base');
             $quoteId = $this->safe_string($market, 'quote');

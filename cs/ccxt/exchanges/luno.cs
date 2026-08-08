@@ -45,6 +45,8 @@ public partial class luno : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositWithdrawFee", true },
+                { "fetchDepositWithdrawFees", false },
                 { "fetchFundingHistory", false },
                 { "fetchFundingInterval", false },
                 { "fetchFundingIntervals", false },
@@ -125,66 +127,146 @@ public partial class luno : Exchange
             { "api", new Dictionary<string, object>() {
                 { "exchange", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "markets", 1 },
+                        { "markets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "exchangePrivate", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "candles", 1 },
-                        { "move", 1 },
-                        { "move/list_moves", 1 },
-                        { "transfers", 1 },
+                        { "candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "move", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "move/list_moves", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "convert", 1 },
-                        { "move", 1 },
+                        { "convert", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "move", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "orderbook", 1 },
-                        { "orderbook_top", 1 },
-                        { "ticker", 1 },
-                        { "tickers", 1 },
-                        { "trades", 1 },
+                        { "orderbook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbook_top", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "accounts/{id}/pending", 1 },
-                        { "accounts/{id}/transactions", 1 },
-                        { "balance", 1 },
-                        { "beneficiaries", 1 },
-                        { "send/networks", 1 },
-                        { "fee_info", 1 },
-                        { "funding_address", 1 },
-                        { "listorders", 1 },
-                        { "listtrades", 1 },
-                        { "send_fee", 1 },
-                        { "orders/{id}", 1 },
-                        { "withdrawals", 1 },
-                        { "withdrawals/{id}", 1 },
-                        { "transfers", 1 },
-                        { "users/linked", 1 },
+                        { "accounts/{id}/pending", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accounts/{id}/transactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "beneficiaries", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "send/networks", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fee_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding_address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "listorders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "listtrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "send_fee", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/linked", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "accounts", 1 },
-                        { "address/validate", 1 },
-                        { "postorder", 1 },
-                        { "marketorder", 1 },
-                        { "stoporder", 1 },
-                        { "funding_address", 1 },
-                        { "withdrawals", 1 },
-                        { "send", 1 },
-                        { "oauth2/grant", 1 },
-                        { "beneficiaries", 1 },
+                        { "accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "address/validate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "postorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "marketorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "stoporder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding_address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "send", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "oauth2/grant", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "beneficiaries", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
-                        { "accounts/{id}/name", 1 },
+                        { "accounts/{id}/name", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "withdrawals/{id}", 1 },
-                        { "beneficiaries/{id}", 1 },
+                        { "withdrawals/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "beneficiaries/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -948,7 +1030,8 @@ public partial class luno : Exchange
         }
         symbols = this.marketSymbols(symbols);
         object response = await this.publicGetTickers(parameters);
-        object tickers = this.indexBy(getValue(response, "tickers"), "pair");
+        object rawTickers = this.safeList(response, "tickers", new List<object>() {});
+        object tickers = this.indexBy(rawTickers, "pair");
         object ids = new List<object>(((IDictionary<string,object>)tickers).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
@@ -1705,6 +1788,42 @@ public partial class luno : Exchange
             { "address", this.safeString(depositAddress, "address") },
             { "tag", this.safeString(depositAddress, "name") },
         };
+    }
+
+    /**
+     * @method
+     * @name luno#fetchDepositWithdrawFee
+     * @description fetch the fee for sending (withdrawing) a currency to a specific address; luno quotes the network fee per destination, so an address is required, see https://github.com/ccxt/ccxt/issues/25830
+     * @see https://www.luno.com/en/developers/api#tag/Send/operation/SendFee
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.address the destination address luno should quote the send fee for (required by the exchange)
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public async override Task<object> fetchDepositWithdrawFee(object code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object address = this.safeString(parameters, "address");
+        if (isTrue(isEqual(address, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchDepositWithdrawFee() requires an \"address\" parameter - luno quotes the send fee per destination address")) ;
+        }
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+        };
+        object response = await this.privateGetSendFee(this.extend(request, parameters));
+        //
+        //     {
+        //         "currency": "XBT",
+        //         "fee": "0.00015"
+        //     }
+        //
+        object result = this.depositWithdrawFee(response);
+        ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.safeNumber(response, "fee");
+        ((IDictionary<string,object>)getValue(result, "withdraw"))["percentage"] = false;
+        return this.assignDefaultDepositWithdrawFees(result, currency);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

@@ -1,5 +1,5 @@
 import Exchange from './abstract/deribit.js';
-import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Greeks, Int, Liquidation, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, NullableDict, int, FundingRate, DepositAddress, Position, DepositWithdrawFees } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Greeks, Int, Liquidation, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, NullableDict, int, FundingRate, DepositAddress, Position, DepositWithdrawFees, Status } from './base/types.js';
 /**
  * @class deribit
  * @augments Exchange
@@ -36,13 +36,7 @@ export default class deribit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: Int;
-        eta: undefined;
-        url: undefined;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name deribit#fetchAccounts

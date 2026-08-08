@@ -446,7 +446,7 @@ func (this *Coinone) FetchPosition(symbol string, options ...ccxt.FetchPositionO
 func (this *Coinone) FetchPositionHistory(symbol string, options ...ccxt.FetchPositionHistoryOptions) ([]ccxt.Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Coinone) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]any, error) {
+func (this *Coinone) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (ccxt.PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Coinone) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccxt.Position, error) {
@@ -464,7 +464,7 @@ func (this *Coinone) FetchPositionsRisk(options ...ccxt.FetchPositionsRiskOption
 func (this *Coinone) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchPremiumIndexOHLCVOptions) ([]ccxt.OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Coinone) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Coinone) FetchStatus(params ...any) (ccxt.Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Coinone) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions) (ccxt.Ticker, error) {
@@ -599,7 +599,7 @@ func (this *Coinone) FetchBalanceWs(params ...any) (ccxt.Balances, error) {
 func (this *Coinone) FetchClosedOrdersWs(options ...ccxt.FetchClosedOrdersWsOptions) ([]ccxt.Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Coinone) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Coinone) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Coinone) FetchMyTradesWs(options ...ccxt.FetchMyTradesWsOptions) ([]ccxt.Trade, error) {
@@ -644,7 +644,7 @@ func (this *Coinone) FetchTradesWs(symbol string, options ...ccxt.FetchTradesWsO
 func (this *Coinone) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Coinone) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Coinone) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Coinone) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {

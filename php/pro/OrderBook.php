@@ -39,14 +39,17 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
     }
 
     public function reset($snapshot = array()) {
-        $this['asks']->index = array(PHP_FLOAT_MAX, PHP_FLOAT_MAX);
+        // phantom FLOAT_MAX sentinels desynced index vs data (+2 at every reset) and corrupted
+        // books under limit() - real prices left in the index tail with no data rows behind them,
+        // producing {"1": size} rows and stale levels, see https://github.com/ccxt/ccxt/issues/26967
+        $this['asks']->index = array();
         $this['asks']->exchangeArray(array());
         if (array_key_exists('asks', $snapshot) && is_array($snapshot['asks'])) {
             foreach ($snapshot['asks'] as $delta) {
                 $this['asks']->storeArray ($delta);
             }
         }
-        $this['bids']->index = array(PHP_FLOAT_MAX, PHP_FLOAT_MAX);
+        $this['bids']->index = array();
         $this['bids']->exchangeArray(array());
         if (array_key_exists('bids', $snapshot) && is_array($snapshot['bids'])) {
             foreach ($snapshot['bids'] as $delta) {

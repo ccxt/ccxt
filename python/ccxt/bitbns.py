@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitbns import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -92,54 +92,54 @@ class bitbns(Exchange, ImplicitAPI):
             },
             'api': {
                 'www': {
-                    'get': [
-                        'order/fetchMarkets',
-                        'order/fetchTickers',
-                        'order/fetchOrderbook',
-                        'order/getTickerWithVolume',
-                        'exchangeData/ohlc',  # ?coin=${coin_name}&page=${page}
-                        'exchangeData/orderBook',
-                        'exchangeData/tradedetails',
-                    ],
+                    'get': {
+                        'order/fetchMarkets': {'cost': 1},
+                        'order/fetchTickers': {'cost': 1},
+                        'order/fetchOrderbook': {'cost': 1},
+                        'order/getTickerWithVolume': {'cost': 1},
+                        'exchangeData/ohlc': {'cost': 1},
+                        'exchangeData/orderBook': {'cost': 1},
+                        'exchangeData/tradedetails': {'cost': 1},
+                    },
                 },
                 'v1': {
-                    'get': [
-                        'platform/status',
-                        'tickers',
-                        'orderbook/sell/{symbol}',
-                        'orderbook/buy/{symbol}',
-                    ],
-                    'post': [
-                        'currentCoinBalance/EVERYTHING',
-                        'getApiUsageStatus/USAGE',
-                        'getOrderSocketToken/USAGE',
-                        'currentCoinBalance/{symbol}',
-                        'orderStatus/{symbol}',
-                        'depositHistory/{symbol}',
-                        'withdrawHistory/{symbol}',
-                        'withdrawHistoryAll/{symbol}',
-                        'depositHistoryAll/{symbol}',
-                        'listOpenOrders/{symbol}',
-                        'listOpenStopOrders/{symbol}',
-                        'getCoinAddress/{symbol}',
-                        'placeSellOrder/{symbol}',
-                        'placeBuyOrder/{symbol}',
-                        'buyStopLoss/{symbol}',
-                        'sellStopLoss/{symbol}',
-                        'cancelOrder/{symbol}',
-                        'cancelStopLossOrder/{symbol}',
-                        'listExecutedOrders/{symbol}',
-                        'placeMarketOrder/{symbol}',
-                        'placeMarketOrderQnty/{symbol}',
-                    ],
+                    'get': {
+                        'platform/status': {'cost': 1},
+                        'tickers': {'cost': 1},
+                        'orderbook/sell/{symbol}': {'cost': 1},
+                        'orderbook/buy/{symbol}': {'cost': 1},
+                    },
+                    'post': {
+                        'currentCoinBalance/EVERYTHING': {'cost': 1},
+                        'getApiUsageStatus/USAGE': {'cost': 1},
+                        'getOrderSocketToken/USAGE': {'cost': 1},
+                        'currentCoinBalance/{symbol}': {'cost': 1},
+                        'orderStatus/{symbol}': {'cost': 1},
+                        'depositHistory/{symbol}': {'cost': 1},
+                        'withdrawHistory/{symbol}': {'cost': 1},
+                        'withdrawHistoryAll/{symbol}': {'cost': 1},
+                        'depositHistoryAll/{symbol}': {'cost': 1},
+                        'listOpenOrders/{symbol}': {'cost': 1},
+                        'listOpenStopOrders/{symbol}': {'cost': 1},
+                        'getCoinAddress/{symbol}': {'cost': 1},
+                        'placeSellOrder/{symbol}': {'cost': 1},
+                        'placeBuyOrder/{symbol}': {'cost': 1},
+                        'buyStopLoss/{symbol}': {'cost': 1},
+                        'sellStopLoss/{symbol}': {'cost': 1},
+                        'cancelOrder/{symbol}': {'cost': 1},
+                        'cancelStopLossOrder/{symbol}': {'cost': 1},
+                        'listExecutedOrders/{symbol}': {'cost': 1},
+                        'placeMarketOrder/{symbol}': {'cost': 1},
+                        'placeMarketOrderQnty/{symbol}': {'cost': 1},
+                    },
                 },
                 'v2': {
-                    'post': [
-                        'orders',
-                        'cancel',
-                        'getordersnew',
-                        'marginOrders',
-                    ],
+                    'post': {
+                        'orders': {'cost': 1},
+                        'cancel': {'cost': 1},
+                        'getordersnew': {'cost': 1},
+                        'marginOrders': {'cost': 1},
+                    },
                 },
             },
             'fees': {
@@ -226,7 +226,7 @@ class bitbns(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_status(self, params={}):
+    def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -285,8 +285,9 @@ class bitbns(Exchange, ImplicitAPI):
         #     ]
         #
         result = []
-        for i in range(0, len(response)):
-            market = response[i]
+        rawMarkets = self.to_array(response)
+        for i in range(0, len(rawMarkets)):
+            market = rawMarkets[i]
             id = self.safe_string(market, 'id')
             baseId = self.safe_string(market, 'base')
             quoteId = self.safe_string(market, 'quote')

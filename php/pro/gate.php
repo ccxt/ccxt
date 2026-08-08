@@ -1578,6 +1578,8 @@ class gate extends \ccxt\async\gate {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] spot, margin, swap, future, or option. Required if listening to all symbols.
              * @param {boolean} [$params->isInverse] if future, listen to inverse or linear contracts
+             * @param {boolean} [$params->trigger] set to true to watch trigger $orders, spot.priceorders and futures.autoorders channels, see https://github.com/ccxt/ccxt/issues/27202
+             * @param {boolean} [$params->stop] alias of $params->trigger
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             if ($this->markets === null) {
@@ -1599,8 +1601,19 @@ class gate extends \ccxt\async\gate {
                 'swap' => 'futures',
                 'option' => 'options',
             ));
-            $channel = $typeId . '.orders';
-            $messageHash = 'orders';
+            $isTrigger = false;
+            list($isTrigger, $query) = $this->handle_param_bool_2($query, 'trigger', 'stop', false);
+            if ($isTrigger && ($typeId === 'options')) {
+                throw new NotSupported($this->id . ' watchOrders() does not support trigger $orders for options, see https://github.com/ccxt/ccxt/issues/27202');
+            }
+            // gate pushes trigger $orders on dedicated channels, spot.priceorders and futures.autoorders,
+            // see https://github.com/ccxt/ccxt/issues/27202
+            $suffix = '.orders';
+            if ($isTrigger) {
+                $suffix = ($typeId === 'spot') ? '.priceorders' : '.autoorders';
+            }
+            $channel = $typeId . $suffix;
+            $messageHash = $isTrigger ? 'triggerOrders' : 'orders';
             $payload = array( '!' . 'all' );
             if ($market !== null) {
                 $messageHash .= ':' . $market['id'];
@@ -1667,11 +1680,15 @@ class gate extends \ccxt\async\gate {
         //     }
         //
         $orders = $this->safe_value($message, 'result', array());
+        $channel = $this->safe_string($message, 'channel', '');
+        $isTrigger = (mb_strpos($channel, 'autoorders') !== false) || (mb_strpos($channel, 'priceorders') !== false);
+        $hashPrefix = $isTrigger ? 'triggerOrders' : 'orders';
         $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
         if ($this->orders === null) {
             $this->orders = new ArrayCacheBySymbolById($limit);
+            $this->triggerOrders = new ArrayCacheBySymbolById($limit);
         }
-        $stored = $this->orders;
+        $stored = $isTrigger ? $this->triggerOrders : $this->orders;
         $marketIds = array();
         $parsedOrders = $this->parse_orders($orders);
         for ($i = 0; $i < count($parsedOrders); $i++) {
@@ -1697,10 +1714,10 @@ class gate extends \ccxt\async\gate {
         }
         $keys = is_array($marketIds) ? array_keys($marketIds) : array();
         for ($i = 0; $i < count($keys); $i++) {
-            $messageHash = 'orders:' . $keys[$i];
-            $client->resolve($this->orders, $messageHash);
+            $messageHash = $hashPrefix . ':' . $keys[$i];
+            $client->resolve($stored, $messageHash);
         }
-        $client->resolve($this->orders, 'orders');
+        $client->resolve($stored, $hashPrefix);
     }
 
     public function watch_my_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2168,6 +2185,8 @@ class gate extends \ccxt\async\gate {
             'usertrades' => array($this, 'handle_my_trades'),
             'candlesticks' => array($this, 'handle_ohlcv'),
             'orders' => array($this, 'handle_order'),
+            'autoorders' => array($this, 'handle_order'), // futures trigger orders, see https://github.com/ccxt/ccxt/issues/27202
+            'priceorders' => array($this, 'handle_order'), // spot trigger orders
             'positions' => array($this, 'handle_positions'),
             'tickers' => array($this, 'handle_ticker'),
             'book_ticker' => array($this, 'handle_bid_ask'),

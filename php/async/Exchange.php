@@ -1938,6 +1938,11 @@ class BaseExchange extends \ccxt\BaseExchange {
                 'TRX' => array( 'primary' => 'TRX', 'secondary' => 'TRC20', 'default' => 'secondary' ),
                 'BTC' => array( 'primary' => 'BTC', 'secondary' => 'BRC20', 'default' => 'primary' ),
             ),
+            'backwardSupportedNetworkCodes' => array(
+                'ARB' => 'ARBITRUM',
+                'ARBONE' => 'ARBITRUM',
+                'ARBNOVA' => 'ARBITRUM_NOVA',
+            ),
         );
     }
 
@@ -3524,6 +3529,11 @@ class BaseExchange extends \ccxt\BaseExchange {
                 return $this->safe_string($networks[$networkCode], 'id');
             }
         }
+        // before returning the original input, try to match if it's backward-maintained $networkCode
+        $oldCodes = $this->safe_dict($this->options, 'backwardSupportedNetworkCodes', array());
+        if (is_array($oldCodes) && array_key_exists($networkCode ?? '', $oldCodes)) {
+            return $this->network_code_to_id($oldCodes[$networkCode], $currencyCode);
+        }
         return $networkCode;
     }
 
@@ -3745,10 +3755,10 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function parse_positions(array $positions, ?array $symbols = null, $params = array()) {
         $symbols = $this->market_symbols($symbols);
-        $positions = $this->to_array($positions);
+        $positionsArray = $this->to_array($positions);
         $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $position = $this->extend($this->parse_position($positions[$i]), $params);
+        for ($i = 0; $i < count($positionsArray); $i++) {
+            $position = $this->extend($this->parse_position($positionsArray[$i]), $params);
             $result[] = $position;
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
@@ -3763,34 +3773,34 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function parse_adl_ranks(array $ranks, ?array $symbols = null, $params = array()) {
         $symbols = $this->market_symbols($symbols);
-        $ranks = $this->to_array($ranks);
+        $ranksArray = $this->to_array($ranks);
         $result = array();
-        for ($i = 0; $i < count($ranks); $i++) {
-            $rank = $this->extend($this->parse_adl_rank($ranks[$i]), $params);
+        for ($i = 0; $i < count($ranksArray); $i++) {
+            $rank = $this->extend($this->parse_adl_rank($ranksArray[$i]), $params);
             $result[] = $rank;
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
     public function parse_accounts(array $accounts, $params = array()) {
-        $accounts = $this->to_array($accounts);
+        $accountsArray = $this->to_array($accounts);
         $result = array();
-        for ($i = 0; $i < count($accounts); $i++) {
-            $account = $this->extend($this->parse_account($accounts[$i]), $params);
+        for ($i = 0; $i < count($accountsArray); $i++) {
+            $account = $this->extend($this->parse_account($accountsArray[$i]), $params);
             $result[] = $account;
         }
         return $result;
     }
 
     public function parse_trades_helper(bool $isWs, array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        $trades = $this->to_array($trades);
+        $tradesArray = $this->to_array($trades);
         $result = array();
-        for ($i = 0; $i < count($trades); $i++) {
+        for ($i = 0; $i < count($tradesArray); $i++) {
             $parsed = null;
             if ($isWs) {
-                $parsed = $this->parse_ws_trade($trades[$i], $market);
+                $parsed = $this->parse_ws_trade($tradesArray[$i], $market);
             } else {
-                $parsed = $this->parse_trade($trades[$i], $market);
+                $parsed = $this->parse_trade($tradesArray[$i], $market);
             }
             $trade = $this->extend($parsed, $params);
             $result[] = $trade;
@@ -3809,10 +3819,10 @@ class BaseExchange extends \ccxt\BaseExchange {
     }
 
     public function parse_transactions(array $transactions, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        $transactions = $this->to_array($transactions);
+        $transactionsArray = $this->to_array($transactions);
         $result = array();
-        for ($i = 0; $i < count($transactions); $i++) {
-            $transaction = $this->extend($this->parse_transaction($transactions[$i], $currency), $params);
+        for ($i = 0; $i < count($transactionsArray); $i++) {
+            $transaction = $this->extend($this->parse_transaction($transactionsArray[$i], $currency), $params);
             $result[] = $transaction;
         }
         $result = $this->sort_by($result, 'timestamp');
@@ -3821,10 +3831,10 @@ class BaseExchange extends \ccxt\BaseExchange {
     }
 
     public function parse_transfers(array $transfers, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        $transfers = $this->to_array($transfers);
+        $transfersArray = $this->to_array($transfers);
         $result = array();
-        for ($i = 0; $i < count($transfers); $i++) {
-            $transfer = $this->extend($this->parse_transfer($transfers[$i], $currency), $params);
+        for ($i = 0; $i < count($transfersArray); $i++) {
+            $transfer = $this->extend($this->parse_transfer($transfersArray[$i], $currency), $params);
             $result[] = $transfer;
         }
         $result = $this->sort_by($result, 'timestamp');
@@ -6017,13 +6027,21 @@ class BaseExchange extends \ccxt\BaseExchange {
             $time = $this->parse_timeframe($timeframe) * 1000;
             $maxEntriesPerRequest = $this->require_value($maxEntriesPerRequest, 'fetchPaginatedCallDeterministic() $maxEntriesPerRequest is required');
             $step = $time * $maxEntriesPerRequest;
+            $until = $this->safe_integer_2($params, 'until', 'till'); // do not omit it here
             $currentSince = $current - ($maxCalls * $step) - 1;
             if ($since !== null) {
-                $currentSince = max($currentSince, $since);
+                if ($until !== null) {
+                    // the recent-window floor below would jump past a fully-historical array( $since, $until )
+                    // range and return an empty $result - $requiredCalls is validated against $maxCalls
+                    // further down, so anchoring at $since directly is safe here,
+                    // see https://github.com/ccxt/ccxt/issues/26252
+                    $currentSince = $since;
+                } else {
+                    $currentSince = max($currentSince, $since);
+                }
             } else {
                 $currentSince = max($currentSince, 1241440531000); // avoid timestamps older than 2009
             }
-            $until = $this->safe_integer_2($params, 'until', 'till'); // do not omit it here
             if ($until !== null) {
                 if ($since === null) {
                     throw new ArgumentsRequired($this->id . ' fetchPaginatedCallDeterministic() requires a $since argument when $until is set');
@@ -6054,7 +6072,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         })();
     }
 
-    public function fetch_paginated_call_cursor(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array(), ?string $cursorReceived = null, ?string $cursorSent = null, ?int $cursorIncrement = null, ?int $maxEntriesPerRequest = null) {
+    public function fetch_paginated_call_cursor(string $method, mixed $symbol = null, ?int $since = null, ?int $limit = null, $params = array(), ?string $cursorReceived = null, ?string $cursorSent = null, ?int $cursorIncrement = null, ?int $maxEntriesPerRequest = null) {
         return Async\async(function () use ($method, $symbol, $since, $limit, $params, $cursorReceived, $cursorSent, $cursorIncrement, $maxEntriesPerRequest) {
             $maxCalls = 10;
             list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', $maxCalls);
@@ -6081,7 +6099,8 @@ class BaseExchange extends \ccxt\BaseExchange {
                     } elseif ($method === 'getLeverageTiersPaginated' || $method === 'fetchPositions') {
                         $response = Async\await($this->$method($symbol, $params));
                     } elseif ($method === 'fetchOpenInterestHistory') {
-                        if ($symbol === null) {
+                        if (gettype($symbol) !== 'string') {
+                            // fetchOpenInterestHistory takes a single $symbol, never a list
                             throw new ArgumentsRequired($this->id . ' fetchPaginatedCallCursor() requires a $symbol argument');
                         }
                         if ($timeframe === null) {
@@ -6389,12 +6408,12 @@ class BaseExchange extends \ccxt\BaseExchange {
     }
 
     public function parse_conversions(array $conversions, ?string $code = null, ?string $fromCurrencyKey = null, ?string $toCurrencyKey = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        $conversions = $this->to_array($conversions);
+        $conversionsArray = $this->to_array($conversions);
         $result = array();
         $fromCurrency = null;
         $toCurrency = null;
-        for ($i = 0; $i < count($conversions); $i++) {
-            $entry = $conversions[$i];
+        for ($i = 0; $i < count($conversionsArray); $i++) {
+            $entry = $conversionsArray[$i];
             $fromId = ($fromCurrencyKey === null) ? null : $this->safe_string($entry, $fromCurrencyKey);
             $toId = ($toCurrencyKey === null) ? null : $this->safe_string($entry, $toCurrencyKey);
             if ($fromId !== null) {

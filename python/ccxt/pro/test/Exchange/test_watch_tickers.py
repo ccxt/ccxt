@@ -62,6 +62,10 @@ async def test_watch_tickers_helper(exchange, skipped_properties, arg_symbols, a
                 try:
                     test_ticker(exchange, skipped_properties, method, ticker, checked_symbol)
                 except Exception as ex:
-                    await test_shared_methods.validate_ticker_exception_for_percentage(ex, exchange, ticker)
+                    ohlcv = None
+                    ticker_symbol = ticker['symbol']
+                    if (ticker_symbol is not None) and test_shared_methods.ticker_exception_needs_ohlcv(ex, exchange, ticker):
+                        ohlcv = await exchange.fetch_ohlcv(ticker_symbol, '1d', None, 5)
+                    test_shared_methods.validate_ticker_exception_for_percentage(ex, exchange, ticker, ohlcv)
             now = exchange.milliseconds()
     return True

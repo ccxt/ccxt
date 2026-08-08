@@ -56,6 +56,42 @@
                     }
                 }
             }
+        ],
+        "fetchDepositWithdrawFee": [
+            {
+                "description": "withdraw fee response parses into a deposit withdraw fee structure",
+                "method": "fetchDepositWithdrawFee",
+                "input": [
+                    "BTC"
+                ],
+                "httpResponse": {
+                    "success": 1,
+                    "return": {
+                        "server_time": 1607923272,
+                        "withdraw_fee": 0.0005,
+                        "currency": "btc"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": 1,
+                        "return": {
+                            "server_time": 1607923272,
+                            "withdraw_fee": 0.0005,
+                            "currency": "btc"
+                        }
+                    },
+                    "withdraw": {
+                        "fee": 0.0005,
+                        "percentage": false
+                    },
+                    "deposit": {
+                        "fee": 0,
+                        "percentage": false
+                    },
+                    "networks": {}
+                }
+            }
         ]
     }
 }

@@ -254,7 +254,7 @@ export default class bitmex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bitmex#fetchLeverages
@@ -335,7 +335,7 @@ export default class bitmex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bitmex#setMarginMode
@@ -346,7 +346,7 @@ export default class bitmex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bitmex#fetchDepositAddress
@@ -425,7 +425,7 @@ export default class bitmex extends Exchange {
      * @param {boolean} [params.reverse] if true, will sort results newest first, default value = false
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Dict[]>;
     parseSettlements(settlements: any, market?: Market, since?: Int, limit?: Int): any;
     parseSettlement(settlement: any, market?: Market): {
         info: any;

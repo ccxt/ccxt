@@ -1,5 +1,5 @@
 import Exchange from './abstract/woo.js';
-import type { ADL, Account, Balances, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, MarginModification, Market, Num, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int } from './base/types.js';
+import type { ADL, Account, Balances, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, MarginModification, Market, Num, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, Status, MarginLoan } from './base/types.js';
 /**
  * @class woo
  * @augments Exchange
@@ -14,13 +14,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: undefined;
-        eta: undefined;
-        url: undefined;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name woo#fetchTime
@@ -226,7 +220,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name woo#fetchOrder
@@ -493,16 +487,8 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    repayMargin(code: string, amount: number, symbol?: Str, params?: {}): Promise<any>;
-    parseMarginLoan(info: any, currency?: Currency): {
-        id: undefined;
-        currency: Str;
-        amount: undefined;
-        symbol: undefined;
-        timestamp: undefined;
-        datetime: undefined;
-        info: any;
-    };
+    repayMargin(code: string, amount: number, symbol?: Str, params?: {}): Promise<MarginLoan>;
+    parseMarginLoan(info: any, currency?: Currency): MarginLoan;
     nonce(): number;
     sign(path: any, section?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): {
         url: string;
@@ -589,7 +575,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name woo#fetchLeverage
@@ -617,7 +603,7 @@ export default class woo extends Exchange {
      * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name woo#addMargin

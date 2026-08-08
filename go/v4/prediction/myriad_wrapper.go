@@ -1744,13 +1744,13 @@ func (this *Myriad) FetchPosition(outcome string, options ...ccxt.FetchPositionO
 	}
 	return ccxt.NewPredictionPosition(res), nil
 }
-func (this *Myriad) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]any, error) {
+func (this *Myriad) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (ccxt.PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Myriad) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchPremiumIndexOHLCVOptions) ([]ccxt.OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Myriad) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Myriad) FetchStatus(params ...any) (ccxt.Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Myriad) FetchTime(params ...any) (int64, error) {
@@ -1798,7 +1798,7 @@ func (this *Myriad) Withdraw(code string, amount float64, address string, option
 func (this *Myriad) FetchBalanceWs(params ...any) (ccxt.Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
-func (this *Myriad) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Myriad) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Myriad) FetchOHLCVWs(symbol string, options ...ccxt.FetchOHLCVWsOptions) ([]ccxt.OHLCV, error) {
@@ -1810,7 +1810,7 @@ func (this *Myriad) FetchOrdersByStatusWs(status string, options ...ccxt.FetchOr
 func (this *Myriad) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Myriad) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Myriad) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Myriad) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {

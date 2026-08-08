@@ -761,7 +761,7 @@ class Transpiler {
     getTypescriptRemovalRegexes() {
         return [
             [ /(?<![a-zA-Z0-9_]\s)(?<![a-zA-Z0-9_])\((\w+)\sas\s\w+\)/g, '$1'], // remove parens around a cast like "(x as any)" -> "x"; but NOT when it's a call arg, in either the spaced "foo (x as string)" or unspaced "foo(x as string)" form (the latter is produced by trimmedUnCamelCase collapsing base-method calls, e.g. capitalize(side as string)) — both keep their parens and let the next rule drop just the " as T"
-            [ /\sas (Dictionary<)?\w+(\[])?(>)?/g, ''], // remove any "as any" or "as number" or "as trade[]"
+            [ /\sas (\w+<[^<>]*(?:<[^<>]*>[^<>]*)*>|(?:Dictionary<)?\w+(?:\[])?>?)/g, ''], // remove any "as any" or "as number" or "as trade[]" or a generic cast such as "as Endpoint<Dict | List>" (the generic arm must run first, otherwise "as Foo" matches and strands "<T>")
             [ /(^|[^a-zA-Z0-9_])((?:let|const)\s+\w+):[^=\n]+(\s+=.*$)/gm, '$1$2$3'], // remove variable type
         ]
     }
@@ -1040,6 +1040,7 @@ class Transpiler {
             'MarginMode': /-> MarginMode:/,
             'MarginModes': /-> MarginModes:/,
             'MarginModification': /-> MarginModification:/,
+            'MarginLoan': /-> MarginLoan:/,
             'Market': /(-> Market:|: Market)/,
             // 'MarketInterface': /-> MarketInterface:/,
             'MarketMarginModes': /-> MarketMarginModes:/,
@@ -1054,6 +1055,8 @@ class Transpiler {
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
             'Position': /-> (?:List\[)?Position/,
+            'PositionModeInfo': /-> PositionModeInfo:/,
+            'Status': /-> Status:/,
             'Str': /(: (?:List\[)?Str\b)|(-> Str:)/,
             'Strings': /: (?:List\[)?Strings =/,
             'SubType': /: SubType/,
@@ -1959,6 +1962,7 @@ class Transpiler {
                 'Dictionary<any>': 'dict',
                 'Dict': 'dict',
                 'NullableDict': 'dict',
+                'List': 'List[Any]',
                 'NullableList': 'List[Any]'
             }
             const unwrapLists = (type: string) => {
@@ -1998,9 +2002,10 @@ class Transpiler {
                     'Dictionary<any>': 'array',
                     'Dict': 'array',
                     'NullableDict': '?array',
+                    'List': 'array',
                     'NullableList': '?array',
                 }
-                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|DepositWithdrawFee|DepositWithdrawFees|DepositWithdrawFeeNetwork|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?)( \| undefined)?$|\w+\[\]/
+                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|MarginLoan|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|DepositWithdrawFee|DepositWithdrawFees|DepositWithdrawFeeNetwork|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|PositionModeInfo|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?|Status)( \| undefined)?$|\w+\[\]/
 
                 phpArgs = argsArray.map (x => {
                     const parts = x.split (':')

@@ -762,7 +762,7 @@ func (this *Mercado) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Mercado) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Mercado) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Mercado) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Mercado) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -780,7 +780,7 @@ func (this *Mercado) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Mercado) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Mercado) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Mercado) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Mercado) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
@@ -906,7 +906,7 @@ func (this *Mercado) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Mercado) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Mercado) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Mercado) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Mercado) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -951,7 +951,7 @@ func (this *Mercado) FetchTradesWs(symbol string, options ...FetchTradesWsOption
 func (this *Mercado) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Mercado) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Mercado) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Mercado) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

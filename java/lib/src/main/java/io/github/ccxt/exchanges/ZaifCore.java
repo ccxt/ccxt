@@ -103,56 +103,124 @@ public class ZaifCore extends ZaifApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "depth/{pair}", 1 );
-                        put( "currencies/{pair}", 1 );
-                        put( "currencies/all", 1 );
-                        put( "currency_pairs/{pair}", 1 );
-                        put( "currency_pairs/all", 1 );
-                        put( "last_price/{pair}", 1 );
-                        put( "ticker/{pair}", 1 );
-                        put( "trades/{pair}", 1 );
+                        put( "depth/{pair}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "currencies/{pair}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "currencies/all", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "currency_pairs/{pair}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "currency_pairs/all", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "last_price/{pair}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "ticker/{pair}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trades/{pair}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "active_orders", 5 );
-                        put( "cancel_order", 5 );
-                        put( "deposit_history", 5 );
-                        put( "get_id_info", 5 );
-                        put( "get_info", 10 );
-                        put( "get_info2", 5 );
-                        put( "get_personal_info", 5 );
-                        put( "trade", 5 );
-                        put( "trade_history", 50 );
-                        put( "withdraw", 5 );
-                        put( "withdraw_history", 5 );
+                        put( "active_orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "cancel_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deposit_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "get_id_info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "get_info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
+                        put( "get_info2", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "get_personal_info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "trade", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "trade_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 50 );
+                        }} );
+                        put( "withdraw", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "withdraw_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                     }} );
                 }} );
                 put( "ecapi", new java.util.HashMap<String, Object>() {{
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "createInvoice", 1 );
-                        put( "getInvoice", 1 );
-                        put( "getInvoiceIdsByOrderNumber", 1 );
-                        put( "cancelInvoice", 1 );
+                        put( "createInvoice", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "getInvoice", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "getInvoiceIdsByOrderNumber", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancelInvoice", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "tlapi", new java.util.HashMap<String, Object>() {{
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "get_positions", 66 );
-                        put( "position_history", 66 );
-                        put( "active_positions", 5 );
-                        put( "create_position", 33 );
-                        put( "change_position", 33 );
-                        put( "cancel_position", 33 );
+                        put( "get_positions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 66 );
+                        }} );
+                        put( "position_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 66 );
+                        }} );
+                        put( "active_positions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "create_position", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 33 );
+                        }} );
+                        put( "change_position", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 33 );
+                        }} );
+                        put( "cancel_position", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 33 );
+                        }} );
                     }} );
                 }} );
                 put( "fapi", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "groups/{group_id}", 1 );
-                        put( "last_price/{group_id}/{pair}", 1 );
-                        put( "ticker/{group_id}/{pair}", 1 );
-                        put( "trades/{group_id}/{pair}", 1 );
-                        put( "depth/{group_id}/{pair}", 1 );
+                        put( "groups/{group_id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "last_price/{group_id}/{pair}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "ticker/{group_id}/{pair}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trades/{group_id}/{pair}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "depth/{group_id}/{pair}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -584,16 +652,17 @@ public class ZaifCore extends ZaifApi
             //          }, ...
             //      ]
             //
-            Object numTrades = Helpers.getArrayLength(response);
+            Object trades = this.toArray(response);
+            Object numTrades = Helpers.getArrayLength(trades);
             if (Helpers.isTrue(Helpers.isEqual(numTrades, 1)))
             {
-                Object firstTrade = Helpers.GetValue(response, 0);
+                Object firstTrade = this.safeDict(trades, 0, new java.util.HashMap<String, Object>() {{}});
                 if (!Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(firstTrade))))
                 {
-                    response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                    trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 }
             }
-            return this.parseTrades(response, market, since, limit);
+            return this.parseTrades(trades, market, since, limit);
         });
 
     }
@@ -635,9 +704,10 @@ public class ZaifCore extends ZaifApi
                 put( "price", price );
             }};
             Object response = (this.privatePostTrade(this.extend(request, parameters))).join();
+            Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", response );
-                put( "id", String.valueOf(Helpers.GetValue(Helpers.GetValue(response, "return"), "order_id")) );
+                put( "id", String.valueOf(Helpers.GetValue(data, "order_id")) );
             }}, market);
         });
 
@@ -775,7 +845,8 @@ public class ZaifCore extends ZaifApi
                 Helpers.addElementToObject(request, "currency_pair", Helpers.GetValue(market, "id"));
             }
             Object response = (this.privatePostActiveOrders(this.extend(request, parameters))).join();
-            return this.parseOrders(Helpers.GetValue(response, "return"), market, since, limit);
+            Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit);
         });
 
     }
@@ -812,7 +883,8 @@ public class ZaifCore extends ZaifApi
                 Helpers.addElementToObject(request, "currency_pair", Helpers.GetValue(market, "id"));
             }
             Object response = (this.privatePostTradeHistory(this.extend(request, parameters))).join();
-            return this.parseOrders(Helpers.GetValue(response, "return"), market, since, limit);
+            Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit);
         });
 
     }

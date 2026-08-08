@@ -167,116 +167,324 @@ public class NdaxCore extends NdaxApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "Activate2FA", 1 );
-                        put( "Authenticate2FA", 1 );
-                        put( "AuthenticateUser", 1 );
-                        put( "EnableXP2FA", 1 );
-                        put( "GetL2Snapshot", 1 );
-                        put( "GetLevel1", 1 );
-                        put( "GetValidate2FARequiredEndpoints", 1 );
-                        put( "LogOut", 1 );
-                        put( "GetTickerHistory", 1 );
-                        put( "GetProduct", 1 );
-                        put( "GetProducts", 1 );
-                        put( "GetInstrument", 1 );
-                        put( "GetInstruments", 1 );
-                        put( "GetEarliestTickTime", 1 );
-                        put( "Ping", 1 );
-                        put( "assets", 1 );
-                        put( "orderbook", 1 );
-                        put( "ticker", 1 );
-                        put( "summary", 1 );
-                        put( "trades", 1 );
-                        put( "GetLastTrades", 1 );
-                        put( "ConfirmWithdraw", 1 );
-                        put( "SubscribeLevel1", 1 );
-                        put( "SubscribeLevel2", 1 );
-                        put( "SubscribeTicker", 1 );
-                        put( "SubscribeTrades", 1 );
-                        put( "SubscribeBlockTrades", 1 );
-                        put( "UnsubscribeBlockTrades", 1 );
-                        put( "UnsubscribeLevel1", 1 );
-                        put( "UnsubscribeLevel2", 1 );
-                        put( "UnsubscribeTicker", 1 );
-                        put( "UnsubscribeTrades", 1 );
-                        put( "Authenticate", 1 );
+                        put( "Activate2FA", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Authenticate2FA", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "AuthenticateUser", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "EnableXP2FA", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetL2Snapshot", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetLevel1", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetValidate2FARequiredEndpoints", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "LogOut", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetTickerHistory", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetProduct", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetProducts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetInstrument", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetInstruments", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetEarliestTickTime", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Ping", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "assets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orderbook", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "ticker", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "summary", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetLastTrades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "ConfirmWithdraw", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "SubscribeLevel1", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "SubscribeLevel2", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "SubscribeTicker", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "SubscribeTrades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "SubscribeBlockTrades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "UnsubscribeBlockTrades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "UnsubscribeLevel1", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "UnsubscribeLevel2", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "UnsubscribeTicker", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "UnsubscribeTrades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Authenticate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "GetUserAccountInfos", 1 );
-                        put( "GetUserAccounts", 1 );
-                        put( "GetUserAffiliateCount", 1 );
-                        put( "GetUserAffiliateTag", 1 );
-                        put( "GetUserConfig", 1 );
-                        put( "GetAllUnredactedUserConfigsForUser", 1 );
-                        put( "GetUnredactedUserConfigByKey", 1 );
-                        put( "GetUserDevices", 1 );
-                        put( "GetUserReportTickets", 1 );
-                        put( "GetUserReportWriterResultRecords", 1 );
-                        put( "GetAccountInfo", 1 );
-                        put( "GetAccountPositions", 1 );
-                        put( "GetAllAccountConfigs", 1 );
-                        put( "GetTreasuryProductsForAccount", 1 );
-                        put( "GetAccountTrades", 1 );
-                        put( "GetAccountTransactions", 1 );
-                        put( "GetOpenTradeReports", 1 );
-                        put( "GetAllOpenTradeReports", 1 );
-                        put( "GetTradesHistory", 1 );
-                        put( "GetOpenOrders", 1 );
-                        put( "GetOpenQuotes", 1 );
-                        put( "GetOrderFee", 1 );
-                        put( "GetOrderHistory", 1 );
-                        put( "GetOrdersHistory", 1 );
-                        put( "GetOrderStatus", 1 );
-                        put( "GetOmsFeeTiers", 1 );
-                        put( "GetAccountDepositTransactions", 1 );
-                        put( "GetAccountWithdrawTransactions", 1 );
-                        put( "GetAllDepositRequestInfoTemplates", 1 );
-                        put( "GetDepositInfo", 1 );
-                        put( "GetDepositRequestInfoTemplate", 1 );
-                        put( "GetDeposits", 1 );
-                        put( "GetDepositTicket", 1 );
-                        put( "GetDepositTickets", 1 );
-                        put( "GetOMSWithdrawFees", 1 );
-                        put( "GetWithdrawFee", 1 );
-                        put( "GetWithdraws", 1 );
-                        put( "GetWithdrawTemplate", 1 );
-                        put( "GetWithdrawTemplateTypes", 1 );
-                        put( "GetWithdrawTicket", 1 );
-                        put( "GetWithdrawTicketAttachment", 1 );
-                        put( "GetWithdrawTickets", 1 );
-                        put( "GetDepositTicketAttachment", 1 );
+                        put( "GetUserAccountInfos", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetUserAccounts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetUserAffiliateCount", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetUserAffiliateTag", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetUserConfig", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetAllUnredactedUserConfigsForUser", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetUnredactedUserConfigByKey", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetUserDevices", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetUserReportTickets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetUserReportWriterResultRecords", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetAccountInfo", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetAccountPositions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetAllAccountConfigs", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetTreasuryProductsForAccount", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetAccountTrades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetAccountTransactions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetOpenTradeReports", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetAllOpenTradeReports", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetTradesHistory", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetOpenOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetOpenQuotes", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetOrderFee", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetOrderHistory", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetOrdersHistory", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetOrderStatus", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetOmsFeeTiers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetAccountDepositTransactions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetAccountWithdrawTransactions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetAllDepositRequestInfoTemplates", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetDepositInfo", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetDepositRequestInfoTemplate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetDeposits", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetDepositTicket", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetDepositTickets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetOMSWithdrawFees", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetWithdrawFee", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetWithdraws", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetWithdrawTemplate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetWithdrawTemplateTypes", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetWithdrawTicket", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetWithdrawTicketAttachment", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetWithdrawTickets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetDepositTicketAttachment", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "AddUserAffiliateTag", 1 );
-                        put( "AddDepositTicketAttachment", 1 );
-                        put( "AddWithdrawTicketAttachment", 1 );
-                        put( "CancelUserReport", 1 );
-                        put( "RegisterNewDevice", 1 );
-                        put( "SubscribeAccountEvents", 1 );
-                        put( "UpdateUserAffiliateTag", 1 );
-                        put( "GenerateTradeActivityReport", 1 );
-                        put( "GenerateTransactionActivityReport", 1 );
-                        put( "GenerateTreasuryActivityReport", 1 );
-                        put( "ScheduleTradeActivityReport", 1 );
-                        put( "ScheduleTransactionActivityReport", 1 );
-                        put( "ScheduleTreasuryActivityReport", 1 );
-                        put( "CancelAllOrders", 1 );
-                        put( "CancelOrder", 1 );
-                        put( "CancelQuote", 1 );
-                        put( "CancelReplaceOrder", 1 );
-                        put( "CreateQuote", 1 );
-                        put( "ModifyOrder", 1 );
-                        put( "SendOrder", 1 );
-                        put( "SubmitBlockTrade", 1 );
-                        put( "UpdateQuote", 1 );
-                        put( "CancelWithdraw", 1 );
-                        put( "CreateDepositTicket", 1 );
-                        put( "CreateWithdrawTicket", 1 );
-                        put( "SubmitDepositTicketComment", 1 );
-                        put( "SubmitWithdrawTicketComment", 1 );
-                        put( "GetOrderHistoryByOrderId", 1 );
+                        put( "AddUserAffiliateTag", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "AddDepositTicketAttachment", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "AddWithdrawTicketAttachment", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "CancelUserReport", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "RegisterNewDevice", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "SubscribeAccountEvents", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "UpdateUserAffiliateTag", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GenerateTradeActivityReport", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GenerateTransactionActivityReport", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GenerateTreasuryActivityReport", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "ScheduleTradeActivityReport", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "ScheduleTransactionActivityReport", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "ScheduleTreasuryActivityReport", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "CancelAllOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "CancelOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "CancelQuote", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "CancelReplaceOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "CreateQuote", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "ModifyOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "SendOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "SubmitBlockTrade", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "UpdateQuote", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "CancelWithdraw", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "CreateDepositTicket", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "CreateWithdrawTicket", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "SubmitDepositTicketComment", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "SubmitWithdrawTicketComment", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetOrderHistoryByOrderId", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -1099,7 +1307,12 @@ public class NdaxCore extends NdaxApi
             //         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
             //     ]
             //
-            return this.parseOHLCVs(response, market, timeframe, since, limit);
+            Object candles = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(response)))
+            {
+                candles = response;
+            }
+            return this.parseOHLCVs(candles, market, timeframe, since, limit);
         });
 
     }

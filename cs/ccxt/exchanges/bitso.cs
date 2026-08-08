@@ -157,12 +157,136 @@ public partial class bitso : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"available_books", "catalogues", "ticker", "order_book", "trades", "ohlc"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "available_books", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "catalogues", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order_book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ohlc", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"account_status", "balance", "fees", "fundings", "fundings/{fid}", "funding_destination", "kyc_documents", "ledger", "ledger/trades", "ledger/fees", "ledger/fundings", "ledger/withdrawals", "mx_bank_codes", "open_orders", "order_trades/{oid}", "orders/{oid}", "user_trades", "user_trades/{tid}", "withdrawals/", "withdrawals/{wid}"} },
-                    { "post", new List<object>() {"bitcoin_withdrawal", "debit_card_withdrawal", "ether_withdrawal", "orders", "phone_number", "phone_verification", "phone_withdrawal", "spei_withdrawal", "ripple_withdrawal", "bcash_withdrawal", "litecoin_withdrawal"} },
-                    { "delete", new List<object>() {"orders", "orders/{oid}", "orders/all"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "account_status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fundings", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fundings/{fid}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding_destination", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "kyc_documents", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ledger", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ledger/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ledger/fees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ledger/fundings", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ledger/withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "mx_bank_codes", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order_trades/{oid}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{oid}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user_trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user_trades/{tid}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals/{wid}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "bitcoin_withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "debit_card_withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ether_withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "phone_number", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "phone_verification", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "phone_withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spei_withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ripple_withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "bcash_withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "litecoin_withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "delete", new Dictionary<string, object>() {
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{oid}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "features", new Dictionary<string, object>() {
@@ -1029,7 +1153,8 @@ public partial class bitso : Exchange
             { "book", getValue(market, "id") },
         };
         object response = await this.publicGetTrades(this.extend(request, parameters));
-        return this.parseTrades(getValue(response, "payload"), market, since, limit);
+        object payload = this.safeList(response, "payload", new List<object>() {});
+        return this.parseTrades(payload, market, since, limit);
     }
 
     /**
@@ -1154,7 +1279,8 @@ public partial class bitso : Exchange
             { "limit", limit },
         };
         object response = await this.privateGetUserTrades(this.extend(request, parameters));
-        return this.parseTrades(getValue(response, "payload"), market, since, limit);
+        object payload = this.safeList(response, "payload", new List<object>() {});
+        return this.parseTrades(payload, market, since, limit);
     }
 
     /**
@@ -1189,7 +1315,8 @@ public partial class bitso : Exchange
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(getValue(market, "symbol"), price);
         }
         object response = await this.privatePostOrders(this.extend(request, parameters));
-        object id = this.safeString(getValue(response, "payload"), "oid");
+        object payload = this.safeDict(response, "payload", new Dictionary<string, object>() {});
+        object id = this.safeString(payload, "oid");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
             { "id", id },
@@ -1411,7 +1538,8 @@ public partial class bitso : Exchange
             { "limit", limit },
         };
         object response = await this.privateGetOpenOrders(this.extend(request, parameters));
-        object orders = this.parseOrders(getValue(response, "payload"), market, since, limit);
+        object payload = this.safeList(response, "payload", new List<object>() {});
+        object orders = this.parseOrders(payload, market, since, limit);
         return orders;
     }
 
@@ -1438,7 +1566,7 @@ public partial class bitso : Exchange
         object payload = this.safeValue(response, "payload");
         if (isTrue(((payload is IList<object>) || (payload.GetType().IsGenericType && payload.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            object numOrders = getArrayLength(getValue(response, "payload"));
+            object numOrders = getArrayLength(payload);
             if (isTrue(isEqual(numOrders, 1)))
             {
                 return this.parseOrder(getValue(payload, 0));
@@ -1471,7 +1599,8 @@ public partial class bitso : Exchange
             { "oid", id },
         };
         object response = await this.privateGetOrderTradesOid(this.extend(request, parameters));
-        return this.parseTrades(getValue(response, "payload"), market);
+        object payload = this.safeList(response, "payload", new List<object>() {});
+        return this.parseTrades(payload, market);
     }
 
     /**
@@ -1594,7 +1723,8 @@ public partial class bitso : Exchange
             { "fund_currency", getValue(currency, "id") },
         };
         object response = await this.privateGetFundingDestination(this.extend(request, parameters));
-        object address = this.safeString(getValue(response, "payload"), "account_identifier");
+        object payload = this.safeDict(response, "payload", new Dictionary<string, object>() {});
+        object address = this.safeString(payload, "account_identifier");
         object tag = null;
         if (isTrue(isGreaterThanOrEqual(getIndexOf(((string)address), "?dt="), 0)))
         {

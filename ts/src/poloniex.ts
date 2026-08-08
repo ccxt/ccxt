@@ -6,7 +6,7 @@ import Exchange from './abstract/poloniex.js';
 import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Int, Bool, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, FeeString, List, DepositWithdrawFees } from './base/types.js';
+import type { TransferEntry, Int, Bool, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, FeeString, List, DepositWithdrawFees, PositionModeInfo, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -133,130 +133,130 @@ export default class poloniex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'markets': 20,
-                        'markets/{symbol}': 1,
-                        'currencies': 20,
-                        'currencies/{currency}': 20,
-                        'v2/currencies': 20,
-                        'v2/currencies/{currency}': 20,
-                        'timestamp': 1,
-                        'markets/price': 1,
-                        'markets/{symbol}/price': 1,
-                        'markets/markPrice': 1,
-                        'markets/{symbol}/markPrice': 1,
-                        'markets/{symbol}/markPriceComponents': 1,
-                        'markets/{symbol}/orderBook': 1,
-                        'markets/{symbol}/candles': 1,
-                        'markets/{symbol}/trades': 20,
-                        'markets/ticker24h': 20,
-                        'markets/{symbol}/ticker24h': 20,
-                        'markets/collateralInfo': 1,
-                        'markets/{currency}/collateralInfo': 1,
-                        'markets/borrowRatesInfo': 1,
+                        'markets': { 'cost': 20 } as Endpoint<List>,
+                        'markets/{symbol}': { 'cost': 1 } as Endpoint<List>,
+                        'currencies': { 'cost': 20 } as Endpoint<List>,
+                        'currencies/{currency}': { 'cost': 20 } as Endpoint<Dict>,
+                        'v2/currencies': { 'cost': 20 } as Endpoint<List>,
+                        'v2/currencies/{currency}': { 'cost': 20 } as Endpoint<Dict>,
+                        'timestamp': { 'cost': 1 } as Endpoint<Dict>,
+                        'markets/price': { 'cost': 1 } as Endpoint<List>,
+                        'markets/{symbol}/price': { 'cost': 1 } as Endpoint<Dict>,
+                        'markets/markPrice': { 'cost': 1 } as Endpoint<List>,
+                        'markets/{symbol}/markPrice': { 'cost': 1 } as Endpoint<Dict>,
+                        'markets/{symbol}/markPriceComponents': { 'cost': 1 } as Endpoint<Dict>,
+                        'markets/{symbol}/orderBook': { 'cost': 1 } as Endpoint<Dict>,
+                        'markets/{symbol}/candles': { 'cost': 1 } as Endpoint<List>,
+                        'markets/{symbol}/trades': { 'cost': 20 } as Endpoint<List>,
+                        'markets/ticker24h': { 'cost': 20 } as Endpoint<List>,
+                        'markets/{symbol}/ticker24h': { 'cost': 20 } as Endpoint<Dict>,
+                        'markets/collateralInfo': { 'cost': 1 } as Endpoint<List>,
+                        'markets/{currency}/collateralInfo': { 'cost': 1 } as Endpoint<Dict>,
+                        'markets/borrowRatesInfo': { 'cost': 1 } as Endpoint<List>,
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts': 4,
-                        'accounts/balances': 4,
-                        'accounts/{id}/balances': 4,
-                        'accounts/activity': 20,
-                        'accounts/transfer': 20,
-                        'accounts/transfer/{id}': 4,
-                        'feeinfo': 20,
-                        'accounts/interest/history': 1,
-                        'subaccounts': 4,
-                        'subaccounts/balances': 20,
-                        'subaccounts/{id}/balances': 4,
-                        'subaccounts/transfer': 20,
-                        'subaccounts/transfer/{id}': 4,
-                        'wallets/addresses': 20,
-                        'wallets/addresses/{currency}': 20,
-                        'wallets/activity': 20,
-                        'margin/accountMargin': 4,
-                        'margin/borrowStatus': 4,
-                        'margin/maxSize': 4,
-                        'orders': 20,
-                        'orders/{id}': 4,
-                        'orders/killSwitchStatus': 4,
-                        'smartorders': 20,
-                        'smartorders/{id}': 4,
-                        'orders/history': 20,
-                        'smartorders/history': 20,
-                        'trades': 20,
-                        'orders/{id}/trades': 4,
+                        'accounts': { 'cost': 4 } as Endpoint<Dict>,
+                        'accounts/balances': { 'cost': 4 } as Endpoint<Dict>,
+                        'accounts/{id}/balances': { 'cost': 4 } as Endpoint<List>,
+                        'accounts/activity': { 'cost': 20 } as Endpoint<List>,
+                        'accounts/transfer': { 'cost': 20 } as Endpoint<List>,
+                        'accounts/transfer/{id}': { 'cost': 4 } as Endpoint<Dict>,
+                        'feeinfo': { 'cost': 20 } as Endpoint<Dict>,
+                        'accounts/interest/history': { 'cost': 1 } as Endpoint<List>,
+                        'subaccounts': { 'cost': 4 } as Endpoint<Dict>,
+                        'subaccounts/balances': { 'cost': 20 } as Endpoint<List>,
+                        'subaccounts/{id}/balances': { 'cost': 4 } as Endpoint<List>,
+                        'subaccounts/transfer': { 'cost': 20 } as Endpoint<List>,
+                        'subaccounts/transfer/{id}': { 'cost': 4 } as Endpoint<Dict>,
+                        'wallets/addresses': { 'cost': 20 } as Endpoint<Dict>,
+                        'wallets/addresses/{currency}': { 'cost': 20 } as Endpoint<Dict>,
+                        'wallets/activity': { 'cost': 20 } as Endpoint<Dict>,
+                        'margin/accountMargin': { 'cost': 4 } as Endpoint<Dict>,
+                        'margin/borrowStatus': { 'cost': 4 } as Endpoint<List>,
+                        'margin/maxSize': { 'cost': 4 } as Endpoint<Dict>,
+                        'orders': { 'cost': 20 } as Endpoint<List>,
+                        'orders/{id}': { 'cost': 4 } as Endpoint<List>,
+                        'orders/killSwitchStatus': { 'cost': 4 } as Endpoint<Dict>,
+                        'smartorders': { 'cost': 20 } as Endpoint<List>,
+                        'smartorders/{id}': { 'cost': 4 } as Endpoint<List>,
+                        'orders/history': { 'cost': 20 } as Endpoint<Dict>,
+                        'smartorders/history': { 'cost': 20 } as Endpoint<List>,
+                        'trades': { 'cost': 20 } as Endpoint<List>,
+                        'orders/{id}/trades': { 'cost': 4 } as Endpoint<List>,
                     },
                     'post': {
-                        'accounts/transfer': 4,
-                        'subaccounts/transfer': 20,
-                        'wallets/address': 20,
-                        'wallets/withdraw': 20,
-                        'v2/wallets/withdraw': 20,
-                        'orders': 4,
-                        'orders/batch': 20,
-                        'orders/killSwitch': 4,
-                        'smartorders': 4,
+                        'accounts/transfer': { 'cost': 4 } as Endpoint<Dict>,
+                        'subaccounts/transfer': { 'cost': 20 } as Endpoint<Dict>,
+                        'wallets/address': { 'cost': 20 } as Endpoint<Dict>,
+                        'wallets/withdraw': { 'cost': 20 } as Endpoint<Dict>,
+                        'v2/wallets/withdraw': { 'cost': 20 } as Endpoint<Dict>,
+                        'orders': { 'cost': 4 } as Endpoint<Dict>,
+                        'orders/batch': { 'cost': 20 } as Endpoint<Dict>,
+                        'orders/killSwitch': { 'cost': 4 } as Endpoint<Dict>,
+                        'smartorders': { 'cost': 4 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'orders/{id}': 4,
-                        'orders/cancelByIds': 20,
-                        'orders': 20,
-                        'smartorders/{id}': 4,
-                        'smartorders/cancelByIds': 20,
-                        'smartorders': 20,
+                        'orders/{id}': { 'cost': 4 } as Endpoint<Dict>,
+                        'orders/cancelByIds': { 'cost': 20 } as Endpoint<List>,
+                        'orders': { 'cost': 20 } as Endpoint<List>,
+                        'smartorders/{id}': { 'cost': 4 } as Endpoint<Dict>,
+                        'smartorders/cancelByIds': { 'cost': 20 } as Endpoint<List>,
+                        'smartorders': { 'cost': 20 } as Endpoint<List>,
                     },
                     'put': {
-                        'orders/{id}': 20,
-                        'smartorders/{id}': 20,
+                        'orders/{id}': { 'cost': 20 } as Endpoint<Dict>,
+                        'smartorders/{id}': { 'cost': 20 } as Endpoint<Dict>,
                     },
                 },
                 'swapPublic': {
                     'get': {
                         // 300 calls / second
-                        'v3/market/allInstruments': 2 / 3,
-                        'v3/market/instruments': 2 / 3,
-                        'v3/market/orderBook': 2 / 3,
-                        'v3/market/candles': 10, // candles have different RL
-                        'v3/market/indexPriceCandlesticks': 10,
-                        'v3/market/premiumIndexCandlesticks': 10,
-                        'v3/market/markPriceCandlesticks': 10,
-                        'v3/market/trades': 2 / 3,
-                        'v3/market/liquidationOrder': 2 / 3,
-                        'v3/market/tickers': 2 / 3,
-                        'v3/market/markPrice': 2 / 3,
-                        'v3/market/indexPrice': 2 / 3,
-                        'v3/market/indexPriceComponents': 2 / 3,
-                        'v3/market/fundingRate': 2 / 3,
-                        'v3/market/openInterest': 2 / 3,
-                        'v3/market/insurance': 2 / 3,
-                        'v3/market/riskLimit': 2 / 3,
+                        'v3/market/allInstruments': { 'cost': 2 / 3 } as Endpoint<Dict>,
+                        'v3/market/instruments': { 'cost': 2 / 3 } as Endpoint<Dict>,
+                        'v3/market/orderBook': { 'cost': 2 / 3 } as Endpoint<Dict>,
+                        'v3/market/candles': { 'cost': 10 } as Endpoint<Dict>, // candles have different RL
+                        'v3/market/indexPriceCandlesticks': { 'cost': 10 } as Endpoint<Dict>,
+                        'v3/market/premiumIndexCandlesticks': { 'cost': 10 } as Endpoint<Dict>,
+                        'v3/market/markPriceCandlesticks': { 'cost': 10 } as Endpoint<Dict>,
+                        'v3/market/trades': { 'cost': 2 / 3 } as Endpoint<Dict>,
+                        'v3/market/liquidationOrder': { 'cost': 2 / 3 } as Endpoint<Dict>,
+                        'v3/market/tickers': { 'cost': 2 / 3 } as Endpoint<Dict>,
+                        'v3/market/markPrice': { 'cost': 2 / 3 } as Endpoint<Dict>,
+                        'v3/market/indexPrice': { 'cost': 2 / 3 } as Endpoint<Dict>,
+                        'v3/market/indexPriceComponents': { 'cost': 2 / 3 } as Endpoint<Dict>,
+                        'v3/market/fundingRate': { 'cost': 2 / 3 } as Endpoint<Dict>,
+                        'v3/market/openInterest': { 'cost': 2 / 3 } as Endpoint<Dict>,
+                        'v3/market/insurance': { 'cost': 2 / 3 } as Endpoint<Dict>,
+                        'v3/market/riskLimit': { 'cost': 2 / 3 } as Endpoint<Dict>,
                     },
                 },
                 'swapPrivate': {
                     'get': {
-                        'v3/account/balance': 4,
-                        'v3/account/bills': 20,
-                        'v3/trade/order/opens': 20,
-                        'v3/trade/order/trades': 20,
-                        'v3/trade/order/history': 20,
-                        'v3/trade/position/opens': 20,
-                        'v3/trade/position/history': 20, // todo: method for this
-                        'v3/position/leverages': 20,
-                        'v3/position/mode': 20,
+                        'v3/account/balance': { 'cost': 4 } as Endpoint<Dict>,
+                        'v3/account/bills': { 'cost': 20 } as Endpoint<Dict>,
+                        'v3/trade/order/opens': { 'cost': 20 } as Endpoint<Dict>,
+                        'v3/trade/order/trades': { 'cost': 20 } as Endpoint<Dict>,
+                        'v3/trade/order/history': { 'cost': 20 } as Endpoint<Dict>,
+                        'v3/trade/position/opens': { 'cost': 20 } as Endpoint<Dict>,
+                        'v3/trade/position/history': { 'cost': 20 } as Endpoint<Dict>, // todo: method for this
+                        'v3/position/leverages': { 'cost': 20 } as Endpoint<Dict>,
+                        'v3/position/mode': { 'cost': 20 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'v3/trade/order': 4,
-                        'v3/trade/orders': 40,
-                        'v3/trade/position': 20,
-                        'v3/trade/positionAll': 100,
-                        'v3/position/leverage': 20,
-                        'v3/position/mode': 20,
-                        'v3/trade/position/margin': 20,
+                        'v3/trade/order': { 'cost': 4 } as Endpoint<Dict>,
+                        'v3/trade/orders': { 'cost': 40 } as Endpoint<Dict>,
+                        'v3/trade/position': { 'cost': 20 } as Endpoint<Dict>,
+                        'v3/trade/positionAll': { 'cost': 100 } as Endpoint<Dict>,
+                        'v3/position/leverage': { 'cost': 20 } as Endpoint<Dict>,
+                        'v3/position/mode': { 'cost': 20 } as Endpoint<Dict>,
+                        'v3/trade/position/margin': { 'cost': 20 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'v3/trade/order': 2,
-                        'v3/trade/batchOrders': 20,
-                        'v3/trade/allOrders': 20,
+                        'v3/trade/order': { 'cost': 2 } as Endpoint<Dict>,
+                        'v3/trade/batchOrders': { 'cost': 20 } as Endpoint<Dict>,
+                        'v3/trade/allOrders': { 'cost': 20 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -708,7 +708,11 @@ export default class poloniex extends Exchange {
         //         ]
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        let candles: List = [];
+        if (Array.isArray (response)) {
+            candles = response;
+        }
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     override async loadMarkets (reload = false, params = {}) {
@@ -1472,8 +1476,8 @@ export default class poloniex extends Exchange {
             //             cT: "1740777074704",
             //         },
             //
-            const tradesList = this.safeList (response, 'data');
-            return this.parseTrades (tradesList as any[], market, since, limit);
+            const tradesList = this.safeList (response, 'data', []);
+            return this.parseTrades (tradesList, market, since, limit);
         }
         const trades = await this.publicGetMarketsSymbolTrades (this.extend (request, params));
         //
@@ -1569,8 +1573,8 @@ export default class poloniex extends Exchange {
             //                "actType": "TRADING"
             //            },
             //
-            const data = this.safeList (raw, 'data');
-            return this.parseTrades (data as any[], market, since, limit);
+            const data = this.safeList (raw, 'data', []);
+            return this.parseTrades (data, market, since, limit);
         }
         const response = await this.privateGetTrades (this.extend (request, params));
         //
@@ -1839,7 +1843,7 @@ export default class poloniex extends Exchange {
         }
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
-        let response: List = [];
+        let response: Dict | List = [];
         if (marketType !== 'spot') {
             const raw = await this.swapPrivateGetV3TradeOrderOpens (this.extend (request, params));
             //
@@ -2249,7 +2253,7 @@ export default class poloniex extends Exchange {
                 market['id'],
             ];
         }
-        let response: List = [];
+        let response: Dict | List = [];
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (marketType === 'swap' || marketType === 'future') {
@@ -3006,8 +3010,12 @@ export default class poloniex extends Exchange {
         //     ]
         //
         const data: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
+        let entries: List = [];
+        if (Array.isArray (response)) {
+            entries = response;
+        }
+        for (let i = 0; i < entries.length; i++) {
+            const entry = entries[i];
             const currencies = Object.keys (entry);
             const currencyId = this.safeString (currencies, 0);
             data[currencyId as string] = entry[currencyId as string];
@@ -3361,7 +3369,7 @@ export default class poloniex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    override async fetchPositionMode (symbol: Str = undefined, params = {}) {
+    override async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<PositionModeInfo> {
         const response = await this.swapPrivateGetV3PositionMode (params);
         //
         //    {

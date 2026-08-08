@@ -2049,7 +2049,7 @@ func (this *Binance) FetchPosition(symbol string, options ...ccxt.FetchPositionO
 func (this *Binance) FetchPositionHistory(symbol string, options ...ccxt.FetchPositionHistoryOptions) ([]ccxt.Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Binance) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]any, error) {
+func (this *Binance) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (ccxt.PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Binance) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccxt.Position, error) {
@@ -2067,7 +2067,7 @@ func (this *Binance) FetchPositionsRisk(options ...ccxt.FetchPositionsRiskOption
 func (this *Binance) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchPremiumIndexOHLCVOptions) ([]ccxt.OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Binance) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Binance) FetchStatus(params ...any) (ccxt.Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Binance) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions) (ccxt.Ticker, error) {
@@ -2184,7 +2184,7 @@ func (this *Binance) CreateTrailingPercentOrderWs(symbol string, typeVar string,
 func (this *Binance) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateTriggerOrderWsOptions) (ccxt.Order, error) {
 	return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)
 }
-func (this *Binance) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Binance) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Binance) FetchOrdersByStatusWs(status string, options ...ccxt.FetchOrdersByStatusWsOptions) ([]ccxt.Order, error) {
@@ -2199,7 +2199,7 @@ func (this *Binance) FetchTickersWs(options ...ccxt.FetchTickersWsOptions) (ccxt
 func (this *Binance) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Binance) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Binance) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Binance) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {

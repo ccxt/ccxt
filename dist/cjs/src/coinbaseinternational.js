@@ -33,7 +33,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                 'spot': true,
                 'margin': true,
                 'swap': true,
-                'future': true,
+                'future': false,
                 'option': false,
                 'addMargin': false,
                 'cancelAllOrders': true,
@@ -139,53 +139,53 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'api': {
                 'v1': {
                     'public': {
-                        'get': [
-                            'assets',
-                            'assets/{assets}',
-                            'assets/{asset}/networks',
-                            'instruments',
-                            'instruments/{instrument}',
-                            'instruments/{instrument}/quote',
-                            'instruments/{instrument}/funding',
-                            'instruments/{instrument}/candles',
-                        ],
+                        'get': {
+                            'assets': { 'cost': 1 },
+                            'assets/{assets}': { 'cost': 1 },
+                            'assets/{asset}/networks': { 'cost': 1 },
+                            'instruments': { 'cost': 1 },
+                            'instruments/{instrument}': { 'cost': 1 },
+                            'instruments/{instrument}/quote': { 'cost': 1 },
+                            'instruments/{instrument}/funding': { 'cost': 1 },
+                            'instruments/{instrument}/candles': { 'cost': 1 },
+                        },
                     },
                     'private': {
-                        'get': [
-                            'orders',
-                            'orders/{id}',
-                            'portfolios',
-                            'portfolios/{portfolio}',
-                            'portfolios/{portfolio}/detail',
-                            'portfolios/{portfolio}/summary',
-                            'portfolios/{portfolio}/balances',
-                            'portfolios/{portfolio}/balances/{asset}',
-                            'portfolios/{portfolio}/positions',
-                            'portfolios/{portfolio}/positions/{instrument}',
-                            'portfolios/fills',
-                            'portfolios/{portfolio}/fills',
-                            'transfers',
-                            'transfers/{transfer_uuid}',
-                        ],
-                        'post': [
-                            'orders',
-                            'portfolios',
-                            'portfolios/margin',
-                            'portfolios/transfer',
-                            'transfers/withdraw',
-                            'transfers/address',
-                            'transfers/create-counterparty-id',
-                            'transfers/validate-counterparty-id',
-                            'transfers/withdraw/counterparty',
-                        ],
-                        'put': [
-                            'orders/{id}',
-                            'portfolios/{portfolio}',
-                        ],
-                        'delete': [
-                            'orders',
-                            'orders/{id}',
-                        ],
+                        'get': {
+                            'orders': { 'cost': 1 },
+                            'orders/{id}': { 'cost': 1 },
+                            'portfolios': { 'cost': 1 },
+                            'portfolios/{portfolio}': { 'cost': 1 },
+                            'portfolios/{portfolio}/detail': { 'cost': 1 },
+                            'portfolios/{portfolio}/summary': { 'cost': 1 },
+                            'portfolios/{portfolio}/balances': { 'cost': 1 },
+                            'portfolios/{portfolio}/balances/{asset}': { 'cost': 1 },
+                            'portfolios/{portfolio}/positions': { 'cost': 1 },
+                            'portfolios/{portfolio}/positions/{instrument}': { 'cost': 1 },
+                            'portfolios/fills': { 'cost': 1 },
+                            'portfolios/{portfolio}/fills': { 'cost': 1 },
+                            'transfers': { 'cost': 1 },
+                            'transfers/{transfer_uuid}': { 'cost': 1 },
+                        },
+                        'post': {
+                            'orders': { 'cost': 1 },
+                            'portfolios': { 'cost': 1 },
+                            'portfolios/margin': { 'cost': 1 },
+                            'portfolios/transfer': { 'cost': 1 },
+                            'transfers/withdraw': { 'cost': 1 },
+                            'transfers/address': { 'cost': 1 },
+                            'transfers/create-counterparty-id': { 'cost': 1 },
+                            'transfers/validate-counterparty-id': { 'cost': 1 },
+                            'transfers/withdraw/counterparty': { 'cost': 1 },
+                        },
+                        'put': {
+                            'orders/{id}': { 'cost': 1 },
+                            'portfolios/{portfolio}': { 'cost': 1 },
+                        },
+                        'delete': {
+                            'orders': { 'cost': 1 },
+                            'orders/{id}': { 'cost': 1 },
+                        },
                     },
                 },
             },
@@ -936,7 +936,8 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'portfolio': portfolio,
             'margin_override': amount,
         };
-        return await this.v1PrivatePostPortfoliosMargin(this.extend(request, params));
+        const response = await this.v1PrivatePostPortfoliosMargin(this.extend(request, params));
+        return response;
     }
     /**
      * @method
@@ -1542,8 +1543,12 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         symbols = this.marketSymbols(symbols);
         const instruments = await this.v1PublicGetInstruments(params);
         const tickers = {};
-        for (let i = 0; i < instruments.length; i++) {
-            const instrument = instruments[i];
+        let rows = [];
+        if (Array.isArray(instruments)) {
+            rows = instruments;
+        }
+        for (let i = 0; i < rows.length; i++) {
+            const instrument = rows[i];
             const marketId = this.safeString(instrument, 'symbol');
             const symbol = this.safeSymbol(marketId);
             const quote = this.safeDict(instrument, 'quote', {});

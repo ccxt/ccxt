@@ -3932,6 +3932,11 @@ class BaseExchange(object):
                 'TRX': {'primary': 'TRX', 'secondary': 'TRC20', 'default': 'secondary'},
                 'BTC': {'primary': 'BTC', 'secondary': 'BRC20', 'default': 'primary'},
             },
+            'backwardSupportedNetworkCodes': {
+                'ARB': 'ARBITRUM',
+                'ARBONE': 'ARBITRUM',
+                'ARBNOVA': 'ARBITRUM_NOVA',
+            },
         }
 
     def safe_ledger_entry(self, entry: object, currency: Currency = None):
@@ -5256,6 +5261,10 @@ class BaseExchange(object):
             networks = self.safe_dict(currenciesToCheck[i], 'networks', {})
             if networkCode in networks:
                 return self.safe_string(networks[networkCode], 'id')
+        # before returning the original input, try to match if it's backward-maintained networkCode
+        oldCodes = self.safe_dict(self.options, 'backwardSupportedNetworkCodes', {})
+        if networkCode in oldCodes:
+            return self.network_code_to_id(oldCodes[networkCode], currencyCode)
         return networkCode
 
     def network_id_to_code(self, networkId: Str = None, currencyCode: Str = None):
@@ -5433,10 +5442,10 @@ class BaseExchange(object):
 
     def parse_positions(self, positions: List[Any], symbols: Strings = None, params={}):
         symbols = self.market_symbols(symbols)
-        positions = self.to_array(positions)
+        positionsArray = self.to_array(positions)
         result = []
-        for i in range(0, len(positions)):
-            position = self.extend(self.parse_position(positions[i]), params)
+        for i in range(0, len(positionsArray)):
+            position = self.extend(self.parse_position(positionsArray[i]), params)
             result.append(position)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
@@ -5447,30 +5456,30 @@ class BaseExchange(object):
 
     def parse_adl_ranks(self, ranks: List[Any], symbols: Strings = None, params={}):
         symbols = self.market_symbols(symbols)
-        ranks = self.to_array(ranks)
+        ranksArray = self.to_array(ranks)
         result = []
-        for i in range(0, len(ranks)):
-            rank = self.extend(self.parse_adl_rank(ranks[i]), params)
+        for i in range(0, len(ranksArray)):
+            rank = self.extend(self.parse_adl_rank(ranksArray[i]), params)
             result.append(rank)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_accounts(self, accounts: List[Any], params={}):
-        accounts = self.to_array(accounts)
+        accountsArray = self.to_array(accounts)
         result = []
-        for i in range(0, len(accounts)):
-            account = self.extend(self.parse_account(accounts[i]), params)
+        for i in range(0, len(accountsArray)):
+            account = self.extend(self.parse_account(accountsArray[i]), params)
             result.append(account)
         return result
 
     def parse_trades_helper(self, isWs: bool, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}):
-        trades = self.to_array(trades)
+        tradesArray = self.to_array(trades)
         result = []
-        for i in range(0, len(trades)):
+        for i in range(0, len(tradesArray)):
             parsed = None
             if isWs:
-                parsed = self.parse_ws_trade(trades[i], market)
+                parsed = self.parse_ws_trade(tradesArray[i], market)
             else:
-                parsed = self.parse_trade(trades[i], market)
+                parsed = self.parse_trade(tradesArray[i], market)
             trade = self.extend(parsed, params)
             result.append(trade)
         result = self.sort_by_2(result, 'timestamp', 'id')
@@ -5484,20 +5493,20 @@ class BaseExchange(object):
         return self.parse_trades_helper(True, trades, market, since, limit, params)
 
     def parse_transactions(self, transactions: List[Any], currency: Currency = None, since: Int = None, limit: Int = None, params={}):
-        transactions = self.to_array(transactions)
+        transactionsArray = self.to_array(transactions)
         result = []
-        for i in range(0, len(transactions)):
-            transaction = self.extend(self.parse_transaction(transactions[i], currency), params)
+        for i in range(0, len(transactionsArray)):
+            transaction = self.extend(self.parse_transaction(transactionsArray[i], currency), params)
             result.append(transaction)
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
         return self.filter_by_currency_since_limit(result, code, since, limit)
 
     def parse_transfers(self, transfers: List[Any], currency: Currency = None, since: Int = None, limit: Int = None, params={}):
-        transfers = self.to_array(transfers)
+        transfersArray = self.to_array(transfers)
         result = []
-        for i in range(0, len(transfers)):
-            transfer = self.extend(self.parse_transfer(transfers[i], currency), params)
+        for i in range(0, len(transfersArray)):
+            transfer = self.extend(self.parse_transfer(transfersArray[i], currency), params)
             result.append(transfer)
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
@@ -7217,12 +7226,19 @@ class BaseExchange(object):
         time = self.parse_timeframe(timeframe) * 1000
         maxEntriesPerRequest = self.require_value(maxEntriesPerRequest, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required')
         step = time * maxEntriesPerRequest
+        until = self.safe_integer_2(params, 'until', 'till')  # do not omit it here
         currentSince = current - (maxCalls * step) - 1
         if since is not None:
-            currentSince = max(currentSince, since)
+            if until is not None:
+                # the recent-window floor below would jump past a fully-historical [since, until]
+                # range and return an empty result - requiredCalls is validated against maxCalls
+                # further down, so anchoring at since directly is safe here,
+                # see https://github.com/ccxt/ccxt/issues/26252
+                currentSince = since
+            else:
+                currentSince = max(currentSince, since)
         else:
             currentSince = max(currentSince, 1241440531000)  # avoid timestamps older than 2009
-        until = self.safe_integer_2(params, 'until', 'till')  # do not omit it here
         if until is not None:
             if since is None:
                 raise ArgumentsRequired(self.id + ' fetchPaginatedCallDeterministic() requires a since argument when until is set')
@@ -7244,7 +7260,7 @@ class BaseExchange(object):
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
         return self.filter_by_since_limit(uniqueResults, since, limit, key)
 
-    def fetch_paginated_call_cursor(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}, cursorReceived: Str = None, cursorSent: Str = None, cursorIncrement: Int = None, maxEntriesPerRequest: Int = None):
+    def fetch_paginated_call_cursor(self, method: str, symbol: Str | Strings = None, since: Int = None, limit: Int = None, params: dict = {}, cursorReceived: Str = None, cursorSent: Str = None, cursorIncrement: Int = None, maxEntriesPerRequest: Int = None):
         maxCalls = 10
         maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', maxCalls)
         maxRetries = 3
@@ -7268,7 +7284,8 @@ class BaseExchange(object):
                 elif method == 'getLeverageTiersPaginated' or method == 'fetchPositions':
                     response = getattr(self, method)(symbol, params)
                 elif method == 'fetchOpenInterestHistory':
-                    if symbol is None:
+                    if not isinstance(symbol, str):
+                        # fetchOpenInterestHistory takes a single symbol, never a list
                         raise ArgumentsRequired(self.id + ' fetchPaginatedCallCursor() requires a symbol argument')
                     if timeframe is None:
                         raise ArgumentsRequired(self.id + ' fetchPaginatedCallCursor() requires a timeframe argument')
@@ -7510,12 +7527,12 @@ class BaseExchange(object):
         raise NotSupported(self.id + ' parseLeverage() is not supported yet')
 
     def parse_conversions(self, conversions: List[Any], code: Str = None, fromCurrencyKey: Str = None, toCurrencyKey: Str = None, since: Int = None, limit: Int = None, params={}):
-        conversions = self.to_array(conversions)
+        conversionsArray = self.to_array(conversions)
         result = []
         fromCurrency = None
         toCurrency = None
-        for i in range(0, len(conversions)):
-            entry = conversions[i]
+        for i in range(0, len(conversionsArray)):
+            entry = conversionsArray[i]
             fromId = None if (fromCurrencyKey is None) else self.safe_string(entry, fromCurrencyKey)
             toId = None if (toCurrencyKey is None) else self.safe_string(entry, toCurrencyKey)
             if fromId is not None:

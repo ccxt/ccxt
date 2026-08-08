@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.digifinex import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Any, Balances, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -143,114 +143,114 @@ class digifinex(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'spot': {
-                        'get': [
-                            '{market}/symbols',
-                            'kline',
-                            'margin/currencies',
-                            'margin/symbols',
-                            'markets',
-                            'order_book',
-                            'ping',
-                            'spot/symbols',
-                            'time',
-                            'trades',
-                            'trades/symbols',
-                            'ticker',
-                            'currencies',
-                        ],
+                        'get': {
+                            '{market}/symbols': {'cost': 1},
+                            'kline': {'cost': 1},
+                            'margin/currencies': {'cost': 1},
+                            'margin/symbols': {'cost': 1},
+                            'markets': {'cost': 1},
+                            'order_book': {'cost': 1},
+                            'ping': {'cost': 1},
+                            'spot/symbols': {'cost': 1},
+                            'time': {'cost': 1},
+                            'trades': {'cost': 1},
+                            'trades/symbols': {'cost': 1},
+                            'ticker': {'cost': 1},
+                            'currencies': {'cost': 1},
+                        },
                     },
                     'swap': {
-                        'get': [
-                            'public/api_weight',
-                            'public/candles',
-                            'public/candles_history',
-                            'public/depth',
-                            'public/funding_rate',
-                            'public/funding_rate_history',
-                            'public/instrument',
-                            'public/instruments',
-                            'public/ticker',
-                            'public/tickers',
-                            'public/time',
-                            'public/trades',
-                        ],
+                        'get': {
+                            'public/api_weight': {'cost': 1},
+                            'public/candles': {'cost': 1},
+                            'public/candles_history': {'cost': 1},
+                            'public/depth': {'cost': 1},
+                            'public/funding_rate': {'cost': 1},
+                            'public/funding_rate_history': {'cost': 1},
+                            'public/instrument': {'cost': 1},
+                            'public/instruments': {'cost': 1},
+                            'public/ticker': {'cost': 1},
+                            'public/tickers': {'cost': 1},
+                            'public/time': {'cost': 1},
+                            'public/trades': {'cost': 1},
+                        },
                     },
                 },
                 'private': {
                     'spot': {
-                        'get': [
-                            '{market}/financelog',
-                            '{market}/mytrades',
-                            '{market}/order',
-                            '{market}/order/detail',
-                            '{market}/order/current',
-                            '{market}/order/history',
-                            'margin/assets',
-                            'margin/financelog',
-                            'margin/mytrades',
-                            'margin/order',
-                            'margin/order/current',
-                            'margin/order/history',
-                            'margin/positions',
-                            'otc/financelog',
-                            'spot/assets',
-                            'spot/financelog',
-                            'spot/mytrades',
-                            'spot/order',
-                            'spot/order/current',
-                            'spot/order/history',
-                            'deposit/address',
-                            'deposit/history',
-                            'withdraw/history',
-                        ],
-                        'post': [
-                            '{market}/order/cancel',
-                            '{market}/order/new',
-                            '{market}/order/batch_new',
-                            'margin/order/cancel',
-                            'margin/order/new',
-                            'margin/position/close',
-                            'spot/order/cancel',
-                            'spot/order/new',
-                            'transfer',
-                            'withdraw/new',
-                            'withdraw/cancel',
-                        ],
+                        'get': {
+                            '{market}/financelog': {'cost': 1},
+                            '{market}/mytrades': {'cost': 1},
+                            '{market}/order': {'cost': 1},
+                            '{market}/order/detail': {'cost': 1},
+                            '{market}/order/current': {'cost': 1},
+                            '{market}/order/history': {'cost': 1},
+                            'margin/assets': {'cost': 1},
+                            'margin/financelog': {'cost': 1},
+                            'margin/mytrades': {'cost': 1},
+                            'margin/order': {'cost': 1},
+                            'margin/order/current': {'cost': 1},
+                            'margin/order/history': {'cost': 1},
+                            'margin/positions': {'cost': 1},
+                            'otc/financelog': {'cost': 1},
+                            'spot/assets': {'cost': 1},
+                            'spot/financelog': {'cost': 1},
+                            'spot/mytrades': {'cost': 1},
+                            'spot/order': {'cost': 1},
+                            'spot/order/current': {'cost': 1},
+                            'spot/order/history': {'cost': 1},
+                            'deposit/address': {'cost': 1},
+                            'deposit/history': {'cost': 1},
+                            'withdraw/history': {'cost': 1},
+                        },
+                        'post': {
+                            '{market}/order/cancel': {'cost': 1},
+                            '{market}/order/new': {'cost': 1},
+                            '{market}/order/batch_new': {'cost': 1},
+                            'margin/order/cancel': {'cost': 1},
+                            'margin/order/new': {'cost': 1},
+                            'margin/position/close': {'cost': 1},
+                            'spot/order/cancel': {'cost': 1},
+                            'spot/order/new': {'cost': 1},
+                            'transfer': {'cost': 1},
+                            'withdraw/new': {'cost': 1},
+                            'withdraw/cancel': {'cost': 1},
+                        },
                     },
                     'swap': {
-                        'get': [
-                            'account/balance',
-                            'account/positions',
-                            'account/finance_record',
-                            'account/trading_fee_rate',
-                            'account/transfer_record',
-                            'account/funding_fee',
-                            'trade/history_orders',
-                            'trade/history_trades',
-                            'trade/open_orders',
-                            'trade/order_info',
-                        ],
-                        'post': [
-                            'account/transfer',
-                            'account/leverage',
-                            'account/position_mode',
-                            'account/position_margin',
-                            'trade/batch_cancel_order',
-                            'trade/batch_order',
-                            'trade/cancel_order',
-                            'trade/order_place',
-                            'follow/sponsor_order',
-                            'follow/close_order',
-                            'follow/cancel_order',
-                            'follow/user_center_current',
-                            'follow/user_center_history',
-                            'follow/expert_current_open_order',
-                            'follow/add_algo',
-                            'follow/cancel_algo',
-                            'follow/account_available',
-                            'follow/plan_task',
-                            'follow/instrument_list',
-                        ],
+                        'get': {
+                            'account/balance': {'cost': 1},
+                            'account/positions': {'cost': 1},
+                            'account/finance_record': {'cost': 1},
+                            'account/trading_fee_rate': {'cost': 1},
+                            'account/transfer_record': {'cost': 1},
+                            'account/funding_fee': {'cost': 1},
+                            'trade/history_orders': {'cost': 1},
+                            'trade/history_trades': {'cost': 1},
+                            'trade/open_orders': {'cost': 1},
+                            'trade/order_info': {'cost': 1},
+                        },
+                        'post': {
+                            'account/transfer': {'cost': 1},
+                            'account/leverage': {'cost': 1},
+                            'account/position_mode': {'cost': 1},
+                            'account/position_margin': {'cost': 1},
+                            'trade/batch_cancel_order': {'cost': 1},
+                            'trade/batch_order': {'cost': 1},
+                            'trade/cancel_order': {'cost': 1},
+                            'trade/order_place': {'cost': 1},
+                            'follow/sponsor_order': {'cost': 1},
+                            'follow/close_order': {'cost': 1},
+                            'follow/cancel_order': {'cost': 1},
+                            'follow/user_center_current': {'cost': 1},
+                            'follow/user_center_history': {'cost': 1},
+                            'follow/expert_current_open_order': {'cost': 1},
+                            'follow/add_algo': {'cost': 1},
+                            'follow/cancel_algo': {'cost': 1},
+                            'follow/account_available': {'cost': 1},
+                            'follow/plan_task': {'cost': 1},
+                            'follow/instrument_list': {'cost': 1},
+                        },
                     },
                 },
             },
@@ -433,7 +433,7 @@ class digifinex(Exchange, ImplicitAPI):
                     'OTC': '3',
                 },
                 'networks': {
-                    'ARBONE': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                     'AVALANCEC': 'AVAX-CCHAIN',
                     'AVALANCEX': 'AVAX-XCHAIN',
                     'BEP20': 'BEP20',
@@ -597,7 +597,7 @@ class digifinex(Exchange, ImplicitAPI):
             return self.fetch_markets_v2(params)
         return self.fetch_markets_v1(params)
 
-    def fetch_markets_v2(self, params={}):
+    def fetch_markets_v2(self, params={}) -> List[Market]:
         defaultType = self.safe_string(self.options, 'defaultType')
         marginMode, query = self.handle_margin_mode_and_params('fetchMarketsV2', params)
         promisesRaw = []
@@ -1398,7 +1398,7 @@ class digifinex(Exchange, ImplicitAPI):
         #
         return self.safe_timestamp(response, 'server_time')
 
-    def fetch_status(self, params={}):
+    def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -3734,10 +3734,10 @@ class digifinex(Exchange, ImplicitAPI):
         currency = None
         request = {}
         if code is not None:
-            currency = self.safe_currency_code(code)
+            currency = self.currency(code)
             if currency is None:
                 raise ExchangeError(self.id + ' fetchTransfers() could not resolve currency')
-            request['currency'] = currency['id']
+            request['currency'] = self.safe_string(currency, 'id')
         if since is not None:
             request['start_timestamp'] = since
         if limit is not None:

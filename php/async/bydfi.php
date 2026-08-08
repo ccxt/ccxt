@@ -203,57 +203,57 @@ class bydfi extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'v1/public/api_limits' => 1, // https://developers.bydfi.com/en/public#inquiry-into-api-rate-limit-configuration
-                        'v1/fapi/market/exchange_info' => 1,
-                        'v1/fapi/market/depth' => 1,
-                        'v1/fapi/market/trades' => 1,
-                        'v1/fapi/market/klines' => 1,
-                        'v1/fapi/market/ticker/24hr' => 1,
-                        'v1/fapi/market/ticker/price' => 1, // https://developers.bydfi.com/en/futures/market#latest-price
-                        'v1/fapi/market/mark_price' => 1, // https://developers.bydfi.com/en/futures/market#mark-price
-                        'v1/fapi/market/funding_rate' => 1,
-                        'v1/fapi/market/funding_rate_history' => 1,
-                        'v1/fapi/market/risk_limit' => 1, // https://developers.bydfi.com/en/futures/market#risk-limit
+                        'v1/public/api_limits' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/public#inquiry-into-api-rate-limit-configuration
+                        'v1/fapi/market/exchange_info' => array( 'cost' => 1 ),
+                        'v1/fapi/market/depth' => array( 'cost' => 1 ),
+                        'v1/fapi/market/trades' => array( 'cost' => 1 ),
+                        'v1/fapi/market/klines' => array( 'cost' => 1 ),
+                        'v1/fapi/market/ticker/24hr' => array( 'cost' => 1 ),
+                        'v1/fapi/market/ticker/price' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/futures/market#latest-price
+                        'v1/fapi/market/mark_price' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/futures/market#mark-price
+                        'v1/fapi/market/funding_rate' => array( 'cost' => 1 ),
+                        'v1/fapi/market/funding_rate_history' => array( 'cost' => 1 ),
+                        'v1/fapi/market/risk_limit' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/futures/market#risk-limit
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'v1/account/assets' => 1,
-                        'v1/account/transfer_records' => 1,
-                        'v1/spot/deposit_records' => 1,
-                        'v1/spot/withdraw_records' => 1,
-                        'v1/fapi/trade/open_order' => 1,
-                        'v1/fapi/trade/plan_order' => 1,
-                        'v1/fapi/trade/leverage' => 1,
-                        'v1/fapi/trade/history_order' => 1,
-                        'v1/fapi/trade/history_trade' => 1,
-                        'v1/fapi/trade/position_history' => 1,
-                        'v1/fapi/trade/positions' => 1,
-                        'v1/fapi/account/balance' => 1,
-                        'v1/fapi/user_data/assets_margin' => 1,
-                        'v1/fapi/user_data/position_side/dual' => 1,
-                        'v1/agent/teams' => 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-team-information
-                        'v1/agent/agent_links' => 1, // https://developers.bydfi.com/en/agent/#query-kol-invitation-code-list
-                        'v1/agent/regular_overview' => 1, // https://developers.bydfi.com/en/agent/#query-kol-direct-client-data-list
-                        'v1/agent/agent_sub_overview' => 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-affiliate-list
-                        'v1/agent/partener_user_deposit' => 1, // https://developers.bydfi.com/en/agent/#check-the-recharge-amount-of-kol-within-one-year
-                        'v1/agent/partener_users_data' => 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-deposit-and-trading-data
-                        'v1/agent/affiliate_uids' => 1, // https://developers.bydfi.com/en/agent/#get-affiliate-uids
-                        'v1/agent/affiliate_commission' => 1, // https://developers.bydfi.com/en/agent/#get-affiliate-commission
-                        'v1/agent/internal_withdrawal_status' => 1, // https://developers.bydfi.com/en/agent/#get-internal-withdrawal-status
+                        'v1/account/assets' => array( 'cost' => 1 ),
+                        'v1/account/transfer_records' => array( 'cost' => 1 ),
+                        'v1/spot/deposit_records' => array( 'cost' => 1 ),
+                        'v1/spot/withdraw_records' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/open_order' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/plan_order' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/leverage' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/history_order' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/history_trade' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/position_history' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/positions' => array( 'cost' => 1 ),
+                        'v1/fapi/account/balance' => array( 'cost' => 1 ),
+                        'v1/fapi/user_data/assets_margin' => array( 'cost' => 1 ),
+                        'v1/fapi/user_data/position_side/dual' => array( 'cost' => 1 ),
+                        'v1/agent/teams' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#query-kol-subordinate-team-information
+                        'v1/agent/agent_links' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#query-kol-invitation-code-list
+                        'v1/agent/regular_overview' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#query-kol-direct-client-data-list
+                        'v1/agent/agent_sub_overview' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#query-kol-subordinate-affiliate-list
+                        'v1/agent/partener_user_deposit' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#check-the-recharge-amount-of-kol-within-one-year
+                        'v1/agent/partener_users_data' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#query-kol-subordinate-deposit-and-trading-data
+                        'v1/agent/affiliate_uids' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#get-affiliate-uids
+                        'v1/agent/affiliate_commission' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#get-affiliate-commission
+                        'v1/agent/internal_withdrawal_status' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#get-internal-withdrawal-status
                     ),
                     'post' => array(
-                        'v1/account/transfer' => 1,
-                        'v1/fapi/trade/place_order' => 1,
-                        'v1/fapi/trade/batch_place_order' => 1,
-                        'v1/fapi/trade/edit_order' => 1,
-                        'v1/fapi/trade/batch_edit_order' => 1,
-                        'v1/fapi/trade/cancel_all_order' => 1,
-                        'v1/fapi/trade/leverage' => 1,
-                        'v1/fapi/trade/batch_leverage_margin' => 1, // https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
-                        'v1/fapi/user_data/margin_type' => 1,
-                        'v1/fapi/user_data/position_side/dual' => 1,
-                        'v1/agent/internal_withdrawal' => 1, // https://developers.bydfi.com/en/agent/#internal-withdrawal
+                        'v1/account/transfer' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/place_order' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/batch_place_order' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/edit_order' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/batch_edit_order' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/cancel_all_order' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/leverage' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/batch_leverage_margin' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
+                        'v1/fapi/user_data/margin_type' => array( 'cost' => 1 ),
+                        'v1/fapi/user_data/position_side/dual' => array( 'cost' => 1 ),
+                        'v1/agent/internal_withdrawal' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#internal-withdrawal
                     ),
                 ),
             ),
@@ -1654,7 +1654,7 @@ class bydfi extends Exchange {
         })();
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an open $order by the $id
@@ -2509,7 +2509,7 @@ class bydfi extends Exchange {
         })();
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetchs the position mode, $hedged or one way, $hedged for bydfi is set identically for all markets with same settle currency
@@ -2876,7 +2876,7 @@ class bydfi extends Exchange {
         })();
     }
 
-    public function fetch_transactions_helper(mixed $type, mixed $code, mixed $since, mixed $limit, mixed $params) {
+    public function fetch_transactions_helper(mixed $type, mixed $code, mixed $since, mixed $limit, mixed $params): PromiseInterface {
         return Async\async(function () use ($type, $code, $since, $limit, $params) {
             $methodName = ($type === 'deposit') ? 'fetchDeposits' : 'fetchWithdrawals';
             if ($code === null) {

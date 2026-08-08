@@ -36,13 +36,19 @@ public partial class bitrue : ccxt.bitrue
                     { "v1", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "post", new Dictionary<string, object>() {
-                                { "poseidon/api/v1/listenKey", 1 },
+                                { "poseidon/api/v1/listenKey", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
                             } },
                             { "put", new Dictionary<string, object>() {
-                                { "poseidon/api/v1/listenKey/{listenKey}", 1 },
+                                { "poseidon/api/v1/listenKey/{listenKey}", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
                             } },
                             { "delete", new Dictionary<string, object>() {
-                                { "poseidon/api/v1/listenKey/{listenKey}", 1 },
+                                { "poseidon/api/v1/listenKey/{listenKey}", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
                             } },
                         } },
                     } },

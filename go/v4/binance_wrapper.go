@@ -158,12 +158,12 @@ func (this *Binance) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Binance) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Binance) FetchStatus(params ...any) (Status, error) {
 	res := <-this.Core.FetchStatus(params...)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return Status{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewStatus(res), nil
 }
 
 /**
@@ -2392,7 +2392,7 @@ func (this *Binance) FetchLeverages(options ...FetchLeveragesOptions) (Leverages
  * @param {object} [params] exchange specific params
  * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
-func (this *Binance) FetchSettlementHistory(options ...FetchSettlementHistoryOptions) (map[string]any, error) {
+func (this *Binance) FetchSettlementHistory(options ...FetchSettlementHistoryOptions) ([]map[string]any, error) {
 
 	opts := FetchSettlementHistoryOptionsStruct{}
 
@@ -2421,9 +2421,9 @@ func (this *Binance) FetchSettlementHistory(options ...FetchSettlementHistoryOpt
 	}
 	res := <-this.Core.FetchSettlementHistory(symbol, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**
@@ -2987,7 +2987,7 @@ func (this *Binance) FetchTradingLimits(options ...FetchTradingLimitsOptions) (m
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Binance) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Binance) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 
 	opts := FetchPositionModeOptionsStruct{}
 
@@ -3006,9 +3006,9 @@ func (this *Binance) FetchPositionMode(options ...FetchPositionModeOptions) (map
 	}
 	res := <-this.Core.FetchPositionMode(symbol, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return PositionModeInfo{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewPositionModeInfo(res), nil
 }
 
 /**
@@ -3727,7 +3727,7 @@ func (this *Binance) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Binance) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Binance) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Binance) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Binance) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -3772,7 +3772,7 @@ func (this *Binance) FetchTradesWs(symbol string, options ...FetchTradesWsOption
 func (this *Binance) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Binance) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Binance) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Binance) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

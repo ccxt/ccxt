@@ -63,7 +63,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `webExchangeGet` | GET | `` |  |
+| `webExchangeGet` | GET | `` | 1 |
 
 ## web
 
@@ -71,7 +71,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `webGetRestApi` | GET | `rest-api` |  |
+| `webGetRestApi` | GET | `rest-api` | 1 |
 
 ## public
 

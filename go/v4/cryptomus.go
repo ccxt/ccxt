@@ -168,30 +168,62 @@ func (this *CryptomusCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"v2/user-api/exchange/markets":                 1,
-					"v2/user-api/exchange/market/price":            1,
-					"v1/exchange/market/assets":                    1,
-					"v1/exchange/market/order-book/{currencyPair}": 1,
-					"v1/exchange/market/tickers":                   1,
-					"v1/exchange/market/trades/{currencyPair}":     1,
+					"v2/user-api/exchange/markets": map[string]any{
+						"cost": 1,
+					},
+					"v2/user-api/exchange/market/price": map[string]any{
+						"cost": 1,
+					},
+					"v1/exchange/market/assets": map[string]any{
+						"cost": 1,
+					},
+					"v1/exchange/market/order-book/{currencyPair}": map[string]any{
+						"cost": 1,
+					},
+					"v1/exchange/market/tickers": map[string]any{
+						"cost": 1,
+					},
+					"v1/exchange/market/trades/{currencyPair}": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"v2/user-api/exchange/orders":          1,
-					"v2/user-api/exchange/orders/history":  1,
-					"v2/user-api/exchange/account/balance": 1,
-					"v2/user-api/exchange/account/tariffs": 1,
-					"v2/user-api/payment/services":         1,
-					"v2/user-api/payout/services":          1,
-					"v2/user-api/transaction/list":         1,
+					"v2/user-api/exchange/orders": map[string]any{
+						"cost": 1,
+					},
+					"v2/user-api/exchange/orders/history": map[string]any{
+						"cost": 1,
+					},
+					"v2/user-api/exchange/account/balance": map[string]any{
+						"cost": 1,
+					},
+					"v2/user-api/exchange/account/tariffs": map[string]any{
+						"cost": 1,
+					},
+					"v2/user-api/payment/services": map[string]any{
+						"cost": 1,
+					},
+					"v2/user-api/payout/services": map[string]any{
+						"cost": 1,
+					},
+					"v2/user-api/transaction/list": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"v2/user-api/exchange/orders":        1,
-					"v2/user-api/exchange/orders/market": 1,
+					"v2/user-api/exchange/orders": map[string]any{
+						"cost": 1,
+					},
+					"v2/user-api/exchange/orders/market": map[string]any{
+						"cost": 1,
+					},
 				},
 				"delete": map[string]any{
-					"v2/user-api/exchange/orders/{orderId}": 1,
+					"v2/user-api/exchange/orders/{orderId}": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -206,27 +238,27 @@ func (this *CryptomusCore) Describe() any {
 		"options": map[string]any{
 			"createMarketBuyOrderRequiresPrice": true,
 			"networks": map[string]any{
-				"BEP20":   "bsc",
-				"DASH":    "dash",
-				"POLYGON": "polygon",
-				"ARB":     "arbitrum",
-				"SOL":     "sol",
-				"TON":     "ton",
-				"ERC20":   "eth",
-				"TRC20":   "tron",
-				"LTC":     "ltc",
-				"XMR":     "xmr",
-				"BCH":     "bch",
-				"DOGE":    "doge",
-				"AVAX":    "avalanche",
-				"BTC":     "btc",
-				"RUB":     "rub",
+				"BEP20":    "bsc",
+				"DASH":     "dash",
+				"POLYGON":  "polygon",
+				"ARBITRUM": "arbitrum",
+				"SOL":      "sol",
+				"TON":      "ton",
+				"ERC20":    "eth",
+				"TRC20":    "tron",
+				"LTC":      "ltc",
+				"XMR":      "xmr",
+				"BCH":      "bch",
+				"DOGE":     "doge",
+				"AVAX":     "avalanche",
+				"BTC":      "btc",
+				"RUB":      "rub",
 			},
 			"networksById": map[string]any{
 				"bsc":       "BEP20",
 				"dash":      "DASH",
 				"polygon":   "POLYGON",
-				"arbitrum":  "ARB",
+				"arbitrum":  "ARBITRUM",
 				"sol":       "SOL",
 				"ton":       "TON",
 				"eth":       "ERC20",

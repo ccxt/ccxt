@@ -116,67 +116,67 @@ class upbit(Exchange, ImplicitAPI):
                 # cost = 1000 / (rateLimit * RPS)
                 'public': {
                     'get': {
-                        'market/all': 2,  # RPS: 10
-                        'candles/{timeframe}': 2,
-                        'candles/{timeframe}/{unit}': 2,
-                        'candles/seconds': 2,
-                        'candles/minutes/{unit}': 2,
-                        'candles/minutes/1': 2,
-                        'candles/minutes/3': 2,
-                        'candles/minutes/5': 2,
-                        'candles/minutes/10': 2,
-                        'candles/minutes/15': 2,
-                        'candles/minutes/30': 2,
-                        'candles/minutes/60': 2,
-                        'candles/minutes/240': 2,
-                        'candles/days': 2,
-                        'candles/weeks': 2,
-                        'candles/months': 2,
-                        'candles/years': 2,
-                        'trades/ticks': 2,
-                        'ticker': 2,
-                        'ticker/all': 2,
-                        'orderbook': 2,
-                        'orderbook/instruments': 2,
+                        'market/all': {'cost': 2},  # RPS: 10
+                        'candles/{timeframe}': {'cost': 2},
+                        'candles/{timeframe}/{unit}': {'cost': 2},
+                        'candles/seconds': {'cost': 2},
+                        'candles/minutes/{unit}': {'cost': 2},
+                        'candles/minutes/1': {'cost': 2},
+                        'candles/minutes/3': {'cost': 2},
+                        'candles/minutes/5': {'cost': 2},
+                        'candles/minutes/10': {'cost': 2},
+                        'candles/minutes/15': {'cost': 2},
+                        'candles/minutes/30': {'cost': 2},
+                        'candles/minutes/60': {'cost': 2},
+                        'candles/minutes/240': {'cost': 2},
+                        'candles/days': {'cost': 2},
+                        'candles/weeks': {'cost': 2},
+                        'candles/months': {'cost': 2},
+                        'candles/years': {'cost': 2},
+                        'trades/ticks': {'cost': 2},
+                        'ticker': {'cost': 2},
+                        'ticker/all': {'cost': 2},
+                        'orderbook': {'cost': 2},
+                        'orderbook/instruments': {'cost': 2},
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts': 0.67,  # RPS: 30
-                        'orders/chance': 0.67,
-                        'order': 0.67,
-                        'orders/closed': 0.67,
-                        'orders/open': 0.67,
-                        'orders/uuids': 0.67,
-                        'withdraws': 0.67,
-                        'withdraw': 0.67,
-                        'withdraws/chance': 0.67,
-                        'withdraws/coin_addresses': 0.67,
-                        'deposits': 0.67,
-                        'deposits/chance/coin': 0.67,
-                        'deposit': 0.67,
-                        'deposits/coin_addresses': 0.67,
-                        'deposits/coin_address': 0.67,
-                        'travel_rule/vasps': 0.67,
-                        'status/wallet': 0.67,
-                        'api_keys': 0.67,  # Upbit KR only
+                        'accounts': {'cost': 0.67},  # RPS: 30
+                        'orders/chance': {'cost': 0.67},
+                        'order': {'cost': 0.67},
+                        'orders/closed': {'cost': 0.67},
+                        'orders/open': {'cost': 0.67},
+                        'orders/uuids': {'cost': 0.67},
+                        'withdraws': {'cost': 0.67},
+                        'withdraw': {'cost': 0.67},
+                        'withdraws/chance': {'cost': 0.67},
+                        'withdraws/coin_addresses': {'cost': 0.67},
+                        'deposits': {'cost': 0.67},
+                        'deposits/chance/coin': {'cost': 0.67},
+                        'deposit': {'cost': 0.67},
+                        'deposits/coin_addresses': {'cost': 0.67},
+                        'deposits/coin_address': {'cost': 0.67},
+                        'travel_rule/vasps': {'cost': 0.67},
+                        'status/wallet': {'cost': 0.67},
+                        'api_keys': {'cost': 0.67},  # Upbit KR only
                     },
                     'post': {
-                        'orders': 2.5,  # RPS: 8
-                        'orders/test': 2.5,  # RPS: 8
-                        'orders/cancel_and_new': 2.5,  # RPS: 8
-                        'withdraws/coin': 0.67,
-                        'withdraws/krw': 0.67,  # Upbit KR only.
-                        'deposits/krw': 0.67,  # Upbit KR only.
-                        'deposits/generate_coin_address': 0.67,
-                        'travel_rule/deposit/uuid': 0.67,  # RPS: 30, but each deposit can only be queried once every 10 minutes
-                        'travel_rule/deposit/txid': 0.67,  # RPS: 30, but each deposit can only be queried once every 10 minutes
+                        'orders': {'cost': 2.5},  # RPS: 8
+                        'orders/test': {'cost': 2.5},  # RPS: 8
+                        'orders/cancel_and_new': {'cost': 2.5},  # RPS: 8
+                        'withdraws/coin': {'cost': 0.67},
+                        'withdraws/krw': {'cost': 0.67},  # Upbit KR only.
+                        'deposits/krw': {'cost': 0.67},  # Upbit KR only.
+                        'deposits/generate_coin_address': {'cost': 0.67},
+                        'travel_rule/deposit/uuid': {'cost': 0.67},  # RPS: 30, but each deposit can only be queried once every 10 minutes
+                        'travel_rule/deposit/txid': {'cost': 0.67},  # RPS: 30, but each deposit can only be queried once every 10 minutes
                     },
                     'delete': {
-                        'order': 0.67,
-                        'orders/open': 40,  # RPS: 0.5
-                        'orders/uuids': 0.67,
-                        'withdraws/coin': 0.67,
+                        'order': {'cost': 0.67},
+                        'orders/open': {'cost': 40},  # RPS: 0.5
+                        'orders/uuids': {'cost': 0.67},
+                        'withdraws/coin': {'cost': 0.67},
                     },
                 },
             },
@@ -678,8 +678,9 @@ class upbit(Exchange, ImplicitAPI):
         #                               "bid_size": 0.4650305}    ]}   ]
         #
         result = {}
-        for i in range(0, len(response)):
-            orderbook = response[i]
+        orderbooks = self.to_array(response)
+        for i in range(0, len(orderbooks)):
+            orderbook = orderbooks[i]
             marketId = self.safe_string(orderbook, 'market')
             symbol = self.safe_symbol(marketId, None, '-')
             timestamp = self.safe_integer(orderbook, 'timestamp')
@@ -1103,7 +1104,7 @@ class upbit(Exchange, ImplicitAPI):
             'timeframe': timeframeValue,
             'count': limit,
         }
-        response: List
+        response: dict | List
         if since is not None:
             # convert `since` to `to` value
             request['to'] = self.iso8601(self.sum(since, timeframePeriod * limit * 1000))
@@ -1143,7 +1144,8 @@ class upbit(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        ohlcvs = self.to_array(response)
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def calc_order_price(self, symbol: str, amount: Num, price: Num = None, params={}) -> Str:
         quoteAmount = None

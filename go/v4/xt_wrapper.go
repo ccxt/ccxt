@@ -30,7 +30,7 @@ func NewXtFromCore(core *XtCore) *Xt {
  * @method
  * @name xt#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the xt server
- * @see https://doc.xt.com/#market1serverInfo
+ * @see https://doc.xt.com/docs/spot/Market/GetServerTime
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the xt server
  */
@@ -46,7 +46,7 @@ func (this *Xt) FetchTime(params ...any) (int64, error) {
  * @method
  * @name xt#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet
+ * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetSupportedCurrencies
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -62,8 +62,8 @@ func (this *Xt) FetchCurrencies(params ...any) (Currencies, error) {
  * @method
  * @name xt#fetchMarkets
  * @description retrieves data on all markets for xt
- * @see https://doc.xt.com/#market2symbol
- * @see https://doc.xt.com/#futures_quotesgetSymbols
+ * @see https://doc.xt.com/docs/spot/Market/GetSymbolInformation
+ * @see https://doc.xt.com/docs/futures/MarketData/get-configuration-information-for-listed-and-tradeable-symbols
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -74,12 +74,12 @@ func (this *Xt) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	}
 	return NewMarketInterfaceArray(res), nil
 }
-func (this *Xt) FetchSpotMarkets(params ...any) ([]map[string]any, error) {
+func (this *Xt) FetchSpotMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchSpotMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return NewMarketInterfaceArray(res), nil
 }
 func (this *Xt) FetchSwapAndFutureMarkets(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchSwapAndFutureMarkets(params...)
@@ -93,8 +93,8 @@ func (this *Xt) FetchSwapAndFutureMarkets(params ...any) ([]map[string]any, erro
  * @method
  * @name xt#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://doc.xt.com/#market4kline
- * @see https://doc.xt.com/#futures_quotesgetKLine
+ * @see https://doc.xt.com/docs/spot/Market/GetKlineData
+ * @see https://doc.xt.com/docs/futures/MarketData/get-trading-pair-information-of-kline
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -141,8 +141,8 @@ func (this *Xt) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV
 /**
  * @method
  * @name xt#fetchOrderBook
- * @see https://doc.xt.com/#market3depth
- * @see https://doc.xt.com/#futures_quotesgetDepth
+ * @see https://doc.xt.com/docs/spot/Market/GetDepthData
+ * @see https://doc.xt.com/docs/futures/MarketData/get-depth-data-of-trading-pairs
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified market symbol to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
@@ -177,8 +177,8 @@ func (this *Xt) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) 
  * @method
  * @name xt#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://doc.xt.com/#market10ticker24h
- * @see https://doc.xt.com/#futures_quotesgetAggTicker
+ * @see https://doc.xt.com/docs/spot/Market/Get24hStatisticsTicker
+ * @see https://doc.xt.com/docs/futures/MarketData/get-aggregated-market-information-for-specific-trading-pair
  * @param {string} symbol unified market symbol to fetch the ticker for
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -206,8 +206,8 @@ func (this *Xt) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticke
  * @method
  * @name xt#fetchTickers
  * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
- * @see https://doc.xt.com/#market10ticker24h
- * @see https://doc.xt.com/#futures_quotesgetAggTickers
+ * @see https://doc.xt.com/docs/spot/Market/Get24hStatisticsTicker
+ * @see https://doc.xt.com/docs/futures/MarketData/get_aggregated_market_information_for_all_trading_pairs
  * @param {string} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -240,8 +240,9 @@ func (this *Xt) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
  * @method
  * @name xt#fetchBidsAsks
  * @description fetches the bid and ask price and volume for multiple markets
- * @see https://doc.xt.com/#market9tickerBook
- * @param {string} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+ * @see https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
+ * @see https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
@@ -273,8 +274,8 @@ func (this *Xt) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) 
  * @method
  * @name xt#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://doc.xt.com/#market5tradeRecent
- * @see https://doc.xt.com/#futures_quotesgetDeal
+ * @see https://doc.xt.com/docs/spot/Market/QueryRecentTransactions
+ * @see https://doc.xt.com/docs/futures/MarketData/get-latest-transaction-information-of-trading-pairs
  * @param {string} symbol unified market symbol to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -314,8 +315,8 @@ func (this *Xt) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Tra
  * @method
  * @name xt#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://doc.xt.com/#tradetradeGet
- * @see https://doc.xt.com/#futures_ordergetTrades
+ * @see https://doc.xt.com/docs/spot/Trade/QueryTrade
+ * @see https://doc.xt.com/docs/futures/Order/see-transaction-details
  * @param {string} [symbol] unified market symbol to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -360,8 +361,8 @@ func (this *Xt) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) 
  * @method
  * @name xt#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://doc.xt.com/#balancebalancesGet
- * @see https://doc.xt.com/#futures_usergetBalances
+ * @see https://doc.xt.com/docs/spot/Balance/GetBalances
+ * @see https://doc.xt.com/docs/futures/User/GetUserFunds
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
  */
@@ -376,7 +377,7 @@ func (this *Xt) FetchBalance(params ...any) (Balances, error) {
 /**
  * @method
  * @name xt#createMarketBuyOrderWithCost
- * @see https://doc.xt.com/#orderorderPost
+ * @see https://doc.xt.com/docs/spot/Order/SubmitOrder
  * @description create a market buy order by providing the symbol and cost
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
@@ -406,10 +407,10 @@ func (this *Xt) CreateMarketBuyOrderWithCost(symbol string, cost float64, option
  * @method
  * @name xt#createOrder
  * @description create a trade order
- * @see https://doc.xt.com/#orderorderPost
- * @see https://doc.xt.com/#futures_ordercreate
- * @see https://doc.xt.com/#futures_entrustcreatePlan
- * @see https://doc.xt.com/#futures_entrustcreateProfit
+ * @see https://doc.xt.com/docs/spot/Order/SubmitOrder
+ * @see https://doc.xt.com/docs/futures/Order/Create%20Orders
+ * @see https://doc.xt.com/docs/futures/Entrust/CreateTriggerOrders
+ * @see https://doc.xt.com/docs/futures/Entrust/CreateStopLimit
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -453,10 +454,10 @@ func (this *Xt) CreateOrder(symbol string, typeVar string, side string, amount f
  * @method
  * @name xt#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://doc.xt.com/#orderorderGet
- * @see https://doc.xt.com/#futures_ordergetById
- * @see https://doc.xt.com/#futures_entrustgetPlanById
- * @see https://doc.xt.com/#futures_entrustgetProfitById
+ * @see https://doc.xt.com/docs/spot/Order/GetSingleOrder
+ * @see https://doc.xt.com/docs/futures/Order/see-orders-by-id
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersByEntrustId
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimitByProfitId
  * @param {string} id order id
  * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} params extra parameters specific to the exchange API endpoint
@@ -492,9 +493,9 @@ func (this *Xt) FetchOrder(id string, options ...FetchOrderOptions) (Order, erro
  * @method
  * @name xt#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://doc.xt.com/#orderhistoryOrderGet
- * @see https://doc.xt.com/#futures_ordergetHistory
- * @see https://doc.xt.com/#futures_entrustgetPlanHistory
+ * @see https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+ * @see https://doc.xt.com/docs/futures/Order/see-order-history
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersHistory
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -573,10 +574,10 @@ func (this *Xt) FetchOrdersByStatus(status any, options ...FetchOrdersByStatusOp
  * @method
  * @name xt#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://doc.xt.com/#orderopenOrderGet
- * @see https://doc.xt.com/#futures_ordergetOrders
- * @see https://doc.xt.com/#futures_entrustgetPlan
- * @see https://doc.xt.com/#futures_entrustgetProfit
+ * @see https://doc.xt.com/docs/spot/Order/QueryOpenOrders
+ * @see https://doc.xt.com/docs/futures/Order/see-orders
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -623,10 +624,10 @@ func (this *Xt) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, err
  * @method
  * @name xt#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://doc.xt.com/#orderhistoryOrderGet
- * @see https://doc.xt.com/#futures_ordergetOrders
- * @see https://doc.xt.com/#futures_entrustgetPlan
- * @see https://doc.xt.com/#futures_entrustgetProfit
+ * @see https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+ * @see https://doc.xt.com/docs/futures/Order/see-orders
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -673,10 +674,10 @@ func (this *Xt) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order,
  * @method
  * @name xt#fetchCanceledOrders
  * @description fetches information on multiple canceled orders made by the user
- * @see https://doc.xt.com/#orderhistoryOrderGet
- * @see https://doc.xt.com/#futures_ordergetOrders
- * @see https://doc.xt.com/#futures_entrustgetPlan
- * @see https://doc.xt.com/#futures_entrustgetProfit
+ * @see https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+ * @see https://doc.xt.com/docs/futures/Order/see-orders
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -723,10 +724,10 @@ func (this *Xt) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Or
  * @method
  * @name xt#cancelOrder
  * @description cancels an open order
- * @see https://doc.xt.com/#orderorderDel
- * @see https://doc.xt.com/#futures_ordercancel
- * @see https://doc.xt.com/#futures_entrustcancelPlan
- * @see https://doc.xt.com/#futures_entrustcancelProfit
+ * @see https://doc.xt.com/docs/spot/Order/CancelOrder
+ * @see https://doc.xt.com/docs/futures/Order/cancel-orders
+ * @see https://doc.xt.com/docs/futures/Entrust/CancelTriggerOrders
+ * @see https://doc.xt.com/docs/futures/Entrust/CancelStopLimit
  * @param {string} id order id
  * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} params extra parameters specific to the exchange API endpoint
@@ -762,10 +763,10 @@ func (this *Xt) CancelOrder(id string, options ...CancelOrderOptions) (Order, er
  * @method
  * @name xt#cancelAllOrders
  * @description cancel all open orders in a market
- * @see https://doc.xt.com/#orderopenOrderDel
- * @see https://doc.xt.com/#futures_ordercancelBatch
- * @see https://doc.xt.com/#futures_entrustcancelPlanBatch
- * @see https://doc.xt.com/#futures_entrustcancelProfitBatch
+ * @see https://doc.xt.com/docs/spot/Order/CancelCurrentPendingOrder
+ * @see https://doc.xt.com/docs/futures/Order/cancel-all-orders
+ * @see https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders
+ * @see https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit
  * @param {string} [symbol] unified market symbol of the market to cancel orders in
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
@@ -800,7 +801,7 @@ func (this *Xt) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, err
  * @method
  * @name xt#cancelOrders
  * @description cancel multiple orders
- * @see https://doc.xt.com/#orderbatchOrderDel
+ * @see https://doc.xt.com/docs/spot/Order/CancelBatchOrder
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol of the market to cancel orders in
  * @param {object} params extra parameters specific to the exchange API endpoint
@@ -834,7 +835,7 @@ func (this *Xt) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Or
  * @method
  * @name xt#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://doc.xt.com/#futures_usergetBalanceBill
+ * @see https://doc.xt.com/docs/futures/User/Get%20User's%20Account%20Flow%20Information
  * @param {string} [code] unified currency code
  * @param {int} [since] timestamp in ms of the earliest ledger entry
  * @param {int} [limit] max number of ledger entries to return
@@ -879,7 +880,7 @@ func (this *Xt) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error
  * @method
  * @name xt#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://doc.xt.com/#deposit_withdrawaldepositAddressGet
+ * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetDepositAddress
  * @param {string} code unified currency code
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} params.network required network id
@@ -908,7 +909,7 @@ func (this *Xt) FetchDepositAddress(code string, options ...FetchDepositAddressO
  * @method
  * @name xt#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://doc.xt.com/#deposit_withdrawalhistoryDepositGet
+ * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetDepositHistory
  * @param {string} [code] unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of transaction structures to retrieve
@@ -953,7 +954,7 @@ func (this *Xt) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, e
  * @method
  * @name xt#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://doc.xt.com/#deposit_withdrawalwithdrawHistory
+ * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/WithdrawHistory
  * @param {string} [code] unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of transaction structures to retrieve
@@ -998,7 +999,7 @@ func (this *Xt) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transact
  * @method
  * @name xt#withdraw
  * @description make a withdrawal
- * @see https://doc.xt.com/#deposit_withdrawalwithdraw
+ * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/Withdraw
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
@@ -1034,7 +1035,7 @@ func (this *Xt) Withdraw(code string, amount float64, address string, options ..
  * @method
  * @name xt#setLeverage
  * @description set the level of leverage for a market
- * @see https://doc.xt.com/#futures_useradjustLeverage
+ * @see https://doc.xt.com/docs/futures/User/Adjust%20Leverage
  * @param {float} leverage the rate of leverage
  * @param {string} symbol unified market symbol
  * @param {object} params extra parameters specific to the exchange API endpoint
@@ -1069,7 +1070,7 @@ func (this *Xt) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[
  * @method
  * @name xt#fetchLeverageTiers
  * @description retrieve information on the maximum leverage for different trade sizes
- * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
+ * @see https://doc.xt.com/docs/futures/MarketData/see-leverage-stratification-of-single-trading-pair
  * @param {string} [symbols] a list of unified market symbols
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
@@ -1102,7 +1103,7 @@ func (this *Xt) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (Levera
  * @method
  * @name xt#fetchMarketLeverageTiers
  * @description retrieve information on the maximum leverage for different trade sizes of a single market
- * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
+ * @see https://doc.xt.com/docs/futures/MarketData/see-leverage-stratification-of-single-trading-pair
  * @param {string} symbol unified market symbol
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
@@ -1130,7 +1131,7 @@ func (this *Xt) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLe
  * @method
  * @name xt#fetchFundingRateHistory
  * @description fetches historical funding rates
- * @see https://doc.xt.com/#futures_quotesgetFundingRateRecord
+ * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-records
  * @param {string} [symbol] unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
@@ -1176,7 +1177,7 @@ func (this *Xt) FetchFundingRateHistory(options ...FetchFundingRateHistoryOption
  * @method
  * @name xt#fetchFundingInterval
  * @description fetch the current funding rate interval
- * @see https://doc.xt.com/#futures_quotesgetFundingRate
+ * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1204,7 +1205,7 @@ func (this *Xt) FetchFundingInterval(symbol string, options ...FetchFundingInter
  * @method
  * @name xt#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://doc.xt.com/#futures_quotesgetFundingRate
+ * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
  * @param {string} symbol unified market symbol
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1230,9 +1231,37 @@ func (this *Xt) FetchFundingRate(symbol string, options ...FetchFundingRateOptio
 
 /**
  * @method
+ * @name xt#fetchOpenInterest
+ * @description retrieves the open interest of a contract trading pair
+ * @see https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *Xt) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
+
+	opts := FetchOpenInterestOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchOpenInterest(symbol, params)
+	if IsError(res) {
+		return OpenInterest{}, CreateReturnError(res)
+	}
+	return NewOpenInterest(res), nil
+}
+
+/**
+ * @method
  * @name xt#fetchFundingHistory
  * @description fetch the funding history
- * @see https://doc.xt.com/#futures_usergetFunding
+ * @see https://doc.xt.com/docs/futures/User/Get%20Fund%20Fee%20Information
  * @param {string} symbol unified market symbol
  * @param {int} [since] the starting timestamp in milliseconds
  * @param {int} [limit] the number of entries to return
@@ -1277,7 +1306,7 @@ func (this *Xt) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]Fu
  * @method
  * @name xt#fetchPosition
  * @description fetch data on a single open contract trade position
- * @see https://doc.xt.com/#futures_usergetPosition
+ * @see https://doc.xt.com/docs/futures/User/Get%20Position%20Information
  * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} params extra parameters specific to the exchange API endpoint
@@ -1306,7 +1335,7 @@ func (this *Xt) FetchPosition(symbol string, options ...FetchPositionOptions) (P
  * @method
  * @name xt#fetchPositions
  * @description fetch all open positions
- * @see https://doc.xt.com/#futures_usergetPosition
+ * @see https://doc.xt.com/docs/futures/User/Get%20Position%20Information
  * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
  * @param {string} [symbols] list of unified market symbols, not supported with xt
  * @param {object} params extra parameters specific to the exchange API endpoint
@@ -1340,7 +1369,7 @@ func (this *Xt) FetchPositions(options ...FetchPositionsOptions) ([]Position, er
  * @method
  * @name xt#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://doc.xt.com/#transfersubTransferPost
+ * @see https://doc.xt.com/docs/spot/Transfer/TransferBetweenUserSystems
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from -  spot, swap, leverage, finance
@@ -1371,7 +1400,7 @@ func (this *Xt) Transfer(code string, amount float64, fromAccount string, toAcco
  * @method
  * @name xt#setMarginMode
  * @description set margin mode to 'cross' or 'isolated'
- * @see https://doc.xt.com/#futures_userchangePositionType
+ * @see https://doc.xt.com/docs/futures/User/Change%20Position%20Type
  * @param {string} marginMode 'cross' or 'isolated'
  * @param {string} [symbol] required
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1406,9 +1435,9 @@ func (this *Xt) SetMarginMode(marginMode string, options ...SetMarginModeOptions
  * @method
  * @name xt#editOrder
  * @description cancels an order and places a new order
- * @see https://doc.xt.com/#orderorderUpdate
- * @see https://doc.xt.com/#futures_orderupdate
- * @see https://doc.xt.com/#futures_entrustupdateProfit
+ * @see https://doc.xt.com/docs/spot/Order/UpdateOrderLimit
+ * @see https://doc.xt.com/docs/futures/Order/update-orders
+ * @see https://doc.xt.com/docs/futures/Entrust/AlterStopLimit
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -1658,9 +1687,6 @@ func (this *Xt) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, err
 func (this *Xt) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
 	return this.exchangeTyped.FetchMyLiquidations(options...)
 }
-func (this *Xt) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterest(symbol, options...)
-}
 func (this *Xt) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
 	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)
 }
@@ -1691,7 +1717,7 @@ func (this *Xt) FetchPaymentMethods(params ...any) (map[string]any, error) {
 func (this *Xt) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Xt) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Xt) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Xt) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1706,7 +1732,7 @@ func (this *Xt) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Posi
 func (this *Xt) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Xt) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Xt) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Xt) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
@@ -1817,7 +1843,7 @@ func (this *Xt) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Xt) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Xt) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Xt) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Xt) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1862,7 +1888,7 @@ func (this *Xt) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([
 func (this *Xt) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Xt) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Xt) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Xt) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
