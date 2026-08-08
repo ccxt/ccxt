@@ -2693,6 +2693,7 @@ class BaseExchange(object):
                 'swap': None,
                 'future': None,
                 'option': None,
+                'index': None,
                 'addMargin': None,
                 'borrowCrossMargin': None,
                 'borrowIsolatedMargin': None,
