@@ -101,6 +101,39 @@ function bufferAsyncCoreChannels (content: string): string {
 // not change the method's type, so the generated wrappers and the typed interfaces
 // are unaffected.
 //
+// A body that sends from inside a nested func literal needs one more thing. That
+// literal is the try/catch shim ast-transpiler emits for `try { … } catch (e) { … }`,
+// and its `return nil` only leaves the *shim* — in JS the same `return` leaves the
+// whole async function. The goroutine form papers over the difference: the core runs
+// on, reaches a second `ch <-`, and that send simply parks a goroutine nobody reads.
+// Inline on a capacity-1 channel the same second send blocks the *caller*, forever.
+//
+// So the flattener threads a `chSent` flag through those cores and returns as soon as
+// the shim has produced a value, which is what the TypeScript said in the first place:
+//
+//     for … {                                     for … {
+//         {                                           {
+//             func(this *X) (ret_ any) {                  func(this *X) (ret_ any) {
+//                 // try block:                               // try block:
+//                 ch <- response                              ch <- response
+//                                                             chSent = true
+//                 return nil                                  return nil
+//             }(this)                                     }(this)
+//         }                                               if chSent {
+//     }                                                       return ch
+//                                                         }
+//                                                     }
+//                                                 }
+//
+// That also repairs a real bug the port has today, independent of this PR: with
+// `maxRetries` at its default 3, `SafeDeterministicCall` and `FetchRestOrderBookSafe`
+// keep looping after a successful call and re-issue the request up to three times
+// (measured: one call, three round trips). The caller only ever saw the first value,
+// so the extra traffic was invisible. The guard makes the loop stop on success.
+//
+// The flag is only threaded when the core actually needs it; the vast majority of
+// cores send once, at core level, and keep the shape above.
+//
 // The rewrite is deliberately conservative: every core that is not provably safe
 // keeps its goroutine (see the gates in flattenAsyncCore). A skipped core is still
 // correct code, so a parse we do not fully understand degrades to today's output.
@@ -111,26 +144,31 @@ const GO_CORE_CLOSE = /^([ \t]*)defer close\(ch\)$/;
 const GO_CORE_PANIC = /^([ \t]*)defer (?:[A-Za-z_][A-Za-z0-9_.]*\.)?ReturnPanicError\(ch\)$/;
 const GO_CORE_SEND = /^ch\s*<-/;
 const GO_FUNC_LITERAL = /\bfunc\s*(?:\([^()]*\))?\s*\(/g;
+// the try/catch shim closes as an immediately-invoked literal, `}()` or `}(this)`
+const GO_LITERAL_INVOKED = /^\}\s*\([^()]*\)\s*$/;
+// the flag threaded through cores that send from inside such a shim
+const GO_SENT_FLAG = 'chSent';
 
-// Cores whose result channel is intentionally dropped by a bare statement call
-// (`this.Authenticate (url)`, `this.WatchSpotPublic (...)` in pro/) — how a floating
-// JS promise transpiles to Go. Those call sites only work because the call returns
-// before the work is done: flattened, they would block on a websocket message that
-// the very same method is supposed to trigger. Keep the goroutine for these.
-// `Watch`/`WatchMultiple` are bare-called too but are hand-written in exchange.go,
-// which the transpiler never rewrites.
-const GO_FIRE_AND_FORGET_CORES = new Set ([
-    'Authenticate',
-    'WatchSpotPublic',
-    'WatchSwapPublic',
-]);
-
-// drop string/rune literals and line comments so brace counting and identifier
-// lookups cannot be fooled by Go source quoted inside a literal or a comment
-function stripGoLiterals (line: string): string {
+// drop string/rune literals and comments so brace counting and identifier lookups
+// cannot be fooled by Go source quoted inside a literal or a comment. Block comments
+// span lines (the transpiler copies JSDoc across verbatim), so the caller carries the
+// open-comment state from one line to the next.
+function stripGoLiterals (line: string, state?: { 'inBlockComment': boolean }): string {
     let stripped = '';
     for (let i = 0; i < line.length; i++) {
         const char = line[i];
+        if (state !== undefined && state.inBlockComment) {
+            if (char === '*' && line[i + 1] === '/') {
+                state.inBlockComment = false;
+                i++;
+            }
+            continue;
+        }
+        if (char === '/' && line[i + 1] === '*' && state !== undefined) {
+            state.inBlockComment = true;
+            i++;
+            continue;
+        }
         if (char === '/' && line[i + 1] === '/') {
             break;
         }
@@ -155,6 +193,63 @@ function stripGoLiterals (line: string): string {
     return stripped;
 }
 
+// One entry per line of a core body: how deeply it sits inside func literals, and
+// whether that line opens or closes one. Everything the rewriter needs to decide
+// what is "core level" comes from here, so the brace scan happens exactly once.
+type CoreBodyScan = {
+    'literalDepth': number[];   // func-literal nesting depth *before* the line
+    'closesTo': number[];       // for a line that closes a literal: the depth it drops to, else -1
+    'sendsInLiteral': boolean;  // some line sends on ch from inside a func literal
+};
+
+// Walk a core body once and record func-literal nesting per line. Returns null when
+// the braces do not balance, i.e. when the scan cannot be trusted.
+function scanCoreBody (body: string[]): CoreBodyScan | null {
+    const literalDepth: number[] = [];
+    const closesTo: number[] = [];
+    const funcLiteral: boolean[] = [];
+    const comment = { 'inBlockComment': false };
+    let sendsInLiteral = false;
+    for (const line of body) {
+        const code = stripGoLiterals (line, comment);
+        const depthBefore = funcLiteral.filter ((isFunc) => isFunc).length;
+        literalDepth.push (depthBefore);
+        if (depthBefore > 0 && GO_CORE_SEND.test (line.trim ())) {
+            sendsInLiteral = true;
+        }
+        const starts: number[] = [];
+        GO_FUNC_LITERAL.lastIndex = 0;
+        let literal = GO_FUNC_LITERAL.exec (code);
+        while (literal !== null) {
+            starts.push (literal.index);
+            literal = GO_FUNC_LITERAL.exec (code);
+        }
+        let closed = -1;
+        for (let i = 0; i < code.length; i++) {
+            if (code[i] === '{') {
+                // a brace opened by the nearest `func(` on this line, with no other
+                // brace in between, opens a function literal body
+                const opensLiteral = starts.some ((at) => (at < i) && (code.slice (at, i).indexOf ('{') < 0));
+                funcLiteral.push (opensLiteral);
+            } else if (code[i] === '}') {
+                if (funcLiteral.pop () === true) {
+                    closed = funcLiteral.filter ((isFunc) => isFunc).length;
+                }
+            } else {
+                continue;
+            }
+            if (funcLiteral.length < 0) {
+                return null;
+            }
+        }
+        closesTo.push (closed);
+    }
+    if (funcLiteral.length || comment.inBlockComment) {
+        return null;
+    }
+    return { literalDepth, closesTo, sendsInLiteral };
+}
+
 // Rewrite one async core in place. `lines[start]` is the `ch := make(chan T, 1)`
 // line and `lines[start + 1]` opens the goroutine. Returns the replacement lines
 // plus the rewritten signature, or null when any safety gate fails.
@@ -165,8 +260,7 @@ function flattenAsyncCore (lines: string[], start: number, signatureLine: string
     if (!unit.length || closeIndent.slice (0, indent.length) !== indent) {
         return null;
     }
-    const signature = GO_CORE_SIGNATURE.exec (signatureLine);
-    if (!signature || GO_FIRE_AND_FORGET_CORES.has (signature[1])) {
+    if (!GO_CORE_SIGNATURE.test (signatureLine)) {
         return null;
     }
     // the goroutine is closed by `}()` at the same indentation as `go func()`, and
@@ -179,76 +273,80 @@ function flattenAsyncCore (lines: string[], start: number, signatureLine: string
         return null;
     }
     const body = lines.slice (start + 4, end);
+    const scan = scanCoreBody (body);
+    if (scan === null) {
+        return null;
+    }
+    // a core that sends from inside a try/catch shim carries a flag so the core can
+    // return as soon as the shim produced a value — see the note above flattenAsyncCore
+    const needsFlag = scan.sendsInLiteral;
     const rewritten: string[] = [];
-    // depth stack over the body: one entry per open brace, true when that brace
-    // was opened by a func literal (a closure, a deferred func, a try/catch shim)
-    const funcLiteral: boolean[] = [];
-    for (const line of body) {
-        const code = stripGoLiterals (line);
+    for (let index = 0; index < body.length; index++) {
+        const line = body[index];
         const trimmed = line.trim ();
-        const nested = funcLiteral.indexOf (true) >= 0;
-        if (code.indexOf ('/*') >= 0) {
-            // a block comment can hide braces from the scan below
+        const nested = scan.literalDepth[index] > 0;
+        const lineIndent = line.slice (0, line.length - line.trimStart ().length);
+        if (new RegExp ('\\b(?:out|' + GO_SENT_FLAG + ')\\b').test (stripGoLiterals (line))) {
+            // the named result or the flag would shadow, or be shadowed by, a body identifier
             return null;
         }
-        if (!nested) {
-            if (/\bout\b/.test (code)) {
-                // the named result would shadow, or be shadowed by, a body identifier
+        if (!nested && /^return\b/.test (trimmed)) {
+            if (trimmed !== 'return nil') {
+                // every core-level return ast-transpiler emits is `return nil`;
+                // anything else is a shape this rewrite does not understand
                 return null;
             }
-            if (GO_CORE_SEND.test (trimmed)) {
-                // a core-level send must be the last thing the core does, otherwise
-                // a second send on a capacity-1 channel would block the caller
-                if (!/^ch\s*<-/.test (trimmed)) {
-                    return null;
-                }
-            }
-            if (/^return\b/.test (trimmed)) {
-                if (trimmed !== 'return nil') {
-                    // every core-level return ast-transpiler emits is `return nil`;
-                    // anything else is a shape this rewrite does not understand
-                    return null;
-                }
-                rewritten.push (line.replace (/return nil$/, 'return ch'));
-            } else {
-                rewritten.push (line);
-            }
-        } else {
-            if (GO_CORE_SEND.test (trimmed)) {
-                // a send from inside a closure: `return` there only leaves the
-                // closure, so the core can reach another send further down
+            rewritten.push (line.replace (/return nil$/, 'return ch'));
+            continue;
+        }
+        rewritten.push (line);
+        if (needsFlag && nested && GO_CORE_SEND.test (trimmed)) {
+            // record the send so the core level below can stop; a multi-line send
+            // (`ch <- map[string]any{` …) would put this in the wrong place, so the
+            // send has to be a complete statement on its own line
+            if (!isBalancedGoLine (line)) {
                 return null;
             }
-            rewritten.push (line);
+            rewritten.push (lineIndent + GO_SENT_FLAG + ' = true');
         }
-        const starts: number[] = [];
-        GO_FUNC_LITERAL.lastIndex = 0;
-        let literal = GO_FUNC_LITERAL.exec (code);
-        while (literal !== null) {
-            starts.push (literal.index);
-            literal = GO_FUNC_LITERAL.exec (code);
+        if (needsFlag && scan.closesTo[index] === 0 && GO_LITERAL_INVOKED.test (trimmed)) {
+            // the outermost try/catch shim just returned: if it produced a value the
+            // core is done, exactly as the `return` inside the TypeScript `try` meant
+            rewritten.push (lineIndent + 'if ' + GO_SENT_FLAG + ' {');
+            rewritten.push (lineIndent + unit + 'return ch');
+            rewritten.push (lineIndent + '}');
         }
-        for (let i = 0; i < code.length; i++) {
-            if (code[i] === '{') {
-                // a brace opened by the nearest `func(` on this line, with no other
-                // brace in between, opens a function literal body
-                const opensLiteral = starts.some ((at) => (at < i) && (code.slice (at, i).indexOf ('{') < 0));
-                funcLiteral.push (opensLiteral);
-            } else if (code[i] === '}') {
-                funcLiteral.pop ();
-            }
-        }
-    }
-    if (funcLiteral.length) {
-        return null;
     }
     // dedent the body by the one level the goroutine used to add
     const flattened = rewritten.map ((line) => (line.startsWith (unit) ? line.slice (unit.length) : line));
+    const prologue = [ lines[start], indent + 'out = ch', lines[start + 2], lines[start + 3] ];
+    if (needsFlag) {
+        prologue.push (indent + GO_SENT_FLAG + ' := false');
+        prologue.push (indent + '_ = ' + GO_SENT_FLAG);
+    }
     return {
         'signature': signatureLine.replace (/\)\s*<-\s?chan\s+any\s*\{$/, ') (out <-chan any) {'),
-        'body': [ lines[start], indent + 'out = ch', lines[start + 2], lines[start + 3] ].concat (flattened),
+        'body': prologue.concat (flattened),
         'end': end,
     };
+}
+
+// true when every bracket the line opens it also closes — i.e. the line is a
+// complete statement rather than the head of a multi-line composite literal
+function isBalancedGoLine (line: string): boolean {
+    const code = stripGoLiterals (line);
+    let depth = 0;
+    for (const char of code) {
+        if (char === '{' || char === '(' || char === '[') {
+            depth++;
+        } else if (char === '}' || char === ')' || char === ']') {
+            depth--;
+        }
+        if (depth < 0) {
+            return false;
+        }
+    }
+    return depth === 0;
 }
 
 function flattenAsyncCoreChannels (content: string): string {
