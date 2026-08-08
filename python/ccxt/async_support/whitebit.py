@@ -2192,10 +2192,7 @@ class whitebit(Exchange, ImplicitAPI):
         isBiggerThanZero = (timeout > 0)
         request = {
             'market': market['id'],
-            # 'timeout': self.number_to_string(timeout / 1000) if (timeout > 0) else null,
         }
-        if timeout is None:
-            raise ExchangeError(self.id + ' cancelAllOrdersAfter() missing timeout')
         if isBiggerThanZero:
             request['timeout'] = self.number_to_string(timeout / 1000)
         else:
