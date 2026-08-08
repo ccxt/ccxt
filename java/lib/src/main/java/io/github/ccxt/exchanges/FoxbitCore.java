@@ -2523,6 +2523,8 @@ public class FoxbitCore extends FoxbitApi
         }
         headers = new java.util.HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );
+            put( "X-FB-CLIENT", "ccxt" );
+            put( "X-FB-CLIENT-VERSION", FoxbitCore.this.getCcxtVersion() );
         }};
         if (Helpers.isTrue(Helpers.isEqual(urlPath, "private")))
         {
