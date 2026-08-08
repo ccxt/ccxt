@@ -1,5 +1,5 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+from typing import Any as PythonAny, Dict, List, Union
 
 _Dict = Dict[str, PythonAny]
 _List = List[PythonAny]
@@ -34,8 +34,8 @@ class ImplicitAPI:
     fapi_v1_public_get_time = fapiV1PublicGetTime = Entry[_Dict]('time', ['fapi', 'v1', 'public'], 'GET', {'cost': 0.24})
     fapi_v1_public_get_contracts = fapiV1PublicGetContracts = Entry[_List]('contracts', ['fapi', 'v1', 'public'], 'GET', {'cost': 0.24})
     fapi_v1_public_get_depth = fapiV1PublicGetDepth = Entry[_Dict]('depth', ['fapi', 'v1', 'public'], 'GET', {'cost': 0.24})
-    fapi_v1_public_get_ticker = fapiV1PublicGetTicker = Entry[_List]('ticker', ['fapi', 'v1', 'public'], 'GET', {'cost': 0.24})
-    fapi_v1_public_get_klines = fapiV1PublicGetKlines = Entry[_Dict]('klines', ['fapi', 'v1', 'public'], 'GET', {'cost': 0.24})
+    fapi_v1_public_get_ticker = fapiV1PublicGetTicker = Entry[Union[_Dict, _List]]('ticker', ['fapi', 'v1', 'public'], 'GET', {'cost': 0.24})
+    fapi_v1_public_get_klines = fapiV1PublicGetKlines = Entry[_List]('klines', ['fapi', 'v1', 'public'], 'GET', {'cost': 0.24})
     fapi_v2_private_get_mytrades = fapiV2PrivateGetMyTrades = Entry[_Dict]('myTrades', ['fapi', 'v2', 'private'], 'GET', {'cost': 5})
     fapi_v2_private_get_openorders = fapiV2PrivateGetOpenOrders = Entry[_Dict]('openOrders', ['fapi', 'v2', 'private'], 'GET', {'cost': 5})
     fapi_v2_private_get_order = fapiV2PrivateGetOrder = Entry[_Dict]('order', ['fapi', 'v2', 'private'], 'GET', {'cost': 5})

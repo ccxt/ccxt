@@ -46,7 +46,7 @@ class ImplicitAPI:
     v1_private_get_builder_trades = v1PrivateGetBuilderTrades = Entry[_Dict]('builder/trades', ['v1', 'private'], 'GET', {'cost': 1})
     v1_private_post_user_order = v1PrivatePostUserOrder = Entry[_Dict]('user/order', ['v1', 'private'], 'POST', {'cost': 1})
     v1_private_post_user_order_masscancel = v1PrivatePostUserOrderMassCancel = Entry[_Dict]('user/order/massCancel', ['v1', 'private'], 'POST', {'cost': 1})
-    v1_private_post_user_deadmanswitch = v1PrivatePostUserDeadmanswitch = Entry[_Dict]('user/deadmanswitch', ['v1', 'private'], 'POST', {'cost': 1})
+    v1_private_post_user_deadmanswitch = v1PrivatePostUserDeadmanswitch = Entry[str]('user/deadmanswitch', ['v1', 'private'], 'POST', {'cost': 1})
     v1_private_post_user_bridge_quote = v1PrivatePostUserBridgeQuote = Entry[_Dict]('user/bridge/quote', ['v1', 'private'], 'POST', {'cost': 1})
     v1_private_post_user_withdrawal = v1PrivatePostUserWithdrawal = Entry[_Dict]('user/withdrawal', ['v1', 'private'], 'POST', {'cost': 1})
     v1_private_post_user_transfer = v1PrivatePostUserTransfer = Entry[_Dict]('user/transfer', ['v1', 'private'], 'POST', {'cost': 1})

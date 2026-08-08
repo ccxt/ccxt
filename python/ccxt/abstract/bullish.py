@@ -39,7 +39,7 @@ class ImplicitAPI:
     private_get_v1_history_trades = privateGetV1HistoryTrades = Entry[_List]('v1/history/trades', 'private', 'GET', {'cost': 5})
     private_get_v1_trades_tradeid = privateGetV1TradesTradeId = Entry[_Dict]('v1/trades/{tradeId}', 'private', 'GET', {'cost': 5})
     private_get_v1_trades_client_order_id_clientorderid = privateGetV1TradesClientOrderIdClientOrderId = Entry[_List]('v1/trades/client-order-id/{clientOrderId}', 'private', 'GET', {'cost': 1})
-    private_get_v1_accounts_asset = privateGetV1AccountsAsset = Entry[_Dict]('v1/accounts/asset', 'private', 'GET', {'cost': 1})
+    private_get_v1_accounts_asset = privateGetV1AccountsAsset = Entry[_List]('v1/accounts/asset', 'private', 'GET', {'cost': 1})
     private_get_v1_accounts_asset_symbol = privateGetV1AccountsAssetSymbol = Entry[_Dict]('v1/accounts/asset/{symbol}', 'private', 'GET', {'cost': 1})
     private_get_v1_users_logout = privateGetV1UsersLogout = Entry[_Dict]('v1/users/logout', 'private', 'GET', {'cost': 1})
     private_get_v1_users_hmac_login = privateGetV1UsersHmacLogin = Entry[_Dict]('v1/users/hmac/login', 'private', 'GET', {'cost': 1})

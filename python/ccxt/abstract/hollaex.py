@@ -10,7 +10,7 @@ class ImplicitAPI:
     public_get_kit = publicGetKit = Entry[_Dict]('kit', 'public', 'GET', {'cost': 1})
     public_get_tiers = publicGetTiers = Entry[_Dict]('tiers', 'public', 'GET', {'cost': 1})
     public_get_ticker = publicGetTicker = Entry[_Dict]('ticker', 'public', 'GET', {'cost': 1})
-    public_get_tickers = publicGetTickers = Entry[_List]('tickers', 'public', 'GET', {'cost': 1})
+    public_get_tickers = publicGetTickers = Entry[_Dict]('tickers', 'public', 'GET', {'cost': 1})
     public_get_orderbook = publicGetOrderbook = Entry[_Dict]('orderbook', 'public', 'GET', {'cost': 1})
     public_get_orderbooks = publicGetOrderbooks = Entry[_Dict]('orderbooks', 'public', 'GET', {'cost': 1})
     public_get_trades = publicGetTrades = Entry[_Dict]('trades', 'public', 'GET', {'cost': 1})

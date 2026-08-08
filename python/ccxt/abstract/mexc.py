@@ -1,5 +1,5 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+from typing import Any as PythonAny, Dict, List, Union
 
 _Dict = Dict[str, PythonAny]
 _List = List[PythonAny]
@@ -15,9 +15,9 @@ class ImplicitAPI:
     spot_public_get_trades = spotPublicGetTrades = Entry[_List]('trades', ['spot', 'public'], 'GET', {'cost': 5})
     spot_public_get_historicaltrades = spotPublicGetHistoricalTrades = Entry[_List]('historicalTrades', ['spot', 'public'], 'GET', {'cost': 1})
     spot_public_get_aggtrades = spotPublicGetAggTrades = Entry[_List]('aggTrades', ['spot', 'public'], 'GET', {'cost': 1})
-    spot_public_get_klines = spotPublicGetKlines = Entry[_Dict]('klines', ['spot', 'public'], 'GET', {'cost': 1})
+    spot_public_get_klines = spotPublicGetKlines = Entry[_List]('klines', ['spot', 'public'], 'GET', {'cost': 1})
     spot_public_get_avgprice = spotPublicGetAvgPrice = Entry[_Dict]('avgPrice', ['spot', 'public'], 'GET', {'cost': 1})
-    spot_public_get_ticker_24hr = spotPublicGetTicker24hr = Entry[_List]('ticker/24hr', ['spot', 'public'], 'GET', {'cost': 25})
+    spot_public_get_ticker_24hr = spotPublicGetTicker24hr = Entry[Union[_Dict, _List]]('ticker/24hr', ['spot', 'public'], 'GET', {'cost': 25})
     spot_public_get_ticker_price = spotPublicGetTickerPrice = Entry[_Dict]('ticker/price', ['spot', 'public'], 'GET', {'cost': 10})
     spot_public_get_ticker_bookticker = spotPublicGetTickerBookTicker = Entry[_List]('ticker/bookTicker', ['spot', 'public'], 'GET', {'cost': 10})
     spot_public_get_etf_info = spotPublicGetEtfInfo = Entry[_Dict]('etf/info', ['spot', 'public'], 'GET', {'cost': 1})
@@ -25,7 +25,7 @@ class ImplicitAPI:
     spot_private_get_uid = spotPrivateGetUid = Entry[_Dict]('uid', ['spot', 'private'], 'GET', {'cost': 1})
     spot_private_get_order = spotPrivateGetOrder = Entry[_Dict]('order', ['spot', 'private'], 'GET', {'cost': 2})
     spot_private_get_openorders = spotPrivateGetOpenOrders = Entry[_List]('openOrders', ['spot', 'private'], 'GET', {'cost': 3})
-    spot_private_get_allorders = spotPrivateGetAllOrders = Entry[_Dict]('allOrders', ['spot', 'private'], 'GET', {'cost': 10})
+    spot_private_get_allorders = spotPrivateGetAllOrders = Entry[_List]('allOrders', ['spot', 'private'], 'GET', {'cost': 10})
     spot_private_get_account = spotPrivateGetAccount = Entry[_Dict]('account', ['spot', 'private'], 'GET', {'cost': 10})
     spot_private_get_mytrades = spotPrivateGetMyTrades = Entry[_List]('myTrades', ['spot', 'private'], 'GET', {'cost': 10})
     spot_private_get_strategy_group = spotPrivateGetStrategyGroup = Entry[_Dict]('strategy/group', ['spot', 'private'], 'GET', {'cost': 20})
