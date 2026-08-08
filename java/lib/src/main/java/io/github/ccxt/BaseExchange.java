@@ -3797,6 +3797,7 @@ public Object describe()
                 put( "swap", null );
                 put( "future", null );
                 put( "option", null );
+                put( "index", null );
                 put( "addMargin", null );
                 put( "borrowCrossMargin", null );
                 put( "borrowIsolatedMargin", null );

@@ -177,9 +177,9 @@ public class CoinbaseinternationalApi extends Exchange
      * Calls the v1PrivateGetPortfoliosPortfolioBalances endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetPortfoliosPortfolioBalances (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v1PrivateGetPortfoliosPortfolioBalances (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetPortfoliosPortfolioBalances", optionalArgs);
     }

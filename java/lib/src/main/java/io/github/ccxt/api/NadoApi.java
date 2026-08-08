@@ -122,9 +122,9 @@ public class NadoApi extends Exchange
      * Calls the archiveV2PublicGetTickers endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  archiveV2PublicGetTickers (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  archiveV2PublicGetTickers (Object... optionalArgs)
     {
         return this.callAsync ("archiveV2PublicGetTickers", optionalArgs);
     }

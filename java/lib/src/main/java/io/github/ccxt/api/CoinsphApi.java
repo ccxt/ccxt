@@ -56,9 +56,9 @@ public class CoinsphApi extends Exchange
      * Calls the publicGetOpenapiQuoteV1Ticker24hr endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetOpenapiQuoteV1Ticker24hr (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  publicGetOpenapiQuoteV1Ticker24hr (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOpenapiQuoteV1Ticker24hr", optionalArgs);
     }

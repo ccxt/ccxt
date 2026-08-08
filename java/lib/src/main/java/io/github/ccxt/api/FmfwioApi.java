@@ -23,9 +23,9 @@ public class FmfwioApi extends HitbtcCore
      * Calls the publicGetPublicCurrency endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetPublicCurrency (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicCurrency (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicCurrency", optionalArgs);
     }

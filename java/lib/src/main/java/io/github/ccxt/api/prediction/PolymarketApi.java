@@ -1288,9 +1288,9 @@ public class PolymarketApi extends PredictionExchange
      * Calls the dataPublicGetTrades endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dataPublicGetTrades (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dataPublicGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("dataPublicGetTrades", optionalArgs);
     }

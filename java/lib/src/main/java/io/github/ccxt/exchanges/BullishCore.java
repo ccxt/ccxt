@@ -32,7 +32,7 @@ public class BullishCore extends BullishApi
                 put( "margin", false );
                 put( "swap", true );
                 put( "future", true );
-                put( "option", false );
+                put( "option", true );
                 put( "addMargin", false );
                 put( "borrowMargin", false );
                 put( "cancelAllOrders", true );

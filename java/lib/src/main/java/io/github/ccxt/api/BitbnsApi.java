@@ -34,9 +34,9 @@ public class BitbnsApi extends Exchange
      * Calls the wwwGetOrderFetchTickers endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  wwwGetOrderFetchTickers (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  wwwGetOrderFetchTickers (Object... optionalArgs)
     {
         return this.callAsync ("wwwGetOrderFetchTickers", optionalArgs);
     }

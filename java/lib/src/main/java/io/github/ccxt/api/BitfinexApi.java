@@ -342,9 +342,9 @@ public class BitfinexApi extends Exchange
      * Calls the publicGetTickerSymbol endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTickerSymbol (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTickerSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTickerSymbol", optionalArgs);
     }

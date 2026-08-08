@@ -4764,9 +4764,9 @@ public class BinancecoinmApi extends BinanceCore
      * Calls the dapiPublicGetTicker24hr endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPublicGetTicker24hr (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  dapiPublicGetTicker24hr (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetTicker24hr", optionalArgs);
     }
@@ -5556,9 +5556,9 @@ public class BinancecoinmApi extends BinanceCore
      * Calls the fapiPublicGetTicker24hr endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPublicGetTicker24hr (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  fapiPublicGetTicker24hr (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetTicker24hr", optionalArgs);
     }
@@ -6161,9 +6161,9 @@ public class BinancecoinmApi extends BinanceCore
      * Calls the fapiPrivateGetSymbolConfig endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetSymbolConfig (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateGetSymbolConfig (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetSymbolConfig", optionalArgs);
     }
@@ -6502,9 +6502,9 @@ public class BinancecoinmApi extends BinanceCore
      * Calls the fapiPrivateDeleteAlgoOpenOrders endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateDeleteAlgoOpenOrders (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateDeleteAlgoOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateDeleteAlgoOpenOrders", optionalArgs);
     }
@@ -7195,9 +7195,9 @@ public class BinancecoinmApi extends BinanceCore
      * Calls the publicGetTicker24hr endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTicker24hr (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  publicGetTicker24hr (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTicker24hr", optionalArgs);
     }
@@ -7371,9 +7371,9 @@ public class BinancecoinmApi extends BinanceCore
      * Calls the privateGetAccount endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAccount (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccount (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccount", optionalArgs);
     }

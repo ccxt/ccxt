@@ -133,9 +133,9 @@ public class ExmoApi extends Exchange
      * Calls the publicGetPaymentsProvidersCryptoList endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPaymentsProvidersCryptoList (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  publicGetPaymentsProvidersCryptoList (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPaymentsProvidersCryptoList", optionalArgs);
     }

@@ -474,9 +474,9 @@ public class ExtendedApi extends Exchange
      * Calls the v1PrivatePostUserDeadmanswitch endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON scalar
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostUserDeadmanswitch (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<String>  v1PrivatePostUserDeadmanswitch (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostUserDeadmanswitch", optionalArgs);
     }

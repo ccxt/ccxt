@@ -309,9 +309,9 @@ public class DeribitApi extends Exchange
      * Calls the publicGetGetInstruments endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetGetInstruments (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetGetInstruments (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetInstruments", optionalArgs);
     }

@@ -133,9 +133,9 @@ public class MexcApi extends Exchange
      * Calls the spotPublicGetKlines endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetKlines (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotPublicGetKlines (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetKlines", optionalArgs);
     }
@@ -155,9 +155,9 @@ public class MexcApi extends Exchange
      * Calls the spotPublicGetTicker24hr endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotPublicGetTicker24hr (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  spotPublicGetTicker24hr (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetTicker24hr", optionalArgs);
     }
@@ -243,9 +243,9 @@ public class MexcApi extends Exchange
      * Calls the spotPrivateGetAllOrders endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetAllOrders (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotPrivateGetAllOrders (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetAllOrders", optionalArgs);
     }

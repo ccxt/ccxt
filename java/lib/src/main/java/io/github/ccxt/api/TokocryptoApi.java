@@ -89,9 +89,9 @@ public class TokocryptoApi extends Exchange
      * Calls the binanceGetKlines endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  binanceGetKlines (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  binanceGetKlines (Object... optionalArgs)
     {
         return this.callAsync ("binanceGetKlines", optionalArgs);
     }

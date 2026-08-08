@@ -67,9 +67,9 @@ public class NdaxApi extends Exchange
      * Calls the publicGetGetL2Snapshot endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetGetL2Snapshot (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetGetL2Snapshot (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetL2Snapshot", optionalArgs);
     }
