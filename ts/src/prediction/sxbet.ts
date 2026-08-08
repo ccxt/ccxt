@@ -4,6 +4,7 @@ import Exchange from '../abstract/prediction/sxbet.js';
 import { ecdsa } from '../base/functions/crypto.js';
 import { ROUND, DECIMAL_PLACES, TICK_SIZE } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
+import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import { ArgumentsRequired, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OperationRejected, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from '../base/errors.js';
 import type { Balances, Dict, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 
@@ -21,7 +22,7 @@ export default class sxbet extends Exchange {
             'countries': [],
             'rateLimit': 120, // 500 req/min baseline; /orders is 5500/min, /trades is 200/min
             'certified': false,
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -50,16 +51,23 @@ export default class sxbet extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'prediction': true,
+                'watchMyTrades': true,
+                'watchOrderBook': true,
+                'watchOrders': true,
+                'watchTicker': true,
+                'watchTrades': true,
             },
             'urls': {
                 'logo': '', // todo
                 'api': {
                     'sxbet': 'https://api.sx.bet',
                     'explorer': 'https://explorerl2.sx.technology',
+                    'ws': 'wss://realtime.sx.bet/connection/websocket',
                 },
                 'test': {
                     'sxbet': 'https://api.toronto.sx.bet',
                     'explorer': 'https://explorerl2.toronto.sx.technology',
+                    'ws': 'wss://realtime.toronto.sx.bet/connection/websocket',
                 },
                 'www': 'https://sx.bet',
                 'doc': [ 'https://docs.sx.bet' ],
@@ -88,6 +96,9 @@ export default class sxbet extends Exchange {
                         },
                     },
                     'private': {
+                        'get': {
+                            'user/realtime-token/api-key': 1,
+                        },
                         'post': {
                             'orders/new': 1,
                             'orders/fill/v2': 1,
@@ -176,6 +187,14 @@ export default class sxbet extends Exchange {
                     '79479957': { 'rpcUrl': 'https://rpc-rollup.toronto.sx.technology' },
                 },
                 'approveDeadlineSeconds': 7200,
+                'tradesLimit': 1000,
+                'ordersLimit': 1000,
+                'myTradesLimit': 1000,
+            },
+            'streaming': {
+                // Centrifugo server pings arrive as empty frames and are answered in pong();
+                // no client-initiated keepAlive is needed
+                'keepAlive': 30000,
             },
         });
     }
@@ -2169,17 +2188,61 @@ export default class sxbet extends Exchange {
         const request: Dict = { 'marketHashes': marketHash };
         const response = await this.sxbetPublicGetOrders (this.extend (request, params));
         const rawOrders = this.safeList (response, 'data', []);
+        const sides = this.parseSxbetRawOrderBook (rawOrders, isOutcomeOne, usdcAddress);
+        let sortedBids = this.safeList (sides, 'bids', []);
+        let sortedAsks = this.safeList (sides, 'asks', []);
+        if (limit !== undefined) {
+            const bidsLength = sortedBids.length;
+            let bidsEnd = limit;
+            if (bidsEnd > bidsLength) {
+                bidsEnd = bidsLength;
+            }
+            sortedBids = this.arraySlice (sortedBids, 0, bidsEnd);
+            const asksLength = sortedAsks.length;
+            let asksEnd = limit;
+            if (asksEnd > asksLength) {
+                asksEnd = asksLength;
+            }
+            sortedAsks = this.arraySlice (sortedAsks, 0, asksEnd);
+        }
+        const timestamp = this.milliseconds ();
+        return this.safePredictionOrderBook ({
+            'outcome': this.safeString (outcomeObj, 'outcome', outcome),
+            'bids': sortedBids,
+            'asks': sortedAsks,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        } as unknown as PredictionOrderBook, outcomeObj);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#parseSxbetRawOrderBook
+     * @description aggregates raw resting maker orders into sorted [price, amount] bid/ask levels for one outcome; shared by fetchOrderBook and the websocket book rebuild
+     * @param {object[]} rawOrders the raw order rows (REST GET /orders shape or the websocket order_book delta shape)
+     * @param {boolean} isOutcomeOne whether the book is built for the market's outcome one
+     * @param {string} usdcAddress the USDC contract address used to filter the base token
+     * @returns {object} a dict with sorted 'bids' and 'asks' lists
+     */
+    parseSxbetRawOrderBook (rawOrders: any[], isOutcomeOne: boolean, usdcAddress: string): Dict {
         const oneDenom = '100000000000000000000';
         const usdcDecimals = '1000000'; // sx.bet USDC has 6 decimals (confirmed via /metadata makerOrderMinimums)
+        const usdcLower = usdcAddress.toLowerCase ();
         const bids: any[] = [];
         const asks: any[] = [];
         const rawOrdersLength = rawOrders.length;
         for (let i = 0; i < rawOrdersLength; i++) {
             const order = rawOrders[i];
-            if (this.safeString (order, 'orderStatus') !== 'ACTIVE') {
+            // REST rows carry orderStatus, the websocket delta rows carry status
+            const status = this.safeString2 (order, 'orderStatus', 'status');
+            if (status !== 'ACTIVE') {
                 continue;
             }
-            if (this.safeStringLower (order, 'baseToken') !== usdcAddress.toLowerCase ()) {
+            // websocket delta rows omit baseToken - the subscription map is seeded USDC-only, so default to USDC
+            const rowToken = this.safeStringLower (order, 'baseToken', usdcLower);
+            if (rowToken !== usdcLower) {
                 continue;
             }
             const totalBetSize = this.safeString (order, 'totalBetSize');
@@ -2205,31 +2268,607 @@ export default class sxbet extends Exchange {
                 asks.push ([ price, amount ]);
             }
         }
-        let sortedBids = this.sortBy (bids, 0, true);
-        let sortedAsks = this.sortBy (asks, 0);
-        if (limit !== undefined) {
-            const bidsLength = sortedBids.length;
-            let bidsEnd = limit;
-            if (bidsEnd > bidsLength) {
-                bidsEnd = bidsLength;
-            }
-            sortedBids = this.arraySlice (sortedBids, 0, bidsEnd);
-            const asksLength = sortedAsks.length;
-            let asksEnd = limit;
-            if (asksEnd > asksLength) {
-                asksEnd = asksLength;
-            }
-            sortedAsks = this.arraySlice (sortedAsks, 0, asksEnd);
+        return {
+            'bids': this.sortBy (bids, 0, true),
+            'asks': this.sortBy (asks, 0),
+        };
+    }
+
+    requestId (url: Str): number {
+        const existing = this.safeValue (this.options, 'requestId');
+        if (existing === undefined) {
+            this.options['requestId'] = this.createSafeDictionary ();
         }
+        const options = this.options['requestId'];
+        const previousValue = this.safeInteger (options, url, 0);
+        const newValue = this.sum (previousValue, 1);
+        if (url !== undefined) {
+            this.options['requestId'][url] = newValue;
+        }
+        return newValue;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#fetchSxbetRealtimeToken
+     * @description fetches the short-lived Centrifugo connection token from the relayer; requires the apiKey credential (X-Api-Key header)
+     * @see https://docs.sx.bet/api-reference/centrifugo-initialization
+     * @returns {string} the JWT connection token
+     */
+    async fetchSxbetRealtimeToken (): Promise<Str> {
+        if (this.apiKey === undefined) {
+            throw new ArgumentsRequired (this.id + ' websocket streaming requires the apiKey credential - the realtime token endpoint authenticates with the X-Api-Key header');
+        }
+        const response = await this.sxbetPrivateGetUserRealtimeTokenApiKey ();
+        const data = this.safeDict (response, 'data', {});
+        return this.safeString2 (data, 'token', 'realtimeToken', this.safeString (response, 'token'));
+    }
+
+    async connectSxbetCentrifugo (url: Str): Promise<any> {
+        // Centrifugo requires a token-carrying connect command before any subscribe. This sends it once
+        // per connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
+        // clears client.subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
+        const client = this.client (url);
+        const connectSent = this.safeValue (client.subscriptions, 'connect');
+        if (connectSent === undefined) {
+            this.options['wsConnected'] = false;
+            const token = await this.fetchSxbetRealtimeToken ();
+            const requestId = this.requestId (url);
+            const connectMsg: Dict = { 'connect': { 'token': token, 'name': 'ccxt' }, 'id': requestId };
+            return await this.watch (url, 'centrifugoConnected', connectMsg, 'connect');
+        }
+        if (this.safeBool (this.options, 'wsConnected', false)) {
+            // the connect reply already arrived on the current connection - safe to subscribe immediately
+            return undefined;
+        }
+        // connect is in flight, sent by a concurrent subscribe - wait on the shared reply future
+        return await client.future ('centrifugoConnected');
+    }
+
+    async pong (client: any, message: any = undefined) {
+        // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
+        await client.send ('{}');
+    }
+
+    async subscribeSxbetChannel (messageHash: string, channel: string): Promise<any> {
+        const url = this.safeString (this.urls['api'] as Dict, 'ws');
+        // finish the connect handshake first so the subscribe frame follows the connect reply
+        await this.connectSxbetCentrifugo (url);
+        const requestId = this.requestId (url);
+        const subscribeMsg: Dict = { 'subscribe': { 'channel': channel }, 'id': requestId };
+        return await this.watch (url, messageHash, subscribeMsg, channel);
+    }
+
+    override handleMessage (client: any, message: any) {
+        // Centrifugo packs several commands per frame joined by newlines; a multi-command frame fails the
+        // base JSON.parse and arrives here as a raw string, a single command arrives already parsed
+        if (typeof message === 'string') {
+            const lines = message.split ('\n');
+            const linesLength = lines.length;
+            for (let i = 0; i < linesLength; i++) {
+                const line = lines[i];
+                if (line.length > 0) {
+                    const parsed = JSON.parse (line);
+                    this.handleCentrifugoFrame (client, parsed);
+                }
+            }
+            return;
+        }
+        this.handleCentrifugoFrame (client, message);
+    }
+
+    handleCentrifugoFrame (client: any, msg: any) {
+        const keys = Object.keys (msg);
+        const keysLength = keys.length;
+        if (keysLength === 0) {
+            this.spawn (this.pong, client, msg);
+            return;
+        }
+        const connectReply = this.safeDict (msg, 'connect');
+        if (connectReply !== undefined) {
+            // connect acknowledged - unblock connectSxbetCentrifugo so channel subscribes can be sent
+            this.options['wsConnected'] = true;
+            client.resolve (true, 'centrifugoConnected');
+            return;
+        }
+        const push = this.safeDict (msg, 'push');
+        if (push === undefined) {
+            return;
+        }
+        const channel = this.safeString (push, 'channel');
+        if (channel === undefined) {
+            return;
+        }
+        const pub = this.safeDict (push, 'pub', {});
+        const data = this.safeValue (pub, 'data');
+        if (data === undefined) {
+            return;
+        }
+        // rows arrive either as one object or as an array of objects - normalize to a list
+        let rows = [];
+        if (Array.isArray (data)) {
+            rows = data;
+        } else {
+            rows = [ data ];
+        }
+        const parts = channel.split (':');
+        const channelType = this.safeString (parts, 0);
+        if (channelType === 'order_book') {
+            this.handleOrderBook (client, rows);
+        } else if (channelType === 'best_odds') {
+            this.handleTicker (client, rows);
+        } else if (channelType === 'recent_trades') {
+            this.handleTrades (client, rows);
+        } else if (channelType === 'active_orders') {
+            this.handleOrder (client, rows);
+        }
+    }
+
+    /**
+     * @method
+     * @name sxbet#watchOrderBook
+     * @description streams the order book of an outcome; the channel emits per-order deltas, so a raw-order map is seeded from REST and re-aggregated on every update
+     * @see https://docs.sx.bet/api-reference/centrifugo-order-book-updates
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {int} [limit] the maximum number of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
+     */
+    override async watchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+        await this.loadOutcome (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const sym = this.safeString (outcomeObj, 'outcome');
+        const marketHash = this.safeString (outcomeObj['info'], 'marketHash');
+        const channel = 'order_book:market_' + marketHash;
+        const messageHash = 'orderbook::' + sym;
+        const url = this.safeString (this.urls['api'] as Dict, 'ws');
+        await this.connectSxbetCentrifugo (url);
+        const client = this.client (url);
+        const isNewSubscription = this.safeValue (client.subscriptions, channel) === undefined;
+        if (this.safeValue (this.orderbooks, sym) === undefined) {
+            await this.seedSxbetOrderBook (outcome, sym, marketHash);
+        }
+        const requestId = this.requestId (url);
+        const subscribeMsg: Dict = { 'subscribe': { 'channel': channel }, 'id': requestId };
+        const future = this.watch (url, messageHash, subscribeMsg, channel);
+        if (isNewSubscription) {
+            // return the freshly-seeded book immediately instead of blocking until the next delta
+            client.resolve (this.safeValue (this.orderbooks, sym), messageHash);
+        }
+        const orderbook = await future;
+        return orderbook.limit ();
+    }
+
+    async seedSxbetOrderBook (outcome: Str, sym: Str, marketHash: Str) {
+        // seed the raw-order map from REST - the channel only streams per-order deltas
+        const sxMetadata = await this.loadSxMetadata ();
+        const usdcAddress = this.safeString (sxMetadata, 'usdcAddress', '');
+        const usdcLower = usdcAddress.toLowerCase ();
+        const request: Dict = { 'marketHashes': marketHash };
+        const response = await this.sxbetPublicGetOrders (request);
+        const rawOrders = this.safeList (response, 'data', []);
+        const existingBooks = this.safeValue (this.options, 'wsRawOrders');
+        if (existingBooks === undefined) {
+            this.options['wsRawOrders'] = this.createSafeDictionary ();
+        }
+        const orderMap: Dict = this.createSafeDictionary ();
+        const rawOrdersLength = rawOrders.length;
+        for (let i = 0; i < rawOrdersLength; i++) {
+            const order = rawOrders[i];
+            if (this.safeString2 (order, 'orderStatus', 'status') !== 'ACTIVE') {
+                continue;
+            }
+            if (this.safeStringLower (order, 'baseToken', usdcLower) !== usdcLower) {
+                continue;
+            }
+            const orderHash = this.safeString (order, 'orderHash');
+            if (orderHash === undefined) {
+                continue;
+            }
+            orderMap[orderHash] = order;
+        }
+        this.options['wsRawOrders'][marketHash as string] = orderMap;
+        const watchedBooks = this.safeValue (this.options, 'wsWatchedBooks');
+        if (watchedBooks === undefined) {
+            this.options['wsWatchedBooks'] = this.createSafeDictionary ();
+        }
+        this.options['wsWatchedBooks'][sym as string] = marketHash;
+        const orderbook = this.orderBook ({});
+        this.orderbooks[sym as string] = orderbook;
+        this.rebuildSxbetWsOrderBook (sym, marketHash);
+    }
+
+    rebuildSxbetWsOrderBook (sym: Str, marketHash: Str) {
+        // re-aggregate the raw-order map into price levels for one outcome and reset its live book
+        const outcomeObj = this.outcome (sym as string);
+        const outcomeId = this.safeString (outcomeObj, 'outcomeId');
+        const isOutcomeOne = (outcomeId === marketHash);
+        const sxMetadata = this.safeDict (this.options, 'sxMetadata', {});
+        const usdcAddress = this.safeString (sxMetadata, 'usdcAddress', '');
+        const booksMap = this.safeDict (this.options, 'wsRawOrders', {});
+        const orderMap = this.safeDict (booksMap, marketHash as string, {});
+        const orderHashes = Object.keys (orderMap);
+        const rawOrders = [];
+        const orderHashesLength = orderHashes.length;
+        for (let i = 0; i < orderHashesLength; i++) {
+            rawOrders.push (orderMap[orderHashes[i]]);
+        }
+        const sides = this.parseSxbetRawOrderBook (rawOrders, isOutcomeOne, usdcAddress);
         const timestamp = this.milliseconds ();
-        return this.safePredictionOrderBook ({
-            'outcome': this.safeString (outcomeObj, 'outcome', outcome),
-            'bids': sortedBids,
-            'asks': sortedAsks,
+        const snapshot: Dict = {
+            'bids': this.safeList (sides, 'bids', []),
+            'asks': this.safeList (sides, 'asks', []),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
-        } as unknown as PredictionOrderBook, outcomeObj);
+        };
+        const orderbook = this.orderbooks[sym as string];
+        orderbook.reset (snapshot);
+    }
+
+    handleOrderBook (client: any, rows: any[]) {
+        //
+        //     [
+        //         {
+        //             "orderHash": "0x7bd76648f589f3e272d48294d8881fe68aae7704f7b2ef0a50bf612be44271",
+        //             "marketHash": "0x04b9af76dfb92e71500975db77b1de0bb32a0b2413f1b3facbb25278987519a7",
+        //             "status": "INACTIVE",
+        //             "fillAmount": "2000000000",
+        //             "pendingFillAmount": "1000000000",
+        //             "maker": "0x9883D5e7dC023A441A81Ef95af406C69926a0AB6",
+        //             "totalBetSize": "500000000",
+        //             "percentageOdds": "750000000000000000000",
+        //             "apiExpiry": 1747500000000,
+        //             "salt": "12345678901234567890",
+        //             "isMakerBettingOutcomeOne": false,
+        //             "signature": "0xbf09...e01",
+        //             "updateTime": 1747490000000,
+        //             "sportXeventId": "L13772588"
+        //         }
+        //     ]
+        //
+        const touchedMarkets: Dict = this.createSafeDictionary ();
+        const rowsLength = rows.length;
+        for (let i = 0; i < rowsLength; i++) {
+            const order = rows[i];
+            const marketHash = this.safeString (order, 'marketHash');
+            const orderHash = this.safeString (order, 'orderHash');
+            if ((marketHash === undefined) || (orderHash === undefined)) {
+                continue;
+            }
+            const booksMap = this.safeDict (this.options, 'wsRawOrders', {});
+            const orderMap = this.safeValue (booksMap, marketHash);
+            if (orderMap === undefined) {
+                // delta for a market whose book is not being watched
+                continue;
+            }
+            const status = this.safeString (order, 'status');
+            if (status === 'ACTIVE') {
+                orderMap[orderHash] = order;
+            } else {
+                // INACTIVE and FILLED orders leave the book
+                const cleaned = this.omit (orderMap, orderHash);
+                this.options['wsRawOrders'][marketHash] = cleaned;
+            }
+            touchedMarkets[marketHash] = true;
+        }
+        const watchedBooks = this.safeDict (this.options, 'wsWatchedBooks', {});
+        const watchedSyms = Object.keys (watchedBooks);
+        const watchedSymsLength = watchedSyms.length;
+        for (let i = 0; i < watchedSymsLength; i++) {
+            const sym = watchedSyms[i];
+            const marketHash = this.safeString (watchedBooks, sym);
+            if (this.safeValue (touchedMarkets, marketHash) === undefined) {
+                continue;
+            }
+            this.rebuildSxbetWsOrderBook (sym, marketHash);
+            client.resolve (this.safeValue (this.orderbooks, sym), 'orderbook::' + sym);
+        }
+    }
+
+    /**
+     * @method
+     * @name sxbet#watchTicker
+     * @description streams best-odds updates of an outcome; the venue channel is global, entries are filtered down to the requested outcome's market
+     * @see https://docs.sx.bet/api-reference/centrifugo-best-odds
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
+     */
+    override async watchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
+        await this.loadOutcome (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const sym = this.safeString (outcomeObj, 'outcome');
+        const marketHash = this.safeString (outcomeObj['info'], 'marketHash');
+        const messageHash = 'ticker::' + sym;
+        const watchedTickers = this.safeValue (this.options, 'wsWatchedTickers');
+        if (watchedTickers === undefined) {
+            this.options['wsWatchedTickers'] = this.createSafeDictionary ();
+        }
+        const oddsCacheAll = this.safeValue (this.options, 'wsBestOdds');
+        if (oddsCacheAll === undefined) {
+            this.options['wsBestOdds'] = this.createSafeDictionary ();
+        }
+        const primed = this.safeValue (this.options['wsBestOdds'], marketHash);
+        if (primed === undefined) {
+            // prime both sides from REST so the merged bid/ask survive one-sided websocket updates
+            const sxMetadata = await this.loadSxMetadata ();
+            const usdcAddress = this.safeString (sxMetadata, 'usdcAddress', '');
+            const request: Dict = { 'marketHashes': marketHash, 'baseToken': usdcAddress };
+            const response = await this.sxbetPublicGetOrdersOddsBest (request);
+            const result = this.safeDict (response, 'data', {});
+            const bestOddsList = this.safeList (result, 'bestOdds', []);
+            const raw = this.safeDict (bestOddsList, 0, {});
+            const outcomeOneOdds = this.safeDict (raw, 'outcomeOne', {});
+            const outcomeTwoOdds = this.safeDict (raw, 'outcomeTwo', {});
+            const oddsCache: Dict = this.createSafeDictionary ();
+            oddsCache['one'] = this.safeString (outcomeOneOdds, 'percentageOdds');
+            oddsCache['two'] = this.safeString (outcomeTwoOdds, 'percentageOdds');
+            oddsCache['updatedAt'] = this.safeInteger (outcomeOneOdds, 'updatedAt');
+            this.options['wsBestOdds'][marketHash as string] = oddsCache;
+        }
+        this.options['wsWatchedTickers'][sym as string] = marketHash;
+        return await this.subscribeSxbetChannel (messageHash, 'best_odds:global');
+    }
+
+    handleTicker (client: any, rows: any[]) {
+        //
+        //     [
+        //         {
+        //             "baseToken": "0x1BC6326EA6aF2aB8E4b68c83418044B1923b2956",
+        //             "marketHash": "0xddaf2ef56d0db2317cf9a1e1dde3de2f2158e28bee55fe35a684389f4dce0cf6",
+        //             "isMakerBettingOutcomeOne": true,
+        //             "percentageOdds": "750000000000000000000",
+        //             "updatedAt": 1747500000000,
+        //             "sportId": 1,
+        //             "leagueId": 1236
+        //         }
+        //     ]
+        //
+        const sxMetadata = this.safeDict (this.options, 'sxMetadata', {});
+        const usdcAddress = this.safeStringLower (sxMetadata, 'usdcAddress', '');
+        const touchedMarkets: Dict = this.createSafeDictionary ();
+        const rowsLength = rows.length;
+        for (let i = 0; i < rowsLength; i++) {
+            const entry = rows[i];
+            const marketHash = this.safeString (entry, 'marketHash');
+            if (marketHash === undefined) {
+                continue;
+            }
+            const oddsCache = this.safeValue (this.safeDict (this.options, 'wsBestOdds', {}), marketHash);
+            if (oddsCache === undefined) {
+                // update for a market whose ticker is not being watched
+                continue;
+            }
+            const entryToken = this.safeStringLower (entry, 'baseToken', usdcAddress);
+            if ((usdcAddress !== '') && (entryToken !== usdcAddress)) {
+                continue;
+            }
+            const makerBettingOne = this.safeBool (entry, 'isMakerBettingOutcomeOne');
+            if (makerBettingOne) {
+                oddsCache['one'] = this.safeString (entry, 'percentageOdds');
+            } else {
+                oddsCache['two'] = this.safeString (entry, 'percentageOdds');
+            }
+            oddsCache['updatedAt'] = this.safeInteger (entry, 'updatedAt');
+            touchedMarkets[marketHash] = true;
+        }
+        const watchedTickers = this.safeDict (this.options, 'wsWatchedTickers', {});
+        const watchedSyms = Object.keys (watchedTickers);
+        const watchedSymsLength = watchedSyms.length;
+        for (let i = 0; i < watchedSymsLength; i++) {
+            const sym = watchedSyms[i];
+            const marketHash = this.safeString (watchedTickers, sym);
+            if (this.safeValue (touchedMarkets, marketHash) === undefined) {
+                continue;
+            }
+            const oddsCache = this.safeDict (this.safeDict (this.options, 'wsBestOdds', {}), marketHash as string, {});
+            // rebuild the REST best-odds shape so the ticker parser stays the single source of truth
+            const raw: Dict = {
+                'marketHash': marketHash,
+                'outcomeOne': { 'percentageOdds': this.safeString (oddsCache, 'one'), 'updatedAt': this.safeInteger (oddsCache, 'updatedAt') },
+                'outcomeTwo': { 'percentageOdds': this.safeString (oddsCache, 'two'), 'updatedAt': this.safeInteger (oddsCache, 'updatedAt') },
+            };
+            const outcomeObj = this.outcome (sym) as any;
+            const ticker = this.parsePredictionTicker (raw, outcomeObj);
+            this.tickers[sym] = ticker as any;
+            client.resolve (ticker, 'ticker::' + sym);
+        }
+    }
+
+    /**
+     * @method
+     * @name sxbet#watchTrades
+     * @description streams public trades of an outcome; the venue channel is global, entries are filtered down to the requested outcome
+     * @see https://docs.sx.bet/api-reference/centrifugo-trade-updates
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {int} [since] timestamp in ms of the earliest trade to return
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    override async watchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        await this.loadOutcome (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const sym = this.safeString (outcomeObj, 'outcome');
+        const messageHash = 'trades::' + sym;
+        const trades = await this.subscribeSxbetChannel (messageHash, 'recent_trades:global');
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true) as PredictionTrade[];
+    }
+
+    /**
+     * @method
+     * @name sxbet#watchMyTrades
+     * @description streams the authenticated wallet's trades; the venue channel is global, entries are filtered by the bettor address
+     * @see https://docs.sx.bet/api-reference/centrifugo-trade-updates
+     * @param {string} [outcome] unified outcome or outcome token id to narrow the stream down to
+     * @param {int} [since] timestamp in ms of the earliest trade to return
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    override async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        if (this.walletAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a walletAddress to identify the bettor');
+        }
+        let messageHash = 'myTrades';
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+            const outcomeObj = this.outcome (outcome);
+            const sym = this.safeString (outcomeObj, 'outcome');
+            messageHash = 'myTrades::' + sym;
+        }
+        const trades = await this.subscribeSxbetChannel (messageHash, 'recent_trades:global');
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true) as PredictionTrade[];
+    }
+
+    handleTrades (client: any, rows: any[]) {
+        //
+        //     {
+        //         "baseToken": "0x8f3Cf7ad23Cd3CaDb09735AFf958023239c6A063",
+        //         "bettor": "0x814d79A9940CbC5Af4C19cAa118EC065a77CD31f",
+        //         "stake": "999999999999999999",
+        //         "odds": "484425713316886290000",
+        //         "orderHash": "0xf7321de419b8887eafe5756d25db37ed2796dfc2495a49e266f13c8533fddb67",
+        //         "marketHash": "0x32d6c7d300dc44c795e2bdb8c735d9ad74fd2bbece89012904a5ea8ec6b566f1",
+        //         "maker": false,
+        //         "betTime": 1625668455,
+        //         "settled": false,
+        //         "bettingOutcomeOne": true,
+        //         "fillHash": "0x027f3237d9dc9dfa6068b60d852c3e972776b683a8c43b2e1a43602918de924e",
+        //         "status": "SUCCESS",
+        //         "tradeStatus": "SUCCESS",
+        //         "isQuarterLineLeg": false
+        //     }
+        //
+        const walletLower = (this.walletAddress === undefined) ? '' : this.walletAddress.toLowerCase ();
+        const rowsLength = rows.length;
+        for (let i = 0; i < rowsLength; i++) {
+            const row = rows[i];
+            const trade = this.parsePredictionTrade (row);
+            const sym = this.safeString (trade, 'outcome');
+            if (sym === undefined) {
+                // trade in a market absent from the loaded outcome cache
+                continue;
+            }
+            if (this.trades === undefined) {
+                this.trades = this.createSafeDictionary ();
+            }
+            if (this.safeValue (this.trades, sym) === undefined) {
+                const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                this.trades[sym] = new ArrayCache (tradesLimit);
+            }
+            const stored = this.trades[sym];
+            stored.append (trade);
+            client.resolve (stored, 'trades::' + sym);
+            const bettor = this.safeStringLower (row, 'bettor', '');
+            if ((walletLower !== '') && (bettor === walletLower)) {
+                if (this.myTrades === undefined) {
+                    const myTradesLimit = this.safeInteger (this.options, 'myTradesLimit', 1000);
+                    this.myTrades = new ArrayCacheByOutcomeById (myTradesLimit);
+                }
+                const storedMy = this.myTrades;
+                storedMy.append (trade);
+                client.resolve (storedMy, 'myTrades');
+                client.resolve (storedMy, 'myTrades::' + sym);
+            }
+        }
+    }
+
+    /**
+     * @method
+     * @name sxbet#watchOrders
+     * @description streams updates of the authenticated wallet's resting maker orders over the per-maker venue channel
+     * @see https://docs.sx.bet/api-reference/centrifugo-active-order-updates
+     * @param {string} [outcome] unified outcome or outcome token id to narrow the stream down to
+     * @param {int} [since] timestamp in ms of the earliest order to return
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    override async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        if (this.walletAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders() requires a walletAddress to identify the maker');
+        }
+        let messageHash = 'orders';
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+            const outcomeObj = this.outcome (outcome);
+            const sym = this.safeString (outcomeObj, 'outcome');
+            messageHash = 'orders::' + sym;
+        }
+        const channel = 'active_orders:' + this.walletAddress;
+        const orders = await this.subscribeSxbetChannel (messageHash, channel);
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true) as PredictionOrder[];
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#parseSxbetWsOrderStatus
+     * @description maps the websocket active-order status onto the unified order status vocabulary
+     * @param {string} status the venue status - ACTIVE, INACTIVE or FILLED
+     * @returns {string} a unified order status, or undefined
+     */
+    parseSxbetWsOrderStatus (status: Str): Str {
+        if (status === 'ACTIVE') {
+            return 'open';
+        }
+        if (status === 'INACTIVE') {
+            return 'canceled';
+        }
+        if (status === 'FILLED') {
+            return 'closed';
+        }
+        return undefined;
+    }
+
+    handleOrder (client: any, rows: any[]) {
+        //
+        //     [
+        //         {
+        //             "orderHash": "0xabcdef1234567890abcdef1234567890abcdef1234567890",
+        //             "marketHash": "0x1234567890abcdef1234567890abcdef1234567890abcd",
+        //             "status": "INACTIVE",
+        //             "fillAmount": "100000000000000000",
+        //             "pendingFillAmount": "500000000000000000",
+        //             "totalBetSize": "2000000000000000000",
+        //             "percentageOdds": "750000000000000000000",
+        //             "apiExpiry": 1747500000000,
+        //             "salt": "12345678901234567890123456789012345678901",
+        //             "isMakerBettingOutcomeOne": false,
+        //             "signature": "0xbf09...e0",
+        //             "updateTime": 1747490000000,
+        //             "sportXeventId": "L13772588"
+        //         }
+        //     ]
+        //
+        const rowsLength = rows.length;
+        for (let i = 0; i < rowsLength; i++) {
+            const row = rows[i];
+            const order = this.parsePredictionOrder (row);
+            const wsStatus = this.parseSxbetWsOrderStatus (this.safeString (row, 'status'));
+            if (wsStatus !== undefined) {
+                order['status'] = wsStatus;
+            }
+            if (order['timestamp'] === undefined) {
+                const updateTime = this.safeInteger (row, 'updateTime');
+                order['timestamp'] = updateTime;
+                order['datetime'] = this.iso8601 (updateTime);
+            }
+            if (this.orders === undefined) {
+                const cacheLimit = this.safeInteger (this.options, 'ordersLimit', 1000);
+                this.orders = new ArrayCacheByOutcomeById (cacheLimit);
+            }
+            const stored = this.orders;
+            stored.append (order);
+            client.resolve (stored, 'orders');
+            const sym = this.safeString (order, 'outcome');
+            if (sym !== undefined) {
+                client.resolve (stored, 'orders::' + sym);
+            }
+        }
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
