@@ -168,7 +168,8 @@
         "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
-                "currencyIdAndCode": "i.e. binance does not have currency code BCC"
+                "currencyIdAndCode": "i.e. binance does not have currency code BCC",
+                "optionsNotLoadedByDefault": "avoids test warning"
             },
             "fetchCurrencies": {
                 "precision": "temp issues fro fiat"
@@ -1980,6 +1981,9 @@
     },
     "okxus": {
         "skipCSharp": true,
+        "loadMarkets": {
+
+        },
         "skipMethods": {
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
