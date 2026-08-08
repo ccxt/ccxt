@@ -87,11 +87,119 @@ func (this *BitflyerCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"getmarkets/usa", "getmarkets/eu", "getmarkets", "getboard", "getticker", "getexecutions", "gethealth", "getboardstate", "getchats", "getfundingrate"},
+				"get": map[string]any{
+					"getmarkets/usa": map[string]any{
+						"cost": 1,
+					},
+					"getmarkets/eu": map[string]any{
+						"cost": 1,
+					},
+					"getmarkets": map[string]any{
+						"cost": 1,
+					},
+					"getboard": map[string]any{
+						"cost": 1,
+					},
+					"getticker": map[string]any{
+						"cost": 1,
+					},
+					"getexecutions": map[string]any{
+						"cost": 1,
+					},
+					"gethealth": map[string]any{
+						"cost": 1,
+					},
+					"getboardstate": map[string]any{
+						"cost": 1,
+					},
+					"getchats": map[string]any{
+						"cost": 1,
+					},
+					"getfundingrate": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"get":  []any{"getpermissions", "getbalance", "getbalancehistory", "getcollateral", "getcollateralhistory", "getcollateralaccounts", "getaddresses", "getcoinins", "getcoinouts", "getbankaccounts", "getdeposits", "getwithdrawals", "getchildorders", "getparentorders", "getparentorder", "getexecutions", "getpositions", "gettradingcommission"},
-				"post": []any{"sendcoin", "withdraw", "sendchildorder", "cancelchildorder", "sendparentorder", "cancelparentorder", "cancelallchildorders"},
+				"get": map[string]any{
+					"getpermissions": map[string]any{
+						"cost": 1,
+					},
+					"getbalance": map[string]any{
+						"cost": 1,
+					},
+					"getbalancehistory": map[string]any{
+						"cost": 1,
+					},
+					"getcollateral": map[string]any{
+						"cost": 1,
+					},
+					"getcollateralhistory": map[string]any{
+						"cost": 1,
+					},
+					"getcollateralaccounts": map[string]any{
+						"cost": 1,
+					},
+					"getaddresses": map[string]any{
+						"cost": 1,
+					},
+					"getcoinins": map[string]any{
+						"cost": 1,
+					},
+					"getcoinouts": map[string]any{
+						"cost": 1,
+					},
+					"getbankaccounts": map[string]any{
+						"cost": 1,
+					},
+					"getdeposits": map[string]any{
+						"cost": 1,
+					},
+					"getwithdrawals": map[string]any{
+						"cost": 1,
+					},
+					"getchildorders": map[string]any{
+						"cost": 1,
+					},
+					"getparentorders": map[string]any{
+						"cost": 1,
+					},
+					"getparentorder": map[string]any{
+						"cost": 1,
+					},
+					"getexecutions": map[string]any{
+						"cost": 1,
+					},
+					"getpositions": map[string]any{
+						"cost": 1,
+					},
+					"gettradingcommission": map[string]any{
+						"cost": 1,
+					},
+				},
+				"post": map[string]any{
+					"sendcoin": map[string]any{
+						"cost": 1,
+					},
+					"withdraw": map[string]any{
+						"cost": 1,
+					},
+					"sendchildorder": map[string]any{
+						"cost": 1,
+					},
+					"cancelchildorder": map[string]any{
+						"cost": 1,
+					},
+					"sendparentorder": map[string]any{
+						"cost": 1,
+					},
+					"cancelparentorder": map[string]any{
+						"cost": 1,
+					},
+					"cancelallchildorders": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"fees": map[string]any{
@@ -272,8 +380,8 @@ func (this *BitflyerCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		//         { "product_code": "BTC_JPY", "market_type": "Spot" },
 		//     ];
 		//
-		var markets any = this.ArrayConcat(jp_markets, us_markets)
-		markets = this.ArrayConcat(markets, eu_markets)
+		var markets any = this.ArrayConcat(this.ToArray(jp_markets), this.ToArray(us_markets))
+		markets = this.ArrayConcat(markets, this.ToArray(eu_markets))
 		var result any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
 			var market any = GetValue(markets, i)

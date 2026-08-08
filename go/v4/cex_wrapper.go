@@ -1063,7 +1063,7 @@ func (this *Cex) FetchPosition(symbol string, options ...FetchPositionOptions) (
 func (this *Cex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Cex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Cex) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Cex) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1081,7 +1081,7 @@ func (this *Cex) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Pos
 func (this *Cex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Cex) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Cex) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Cex) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
@@ -1198,7 +1198,7 @@ func (this *Cex) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Cex) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Cex) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Cex) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Cex) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1243,7 +1243,7 @@ func (this *Cex) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) (
 func (this *Cex) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Cex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Cex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Cex) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

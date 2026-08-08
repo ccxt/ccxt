@@ -6,7 +6,7 @@ import Exchange from './abstract/delta.js';
 import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, OrderNotFound, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type{ Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketInterface, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL } from './base/types.js';
+import type{ Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketInterface, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL, Status, Endpoint, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -130,70 +130,70 @@ export default class delta extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'assets',
-                        'indices',
-                        'products',
-                        'products/{symbol}',
-                        'tickers',
-                        'tickers/{symbol}',
-                        'l2orderbook/{symbol}',
-                        'trades/{symbol}',
-                        'stats',
-                        'history/candles',
-                        'history/sparklines',
-                        'settings',
-                    ],
+                    'get': {
+                        'assets': { 'cost': 1 } as Endpoint<Dict>,
+                        'indices': { 'cost': 1 } as Endpoint<Dict>,
+                        'products': { 'cost': 1 } as Endpoint<Dict>,
+                        'products/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        'tickers/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'l2orderbook/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'stats': { 'cost': 1 } as Endpoint<List>,
+                        'history/candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'history/sparklines': { 'cost': 1 } as Endpoint<Dict>,
+                        'settings': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'orders',
-                        'orders/{order_id}',
-                        'orders/client_order_id/{client_oid}',
-                        'products/{product_id}/orders/leverage',
-                        'positions/margined',
-                        'positions',
-                        'orders/history',
-                        'fills',
-                        'fills/history/download/csv',
-                        'wallet/balances',
-                        'wallet/transactions',
-                        'wallet/transactions/download',
-                        'wallets/sub_accounts_transfer_history',
-                        'users/trading_preferences',
-                        'sub_accounts',
-                        'profile',
-                        'rate_limits/quota',
-                        'heartbeat',
-                        'deposits/address',
-                    ],
-                    'post': [
-                        'orders',
-                        'orders/bracket',
-                        'orders/batch',
-                        'products/{product_id}/orders/leverage',
-                        'positions/change_margin',
-                        'positions/close_all',
-                        'wallets/sub_account_balance_transfer',
-                        'heartbeat/create',
-                        'heartbeat',
-                        'orders/cancel_after',
-                        'orders/leverage',
-                    ],
-                    'put': [
-                        'orders',
-                        'orders/bracket',
-                        'orders/batch',
-                        'positions/auto_topup',
-                        'users/update_mmp',
-                        'users/reset_mmp',
-                        'users/margin_mode',
-                    ],
-                    'delete': [
-                        'orders',
-                        'orders/all',
-                        'orders/batch',
-                    ],
+                    'get': {
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/client_order_id/{client_oid}': { 'cost': 1 } as Endpoint<Dict>,
+                        'products/{product_id}/orders/leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'positions/margined': { 'cost': 1 } as Endpoint<Dict>,
+                        'positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'fills': { 'cost': 1 } as Endpoint<Dict>,
+                        'fills/history/download/csv': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallet/balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallet/transactions': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallet/transactions/download': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallets/sub_accounts_transfer_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/trading_preferences': { 'cost': 1 } as Endpoint<Dict>,
+                        'sub_accounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'profile': { 'cost': 1 } as Endpoint<Dict>,
+                        'rate_limits/quota': { 'cost': 1 } as Endpoint<Dict>,
+                        'heartbeat': { 'cost': 1 } as Endpoint<Dict>,
+                        'deposits/address': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'post': {
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/bracket': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/batch': { 'cost': 1 } as Endpoint<Dict>,
+                        'products/{product_id}/orders/leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'positions/change_margin': { 'cost': 1 } as Endpoint<Dict>,
+                        'positions/close_all': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallets/sub_account_balance_transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'heartbeat/create': { 'cost': 1 } as Endpoint<Dict>,
+                        'heartbeat': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/cancel_after': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/leverage': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'put': {
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/bracket': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/batch': { 'cost': 1 } as Endpoint<Dict>,
+                        'positions/auto_topup': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/update_mmp': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/reset_mmp': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/margin_mode': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'delete': {
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/all': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/batch': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -445,7 +445,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.publicGetSettings (params);
         //
         //     {
@@ -3200,7 +3200,7 @@ export default class delta extends Exchange {
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         await this.loadMarkets ();
         let market: Market = undefined;
         if (symbol !== undefined) {

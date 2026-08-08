@@ -947,7 +947,7 @@ func (this *Bitflyer) FetchPosition(symbol string, options ...FetchPositionOptio
 func (this *Bitflyer) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bitflyer) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bitflyer) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bitflyer) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -962,7 +962,7 @@ func (this *Bitflyer) FetchPositionsRisk(options ...FetchPositionsRiskOptions) (
 func (this *Bitflyer) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bitflyer) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bitflyer) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bitflyer) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
@@ -1082,7 +1082,7 @@ func (this *Bitflyer) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Bitflyer) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Bitflyer) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Bitflyer) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Bitflyer) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1127,7 +1127,7 @@ func (this *Bitflyer) FetchTradesWs(symbol string, options ...FetchTradesWsOptio
 func (this *Bitflyer) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Bitflyer) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Bitflyer) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Bitflyer) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

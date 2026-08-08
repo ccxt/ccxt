@@ -62,10 +62,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    public async Task<Status> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
-        return ((Dictionary<string, object>)res);
+        return new Status(res);
     }
     /// <summary>
     /// retrieves data on all markets for kucoin
@@ -3643,10 +3643,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
-    public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<PositionModeInfo> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositionMode(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new PositionModeInfo(res);
     }
     /// <summary>
     /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market

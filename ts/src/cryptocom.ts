@@ -6,7 +6,7 @@ import Exchange from './abstract/cryptocom.js';
 import { Precise } from './base/Precise.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder, RequestTimeout, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Currencies, Market, Num, Fee, Bool, Account, CancellationRequest, Dict, int, TradingFeeInterface, TradingFees, LedgerEntry, DepositAddress, Position, FundingRate, NullableDict, DepositWithdrawFees } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Currencies, List, Market, Num, Fee, Bool, Account, CancellationRequest, Dict, int, TradingFeeInterface, TradingFees, LedgerEntry, DepositAddress, Position, FundingRate, NullableDict, DepositWithdrawFees, Endpoint } from './base/types.js';
 
 /**
  * @class cryptocom
@@ -157,167 +157,167 @@ export default class cryptocom extends Exchange {
                 'base': {
                     'public': {
                         'get': {
-                            'v1/public/get-announcements': 1, // no description of rate limit
+                            'v1/public/get-announcements': { 'cost': 1 } as Endpoint<Dict>, // no description of rate limit
                         },
                     },
                 },
                 'v1': {
                     'public': {
                         'get': {
-                            'public/auth': 10 / 3,
-                            'public/get-instruments': 10 / 3,
-                            'public/get-book': 1,
-                            'public/get-candlestick': 1,
-                            'public/get-trades': 1,
-                            'public/get-tickers': 1,
-                            'public/get-valuations': 1,
-                            'public/get-expired-settlement-price': 10 / 3,
-                            'public/get-insurance': 1,
-                            'public/get-announcements': 1,
-                            'public/get-risk-parameters': 1,
+                            'public/auth': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'public/get-instruments': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'public/get-book': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/get-candlestick': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/get-trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/get-tickers': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/get-valuations': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/get-expired-settlement-price': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'public/get-insurance': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/get-announcements': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/get-risk-parameters': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'public/staking/get-conversion-rate': 2,
+                            'public/staking/get-conversion-rate': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'post': {
-                            'private/set-cancel-on-disconnect': 10 / 3,
-                            'private/get-cancel-on-disconnect': 10 / 3,
-                            'private/user-balance': 10 / 3,
-                            'private/user-balance-history': 10 / 3,
-                            'private/get-positions': 10 / 3,
-                            'private/create-order': 2 / 3,
-                            'private/amend-order': 4 / 3, // no description of rate limit
-                            'private/create-order-list': 10 / 3,
-                            'private/cancel-order': 2 / 3,
-                            'private/cancel-order-list': 10 / 3,
-                            'private/cancel-all-orders': 2 / 3,
-                            'private/close-position': 10 / 3,
-                            'private/get-order-history': 100,
-                            'private/get-open-orders': 10 / 3,
-                            'private/get-order-detail': 1 / 3,
-                            'private/get-trades': 100,
-                            'private/change-account-leverage': 10 / 3,
-                            'private/get-transactions': 10 / 3,
-                            'private/create-subaccount-transfer': 10 / 3,
-                            'private/get-subaccount-balances': 10 / 3,
-                            'private/get-order-list': 10 / 3,
-                            'private/create-withdrawal': 10 / 3,
-                            'private/get-currency-networks': 10 / 3,
-                            'private/get-deposit-address': 10 / 3,
-                            'private/get-accounts': 10 / 3,
-                            'private/get-withdrawal-history': 10 / 3,
-                            'private/get-deposit-history': 10 / 3,
-                            'private/get-fee-rate': 2,
-                            'private/get-instrument-fee-rate': 2,
-                            'private/fiat/fiat-deposit-info': 10 / 3,
-                            'private/fiat/fiat-deposit-history': 10 / 3,
-                            'private/fiat/fiat-withdraw-history': 10 / 3,
-                            'private/fiat/fiat-create-withdraw': 10 / 3,
-                            'private/fiat/fiat-transaction-quota': 10 / 3,
-                            'private/fiat/fiat-transaction-limit': 10 / 3,
-                            'private/fiat/fiat-get-bank-accounts': 10 / 3,
-                            'private/staking/stake': 2,
-                            'private/staking/unstake': 2,
-                            'private/staking/get-staking-position': 2,
-                            'private/staking/get-staking-instruments': 2,
-                            'private/staking/get-open-stake': 2,
-                            'private/staking/get-stake-history': 2,
-                            'private/staking/get-reward-history': 2,
-                            'private/staking/convert': 2,
-                            'private/staking/get-open-convert': 2,
-                            'private/staking/get-convert-history': 2,
-                            'private/create-isolated-margin-transfer': 10 / 3,
-                            'private/change-isolated-margin-leverage': 10 / 3,
+                            'private/set-cancel-on-disconnect': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-cancel-on-disconnect': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/user-balance': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/user-balance-history': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-positions': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/create-order': { 'cost': 2 / 3 } as Endpoint<Dict>,
+                            'private/amend-order': { 'cost': 4 / 3 } as Endpoint<Dict>, // no description of rate limit
+                            'private/create-order-list': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/cancel-order': { 'cost': 2 / 3 } as Endpoint<Dict>,
+                            'private/cancel-order-list': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/cancel-all-orders': { 'cost': 2 / 3 } as Endpoint<Dict>,
+                            'private/close-position': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-order-history': { 'cost': 100 } as Endpoint<Dict>,
+                            'private/get-open-orders': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-order-detail': { 'cost': 1 / 3 } as Endpoint<Dict>,
+                            'private/get-trades': { 'cost': 100 } as Endpoint<Dict>,
+                            'private/change-account-leverage': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-transactions': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/create-subaccount-transfer': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-subaccount-balances': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-order-list': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/create-withdrawal': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-currency-networks': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-deposit-address': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-accounts': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-withdrawal-history': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-deposit-history': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-fee-rate': { 'cost': 2 } as Endpoint<Dict>,
+                            'private/get-instrument-fee-rate': { 'cost': 2 } as Endpoint<Dict>,
+                            'private/fiat/fiat-deposit-info': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/fiat/fiat-deposit-history': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/fiat/fiat-withdraw-history': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/fiat/fiat-create-withdraw': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/fiat/fiat-transaction-quota': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/fiat/fiat-transaction-limit': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/fiat/fiat-get-bank-accounts': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/staking/stake': { 'cost': 2 } as Endpoint<Dict>,
+                            'private/staking/unstake': { 'cost': 2 } as Endpoint<Dict>,
+                            'private/staking/get-staking-position': { 'cost': 2 } as Endpoint<Dict>,
+                            'private/staking/get-staking-instruments': { 'cost': 2 } as Endpoint<Dict>,
+                            'private/staking/get-open-stake': { 'cost': 2 } as Endpoint<Dict>,
+                            'private/staking/get-stake-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'private/staking/get-reward-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'private/staking/convert': { 'cost': 2 } as Endpoint<Dict>,
+                            'private/staking/get-open-convert': { 'cost': 2 } as Endpoint<Dict>,
+                            'private/staking/get-convert-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'private/create-isolated-margin-transfer': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/change-isolated-margin-leverage': { 'cost': 10 / 3 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'v2': {
                     'public': {
                         'get': {
-                            'public/auth': 1,
-                            'public/get-instruments': 1,
-                            'public/get-book': 1,
-                            'public/get-candlestick': 1,
-                            'public/get-ticker': 1,
-                            'public/get-trades': 1,
-                            'public/margin/get-transfer-currencies': 1,
-                            'public/margin/get-load-currenices': 1,
-                            'public/respond-heartbeat': 1,
+                            'public/auth': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/get-instruments': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/get-book': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/get-candlestick': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/get-ticker': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/get-trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/margin/get-transfer-currencies': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/margin/get-load-currenices': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/respond-heartbeat': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'post': {
-                            'private/set-cancel-on-disconnect': 10 / 3,
-                            'private/get-cancel-on-disconnect': 10 / 3,
-                            'private/create-withdrawal': 10 / 3,
-                            'private/get-withdrawal-history': 10 / 3,
-                            'private/get-currency-networks': 10 / 3,
-                            'private/get-deposit-history': 10 / 3,
-                            'private/get-deposit-address': 10 / 3,
-                            'private/export/create-export-request': 10 / 3,
-                            'private/export/get-export-requests': 10 / 3,
-                            'private/export/download-export-output': 10 / 3,
-                            'private/get-account-summary': 10 / 3,
-                            'private/create-order': 2 / 3,
-                            'private/cancel-order': 2 / 3,
-                            'private/cancel-all-orders': 2 / 3,
-                            'private/create-order-list': 10 / 3,
-                            'private/get-order-history': 10 / 3,
-                            'private/get-open-orders': 10 / 3,
-                            'private/get-order-detail': 1 / 3,
-                            'private/get-trades': 100,
-                            'private/get-accounts': 10 / 3,
-                            'private/get-subaccount-balances': 10 / 3,
-                            'private/create-subaccount-transfer': 10 / 3,
-                            'private/otc/get-otc-user': 10 / 3,
-                            'private/otc/get-instruments': 10 / 3,
-                            'private/otc/request-quote': 100,
-                            'private/otc/accept-quote': 100,
-                            'private/otc/get-quote-history': 10 / 3,
-                            'private/otc/get-trade-history': 10 / 3,
-                            'private/otc/create-order': 10 / 3,
+                            'private/set-cancel-on-disconnect': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-cancel-on-disconnect': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/create-withdrawal': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-withdrawal-history': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-currency-networks': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-deposit-history': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-deposit-address': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/export/create-export-request': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/export/get-export-requests': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/export/download-export-output': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-account-summary': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/create-order': { 'cost': 2 / 3 } as Endpoint<Dict>,
+                            'private/cancel-order': { 'cost': 2 / 3 } as Endpoint<Dict>,
+                            'private/cancel-all-orders': { 'cost': 2 / 3 } as Endpoint<Dict>,
+                            'private/create-order-list': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-order-history': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-open-orders': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-order-detail': { 'cost': 1 / 3 } as Endpoint<Dict>,
+                            'private/get-trades': { 'cost': 100 } as Endpoint<Dict>,
+                            'private/get-accounts': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-subaccount-balances': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/create-subaccount-transfer': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/otc/get-otc-user': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/otc/get-instruments': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/otc/request-quote': { 'cost': 100 } as Endpoint<Dict>,
+                            'private/otc/accept-quote': { 'cost': 100 } as Endpoint<Dict>,
+                            'private/otc/get-quote-history': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/otc/get-trade-history': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/otc/create-order': { 'cost': 10 / 3 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'derivatives': {
                     'public': {
                         'get': {
-                            'public/auth': 10 / 3,
-                            'public/get-instruments': 10 / 3,
-                            'public/get-book': 1,
-                            'public/get-candlestick': 1,
-                            'public/get-trades': 1,
-                            'public/get-tickers': 1,
-                            'public/get-valuations': 1,
-                            'public/get-expired-settlement-price': 10 / 3,
-                            'public/get-insurance': 1,
+                            'public/auth': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'public/get-instruments': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'public/get-book': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/get-candlestick': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/get-trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/get-tickers': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/get-valuations': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/get-expired-settlement-price': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'public/get-insurance': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'post': {
-                            'private/set-cancel-on-disconnect': 10 / 3,
-                            'private/get-cancel-on-disconnect': 10 / 3,
-                            'private/user-balance': 10 / 3,
-                            'private/user-balance-history': 10 / 3,
-                            'private/get-positions': 10 / 3,
-                            'private/create-order': 2 / 3,
-                            'private/create-order-list': 10 / 3,
-                            'private/cancel-order': 2 / 3,
-                            'private/cancel-order-list': 10 / 3,
-                            'private/cancel-all-orders': 2 / 3,
-                            'private/close-position': 10 / 3,
-                            'private/convert-collateral': 10 / 3,
-                            'private/get-order-history': 100,
-                            'private/get-open-orders': 10 / 3,
-                            'private/get-order-detail': 1 / 3,
-                            'private/get-trades': 100,
-                            'private/change-account-leverage': 10 / 3,
-                            'private/get-transactions': 10 / 3,
-                            'private/create-subaccount-transfer': 10 / 3,
-                            'private/get-subaccount-balances': 10 / 3,
-                            'private/get-order-list': 10 / 3,
+                            'private/set-cancel-on-disconnect': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-cancel-on-disconnect': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/user-balance': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/user-balance-history': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-positions': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/create-order': { 'cost': 2 / 3 } as Endpoint<Dict>,
+                            'private/create-order-list': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/cancel-order': { 'cost': 2 / 3 } as Endpoint<Dict>,
+                            'private/cancel-order-list': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/cancel-all-orders': { 'cost': 2 / 3 } as Endpoint<Dict>,
+                            'private/close-position': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/convert-collateral': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-order-history': { 'cost': 100 } as Endpoint<Dict>,
+                            'private/get-open-orders': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-order-detail': { 'cost': 1 / 3 } as Endpoint<Dict>,
+                            'private/get-trades': { 'cost': 100 } as Endpoint<Dict>,
+                            'private/change-account-leverage': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-transactions': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/create-subaccount-transfer': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-subaccount-balances': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/get-order-list': { 'cost': 10 / 3 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -370,6 +370,7 @@ export default class cryptocom extends Exchange {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
                     'TRC20': 'TRON',
+                    'ARBITRUM': 'ARB',
                 },
                 'broker': 'CCXT',
             },
@@ -769,7 +770,7 @@ export default class cryptocom extends Exchange {
         //
         const resultResponse = this.safeDict (response, 'result', {});
         const data = this.safeList (resultResponse, 'data', []);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const inst_type = this.safeString (market, 'inst_type');
@@ -1506,7 +1507,7 @@ export default class cryptocom extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const ordersRequests: any[] = [];
+        const ordersRequests: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
@@ -1819,7 +1820,7 @@ export default class cryptocom extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const orderRequests: any[] = [];
+        const orderRequests: Dict[] = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const order: Dict = {
@@ -1850,7 +1851,7 @@ export default class cryptocom extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const orderRequests: any[] = [];
+        const orderRequests: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const id = this.safeString (order, 'id');
@@ -2155,7 +2156,7 @@ export default class cryptocom extends Exchange {
         const network = this.safeStringUpper (params, 'network');
         params = this.omit (params, [ 'network' ]);
         const depositAddressesRaw = await this.fetchDepositAddressesByNetwork (code, params);
-        const depositAddresses: Dict = depositAddressesRaw as any;
+        const depositAddresses: Dict = depositAddressesRaw;
         if ((network as string) in depositAddresses) {
             return depositAddresses[(network as string)];
         }
@@ -3003,7 +3004,7 @@ export default class cryptocom extends Exchange {
      * @param {int} [params.type] 'future', 'option'
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3076,7 +3077,7 @@ export default class cryptocom extends Exchange {
         //         }
         //     ]
         //
-        const result: any[] = [];
+        const result: Dict[] = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push (this.parseSettlement (settlements[i], market));
         }
@@ -3226,7 +3227,7 @@ export default class cryptocom extends Exchange {
         const result = this.safeDict (response, 'result', {});
         const data = this.safeList (result, 'data', []);
         const marketId = this.safeString (result, 'instrument_name');
-        const rates: any[] = [];
+        const rates: FundingRateHistory[] = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const timestamp = this.safeInteger (entry, 't');

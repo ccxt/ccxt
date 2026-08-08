@@ -1058,7 +1058,7 @@ func (this *Mudrex) FetchPosition(symbol string, options ...FetchPositionOptions
 func (this *Mudrex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Mudrex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Mudrex) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Mudrex) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1070,7 +1070,7 @@ func (this *Mudrex) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Mudrex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Mudrex) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Mudrex) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Mudrex) FetchTime(params ...any) (int64, error) {
@@ -1196,7 +1196,7 @@ func (this *Mudrex) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Mudrex) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Mudrex) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Mudrex) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Mudrex) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1241,7 +1241,7 @@ func (this *Mudrex) FetchTradesWs(symbol string, options ...FetchTradesWsOptions
 func (this *Mudrex) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Mudrex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Mudrex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Mudrex) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

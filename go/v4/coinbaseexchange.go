@@ -157,13 +157,264 @@ func (this *CoinbaseexchangeCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"currencies", "products", "products/{id}", "products/{id}/book", "products/{id}/candles", "products/{id}/stats", "products/{id}/ticker", "products/{id}/trades", "time", "products/spark-lines", "products/volume-summary"},
+				"get": map[string]any{
+					"currencies": map[string]any{
+						"cost": 1,
+					},
+					"products": map[string]any{
+						"cost": 1,
+					},
+					"products/{id}": map[string]any{
+						"cost": 1,
+					},
+					"products/{id}/book": map[string]any{
+						"cost": 1,
+					},
+					"products/{id}/candles": map[string]any{
+						"cost": 1,
+					},
+					"products/{id}/stats": map[string]any{
+						"cost": 1,
+					},
+					"products/{id}/ticker": map[string]any{
+						"cost": 1,
+					},
+					"products/{id}/trades": map[string]any{
+						"cost": 1,
+					},
+					"time": map[string]any{
+						"cost": 1,
+					},
+					"products/spark-lines": map[string]any{
+						"cost": 1,
+					},
+					"products/volume-summary": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"get":    []any{"address-book", "accounts", "accounts/{id}", "accounts/{id}/holds", "accounts/{id}/ledger", "accounts/{id}/transfers", "coinbase-accounts", "fills", "funding", "fees", "margin/profile_information", "margin/buying_power", "margin/withdrawal_power", "margin/withdrawal_power_all", "margin/exit_plan", "margin/liquidation_history", "margin/position_refresh_amounts", "margin/status", "oracle", "orders", "orders/{id}", "orders/client:{client_oid}", "otc/orders", "payment-methods", "position", "profiles", "profiles/{id}", "reports/{report_id}", "transfers", "transfers/{transfer_id}", "users/self/exchange-limits", "users/self/hold-balances", "users/self/trailing-volume", "withdrawals/fee-estimate", "conversions/{conversion_id}", "conversions", "conversions/fees", "loans/lending-overview", "loans/lending-overview-xm", "loans/loan-preview", "loans/loan-preview-xm", "loans/repayment-preview", "loans/repayment-preview-xm", "loans/interest/{loan_id}", "loans/interest/history/{loan_id}", "loans/interest", "loans/assets", "loans"},
-				"post":   []any{"conversions", "deposits/coinbase-account", "deposits/payment-method", "coinbase-accounts/{id}/addresses", "funding/repay", "orders", "position/close", "profiles", "profiles/margin-transfer", "profiles/transfer", "reports", "withdrawals/coinbase", "withdrawals/coinbase-account", "withdrawals/crypto", "withdrawals/payment-method", "loans/open", "loans/repay-interest", "loans/repay-principal"},
-				"delete": []any{"orders", "orders/client:{client_oid}", "orders/{id}"},
-				"put":    []any{"profiles/{id}/deactivate", "profiles/{id}"},
+				"get": map[string]any{
+					"address-book": map[string]any{
+						"cost": 1,
+					},
+					"accounts": map[string]any{
+						"cost": 1,
+					},
+					"accounts/{id}": map[string]any{
+						"cost": 1,
+					},
+					"accounts/{id}/holds": map[string]any{
+						"cost": 1,
+					},
+					"accounts/{id}/ledger": map[string]any{
+						"cost": 1,
+					},
+					"accounts/{id}/transfers": map[string]any{
+						"cost": 1,
+					},
+					"coinbase-accounts": map[string]any{
+						"cost": 1,
+					},
+					"fills": map[string]any{
+						"cost": 1,
+					},
+					"funding": map[string]any{
+						"cost": 1,
+					},
+					"fees": map[string]any{
+						"cost": 1,
+					},
+					"margin/profile_information": map[string]any{
+						"cost": 1,
+					},
+					"margin/buying_power": map[string]any{
+						"cost": 1,
+					},
+					"margin/withdrawal_power": map[string]any{
+						"cost": 1,
+					},
+					"margin/withdrawal_power_all": map[string]any{
+						"cost": 1,
+					},
+					"margin/exit_plan": map[string]any{
+						"cost": 1,
+					},
+					"margin/liquidation_history": map[string]any{
+						"cost": 1,
+					},
+					"margin/position_refresh_amounts": map[string]any{
+						"cost": 1,
+					},
+					"margin/status": map[string]any{
+						"cost": 1,
+					},
+					"oracle": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/{id}": map[string]any{
+						"cost": 1,
+					},
+					"orders/client:{client_oid}": map[string]any{
+						"cost": 1,
+					},
+					"otc/orders": map[string]any{
+						"cost": 1,
+					},
+					"payment-methods": map[string]any{
+						"cost": 1,
+					},
+					"position": map[string]any{
+						"cost": 1,
+					},
+					"profiles": map[string]any{
+						"cost": 1,
+					},
+					"profiles/{id}": map[string]any{
+						"cost": 1,
+					},
+					"reports/{report_id}": map[string]any{
+						"cost": 1,
+					},
+					"transfers": map[string]any{
+						"cost": 1,
+					},
+					"transfers/{transfer_id}": map[string]any{
+						"cost": 1,
+					},
+					"users/self/exchange-limits": map[string]any{
+						"cost": 1,
+					},
+					"users/self/hold-balances": map[string]any{
+						"cost": 1,
+					},
+					"users/self/trailing-volume": map[string]any{
+						"cost": 1,
+					},
+					"withdrawals/fee-estimate": map[string]any{
+						"cost": 1,
+					},
+					"conversions/{conversion_id}": map[string]any{
+						"cost": 1,
+					},
+					"conversions": map[string]any{
+						"cost": 1,
+					},
+					"conversions/fees": map[string]any{
+						"cost": 1,
+					},
+					"loans/lending-overview": map[string]any{
+						"cost": 1,
+					},
+					"loans/lending-overview-xm": map[string]any{
+						"cost": 1,
+					},
+					"loans/loan-preview": map[string]any{
+						"cost": 1,
+					},
+					"loans/loan-preview-xm": map[string]any{
+						"cost": 1,
+					},
+					"loans/repayment-preview": map[string]any{
+						"cost": 1,
+					},
+					"loans/repayment-preview-xm": map[string]any{
+						"cost": 1,
+					},
+					"loans/interest/{loan_id}": map[string]any{
+						"cost": 1,
+					},
+					"loans/interest/history/{loan_id}": map[string]any{
+						"cost": 1,
+					},
+					"loans/interest": map[string]any{
+						"cost": 1,
+					},
+					"loans/assets": map[string]any{
+						"cost": 1,
+					},
+					"loans": map[string]any{
+						"cost": 1,
+					},
+				},
+				"post": map[string]any{
+					"conversions": map[string]any{
+						"cost": 1,
+					},
+					"deposits/coinbase-account": map[string]any{
+						"cost": 1,
+					},
+					"deposits/payment-method": map[string]any{
+						"cost": 1,
+					},
+					"coinbase-accounts/{id}/addresses": map[string]any{
+						"cost": 1,
+					},
+					"funding/repay": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"position/close": map[string]any{
+						"cost": 1,
+					},
+					"profiles": map[string]any{
+						"cost": 1,
+					},
+					"profiles/margin-transfer": map[string]any{
+						"cost": 1,
+					},
+					"profiles/transfer": map[string]any{
+						"cost": 1,
+					},
+					"reports": map[string]any{
+						"cost": 1,
+					},
+					"withdrawals/coinbase": map[string]any{
+						"cost": 1,
+					},
+					"withdrawals/coinbase-account": map[string]any{
+						"cost": 1,
+					},
+					"withdrawals/crypto": map[string]any{
+						"cost": 1,
+					},
+					"withdrawals/payment-method": map[string]any{
+						"cost": 1,
+					},
+					"loans/open": map[string]any{
+						"cost": 1,
+					},
+					"loans/repay-interest": map[string]any{
+						"cost": 1,
+					},
+					"loans/repay-principal": map[string]any{
+						"cost": 1,
+					},
+				},
+				"delete": map[string]any{
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/client:{client_oid}": map[string]any{
+						"cost": 1,
+					},
+					"orders/{id}": map[string]any{
+						"cost": 1,
+					},
+				},
+				"put": map[string]any{
+					"profiles/{id}/deactivate": map[string]any{
+						"cost": 1,
+					},
+					"profiles/{id}": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"commonCurrencies": map[string]any{
@@ -281,38 +532,38 @@ func (this *CoinbaseexchangeCore) Describe() any {
 		},
 		"options": map[string]any{
 			"networks": map[string]any{
-				"BTC":    "bitcoin",
-				"ETH":    "ethereum",
-				"SOL":    "solana",
-				"ARBONE": "arbitrum",
-				"AVAXC":  "avacchain",
-				"MATIC":  "polygon",
-				"BASE":   "base",
-				"SUI":    "sui",
-				"OP":     "optimism",
-				"NEAR":   "near",
-				"APT":    "aptos",
-				"KAVA":   "kava",
-				"BLAST":  "blast",
-				"XLM":    "stellar",
-				"SEI":    "sei",
-				"ADA":    "cardano",
-				"CORE":   "coredao",
-				"ALGO":   "algorand",
-				"OSMO":   "osmosis",
-				"CELO":   "celo",
-				"HBAR":   "hedera",
-				"ZKSYNC": "zksync",
-				"STX":    "stacks",
-				"XTZ":    "tezos",
-				"EGLD":   "elrond",
-				"LTC":    "litecoin",
-				"ATOM":   "cosmos",
-				"FIL":    "filecoin",
-				"DOT":    "polkadot",
-				"DOGE":   "dogecoin",
-				"XRP":    "ripple",
-				"DASH":   "dash",
+				"BTC":      "bitcoin",
+				"ETH":      "ethereum",
+				"SOL":      "solana",
+				"ARBITRUM": "arbitrum",
+				"AVAXC":    "avacchain",
+				"MATIC":    "polygon",
+				"BASE":     "base",
+				"SUI":      "sui",
+				"OP":       "optimism",
+				"NEAR":     "near",
+				"APT":      "aptos",
+				"KAVA":     "kava",
+				"BLAST":    "blast",
+				"XLM":      "stellar",
+				"SEI":      "sei",
+				"ADA":      "cardano",
+				"CORE":     "coredao",
+				"ALGO":     "algorand",
+				"OSMO":     "osmosis",
+				"CELO":     "celo",
+				"HBAR":     "hedera",
+				"ZKSYNC":   "zksync",
+				"STX":      "stacks",
+				"XTZ":      "tezos",
+				"EGLD":     "elrond",
+				"LTC":      "litecoin",
+				"ATOM":     "cosmos",
+				"FIL":      "filecoin",
+				"DOT":      "polkadot",
+				"DOGE":     "dogecoin",
+				"XRP":      "ripple",
+				"DASH":     "dash",
 			},
 		},
 		"exceptions": map[string]any{
@@ -530,8 +781,9 @@ func (this *CoinbaseexchangeCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		//     ]
 		//
 		var result any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var market any = GetValue(response, i)
+		var rawMarkets any = this.ToArray(response)
+		for i := 0; IsLessThan(i, GetArrayLength(rawMarkets)); i++ {
+			var market any = GetValue(rawMarkets, i)
 			var id any = this.SafeString(market, "id")
 			baseIdquoteIdVariable := Split(id, "-")
 			baseId := GetValue(baseIdquoteIdVariable, 0)
@@ -617,13 +869,12 @@ func (this *CoinbaseexchangeCore) FetchAccounts(optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes71312 := (<-this.LoadMarkets())
-			PanicOnError(retRes71312)
+			retRes71812 := (<-this.LoadMarkets())
+			PanicOnError(retRes71812)
 		}
 
 		response := (<-this.PrivateGetAccounts(params))
 		PanicOnError(response)
-
 		//
 		//     [
 		//         {
@@ -644,7 +895,9 @@ func (this *CoinbaseexchangeCore) FetchAccounts(optionalArgs ...any) <-chan any 
 		//         },
 		//     ]
 		//
-		ch <- this.ParseAccounts(response, params)
+		var accounts any = this.ToArray(response)
+
+		ch <- this.ParseAccounts(accounts, params)
 		return nil
 
 	}()
@@ -705,8 +958,8 @@ func (this *CoinbaseexchangeCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes78612 := (<-this.LoadMarkets())
-			PanicOnError(retRes78612)
+			retRes79212 := (<-this.LoadMarkets())
+			PanicOnError(retRes79212)
 		}
 
 		response := (<-this.PrivateGetAccounts(params))
@@ -740,8 +993,8 @@ func (this *CoinbaseexchangeCore) FetchOrderBook(symbol any, optionalArgs ...any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes80412 := (<-this.LoadMarkets())
-			PanicOnError(retRes80412)
+			retRes81012 := (<-this.LoadMarkets())
+			PanicOnError(retRes81012)
 		}
 		// level 1 - only the best bid and ask
 		// level 2 - top 50 bids and asks (aggregated)
@@ -880,8 +1133,8 @@ func (this *CoinbaseexchangeCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes92612 := (<-this.LoadMarkets())
-			PanicOnError(retRes92612)
+			retRes93212 := (<-this.LoadMarkets())
+			PanicOnError(retRes93212)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
@@ -945,8 +1198,8 @@ func (this *CoinbaseexchangeCore) FetchTicker(symbol any, optionalArgs ...any) <
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes97612 := (<-this.LoadMarkets())
-			PanicOnError(retRes97612)
+			retRes98212 := (<-this.LoadMarkets())
+			PanicOnError(retRes98212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1097,15 +1350,15 @@ func (this *CoinbaseexchangeCore) FetchMyTrades(optionalArgs ...any) <-chan any 
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes110419 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, 100))
-			PanicOnError(retRes110419)
-			ch <- retRes110419
+			retRes111019 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, 100))
+			PanicOnError(retRes111019)
+			ch <- retRes111019
 			return nil
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes110712 := (<-this.LoadMarkets())
-			PanicOnError(retRes110712)
+			retRes111312 := (<-this.LoadMarkets())
+			PanicOnError(retRes111312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1157,8 +1410,8 @@ func (this *CoinbaseexchangeCore) FetchTrades(symbol any, optionalArgs ...any) <
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes114112 := (<-this.LoadMarkets())
-			PanicOnError(retRes114112)
+			retRes114712 := (<-this.LoadMarkets())
+			PanicOnError(retRes114712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1206,8 +1459,8 @@ func (this *CoinbaseexchangeCore) FetchTradingFees(optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes117512 := (<-this.LoadMarkets())
-			PanicOnError(retRes117512)
+			retRes118112 := (<-this.LoadMarkets())
+			PanicOnError(retRes118112)
 		}
 
 		response := (<-this.PrivateGetFees(params))
@@ -1285,8 +1538,8 @@ func (this *CoinbaseexchangeCore) FetchOHLCV(symbol any, optionalArgs ...any) <-
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes123912 := (<-this.LoadMarkets())
-			PanicOnError(retRes123912)
+			retRes124512 := (<-this.LoadMarkets())
+			PanicOnError(retRes124512)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
@@ -1294,9 +1547,9 @@ func (this *CoinbaseexchangeCore) FetchOHLCV(symbol any, optionalArgs ...any) <-
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes124419 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 300))
-			PanicOnError(retRes124419)
-			ch <- retRes124419
+			retRes125019 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 300))
+			PanicOnError(retRes125019)
+			ch <- retRes125019
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -1341,7 +1594,7 @@ func (this *CoinbaseexchangeCore) FetchOHLCV(symbol any, optionalArgs ...any) <-
 		//         [1591514040,0.02505,0.02507,0.02505,0.02507,0.19918178]
 		//     ]
 		//
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
 		return nil
 
 	}()
@@ -1487,8 +1740,8 @@ func (this *CoinbaseexchangeCore) FetchOrder(id any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes140512 := (<-this.LoadMarkets())
-			PanicOnError(retRes140512)
+			retRes141112 := (<-this.LoadMarkets())
+			PanicOnError(retRes141112)
 		}
 		var request any = map[string]any{}
 		var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_oid")
@@ -1538,8 +1791,8 @@ func (this *CoinbaseexchangeCore) FetchOrderTrades(id any, optionalArgs ...any) 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes143512 := (<-this.LoadMarkets())
-			PanicOnError(retRes143512)
+			retRes144112 := (<-this.LoadMarkets())
+			PanicOnError(retRes144112)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1588,9 +1841,9 @@ func (this *CoinbaseexchangeCore) FetchOrders(optionalArgs ...any) <-chan any {
 			"status": "all",
 		}
 
-		retRes146415 := (<-this.FetchOpenOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes146415)
-		ch <- retRes146415
+		retRes147015 := (<-this.FetchOpenOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes147015)
+		ch <- retRes147015
 		return nil
 
 	}()
@@ -1625,8 +1878,8 @@ func (this *CoinbaseexchangeCore) FetchOpenOrders(optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes148212 := (<-this.LoadMarkets())
-			PanicOnError(retRes148212)
+			retRes148812 := (<-this.LoadMarkets())
+			PanicOnError(retRes148812)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
@@ -1634,9 +1887,9 @@ func (this *CoinbaseexchangeCore) FetchOpenOrders(optionalArgs ...any) <-chan an
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes148719 := (<-this.FetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params, 100))
-			PanicOnError(retRes148719)
-			ch <- retRes148719
+			retRes149319 := (<-this.FetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params, 100))
+			PanicOnError(retRes149319)
+			ch <- retRes149319
 			return nil
 		}
 		var request any = map[string]any{}
@@ -1696,9 +1949,9 @@ func (this *CoinbaseexchangeCore) FetchClosedOrders(optionalArgs ...any) <-chan 
 			"status": "done",
 		}
 
-		retRes152615 := (<-this.FetchOpenOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes152615)
-		ch <- retRes152615
+		retRes153215 := (<-this.FetchOpenOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes153215)
+		ch <- retRes153215
 		return nil
 
 	}()
@@ -1729,8 +1982,8 @@ func (this *CoinbaseexchangeCore) CreateOrder(symbol any, typeVar any, side any,
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes154412 := (<-this.LoadMarkets())
-			PanicOnError(retRes154412)
+			retRes155012 := (<-this.LoadMarkets())
+			PanicOnError(retRes155012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1824,8 +2077,8 @@ func (this *CoinbaseexchangeCore) CancelOrder(id any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes163712 := (<-this.LoadMarkets())
-			PanicOnError(retRes163712)
+			retRes164312 := (<-this.LoadMarkets())
+			PanicOnError(retRes164312)
 		}
 		var request any = map[string]any{}
 		var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_oid")
@@ -1876,8 +2129,8 @@ func (this *CoinbaseexchangeCore) CancelAllOrders(optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes167212 := (<-this.LoadMarkets())
-			PanicOnError(retRes167212)
+			retRes167812 := (<-this.LoadMarkets())
+			PanicOnError(retRes167812)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -1905,9 +2158,9 @@ func (this *CoinbaseexchangeCore) FetchPaymentMethods(optionalArgs ...any) <-cha
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes168515 := (<-this.PrivateGetPaymentMethods(params))
-		PanicOnError(retRes168515)
-		ch <- retRes168515
+		retRes169115 := (<-this.PrivateGetPaymentMethods(params))
+		PanicOnError(retRes169115)
+		ch <- retRes169115
 		return nil
 
 	}()
@@ -1942,8 +2195,8 @@ func (this *CoinbaseexchangeCore) Withdraw(code any, amount any, address any, op
 		this.CheckAddress(address)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes170512 := (<-this.LoadMarkets())
-			PanicOnError(retRes170512)
+			retRes171112 := (<-this.LoadMarkets())
+			PanicOnError(retRes171112)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -2091,12 +2344,12 @@ func (this *CoinbaseexchangeCore) FetchLedger(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes183312 := (<-this.LoadMarkets())
-			PanicOnError(retRes183312)
+			retRes183912 := (<-this.LoadMarkets())
+			PanicOnError(retRes183912)
 		}
 
-		retRes18358 := (<-this.LoadAccounts())
-		PanicOnError(retRes18358)
+		retRes18418 := (<-this.LoadAccounts())
+		PanicOnError(retRes18418)
 		var currency any = this.Currency(code)
 		var accountsByCurrencyCode any = this.IndexBy(this.Accounts, "code")
 		var account any = this.SafeValue(accountsByCurrencyCode, code)
@@ -2120,11 +2373,12 @@ func (this *CoinbaseexchangeCore) FetchLedger(optionalArgs ...any) <-chan any {
 
 		response := (<-this.PrivateGetAccountsIdLedger(this.Extend(request, params)))
 		PanicOnError(response)
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			AddElementToObject(GetValue(response, i), "currency", code)
+		var entries any = this.ToArray(response)
+		for i := 0; IsLessThan(i, GetArrayLength(entries)); i++ {
+			AddElementToObject(GetValue(entries, i), "currency", code)
 		}
 
-		ch <- this.ParseLedger(response, currency, since, limit)
+		ch <- this.ParseLedger(entries, currency, since, limit)
 		return nil
 
 	}()
@@ -2159,12 +2413,12 @@ func (this *CoinbaseexchangeCore) FetchDepositsWithdrawals(optionalArgs ...any) 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes188412 := (<-this.LoadMarkets())
-			PanicOnError(retRes188412)
+			retRes189112 := (<-this.LoadMarkets())
+			PanicOnError(retRes189112)
 		}
 
-		retRes18868 := (<-this.LoadAccounts())
-		PanicOnError(retRes18868)
+		retRes18938 := (<-this.LoadAccounts())
+		PanicOnError(retRes18938)
 		var currency any = nil
 		var id any = this.SafeString(params, "id") // account id
 		if IsTrue(IsEqual(id, nil)) {
@@ -2188,8 +2442,8 @@ func (this *CoinbaseexchangeCore) FetchDepositsWithdrawals(optionalArgs ...any) 
 		var response any = nil
 		if IsTrue(IsEqual(id, nil)) {
 
-			response = (<-this.PrivateGetTransfers(this.Extend(request, params)))
-			PanicOnError(response)
+			transfers := (<-this.PrivateGetTransfers(this.Extend(request, params)))
+			PanicOnError(transfers)
 			//
 			//    [
 			//        {
@@ -2218,6 +2472,7 @@ func (this *CoinbaseexchangeCore) FetchDepositsWithdrawals(optionalArgs ...any) 
 			//        }
 			//    ]
 			//
+			response = this.ToArray(transfers)
 			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 				var account_id any = this.SafeString(GetValue(response, i), "account_id")
 				var account any = this.SafeValue(this.AccountsById, account_id)
@@ -2226,8 +2481,8 @@ func (this *CoinbaseexchangeCore) FetchDepositsWithdrawals(optionalArgs ...any) 
 			}
 		} else {
 
-			response = (<-this.PrivateGetAccountsIdTransfers(this.Extend(request, params)))
-			PanicOnError(response)
+			accountTransfers := (<-this.PrivateGetAccountsIdTransfers(this.Extend(request, params)))
+			PanicOnError(accountTransfers)
 			//
 			//    [
 			//        {
@@ -2254,6 +2509,7 @@ func (this *CoinbaseexchangeCore) FetchDepositsWithdrawals(optionalArgs ...any) 
 			//        }
 			//    ]
 			//
+			response = this.ToArray(accountTransfers)
 			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 				AddElementToObject(GetValue(response, i), "currency", code)
 			}
@@ -2292,11 +2548,11 @@ func (this *CoinbaseexchangeCore) FetchDeposits(optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes199215 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(map[string]any{
+		retRes200115 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(map[string]any{
 			"type": "deposit",
 		}, params)))
-		PanicOnError(retRes199215)
-		ch <- retRes199215
+		PanicOnError(retRes200115)
+		ch <- retRes200115
 		return nil
 
 	}()
@@ -2329,11 +2585,11 @@ func (this *CoinbaseexchangeCore) FetchWithdrawals(optionalArgs ...any) <-chan a
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes200815 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(map[string]any{
+		retRes201715 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(map[string]any{
 			"type": "withdraw",
 		}, params)))
-		PanicOnError(retRes200815)
-		ch <- retRes200815
+		PanicOnError(retRes201715)
+		ch <- retRes201715
 		return nil
 
 	}()
@@ -2455,8 +2711,8 @@ func (this *CoinbaseexchangeCore) CreateDepositAddress(code any, optionalArgs ..
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes211912 := (<-this.LoadMarkets())
-			PanicOnError(retRes211912)
+			retRes212812 := (<-this.LoadMarkets())
+			PanicOnError(retRes212812)
 		}
 		var currency any = this.Currency(code)
 		var accounts any = this.SafeValue(this.Options, "coinbaseAccounts")

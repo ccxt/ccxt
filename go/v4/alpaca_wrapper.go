@@ -1194,7 +1194,7 @@ func (this *Alpaca) FetchPosition(symbol string, options ...FetchPositionOptions
 func (this *Alpaca) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Alpaca) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Alpaca) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Alpaca) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1212,7 +1212,7 @@ func (this *Alpaca) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Alpaca) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Alpaca) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Alpaca) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Alpaca) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
@@ -1329,7 +1329,7 @@ func (this *Alpaca) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Alpaca) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Alpaca) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Alpaca) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Alpaca) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1374,7 +1374,7 @@ func (this *Alpaca) FetchTradesWs(symbol string, options ...FetchTradesWsOptions
 func (this *Alpaca) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Alpaca) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Alpaca) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Alpaca) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

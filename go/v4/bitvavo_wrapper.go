@@ -1309,7 +1309,7 @@ func (this *Bitvavo) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Bitvavo) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bitvavo) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bitvavo) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bitvavo) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1327,7 +1327,7 @@ func (this *Bitvavo) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Bitvavo) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bitvavo) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bitvavo) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bitvavo) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
@@ -1429,7 +1429,7 @@ func (this *Bitvavo) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Bitvavo) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Bitvavo) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Bitvavo) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Bitvavo) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1474,7 +1474,7 @@ func (this *Bitvavo) FetchTradesWs(symbol string, options ...FetchTradesWsOption
 func (this *Bitvavo) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Bitvavo) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Bitvavo) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Bitvavo) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

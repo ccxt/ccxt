@@ -127,130 +127,130 @@ class poloniex extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'markets' => 20,
-                        'markets/{symbol}' => 1,
-                        'currencies' => 20,
-                        'currencies/{currency}' => 20,
-                        'v2/currencies' => 20,
-                        'v2/currencies/{currency}' => 20,
-                        'timestamp' => 1,
-                        'markets/price' => 1,
-                        'markets/{symbol}/price' => 1,
-                        'markets/markPrice' => 1,
-                        'markets/{symbol}/markPrice' => 1,
-                        'markets/{symbol}/markPriceComponents' => 1,
-                        'markets/{symbol}/orderBook' => 1,
-                        'markets/{symbol}/candles' => 1,
-                        'markets/{symbol}/trades' => 20,
-                        'markets/ticker24h' => 20,
-                        'markets/{symbol}/ticker24h' => 20,
-                        'markets/collateralInfo' => 1,
-                        'markets/{currency}/collateralInfo' => 1,
-                        'markets/borrowRatesInfo' => 1,
+                        'markets' => array( 'cost' => 20 ),
+                        'markets/{symbol}' => array( 'cost' => 1 ),
+                        'currencies' => array( 'cost' => 20 ),
+                        'currencies/{currency}' => array( 'cost' => 20 ),
+                        'v2/currencies' => array( 'cost' => 20 ),
+                        'v2/currencies/{currency}' => array( 'cost' => 20 ),
+                        'timestamp' => array( 'cost' => 1 ),
+                        'markets/price' => array( 'cost' => 1 ),
+                        'markets/{symbol}/price' => array( 'cost' => 1 ),
+                        'markets/markPrice' => array( 'cost' => 1 ),
+                        'markets/{symbol}/markPrice' => array( 'cost' => 1 ),
+                        'markets/{symbol}/markPriceComponents' => array( 'cost' => 1 ),
+                        'markets/{symbol}/orderBook' => array( 'cost' => 1 ),
+                        'markets/{symbol}/candles' => array( 'cost' => 1 ),
+                        'markets/{symbol}/trades' => array( 'cost' => 20 ),
+                        'markets/ticker24h' => array( 'cost' => 20 ),
+                        'markets/{symbol}/ticker24h' => array( 'cost' => 20 ),
+                        'markets/collateralInfo' => array( 'cost' => 1 ),
+                        'markets/{currency}/collateralInfo' => array( 'cost' => 1 ),
+                        'markets/borrowRatesInfo' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'accounts' => 4,
-                        'accounts/balances' => 4,
-                        'accounts/{id}/balances' => 4,
-                        'accounts/activity' => 20,
-                        'accounts/transfer' => 20,
-                        'accounts/transfer/{id}' => 4,
-                        'feeinfo' => 20,
-                        'accounts/interest/history' => 1,
-                        'subaccounts' => 4,
-                        'subaccounts/balances' => 20,
-                        'subaccounts/{id}/balances' => 4,
-                        'subaccounts/transfer' => 20,
-                        'subaccounts/transfer/{id}' => 4,
-                        'wallets/addresses' => 20,
-                        'wallets/addresses/{currency}' => 20,
-                        'wallets/activity' => 20,
-                        'margin/accountMargin' => 4,
-                        'margin/borrowStatus' => 4,
-                        'margin/maxSize' => 4,
-                        'orders' => 20,
-                        'orders/{id}' => 4,
-                        'orders/killSwitchStatus' => 4,
-                        'smartorders' => 20,
-                        'smartorders/{id}' => 4,
-                        'orders/history' => 20,
-                        'smartorders/history' => 20,
-                        'trades' => 20,
-                        'orders/{id}/trades' => 4,
+                        'accounts' => array( 'cost' => 4 ),
+                        'accounts/balances' => array( 'cost' => 4 ),
+                        'accounts/{id}/balances' => array( 'cost' => 4 ),
+                        'accounts/activity' => array( 'cost' => 20 ),
+                        'accounts/transfer' => array( 'cost' => 20 ),
+                        'accounts/transfer/{id}' => array( 'cost' => 4 ),
+                        'feeinfo' => array( 'cost' => 20 ),
+                        'accounts/interest/history' => array( 'cost' => 1 ),
+                        'subaccounts' => array( 'cost' => 4 ),
+                        'subaccounts/balances' => array( 'cost' => 20 ),
+                        'subaccounts/{id}/balances' => array( 'cost' => 4 ),
+                        'subaccounts/transfer' => array( 'cost' => 20 ),
+                        'subaccounts/transfer/{id}' => array( 'cost' => 4 ),
+                        'wallets/addresses' => array( 'cost' => 20 ),
+                        'wallets/addresses/{currency}' => array( 'cost' => 20 ),
+                        'wallets/activity' => array( 'cost' => 20 ),
+                        'margin/accountMargin' => array( 'cost' => 4 ),
+                        'margin/borrowStatus' => array( 'cost' => 4 ),
+                        'margin/maxSize' => array( 'cost' => 4 ),
+                        'orders' => array( 'cost' => 20 ),
+                        'orders/{id}' => array( 'cost' => 4 ),
+                        'orders/killSwitchStatus' => array( 'cost' => 4 ),
+                        'smartorders' => array( 'cost' => 20 ),
+                        'smartorders/{id}' => array( 'cost' => 4 ),
+                        'orders/history' => array( 'cost' => 20 ),
+                        'smartorders/history' => array( 'cost' => 20 ),
+                        'trades' => array( 'cost' => 20 ),
+                        'orders/{id}/trades' => array( 'cost' => 4 ),
                     ),
                     'post' => array(
-                        'accounts/transfer' => 4,
-                        'subaccounts/transfer' => 20,
-                        'wallets/address' => 20,
-                        'wallets/withdraw' => 20,
-                        'v2/wallets/withdraw' => 20,
-                        'orders' => 4,
-                        'orders/batch' => 20,
-                        'orders/killSwitch' => 4,
-                        'smartorders' => 4,
+                        'accounts/transfer' => array( 'cost' => 4 ),
+                        'subaccounts/transfer' => array( 'cost' => 20 ),
+                        'wallets/address' => array( 'cost' => 20 ),
+                        'wallets/withdraw' => array( 'cost' => 20 ),
+                        'v2/wallets/withdraw' => array( 'cost' => 20 ),
+                        'orders' => array( 'cost' => 4 ),
+                        'orders/batch' => array( 'cost' => 20 ),
+                        'orders/killSwitch' => array( 'cost' => 4 ),
+                        'smartorders' => array( 'cost' => 4 ),
                     ),
                     'delete' => array(
-                        'orders/{id}' => 4,
-                        'orders/cancelByIds' => 20,
-                        'orders' => 20,
-                        'smartorders/{id}' => 4,
-                        'smartorders/cancelByIds' => 20,
-                        'smartorders' => 20,
+                        'orders/{id}' => array( 'cost' => 4 ),
+                        'orders/cancelByIds' => array( 'cost' => 20 ),
+                        'orders' => array( 'cost' => 20 ),
+                        'smartorders/{id}' => array( 'cost' => 4 ),
+                        'smartorders/cancelByIds' => array( 'cost' => 20 ),
+                        'smartorders' => array( 'cost' => 20 ),
                     ),
                     'put' => array(
-                        'orders/{id}' => 20,
-                        'smartorders/{id}' => 20,
+                        'orders/{id}' => array( 'cost' => 20 ),
+                        'smartorders/{id}' => array( 'cost' => 20 ),
                     ),
                 ),
                 'swapPublic' => array(
                     'get' => array(
                         // 300 calls / second
-                        'v3/market/allInstruments' => 2 / 3,
-                        'v3/market/instruments' => 2 / 3,
-                        'v3/market/orderBook' => 2 / 3,
-                        'v3/market/candles' => 10, // candles have different RL
-                        'v3/market/indexPriceCandlesticks' => 10,
-                        'v3/market/premiumIndexCandlesticks' => 10,
-                        'v3/market/markPriceCandlesticks' => 10,
-                        'v3/market/trades' => 2 / 3,
-                        'v3/market/liquidationOrder' => 2 / 3,
-                        'v3/market/tickers' => 2 / 3,
-                        'v3/market/markPrice' => 2 / 3,
-                        'v3/market/indexPrice' => 2 / 3,
-                        'v3/market/indexPriceComponents' => 2 / 3,
-                        'v3/market/fundingRate' => 2 / 3,
-                        'v3/market/openInterest' => 2 / 3,
-                        'v3/market/insurance' => 2 / 3,
-                        'v3/market/riskLimit' => 2 / 3,
+                        'v3/market/allInstruments' => array( 'cost' => 2 / 3 ),
+                        'v3/market/instruments' => array( 'cost' => 2 / 3 ),
+                        'v3/market/orderBook' => array( 'cost' => 2 / 3 ),
+                        'v3/market/candles' => array( 'cost' => 10 ), // candles have different RL
+                        'v3/market/indexPriceCandlesticks' => array( 'cost' => 10 ),
+                        'v3/market/premiumIndexCandlesticks' => array( 'cost' => 10 ),
+                        'v3/market/markPriceCandlesticks' => array( 'cost' => 10 ),
+                        'v3/market/trades' => array( 'cost' => 2 / 3 ),
+                        'v3/market/liquidationOrder' => array( 'cost' => 2 / 3 ),
+                        'v3/market/tickers' => array( 'cost' => 2 / 3 ),
+                        'v3/market/markPrice' => array( 'cost' => 2 / 3 ),
+                        'v3/market/indexPrice' => array( 'cost' => 2 / 3 ),
+                        'v3/market/indexPriceComponents' => array( 'cost' => 2 / 3 ),
+                        'v3/market/fundingRate' => array( 'cost' => 2 / 3 ),
+                        'v3/market/openInterest' => array( 'cost' => 2 / 3 ),
+                        'v3/market/insurance' => array( 'cost' => 2 / 3 ),
+                        'v3/market/riskLimit' => array( 'cost' => 2 / 3 ),
                     ),
                 ),
                 'swapPrivate' => array(
                     'get' => array(
-                        'v3/account/balance' => 4,
-                        'v3/account/bills' => 20,
-                        'v3/trade/order/opens' => 20,
-                        'v3/trade/order/trades' => 20,
-                        'v3/trade/order/history' => 20,
-                        'v3/trade/position/opens' => 20,
-                        'v3/trade/position/history' => 20, // todo => method for this
-                        'v3/position/leverages' => 20,
-                        'v3/position/mode' => 20,
+                        'v3/account/balance' => array( 'cost' => 4 ),
+                        'v3/account/bills' => array( 'cost' => 20 ),
+                        'v3/trade/order/opens' => array( 'cost' => 20 ),
+                        'v3/trade/order/trades' => array( 'cost' => 20 ),
+                        'v3/trade/order/history' => array( 'cost' => 20 ),
+                        'v3/trade/position/opens' => array( 'cost' => 20 ),
+                        'v3/trade/position/history' => array( 'cost' => 20 ), // todo => method for this
+                        'v3/position/leverages' => array( 'cost' => 20 ),
+                        'v3/position/mode' => array( 'cost' => 20 ),
                     ),
                     'post' => array(
-                        'v3/trade/order' => 4,
-                        'v3/trade/orders' => 40,
-                        'v3/trade/position' => 20,
-                        'v3/trade/positionAll' => 100,
-                        'v3/position/leverage' => 20,
-                        'v3/position/mode' => 20,
-                        'v3/trade/position/margin' => 20,
+                        'v3/trade/order' => array( 'cost' => 4 ),
+                        'v3/trade/orders' => array( 'cost' => 40 ),
+                        'v3/trade/position' => array( 'cost' => 20 ),
+                        'v3/trade/positionAll' => array( 'cost' => 100 ),
+                        'v3/position/leverage' => array( 'cost' => 20 ),
+                        'v3/position/mode' => array( 'cost' => 20 ),
+                        'v3/trade/position/margin' => array( 'cost' => 20 ),
                     ),
                     'delete' => array(
-                        'v3/trade/order' => 2,
-                        'v3/trade/batchOrders' => 20,
-                        'v3/trade/allOrders' => 20,
+                        'v3/trade/order' => array( 'cost' => 2 ),
+                        'v3/trade/batchOrders' => array( 'cost' => 20 ),
+                        'v3/trade/allOrders' => array( 'cost' => 20 ),
                     ),
                 ),
             ),
@@ -623,17 +623,17 @@ class poloniex extends Exchange {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
-         * @see https://api-docs.poloniex.com/spot/api/public/market-$data#candles
+         * @see https://api-docs.poloniex.com/spot/api/public/market-$data#$candles
          * @see https://api-docs.poloniex.com/v3/futures/api/market/get-kline-$data
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $paginate = false;
@@ -702,7 +702,11 @@ class poloniex extends Exchange {
         //         )
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        $candles = array();
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+            $candles = $response;
+        }
+        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
     public function load_markets($reload = false, $params = array()) {
@@ -1466,7 +1470,7 @@ class poloniex extends Exchange {
             //             cT => "1740777074704",
             //         ),
             //
-            $tradesList = $this->safe_list($response, 'data');
+            $tradesList = $this->safe_list($response, 'data', array());
             return $this->parse_trades($tradesList, $market, $since, $limit);
         }
         $trades = $this->publicGetMarketsSymbolTrades($this->extend($request, $params));
@@ -1563,7 +1567,7 @@ class poloniex extends Exchange {
             //                "actType" => "TRADING"
             //            ),
             //
-            $data = $this->safe_list($raw, 'data');
+            $data = $this->safe_list($raw, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
         }
         $response = $this->privateGetTrades($this->extend($request, $params));
@@ -3000,8 +3004,12 @@ class poloniex extends Exchange {
         //     )
         //
         $data = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
+        $entries = array();
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+            $entries = $response;
+        }
+        for ($i = 0; $i < count($entries); $i++) {
+            $entry = $entries[$i];
             $currencies = is_array($entry) ? array_keys($entry) : array();
             $currencyId = $this->safe_string($currencies, 0);
             $data[$currencyId] = $entry[$currencyId];
@@ -3346,7 +3354,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): array {
         /**
          * fetches the position mode, $hedged or one way, $hedged is set identically for all linear markets or all inverse markets
          *

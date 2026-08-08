@@ -142,289 +142,791 @@ func (this *CoinexCore) Describe() any {
 			"v1": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"amm/market":                1,
-						"common/currency/rate":      1,
-						"common/asset/config":       1,
-						"common/maintain/info":      1,
-						"common/temp-maintain/info": 1,
-						"margin/market":             1,
-						"market/info":               1,
-						"market/list":               1,
-						"market/ticker":             1,
-						"market/ticker/all":         1,
-						"market/depth":              1,
-						"market/deals":              1,
-						"market/kline":              1,
-						"market/detail":             1,
+						"amm/market": map[string]any{
+							"cost": 1,
+						},
+						"common/currency/rate": map[string]any{
+							"cost": 1,
+						},
+						"common/asset/config": map[string]any{
+							"cost": 1,
+						},
+						"common/maintain/info": map[string]any{
+							"cost": 1,
+						},
+						"common/temp-maintain/info": map[string]any{
+							"cost": 1,
+						},
+						"margin/market": map[string]any{
+							"cost": 1,
+						},
+						"market/info": map[string]any{
+							"cost": 1,
+						},
+						"market/list": map[string]any{
+							"cost": 1,
+						},
+						"market/ticker": map[string]any{
+							"cost": 1,
+						},
+						"market/ticker/all": map[string]any{
+							"cost": 1,
+						},
+						"market/depth": map[string]any{
+							"cost": 1,
+						},
+						"market/deals": map[string]any{
+							"cost": 1,
+						},
+						"market/kline": map[string]any{
+							"cost": 1,
+						},
+						"market/detail": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"account/amm/balance":                 40,
-						"account/investment/balance":          40,
-						"account/balance/history":             40,
-						"account/market/fee":                  40,
-						"balance/coin/deposit":                40,
-						"balance/coin/withdraw":               40,
-						"balance/info":                        40,
-						"balance/deposit/address/{coin_type}": 40,
-						"contract/transfer/history":           40,
-						"credit/info":                         40,
-						"credit/balance":                      40,
-						"investment/transfer/history":         40,
-						"margin/account":                      1,
-						"margin/config":                       1,
-						"margin/loan/history":                 40,
-						"margin/transfer/history":             40,
-						"order/deals":                         40,
-						"order/finished":                      40,
-						"order/pending":                       8,
-						"order/status":                        8,
-						"order/status/batch":                  8,
-						"order/user/deals":                    40,
-						"order/stop/finished":                 40,
-						"order/stop/pending":                  8,
-						"order/user/trade/fee":                1,
-						"order/market/trade/info":             1,
-						"sub_account/balance":                 1,
-						"sub_account/transfer/history":        40,
-						"sub_account/auth/api":                40,
-						"sub_account/auth/api/{user_auth_id}": 40,
+						"account/amm/balance": map[string]any{
+							"cost": 40,
+						},
+						"account/investment/balance": map[string]any{
+							"cost": 40,
+						},
+						"account/balance/history": map[string]any{
+							"cost": 40,
+						},
+						"account/market/fee": map[string]any{
+							"cost": 40,
+						},
+						"balance/coin/deposit": map[string]any{
+							"cost": 40,
+						},
+						"balance/coin/withdraw": map[string]any{
+							"cost": 40,
+						},
+						"balance/info": map[string]any{
+							"cost": 40,
+						},
+						"balance/deposit/address/{coin_type}": map[string]any{
+							"cost": 40,
+						},
+						"contract/transfer/history": map[string]any{
+							"cost": 40,
+						},
+						"credit/info": map[string]any{
+							"cost": 40,
+						},
+						"credit/balance": map[string]any{
+							"cost": 40,
+						},
+						"investment/transfer/history": map[string]any{
+							"cost": 40,
+						},
+						"margin/account": map[string]any{
+							"cost": 1,
+						},
+						"margin/config": map[string]any{
+							"cost": 1,
+						},
+						"margin/loan/history": map[string]any{
+							"cost": 40,
+						},
+						"margin/transfer/history": map[string]any{
+							"cost": 40,
+						},
+						"order/deals": map[string]any{
+							"cost": 40,
+						},
+						"order/finished": map[string]any{
+							"cost": 40,
+						},
+						"order/pending": map[string]any{
+							"cost": 8,
+						},
+						"order/status": map[string]any{
+							"cost": 8,
+						},
+						"order/status/batch": map[string]any{
+							"cost": 8,
+						},
+						"order/user/deals": map[string]any{
+							"cost": 40,
+						},
+						"order/stop/finished": map[string]any{
+							"cost": 40,
+						},
+						"order/stop/pending": map[string]any{
+							"cost": 8,
+						},
+						"order/user/trade/fee": map[string]any{
+							"cost": 1,
+						},
+						"order/market/trade/info": map[string]any{
+							"cost": 1,
+						},
+						"sub_account/balance": map[string]any{
+							"cost": 1,
+						},
+						"sub_account/transfer/history": map[string]any{
+							"cost": 40,
+						},
+						"sub_account/auth/api": map[string]any{
+							"cost": 40,
+						},
+						"sub_account/auth/api/{user_auth_id}": map[string]any{
+							"cost": 40,
+						},
 					},
 					"post": map[string]any{
-						"balance/coin/withdraw":     40,
-						"contract/balance/transfer": 40,
-						"margin/flat":               40,
-						"margin/loan":               40,
-						"margin/transfer":           40,
-						"order/limit/batch":         40,
-						"order/ioc":                 13.334,
-						"order/limit":               13.334,
-						"order/market":              13.334,
-						"order/modify":              13.334,
-						"order/stop/limit":          13.334,
-						"order/stop/market":         13.334,
-						"order/stop/modify":         13.334,
-						"sub_account/transfer":      40,
-						"sub_account/register":      1,
-						"sub_account/unfrozen":      40,
-						"sub_account/frozen":        40,
-						"sub_account/auth/api":      40,
+						"balance/coin/withdraw": map[string]any{
+							"cost": 40,
+						},
+						"contract/balance/transfer": map[string]any{
+							"cost": 40,
+						},
+						"margin/flat": map[string]any{
+							"cost": 40,
+						},
+						"margin/loan": map[string]any{
+							"cost": 40,
+						},
+						"margin/transfer": map[string]any{
+							"cost": 40,
+						},
+						"order/limit/batch": map[string]any{
+							"cost": 40,
+						},
+						"order/ioc": map[string]any{
+							"cost": 13.334,
+						},
+						"order/limit": map[string]any{
+							"cost": 13.334,
+						},
+						"order/market": map[string]any{
+							"cost": 13.334,
+						},
+						"order/modify": map[string]any{
+							"cost": 13.334,
+						},
+						"order/stop/limit": map[string]any{
+							"cost": 13.334,
+						},
+						"order/stop/market": map[string]any{
+							"cost": 13.334,
+						},
+						"order/stop/modify": map[string]any{
+							"cost": 13.334,
+						},
+						"sub_account/transfer": map[string]any{
+							"cost": 40,
+						},
+						"sub_account/register": map[string]any{
+							"cost": 1,
+						},
+						"sub_account/unfrozen": map[string]any{
+							"cost": 40,
+						},
+						"sub_account/frozen": map[string]any{
+							"cost": 40,
+						},
+						"sub_account/auth/api": map[string]any{
+							"cost": 40,
+						},
 					},
 					"put": map[string]any{
-						"balance/deposit/address/{coin_type}": 40,
-						"sub_account/unfrozen":                40,
-						"sub_account/frozen":                  40,
-						"sub_account/auth/api/{user_auth_id}": 40,
-						"v1/account/settings":                 40,
+						"balance/deposit/address/{coin_type}": map[string]any{
+							"cost": 40,
+						},
+						"sub_account/unfrozen": map[string]any{
+							"cost": 40,
+						},
+						"sub_account/frozen": map[string]any{
+							"cost": 40,
+						},
+						"sub_account/auth/api/{user_auth_id}": map[string]any{
+							"cost": 40,
+						},
+						"v1/account/settings": map[string]any{
+							"cost": 40,
+						},
 					},
 					"delete": map[string]any{
-						"balance/coin/withdraw":               40,
-						"order/pending/batch":                 40,
-						"order/pending":                       13.334,
-						"order/stop/pending":                  40,
-						"order/stop/pending/{id}":             13.334,
-						"order/pending/by_client_id":          40,
-						"order/stop/pending/by_client_id":     40,
-						"sub_account/auth/api/{user_auth_id}": 40,
-						"sub_account/authorize/{id}":          40,
+						"balance/coin/withdraw": map[string]any{
+							"cost": 40,
+						},
+						"order/pending/batch": map[string]any{
+							"cost": 40,
+						},
+						"order/pending": map[string]any{
+							"cost": 13.334,
+						},
+						"order/stop/pending": map[string]any{
+							"cost": 40,
+						},
+						"order/stop/pending/{id}": map[string]any{
+							"cost": 13.334,
+						},
+						"order/pending/by_client_id": map[string]any{
+							"cost": 40,
+						},
+						"order/stop/pending/by_client_id": map[string]any{
+							"cost": 40,
+						},
+						"sub_account/auth/api/{user_auth_id}": map[string]any{
+							"cost": 40,
+						},
+						"sub_account/authorize/{id}": map[string]any{
+							"cost": 40,
+						},
 					},
 				},
 				"perpetualPublic": map[string]any{
 					"get": map[string]any{
-						"ping":                   1,
-						"time":                   1,
-						"market/list":            1,
-						"market/limit_config":    1,
-						"market/ticker":          1,
-						"market/ticker/all":      1,
-						"market/depth":           1,
-						"market/deals":           1,
-						"market/funding_history": 1,
-						"market/kline":           1,
+						"ping": map[string]any{
+							"cost": 1,
+						},
+						"time": map[string]any{
+							"cost": 1,
+						},
+						"market/list": map[string]any{
+							"cost": 1,
+						},
+						"market/limit_config": map[string]any{
+							"cost": 1,
+						},
+						"market/ticker": map[string]any{
+							"cost": 1,
+						},
+						"market/ticker/all": map[string]any{
+							"cost": 1,
+						},
+						"market/depth": map[string]any{
+							"cost": 1,
+						},
+						"market/deals": map[string]any{
+							"cost": 1,
+						},
+						"market/funding_history": map[string]any{
+							"cost": 1,
+						},
+						"market/kline": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"perpetualPrivate": map[string]any{
 					"get": map[string]any{
-						"market/user_deals":       1,
-						"asset/query":             40,
-						"order/pending":           8,
-						"order/finished":          40,
-						"order/stop_finished":     40,
-						"order/stop_pending":      8,
-						"order/status":            8,
-						"order/stop_status":       8,
-						"position/finished":       40,
-						"position/pending":        40,
-						"position/funding":        40,
-						"position/adl_history":    40,
-						"market/preference":       40,
-						"position/margin_history": 40,
-						"position/settle_history": 40,
+						"market/user_deals": map[string]any{
+							"cost": 1,
+						},
+						"asset/query": map[string]any{
+							"cost": 40,
+						},
+						"order/pending": map[string]any{
+							"cost": 8,
+						},
+						"order/finished": map[string]any{
+							"cost": 40,
+						},
+						"order/stop_finished": map[string]any{
+							"cost": 40,
+						},
+						"order/stop_pending": map[string]any{
+							"cost": 8,
+						},
+						"order/status": map[string]any{
+							"cost": 8,
+						},
+						"order/stop_status": map[string]any{
+							"cost": 8,
+						},
+						"position/finished": map[string]any{
+							"cost": 40,
+						},
+						"position/pending": map[string]any{
+							"cost": 40,
+						},
+						"position/funding": map[string]any{
+							"cost": 40,
+						},
+						"position/adl_history": map[string]any{
+							"cost": 40,
+						},
+						"market/preference": map[string]any{
+							"cost": 40,
+						},
+						"position/margin_history": map[string]any{
+							"cost": 40,
+						},
+						"position/settle_history": map[string]any{
+							"cost": 40,
+						},
 					},
 					"post": map[string]any{
-						"market/adjust_leverage":         1,
-						"market/position_expect":         1,
-						"order/put_limit":                20,
-						"order/put_market":               20,
-						"order/put_stop_limit":           20,
-						"order/put_stop_market":          20,
-						"order/modify":                   20,
-						"order/modify_stop":              20,
-						"order/cancel":                   20,
-						"order/cancel_all":               40,
-						"order/cancel_batch":             40,
-						"order/cancel_stop":              20,
-						"order/cancel_stop_all":          40,
-						"order/close_limit":              20,
-						"order/close_market":             20,
-						"position/adjust_margin":         20,
-						"position/stop_loss":             20,
-						"position/take_profit":           20,
-						"position/market_close":          20,
-						"order/cancel/by_client_id":      20,
-						"order/cancel_stop/by_client_id": 20,
-						"market/preference":              20,
+						"market/adjust_leverage": map[string]any{
+							"cost": 1,
+						},
+						"market/position_expect": map[string]any{
+							"cost": 1,
+						},
+						"order/put_limit": map[string]any{
+							"cost": 20,
+						},
+						"order/put_market": map[string]any{
+							"cost": 20,
+						},
+						"order/put_stop_limit": map[string]any{
+							"cost": 20,
+						},
+						"order/put_stop_market": map[string]any{
+							"cost": 20,
+						},
+						"order/modify": map[string]any{
+							"cost": 20,
+						},
+						"order/modify_stop": map[string]any{
+							"cost": 20,
+						},
+						"order/cancel": map[string]any{
+							"cost": 20,
+						},
+						"order/cancel_all": map[string]any{
+							"cost": 40,
+						},
+						"order/cancel_batch": map[string]any{
+							"cost": 40,
+						},
+						"order/cancel_stop": map[string]any{
+							"cost": 20,
+						},
+						"order/cancel_stop_all": map[string]any{
+							"cost": 40,
+						},
+						"order/close_limit": map[string]any{
+							"cost": 20,
+						},
+						"order/close_market": map[string]any{
+							"cost": 20,
+						},
+						"position/adjust_margin": map[string]any{
+							"cost": 20,
+						},
+						"position/stop_loss": map[string]any{
+							"cost": 20,
+						},
+						"position/take_profit": map[string]any{
+							"cost": 20,
+						},
+						"position/market_close": map[string]any{
+							"cost": 20,
+						},
+						"order/cancel/by_client_id": map[string]any{
+							"cost": 20,
+						},
+						"order/cancel_stop/by_client_id": map[string]any{
+							"cost": 20,
+						},
+						"market/preference": map[string]any{
+							"cost": 20,
+						},
 					},
 				},
 			},
 			"v2": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"maintain/info":                      1,
-						"ping":                               1,
-						"time":                               1,
-						"spot/market":                        1,
-						"spot/ticker":                        1,
-						"spot/depth":                         1,
-						"spot/deals":                         1,
-						"spot/kline":                         1,
-						"spot/index":                         1,
-						"futures/market":                     1,
-						"futures/ticker":                     1,
-						"futures/depth":                      1,
-						"futures/deals":                      1,
-						"futures/kline":                      1,
-						"futures/index":                      1,
-						"futures/funding-rate":               1,
-						"futures/funding-rate-history":       1,
-						"futures/premium-index-history":      1,
-						"futures/position-level":             1,
-						"futures/liquidation-history":        1,
-						"futures/basis-history":              1,
-						"assets/deposit-withdraw-config":     1,
-						"assets/all-deposit-withdraw-config": 1,
+						"maintain/info": map[string]any{
+							"cost": 1,
+						},
+						"ping": map[string]any{
+							"cost": 1,
+						},
+						"time": map[string]any{
+							"cost": 1,
+						},
+						"spot/market": map[string]any{
+							"cost": 1,
+						},
+						"spot/ticker": map[string]any{
+							"cost": 1,
+						},
+						"spot/depth": map[string]any{
+							"cost": 1,
+						},
+						"spot/deals": map[string]any{
+							"cost": 1,
+						},
+						"spot/kline": map[string]any{
+							"cost": 1,
+						},
+						"spot/index": map[string]any{
+							"cost": 1,
+						},
+						"futures/market": map[string]any{
+							"cost": 1,
+						},
+						"futures/ticker": map[string]any{
+							"cost": 1,
+						},
+						"futures/depth": map[string]any{
+							"cost": 1,
+						},
+						"futures/deals": map[string]any{
+							"cost": 1,
+						},
+						"futures/kline": map[string]any{
+							"cost": 1,
+						},
+						"futures/index": map[string]any{
+							"cost": 1,
+						},
+						"futures/funding-rate": map[string]any{
+							"cost": 1,
+						},
+						"futures/funding-rate-history": map[string]any{
+							"cost": 1,
+						},
+						"futures/premium-index-history": map[string]any{
+							"cost": 1,
+						},
+						"futures/position-level": map[string]any{
+							"cost": 1,
+						},
+						"futures/liquidation-history": map[string]any{
+							"cost": 1,
+						},
+						"futures/basis-history": map[string]any{
+							"cost": 1,
+						},
+						"assets/deposit-withdraw-config": map[string]any{
+							"cost": 1,
+						},
+						"assets/all-deposit-withdraw-config": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"account/subs":                     1,
-						"account/subs/api-detail":          40,
-						"account/subs/info":                1,
-						"account/subs/api":                 40,
-						"account/subs/transfer-history":    40,
-						"account/subs/balance":             1,
-						"account/subs/spot-balance":        1,
-						"account/trade-fee-rate":           40,
-						"account/futures-market-settings":  1,
-						"account/info":                     1,
-						"assets/spot/balance":              40,
-						"assets/futures/balance":           40,
-						"assets/margin/balance":            1,
-						"assets/financial/balance":         40,
-						"assets/amm/liquidity":             40,
-						"assets/credit/info":               40,
-						"assets/spot/transcation-history":  1,
-						"assets/margin/borrow-history":     40,
-						"assets/margin/interest-limit":     1,
-						"assets/deposit-address":           40,
-						"assets/deposit-history":           40,
-						"assets/withdraw":                  40,
-						"assets/transfer-history":          40,
-						"assets/amm/liquidity-pool":        40,
-						"assets/amm/income-history":        40,
-						"spot/order-status":                8,
-						"spot/batch-order-status":          8,
-						"spot/pending-order":               8,
-						"spot/finished-order":              40,
-						"spot/pending-stop-order":          8,
-						"spot/finished-stop-order":         40,
-						"spot/user-deals":                  40,
-						"spot/order-deals":                 40,
-						"futures/order-status":             8,
-						"futures/batch-order-status":       1,
-						"futures/pending-order":            8,
-						"futures/finished-order":           40,
-						"futures/pending-stop-order":       8,
-						"futures/finished-stop-order":      40,
-						"futures/user-deals":               1,
-						"futures/order-deals":              1,
-						"futures/pending-position":         40,
-						"futures/finished-position":        1,
-						"futures/position-margin-history":  1,
-						"futures/position-funding-history": 40,
-						"futures/position-adl-history":     1,
-						"futures/position-settle-history":  1,
-						"refer/referee":                    1,
-						"refer/referee-rebate/record":      1,
-						"refer/referee-rebate/detail":      1,
-						"refer/agent-referee":              1,
-						"refer/agent-rebate/record":        1,
-						"refer/agent-rebate/detail":        1,
+						"account/subs": map[string]any{
+							"cost": 1,
+						},
+						"account/subs/api-detail": map[string]any{
+							"cost": 40,
+						},
+						"account/subs/info": map[string]any{
+							"cost": 1,
+						},
+						"account/subs/api": map[string]any{
+							"cost": 40,
+						},
+						"account/subs/transfer-history": map[string]any{
+							"cost": 40,
+						},
+						"account/subs/balance": map[string]any{
+							"cost": 1,
+						},
+						"account/subs/spot-balance": map[string]any{
+							"cost": 1,
+						},
+						"account/trade-fee-rate": map[string]any{
+							"cost": 40,
+						},
+						"account/futures-market-settings": map[string]any{
+							"cost": 1,
+						},
+						"account/info": map[string]any{
+							"cost": 1,
+						},
+						"assets/spot/balance": map[string]any{
+							"cost": 40,
+						},
+						"assets/futures/balance": map[string]any{
+							"cost": 40,
+						},
+						"assets/margin/balance": map[string]any{
+							"cost": 1,
+						},
+						"assets/financial/balance": map[string]any{
+							"cost": 40,
+						},
+						"assets/amm/liquidity": map[string]any{
+							"cost": 40,
+						},
+						"assets/credit/info": map[string]any{
+							"cost": 40,
+						},
+						"assets/spot/transcation-history": map[string]any{
+							"cost": 1,
+						},
+						"assets/margin/borrow-history": map[string]any{
+							"cost": 40,
+						},
+						"assets/margin/interest-limit": map[string]any{
+							"cost": 1,
+						},
+						"assets/deposit-address": map[string]any{
+							"cost": 40,
+						},
+						"assets/deposit-history": map[string]any{
+							"cost": 40,
+						},
+						"assets/withdraw": map[string]any{
+							"cost": 40,
+						},
+						"assets/transfer-history": map[string]any{
+							"cost": 40,
+						},
+						"assets/amm/liquidity-pool": map[string]any{
+							"cost": 40,
+						},
+						"assets/amm/income-history": map[string]any{
+							"cost": 40,
+						},
+						"spot/order-status": map[string]any{
+							"cost": 8,
+						},
+						"spot/batch-order-status": map[string]any{
+							"cost": 8,
+						},
+						"spot/pending-order": map[string]any{
+							"cost": 8,
+						},
+						"spot/finished-order": map[string]any{
+							"cost": 40,
+						},
+						"spot/pending-stop-order": map[string]any{
+							"cost": 8,
+						},
+						"spot/finished-stop-order": map[string]any{
+							"cost": 40,
+						},
+						"spot/user-deals": map[string]any{
+							"cost": 40,
+						},
+						"spot/order-deals": map[string]any{
+							"cost": 40,
+						},
+						"futures/order-status": map[string]any{
+							"cost": 8,
+						},
+						"futures/batch-order-status": map[string]any{
+							"cost": 1,
+						},
+						"futures/pending-order": map[string]any{
+							"cost": 8,
+						},
+						"futures/finished-order": map[string]any{
+							"cost": 40,
+						},
+						"futures/pending-stop-order": map[string]any{
+							"cost": 8,
+						},
+						"futures/finished-stop-order": map[string]any{
+							"cost": 40,
+						},
+						"futures/user-deals": map[string]any{
+							"cost": 1,
+						},
+						"futures/order-deals": map[string]any{
+							"cost": 1,
+						},
+						"futures/pending-position": map[string]any{
+							"cost": 40,
+						},
+						"futures/finished-position": map[string]any{
+							"cost": 1,
+						},
+						"futures/position-margin-history": map[string]any{
+							"cost": 1,
+						},
+						"futures/position-funding-history": map[string]any{
+							"cost": 40,
+						},
+						"futures/position-adl-history": map[string]any{
+							"cost": 1,
+						},
+						"futures/position-settle-history": map[string]any{
+							"cost": 1,
+						},
+						"refer/referee": map[string]any{
+							"cost": 1,
+						},
+						"refer/referee-rebate/record": map[string]any{
+							"cost": 1,
+						},
+						"refer/referee-rebate/detail": map[string]any{
+							"cost": 1,
+						},
+						"refer/agent-referee": map[string]any{
+							"cost": 1,
+						},
+						"refer/agent-rebate/record": map[string]any{
+							"cost": 1,
+						},
+						"refer/agent-rebate/detail": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"account/subs":                           40,
-						"account/subs/frozen":                    40,
-						"account/subs/unfrozen":                  40,
-						"account/subs/api":                       40,
-						"account/subs/edit-api":                  40,
-						"account/subs/delete-api":                40,
-						"account/subs/transfer":                  40,
-						"account/settings":                       40,
-						"account/futures-market-settings":        40,
-						"assets/margin/borrow":                   40,
-						"assets/margin/repay":                    40,
-						"assets/renewal-deposit-address":         40,
-						"assets/withdraw":                        40,
-						"assets/cancel-withdraw":                 40,
-						"assets/transfer":                        40,
-						"assets/amm/add-liquidity":               1,
-						"assets/amm/remove-liquidity":            1,
-						"spot/order":                             13.334,
-						"spot/stop-order":                        13.334,
-						"spot/batch-order":                       40,
-						"spot/batch-stop-order":                  1,
-						"spot/modify-order":                      13.334,
-						"spot/modify-stop-order":                 13.334,
-						"spot/batch-modify-order":                13.334,
-						"spot/cancel-all-order":                  1,
-						"spot/cancel-order":                      6.667,
-						"spot/cancel-stop-order":                 6.667,
-						"spot/cancel-batch-order":                10,
-						"spot/cancel-batch-stop-order":           10,
-						"spot/cancel-order-by-client-id":         1,
-						"spot/cancel-stop-order-by-client-id":    1,
-						"futures/order":                          20,
-						"futures/stop-order":                     20,
-						"futures/batch-order":                    1,
-						"futures/batch-stop-order":               1,
-						"futures/cancel-position-stop-loss":      20,
-						"futures/cancel-position-take-profit":    20,
-						"futures/modify-order":                   20,
-						"futures/modify-stop-order":              20,
-						"futures/batch-modify-order":             20,
-						"futures/cancel-all-order":               1,
-						"futures/cancel-order":                   10,
-						"futures/cancel-stop-order":              10,
-						"futures/cancel-batch-order":             20,
-						"futures/cancel-batch-stop-order":        20,
-						"futures/cancel-order-by-client-id":      1,
-						"futures/cancel-stop-order-by-client-id": 1,
-						"futures/close-position":                 20,
-						"futures/adjust-position-margin":         20,
-						"futures/adjust-position-leverage":       20,
-						"futures/set-position-stop-loss":         20,
-						"futures/set-position-take-profit":       20,
+						"account/subs": map[string]any{
+							"cost": 40,
+						},
+						"account/subs/frozen": map[string]any{
+							"cost": 40,
+						},
+						"account/subs/unfrozen": map[string]any{
+							"cost": 40,
+						},
+						"account/subs/api": map[string]any{
+							"cost": 40,
+						},
+						"account/subs/edit-api": map[string]any{
+							"cost": 40,
+						},
+						"account/subs/delete-api": map[string]any{
+							"cost": 40,
+						},
+						"account/subs/transfer": map[string]any{
+							"cost": 40,
+						},
+						"account/settings": map[string]any{
+							"cost": 40,
+						},
+						"account/futures-market-settings": map[string]any{
+							"cost": 40,
+						},
+						"assets/margin/borrow": map[string]any{
+							"cost": 40,
+						},
+						"assets/margin/repay": map[string]any{
+							"cost": 40,
+						},
+						"assets/renewal-deposit-address": map[string]any{
+							"cost": 40,
+						},
+						"assets/withdraw": map[string]any{
+							"cost": 40,
+						},
+						"assets/cancel-withdraw": map[string]any{
+							"cost": 40,
+						},
+						"assets/transfer": map[string]any{
+							"cost": 40,
+						},
+						"assets/amm/add-liquidity": map[string]any{
+							"cost": 1,
+						},
+						"assets/amm/remove-liquidity": map[string]any{
+							"cost": 1,
+						},
+						"spot/order": map[string]any{
+							"cost": 13.334,
+						},
+						"spot/stop-order": map[string]any{
+							"cost": 13.334,
+						},
+						"spot/batch-order": map[string]any{
+							"cost": 40,
+						},
+						"spot/batch-stop-order": map[string]any{
+							"cost": 1,
+						},
+						"spot/modify-order": map[string]any{
+							"cost": 13.334,
+						},
+						"spot/modify-stop-order": map[string]any{
+							"cost": 13.334,
+						},
+						"spot/batch-modify-order": map[string]any{
+							"cost": 13.334,
+						},
+						"spot/cancel-all-order": map[string]any{
+							"cost": 1,
+						},
+						"spot/cancel-order": map[string]any{
+							"cost": 6.667,
+						},
+						"spot/cancel-stop-order": map[string]any{
+							"cost": 6.667,
+						},
+						"spot/cancel-batch-order": map[string]any{
+							"cost": 10,
+						},
+						"spot/cancel-batch-stop-order": map[string]any{
+							"cost": 10,
+						},
+						"spot/cancel-order-by-client-id": map[string]any{
+							"cost": 1,
+						},
+						"spot/cancel-stop-order-by-client-id": map[string]any{
+							"cost": 1,
+						},
+						"futures/order": map[string]any{
+							"cost": 20,
+						},
+						"futures/stop-order": map[string]any{
+							"cost": 20,
+						},
+						"futures/batch-order": map[string]any{
+							"cost": 1,
+						},
+						"futures/batch-stop-order": map[string]any{
+							"cost": 1,
+						},
+						"futures/cancel-position-stop-loss": map[string]any{
+							"cost": 20,
+						},
+						"futures/cancel-position-take-profit": map[string]any{
+							"cost": 20,
+						},
+						"futures/modify-order": map[string]any{
+							"cost": 20,
+						},
+						"futures/modify-stop-order": map[string]any{
+							"cost": 20,
+						},
+						"futures/batch-modify-order": map[string]any{
+							"cost": 20,
+						},
+						"futures/cancel-all-order": map[string]any{
+							"cost": 1,
+						},
+						"futures/cancel-order": map[string]any{
+							"cost": 10,
+						},
+						"futures/cancel-stop-order": map[string]any{
+							"cost": 10,
+						},
+						"futures/cancel-batch-order": map[string]any{
+							"cost": 20,
+						},
+						"futures/cancel-batch-stop-order": map[string]any{
+							"cost": 20,
+						},
+						"futures/cancel-order-by-client-id": map[string]any{
+							"cost": 1,
+						},
+						"futures/cancel-stop-order-by-client-id": map[string]any{
+							"cost": 1,
+						},
+						"futures/close-position": map[string]any{
+							"cost": 20,
+						},
+						"futures/adjust-position-margin": map[string]any{
+							"cost": 20,
+						},
+						"futures/adjust-position-leverage": map[string]any{
+							"cost": 20,
+						},
+						"futures/set-position-stop-loss": map[string]any{
+							"cost": 20,
+						},
+						"futures/set-position-take-profit": map[string]any{
+							"cost": 20,
+						},
 					},
 				},
 			},
@@ -470,42 +972,42 @@ func (this *CoinexCore) Describe() any {
 				"FUTURES": "swap",
 			},
 			"networks": map[string]any{
-				"BTC":     "BTC",
-				"BEP20":   "BSC",
-				"TRC20":   "TRC20",
-				"ERC20":   "ERC20",
-				"BRC20":   "BRC20",
-				"SOL":     "SOL",
-				"TON":     "TON",
-				"BSV":     "BSV",
-				"AVAXC":   "AVA_C",
-				"AVAXX":   "AVA",
-				"SUI":     "SUI",
-				"ACA":     "ACA",
-				"CHZ":     "CHILIZ",
-				"ADA":     "ADA",
-				"ARB":     "ARBITRUM",
-				"ARBNOVA": "ARBITRUM_NOVA",
-				"OP":      "OPTIMISM",
-				"APT":     "APTOS",
-				"ATOM":    "ATOM",
-				"FTM":     "FTM",
-				"BCH":     "BCH",
-				"ASTR":    "ASTR",
-				"LTC":     "LTC",
-				"MATIC":   "MATIC",
-				"CRONOS":  "CRONOS",
-				"DASH":    "DASH",
-				"DOT":     "DOT",
-				"ETC":     "ETC",
-				"ETHW":    "ETHPOW",
-				"FIL":     "FIL",
-				"ZIL":     "ZIL",
-				"DOGE":    "DOGE",
-				"TIA":     "CELESTIA",
-				"SEI":     "SEI",
-				"XRP":     "XRP",
-				"XMR":     "XMR",
+				"BTC":           "BTC",
+				"BEP20":         "BSC",
+				"TRC20":         "TRC20",
+				"ERC20":         "ERC20",
+				"BRC20":         "BRC20",
+				"SOL":           "SOL",
+				"TON":           "TON",
+				"BSV":           "BSV",
+				"AVAXC":         "AVA_C",
+				"AVAXX":         "AVA",
+				"SUI":           "SUI",
+				"ACA":           "ACA",
+				"CHZ":           "CHILIZ",
+				"ADA":           "ADA",
+				"ARBITRUM":      "ARBITRUM",
+				"ARBITRUM_NOVA": "ARBITRUM_NOVA",
+				"OP":            "OPTIMISM",
+				"APT":           "APTOS",
+				"ATOM":          "ATOM",
+				"FTM":           "FTM",
+				"BCH":           "BCH",
+				"ASTR":          "ASTR",
+				"LTC":           "LTC",
+				"MATIC":         "MATIC",
+				"CRONOS":        "CRONOS",
+				"DASH":          "DASH",
+				"DOT":           "DOT",
+				"ETC":           "ETC",
+				"ETHW":          "ETHPOW",
+				"FIL":           "FIL",
+				"ZIL":           "ZIL",
+				"DOGE":          "DOGE",
+				"TIA":           "CELESTIA",
+				"SEI":           "SEI",
+				"XRP":           "XRP",
+				"XMR":           "XMR",
 			},
 		},
 		"features": map[string]any{
@@ -5586,9 +6088,9 @@ func (this *CoinexCore) ParseMarginLoan(info any, optionalArgs ...any) any {
 	var marketId any = this.SafeString(info, "market")
 	var timestamp any = this.SafeInteger(info, "expired_at")
 	return map[string]any{
-		"id":        this.SafeInteger(info, "borrow_id"),
+		"id":        this.SafeString(info, "borrow_id"),
 		"currency":  this.SafeCurrencyCode(currencyId, currency),
-		"amount":    this.SafeString(info, "borrow_amount"),
+		"amount":    this.SafeNumber(info, "borrow_amount"),
 		"symbol":    this.SafeSymbol(marketId, nil, nil, "spot"),
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),

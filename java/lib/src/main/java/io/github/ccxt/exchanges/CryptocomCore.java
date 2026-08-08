@@ -158,167 +158,425 @@ public class CryptocomCore extends CryptocomApi
                 put( "base", new java.util.HashMap<String, Object>() {{
                     put( "public", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "v1/public/get-announcements", 1 );
+                            put( "v1/public/get-announcements", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                 }} );
                 put( "v1", new java.util.HashMap<String, Object>() {{
                     put( "public", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "public/auth", Helpers.divide(10, 3) );
-                            put( "public/get-instruments", Helpers.divide(10, 3) );
-                            put( "public/get-book", 1 );
-                            put( "public/get-candlestick", 1 );
-                            put( "public/get-trades", 1 );
-                            put( "public/get-tickers", 1 );
-                            put( "public/get-valuations", 1 );
-                            put( "public/get-expired-settlement-price", Helpers.divide(10, 3) );
-                            put( "public/get-insurance", 1 );
-                            put( "public/get-announcements", 1 );
-                            put( "public/get-risk-parameters", 1 );
+                            put( "public/auth", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "public/get-instruments", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "public/get-book", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/get-candlestick", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/get-trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/get-tickers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/get-valuations", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/get-expired-settlement-price", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "public/get-insurance", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/get-announcements", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/get-risk-parameters", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "public/staking/get-conversion-rate", 2 );
+                            put( "public/staking/get-conversion-rate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
                         }} );
                     }} );
                     put( "private", new java.util.HashMap<String, Object>() {{
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "private/set-cancel-on-disconnect", Helpers.divide(10, 3) );
-                            put( "private/get-cancel-on-disconnect", Helpers.divide(10, 3) );
-                            put( "private/user-balance", Helpers.divide(10, 3) );
-                            put( "private/user-balance-history", Helpers.divide(10, 3) );
-                            put( "private/get-positions", Helpers.divide(10, 3) );
-                            put( "private/create-order", Helpers.divide(2, 3) );
-                            put( "private/amend-order", Helpers.divide(4, 3) );
-                            put( "private/create-order-list", Helpers.divide(10, 3) );
-                            put( "private/cancel-order", Helpers.divide(2, 3) );
-                            put( "private/cancel-order-list", Helpers.divide(10, 3) );
-                            put( "private/cancel-all-orders", Helpers.divide(2, 3) );
-                            put( "private/close-position", Helpers.divide(10, 3) );
-                            put( "private/get-order-history", 100 );
-                            put( "private/get-open-orders", Helpers.divide(10, 3) );
-                            put( "private/get-order-detail", Helpers.divide(1, 3) );
-                            put( "private/get-trades", 100 );
-                            put( "private/change-account-leverage", Helpers.divide(10, 3) );
-                            put( "private/get-transactions", Helpers.divide(10, 3) );
-                            put( "private/create-subaccount-transfer", Helpers.divide(10, 3) );
-                            put( "private/get-subaccount-balances", Helpers.divide(10, 3) );
-                            put( "private/get-order-list", Helpers.divide(10, 3) );
-                            put( "private/create-withdrawal", Helpers.divide(10, 3) );
-                            put( "private/get-currency-networks", Helpers.divide(10, 3) );
-                            put( "private/get-deposit-address", Helpers.divide(10, 3) );
-                            put( "private/get-accounts", Helpers.divide(10, 3) );
-                            put( "private/get-withdrawal-history", Helpers.divide(10, 3) );
-                            put( "private/get-deposit-history", Helpers.divide(10, 3) );
-                            put( "private/get-fee-rate", 2 );
-                            put( "private/get-instrument-fee-rate", 2 );
-                            put( "private/fiat/fiat-deposit-info", Helpers.divide(10, 3) );
-                            put( "private/fiat/fiat-deposit-history", Helpers.divide(10, 3) );
-                            put( "private/fiat/fiat-withdraw-history", Helpers.divide(10, 3) );
-                            put( "private/fiat/fiat-create-withdraw", Helpers.divide(10, 3) );
-                            put( "private/fiat/fiat-transaction-quota", Helpers.divide(10, 3) );
-                            put( "private/fiat/fiat-transaction-limit", Helpers.divide(10, 3) );
-                            put( "private/fiat/fiat-get-bank-accounts", Helpers.divide(10, 3) );
-                            put( "private/staking/stake", 2 );
-                            put( "private/staking/unstake", 2 );
-                            put( "private/staking/get-staking-position", 2 );
-                            put( "private/staking/get-staking-instruments", 2 );
-                            put( "private/staking/get-open-stake", 2 );
-                            put( "private/staking/get-stake-history", 2 );
-                            put( "private/staking/get-reward-history", 2 );
-                            put( "private/staking/convert", 2 );
-                            put( "private/staking/get-open-convert", 2 );
-                            put( "private/staking/get-convert-history", 2 );
-                            put( "private/create-isolated-margin-transfer", Helpers.divide(10, 3) );
-                            put( "private/change-isolated-margin-leverage", Helpers.divide(10, 3) );
+                            put( "private/set-cancel-on-disconnect", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-cancel-on-disconnect", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/user-balance", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/user-balance-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-positions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/create-order", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(2, 3) );
+                            }} );
+                            put( "private/amend-order", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(4, 3) );
+                            }} );
+                            put( "private/create-order-list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/cancel-order", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(2, 3) );
+                            }} );
+                            put( "private/cancel-order-list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/cancel-all-orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(2, 3) );
+                            }} );
+                            put( "private/close-position", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-order-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 100 );
+                            }} );
+                            put( "private/get-open-orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-order-detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(1, 3) );
+                            }} );
+                            put( "private/get-trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 100 );
+                            }} );
+                            put( "private/change-account-leverage", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-transactions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/create-subaccount-transfer", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-subaccount-balances", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-order-list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/create-withdrawal", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-currency-networks", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-deposit-address", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-accounts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-withdrawal-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-deposit-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-fee-rate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "private/get-instrument-fee-rate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "private/fiat/fiat-deposit-info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/fiat/fiat-deposit-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/fiat/fiat-withdraw-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/fiat/fiat-create-withdraw", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/fiat/fiat-transaction-quota", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/fiat/fiat-transaction-limit", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/fiat/fiat-get-bank-accounts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/staking/stake", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "private/staking/unstake", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "private/staking/get-staking-position", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "private/staking/get-staking-instruments", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "private/staking/get-open-stake", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "private/staking/get-stake-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "private/staking/get-reward-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "private/staking/convert", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "private/staking/get-open-convert", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "private/staking/get-convert-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "private/create-isolated-margin-transfer", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/change-isolated-margin-leverage", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
                         }} );
                     }} );
                 }} );
                 put( "v2", new java.util.HashMap<String, Object>() {{
                     put( "public", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "public/auth", 1 );
-                            put( "public/get-instruments", 1 );
-                            put( "public/get-book", 1 );
-                            put( "public/get-candlestick", 1 );
-                            put( "public/get-ticker", 1 );
-                            put( "public/get-trades", 1 );
-                            put( "public/margin/get-transfer-currencies", 1 );
-                            put( "public/margin/get-load-currenices", 1 );
-                            put( "public/respond-heartbeat", 1 );
+                            put( "public/auth", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/get-instruments", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/get-book", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/get-candlestick", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/get-ticker", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/get-trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/margin/get-transfer-currencies", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/margin/get-load-currenices", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/respond-heartbeat", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                     put( "private", new java.util.HashMap<String, Object>() {{
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "private/set-cancel-on-disconnect", Helpers.divide(10, 3) );
-                            put( "private/get-cancel-on-disconnect", Helpers.divide(10, 3) );
-                            put( "private/create-withdrawal", Helpers.divide(10, 3) );
-                            put( "private/get-withdrawal-history", Helpers.divide(10, 3) );
-                            put( "private/get-currency-networks", Helpers.divide(10, 3) );
-                            put( "private/get-deposit-history", Helpers.divide(10, 3) );
-                            put( "private/get-deposit-address", Helpers.divide(10, 3) );
-                            put( "private/export/create-export-request", Helpers.divide(10, 3) );
-                            put( "private/export/get-export-requests", Helpers.divide(10, 3) );
-                            put( "private/export/download-export-output", Helpers.divide(10, 3) );
-                            put( "private/get-account-summary", Helpers.divide(10, 3) );
-                            put( "private/create-order", Helpers.divide(2, 3) );
-                            put( "private/cancel-order", Helpers.divide(2, 3) );
-                            put( "private/cancel-all-orders", Helpers.divide(2, 3) );
-                            put( "private/create-order-list", Helpers.divide(10, 3) );
-                            put( "private/get-order-history", Helpers.divide(10, 3) );
-                            put( "private/get-open-orders", Helpers.divide(10, 3) );
-                            put( "private/get-order-detail", Helpers.divide(1, 3) );
-                            put( "private/get-trades", 100 );
-                            put( "private/get-accounts", Helpers.divide(10, 3) );
-                            put( "private/get-subaccount-balances", Helpers.divide(10, 3) );
-                            put( "private/create-subaccount-transfer", Helpers.divide(10, 3) );
-                            put( "private/otc/get-otc-user", Helpers.divide(10, 3) );
-                            put( "private/otc/get-instruments", Helpers.divide(10, 3) );
-                            put( "private/otc/request-quote", 100 );
-                            put( "private/otc/accept-quote", 100 );
-                            put( "private/otc/get-quote-history", Helpers.divide(10, 3) );
-                            put( "private/otc/get-trade-history", Helpers.divide(10, 3) );
-                            put( "private/otc/create-order", Helpers.divide(10, 3) );
+                            put( "private/set-cancel-on-disconnect", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-cancel-on-disconnect", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/create-withdrawal", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-withdrawal-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-currency-networks", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-deposit-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-deposit-address", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/export/create-export-request", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/export/get-export-requests", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/export/download-export-output", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-account-summary", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/create-order", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(2, 3) );
+                            }} );
+                            put( "private/cancel-order", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(2, 3) );
+                            }} );
+                            put( "private/cancel-all-orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(2, 3) );
+                            }} );
+                            put( "private/create-order-list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-order-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-open-orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-order-detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(1, 3) );
+                            }} );
+                            put( "private/get-trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 100 );
+                            }} );
+                            put( "private/get-accounts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-subaccount-balances", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/create-subaccount-transfer", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/otc/get-otc-user", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/otc/get-instruments", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/otc/request-quote", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 100 );
+                            }} );
+                            put( "private/otc/accept-quote", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 100 );
+                            }} );
+                            put( "private/otc/get-quote-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/otc/get-trade-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/otc/create-order", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
                         }} );
                     }} );
                 }} );
                 put( "derivatives", new java.util.HashMap<String, Object>() {{
                     put( "public", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "public/auth", Helpers.divide(10, 3) );
-                            put( "public/get-instruments", Helpers.divide(10, 3) );
-                            put( "public/get-book", 1 );
-                            put( "public/get-candlestick", 1 );
-                            put( "public/get-trades", 1 );
-                            put( "public/get-tickers", 1 );
-                            put( "public/get-valuations", 1 );
-                            put( "public/get-expired-settlement-price", Helpers.divide(10, 3) );
-                            put( "public/get-insurance", 1 );
+                            put( "public/auth", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "public/get-instruments", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "public/get-book", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/get-candlestick", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/get-trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/get-tickers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/get-valuations", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/get-expired-settlement-price", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "public/get-insurance", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                     put( "private", new java.util.HashMap<String, Object>() {{
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "private/set-cancel-on-disconnect", Helpers.divide(10, 3) );
-                            put( "private/get-cancel-on-disconnect", Helpers.divide(10, 3) );
-                            put( "private/user-balance", Helpers.divide(10, 3) );
-                            put( "private/user-balance-history", Helpers.divide(10, 3) );
-                            put( "private/get-positions", Helpers.divide(10, 3) );
-                            put( "private/create-order", Helpers.divide(2, 3) );
-                            put( "private/create-order-list", Helpers.divide(10, 3) );
-                            put( "private/cancel-order", Helpers.divide(2, 3) );
-                            put( "private/cancel-order-list", Helpers.divide(10, 3) );
-                            put( "private/cancel-all-orders", Helpers.divide(2, 3) );
-                            put( "private/close-position", Helpers.divide(10, 3) );
-                            put( "private/convert-collateral", Helpers.divide(10, 3) );
-                            put( "private/get-order-history", 100 );
-                            put( "private/get-open-orders", Helpers.divide(10, 3) );
-                            put( "private/get-order-detail", Helpers.divide(1, 3) );
-                            put( "private/get-trades", 100 );
-                            put( "private/change-account-leverage", Helpers.divide(10, 3) );
-                            put( "private/get-transactions", Helpers.divide(10, 3) );
-                            put( "private/create-subaccount-transfer", Helpers.divide(10, 3) );
-                            put( "private/get-subaccount-balances", Helpers.divide(10, 3) );
-                            put( "private/get-order-list", Helpers.divide(10, 3) );
+                            put( "private/set-cancel-on-disconnect", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-cancel-on-disconnect", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/user-balance", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/user-balance-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-positions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/create-order", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(2, 3) );
+                            }} );
+                            put( "private/create-order-list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/cancel-order", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(2, 3) );
+                            }} );
+                            put( "private/cancel-order-list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/cancel-all-orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(2, 3) );
+                            }} );
+                            put( "private/close-position", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/convert-collateral", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-order-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 100 );
+                            }} );
+                            put( "private/get-open-orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-order-detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(1, 3) );
+                            }} );
+                            put( "private/get-trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 100 );
+                            }} );
+                            put( "private/change-account-leverage", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-transactions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/create-subaccount-transfer", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-subaccount-balances", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/get-order-list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
                         }} );
                     }} );
                 }} );
@@ -347,6 +605,7 @@ public class CryptocomCore extends CryptocomApi
                     put( "BEP20", "BSC" );
                     put( "ERC20", "ETH" );
                     put( "TRC20", "TRON" );
+                    put( "ARBITRUM", "ARB" );
                 }} );
                 put( "broker", "CCXT" );
             }} );
@@ -2507,7 +2766,7 @@ public class CryptocomCore extends CryptocomApi
             Object network = this.safeStringUpper(parameters, "network");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("network")));
             Object depositAddressesRaw = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
-            Object depositAddresses = ((Object)depositAddressesRaw);
+            Object depositAddresses = depositAddressesRaw;
             if (Helpers.isTrue(Helpers.inOp(depositAddresses, ((String)network))))
             {
                 return Helpers.GetValue(depositAddresses, ((String)network));

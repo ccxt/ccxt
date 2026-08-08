@@ -6,7 +6,7 @@ import Exchange from './abstract/bitbns.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, BadRequest, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, NullableDict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee, FeeString } from './base/types.js';
+import type { Balances, Currency, Dict, NullableDict, Int, List, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee, FeeString, Status, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -87,54 +87,54 @@ export default class bitbns extends Exchange {
             },
             'api': {
                 'www': {
-                    'get': [
-                        'order/fetchMarkets',
-                        'order/fetchTickers',
-                        'order/fetchOrderbook',
-                        'order/getTickerWithVolume',
-                        'exchangeData/ohlc', // ?coin=${coin_name}&page=${page}
-                        'exchangeData/orderBook',
-                        'exchangeData/tradedetails',
-                    ],
+                    'get': {
+                        'order/fetchMarkets': { 'cost': 1 } as Endpoint<List>,
+                        'order/fetchTickers': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/fetchOrderbook': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/getTickerWithVolume': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchangeData/ohlc': { 'cost': 1 } as Endpoint<List>,
+                        'exchangeData/orderBook': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchangeData/tradedetails': { 'cost': 1 } as Endpoint<List>,
+                    },
                 },
                 'v1': {
-                    'get': [
-                        'platform/status',
-                        'tickers',
-                        'orderbook/sell/{symbol}',
-                        'orderbook/buy/{symbol}',
-                    ],
-                    'post': [
-                        'currentCoinBalance/EVERYTHING',
-                        'getApiUsageStatus/USAGE',
-                        'getOrderSocketToken/USAGE',
-                        'currentCoinBalance/{symbol}',
-                        'orderStatus/{symbol}',
-                        'depositHistory/{symbol}',
-                        'withdrawHistory/{symbol}',
-                        'withdrawHistoryAll/{symbol}',
-                        'depositHistoryAll/{symbol}',
-                        'listOpenOrders/{symbol}',
-                        'listOpenStopOrders/{symbol}',
-                        'getCoinAddress/{symbol}',
-                        'placeSellOrder/{symbol}',
-                        'placeBuyOrder/{symbol}',
-                        'buyStopLoss/{symbol}',
-                        'sellStopLoss/{symbol}',
-                        'cancelOrder/{symbol}',
-                        'cancelStopLossOrder/{symbol}',
-                        'listExecutedOrders/{symbol}',
-                        'placeMarketOrder/{symbol}',
-                        'placeMarketOrderQnty/{symbol}',
-                    ],
+                    'get': {
+                        'platform/status': { 'cost': 1 } as Endpoint<Dict>,
+                        'tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderbook/sell/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderbook/buy/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'post': {
+                        'currentCoinBalance/EVERYTHING': { 'cost': 1 } as Endpoint<Dict>,
+                        'getApiUsageStatus/USAGE': { 'cost': 1 } as Endpoint<Dict>,
+                        'getOrderSocketToken/USAGE': { 'cost': 1 } as Endpoint<Dict>,
+                        'currentCoinBalance/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderStatus/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'depositHistory/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawHistory/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawHistoryAll/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'depositHistoryAll/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'listOpenOrders/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'listOpenStopOrders/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'getCoinAddress/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'placeSellOrder/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'placeBuyOrder/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'buyStopLoss/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'sellStopLoss/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelOrder/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelStopLossOrder/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'listExecutedOrders/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'placeMarketOrder/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'placeMarketOrderQnty/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'v2': {
-                    'post': [
-                        'orders',
-                        'cancel',
-                        'getordersnew',
-                        'marginOrders',
-                    ],
+                    'post': {
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'getordersnew': { 'cost': 1 } as Endpoint<Dict>,
+                        'marginOrders': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -229,7 +229,7 @@ export default class bitbns extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.v1GetPlatformStatus (params);
         //
         //     {
@@ -285,9 +285,10 @@ export default class bitbns extends Exchange {
         //         },
         //     ]
         //
-        const result: any[] = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
+        const result: List = [];
+        const rawMarkets = this.toArray (response);
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const market = rawMarkets[i];
             const id = this.safeString (market, 'id');
             const baseId = this.safeString (market, 'base');
             const quoteId = this.safeString (market, 'quote');
@@ -1275,7 +1276,7 @@ export default class bitbns extends Exchange {
     }
 
     override sign (path: any, api: any = 'www', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
-        const urls = this.urls as any;
+        const urls = this.urls;
         if (!(api in urls['api'])) {
             throw new ExchangeError (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
         }

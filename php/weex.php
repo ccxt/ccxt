@@ -199,103 +199,103 @@ class weex extends Exchange {
                 'public' => array(
                     // multiply public endpoints weight by 5
                     'get' => array(
-                        'api/v3/time' => 5, // done
-                        'api/v3/coins' => 25, // done
-                        'api/v3/exchangeInfo' => 100, // done
-                        'api/v3/ping' => 5, // done
-                        'api/v3/apiTradingSymbols' => 25, // not unified
-                        'api/v3/market/ticker/price' => 20, // not unified
-                        'api/v3/market/ticker/24hr' => 10, // done
-                        'api/v3/market/trades' => 125, // done
-                        'api/v3/market/klines' => 10, // done
-                        'api/v3/market/depth' => 25, // done
-                        'api/v3/market/ticker/bookTicker' => 20, // done
+                        'api/v3/time' => array( 'cost' => 5 ), // done
+                        'api/v3/coins' => array( 'cost' => 25 ), // done
+                        'api/v3/exchangeInfo' => array( 'cost' => 100 ), // done
+                        'api/v3/ping' => array( 'cost' => 5 ), // done
+                        'api/v3/apiTradingSymbols' => array( 'cost' => 25 ), // not unified
+                        'api/v3/market/ticker/price' => array( 'cost' => 20 ), // not unified
+                        'api/v3/market/ticker/24hr' => array( 'cost' => 10 ), // done
+                        'api/v3/market/trades' => array( 'cost' => 125 ), // done
+                        'api/v3/market/klines' => array( 'cost' => 10 ), // done
+                        'api/v3/market/depth' => array( 'cost' => 25 ), // done
+                        'api/v3/market/ticker/bookTicker' => array( 'cost' => 20 ), // done
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'api/v3/account/' => 5, // done
-                        'api/v3/account/transferRecords' => 3, // done
-                        'api/v3/order' => 2, // done
-                        'api/v3/openOrders' => 3, // done
-                        'api/v3/allOrders' => 10, // done
-                        'api/v3/myTrades' => 5, // done
-                        'api/v3/rebate/affiliate/getAffiliateUIDs' => 20, // not unified
-                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset' => 20, // not unified
-                        'api/v3/rebate/affiliate/getAffiliateCommission' => 20, // not unified
-                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus' => 100, // not unified
-                        'api/v3/rebate/affiliate/querySubChannelTransactions' => 10, // not unified
-                        'api/v3/agency/verifyReferrals' => 20, // not unified
-                        'api/v3/agency/getAssert' => 20, // not unified
-                        'api/v3/agency/getDealData' => 20, // not unified
+                        'api/v3/account/' => array( 'cost' => 5 ), // done
+                        'api/v3/account/transferRecords' => array( 'cost' => 3 ), // done
+                        'api/v3/order' => array( 'cost' => 2 ), // done
+                        'api/v3/openOrders' => array( 'cost' => 3 ), // done
+                        'api/v3/allOrders' => array( 'cost' => 10 ), // done
+                        'api/v3/myTrades' => array( 'cost' => 5 ), // done
+                        'api/v3/rebate/affiliate/getAffiliateUIDs' => array( 'cost' => 20 ), // not unified
+                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset' => array( 'cost' => 20 ), // not unified
+                        'api/v3/rebate/affiliate/getAffiliateCommission' => array( 'cost' => 20 ), // not unified
+                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus' => array( 'cost' => 100 ), // not unified
+                        'api/v3/rebate/affiliate/querySubChannelTransactions' => array( 'cost' => 10 ), // not unified
+                        'api/v3/agency/verifyReferrals' => array( 'cost' => 20 ), // not unified
+                        'api/v3/agency/getAssert' => array( 'cost' => 20 ), // not unified
+                        'api/v3/agency/getDealData' => array( 'cost' => 20 ), // not unified
                     ),
                     'post' => array(
-                        'api/v3/account/bills' => 5, // done
-                        'api/v3/account/fundingBills' => 5, // done
-                        'api/v3/order' => 5, // done
-                        'api/v3/order/batch' => 50, // not supported, returns array("code":-1150,"msg":"Request method 'POST' not supported")
-                        'api/v3/rebate/affiliate/internalWithdrawal' => 100, // not unified
+                        'api/v3/account/bills' => array( 'cost' => 5 ), // done
+                        'api/v3/account/fundingBills' => array( 'cost' => 5 ), // done
+                        'api/v3/order' => array( 'cost' => 5 ), // done
+                        'api/v3/order/batch' => array( 'cost' => 50 ), // not supported, returns array("code":-1150,"msg":"Request method 'POST' not supported")
+                        'api/v3/rebate/affiliate/internalWithdrawal' => array( 'cost' => 100 ), // not unified
                     ),
                     'delete' => array(
-                        'api/v3/order' => 1, // done
-                        'api/v3/openOrders' => 1, // done
-                        'api/v3/order/batch' => 10, // done
+                        'api/v3/order' => array( 'cost' => 1 ), // done
+                        'api/v3/openOrders' => array( 'cost' => 1 ), // done
+                        'api/v3/order/batch' => array( 'cost' => 10 ), // done
                     ),
                 ),
                 'contract' => array(
                     // multiply public endpoints weight by 5
                     'get' => array(
-                        'capi/v3/market/time' => 5, // done
-                        'capi/v3/market/exchangeInfo' => 5, // done
-                        'capi/v3/market/depth' => 5, // done
-                        'capi/v3/market/ticker/24hr' => 200, // done
-                        'capi/v3/market/ticker/bookTicker' => 5, // done
-                        'capi/v3/market/trades' => 25, // done
-                        'capi/v3/market/klines' => 5, // done
-                        'capi/v3/market/indexPriceKlines' => 5, // done
-                        'capi/v3/market/markPriceKlines' => 5, // done
-                        'capi/v3/market/historyKlines' => 25, // done
-                        'capi/v3/market/symbolPrice' => 5, // not unified
-                        'capi/v3/market/openInterest' => 10, // done
-                        'capi/v3/market/premiumIndex' => 5, // done
-                        'capi/v3/market/fundingRate' => 25, // done
-                        'capi/v3/market/apiTradingSymbols' => 25, // not unified
+                        'capi/v3/market/time' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/exchangeInfo' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/depth' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/ticker/24hr' => array( 'cost' => 200 ), // done
+                        'capi/v3/market/ticker/bookTicker' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/trades' => array( 'cost' => 25 ), // done
+                        'capi/v3/market/klines' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/indexPriceKlines' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/markPriceKlines' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/historyKlines' => array( 'cost' => 25 ), // done
+                        'capi/v3/market/symbolPrice' => array( 'cost' => 5 ), // not unified
+                        'capi/v3/market/openInterest' => array( 'cost' => 10 ), // done
+                        'capi/v3/market/premiumIndex' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/fundingRate' => array( 'cost' => 25 ), // done
+                        'capi/v3/market/apiTradingSymbols' => array( 'cost' => 25 ), // not unified
                     ),
                 ),
                 'contractPrivate' => array(
                     'get' => array(
-                        'capi/v3/account/balance' => 10, // done
-                        'capi/v3/account/commissionRate' => 10, // done
-                        'capi/v3/account/accountConfig' => 10, // not unified
-                        'capi/v3/account/symbolConfig' => 10, // done
-                        'capi/v3/account/position/allPosition' => 15, // done
-                        'capi/v3/account/position/singlePosition' => 3, // done
-                        'capi/v3/order' => 3, // done
-                        'capi/v3/openOrders' => 5, // done
-                        'capi/v3/order/history' => 10, // done
-                        'capi/v3/userTrades' => 5, // done
-                        'capi/v3/openAlgoOrders' => 3, // done
-                        'capi/v3/allAlgoOrders' => 10, // not unified - capi/v3/order/history returns both regular and algo orders
+                        'capi/v3/account/balance' => array( 'cost' => 10 ), // done
+                        'capi/v3/account/commissionRate' => array( 'cost' => 10 ), // done
+                        'capi/v3/account/accountConfig' => array( 'cost' => 10 ), // not unified
+                        'capi/v3/account/symbolConfig' => array( 'cost' => 10 ), // done
+                        'capi/v3/account/position/allPosition' => array( 'cost' => 15 ), // done
+                        'capi/v3/account/position/singlePosition' => array( 'cost' => 3 ), // done
+                        'capi/v3/order' => array( 'cost' => 3 ), // done
+                        'capi/v3/openOrders' => array( 'cost' => 5 ), // done
+                        'capi/v3/order/history' => array( 'cost' => 10 ), // done
+                        'capi/v3/userTrades' => array( 'cost' => 5 ), // done
+                        'capi/v3/openAlgoOrders' => array( 'cost' => 3 ), // done
+                        'capi/v3/allAlgoOrders' => array( 'cost' => 10 ), // not unified - capi/v3/order/history returns both regular and algo orders
                     ),
                     'post' => array(
-                        'capi/v3/account/income' => 5, // done
-                        'capi/v3/account/marginType' => 50, // done
-                        'capi/v3/account/leverage' => 20, // done
-                        'capi/v3/account/positionMargin' => 30, // done
-                        'capi/v3/account/modifyAutoAppendMargin' => 30, // not unified
-                        'capi/v3/order' => 5, // done
-                        'capi/v3/batchOrders' => 10, // not supported, returns array("code":-1150,"msg":"Request method 'POST' not supported")
-                        'capi/v3/closePositions' => 50, // done
-                        'capi/v3/algoOrder' => 5, // done
-                        'capi/v3/placeTpSlOrder' => 5, // not unified
-                        'capi/v3/modifyTpSlOrder' => 5, // not unified
+                        'capi/v3/account/income' => array( 'cost' => 5 ), // done
+                        'capi/v3/account/marginType' => array( 'cost' => 50 ), // done
+                        'capi/v3/account/leverage' => array( 'cost' => 20 ), // done
+                        'capi/v3/account/positionMargin' => array( 'cost' => 30 ), // done
+                        'capi/v3/account/modifyAutoAppendMargin' => array( 'cost' => 30 ), // not unified
+                        'capi/v3/order' => array( 'cost' => 5 ), // done
+                        'capi/v3/batchOrders' => array( 'cost' => 10 ), // not supported, returns array("code":-1150,"msg":"Request method 'POST' not supported")
+                        'capi/v3/closePositions' => array( 'cost' => 50 ), // done
+                        'capi/v3/algoOrder' => array( 'cost' => 5 ), // done
+                        'capi/v3/placeTpSlOrder' => array( 'cost' => 5 ), // not unified
+                        'capi/v3/modifyTpSlOrder' => array( 'cost' => 5 ), // not unified
                     ),
                     'delete' => array(
-                        'capi/v3/order' => 3, // done
-                        'capi/v3/batchOrders' => 10, // done
-                        'capi/v3/allOpenOrders' => 10, // done
-                        'capi/v3/algoOrder' => 3, // done
-                        'capi/v3/algoOpenOrders' => 10, // done
+                        'capi/v3/order' => array( 'cost' => 3 ), // done
+                        'capi/v3/batchOrders' => array( 'cost' => 10 ), // done
+                        'capi/v3/allOpenOrders' => array( 'cost' => 10 ), // done
+                        'capi/v3/algoOrder' => array( 'cost' => 3 ), // done
+                        'capi/v3/algoOpenOrders' => array( 'cost' => 10 ), // done
                     ),
                 ),
             ),
@@ -490,7 +490,7 @@ class weex extends Exchange {
                     'ETH' => 'ERC20',
                     'POLYGON' => 'POLYGON(MATIC)',
                     'MATIC' => 'POLYGON(MATIC)',
-                    'ARBONE' => 'ARBITRUM(ARB)',
+                    'ARBITRUM' => 'ARBITRUM(ARB)',
                     'SOL' => 'SOLANA(SOL)',
                     'OP' => 'OPTIMISM(OP)',
                     'OPTIMISM' => 'OPTIMISM(OP)',
@@ -500,7 +500,7 @@ class weex extends Exchange {
                     'BEP20(BSC)' => 'BEP20',
                     'ERC20' => 'ERC20',
                     'POLYGON(MATIC)' => 'MATIC',
-                    'ARBITRUM(ARB)' => 'ARBONE',
+                    'ARBITRUM(ARB)' => 'ARBITRUM',
                     'SOLANA(SOL)' => 'SOL',
                     'OPTIMISM(OP)' => 'OP',
                     'AVALANCHE_C(AVAX_C)' => 'AVAXC',
@@ -680,7 +680,7 @@ class weex extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -1378,7 +1378,7 @@ class weex extends Exchange {
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $response = $this->publicGetApiV3MarketKlines($this->extend($request, $params));
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
     public function fetch_contract_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1465,7 +1465,7 @@ class weex extends Exchange {
                 $response = $this->contractGetCapiV3MarketKlines($this->extend($request, $params));
             }
         }
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -1523,7 +1523,7 @@ class weex extends Exchange {
         //
         $responseList = array();
         if ($response !== null) {
-            $responseList = $response;
+            $responseList = $this->to_array($response);
         }
         return $this->parse_trades($responseList, $market, $since, $limit);
     }
@@ -3116,7 +3116,7 @@ class weex extends Exchange {
         }
         $responseList = array();
         if ($response !== null) {
-            $responseList = $response;
+            $responseList = $this->to_array($response);
         }
         return $this->parse_trades($responseList, $market, $since, $limit);
     }
@@ -3191,7 +3191,8 @@ class weex extends Exchange {
                 $request['limit'] = $limit;
             }
             list($request, $params) = $this->handle_until_option('before', $request, $params);
-            $items = $this->privatePostApiV3AccountBills($this->extend($request, $params));
+            $billsResponse = $this->privatePostApiV3AccountBills($this->extend($request, $params));
+            $items = $this->to_array($billsResponse);
         }
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
@@ -3623,7 +3624,7 @@ class weex extends Exchange {
         }
         $symbols = $this->market_symbols($symbols);
         $response = $this->contractPrivateGetCapiV3AccountSymbolConfig($params);
-        return $this->parse_margin_modes($response, $symbols, 'symbol', 'swap');
+        return $this->parse_margin_modes($this->to_array($response), $symbols, 'symbol', 'swap');
     }
 
     public function parse_margin_mode(array $marginMode, ?array $market = null): array {
@@ -3718,7 +3719,7 @@ class weex extends Exchange {
         }
         $symbols = $this->market_symbols($symbols);
         $response = $this->contractPrivateGetCapiV3AccountSymbolConfig($params);
-        return $this->parse_leverages($response, $symbols, 'symbol', 'swap');
+        return $this->parse_leverages($this->to_array($response), $symbols, 'symbol', 'swap');
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
@@ -3790,7 +3791,7 @@ class weex extends Exchange {
         return $this->contractPrivatePostCapiV3AccountLeverage($this->extend($request, $params));
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): array {
         /**
          * fetchs the position mode, hedged or one way
          *

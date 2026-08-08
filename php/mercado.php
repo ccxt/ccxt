@@ -138,39 +138,39 @@ class mercado extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'coins',
-                        '{coin}/orderbook/', // last slash critical
-                        '{coin}/ticker/',
-                        '{coin}/trades/',
-                        '{coin}/trades/{from}/',
-                        '{coin}/trades/{from}/{to}',
-                        '{coin}/day-summary/{year}/{month}/{day}/',
+                        'coins' => array( 'cost' => 1 ),
+                        '{coin}/orderbook/' => array( 'cost' => 1 ),
+                        '{coin}/ticker/' => array( 'cost' => 1 ),
+                        '{coin}/trades/' => array( 'cost' => 1 ),
+                        '{coin}/trades/{from}/' => array( 'cost' => 1 ),
+                        '{coin}/trades/{from}/{to}' => array( 'cost' => 1 ),
+                        '{coin}/day-summary/{year}/{month}/{day}/' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'cancel_order',
-                        'get_account_info',
-                        'get_order',
-                        'get_withdrawal',
-                        'list_system_messages',
-                        'list_orders',
-                        'list_orderbook',
-                        'place_buy_order',
-                        'place_sell_order',
-                        'place_market_buy_order',
-                        'place_market_sell_order',
-                        'withdraw_coin',
+                        'cancel_order' => array( 'cost' => 1 ),
+                        'get_account_info' => array( 'cost' => 1 ),
+                        'get_order' => array( 'cost' => 1 ),
+                        'get_withdrawal' => array( 'cost' => 1 ),
+                        'list_system_messages' => array( 'cost' => 1 ),
+                        'list_orders' => array( 'cost' => 1 ),
+                        'list_orderbook' => array( 'cost' => 1 ),
+                        'place_buy_order' => array( 'cost' => 1 ),
+                        'place_sell_order' => array( 'cost' => 1 ),
+                        'place_market_buy_order' => array( 'cost' => 1 ),
+                        'place_market_sell_order' => array( 'cost' => 1 ),
+                        'withdraw_coin' => array( 'cost' => 1 ),
                     ),
                 ),
                 'v4Public' => array(
                     'get' => array(
-                        '{coin}/candle/',
+                        '{coin}/candle/' => array( 'cost' => 1 ),
                     ),
                 ),
                 'v4PublicNet' => array(
                     'get' => array(
-                        'candles',
+                        'candles' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -292,8 +292,9 @@ class mercado extends Exchange {
         //
         $result = array();
         $amountLimits = $this->safe_value($this->options, 'limits', array());
-        for ($i = 0; $i < count($response); $i++) {
-            $coin = $response[$i];
+        $coins = $this->to_array($response);
+        for ($i = 0; $i < count($coins); $i++) {
+            $coin = $coins[$i];
             $baseId = $coin;
             $quoteId = 'BRL';
             $base = $this->safe_currency_code($baseId);
@@ -865,9 +866,9 @@ class mercado extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of $candles to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -888,8 +889,9 @@ class mercado extends Exchange {
             $request['from'] = $request['to'] - ($limit * $this->parse_timeframe($timeframe));
         }
         $response = $this->v4PublicNetGetCandles($this->extend($request, $params));
-        $candles = $this->convert_trading_view_to_ohlcv($response, 't', 'o', 'h', 'l', 'c', 'v');
-        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
+        // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
+        // then parseOHLCVs, and takes the raw $response without narrowing it to a candle matrix
+        return $this->parse_trading_view_ohlcv($response, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {

@@ -6,7 +6,7 @@ import Exchange from './abstract/digifinex.js';
 import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, NotSupported, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol, ArgumentsRequired, NullResponse } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, NullableDict, CurrencyInterface, NullableList, DepositWithdrawFees } from './base/types.js';
+import type { Balances, Bool, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, List, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, NullableDict, CurrencyInterface, NullableList, DepositWithdrawFees, Status, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -125,114 +125,114 @@ export default class digifinex extends Exchange {
             'api': {
                 'public': {
                     'spot': {
-                        'get': [
-                            '{market}/symbols',
-                            'kline',
-                            'margin/currencies',
-                            'margin/symbols',
-                            'markets',
-                            'order_book',
-                            'ping',
-                            'spot/symbols',
-                            'time',
-                            'trades',
-                            'trades/symbols',
-                            'ticker',
-                            'currencies',
-                        ],
+                        'get': {
+                            '{market}/symbols': { 'cost': 1 } as Endpoint<Dict>,
+                            'kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/currencies': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/symbols': { 'cost': 1 } as Endpoint<Dict>,
+                            'markets': { 'cost': 1 } as Endpoint<Dict>,
+                            'order_book': { 'cost': 1 } as Endpoint<Dict>,
+                            'ping': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/symbols': { 'cost': 1 } as Endpoint<Dict>,
+                            'time': { 'cost': 1 } as Endpoint<Dict>,
+                            'trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'trades/symbols': { 'cost': 1 } as Endpoint<Dict>,
+                            'ticker': { 'cost': 1 } as Endpoint<Dict>,
+                            'currencies': { 'cost': 1 } as Endpoint<Dict>,
+                        },
                     },
                     'swap': {
-                        'get': [
-                            'public/api_weight',
-                            'public/candles',
-                            'public/candles_history',
-                            'public/depth',
-                            'public/funding_rate',
-                            'public/funding_rate_history',
-                            'public/instrument',
-                            'public/instruments',
-                            'public/ticker',
-                            'public/tickers',
-                            'public/time',
-                            'public/trades',
-                        ],
+                        'get': {
+                            'public/api_weight': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/candles': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/candles_history': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/funding_rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/funding_rate_history': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/instrument': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/instruments': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/time': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        },
                     },
                 },
                 'private': {
                     'spot': {
-                        'get': [
-                            '{market}/financelog',
-                            '{market}/mytrades',
-                            '{market}/order',
-                            '{market}/order/detail',
-                            '{market}/order/current',
-                            '{market}/order/history',
-                            'margin/assets',
-                            'margin/financelog',
-                            'margin/mytrades',
-                            'margin/order',
-                            'margin/order/current',
-                            'margin/order/history',
-                            'margin/positions',
-                            'otc/financelog',
-                            'spot/assets',
-                            'spot/financelog',
-                            'spot/mytrades',
-                            'spot/order',
-                            'spot/order/current',
-                            'spot/order/history',
-                            'deposit/address',
-                            'deposit/history',
-                            'withdraw/history',
-                        ],
-                        'post': [
-                            '{market}/order/cancel',
-                            '{market}/order/new',
-                            '{market}/order/batch_new',
-                            'margin/order/cancel',
-                            'margin/order/new',
-                            'margin/position/close',
-                            'spot/order/cancel',
-                            'spot/order/new',
-                            'transfer',
-                            'withdraw/new',
-                            'withdraw/cancel',
-                        ],
+                        'get': {
+                            '{market}/financelog': { 'cost': 1 } as Endpoint<Dict>,
+                            '{market}/mytrades': { 'cost': 1 } as Endpoint<Dict>,
+                            '{market}/order': { 'cost': 1 } as Endpoint<Dict>,
+                            '{market}/order/detail': { 'cost': 1 } as Endpoint<Dict>,
+                            '{market}/order/current': { 'cost': 1 } as Endpoint<Dict>,
+                            '{market}/order/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/assets': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/financelog': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/mytrades': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/order': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/order/current': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/order/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/positions': { 'cost': 1 } as Endpoint<Dict>,
+                            'otc/financelog': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/assets': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/financelog': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/mytrades': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/order': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/order/current': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/order/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'deposit/address': { 'cost': 1 } as Endpoint<Dict>,
+                            'deposit/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'withdraw/history': { 'cost': 1 } as Endpoint<Dict>,
+                        },
+                        'post': {
+                            '{market}/order/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            '{market}/order/new': { 'cost': 1 } as Endpoint<Dict>,
+                            '{market}/order/batch_new': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/order/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/order/new': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/position/close': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/order/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/order/new': { 'cost': 1 } as Endpoint<Dict>,
+                            'transfer': { 'cost': 1 } as Endpoint<Dict>,
+                            'withdraw/new': { 'cost': 1 } as Endpoint<Dict>,
+                            'withdraw/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        },
                     },
                     'swap': {
-                        'get': [
-                            'account/balance',
-                            'account/positions',
-                            'account/finance_record',
-                            'account/trading_fee_rate',
-                            'account/transfer_record',
-                            'account/funding_fee',
-                            'trade/history_orders',
-                            'trade/history_trades',
-                            'trade/open_orders',
-                            'trade/order_info',
-                        ],
-                        'post': [
-                            'account/transfer',
-                            'account/leverage',
-                            'account/position_mode',
-                            'account/position_margin',
-                            'trade/batch_cancel_order',
-                            'trade/batch_order',
-                            'trade/cancel_order',
-                            'trade/order_place',
-                            'follow/sponsor_order',
-                            'follow/close_order',
-                            'follow/cancel_order',
-                            'follow/user_center_current',
-                            'follow/user_center_history',
-                            'follow/expert_current_open_order',
-                            'follow/add_algo',
-                            'follow/cancel_algo',
-                            'follow/account_available',
-                            'follow/plan_task',
-                            'follow/instrument_list',
-                        ],
+                        'get': {
+                            'account/balance': { 'cost': 1 } as Endpoint<Dict>,
+                            'account/positions': { 'cost': 1 } as Endpoint<Dict>,
+                            'account/finance_record': { 'cost': 1 } as Endpoint<Dict>,
+                            'account/trading_fee_rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'account/transfer_record': { 'cost': 1 } as Endpoint<Dict>,
+                            'account/funding_fee': { 'cost': 1 } as Endpoint<Dict>,
+                            'trade/history_orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'trade/history_trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'trade/open_orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'trade/order_info': { 'cost': 1 } as Endpoint<Dict>,
+                        },
+                        'post': {
+                            'account/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                            'account/leverage': { 'cost': 1 } as Endpoint<Dict>,
+                            'account/position_mode': { 'cost': 1 } as Endpoint<Dict>,
+                            'account/position_margin': { 'cost': 1 } as Endpoint<Dict>,
+                            'trade/batch_cancel_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'trade/batch_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'trade/cancel_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'trade/order_place': { 'cost': 1 } as Endpoint<Dict>,
+                            'follow/sponsor_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'follow/close_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'follow/cancel_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'follow/user_center_current': { 'cost': 1 } as Endpoint<Dict>,
+                            'follow/user_center_history': { 'cost': 1 } as Endpoint<Dict>,
+                            'follow/expert_current_open_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'follow/add_algo': { 'cost': 1 } as Endpoint<Dict>,
+                            'follow/cancel_algo': { 'cost': 1 } as Endpoint<Dict>,
+                            'follow/account_available': { 'cost': 1 } as Endpoint<Dict>,
+                            'follow/plan_task': { 'cost': 1 } as Endpoint<Dict>,
+                            'follow/instrument_list': { 'cost': 1 } as Endpoint<Dict>,
+                        },
                     },
                 },
             },
@@ -415,7 +415,7 @@ export default class digifinex extends Exchange {
                     'OTC': '3',
                 },
                 'networks': {
-                    'ARBONE': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                     'AVALANCEC': 'AVAX-CCHAIN',
                     'AVALANCEX': 'AVAX-XCHAIN',
                     'BEP20': 'BEP20',
@@ -586,7 +586,7 @@ export default class digifinex extends Exchange {
         return await this.fetchMarketsV1 (params);
     }
 
-    async fetchMarketsV2 (params = {}) {
+    async fetchMarketsV2 (params = {}): Promise<Market[]> {
         const defaultType = this.safeString (this.options, 'defaultType');
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchMarketsV2', params);
         const promisesRaw: Promise<Dict>[] = [];
@@ -654,7 +654,7 @@ export default class digifinex extends Exchange {
         const spotData = this.safeValue (spotMarkets, 'symbol_list', []);
         const swapData = this.safeValue (swapMarkets, 'data', []);
         const response = this.arrayConcat (spotData, swapData);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString2 (market, 'symbol', 'instrument_id');
@@ -764,7 +764,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const markets = this.safeValue (response, 'data', []);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'market');
@@ -1438,7 +1438,7 @@ export default class digifinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.publicSpotGetPing (params);
         //
         //     {
@@ -3381,7 +3381,7 @@ export default class digifinex extends Exchange {
                 result[code] = borrowRate;
             }
         }
-        return result as any;
+        return result;
     }
 
     /**
@@ -3418,7 +3418,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseFundingRate (data, market) as any;
+        return this.parseFundingRate (data, market);
     }
 
     /**
@@ -3969,14 +3969,14 @@ export default class digifinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let currency: Str = undefined;
+        let currency: Currency = undefined;
         const request: Dict = {};
         if (code !== undefined) {
-            currency = this.safeCurrencyCode (code);
+            currency = this.currency (code);
             if (currency === undefined) {
                 throw new ExchangeError (this.id + ' fetchTransfers() could not resolve currency');
             }
-            request['currency'] = (currency as any)['id'];
+            request['currency'] = this.safeString (currency, 'id');
         }
         if (since !== undefined) {
             request['start_timestamp'] = since;
@@ -4001,7 +4001,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const transfers = this.safeList (response, 'data', []);
-        return this.parseTransfers (transfers, currency as any, since, limit);
+        return this.parseTransfers (transfers, currency, since, limit);
     }
 
     /**

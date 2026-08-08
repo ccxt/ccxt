@@ -174,36 +174,36 @@ class onetrading(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'currencies',
-                        'candlesticks/{instrument_code}',
-                        'fees',
-                        'instruments',
-                        'order-book/{instrument_code}',
-                        'market-ticker',
-                        'market-ticker/{instrument_code}',
-                        'time',
-                    ],
+                    'get': {
+                        'currencies': {'cost': 1},
+                        'candlesticks/{instrument_code}': {'cost': 1},
+                        'fees': {'cost': 1},
+                        'instruments': {'cost': 1},
+                        'order-book/{instrument_code}': {'cost': 1},
+                        'market-ticker': {'cost': 1},
+                        'market-ticker/{instrument_code}': {'cost': 1},
+                        'time': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'get': [
-                        'account/balances',
-                        'account/fees',
-                        'account/orders',
-                        'account/orders/{order_id}',
-                        'account/orders/client/{client_id}',
-                        'account/orders/{order_id}/trades',
-                        'account/trades',
-                        'account/trade/{trade_id}',
-                    ],
-                    'post': [
-                        'account/orders',
-                    ],
-                    'delete': [
-                        'account/orders',
-                        'account/orders/{order_id}',
-                        'account/orders/client/{client_id}',
-                    ],
+                    'get': {
+                        'account/balances': {'cost': 1},
+                        'account/fees': {'cost': 1},
+                        'account/orders': {'cost': 1},
+                        'account/orders/{order_id}': {'cost': 1},
+                        'account/orders/client/{client_id}': {'cost': 1},
+                        'account/orders/{order_id}/trades': {'cost': 1},
+                        'account/trades': {'cost': 1},
+                        'account/trade/{trade_id}': {'cost': 1},
+                    },
+                    'post': {
+                        'account/orders': {'cost': 1},
+                    },
+                    'delete': {
+                        'account/orders': {'cost': 1},
+                        'account/orders/{order_id}': {'cost': 1},
+                        'account/orders/client/{client_id}': {'cost': 1},
+                    },
                 },
             },
             'fees': {
@@ -899,8 +899,9 @@ class onetrading(Exchange, ImplicitAPI):
         #     ]
         #
         result = {}
-        for i in range(0, len(response)):
-            ticker = self.parse_ticker(response[i])
+        rawTickers = self.to_array(response)
+        for i in range(0, len(rawTickers)):
+            ticker = self.parse_ticker(rawTickers[i])
             symbol = ticker['symbol']
             if symbol is not None:
                 result[symbol] = ticker

@@ -70,6 +70,7 @@
 * [watchOrderBook](#watchorderbook)
 * [unWatchOrderBook](#unwatchorderbook)
 * [watchTicker](#watchticker)
+* [unWatchTicker](#unwatchticker)
 * [watchTickers](#watchtickers)
 * [unWatchTickers](#unwatchtickers)
 * [watchMyTrades](#watchmytrades)
@@ -1637,6 +1638,27 @@ watches a price ticker, a statistical calculation with the information calculate
 
 ```javascript
 hyperliquid.watchTicker (symbol, params?)
+```
+
+
+<a name="unWatchTicker" id="unwatchticker"></a>
+
+### unWatchTicker{docsify-ignore}
+unWatches the price ticker stream of a specific market
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to stop watching the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.unWatchTicker (symbol, params?)
 ```
 
 

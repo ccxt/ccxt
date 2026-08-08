@@ -33,7 +33,8 @@ declare function assertRoundMinuteTimestamp(exchange: Exchange, skippedPropertie
 declare function deepEqual(exchange: Exchange, a: any, b: any): boolean;
 declare function assertDeepEqual(exchange: Exchange, skippedProperties: any, method: string, a: any, b: any): void;
 declare function exchangeProp(exchange: Exchange, key: string, defaultValue?: any): any;
-declare function validateTickerExceptionForPercentage(ex: any, exchange: Exchange, ticker: any): Promise<void>;
+declare function tickerExceptionNeedsOhlcv(ex: any, exchange: Exchange, ticker: any): boolean;
+declare function validateTickerExceptionForPercentage(ex: any, exchange: Exchange, ticker: any, ohlcv?: any): void;
 declare const _default: {
     exchangeProp: typeof exchangeProp;
     deepEqual: typeof deepEqual;
@@ -68,6 +69,7 @@ declare const _default: {
     assertRoundMinuteTimestamp: typeof assertRoundMinuteTimestamp;
     concat: typeof concat;
     getActiveMarkets: typeof getActiveMarkets;
+    tickerExceptionNeedsOhlcv: typeof tickerExceptionNeedsOhlcv;
     validateTickerExceptionForPercentage: typeof validateTickerExceptionForPercentage;
 };
 export default _default;

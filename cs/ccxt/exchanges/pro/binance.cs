@@ -239,6 +239,10 @@ public partial class binance : ccxt.binance
 
     public virtual object getWsUrl(object type, object category)
     {
+        if (isTrue(isEqual(type, "option")))
+        {
+            throw new NotSupported ((string)add(this.id, " watch methods do not support option markets yet")) ;
+        }
         object baseUrl = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
         if (isTrue(isEqual(type, "future")))
         {
@@ -759,8 +763,10 @@ public partial class binance : ccxt.binance
         symbols = this.marketSymbols(symbols, null, false, true, true);
         object firstMarket = this.market(getValue(symbols, 0));
         object type = getValue(firstMarket, "type");
-        if (isTrue(getValue(firstMarket, "contract")))
+        if (isTrue(isTrue(getValue(firstMarket, "contract")) && !isTrue(getValue(firstMarket, "option"))))
         {
+            // options must keep type 'option' so the getWsUrl NotSupported guard fires,
+            // see https://github.com/ccxt/ccxt/issues/26333
             type = ((bool) isTrue(getValue(firstMarket, "linear"))) ? "future" : "delivery";
         }
         object name = "depth";
@@ -847,8 +853,10 @@ public partial class binance : ccxt.binance
         symbols = this.marketSymbols(symbols, null, false, true, true);
         object firstMarket = this.market(getValue(symbols, 0));
         object type = getValue(firstMarket, "type");
-        if (isTrue(getValue(firstMarket, "contract")))
+        if (isTrue(isTrue(getValue(firstMarket, "contract")) && !isTrue(getValue(firstMarket, "option"))))
         {
+            // options must keep type 'option' so the getWsUrl NotSupported guard fires,
+            // see https://github.com/ccxt/ccxt/issues/26333
             type = ((bool) isTrue(getValue(firstMarket, "linear"))) ? "future" : "delivery";
         }
         object name = "depth";
@@ -1322,8 +1330,10 @@ public partial class binance : ccxt.binance
         parameters = this.omit(parameters, "callerMethodName");
         object firstMarket = this.market(getValue(symbols, 0));
         object type = getValue(firstMarket, "type");
-        if (isTrue(getValue(firstMarket, "contract")))
+        if (isTrue(isTrue(getValue(firstMarket, "contract")) && !isTrue(getValue(firstMarket, "option"))))
         {
+            // options must keep type 'option' so the getWsUrl NotSupported guard fires,
+            // see https://github.com/ccxt/ccxt/issues/26333
             type = ((bool) isTrue(getValue(firstMarket, "linear"))) ? "future" : "delivery";
         }
         object messageHashes = new List<object>() {};
@@ -1396,8 +1406,10 @@ public partial class binance : ccxt.binance
         parameters = this.omit(parameters, "callerMethodName");
         object firstMarket = this.market(getValue(symbols, 0));
         object type = getValue(firstMarket, "type");
-        if (isTrue(getValue(firstMarket, "contract")))
+        if (isTrue(isTrue(getValue(firstMarket, "contract")) && !isTrue(getValue(firstMarket, "option"))))
         {
+            // options must keep type 'option' so the getWsUrl NotSupported guard fires,
+            // see https://github.com/ccxt/ccxt/issues/26333
             type = ((bool) isTrue(getValue(firstMarket, "linear"))) ? "future" : "delivery";
         }
         object subMessageHashes = new List<object>() {};
@@ -1725,8 +1737,10 @@ public partial class binance : ccxt.binance
         object marketSymbols = this.marketSymbols(symbols, null, false, false, true);
         object firstMarket = this.market(getValue(marketSymbols, 0));
         object type = getValue(firstMarket, "type");
-        if (isTrue(getValue(firstMarket, "contract")))
+        if (isTrue(isTrue(getValue(firstMarket, "contract")) && !isTrue(getValue(firstMarket, "option"))))
         {
+            // options must keep type 'option' so the getWsUrl NotSupported guard fires,
+            // see https://github.com/ccxt/ccxt/issues/26333
             type = ((bool) isTrue(getValue(firstMarket, "linear"))) ? "future" : "delivery";
         }
         object isSpot = (isEqual(type, "spot"));
@@ -1811,8 +1825,10 @@ public partial class binance : ccxt.binance
         object marketSymbols = this.marketSymbols(symbols, null, false, false, true);
         object firstMarket = this.market(getValue(marketSymbols, 0));
         object type = getValue(firstMarket, "type");
-        if (isTrue(getValue(firstMarket, "contract")))
+        if (isTrue(isTrue(getValue(firstMarket, "contract")) && !isTrue(getValue(firstMarket, "option"))))
         {
+            // options must keep type 'option' so the getWsUrl NotSupported guard fires,
+            // see https://github.com/ccxt/ccxt/issues/26333
             type = ((bool) isTrue(getValue(firstMarket, "linear"))) ? "future" : "delivery";
         }
         object isSpot = (isEqual(type, "spot"));

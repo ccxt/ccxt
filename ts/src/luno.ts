@@ -5,7 +5,7 @@ import Exchange from './abstract/luno.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountNotEnabled, BadRequest, BadSymbol, OperationRejected, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, DuplicateOrderId, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, RequestTimeout, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, CurrencyInterface, Currencies, Fee, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, NullableDict, List } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Fee, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, NullableDict, List, DepositWithdrawFee, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -54,6 +54,8 @@ export default class luno extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositWithdrawFee': true,
+                'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
@@ -138,69 +140,69 @@ export default class luno extends Exchange {
             'api': {
                 'exchange': {
                     'get': {
-                        'markets': 1,
+                        'markets': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'exchangePrivate': {
                     'get': {
-                        'candles': 1,
-                        'move': 1,
-                        'move/list_moves': 1,
-                        'transfers': 1,
+                        'candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'move': { 'cost': 1 } as Endpoint<Dict>,
+                        'move/list_moves': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfers': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'convert': 1,
-                        'move': 1,
+                        'convert': { 'cost': 1 } as Endpoint<Dict>,
+                        'move': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'public': {
                     'get': {
-                        'orderbook': 1,
-                        'orderbook_top': 1,
-                        'ticker': 1,
-                        'tickers': 1,
-                        'trades': 1,
+                        'orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderbook_top': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts/{id}/pending': 1,
-                        'accounts/{id}/transactions': 1,
-                        'balance': 1,
-                        'beneficiaries': 1,
-                        'send/networks': 1,
-                        'fee_info': 1,
-                        'funding_address': 1,
-                        'listorders': 1,
-                        'listtrades': 1,
-                        'send_fee': 1,
-                        'orders/{id}': 1,
-                        'withdrawals': 1,
-                        'withdrawals/{id}': 1,
-                        'transfers': 1, // not found in current docs, use GET /api/exchange/1/transfers
-                        'users/linked': 1,
+                        'accounts/{id}/pending': { 'cost': 1 } as Endpoint<Dict>,
+                        'accounts/{id}/transactions': { 'cost': 1 } as Endpoint<Dict>,
+                        'balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'beneficiaries': { 'cost': 1 } as Endpoint<Dict>,
+                        'send/networks': { 'cost': 1 } as Endpoint<Dict>,
+                        'fee_info': { 'cost': 1 } as Endpoint<Dict>,
+                        'funding_address': { 'cost': 1 } as Endpoint<Dict>,
+                        'listorders': { 'cost': 1 } as Endpoint<Dict>,
+                        'listtrades': { 'cost': 1 } as Endpoint<Dict>,
+                        'send_fee': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawals': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawals/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfers': { 'cost': 1 } as Endpoint<Dict>, // not found in current docs, use GET /api/exchange/1/transfers
+                        'users/linked': { 'cost': 1 } as Endpoint<Dict>,
                         // GET /api/exchange/2/listorders
                         // GET /api/exchange/2/orders/{id}
                         // GET /api/exchange/3/order
                     },
                     'post': {
-                        'accounts': 1,
-                        'address/validate': 1,
-                        'postorder': 1,
-                        'marketorder': 1,
-                        'stoporder': 1,
-                        'funding_address': 1,
-                        'withdrawals': 1,
-                        'send': 1,
-                        'oauth2/grant': 1, // deprecated for new applications
-                        'beneficiaries': 1,
+                        'accounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'address/validate': { 'cost': 1 } as Endpoint<Dict>,
+                        'postorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'marketorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'stoporder': { 'cost': 1 } as Endpoint<Dict>,
+                        'funding_address': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawals': { 'cost': 1 } as Endpoint<Dict>,
+                        'send': { 'cost': 1 } as Endpoint<Dict>,
+                        'oauth2/grant': { 'cost': 1 } as Endpoint<Dict>, // deprecated for new applications
+                        'beneficiaries': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'put': {
-                        'accounts/{id}/name': 1,
+                        'accounts/{id}/name': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'withdrawals/{id}': 1,
-                        'beneficiaries/{id}': 1,
+                        'withdrawals/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'beneficiaries/{id}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -218,10 +220,51 @@ export default class luno extends Exchange {
             },
             'fees': {
                 'trading': {
+                    // Luno prices by PAIR CATEGORY as well as by 30-day volume tier:
+                    // crypto/fiat, stablecoin/fiat and crypto/crypto each have their own
+                    // ladder, and the maker side is a charge in one category and a rebate
+                    // in another at the same tier. A single scalar cannot represent that,
+                    // so per-market 'taker'/'maker' are set in fetchMarkets where the
+                    // published schedule has been verified. The values below are the
+                    // exchange-wide fallback: crypto/fiat at the entry tier, which is the
+                    // dearest cell in the table and therefore the safe direction to quote
+                    // for a caller who cannot reach the authenticated fetchTradingFee.
                     'tierBased': true, // based on volume from your primary currency (not the same for everyone)
                     'percentage': true,
-                    'taker': this.parseNumber ('0.001'),
-                    'maker': this.parseNumber ('0'),
+                    'taker': this.parseNumber ('0.006'),
+                    'maker': this.parseNumber ('0.004'),
+                    'tiers': {
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.006') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.005') ],
+                            [ this.parseNumber ('200000'), this.parseNumber ('0.004') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.003') ],
+                            [ this.parseNumber ('2000000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0015') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('20000000'), this.parseNumber ('0.0009') ],
+                            [ this.parseNumber ('40000000'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('80000000'), this.parseNumber ('0.0007') ],
+                            [ this.parseNumber ('120000000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('160000000'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('300000000'), this.parseNumber ('0.0005') ],
+                        ],
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.004') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.003') ],
+                            [ this.parseNumber ('200000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('2000000'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('20000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('40000000'), this.parseNumber ('-0.0001') ],
+                            [ this.parseNumber ('80000000'), this.parseNumber ('-0.0001') ],
+                            [ this.parseNumber ('120000000'), this.parseNumber ('-0.0002') ],
+                            [ this.parseNumber ('160000000'), this.parseNumber ('-0.0002') ],
+                            [ this.parseNumber ('300000000'), this.parseNumber ('-0.0002') ],
+                        ],
+                    },
                 },
             },
             'exceptions': {
@@ -524,7 +567,7 @@ export default class luno extends Exchange {
         //         ]
         //     }
         //
-        const result: any[] = [];
+        const result: List = [];
         const markets = this.safeValue (response, 'markets', []);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -534,9 +577,37 @@ export default class luno extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const status = this.safeString (market, 'trading_status');
+            // Luno's published schedule is categorical, not a single pair. Entry-tier
+            // rates below are read from Luno's own Help Centre fee article for the ZAR
+            // market; markets quoted in other fiat currencies are left on the
+            // exchange-wide default until their schedules are verified the same way.
+            const fiats = [ 'ZAR' ];
+            // live-but-unverified counters, kept on the exchange-wide default; the market
+            // list is geo-filtered so this is a superset of any one region's view, and
+            // ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
+            const unverifiedQuotes = [ 'MYR', 'NGN', 'IDR', 'KES', 'UGX', 'AUD', 'GBP', 'EUR', 'USD', 'ZARU' ];
+            const stablecoins = [ 'USDT', 'USDC' ];
+            let taker = undefined;
+            let maker = undefined;
+            if (this.inArray (quote, fiats)) {
+                if (this.inArray (base, stablecoins)) {
+                    taker = this.parseNumber ('0.002');
+                    maker = this.parseNumber ('-0.0001'); // a rebate, not a charge
+                } else {
+                    taker = this.parseNumber ('0.006');
+                    maker = this.parseNumber ('0.004');
+                }
+            } else if (!this.inArray (quote, unverifiedQuotes)) {
+                // stablecoin-quoted (BTC/USDT) and crypto-quoted (ETH/BTC, SOL/ADA) books
+                // are both in Luno's crypto/crypto column
+                taker = this.parseNumber ('0.001');
+                maker = this.parseNumber ('0.0008');
+            }
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
+                'taker': taker,
+                'maker': maker,
                 'base': base,
                 'quote': quote,
                 'settle': undefined,
@@ -917,7 +988,8 @@ export default class luno extends Exchange {
         }
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetTickers (params);
-        const tickers = this.indexBy (response['tickers'], 'pair');
+        const rawTickers = this.safeList (response, 'tickers', []);
+        const tickers = this.indexBy (rawTickers, 'pair');
         const ids = Object.keys (tickers);
         const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
@@ -1602,6 +1674,39 @@ export default class luno extends Exchange {
             'address': this.safeString (depositAddress, 'address'),
             'tag': this.safeString (depositAddress, 'name'),
         } as DepositAddress;
+    }
+
+    /**
+     * @method
+     * @name luno#fetchDepositWithdrawFee
+     * @description fetch the fee for sending (withdrawing) a currency to a specific address; luno quotes the network fee per destination, so an address is required, see https://github.com/ccxt/ccxt/issues/25830
+     * @see https://www.luno.com/en/developers/api#tag/Send/operation/SendFee
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.address the destination address luno should quote the send fee for (required by the exchange)
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    override async fetchDepositWithdrawFee (code: string, params = {}): Promise<DepositWithdrawFee> {
+        const address = this.safeString (params, 'address');
+        if (address === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositWithdrawFee() requires an "address" parameter - luno quotes the send fee per destination address');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateGetSendFee (this.extend (request, params));
+        //
+        //     {
+        //         "currency": "XBT",
+        //         "fee": "0.00015"
+        //     }
+        //
+        const result = this.depositWithdrawFee (response);
+        result['withdraw']['fee'] = this.safeNumber (response, 'fee');
+        result['withdraw']['percentage'] = false;
+        return this.assignDefaultDepositWithdrawFees (result, currency) as DepositWithdrawFee;
     }
 
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {

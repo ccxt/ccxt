@@ -172,30 +172,30 @@ class cryptomus(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'v2/user-api/exchange/markets': 1,  # done
-                        'v2/user-api/exchange/market/price': 1,  # not used
-                        'v1/exchange/market/assets': 1,  # done
-                        'v1/exchange/market/order-book/{currencyPair}': 1,  # done
-                        'v1/exchange/market/tickers': 1,  # done
-                        'v1/exchange/market/trades/{currencyPair}': 1,  # done
+                        'v2/user-api/exchange/markets': {'cost': 1},  # done
+                        'v2/user-api/exchange/market/price': {'cost': 1},  # not used
+                        'v1/exchange/market/assets': {'cost': 1},  # done
+                        'v1/exchange/market/order-book/{currencyPair}': {'cost': 1},  # done
+                        'v1/exchange/market/tickers': {'cost': 1},  # done
+                        'v1/exchange/market/trades/{currencyPair}': {'cost': 1},  # done
                     },
                 },
                 'private': {
                     'get': {
-                        'v2/user-api/exchange/orders': 1,  # done
-                        'v2/user-api/exchange/orders/history': 1,  # done
-                        'v2/user-api/exchange/account/balance': 1,  # done
-                        'v2/user-api/exchange/account/tariffs': 1,  # done
-                        'v2/user-api/payment/services': 1,
-                        'v2/user-api/payout/services': 1,
-                        'v2/user-api/transaction/list': 1,
+                        'v2/user-api/exchange/orders': {'cost': 1},  # done
+                        'v2/user-api/exchange/orders/history': {'cost': 1},  # done
+                        'v2/user-api/exchange/account/balance': {'cost': 1},  # done
+                        'v2/user-api/exchange/account/tariffs': {'cost': 1},  # done
+                        'v2/user-api/payment/services': {'cost': 1},
+                        'v2/user-api/payout/services': {'cost': 1},
+                        'v2/user-api/transaction/list': {'cost': 1},
                     },
                     'post': {
-                        'v2/user-api/exchange/orders': 1,  # done
-                        'v2/user-api/exchange/orders/market': 1,  # done
+                        'v2/user-api/exchange/orders': {'cost': 1},  # done
+                        'v2/user-api/exchange/orders/market': {'cost': 1},  # done
                     },
                     'delete': {
-                        'v2/user-api/exchange/orders/{orderId}': 1,  # done
+                        'v2/user-api/exchange/orders/{orderId}': {'cost': 1},  # done
                     },
                 },
             },
@@ -213,7 +213,7 @@ class cryptomus(Exchange, ImplicitAPI):
                     'BEP20': 'bsc',
                     'DASH': 'dash',
                     'POLYGON': 'polygon',
-                    'ARB': 'arbitrum',
+                    'ARBITRUM': 'arbitrum',
                     'SOL': 'sol',
                     'TON': 'ton',
                     'ERC20': 'eth',
@@ -230,7 +230,7 @@ class cryptomus(Exchange, ImplicitAPI):
                     'bsc': 'BEP20',
                     'dash': 'DASH',
                     'polygon': 'POLYGON',
-                    'arbitrum': 'ARB',
+                    'arbitrum': 'ARBITRUM',
                     'sol': 'SOL',
                     'ton': 'TON',
                     'eth': 'ERC20',

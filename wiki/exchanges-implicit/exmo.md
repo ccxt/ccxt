@@ -63,8 +63,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `webGetCtrlFeesAndLimits` | GET | `ctrl/feesAndLimits` |  |
-| `webGetEnDocsFees` | GET | `en/docs/fees` |  |
+| `webGetCtrlFeesAndLimits` | GET | `ctrl/feesAndLimits` | 1 |
+| `webGetEnDocsFees` | GET | `en/docs/fees` | 1 |
 
 ## public
 
@@ -72,15 +72,15 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `publicGetCurrency` | GET | `currency` |  |
-| `publicGetCurrencyListExtended` | GET | `currency/list/extended` |  |
-| `publicGetOrderBook` | GET | `order_book` |  |
-| `publicGetPairSettings` | GET | `pair_settings` |  |
-| `publicGetTicker` | GET | `ticker` |  |
-| `publicGetTrades` | GET | `trades` |  |
-| `publicGetCandlesHistory` | GET | `candles_history` |  |
-| `publicGetRequiredAmount` | GET | `required_amount` |  |
-| `publicGetPaymentsProvidersCryptoList` | GET | `payments/providers/crypto/list` |  |
+| `publicGetCurrency` | GET | `currency` | 1 |
+| `publicGetCurrencyListExtended` | GET | `currency/list/extended` | 1 |
+| `publicGetOrderBook` | GET | `order_book` | 1 |
+| `publicGetPairSettings` | GET | `pair_settings` | 1 |
+| `publicGetTicker` | GET | `ticker` | 1 |
+| `publicGetTrades` | GET | `trades` | 1 |
+| `publicGetCandlesHistory` | GET | `candles_history` | 1 |
+| `publicGetRequiredAmount` | GET | `required_amount` | 1 |
+| `publicGetPaymentsProvidersCryptoList` | GET | `payments/providers/crypto/list` | 1 |
 
 ## private
 
@@ -88,44 +88,44 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `privatePostUserInfo` | POST | `user_info` |  |
-| `privatePostOrderCreate` | POST | `order_create` |  |
-| `privatePostOrderCancel` | POST | `order_cancel` |  |
-| `privatePostStopMarketOrderCreate` | POST | `stop_market_order_create` |  |
-| `privatePostStopMarketOrderCancel` | POST | `stop_market_order_cancel` |  |
-| `privatePostUserOpenOrders` | POST | `user_open_orders` |  |
-| `privatePostUserTrades` | POST | `user_trades` |  |
-| `privatePostUserCancelledOrders` | POST | `user_cancelled_orders` |  |
-| `privatePostOrderTrades` | POST | `order_trades` |  |
-| `privatePostDepositAddress` | POST | `deposit_address` |  |
-| `privatePostWithdrawCrypt` | POST | `withdraw_crypt` |  |
-| `privatePostWithdrawGetTxid` | POST | `withdraw_get_txid` |  |
-| `privatePostExcodeCreate` | POST | `excode_create` |  |
-| `privatePostExcodeLoad` | POST | `excode_load` |  |
-| `privatePostCodeCheck` | POST | `code_check` |  |
-| `privatePostWalletHistory` | POST | `wallet_history` |  |
-| `privatePostWalletOperations` | POST | `wallet_operations` |  |
-| `privatePostMarginUserOrderCreate` | POST | `margin/user/order/create` |  |
-| `privatePostMarginUserOrderUpdate` | POST | `margin/user/order/update` |  |
-| `privatePostMarginUserOrderCancel` | POST | `margin/user/order/cancel` |  |
-| `privatePostMarginUserPositionClose` | POST | `margin/user/position/close` |  |
-| `privatePostMarginUserPositionMarginAdd` | POST | `margin/user/position/margin_add` |  |
-| `privatePostMarginUserPositionMarginRemove` | POST | `margin/user/position/margin_remove` |  |
-| `privatePostMarginCurrencyList` | POST | `margin/currency/list` |  |
-| `privatePostMarginPairList` | POST | `margin/pair/list` |  |
-| `privatePostMarginSettings` | POST | `margin/settings` |  |
-| `privatePostMarginFundingList` | POST | `margin/funding/list` |  |
-| `privatePostMarginUserInfo` | POST | `margin/user/info` |  |
-| `privatePostMarginUserOrderList` | POST | `margin/user/order/list` |  |
-| `privatePostMarginUserOrderHistory` | POST | `margin/user/order/history` |  |
-| `privatePostMarginUserOrderTrades` | POST | `margin/user/order/trades` |  |
-| `privatePostMarginUserOrderMaxQuantity` | POST | `margin/user/order/max_quantity` |  |
-| `privatePostMarginUserPositionList` | POST | `margin/user/position/list` |  |
-| `privatePostMarginUserPositionMarginRemoveInfo` | POST | `margin/user/position/margin_remove_info` |  |
-| `privatePostMarginUserPositionMarginAddInfo` | POST | `margin/user/position/margin_add_info` |  |
-| `privatePostMarginUserWalletList` | POST | `margin/user/wallet/list` |  |
-| `privatePostMarginUserWalletHistory` | POST | `margin/user/wallet/history` |  |
-| `privatePostMarginUserTradeList` | POST | `margin/user/trade/list` |  |
-| `privatePostMarginTrades` | POST | `margin/trades` |  |
-| `privatePostMarginLiquidationFeed` | POST | `margin/liquidation/feed` |  |
+| `privatePostUserInfo` | POST | `user_info` | 1 |
+| `privatePostOrderCreate` | POST | `order_create` | 1 |
+| `privatePostOrderCancel` | POST | `order_cancel` | 1 |
+| `privatePostStopMarketOrderCreate` | POST | `stop_market_order_create` | 1 |
+| `privatePostStopMarketOrderCancel` | POST | `stop_market_order_cancel` | 1 |
+| `privatePostUserOpenOrders` | POST | `user_open_orders` | 1 |
+| `privatePostUserTrades` | POST | `user_trades` | 1 |
+| `privatePostUserCancelledOrders` | POST | `user_cancelled_orders` | 1 |
+| `privatePostOrderTrades` | POST | `order_trades` | 1 |
+| `privatePostDepositAddress` | POST | `deposit_address` | 1 |
+| `privatePostWithdrawCrypt` | POST | `withdraw_crypt` | 1 |
+| `privatePostWithdrawGetTxid` | POST | `withdraw_get_txid` | 1 |
+| `privatePostExcodeCreate` | POST | `excode_create` | 1 |
+| `privatePostExcodeLoad` | POST | `excode_load` | 1 |
+| `privatePostCodeCheck` | POST | `code_check` | 1 |
+| `privatePostWalletHistory` | POST | `wallet_history` | 1 |
+| `privatePostWalletOperations` | POST | `wallet_operations` | 1 |
+| `privatePostMarginUserOrderCreate` | POST | `margin/user/order/create` | 1 |
+| `privatePostMarginUserOrderUpdate` | POST | `margin/user/order/update` | 1 |
+| `privatePostMarginUserOrderCancel` | POST | `margin/user/order/cancel` | 1 |
+| `privatePostMarginUserPositionClose` | POST | `margin/user/position/close` | 1 |
+| `privatePostMarginUserPositionMarginAdd` | POST | `margin/user/position/margin_add` | 1 |
+| `privatePostMarginUserPositionMarginRemove` | POST | `margin/user/position/margin_remove` | 1 |
+| `privatePostMarginCurrencyList` | POST | `margin/currency/list` | 1 |
+| `privatePostMarginPairList` | POST | `margin/pair/list` | 1 |
+| `privatePostMarginSettings` | POST | `margin/settings` | 1 |
+| `privatePostMarginFundingList` | POST | `margin/funding/list` | 1 |
+| `privatePostMarginUserInfo` | POST | `margin/user/info` | 1 |
+| `privatePostMarginUserOrderList` | POST | `margin/user/order/list` | 1 |
+| `privatePostMarginUserOrderHistory` | POST | `margin/user/order/history` | 1 |
+| `privatePostMarginUserOrderTrades` | POST | `margin/user/order/trades` | 1 |
+| `privatePostMarginUserOrderMaxQuantity` | POST | `margin/user/order/max_quantity` | 1 |
+| `privatePostMarginUserPositionList` | POST | `margin/user/position/list` | 1 |
+| `privatePostMarginUserPositionMarginRemoveInfo` | POST | `margin/user/position/margin_remove_info` | 1 |
+| `privatePostMarginUserPositionMarginAddInfo` | POST | `margin/user/position/margin_add_info` | 1 |
+| `privatePostMarginUserWalletList` | POST | `margin/user/wallet/list` | 1 |
+| `privatePostMarginUserWalletHistory` | POST | `margin/user/wallet/history` | 1 |
+| `privatePostMarginUserTradeList` | POST | `margin/user/trade/list` | 1 |
+| `privatePostMarginTrades` | POST | `margin/trades` | 1 |
+| `privatePostMarginLiquidationFeed` | POST | `margin/liquidation/feed` | 1 |
 

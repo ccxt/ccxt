@@ -1388,7 +1388,7 @@ func (this *Bullish) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Bullish) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bullish) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bullish) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bullish) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1403,7 +1403,7 @@ func (this *Bullish) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Bullish) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bullish) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bullish) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bullish) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
@@ -1520,7 +1520,7 @@ func (this *Bullish) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Bullish) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Bullish) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Bullish) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Bullish) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1565,7 +1565,7 @@ func (this *Bullish) FetchTradesWs(symbol string, options ...FetchTradesWsOption
 func (this *Bullish) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Bullish) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Bullish) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Bullish) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

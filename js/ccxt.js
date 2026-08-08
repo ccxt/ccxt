@@ -39,7 +39,7 @@ import * as errors from './src/base/errors.js';
 import { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError } from './src/base/errors.js';
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.70';
+const version = '4.5.71';
 //-----------------------------------------------------------------------------
 import alpaca from './src/alpaca.js';
 import apex from './src/apex.js';
@@ -222,10 +222,12 @@ import whitebitPro from './src/pro/whitebit.js';
 import wooPro from './src/pro/woo.js';
 import woofiproPro from './src/pro/woofipro.js';
 import xtPro from './src/pro/xt.js';
+import binancePrediction from './src/prediction/binance.js';
 import hyperliquidPrediction from './src/prediction/hyperliquid.js';
 import kalshiPrediction from './src/prediction/kalshi.js';
 import limitlessPrediction from './src/prediction/limitless.js';
 import myriadPrediction from './src/prediction/myriad.js';
+import opinionPrediction from './src/prediction/opinion.js';
 import polymarketPrediction from './src/prediction/polymarket.js';
 const exchanges = {
     'alpaca': alpaca,
@@ -415,10 +417,12 @@ pro.exchanges = Object.keys(pro);
 pro['Exchange'] = Exchange; // now the same for rest and ts
 //-----------------------------------------------------------------------------
 const prediction = {
+    'binance': binancePrediction,
     'hyperliquid': hyperliquidPrediction,
     'kalshi': kalshiPrediction,
     'limitless': limitlessPrediction,
     'myriad': myriadPrediction,
+    'opinion': opinionPrediction,
     'polymarket': polymarketPrediction,
 };
 prediction.exchanges = Object.keys(prediction);

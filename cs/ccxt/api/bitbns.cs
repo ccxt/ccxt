@@ -11,184 +11,256 @@ public partial class bitbns : Exchange
 {
     public bitbns (object args = null): base(args) {}
 
-    public async Task<object> wwwGetOrderFetchMarkets (object parameters = null)
+    /// <summary>Calls the wwwGetOrderFetchMarkets endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> wwwGetOrderFetchMarkets (object parameters = null)
     {
-        return await this.callAsync ("wwwGetOrderFetchMarkets",parameters);
+        return await this.callAsync<List<object>> ("wwwGetOrderFetchMarkets",parameters);
     }
 
-    public async Task<object> wwwGetOrderFetchTickers (object parameters = null)
+    /// <summary>Calls the wwwGetOrderFetchTickers endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> wwwGetOrderFetchTickers (object parameters = null)
     {
-        return await this.callAsync ("wwwGetOrderFetchTickers",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("wwwGetOrderFetchTickers",parameters);
     }
 
-    public async Task<object> wwwGetOrderFetchOrderbook (object parameters = null)
+    /// <summary>Calls the wwwGetOrderFetchOrderbook endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> wwwGetOrderFetchOrderbook (object parameters = null)
     {
-        return await this.callAsync ("wwwGetOrderFetchOrderbook",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("wwwGetOrderFetchOrderbook",parameters);
     }
 
-    public async Task<object> wwwGetOrderGetTickerWithVolume (object parameters = null)
+    /// <summary>Calls the wwwGetOrderGetTickerWithVolume endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> wwwGetOrderGetTickerWithVolume (object parameters = null)
     {
-        return await this.callAsync ("wwwGetOrderGetTickerWithVolume",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("wwwGetOrderGetTickerWithVolume",parameters);
     }
 
-    public async Task<object> wwwGetExchangeDataOhlc (object parameters = null)
+    /// <summary>Calls the wwwGetExchangeDataOhlc endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> wwwGetExchangeDataOhlc (object parameters = null)
     {
-        return await this.callAsync ("wwwGetExchangeDataOhlc",parameters);
+        return await this.callAsync<List<object>> ("wwwGetExchangeDataOhlc",parameters);
     }
 
-    public async Task<object> wwwGetExchangeDataOrderBook (object parameters = null)
+    /// <summary>Calls the wwwGetExchangeDataOrderBook endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> wwwGetExchangeDataOrderBook (object parameters = null)
     {
-        return await this.callAsync ("wwwGetExchangeDataOrderBook",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("wwwGetExchangeDataOrderBook",parameters);
     }
 
-    public async Task<object> wwwGetExchangeDataTradedetails (object parameters = null)
+    /// <summary>Calls the wwwGetExchangeDataTradedetails endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> wwwGetExchangeDataTradedetails (object parameters = null)
     {
-        return await this.callAsync ("wwwGetExchangeDataTradedetails",parameters);
+        return await this.callAsync<List<object>> ("wwwGetExchangeDataTradedetails",parameters);
     }
 
-    public async Task<object> v1GetPlatformStatus (object parameters = null)
+    /// <summary>Calls the v1GetPlatformStatus endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1GetPlatformStatus (object parameters = null)
     {
-        return await this.callAsync ("v1GetPlatformStatus",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1GetPlatformStatus",parameters);
     }
 
-    public async Task<object> v1GetTickers (object parameters = null)
+    /// <summary>Calls the v1GetTickers endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1GetTickers (object parameters = null)
     {
-        return await this.callAsync ("v1GetTickers",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1GetTickers",parameters);
     }
 
-    public async Task<object> v1GetOrderbookSellSymbol (object parameters = null)
+    /// <summary>Calls the v1GetOrderbookSellSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1GetOrderbookSellSymbol (object parameters = null)
     {
-        return await this.callAsync ("v1GetOrderbookSellSymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1GetOrderbookSellSymbol",parameters);
     }
 
-    public async Task<object> v1GetOrderbookBuySymbol (object parameters = null)
+    /// <summary>Calls the v1GetOrderbookBuySymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1GetOrderbookBuySymbol (object parameters = null)
     {
-        return await this.callAsync ("v1GetOrderbookBuySymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1GetOrderbookBuySymbol",parameters);
     }
 
-    public async Task<object> v1PostCurrentCoinBalanceEVERYTHING (object parameters = null)
+    /// <summary>Calls the v1PostCurrentCoinBalanceEVERYTHING endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostCurrentCoinBalanceEVERYTHING (object parameters = null)
     {
-        return await this.callAsync ("v1PostCurrentCoinBalanceEVERYTHING",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1PostCurrentCoinBalanceEVERYTHING",parameters);
     }
 
-    public async Task<object> v1PostGetApiUsageStatusUSAGE (object parameters = null)
+    /// <summary>Calls the v1PostGetApiUsageStatusUSAGE endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostGetApiUsageStatusUSAGE (object parameters = null)
     {
-        return await this.callAsync ("v1PostGetApiUsageStatusUSAGE",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1PostGetApiUsageStatusUSAGE",parameters);
     }
 
-    public async Task<object> v1PostGetOrderSocketTokenUSAGE (object parameters = null)
+    /// <summary>Calls the v1PostGetOrderSocketTokenUSAGE endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostGetOrderSocketTokenUSAGE (object parameters = null)
     {
-        return await this.callAsync ("v1PostGetOrderSocketTokenUSAGE",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1PostGetOrderSocketTokenUSAGE",parameters);
     }
 
-    public async Task<object> v1PostCurrentCoinBalanceSymbol (object parameters = null)
+    /// <summary>Calls the v1PostCurrentCoinBalanceSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostCurrentCoinBalanceSymbol (object parameters = null)
     {
-        return await this.callAsync ("v1PostCurrentCoinBalanceSymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1PostCurrentCoinBalanceSymbol",parameters);
     }
 
-    public async Task<object> v1PostOrderStatusSymbol (object parameters = null)
+    /// <summary>Calls the v1PostOrderStatusSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostOrderStatusSymbol (object parameters = null)
     {
-        return await this.callAsync ("v1PostOrderStatusSymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1PostOrderStatusSymbol",parameters);
     }
 
-    public async Task<object> v1PostDepositHistorySymbol (object parameters = null)
+    /// <summary>Calls the v1PostDepositHistorySymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostDepositHistorySymbol (object parameters = null)
     {
-        return await this.callAsync ("v1PostDepositHistorySymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1PostDepositHistorySymbol",parameters);
     }
 
-    public async Task<object> v1PostWithdrawHistorySymbol (object parameters = null)
+    /// <summary>Calls the v1PostWithdrawHistorySymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostWithdrawHistorySymbol (object parameters = null)
     {
-        return await this.callAsync ("v1PostWithdrawHistorySymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1PostWithdrawHistorySymbol",parameters);
     }
 
-    public async Task<object> v1PostWithdrawHistoryAllSymbol (object parameters = null)
+    /// <summary>Calls the v1PostWithdrawHistoryAllSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostWithdrawHistoryAllSymbol (object parameters = null)
     {
-        return await this.callAsync ("v1PostWithdrawHistoryAllSymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1PostWithdrawHistoryAllSymbol",parameters);
     }
 
-    public async Task<object> v1PostDepositHistoryAllSymbol (object parameters = null)
+    /// <summary>Calls the v1PostDepositHistoryAllSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostDepositHistoryAllSymbol (object parameters = null)
     {
-        return await this.callAsync ("v1PostDepositHistoryAllSymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1PostDepositHistoryAllSymbol",parameters);
     }
 
-    public async Task<object> v1PostListOpenOrdersSymbol (object parameters = null)
+    /// <summary>Calls the v1PostListOpenOrdersSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostListOpenOrdersSymbol (object parameters = null)
     {
-        return await this.callAsync ("v1PostListOpenOrdersSymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1PostListOpenOrdersSymbol",parameters);
     }
 
-    public async Task<object> v1PostListOpenStopOrdersSymbol (object parameters = null)
+    /// <summary>Calls the v1PostListOpenStopOrdersSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostListOpenStopOrdersSymbol (object parameters = null)
     {
-        return await this.callAsync ("v1PostListOpenStopOrdersSymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1PostListOpenStopOrdersSymbol",parameters);
     }
 
-    public async Task<object> v1PostGetCoinAddressSymbol (object parameters = null)
+    /// <summary>Calls the v1PostGetCoinAddressSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostGetCoinAddressSymbol (object parameters = null)
     {
-        return await this.callAsync ("v1PostGetCoinAddressSymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1PostGetCoinAddressSymbol",parameters);
     }
 
-    public async Task<object> v1PostPlaceSellOrderSymbol (object parameters = null)
+    /// <summary>Calls the v1PostPlaceSellOrderSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostPlaceSellOrderSymbol (object parameters = null)
     {
-        return await this.callAsync ("v1PostPlaceSellOrderSymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1PostPlaceSellOrderSymbol",parameters);
     }
 
-    public async Task<object> v1PostPlaceBuyOrderSymbol (object parameters = null)
+    /// <summary>Calls the v1PostPlaceBuyOrderSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostPlaceBuyOrderSymbol (object parameters = null)
     {
-        return await this.callAsync ("v1PostPlaceBuyOrderSymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1PostPlaceBuyOrderSymbol",parameters);
     }
 
-    public async Task<object> v1PostBuyStopLossSymbol (object parameters = null)
+    /// <summary>Calls the v1PostBuyStopLossSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostBuyStopLossSymbol (object parameters = null)
     {
-        return await this.callAsync ("v1PostBuyStopLossSymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1PostBuyStopLossSymbol",parameters);
     }
 
-    public async Task<object> v1PostSellStopLossSymbol (object parameters = null)
+    /// <summary>Calls the v1PostSellStopLossSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostSellStopLossSymbol (object parameters = null)
     {
-        return await this.callAsync ("v1PostSellStopLossSymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1PostSellStopLossSymbol",parameters);
     }
 
-    public async Task<object> v1PostCancelOrderSymbol (object parameters = null)
+    /// <summary>Calls the v1PostCancelOrderSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostCancelOrderSymbol (object parameters = null)
     {
-        return await this.callAsync ("v1PostCancelOrderSymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1PostCancelOrderSymbol",parameters);
     }
 
-    public async Task<object> v1PostCancelStopLossOrderSymbol (object parameters = null)
+    /// <summary>Calls the v1PostCancelStopLossOrderSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostCancelStopLossOrderSymbol (object parameters = null)
     {
-        return await this.callAsync ("v1PostCancelStopLossOrderSymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1PostCancelStopLossOrderSymbol",parameters);
     }
 
-    public async Task<object> v1PostListExecutedOrdersSymbol (object parameters = null)
+    /// <summary>Calls the v1PostListExecutedOrdersSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostListExecutedOrdersSymbol (object parameters = null)
     {
-        return await this.callAsync ("v1PostListExecutedOrdersSymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1PostListExecutedOrdersSymbol",parameters);
     }
 
-    public async Task<object> v1PostPlaceMarketOrderSymbol (object parameters = null)
+    /// <summary>Calls the v1PostPlaceMarketOrderSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostPlaceMarketOrderSymbol (object parameters = null)
     {
-        return await this.callAsync ("v1PostPlaceMarketOrderSymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1PostPlaceMarketOrderSymbol",parameters);
     }
 
-    public async Task<object> v1PostPlaceMarketOrderQntySymbol (object parameters = null)
+    /// <summary>Calls the v1PostPlaceMarketOrderQntySymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostPlaceMarketOrderQntySymbol (object parameters = null)
     {
-        return await this.callAsync ("v1PostPlaceMarketOrderQntySymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v1PostPlaceMarketOrderQntySymbol",parameters);
     }
 
-    public async Task<object> v2PostOrders (object parameters = null)
+    /// <summary>Calls the v2PostOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v2PostOrders (object parameters = null)
     {
-        return await this.callAsync ("v2PostOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v2PostOrders",parameters);
     }
 
-    public async Task<object> v2PostCancel (object parameters = null)
+    /// <summary>Calls the v2PostCancel endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v2PostCancel (object parameters = null)
     {
-        return await this.callAsync ("v2PostCancel",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v2PostCancel",parameters);
     }
 
-    public async Task<object> v2PostGetordersnew (object parameters = null)
+    /// <summary>Calls the v2PostGetordersnew endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v2PostGetordersnew (object parameters = null)
     {
-        return await this.callAsync ("v2PostGetordersnew",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v2PostGetordersnew",parameters);
     }
 
-    public async Task<object> v2PostMarginOrders (object parameters = null)
+    /// <summary>Calls the v2PostMarginOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v2PostMarginOrders (object parameters = null)
     {
-        return await this.callAsync ("v2PostMarginOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v2PostMarginOrders",parameters);
     }
 
 }

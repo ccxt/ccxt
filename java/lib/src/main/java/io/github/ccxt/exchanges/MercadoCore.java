@@ -143,16 +143,83 @@ public class MercadoCore extends MercadoApi
             }} );
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "public", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("coins", "{coin}/orderbook/", "{coin}/ticker/", "{coin}/trades/", "{coin}/trades/{from}/", "{coin}/trades/{from}/{to}", "{coin}/day-summary/{year}/{month}/{day}/")) );
+                    put( "get", new java.util.HashMap<String, Object>() {{
+                        put( "coins", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "{coin}/orderbook/", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "{coin}/ticker/", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "{coin}/trades/", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "{coin}/trades/{from}/", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "{coin}/trades/{from}/{to}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "{coin}/day-summary/{year}/{month}/{day}/", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
-                    put( "post", new java.util.ArrayList<Object>(java.util.Arrays.asList("cancel_order", "get_account_info", "get_order", "get_withdrawal", "list_system_messages", "list_orders", "list_orderbook", "place_buy_order", "place_sell_order", "place_market_buy_order", "place_market_sell_order", "withdraw_coin")) );
+                    put( "post", new java.util.HashMap<String, Object>() {{
+                        put( "cancel_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_account_info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_withdrawal", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "list_system_messages", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "list_orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "list_orderbook", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "place_buy_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "place_sell_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "place_market_buy_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "place_market_sell_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "withdraw_coin", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
                 }} );
                 put( "v4Public", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("{coin}/candle/")) );
+                    put( "get", new java.util.HashMap<String, Object>() {{
+                        put( "{coin}/candle/", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
                 }} );
                 put( "v4PublicNet", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("candles")) );
+                    put( "get", new java.util.HashMap<String, Object>() {{
+                        put( "candles", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
                 }} );
             }} );
             put( "fees", new java.util.HashMap<String, Object>() {{
@@ -280,9 +347,10 @@ public class MercadoCore extends MercadoApi
             //
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object amountLimits = this.safeValue(this.options, "limits", new java.util.HashMap<String, Object>() {{}});
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+            Object coins = this.toArray(response);
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(coins)); i++)
             {
-                Object coin = Helpers.GetValue(response, i);
+                Object coin = Helpers.GetValue(coins, i);
                 Object baseId = coin;
                 Object quoteId = "BRL";
                 Object base = this.safeCurrencyCode(baseId);
@@ -1022,8 +1090,9 @@ public class MercadoCore extends MercadoApi
                 Helpers.addElementToObject(request, "from", Helpers.subtract(Helpers.GetValue(request, "to"), (Helpers.multiply(limit, this.parseTimeframe(timeframe)))));
             }
             Object response = (this.v4PublicNetGetCandles(this.extend(request, parameters))).join();
-            Object candles = this.convertTradingViewToOHLCV(response, "t", "o", "h", "l", "c", "v");
-            return this.parseOHLCVs(candles, market, timeframe, since, limit);
+            // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
+            // then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix
+            return this.parseTradingViewOHLCV(response, market, timeframe, since, limit);
         });
 
     }

@@ -131,34 +131,34 @@ class btcturk extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'orderbook' => 1,
-                        'ticker' => 0.1,
-                        'trades' => 1,   // ?last=COUNT (max 50)
-                        'ohlc' => 1,
-                        'server/exchangeinfo' => 1,
+                        'orderbook' => array( 'cost' => 1 ),
+                        'ticker' => array( 'cost' => 0.1 ),
+                        'trades' => array( 'cost' => 1 ),   // ?last=COUNT (max 50)
+                        'ohlc' => array( 'cost' => 1 ),
+                        'server/exchangeinfo' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'users/balances' => 1,
-                        'openOrders' => 1,
-                        'allOrders' => 1,
-                        'users/transactions/trade' => 1,
+                        'users/balances' => array( 'cost' => 1 ),
+                        'openOrders' => array( 'cost' => 1 ),
+                        'allOrders' => array( 'cost' => 1 ),
+                        'users/transactions/trade' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'users/transactions/crypto' => 1,
-                        'users/transactions/fiat' => 1,
-                        'order' => 1,
-                        'cancelOrder' => 1,
+                        'users/transactions/crypto' => array( 'cost' => 1 ),
+                        'users/transactions/fiat' => array( 'cost' => 1 ),
+                        'order' => array( 'cost' => 1 ),
+                        'cancelOrder' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'order' => 1,
+                        'order' => array( 'cost' => 1 ),
                     ),
                 ),
                 'graph' => array(
                     'get' => array(
-                        'ohlcs' => 1,
-                        'klines/history' => 1,
+                        'ohlcs' => array( 'cost' => 1 ),
+                        'klines/history' => array( 'cost' => 1 ),
                     ),
                 ),
             ),

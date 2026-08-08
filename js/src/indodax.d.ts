@@ -1,5 +1,5 @@
 import Exchange from './abstract/indodax.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, NullableDict } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, NullableDict, DepositWithdrawFee } from './base/types.js';
 /**
  * @class indodax
  * @augments Exchange
@@ -166,10 +166,20 @@ export default class indodax extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchTransactionFee(code: string, params?: {}): Promise<{
-        info: any;
+        info: Dict;
         rate: Num;
         currency: Str;
     }>;
+    /**
+     * @method
+     * @name indodax#fetchDepositWithdrawFee
+     * @description fetch the withdrawal fee for a currency; indodax charges no crypto deposit fees, see https://github.com/ccxt/ccxt/issues/25800
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    fetchDepositWithdrawFee(code: string, params?: {}): Promise<DepositWithdrawFee>;
     /**
      * @method
      * @name indodax#fetchDepositsWithdrawals

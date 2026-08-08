@@ -122,10 +122,96 @@ func (this *BithumbCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"ticker/ALL_{quoteId}", "ticker/{baseId}_{quoteId}", "orderbook/ALL_{quoteId}", "orderbook/{baseId}_{quoteId}", "transaction_history/{baseId}_{quoteId}", "network-info", "assetsstatus/multichain/ALL", "assetsstatus/multichain/{currency}", "withdraw/minimum/ALL", "withdraw/minimum/{currency}", "assetsstatus/ALL", "assetsstatus/{baseId}", "candlestick/{baseId}_{quoteId}/{interval}"},
+				"get": map[string]any{
+					"ticker/ALL_{quoteId}": map[string]any{
+						"cost": 1,
+					},
+					"ticker/{baseId}_{quoteId}": map[string]any{
+						"cost": 1,
+					},
+					"orderbook/ALL_{quoteId}": map[string]any{
+						"cost": 1,
+					},
+					"orderbook/{baseId}_{quoteId}": map[string]any{
+						"cost": 1,
+					},
+					"transaction_history/{baseId}_{quoteId}": map[string]any{
+						"cost": 1,
+					},
+					"network-info": map[string]any{
+						"cost": 1,
+					},
+					"assetsstatus/multichain/ALL": map[string]any{
+						"cost": 1,
+					},
+					"assetsstatus/multichain/{currency}": map[string]any{
+						"cost": 1,
+					},
+					"withdraw/minimum/ALL": map[string]any{
+						"cost": 1,
+					},
+					"withdraw/minimum/{currency}": map[string]any{
+						"cost": 1,
+					},
+					"assetsstatus/ALL": map[string]any{
+						"cost": 1,
+					},
+					"assetsstatus/{baseId}": map[string]any{
+						"cost": 1,
+					},
+					"candlestick/{baseId}_{quoteId}/{interval}": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"post": []any{"info/account", "info/balance", "info/wallet_address", "info/ticker", "info/orders", "info/user_transactions", "info/order_detail", "trade/place", "trade/cancel", "trade/btc_withdrawal", "trade/krw_deposit", "trade/krw_withdrawal", "trade/market_buy", "trade/market_sell", "trade/stop_limit"},
+				"post": map[string]any{
+					"info/account": map[string]any{
+						"cost": 1,
+					},
+					"info/balance": map[string]any{
+						"cost": 1,
+					},
+					"info/wallet_address": map[string]any{
+						"cost": 1,
+					},
+					"info/ticker": map[string]any{
+						"cost": 1,
+					},
+					"info/orders": map[string]any{
+						"cost": 1,
+					},
+					"info/user_transactions": map[string]any{
+						"cost": 1,
+					},
+					"info/order_detail": map[string]any{
+						"cost": 1,
+					},
+					"trade/place": map[string]any{
+						"cost": 1,
+					},
+					"trade/cancel": map[string]any{
+						"cost": 1,
+					},
+					"trade/btc_withdrawal": map[string]any{
+						"cost": 1,
+					},
+					"trade/krw_deposit": map[string]any{
+						"cost": 1,
+					},
+					"trade/krw_withdrawal": map[string]any{
+						"cost": 1,
+					},
+					"trade/market_buy": map[string]any{
+						"cost": 1,
+					},
+					"trade/market_sell": map[string]any{
+						"cost": 1,
+					},
+					"trade/stop_limit": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"fees": map[string]any{
@@ -1418,6 +1504,9 @@ func (this *BithumbCore) Sign(path any, optionalArgs ...any) any {
 		body = this.Urlencode(this.Extend(map[string]any{
 			"endpoint": endpoint,
 		}, query))
+		// bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
+		var bodyParts any = Split(body, "%20")
+		body = Join(bodyParts, "+")
 		var nonce any = ToString(this.Nonce())
 		var auth any = Add(Add(Add(Add(endpoint, "//"+"0"), body), "//"+"0"), nonce) // eslint-disable-line quotes
 		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512)

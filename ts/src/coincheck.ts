@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coincheck.js';
 import { BadSymbol, ExchangeError, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Fee, FeeString, Int, Market, NullableDict, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Fee, FeeString, Int, Market, NullableDict, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int, Status, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -122,48 +122,48 @@ export default class coincheck extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'exchange/orders/rate',
-                        'exchange_status',
-                        'order_books',
-                        'rate/{pair}',
-                        'ticker',
-                        'trades',
-                    ],
+                    'get': {
+                        'exchange/orders/rate': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange_status': { 'cost': 1 } as Endpoint<Dict>,
+                        'order_books': { 'cost': 1 } as Endpoint<Dict>,
+                        'rate/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'accounts',
-                        'accounts/balance',
-                        'accounts/leverage_balance',
-                        'bank_accounts',
-                        'deposit_money',
-                        'exchange/orders/{id}',
-                        'exchange/orders/opens',
-                        'exchange/orders/cancel_status',
-                        'exchange/orders/transactions',
-                        'exchange/orders/transactions_pagination',
-                        'exchange/leverage/positions',
-                        'lending/borrows/matches',
-                        'send_money',
-                        'withdraws',
-                    ],
-                    'post': [
-                        'bank_accounts',
-                        'deposit_money/{id}/fast',
-                        'exchange/orders',
-                        'exchange/transfers/to_leverage',
-                        'exchange/transfers/from_leverage',
-                        'lending/borrows',
-                        'lending/borrows/{id}/repay',
-                        'send_money',
-                        'withdraws',
-                    ],
-                    'delete': [
-                        'bank_accounts/{id}',
-                        'exchange/orders/{id}',
-                        'withdraws/{id}',
-                    ],
+                    'get': {
+                        'accounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'accounts/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'accounts/leverage_balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'bank_accounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'deposit_money': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/orders/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/orders/opens': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/orders/cancel_status': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/orders/transactions': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/orders/transactions_pagination': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/leverage/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'lending/borrows/matches': { 'cost': 1 } as Endpoint<Dict>,
+                        'send_money': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdraws': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'post': {
+                        'bank_accounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'deposit_money/{id}/fast': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/transfers/to_leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/transfers/from_leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'lending/borrows': { 'cost': 1 } as Endpoint<Dict>,
+                        'lending/borrows/{id}/repay': { 'cost': 1 } as Endpoint<Dict>,
+                        'send_money': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdraws': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'delete': {
+                        'bank_accounts/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/orders/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdraws/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'markets': {
@@ -292,7 +292,7 @@ export default class coincheck extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}): Promise<Dict> {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.publicGetExchangeStatus (params);
         //
         //     {

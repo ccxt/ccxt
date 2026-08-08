@@ -397,12 +397,12 @@ func (this *Backpack) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Backpack) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Backpack) FetchStatus(params ...any) (Status, error) {
 	res := <-this.Core.FetchStatus(params...)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return Status{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewStatus(res), nil
 }
 
 /**
@@ -1216,7 +1216,7 @@ func (this *Backpack) FetchPosition(symbol string, options ...FetchPositionOptio
 func (this *Backpack) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Backpack) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Backpack) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Backpack) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1345,7 +1345,7 @@ func (this *Backpack) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Backpack) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Backpack) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Backpack) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Backpack) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1390,7 +1390,7 @@ func (this *Backpack) FetchTradesWs(symbol string, options ...FetchTradesWsOptio
 func (this *Backpack) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Backpack) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Backpack) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Backpack) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

@@ -50,12 +50,12 @@ func (this *Hashkey) FetchTime(params ...any) (int64, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Hashkey) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Hashkey) FetchStatus(params ...any) (Status, error) {
 	res := <-this.Core.FetchStatus(params...)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return Status{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewStatus(res), nil
 }
 
 /**
@@ -1695,7 +1695,7 @@ func (this *Hashkey) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Hashkey) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Hashkey) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Hashkey) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Hashkey) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
@@ -1809,7 +1809,7 @@ func (this *Hashkey) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Hashkey) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Hashkey) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Hashkey) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Hashkey) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1854,7 +1854,7 @@ func (this *Hashkey) FetchTradesWs(symbol string, options ...FetchTradesWsOption
 func (this *Hashkey) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Hashkey) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Hashkey) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Hashkey) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

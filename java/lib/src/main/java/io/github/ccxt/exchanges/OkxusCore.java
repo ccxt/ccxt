@@ -45,7 +45,7 @@ public class OkxusCore extends OkxusApi
                 put( "CORS", null );
                 put( "spot", true );
                 put( "margin", null );
-                put( "swap", true );
+                put( "swap", false );
                 put( "future", false );
                 put( "option", false );
             }} );
@@ -53,6 +53,11 @@ public class OkxusCore extends OkxusApi
                 put( "future", new java.util.HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
+                }} );
+            }} );
+            put( "options", new java.util.HashMap<String, Object>() {{
+                put( "fetchMarkets", new java.util.HashMap<String, Object>() {{
+                    put( "types", new java.util.ArrayList<Object>(java.util.Arrays.asList("spot")) );
                 }} );
             }} );
         }});

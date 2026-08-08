@@ -34,7 +34,7 @@ class okxus extends okx["default"] {
                 'CORS': undefined,
                 'spot': true,
                 'margin': undefined,
-                'swap': true,
+                'swap': false,
                 'future': false,
                 'option': false,
             },
@@ -42,6 +42,11 @@ class okxus extends okx["default"] {
                 'future': {
                     'linear': undefined,
                     'inverse': undefined,
+                },
+            },
+            'options': {
+                'fetchMarkets': {
+                    'types': ['spot'], // only spot supported for now
                 },
             },
         });

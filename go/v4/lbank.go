@@ -117,76 +117,192 @@ func (this *LbankCore) Describe() any {
 			"spot": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"currencyPairs":                2.5,
-						"accuracy":                     2.5,
-						"usdToCny":                     2.5,
-						"assetConfigs":                 2.5,
-						"withdrawConfigs":              Multiply(2.5, 1.5),
-						"timestamp":                    2.5,
-						"ticker/24hr":                  2.5,
-						"ticker":                       2.5,
-						"depth":                        2.5,
-						"incrDepth":                    2.5,
-						"trades":                       2.5,
-						"kline":                        2.5,
-						"supplement/system_ping":       2.5,
-						"supplement/incrDepth":         2.5,
-						"supplement/trades":            2.5,
-						"supplement/ticker/price":      2.5,
-						"supplement/ticker/bookTicker": 2.5,
+						"currencyPairs": map[string]any{
+							"cost": 2.5,
+						},
+						"accuracy": map[string]any{
+							"cost": 2.5,
+						},
+						"usdToCny": map[string]any{
+							"cost": 2.5,
+						},
+						"assetConfigs": map[string]any{
+							"cost": 2.5,
+						},
+						"withdrawConfigs": map[string]any{
+							"cost": Multiply(2.5, 1.5),
+						},
+						"timestamp": map[string]any{
+							"cost": 2.5,
+						},
+						"ticker/24hr": map[string]any{
+							"cost": 2.5,
+						},
+						"ticker": map[string]any{
+							"cost": 2.5,
+						},
+						"depth": map[string]any{
+							"cost": 2.5,
+						},
+						"incrDepth": map[string]any{
+							"cost": 2.5,
+						},
+						"trades": map[string]any{
+							"cost": 2.5,
+						},
+						"kline": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/system_ping": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/incrDepth": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/trades": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/ticker/price": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/ticker/bookTicker": map[string]any{
+							"cost": 2.5,
+						},
 					},
 					"post": map[string]any{
-						"supplement/system_status": 2.5,
+						"supplement/system_status": map[string]any{
+							"cost": 2.5,
+						},
 					},
 				},
 				"private": map[string]any{
 					"post": map[string]any{
-						"user_info":                         2.5,
-						"subscribe/get_key":                 2.5,
-						"subscribe/refresh_key":             2.5,
-						"subscribe/destroy_key":             2.5,
-						"get_deposit_address":               2.5,
-						"deposit_history":                   2.5,
-						"create_order":                      1,
-						"batch_create_order":                1,
-						"cancel_order":                      1,
-						"cancel_clientOrders":               1,
-						"orders_info":                       2.5,
-						"orders_info_history":               2.5,
-						"order_transaction_detail":          2.5,
-						"transaction_history":               2.5,
-						"orders_info_no_deal":               2.5,
-						"withdraw":                          2.5,
-						"withdrawCancel":                    2.5,
-						"withdraws":                         2.5,
-						"supplement/user_info":              2.5,
-						"supplement/withdraw":               2.5,
-						"supplement/deposit_history":        2.5,
-						"supplement/withdraws":              2.5,
-						"supplement/get_deposit_address":    2.5,
-						"supplement/asset_detail":           2.5,
-						"supplement/customer_trade_fee":     2.5,
-						"supplement/api_Restrictions":       2.5,
-						"supplement/system_ping":            2.5,
-						"supplement/create_order_test":      1,
-						"supplement/create_order":           1,
-						"supplement/cancel_order":           1,
-						"supplement/cancel_order_by_symbol": 1,
-						"supplement/orders_info":            2.5,
-						"supplement/orders_info_no_deal":    2.5,
-						"supplement/orders_info_history":    2.5,
-						"supplement/user_info_account":      2.5,
-						"supplement/transaction_history":    2.5,
+						"user_info": map[string]any{
+							"cost": 2.5,
+						},
+						"subscribe/get_key": map[string]any{
+							"cost": 2.5,
+						},
+						"subscribe/refresh_key": map[string]any{
+							"cost": 2.5,
+						},
+						"subscribe/destroy_key": map[string]any{
+							"cost": 2.5,
+						},
+						"get_deposit_address": map[string]any{
+							"cost": 2.5,
+						},
+						"deposit_history": map[string]any{
+							"cost": 2.5,
+						},
+						"create_order": map[string]any{
+							"cost": 1,
+						},
+						"batch_create_order": map[string]any{
+							"cost": 1,
+						},
+						"cancel_order": map[string]any{
+							"cost": 1,
+						},
+						"cancel_clientOrders": map[string]any{
+							"cost": 1,
+						},
+						"orders_info": map[string]any{
+							"cost": 2.5,
+						},
+						"orders_info_history": map[string]any{
+							"cost": 2.5,
+						},
+						"order_transaction_detail": map[string]any{
+							"cost": 2.5,
+						},
+						"transaction_history": map[string]any{
+							"cost": 2.5,
+						},
+						"orders_info_no_deal": map[string]any{
+							"cost": 2.5,
+						},
+						"withdraw": map[string]any{
+							"cost": 2.5,
+						},
+						"withdrawCancel": map[string]any{
+							"cost": 2.5,
+						},
+						"withdraws": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/user_info": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/withdraw": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/deposit_history": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/withdraws": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/get_deposit_address": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/asset_detail": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/customer_trade_fee": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/api_Restrictions": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/system_ping": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/create_order_test": map[string]any{
+							"cost": 1,
+						},
+						"supplement/create_order": map[string]any{
+							"cost": 1,
+						},
+						"supplement/cancel_order": map[string]any{
+							"cost": 1,
+						},
+						"supplement/cancel_order_by_symbol": map[string]any{
+							"cost": 1,
+						},
+						"supplement/orders_info": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/orders_info_no_deal": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/orders_info_history": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/user_info_account": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/transaction_history": map[string]any{
+							"cost": 2.5,
+						},
 					},
 				},
 			},
 			"contract": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"cfd/openApi/v1/pub/getTime":     2.5,
-						"cfd/openApi/v1/pub/instrument":  2.5,
-						"cfd/openApi/v1/pub/marketData":  2.5,
-						"cfd/openApi/v1/pub/marketOrder": 2.5,
+						"cfd/openApi/v1/pub/getTime": map[string]any{
+							"cost": 2.5,
+						},
+						"cfd/openApi/v1/pub/instrument": map[string]any{
+							"cost": 2.5,
+						},
+						"cfd/openApi/v1/pub/marketData": map[string]any{
+							"cost": 2.5,
+						},
+						"cfd/openApi/v1/pub/marketOrder": map[string]any{
+							"cost": 2.5,
+						},
 					},
 				},
 			},
@@ -1509,7 +1625,7 @@ func (this *LbankCore) ParseBalance(response any) any {
 		}
 		return this.SafeBalance(result)
 	}
-	return nil
+	return this.SafeBalance(result)
 }
 func (this *LbankCore) ParseFundingRate(ticker any, optionalArgs ...any) any {
 	// {

@@ -200,102 +200,254 @@ func (this *WeexCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"api/v3/time":                     5,
-					"api/v3/coins":                    25,
-					"api/v3/exchangeInfo":             100,
-					"api/v3/ping":                     5,
-					"api/v3/apiTradingSymbols":        25,
-					"api/v3/market/ticker/price":      20,
-					"api/v3/market/ticker/24hr":       10,
-					"api/v3/market/trades":            125,
-					"api/v3/market/klines":            10,
-					"api/v3/market/depth":             25,
-					"api/v3/market/ticker/bookTicker": 20,
+					"api/v3/time": map[string]any{
+						"cost": 5,
+					},
+					"api/v3/coins": map[string]any{
+						"cost": 25,
+					},
+					"api/v3/exchangeInfo": map[string]any{
+						"cost": 100,
+					},
+					"api/v3/ping": map[string]any{
+						"cost": 5,
+					},
+					"api/v3/apiTradingSymbols": map[string]any{
+						"cost": 25,
+					},
+					"api/v3/market/ticker/price": map[string]any{
+						"cost": 20,
+					},
+					"api/v3/market/ticker/24hr": map[string]any{
+						"cost": 10,
+					},
+					"api/v3/market/trades": map[string]any{
+						"cost": 125,
+					},
+					"api/v3/market/klines": map[string]any{
+						"cost": 10,
+					},
+					"api/v3/market/depth": map[string]any{
+						"cost": 25,
+					},
+					"api/v3/market/ticker/bookTicker": map[string]any{
+						"cost": 20,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"api/v3/account/":                          5,
-					"api/v3/account/transferRecords":           3,
-					"api/v3/order":                             2,
-					"api/v3/openOrders":                        3,
-					"api/v3/allOrders":                         10,
-					"api/v3/myTrades":                          5,
-					"api/v3/rebate/affiliate/getAffiliateUIDs": 20,
-					"api/v3/rebate/affiliate/getChannelUserTradeAndAsset": 20,
-					"api/v3/rebate/affiliate/getAffiliateCommission":      20,
-					"api/v3/rebate/affiliate/getInternalWithdrawalStatus": 100,
-					"api/v3/rebate/affiliate/querySubChannelTransactions": 10,
-					"api/v3/agency/verifyReferrals":                       20,
-					"api/v3/agency/getAssert":                             20,
-					"api/v3/agency/getDealData":                           20,
+					"api/v3/account/": map[string]any{
+						"cost": 5,
+					},
+					"api/v3/account/transferRecords": map[string]any{
+						"cost": 3,
+					},
+					"api/v3/order": map[string]any{
+						"cost": 2,
+					},
+					"api/v3/openOrders": map[string]any{
+						"cost": 3,
+					},
+					"api/v3/allOrders": map[string]any{
+						"cost": 10,
+					},
+					"api/v3/myTrades": map[string]any{
+						"cost": 5,
+					},
+					"api/v3/rebate/affiliate/getAffiliateUIDs": map[string]any{
+						"cost": 20,
+					},
+					"api/v3/rebate/affiliate/getChannelUserTradeAndAsset": map[string]any{
+						"cost": 20,
+					},
+					"api/v3/rebate/affiliate/getAffiliateCommission": map[string]any{
+						"cost": 20,
+					},
+					"api/v3/rebate/affiliate/getInternalWithdrawalStatus": map[string]any{
+						"cost": 100,
+					},
+					"api/v3/rebate/affiliate/querySubChannelTransactions": map[string]any{
+						"cost": 10,
+					},
+					"api/v3/agency/verifyReferrals": map[string]any{
+						"cost": 20,
+					},
+					"api/v3/agency/getAssert": map[string]any{
+						"cost": 20,
+					},
+					"api/v3/agency/getDealData": map[string]any{
+						"cost": 20,
+					},
 				},
 				"post": map[string]any{
-					"api/v3/account/bills":                       5,
-					"api/v3/account/fundingBills":                5,
-					"api/v3/order":                               5,
-					"api/v3/order/batch":                         50,
-					"api/v3/rebate/affiliate/internalWithdrawal": 100,
+					"api/v3/account/bills": map[string]any{
+						"cost": 5,
+					},
+					"api/v3/account/fundingBills": map[string]any{
+						"cost": 5,
+					},
+					"api/v3/order": map[string]any{
+						"cost": 5,
+					},
+					"api/v3/order/batch": map[string]any{
+						"cost": 50,
+					},
+					"api/v3/rebate/affiliate/internalWithdrawal": map[string]any{
+						"cost": 100,
+					},
 				},
 				"delete": map[string]any{
-					"api/v3/order":       1,
-					"api/v3/openOrders":  1,
-					"api/v3/order/batch": 10,
+					"api/v3/order": map[string]any{
+						"cost": 1,
+					},
+					"api/v3/openOrders": map[string]any{
+						"cost": 1,
+					},
+					"api/v3/order/batch": map[string]any{
+						"cost": 10,
+					},
 				},
 			},
 			"contract": map[string]any{
 				"get": map[string]any{
-					"capi/v3/market/time":              5,
-					"capi/v3/market/exchangeInfo":      5,
-					"capi/v3/market/depth":             5,
-					"capi/v3/market/ticker/24hr":       200,
-					"capi/v3/market/ticker/bookTicker": 5,
-					"capi/v3/market/trades":            25,
-					"capi/v3/market/klines":            5,
-					"capi/v3/market/indexPriceKlines":  5,
-					"capi/v3/market/markPriceKlines":   5,
-					"capi/v3/market/historyKlines":     25,
-					"capi/v3/market/symbolPrice":       5,
-					"capi/v3/market/openInterest":      10,
-					"capi/v3/market/premiumIndex":      5,
-					"capi/v3/market/fundingRate":       25,
-					"capi/v3/market/apiTradingSymbols": 25,
+					"capi/v3/market/time": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/market/exchangeInfo": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/market/depth": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/market/ticker/24hr": map[string]any{
+						"cost": 200,
+					},
+					"capi/v3/market/ticker/bookTicker": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/market/trades": map[string]any{
+						"cost": 25,
+					},
+					"capi/v3/market/klines": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/market/indexPriceKlines": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/market/markPriceKlines": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/market/historyKlines": map[string]any{
+						"cost": 25,
+					},
+					"capi/v3/market/symbolPrice": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/market/openInterest": map[string]any{
+						"cost": 10,
+					},
+					"capi/v3/market/premiumIndex": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/market/fundingRate": map[string]any{
+						"cost": 25,
+					},
+					"capi/v3/market/apiTradingSymbols": map[string]any{
+						"cost": 25,
+					},
 				},
 			},
 			"contractPrivate": map[string]any{
 				"get": map[string]any{
-					"capi/v3/account/balance":                 10,
-					"capi/v3/account/commissionRate":          10,
-					"capi/v3/account/accountConfig":           10,
-					"capi/v3/account/symbolConfig":            10,
-					"capi/v3/account/position/allPosition":    15,
-					"capi/v3/account/position/singlePosition": 3,
-					"capi/v3/order":                           3,
-					"capi/v3/openOrders":                      5,
-					"capi/v3/order/history":                   10,
-					"capi/v3/userTrades":                      5,
-					"capi/v3/openAlgoOrders":                  3,
-					"capi/v3/allAlgoOrders":                   10,
+					"capi/v3/account/balance": map[string]any{
+						"cost": 10,
+					},
+					"capi/v3/account/commissionRate": map[string]any{
+						"cost": 10,
+					},
+					"capi/v3/account/accountConfig": map[string]any{
+						"cost": 10,
+					},
+					"capi/v3/account/symbolConfig": map[string]any{
+						"cost": 10,
+					},
+					"capi/v3/account/position/allPosition": map[string]any{
+						"cost": 15,
+					},
+					"capi/v3/account/position/singlePosition": map[string]any{
+						"cost": 3,
+					},
+					"capi/v3/order": map[string]any{
+						"cost": 3,
+					},
+					"capi/v3/openOrders": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/order/history": map[string]any{
+						"cost": 10,
+					},
+					"capi/v3/userTrades": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/openAlgoOrders": map[string]any{
+						"cost": 3,
+					},
+					"capi/v3/allAlgoOrders": map[string]any{
+						"cost": 10,
+					},
 				},
 				"post": map[string]any{
-					"capi/v3/account/income":                 5,
-					"capi/v3/account/marginType":             50,
-					"capi/v3/account/leverage":               20,
-					"capi/v3/account/positionMargin":         30,
-					"capi/v3/account/modifyAutoAppendMargin": 30,
-					"capi/v3/order":                          5,
-					"capi/v3/batchOrders":                    10,
-					"capi/v3/closePositions":                 50,
-					"capi/v3/algoOrder":                      5,
-					"capi/v3/placeTpSlOrder":                 5,
-					"capi/v3/modifyTpSlOrder":                5,
+					"capi/v3/account/income": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/account/marginType": map[string]any{
+						"cost": 50,
+					},
+					"capi/v3/account/leverage": map[string]any{
+						"cost": 20,
+					},
+					"capi/v3/account/positionMargin": map[string]any{
+						"cost": 30,
+					},
+					"capi/v3/account/modifyAutoAppendMargin": map[string]any{
+						"cost": 30,
+					},
+					"capi/v3/order": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/batchOrders": map[string]any{
+						"cost": 10,
+					},
+					"capi/v3/closePositions": map[string]any{
+						"cost": 50,
+					},
+					"capi/v3/algoOrder": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/placeTpSlOrder": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/modifyTpSlOrder": map[string]any{
+						"cost": 5,
+					},
 				},
 				"delete": map[string]any{
-					"capi/v3/order":          3,
-					"capi/v3/batchOrders":    10,
-					"capi/v3/allOpenOrders":  10,
-					"capi/v3/algoOrder":      3,
-					"capi/v3/algoOpenOrders": 10,
+					"capi/v3/order": map[string]any{
+						"cost": 3,
+					},
+					"capi/v3/batchOrders": map[string]any{
+						"cost": 10,
+					},
+					"capi/v3/allOpenOrders": map[string]any{
+						"cost": 10,
+					},
+					"capi/v3/algoOrder": map[string]any{
+						"cost": 3,
+					},
+					"capi/v3/algoOpenOrders": map[string]any{
+						"cost": 10,
+					},
 				},
 			},
 		},
@@ -430,7 +582,7 @@ func (this *WeexCore) Describe() any {
 				"ETH":      "ERC20",
 				"POLYGON":  "POLYGON(MATIC)",
 				"MATIC":    "POLYGON(MATIC)",
-				"ARBONE":   "ARBITRUM(ARB)",
+				"ARBITRUM": "ARBITRUM(ARB)",
 				"SOL":      "SOLANA(SOL)",
 				"OP":       "OPTIMISM(OP)",
 				"OPTIMISM": "OPTIMISM(OP)",
@@ -440,7 +592,7 @@ func (this *WeexCore) Describe() any {
 				"BEP20(BSC)":          "BEP20",
 				"ERC20":               "ERC20",
 				"POLYGON(MATIC)":      "MATIC",
-				"ARBITRUM(ARB)":       "ARBONE",
+				"ARBITRUM(ARB)":       "ARBITRUM",
 				"SOLANA(SOL)":         "SOL",
 				"OPTIMISM(OP)":        "OP",
 				"AVALANCHE_C(AVAX_C)": "AVAXC",
@@ -1472,7 +1624,7 @@ func (this *WeexCore) FetchSpotOHLCV(symbol any, optionalArgs ...any) <-chan any
 		response := (<-this.PublicGetApiV3MarketKlines(this.Extend(request, params)))
 		PanicOnError(response)
 
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
 		return nil
 
 	}()
@@ -1596,7 +1748,7 @@ func (this *WeexCore) FetchContractOHLCV(symbol any, optionalArgs ...any) <-chan
 			}
 		}
 
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
 		return nil
 
 	}()
@@ -1668,7 +1820,7 @@ func (this *WeexCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		//
 		var responseList any = []any{}
 		if IsTrue(!IsEqual(response, nil)) {
-			responseList = response
+			responseList = this.ToArray(response)
 		}
 
 		ch <- this.ParseTrades(responseList, market, since, limit)
@@ -3716,7 +3868,7 @@ func (this *WeexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		var responseList any = []any{}
 		if IsTrue(!IsEqual(response, nil)) {
-			responseList = response
+			responseList = this.ToArray(response)
 		}
 
 		ch <- this.ParseTrades(responseList, market, since, limit)
@@ -3829,8 +3981,9 @@ func (this *WeexCore) FetchLedger(optionalArgs ...any) <-chan any {
 			request = GetValue(requestparamsVariable, 0)
 			params = GetValue(requestparamsVariable, 1)
 
-			items = (<-this.PrivatePostApiV3AccountBills(this.Extend(request, params)))
-			PanicOnError(items)
+			billsResponse := (<-this.PrivatePostApiV3AccountBills(this.Extend(request, params)))
+			PanicOnError(billsResponse)
+			items = this.ToArray(billsResponse)
 		}
 
 		ch <- this.ParseLedger(items, currency, since, limit)
@@ -3964,8 +4117,8 @@ func (this *WeexCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes331912 := (<-this.LoadMarkets())
-			PanicOnError(retRes331912)
+			retRes332012 := (<-this.LoadMarkets())
+			PanicOnError(retRes332012)
 		}
 		symbols = this.MarketSymbols(symbols)
 
@@ -4025,8 +4178,8 @@ func (this *WeexCore) FetchPositionsForSymbol(symbol any, optionalArgs ...any) <
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes335212 := (<-this.LoadMarkets())
-			PanicOnError(retRes335212)
+			retRes335312 := (<-this.LoadMarkets())
+			PanicOnError(retRes335312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -4180,8 +4333,8 @@ func (this *WeexCore) CloseAllPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes349112 := (<-this.LoadMarkets())
-			PanicOnError(retRes349112)
+			retRes349212 := (<-this.LoadMarkets())
+			PanicOnError(retRes349212)
 		}
 
 		response := (<-this.ContractPrivatePostCapiV3ClosePositions(params))
@@ -4225,8 +4378,8 @@ func (this *WeexCore) ClosePosition(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes351912 := (<-this.LoadMarkets())
-			PanicOnError(retRes351912)
+			retRes352012 := (<-this.LoadMarkets())
+			PanicOnError(retRes352012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -4262,8 +4415,8 @@ func (this *WeexCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes354112 := (<-this.LoadMarkets())
-			PanicOnError(retRes354112)
+			retRes354212 := (<-this.LoadMarkets())
+			PanicOnError(retRes354212)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(GetValue(market, "spot")) {
@@ -4329,8 +4482,8 @@ func (this *WeexCore) FetchMarginMode(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes359312 := (<-this.LoadMarkets())
-			PanicOnError(retRes359312)
+			retRes359412 := (<-this.LoadMarkets())
+			PanicOnError(retRes359412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -4380,15 +4533,15 @@ func (this *WeexCore) FetchMarginModes(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes362712 := (<-this.LoadMarkets())
-			PanicOnError(retRes362712)
+			retRes362812 := (<-this.LoadMarkets())
+			PanicOnError(retRes362812)
 		}
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.ContractPrivateGetCapiV3AccountSymbolConfig(params))
 		PanicOnError(response)
 
-		ch <- this.ParseMarginModes(response, symbols, "symbol", "swap")
+		ch <- this.ParseMarginModes(this.ToArray(response), symbols, "symbol", "swap")
 		return nil
 
 	}()
@@ -4437,8 +4590,8 @@ func (this *WeexCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan 
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes366712 := (<-this.LoadMarkets())
-			PanicOnError(retRes366712)
+			retRes366812 := (<-this.LoadMarkets())
+			PanicOnError(retRes366812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -4446,9 +4599,9 @@ func (this *WeexCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan 
 			"marginType": this.EncodeMarginMode(marginMode),
 		}
 
-		retRes367415 := (<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params)))
-		PanicOnError(retRes367415)
-		ch <- retRes367415
+		retRes367515 := (<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params)))
+		PanicOnError(retRes367515)
+		ch <- retRes367515
 		return nil
 
 	}()
@@ -4484,8 +4637,8 @@ func (this *WeexCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes370012 := (<-this.LoadMarkets())
-			PanicOnError(retRes370012)
+			retRes370112 := (<-this.LoadMarkets())
+			PanicOnError(retRes370112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -4523,15 +4676,15 @@ func (this *WeexCore) FetchLeverages(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes372212 := (<-this.LoadMarkets())
-			PanicOnError(retRes372212)
+			retRes372312 := (<-this.LoadMarkets())
+			PanicOnError(retRes372312)
 		}
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.ContractPrivateGetCapiV3AccountSymbolConfig(params))
 		PanicOnError(response)
 
-		ch <- this.ParseLeverages(response, symbols, "symbol", "swap")
+		ch <- this.ParseLeverages(this.ToArray(response), symbols, "symbol", "swap")
 		return nil
 
 	}()
@@ -4592,8 +4745,8 @@ func (this *WeexCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any 
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes377312 := (<-this.LoadMarkets())
-			PanicOnError(retRes377312)
+			retRes377412 := (<-this.LoadMarkets())
+			PanicOnError(retRes377412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -4618,9 +4771,9 @@ func (this *WeexCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any 
 			}
 		}
 
-		retRes379515 := (<-this.ContractPrivatePostCapiV3AccountLeverage(this.Extend(request, params)))
-		PanicOnError(retRes379515)
-		ch <- retRes379515
+		retRes379615 := (<-this.ContractPrivatePostCapiV3AccountLeverage(this.Extend(request, params)))
+		PanicOnError(retRes379615)
+		ch <- retRes379615
 		return nil
 
 	}()
@@ -4647,8 +4800,8 @@ func (this *WeexCore) FetchPositionMode(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes380912 := (<-this.LoadMarkets())
-			PanicOnError(retRes380912)
+			retRes381012 := (<-this.LoadMarkets())
+			PanicOnError(retRes381012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -4695,8 +4848,8 @@ func (this *WeexCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan an
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes384012 := (<-this.LoadMarkets())
-			PanicOnError(retRes384012)
+			retRes384112 := (<-this.LoadMarkets())
+			PanicOnError(retRes384112)
 		}
 		var market any = this.Market(symbol)
 		var marginMode any = nil
@@ -4713,9 +4866,9 @@ func (this *WeexCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan an
 			"separatedType": separatedType,
 		}
 
-		retRes385415 := (<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params)))
-		PanicOnError(retRes385415)
-		ch <- retRes385415
+		retRes385515 := (<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params)))
+		PanicOnError(retRes385515)
+		ch <- retRes385515
 		return nil
 
 	}()
@@ -4730,8 +4883,8 @@ func (this *WeexCore) ModifyMarginHelper(symbol any, amount any, typeVar any, op
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes385912 := (<-this.LoadMarkets())
-			PanicOnError(retRes385912)
+			retRes386012 := (<-this.LoadMarkets())
+			PanicOnError(retRes386012)
 		}
 		var isolatedPositionId any = this.SafeStringN(params, []any{"positionId", "id", "isolatedPositionId"})
 		if IsTrue(IsEqual(isolatedPositionId, nil)) {
@@ -4804,9 +4957,9 @@ func (this *WeexCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes391715 := (<-this.ModifyMarginHelper(symbol, amount, 2, params))
-		PanicOnError(retRes391715)
-		ch <- retRes391715
+		retRes391815 := (<-this.ModifyMarginHelper(symbol, amount, 2, params))
+		PanicOnError(retRes391815)
+		ch <- retRes391815
 		return nil
 
 	}()
@@ -4832,9 +4985,9 @@ func (this *WeexCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-c
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes393215 := (<-this.ModifyMarginHelper(symbol, amount, 1, params))
-		PanicOnError(retRes393215)
-		ch <- retRes393215
+		retRes393315 := (<-this.ModifyMarginHelper(symbol, amount, 1, params))
+		PanicOnError(retRes393315)
+		ch <- retRes393315
 		return nil
 
 	}()

@@ -1099,7 +1099,7 @@ func (this *Poloniex) FetchLeverage(symbol string, options ...FetchLeverageOptio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Poloniex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Poloniex) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 
 	opts := FetchPositionModeOptionsStruct{}
 
@@ -1118,9 +1118,9 @@ func (this *Poloniex) FetchPositionMode(options ...FetchPositionModeOptions) (ma
 	}
 	res := <-this.Core.FetchPositionMode(symbol, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return PositionModeInfo{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewPositionModeInfo(res), nil
 }
 
 /**
@@ -1463,7 +1463,7 @@ func (this *Poloniex) FetchPositionsRisk(options ...FetchPositionsRiskOptions) (
 func (this *Poloniex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Poloniex) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Poloniex) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Poloniex) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
@@ -1571,7 +1571,7 @@ func (this *Poloniex) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Poloniex) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Poloniex) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Poloniex) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Poloniex) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1616,7 +1616,7 @@ func (this *Poloniex) FetchTradesWs(symbol string, options ...FetchTradesWsOptio
 func (this *Poloniex) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Poloniex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Poloniex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Poloniex) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

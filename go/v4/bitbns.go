@@ -82,14 +82,126 @@ func (this *BitbnsCore) Describe() any {
 		},
 		"api": map[string]any{
 			"www": map[string]any{
-				"get": []any{"order/fetchMarkets", "order/fetchTickers", "order/fetchOrderbook", "order/getTickerWithVolume", "exchangeData/ohlc", "exchangeData/orderBook", "exchangeData/tradedetails"},
+				"get": map[string]any{
+					"order/fetchMarkets": map[string]any{
+						"cost": 1,
+					},
+					"order/fetchTickers": map[string]any{
+						"cost": 1,
+					},
+					"order/fetchOrderbook": map[string]any{
+						"cost": 1,
+					},
+					"order/getTickerWithVolume": map[string]any{
+						"cost": 1,
+					},
+					"exchangeData/ohlc": map[string]any{
+						"cost": 1,
+					},
+					"exchangeData/orderBook": map[string]any{
+						"cost": 1,
+					},
+					"exchangeData/tradedetails": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"v1": map[string]any{
-				"get":  []any{"platform/status", "tickers", "orderbook/sell/{symbol}", "orderbook/buy/{symbol}"},
-				"post": []any{"currentCoinBalance/EVERYTHING", "getApiUsageStatus/USAGE", "getOrderSocketToken/USAGE", "currentCoinBalance/{symbol}", "orderStatus/{symbol}", "depositHistory/{symbol}", "withdrawHistory/{symbol}", "withdrawHistoryAll/{symbol}", "depositHistoryAll/{symbol}", "listOpenOrders/{symbol}", "listOpenStopOrders/{symbol}", "getCoinAddress/{symbol}", "placeSellOrder/{symbol}", "placeBuyOrder/{symbol}", "buyStopLoss/{symbol}", "sellStopLoss/{symbol}", "cancelOrder/{symbol}", "cancelStopLossOrder/{symbol}", "listExecutedOrders/{symbol}", "placeMarketOrder/{symbol}", "placeMarketOrderQnty/{symbol}"},
+				"get": map[string]any{
+					"platform/status": map[string]any{
+						"cost": 1,
+					},
+					"tickers": map[string]any{
+						"cost": 1,
+					},
+					"orderbook/sell/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"orderbook/buy/{symbol}": map[string]any{
+						"cost": 1,
+					},
+				},
+				"post": map[string]any{
+					"currentCoinBalance/EVERYTHING": map[string]any{
+						"cost": 1,
+					},
+					"getApiUsageStatus/USAGE": map[string]any{
+						"cost": 1,
+					},
+					"getOrderSocketToken/USAGE": map[string]any{
+						"cost": 1,
+					},
+					"currentCoinBalance/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"orderStatus/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"depositHistory/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"withdrawHistory/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"withdrawHistoryAll/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"depositHistoryAll/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"listOpenOrders/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"listOpenStopOrders/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"getCoinAddress/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"placeSellOrder/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"placeBuyOrder/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"buyStopLoss/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"sellStopLoss/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"cancelOrder/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"cancelStopLossOrder/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"listExecutedOrders/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"placeMarketOrder/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"placeMarketOrderQnty/{symbol}": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"v2": map[string]any{
-				"post": []any{"orders", "cancel", "getordersnew", "marginOrders"},
+				"post": map[string]any{
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"cancel": map[string]any{
+						"cost": 1,
+					},
+					"getordersnew": map[string]any{
+						"cost": 1,
+					},
+					"marginOrders": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"fees": map[string]any{
@@ -262,8 +374,9 @@ func (this *BitbnsCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		//     ]
 		//
 		var result any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var market any = GetValue(response, i)
+		var rawMarkets any = this.ToArray(response)
+		for i := 0; IsLessThan(i, GetArrayLength(rawMarkets)); i++ {
+			var market any = GetValue(rawMarkets, i)
 			var id any = this.SafeString(market, "id")
 			var baseId any = this.SafeString(market, "base")
 			var quoteId any = this.SafeString(market, "quote")
@@ -356,8 +469,8 @@ func (this *BitbnsCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes36812 := (<-this.LoadMarkets())
-			PanicOnError(retRes36812)
+			retRes36912 := (<-this.LoadMarkets())
+			PanicOnError(retRes36912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -474,8 +587,8 @@ func (this *BitbnsCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes46812 := (<-this.LoadMarkets())
-			PanicOnError(retRes46812)
+			retRes46912 := (<-this.LoadMarkets())
+			PanicOnError(retRes46912)
 		}
 
 		response := (<-this.WwwGetOrderFetchTickers(params))
@@ -566,8 +679,8 @@ func (this *BitbnsCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes54612 := (<-this.LoadMarkets())
-			PanicOnError(retRes54612)
+			retRes54712 := (<-this.LoadMarkets())
+			PanicOnError(retRes54712)
 		}
 
 		response := (<-this.V1PostCurrentCoinBalanceEVERYTHING(params))
@@ -715,8 +828,8 @@ func (this *BitbnsCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes68412 := (<-this.LoadMarkets())
-			PanicOnError(retRes68412)
+			retRes68512 := (<-this.LoadMarkets())
+			PanicOnError(retRes68512)
 		}
 		var market any = this.Market(symbol)
 		var triggerPrice any = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "t_rate"})
@@ -794,8 +907,8 @@ func (this *BitbnsCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes74912 := (<-this.LoadMarkets())
-			PanicOnError(retRes74912)
+			retRes75012 := (<-this.LoadMarkets())
+			PanicOnError(retRes75012)
 		}
 		var market any = this.Market(symbol)
 		var isTrigger any = this.SafeBool2(params, "trigger", "stop")
@@ -845,8 +958,8 @@ func (this *BitbnsCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes78312 := (<-this.LoadMarkets())
-			PanicOnError(retRes78312)
+			retRes78412 := (<-this.LoadMarkets())
+			PanicOnError(retRes78412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -926,8 +1039,8 @@ func (this *BitbnsCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes84312 := (<-this.LoadMarkets())
-			PanicOnError(retRes84312)
+			retRes84412 := (<-this.LoadMarkets())
+			PanicOnError(retRes84412)
 		}
 		var market any = this.Market(symbol)
 		var isTrigger any = this.SafeBool2(params, "trigger", "stop")
@@ -1080,8 +1193,8 @@ func (this *BitbnsCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes97512 := (<-this.LoadMarkets())
-			PanicOnError(retRes97512)
+			retRes97612 := (<-this.LoadMarkets())
+			PanicOnError(retRes97612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1170,8 +1283,8 @@ func (this *BitbnsCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes104612 := (<-this.LoadMarkets())
-			PanicOnError(retRes104612)
+			retRes104712 := (<-this.LoadMarkets())
+			PanicOnError(retRes104712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1224,8 +1337,8 @@ func (this *BitbnsCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes107912 := (<-this.LoadMarkets())
-			PanicOnError(retRes107912)
+			retRes108012 := (<-this.LoadMarkets())
+			PanicOnError(retRes108012)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -1295,8 +1408,8 @@ func (this *BitbnsCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes112912 := (<-this.LoadMarkets())
-			PanicOnError(retRes112912)
+			retRes113012 := (<-this.LoadMarkets())
+			PanicOnError(retRes113012)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -1428,8 +1541,8 @@ func (this *BitbnsCore) FetchDepositAddress(code any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes124212 := (<-this.LoadMarkets())
-			PanicOnError(retRes124212)
+			retRes124312 := (<-this.LoadMarkets())
+			PanicOnError(retRes124312)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{

@@ -6,13 +6,17 @@ import Exchange from './abstract/coinbaseexchange.js';
 import { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, OrderNotFound, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, CurrencyInterface, Num, Account, Currencies, TradingFees, Dict, Fee, int, List, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, CurrencyInterface, Num, Account, Currencies, TradingFees, Dict, Fee, int, List, LedgerEntry, DepositAddress, NullableDict, Endpoint } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
 /**
  * @class coinbaseexchange
  * @augments Exchange
+ * @description This is the institutional Coinbase Exchange API class (exchange.coinbase.com), the venue formerly
+ * served by Coinbase Pro's backend. Credentials for it are issued through Coinbase's Exchange API program and are
+ * separate from regular coinbase.com keys - retail Coinbase.com / Advanced Trade accounts should use the coinbase
+ * class instead. For Coinbase International derivatives see coinbaseinternational.
  */
 export default class coinbaseexchange extends Exchange {
     override describe (): any {
@@ -162,100 +166,100 @@ export default class coinbaseexchange extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'currencies',
-                        'products',
-                        'products/{id}',
-                        'products/{id}/book',
-                        'products/{id}/candles',
-                        'products/{id}/stats',
-                        'products/{id}/ticker',
-                        'products/{id}/trades',
-                        'time',
-                        'products/spark-lines', // experimental,
-                        'products/volume-summary',
-                    ],
+                    'get': {
+                        'currencies': { 'cost': 1 } as Endpoint<List>,
+                        'products': { 'cost': 1 } as Endpoint<List>,
+                        'products/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'products/{id}/book': { 'cost': 1 } as Endpoint<Dict>,
+                        'products/{id}/candles': { 'cost': 1 } as Endpoint<List>,
+                        'products/{id}/stats': { 'cost': 1 } as Endpoint<Dict>,
+                        'products/{id}/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'products/{id}/trades': { 'cost': 1 } as Endpoint<List>,
+                        'time': { 'cost': 1 } as Endpoint<Dict>,
+                        'products/spark-lines': { 'cost': 1 } as Endpoint<Dict>,
+                        'products/volume-summary': { 'cost': 1 } as Endpoint<List>,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'address-book',
-                        'accounts',
-                        'accounts/{id}',
-                        'accounts/{id}/holds',
-                        'accounts/{id}/ledger',
-                        'accounts/{id}/transfers',
-                        'coinbase-accounts',
-                        'fills',
-                        'funding',
-                        'fees',
-                        'margin/profile_information',
-                        'margin/buying_power',
-                        'margin/withdrawal_power',
-                        'margin/withdrawal_power_all',
-                        'margin/exit_plan',
-                        'margin/liquidation_history',
-                        'margin/position_refresh_amounts',
-                        'margin/status',
-                        'oracle',
-                        'orders',
-                        'orders/{id}',
-                        'orders/client:{client_oid}',
-                        'otc/orders',
-                        'payment-methods',
-                        'position',
-                        'profiles',
-                        'profiles/{id}',
-                        'reports/{report_id}',
-                        'transfers',
-                        'transfers/{transfer_id}',
-                        'users/self/exchange-limits',
-                        'users/self/hold-balances',
-                        'users/self/trailing-volume',
-                        'withdrawals/fee-estimate',
-                        'conversions/{conversion_id}',
-                        'conversions',
-                        'conversions/fees',
-                        'loans/lending-overview',
-                        'loans/lending-overview-xm',
-                        'loans/loan-preview',
-                        'loans/loan-preview-xm',
-                        'loans/repayment-preview',
-                        'loans/repayment-preview-xm',
-                        'loans/interest/{loan_id}',
-                        'loans/interest/history/{loan_id}',
-                        'loans/interest',
-                        'loans/assets',
-                        'loans',
-                    ],
-                    'post': [
-                        'conversions',
-                        'deposits/coinbase-account',
-                        'deposits/payment-method',
-                        'coinbase-accounts/{id}/addresses',
-                        'funding/repay',
-                        'orders',
-                        'position/close',
-                        'profiles',
-                        'profiles/margin-transfer',
-                        'profiles/transfer',
-                        'reports',
-                        'withdrawals/coinbase',
-                        'withdrawals/coinbase-account',
-                        'withdrawals/crypto',
-                        'withdrawals/payment-method',
-                        'loans/open',
-                        'loans/repay-interest',
-                        'loans/repay-principal',
-                    ],
-                    'delete': [
-                        'orders',
-                        'orders/client:{client_oid}',
-                        'orders/{id}',
-                    ],
-                    'put': [
-                        'profiles/{id}/deactivate',
-                        'profiles/{id}',
-                    ],
+                    'get': {
+                        'address-book': { 'cost': 1 } as Endpoint<List>,
+                        'accounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'accounts/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'accounts/{id}/holds': { 'cost': 1 } as Endpoint<List>,
+                        'accounts/{id}/ledger': { 'cost': 1 } as Endpoint<List>,
+                        'accounts/{id}/transfers': { 'cost': 1 } as Endpoint<List>,
+                        'coinbase-accounts': { 'cost': 1 } as Endpoint<List>,
+                        'fills': { 'cost': 1 } as Endpoint<List>,
+                        'funding': { 'cost': 1 } as Endpoint<Dict>,
+                        'fees': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/profile_information': { 'cost': 1 } as Endpoint<List>,
+                        'margin/buying_power': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/withdrawal_power': { 'cost': 1 } as Endpoint<List>,
+                        'margin/withdrawal_power_all': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/exit_plan': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/liquidation_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/position_refresh_amounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/status': { 'cost': 1 } as Endpoint<Dict>,
+                        'oracle': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders': { 'cost': 1 } as Endpoint<List>,
+                        'orders/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/client:{client_oid}': { 'cost': 1 } as Endpoint<Dict>,
+                        'otc/orders': { 'cost': 1 } as Endpoint<List>,
+                        'payment-methods': { 'cost': 1 } as Endpoint<List>,
+                        'position': { 'cost': 1 } as Endpoint<List>,
+                        'profiles': { 'cost': 1 } as Endpoint<List>,
+                        'profiles/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'reports/{report_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfers': { 'cost': 1 } as Endpoint<List>,
+                        'transfers/{transfer_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/self/exchange-limits': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/self/hold-balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/self/trailing-volume': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawals/fee-estimate': { 'cost': 1 } as Endpoint<Dict>,
+                        'conversions/{conversion_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'conversions': { 'cost': 1 } as Endpoint<List>,
+                        'conversions/fees': { 'cost': 1 } as Endpoint<List>,
+                        'loans/lending-overview': { 'cost': 1 } as Endpoint<Dict>,
+                        'loans/lending-overview-xm': { 'cost': 1 } as Endpoint<Dict>,
+                        'loans/loan-preview': { 'cost': 1 } as Endpoint<Dict>,
+                        'loans/loan-preview-xm': { 'cost': 1 } as Endpoint<Dict>,
+                        'loans/repayment-preview': { 'cost': 1 } as Endpoint<Dict>,
+                        'loans/repayment-preview-xm': { 'cost': 1 } as Endpoint<Dict>,
+                        'loans/interest/{loan_id}': { 'cost': 1 } as Endpoint<List>,
+                        'loans/interest/history/{loan_id}': { 'cost': 1 } as Endpoint<List>,
+                        'loans/interest': { 'cost': 1 } as Endpoint<List>,
+                        'loans/assets': { 'cost': 1 } as Endpoint<Dict>,
+                        'loans': { 'cost': 1 } as Endpoint<List>,
+                    },
+                    'post': {
+                        'conversions': { 'cost': 1 } as Endpoint<Dict>,
+                        'deposits/coinbase-account': { 'cost': 1 } as Endpoint<Dict>,
+                        'deposits/payment-method': { 'cost': 1 } as Endpoint<Dict>,
+                        'coinbase-accounts/{id}/addresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'funding/repay': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'position/close': { 'cost': 1 } as Endpoint<Dict>,
+                        'profiles': { 'cost': 1 } as Endpoint<Dict>,
+                        'profiles/margin-transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'profiles/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'reports': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawals/coinbase': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawals/coinbase-account': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawals/crypto': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawals/payment-method': { 'cost': 1 } as Endpoint<Dict>,
+                        'loans/open': { 'cost': 1 } as Endpoint<Dict>,
+                        'loans/repay-interest': { 'cost': 1 } as Endpoint<Dict>,
+                        'loans/repay-principal': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'delete': {
+                        'orders': { 'cost': 1 } as Endpoint<List>,
+                        'orders/client:{client_oid}': { 'cost': 1 } as Endpoint<string>,
+                        'orders/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'put': {
+                        'profiles/{id}/deactivate': { 'cost': 1 } as Endpoint<Dict>,
+                        'profiles/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'commonCurrencies': {
@@ -379,7 +383,7 @@ export default class coinbaseexchange extends Exchange {
                     // TRON unsupported
                     'SOL': 'solana',
                     // BSC unsupported
-                    'ARBONE': 'arbitrum',
+                    'ARBITRUM': 'arbitrum',
                     'AVAXC': 'avacchain',
                     'MATIC': 'polygon',
                     'BASE': 'base',
@@ -638,8 +642,9 @@ export default class coinbaseexchange extends Exchange {
         //     ]
         //
         const result: Market[] = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
+        const rawMarkets = this.toArray (response);
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const market = rawMarkets[i];
             const id = this.safeString (market, 'id');
             const [ baseId, quoteId ] = (id as string).split ('-');
             // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
@@ -734,7 +739,8 @@ export default class coinbaseexchange extends Exchange {
         //         },
         //     ]
         //
-        return this.parseAccounts (response, params);
+        const accounts = this.toArray (response);
+        return this.parseAccounts (accounts, params);
     }
 
     override parseAccount (account: any) {
@@ -1283,7 +1289,7 @@ export default class coinbaseexchange extends Exchange {
         //         [1591514040,0.02505,0.02507,0.02505,0.02507,0.19918178]
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
     }
 
     /**
@@ -1682,7 +1688,7 @@ export default class coinbaseexchange extends Exchange {
         return [ this.safeOrder ({ 'info': response }) ];
     }
 
-    override async fetchPaymentMethods (params = {}) {
+    override async fetchPaymentMethods (params = {}): Promise<Dict> {
         return await this.privateGetPaymentMethods (params);
     }
 
@@ -1861,10 +1867,11 @@ export default class coinbaseexchange extends Exchange {
             request['end_date'] = this.iso8601 (until);
         }
         const response = await this.privateGetAccountsIdLedger (this.extend (request, params));
-        for (let i = 0; i < response.length; i++) {
-            response[i]['currency'] = code;
+        const entries = this.toArray (response);
+        for (let i = 0; i < entries.length; i++) {
+            entries[i]['currency'] = code;
         }
-        return this.parseLedger (response, currency, since, limit);
+        return this.parseLedger (entries, currency, since, limit);
     }
 
     /**
@@ -1907,7 +1914,7 @@ export default class coinbaseexchange extends Exchange {
         }
         let response: List;
         if (id === undefined) {
-            response = await this.privateGetTransfers (this.extend (request, params));
+            const transfers = await this.privateGetTransfers (this.extend (request, params));
             //
             //    [
             //        {
@@ -1936,6 +1943,7 @@ export default class coinbaseexchange extends Exchange {
             //        }
             //    ]
             //
+            response = this.toArray (transfers);
             for (let i = 0; i < response.length; i++) {
                 const account_id = this.safeString (response[i], 'account_id');
                 const account = this.safeValue (this.accountsById, account_id);
@@ -1943,7 +1951,7 @@ export default class coinbaseexchange extends Exchange {
                 response[i]['currency'] = codeInner;
             }
         } else {
-            response = await this.privateGetAccountsIdTransfers (this.extend (request, params));
+            const accountTransfers = await this.privateGetAccountsIdTransfers (this.extend (request, params));
             //
             //    [
             //        {
@@ -1970,6 +1978,7 @@ export default class coinbaseexchange extends Exchange {
             //        }
             //    ]
             //
+            response = this.toArray (accountTransfers);
             for (let i = 0; i < response.length; i++) {
                 response[i]['currency'] = code;
             }
@@ -2167,7 +2176,7 @@ export default class coinbaseexchange extends Exchange {
                 }
             }
             const what = nonce + method + request + payload;
-            let secret: any = undefined;
+            let secret: Uint8Array | undefined = undefined;
             try {
                 secret = this.base64ToBinary (this.secret);
             } catch (e) {

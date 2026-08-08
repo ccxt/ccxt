@@ -60,6 +60,13 @@ class lbank extends lbank$1["default"] {
         this.unlockId();
         return newValue;
     }
+    checkContractMarket(market, methodName) {
+        // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
+        // see https://github.com/ccxt/ccxt/issues/26864
+        if ((market !== undefined) && market['contract']) {
+            throw new errors.NotSupported(this.id + ' ' + methodName + '() does not support ' + market['type'] + ' markets yet');
+        }
+    }
     /**
      * @method
      * @name lbank#fetchOHLCVWs
@@ -77,6 +84,7 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'fetchOHLCVWs');
         const url = this.urls['api']['ws'];
         const watchOHLCVOptions = this.safeValue(this.options, 'watchOHLCV', {});
         const timeframes = this.safeValue(watchOHLCVOptions, 'timeframes', {});
@@ -115,6 +123,7 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'watchOHLCV');
         const watchOHLCVOptions = this.safeValue(this.options, 'watchOHLCV', {});
         const timeframes = this.safeValue(watchOHLCVOptions, 'timeframes', {});
         const timeframeId = this.safeString(timeframes, timeframe, timeframe);
@@ -252,6 +261,7 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'fetchTickerWs');
         const url = this.urls['api']['ws'];
         const messageHash = 'fetchTicker:' + market['symbol'];
         const message = {
@@ -277,6 +287,7 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'watchTicker');
         const url = this.urls['api']['ws'];
         const messageHash = 'ticker:' + market['symbol'];
         const message = {
@@ -384,6 +395,7 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'fetchTradesWs');
         const url = this.urls['api']['ws'];
         const messageHash = 'fetchTrades:' + market['symbol'];
         if (limit === undefined) {
@@ -415,6 +427,7 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'watchTrades');
         const url = this.urls['api']['ws'];
         const messageHash = 'trades:' + market['symbol'];
         const message = {
@@ -758,6 +771,7 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'fetchOrderBookWs');
         const url = this.urls['api']['ws'];
         const messageHash = 'fetchOrderbook:' + market['symbol'];
         if (limit === undefined) {
@@ -788,6 +802,7 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'watchOrderBook');
         const url = this.urls['api']['ws'];
         const messageHash = 'orderbook:' + market['symbol'];
         params = this.omit(params, 'aggregation');

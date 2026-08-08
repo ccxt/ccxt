@@ -7,7 +7,7 @@ import type { Balances, Currency, Dict, NullableDict, List, Int, Market, Num, OH
 export default class upbit extends Exchange {
     describe(): any;
     fetchCurrency(code: string, params?: {}): Promise<{
-        info: any;
+        info: Dict;
         id: Str;
         code: Str;
         name: Str;
@@ -22,7 +22,7 @@ export default class upbit extends Exchange {
         };
     }>;
     fetchCurrencyById(id: string, params?: {}): Promise<{
-        info: any;
+        info: Dict;
         id: Str;
         code: Str;
         name: Str;

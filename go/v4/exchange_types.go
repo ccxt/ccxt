@@ -1635,14 +1635,14 @@ func NewOption(data any) Option {
 		Symbol:            SafeStringTyped(data, "symbol"),
 		Timestamp:         SafeInt64Typed(data, "timestamp"),
 		Datetime:          SafeStringTyped(data, "datetime"),
-		ImpliedVolatility: SafeFloatTyped(data, "bidVolume"),
+		ImpliedVolatility: SafeFloatTyped(data, "impliedVolatility"),
 		OpenInterest:      SafeFloatTyped(data, "openInterest"),
-		BidPrice:          SafeFloatTyped(data, "askVolume"),
-		AskPrice:          SafeFloatTyped(data, "vwap"),
-		MidPrice:          SafeFloatTyped(data, "open"),
-		MarkPrice:         SafeFloatTyped(data, "close"),
-		LastPrice:         SafeFloatTyped(data, "last"),
-		UnderlyingPrice:   SafeFloatTyped(data, "previousClose"),
+		BidPrice:          SafeFloatTyped(data, "bidPrice"),
+		AskPrice:          SafeFloatTyped(data, "askPrice"),
+		MidPrice:          SafeFloatTyped(data, "midPrice"),
+		MarkPrice:         SafeFloatTyped(data, "markPrice"),
+		LastPrice:         SafeFloatTyped(data, "lastPrice"),
+		UnderlyingPrice:   SafeFloatTyped(data, "underlyingPrice"),
 		Change:            SafeFloatTyped(data, "change"),
 		Percentage:        SafeFloatTyped(data, "percentage"),
 		BaseVolume:        SafeFloatTyped(data, "baseVolume"),
@@ -1739,7 +1739,7 @@ func NewPosition(data any) Position {
 		Timestamp:                   SafeFloatTyped(data, "timestamp"),
 		Datetime:                    SafeStringTyped(data, "datetime"),
 		Contracts:                   SafeFloatTyped(data, "contracts"),
-		ContractSize:                SafeFloatTyped(data, "contractsSize"),
+		ContractSize:                SafeFloatTyped(data, "contractSize"),
 		Side:                        SafeStringTyped(data, "side"),
 		Notional:                    SafeFloatTyped(data, "notional"),
 		Leverage:                    SafeFloatTyped(data, "leverage"),
@@ -1751,7 +1751,7 @@ func NewPosition(data any) Position {
 		LiquidationPrice:            SafeFloatTyped(data, "liquidationPrice"),
 		MarginMode:                  SafeStringTyped(data, "marginMode"),
 		Hedged:                      SafeBoolTyped(data, "hedged"),
-		MaintenanceMargin:           SafeFloatTyped(data, "maintenenceMargin"),
+		MaintenanceMargin:           SafeFloatTyped(data, "maintenanceMargin"),
 		MaintenanceMarginPercentage: SafeFloatTyped(data, "maintenanceMarginPercentage"),
 		InitialMargin:               SafeFloatTyped(data, "initialMargin"),
 		InitialMarginPercentage:     SafeFloatTyped(data, "initialMarginPercentage"),
@@ -1903,6 +1903,58 @@ func NewMarginModification(data any) MarginModification {
 		Timestamp:  SafeInt64Typed(data, "timestamp"),
 		Datetime:   SafeStringTyped(data, "datetime"),
 		Info:       GetInfo(data),
+	}
+}
+
+type MarginLoan struct {
+	Id        *string
+	Currency  *string
+	Amount    *float64
+	Symbol    *string
+	Timestamp *int64
+	Datetime  *string
+	Info      map[string]any
+}
+
+func NewMarginLoan(data any) MarginLoan {
+	return MarginLoan{
+		Id:        SafeStringTyped(data, "id"),
+		Currency:  SafeStringTyped(data, "currency"),
+		Amount:    SafeFloatTyped(data, "amount"),
+		Symbol:    SafeStringTyped(data, "symbol"),
+		Timestamp: SafeInt64Typed(data, "timestamp"),
+		Datetime:  SafeStringTyped(data, "datetime"),
+		Info:      GetInfo(data),
+	}
+}
+
+type Status struct {
+	Status  *string
+	Updated *int64
+	Eta     *int64
+	Url     *string
+	Info    map[string]any
+}
+
+func NewStatus(data any) Status {
+	return Status{
+		Status:  SafeStringTyped(data, "status"),
+		Updated: SafeInt64Typed(data, "updated"),
+		Eta:     SafeInt64Typed(data, "eta"),
+		Url:     SafeStringTyped(data, "url"),
+		Info:    GetInfo(data),
+	}
+}
+
+type PositionModeInfo struct {
+	Info   map[string]any
+	Hedged *bool
+}
+
+func NewPositionModeInfo(data any) PositionModeInfo {
+	return PositionModeInfo{
+		Info:   GetInfo(data),
+		Hedged: SafeBoolTyped(data, "hedged"),
 	}
 }
 

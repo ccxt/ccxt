@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitrue import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, DepositWithdrawFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, DepositWithdrawFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -190,51 +190,51 @@ class bitrue(Exchange, ImplicitAPI):
                     'kline': {
                         'public': {
                             'get': {
-                                'public.json': 0.24,
-                                'public{currency}.json': 0.24,
+                                'public.json': {'cost': 0.24},
+                                'public{currency}.json': {'cost': 0.24},
                             },
                         },
                     },
                     'v1': {
                         'public': {
                             'get': {
-                                'ping': 0.24,
-                                'time': 0.24,
-                                'exchangeInfo': 0.24,
+                                'ping': {'cost': 0.24},
+                                'time': {'cost': 0.24},
+                                'exchangeInfo': {'cost': 0.24},
                                 'depth': {'cost': 1, 'byLimit': [[100, 0.24], [500, 1.2], [1000, 2.4]]},
-                                'trades': 0.24,
-                                'historicalTrades': 1.2,
-                                'aggTrades': 0.24,
+                                'trades': {'cost': 0.24},
+                                'historicalTrades': {'cost': 1.2},
+                                'aggTrades': {'cost': 0.24},
                                 'ticker/24hr': {'cost': 0.24, 'noSymbol': 9.6},
-                                'ticker/price': 0.24,
-                                'ticker/bookTicker': 0.24,
-                                'market/kline': 0.24,
+                                'ticker/price': {'cost': 0.24},
+                                'ticker/bookTicker': {'cost': 0.24},
+                                'market/kline': {'cost': 0.24},
                             },
                         },
                         'private': {
                             'get': {
-                                'order': 5,
-                                'openOrders': 5,
-                                'allOrders': 25,
-                                'account': 25,
-                                'myTrades': 25,
-                                'etf/net-value/{symbol}': 0.24,
-                                'withdraw/history': 120,
-                                'deposit/history': 120,
+                                'order': {'cost': 5},
+                                'openOrders': {'cost': 5},
+                                'allOrders': {'cost': 25},
+                                'account': {'cost': 25},
+                                'myTrades': {'cost': 25},
+                                'etf/net-value/{symbol}': {'cost': 0.24},
+                                'withdraw/history': {'cost': 120},
+                                'deposit/history': {'cost': 120},
                             },
                             'post': {
-                                'order': 5,
-                                'withdraw/commit': 120,
+                                'order': {'cost': 5},
+                                'withdraw/commit': {'cost': 120},
                             },
                             'delete': {
-                                'order': 5,
+                                'order': {'cost': 5},
                             },
                         },
                     },
                     'v2': {
                         'private': {
                             'get': {
-                                'myTrades': 1.2,
+                                'myTrades': {'cost': 1.2},
                             },
                         },
                     },
@@ -243,34 +243,34 @@ class bitrue(Exchange, ImplicitAPI):
                     'v1': {
                         'public': {
                             'get': {
-                                'ping': 0.24,
-                                'time': 0.24,
-                                'contracts': 0.24,
-                                'depth': 0.24,
-                                'ticker': 0.24,
-                                'klines': 0.24,
+                                'ping': {'cost': 0.24},
+                                'time': {'cost': 0.24},
+                                'contracts': {'cost': 0.24},
+                                'depth': {'cost': 0.24},
+                                'ticker': {'cost': 0.24},
+                                'klines': {'cost': 0.24},
                             },
                         },
                     },
                     'v2': {
                         'private': {
                             'get': {
-                                'myTrades': 5,
-                                'openOrders': 5,
-                                'order': 5,
-                                'account': 5,
-                                'leverageBracket': 5,
-                                'commissionRate': 5,
-                                'futures_transfer_history': 5,
-                                'forceOrdersHistory': 5,
+                                'myTrades': {'cost': 5},
+                                'openOrders': {'cost': 5},
+                                'order': {'cost': 5},
+                                'account': {'cost': 5},
+                                'leverageBracket': {'cost': 5},
+                                'commissionRate': {'cost': 5},
+                                'futures_transfer_history': {'cost': 5},
+                                'forceOrdersHistory': {'cost': 5},
                             },
                             'post': {
-                                'positionMargin': 5,
-                                'level_edit': 5,
-                                'cancel': 5,
-                                'order': 25,
-                                'allOpenOrders': 5,
-                                'futures_transfer': 5,
+                                'positionMargin': {'cost': 5},
+                                'level_edit': {'cost': 5},
+                                'cancel': {'cost': 5},
+                                'order': {'cost': 25},
+                                'allOpenOrders': {'cost': 5},
+                                'futures_transfer': {'cost': 5},
                             },
                         },
                     },
@@ -279,34 +279,34 @@ class bitrue(Exchange, ImplicitAPI):
                     'v1': {
                         'public': {
                             'get': {
-                                'ping': 0.24,
-                                'time': 0.24,
-                                'contracts': 0.24,
-                                'depth': 0.24,
-                                'ticker': 0.24,
-                                'klines': 0.24,
+                                'ping': {'cost': 0.24},
+                                'time': {'cost': 0.24},
+                                'contracts': {'cost': 0.24},
+                                'depth': {'cost': 0.24},
+                                'ticker': {'cost': 0.24},
+                                'klines': {'cost': 0.24},
                             },
                         },
                     },
                     'v2': {
                         'private': {
                             'get': {
-                                'myTrades': 5,
-                                'openOrders': 5,
-                                'order': 5,
-                                'account': 5,
-                                'leverageBracket': 5,
-                                'commissionRate': 5,
-                                'futures_transfer_history': 5,
-                                'forceOrdersHistory': 5,
+                                'myTrades': {'cost': 5},
+                                'openOrders': {'cost': 5},
+                                'order': {'cost': 5},
+                                'account': {'cost': 5},
+                                'leverageBracket': {'cost': 5},
+                                'commissionRate': {'cost': 5},
+                                'futures_transfer_history': {'cost': 5},
+                                'forceOrdersHistory': {'cost': 5},
                             },
                             'post': {
-                                'positionMargin': 5,
-                                'level_edit': 5,
-                                'cancel': 5,
-                                'order': 5,
-                                'allOpenOrders': 5,
-                                'futures_transfer': 5,
+                                'positionMargin': {'cost': 5},
+                                'level_edit': {'cost': 5},
+                                'cancel': {'cost': 5},
+                                'order': {'cost': 5},
+                                'allOpenOrders': {'cost': 5},
+                                'futures_transfer': {'cost': 5},
                             },
                         },
                     },
@@ -685,7 +685,7 @@ class bitrue(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def fetch_status(self, params={}):
+    def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -1622,7 +1622,7 @@ class bitrue(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         symbols = self.market_symbols(symbols)
-        response = None
+        response = []
         data = []
         request = {}
         type = None
@@ -1633,7 +1633,7 @@ class bitrue(Exchange, ImplicitAPI):
                 raise NotSupported(self.id + ' fetchTickers does not support swap markets, please use fetchTicker instead')
             elif market['spot']:
                 response = self.spotV1PublicGetTicker24hr(self.extend(request, params))
-                data = response
+                data = self.to_array(response)
             else:
                 raise NotSupported(self.id + ' fetchTickers only support spot & swap markets')
         else:
@@ -1641,7 +1641,7 @@ class bitrue(Exchange, ImplicitAPI):
             if type != 'spot':
                 raise NotSupported(self.id + ' fetchTickers only support spot when symbols are not proved')
             response = self.spotV1PublicGetTicker24hr(self.extend(request, params))
-            data = response
+            data = self.to_array(response)
         #
         # spot
         #
@@ -1686,7 +1686,12 @@ class bitrue(Exchange, ImplicitAPI):
         tickers = {}
         for i in range(0, len(data)):
             ticker = self.safe_dict(data, i, {})
-            market = self.safe_market(self.safe_string(ticker, 'symbol'))
+            # skip entries without a symbol: an None market id would become a null
+            # dictionary key here, which crashes fetchTickers in the C# build
+            marketId = self.safe_string(ticker, 'symbol')
+            if marketId is None:
+                continue
+            market = self.safe_market(marketId)
             tickers[(market['id'])] = ticker
         return self.parse_tickers(tickers, symbols)
 
@@ -3215,7 +3220,7 @@ class bitrue(Exchange, ImplicitAPI):
             return config['noSymbol']
         elif ('byLimit' in config) and ('limit' in params):
             limit = params['limit']
-            byLimit = config['byLimit']
+            byLimit = self.safe_list(config, 'byLimit', [])
             for i in range(0, len(byLimit)):
                 entry = byLimit[i]
                 if limit <= entry[0]:

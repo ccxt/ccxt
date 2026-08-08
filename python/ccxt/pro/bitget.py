@@ -2317,6 +2317,9 @@ class bitget(ccxt.async_support.bitget):
                 account['used'] = self.safe_string(rawBalance, 'frozen')
                 if code is not None:
                     self.balance[code] = account
+        # REST parseBalance sets info, keep the ws structure at parity,
+        # see https://github.com/ccxt/ccxt/issues/21973
+        self.balance['info'] = message
         self.balance = self.safe_balance(self.balance)
         messageHash = 'balance:' + instType
         client.resolve(self.balance, messageHash)

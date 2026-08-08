@@ -161,81 +161,81 @@ class lighter extends Exchange {
                 'root' => array(
                     'get' => array(
                         // root
-                        '' => 1, // status
-                        'info' => 1,
+                        '' => array( 'cost' => 1 ), // status
+                        'info' => array( 'cost' => 1 ),
                     ),
                 ),
                 'public' => array(
                     'get' => array(
                         // account
-                        'account' => 1,
-                        'accountsByL1Address' => 1,
-                        'apikeys' => 1,
+                        'account' => array( 'cost' => 1 ),
+                        'accountsByL1Address' => array( 'cost' => 1 ),
+                        'apikeys' => array( 'cost' => 1 ),
                         // order
-                        'exchangeStats' => 1,
-                        'assetDetails' => 1,
-                        'orderBookDetails' => 1,
-                        'orderBookOrders' => 1,
-                        'orderBooks' => 1,
-                        'recentTrades' => 1,
+                        'exchangeStats' => array( 'cost' => 1 ),
+                        'assetDetails' => array( 'cost' => 1 ),
+                        'orderBookDetails' => array( 'cost' => 1 ),
+                        'orderBookOrders' => array( 'cost' => 1 ),
+                        'orderBooks' => array( 'cost' => 1 ),
+                        'recentTrades' => array( 'cost' => 1 ),
                         // transaction
-                        'blockTxs' => 1,
-                        'nextNonce' => 1,
-                        'tx' => 1,
-                        'txFromL1TxHash' => 1,
-                        'txs' => 1,
+                        'blockTxs' => array( 'cost' => 1 ),
+                        'nextNonce' => array( 'cost' => 1 ),
+                        'tx' => array( 'cost' => 1 ),
+                        'txFromL1TxHash' => array( 'cost' => 1 ),
+                        'txs' => array( 'cost' => 1 ),
                         // announcement
-                        'announcement' => 1,
+                        'announcement' => array( 'cost' => 1 ),
                         // block
-                        'block' => 1,
-                        'blocks' => 1,
-                        'currentHeight' => 1,
+                        'block' => array( 'cost' => 1 ),
+                        'blocks' => array( 'cost' => 1 ),
+                        'currentHeight' => array( 'cost' => 1 ),
                         // candlestick
-                        'candles' => 1,
-                        'fundings' => 1,
+                        'candles' => array( 'cost' => 1 ),
+                        'fundings' => array( 'cost' => 1 ),
                         // bridge
-                        'fastbridge/info' => 1,
+                        'fastbridge/info' => array( 'cost' => 1 ),
                         // funding
-                        'funding-rates' => 1,
+                        'funding-rates' => array( 'cost' => 1 ),
                         // info
-                        'withdrawalDelay' => 1,
+                        'withdrawalDelay' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         // transaction
-                        'sendTx' => 1,
-                        'sendTxBatch' => 1,
+                        'sendTx' => array( 'cost' => 1 ),
+                        'sendTxBatch' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         // account
-                        'accountLimits' => 1,
-                        'accountMetadata' => 1,
-                        'pnl' => 1,
-                        'l1Metadata' => 1,
-                        'liquidations' => 1,
-                        'positionFunding' => 1,
-                        'publicPoolsMetadata' => 1,
+                        'accountLimits' => array( 'cost' => 1 ),
+                        'accountMetadata' => array( 'cost' => 1 ),
+                        'pnl' => array( 'cost' => 1 ),
+                        'l1Metadata' => array( 'cost' => 1 ),
+                        'liquidations' => array( 'cost' => 1 ),
+                        'positionFunding' => array( 'cost' => 1 ),
+                        'publicPoolsMetadata' => array( 'cost' => 1 ),
                         // order
-                        'accountActiveOrders' => 1,
-                        'accountInactiveOrders' => 1,
-                        'export' => 1,
-                        'trades' => 1,
+                        'accountActiveOrders' => array( 'cost' => 1 ),
+                        'accountInactiveOrders' => array( 'cost' => 1 ),
+                        'export' => array( 'cost' => 1 ),
+                        'trades' => array( 'cost' => 1 ),
                         // transaction
-                        'accountTxs' => 1,
-                        'deposit/history' => 1,
-                        'transfer/history' => 1,
-                        'withdraw/history' => 1,
+                        'accountTxs' => array( 'cost' => 1 ),
+                        'deposit/history' => array( 'cost' => 1 ),
+                        'transfer/history' => array( 'cost' => 1 ),
+                        'withdraw/history' => array( 'cost' => 1 ),
                         // referral
-                        'referral/points' => 1,
+                        'referral/points' => array( 'cost' => 1 ),
                         // info
-                        'transferFeeInfo' => 1,
+                        'transferFeeInfo' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         // account
-                        'changeAccountTier' => 1,
+                        'changeAccountTier' => array( 'cost' => 1 ),
                         // notification
-                        'notification/ack' => 1,
+                        'notification/ack' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -1033,7 +1033,7 @@ class lighter extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *

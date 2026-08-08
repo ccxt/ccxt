@@ -155,116 +155,324 @@ public partial class ndax : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "Activate2FA", 1 },
-                        { "Authenticate2FA", 1 },
-                        { "AuthenticateUser", 1 },
-                        { "EnableXP2FA", 1 },
-                        { "GetL2Snapshot", 1 },
-                        { "GetLevel1", 1 },
-                        { "GetValidate2FARequiredEndpoints", 1 },
-                        { "LogOut", 1 },
-                        { "GetTickerHistory", 1 },
-                        { "GetProduct", 1 },
-                        { "GetProducts", 1 },
-                        { "GetInstrument", 1 },
-                        { "GetInstruments", 1 },
-                        { "GetEarliestTickTime", 1 },
-                        { "Ping", 1 },
-                        { "assets", 1 },
-                        { "orderbook", 1 },
-                        { "ticker", 1 },
-                        { "summary", 1 },
-                        { "trades", 1 },
-                        { "GetLastTrades", 1 },
-                        { "ConfirmWithdraw", 1 },
-                        { "SubscribeLevel1", 1 },
-                        { "SubscribeLevel2", 1 },
-                        { "SubscribeTicker", 1 },
-                        { "SubscribeTrades", 1 },
-                        { "SubscribeBlockTrades", 1 },
-                        { "UnsubscribeBlockTrades", 1 },
-                        { "UnsubscribeLevel1", 1 },
-                        { "UnsubscribeLevel2", 1 },
-                        { "UnsubscribeTicker", 1 },
-                        { "UnsubscribeTrades", 1 },
-                        { "Authenticate", 1 },
+                        { "Activate2FA", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Authenticate2FA", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "AuthenticateUser", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "EnableXP2FA", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetL2Snapshot", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetLevel1", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetValidate2FARequiredEndpoints", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "LogOut", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetTickerHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetProduct", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetProducts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetInstrument", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetInstruments", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetEarliestTickTime", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Ping", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "summary", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetLastTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ConfirmWithdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SubscribeLevel1", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SubscribeLevel2", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SubscribeTicker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SubscribeTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SubscribeBlockTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "UnsubscribeBlockTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "UnsubscribeLevel1", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "UnsubscribeLevel2", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "UnsubscribeTicker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "UnsubscribeTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Authenticate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "GetUserAccountInfos", 1 },
-                        { "GetUserAccounts", 1 },
-                        { "GetUserAffiliateCount", 1 },
-                        { "GetUserAffiliateTag", 1 },
-                        { "GetUserConfig", 1 },
-                        { "GetAllUnredactedUserConfigsForUser", 1 },
-                        { "GetUnredactedUserConfigByKey", 1 },
-                        { "GetUserDevices", 1 },
-                        { "GetUserReportTickets", 1 },
-                        { "GetUserReportWriterResultRecords", 1 },
-                        { "GetAccountInfo", 1 },
-                        { "GetAccountPositions", 1 },
-                        { "GetAllAccountConfigs", 1 },
-                        { "GetTreasuryProductsForAccount", 1 },
-                        { "GetAccountTrades", 1 },
-                        { "GetAccountTransactions", 1 },
-                        { "GetOpenTradeReports", 1 },
-                        { "GetAllOpenTradeReports", 1 },
-                        { "GetTradesHistory", 1 },
-                        { "GetOpenOrders", 1 },
-                        { "GetOpenQuotes", 1 },
-                        { "GetOrderFee", 1 },
-                        { "GetOrderHistory", 1 },
-                        { "GetOrdersHistory", 1 },
-                        { "GetOrderStatus", 1 },
-                        { "GetOmsFeeTiers", 1 },
-                        { "GetAccountDepositTransactions", 1 },
-                        { "GetAccountWithdrawTransactions", 1 },
-                        { "GetAllDepositRequestInfoTemplates", 1 },
-                        { "GetDepositInfo", 1 },
-                        { "GetDepositRequestInfoTemplate", 1 },
-                        { "GetDeposits", 1 },
-                        { "GetDepositTicket", 1 },
-                        { "GetDepositTickets", 1 },
-                        { "GetOMSWithdrawFees", 1 },
-                        { "GetWithdrawFee", 1 },
-                        { "GetWithdraws", 1 },
-                        { "GetWithdrawTemplate", 1 },
-                        { "GetWithdrawTemplateTypes", 1 },
-                        { "GetWithdrawTicket", 1 },
-                        { "GetWithdrawTicketAttachment", 1 },
-                        { "GetWithdrawTickets", 1 },
-                        { "GetDepositTicketAttachment", 1 },
+                        { "GetUserAccountInfos", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetUserAccounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetUserAffiliateCount", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetUserAffiliateTag", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetUserConfig", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAllUnredactedUserConfigsForUser", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetUnredactedUserConfigByKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetUserDevices", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetUserReportTickets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetUserReportWriterResultRecords", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAccountInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAccountPositions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAllAccountConfigs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetTreasuryProductsForAccount", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAccountTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAccountTransactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOpenTradeReports", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAllOpenTradeReports", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetTradesHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOpenOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOpenQuotes", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOrderFee", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOrderHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOrdersHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOrderStatus", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOmsFeeTiers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAccountDepositTransactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAccountWithdrawTransactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAllDepositRequestInfoTemplates", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetDepositInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetDepositRequestInfoTemplate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetDeposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetDepositTicket", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetDepositTickets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOMSWithdrawFees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetWithdrawFee", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetWithdraws", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetWithdrawTemplate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetWithdrawTemplateTypes", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetWithdrawTicket", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetWithdrawTicketAttachment", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetWithdrawTickets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetDepositTicketAttachment", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "AddUserAffiliateTag", 1 },
-                        { "AddDepositTicketAttachment", 1 },
-                        { "AddWithdrawTicketAttachment", 1 },
-                        { "CancelUserReport", 1 },
-                        { "RegisterNewDevice", 1 },
-                        { "SubscribeAccountEvents", 1 },
-                        { "UpdateUserAffiliateTag", 1 },
-                        { "GenerateTradeActivityReport", 1 },
-                        { "GenerateTransactionActivityReport", 1 },
-                        { "GenerateTreasuryActivityReport", 1 },
-                        { "ScheduleTradeActivityReport", 1 },
-                        { "ScheduleTransactionActivityReport", 1 },
-                        { "ScheduleTreasuryActivityReport", 1 },
-                        { "CancelAllOrders", 1 },
-                        { "CancelOrder", 1 },
-                        { "CancelQuote", 1 },
-                        { "CancelReplaceOrder", 1 },
-                        { "CreateQuote", 1 },
-                        { "ModifyOrder", 1 },
-                        { "SendOrder", 1 },
-                        { "SubmitBlockTrade", 1 },
-                        { "UpdateQuote", 1 },
-                        { "CancelWithdraw", 1 },
-                        { "CreateDepositTicket", 1 },
-                        { "CreateWithdrawTicket", 1 },
-                        { "SubmitDepositTicketComment", 1 },
-                        { "SubmitWithdrawTicketComment", 1 },
-                        { "GetOrderHistoryByOrderId", 1 },
+                        { "AddUserAffiliateTag", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "AddDepositTicketAttachment", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "AddWithdrawTicketAttachment", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "CancelUserReport", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "RegisterNewDevice", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SubscribeAccountEvents", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "UpdateUserAffiliateTag", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GenerateTradeActivityReport", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GenerateTransactionActivityReport", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GenerateTreasuryActivityReport", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ScheduleTradeActivityReport", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ScheduleTransactionActivityReport", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ScheduleTreasuryActivityReport", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "CancelAllOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "CancelOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "CancelQuote", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "CancelReplaceOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "CreateQuote", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ModifyOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SendOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SubmitBlockTrade", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "UpdateQuote", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "CancelWithdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "CreateDepositTicket", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "CreateWithdrawTicket", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SubmitDepositTicketComment", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SubmitWithdrawTicketComment", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOrderHistoryByOrderId", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -1037,7 +1245,12 @@ public partial class ndax : Exchange
         //         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        object candles = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            candles = response;
+        }
+        return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
 
     public override object parseTrade(object trade, object market = null)
