@@ -75,6 +75,218 @@ function bufferAsyncCoreChannels (content: string): string {
     return content.replace (GO_ASYNC_CORE_CHANNEL, '$1, 1)$2');
 }
 
+// Once the result channel has capacity 1 the goroutine is dead weight: the body
+// can fill the channel in place and hand it back already resolved. Flattening it
+// turns every core into a plain function call, which removes one goroutine per
+// invocation (~4.9k call sites) and makes stack traces of a failing request show
+// the caller instead of a detached `go func`.
+//
+//     func (this *Bit2cCore) FetchBalance(...) <-chan any {   ->   (out <-chan any) {
+//         ch := make(chan any, 1)                                  ch := make(chan any, 1)
+//         go func() any {                                          out = ch
+//             defer close(ch)                                      defer close(ch)
+//             defer ReturnPanicError(ch)                           defer ReturnPanicError(ch)
+//             ...                                                  ...
+//             ch <- value                                          ch <- value
+//             return nil                                           return ch
+//         }()
+//         return ch                                                return ch
+//     }
+//
+// The result has to be *named*: `defer ReturnPanicError(ch)` recovers the panic,
+// so on the error path the function returns normally, and an unnamed result would
+// hand back the zero value of `<-chan any` — a nil channel every caller blocks on
+// forever. Assigning `out = ch` up front and rewriting the core-level `return nil`
+// into `return ch` keeps the channel reachable on both paths. Naming a result does
+// not change the method's type, so the generated wrappers and the typed interfaces
+// are unaffected.
+//
+// The rewrite is deliberately conservative: every core that is not provably safe
+// keeps its goroutine (see the gates in flattenAsyncCore). A skipped core is still
+// correct code, so a parse we do not fully understand degrades to today's output.
+const GO_CORE_SIGNATURE = /^func\s+(?:\([^()]*\)\s*)?([A-Za-z_]\w*)\s*\(.*\)\s*<-\s?chan\s+any\s*\{$/;
+const GO_CORE_MAKE = /^([ \t]*)ch := make\(chan\s+[^(),\n]+,\s*1\)$/;
+const GO_CORE_GOROUTINE = /^([ \t]*)go func\(\)\s*any\s*\{$/;
+const GO_CORE_CLOSE = /^([ \t]*)defer close\(ch\)$/;
+const GO_CORE_PANIC = /^([ \t]*)defer (?:[A-Za-z_][A-Za-z0-9_.]*\.)?ReturnPanicError\(ch\)$/;
+const GO_CORE_SEND = /^ch\s*<-/;
+const GO_FUNC_LITERAL = /\bfunc\s*(?:\([^()]*\))?\s*\(/g;
+
+// Cores whose result channel is intentionally dropped by a bare statement call
+// (`this.Authenticate (url)`, `this.WatchSpotPublic (...)` in pro/) — how a floating
+// JS promise transpiles to Go. Those call sites only work because the call returns
+// before the work is done: flattened, they would block on a websocket message that
+// the very same method is supposed to trigger. Keep the goroutine for these.
+// `Watch`/`WatchMultiple` are bare-called too but are hand-written in exchange.go,
+// which the transpiler never rewrites.
+const GO_FIRE_AND_FORGET_CORES = new Set ([
+    'Authenticate',
+    'WatchSpotPublic',
+    'WatchSwapPublic',
+]);
+
+// drop string/rune literals and line comments so brace counting and identifier
+// lookups cannot be fooled by Go source quoted inside a literal or a comment
+function stripGoLiterals (line: string): string {
+    let stripped = '';
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '/' && line[i + 1] === '/') {
+            break;
+        }
+        if (char === '"' || char === '`' || char === '\'') {
+            const quote = char;
+            i++;
+            while (i < line.length) {
+                if (quote !== '`' && line[i] === '\\') {
+                    i += 2;
+                    continue;
+                }
+                if (line[i] === quote) {
+                    break;
+                }
+                i++;
+            }
+            stripped += '""';
+            continue;
+        }
+        stripped += char;
+    }
+    return stripped;
+}
+
+// Rewrite one async core in place. `lines[start]` is the `ch := make(chan T, 1)`
+// line and `lines[start + 1]` opens the goroutine. Returns the replacement lines
+// plus the rewritten signature, or null when any safety gate fails.
+function flattenAsyncCore (lines: string[], start: number, signatureLine: string): { 'signature': string; 'body': string[]; 'end': number } | null {
+    const indent = (GO_CORE_MAKE.exec (lines[start]) as RegExpExecArray)[1];
+    const closeIndent = (GO_CORE_CLOSE.exec (lines[start + 2]) as RegExpExecArray)[1];
+    const unit = closeIndent.slice (indent.length);
+    if (!unit.length || closeIndent.slice (0, indent.length) !== indent) {
+        return null;
+    }
+    const signature = GO_CORE_SIGNATURE.exec (signatureLine);
+    if (!signature || GO_FIRE_AND_FORGET_CORES.has (signature[1])) {
+        return null;
+    }
+    // the goroutine is closed by `}()` at the same indentation as `go func()`, and
+    // the core always hands the channel back on the very next line
+    let end = start + 4;
+    while (end < lines.length && lines[end] !== indent + '}()') {
+        end++;
+    }
+    if (end >= lines.length || lines[end + 1] !== indent + 'return ch') {
+        return null;
+    }
+    const body = lines.slice (start + 4, end);
+    const rewritten: string[] = [];
+    // depth stack over the body: one entry per open brace, true when that brace
+    // was opened by a func literal (a closure, a deferred func, a try/catch shim)
+    const funcLiteral: boolean[] = [];
+    for (const line of body) {
+        const code = stripGoLiterals (line);
+        const trimmed = line.trim ();
+        const nested = funcLiteral.indexOf (true) >= 0;
+        if (code.indexOf ('/*') >= 0) {
+            // a block comment can hide braces from the scan below
+            return null;
+        }
+        if (!nested) {
+            if (/\bout\b/.test (code)) {
+                // the named result would shadow, or be shadowed by, a body identifier
+                return null;
+            }
+            if (GO_CORE_SEND.test (trimmed)) {
+                // a core-level send must be the last thing the core does, otherwise
+                // a second send on a capacity-1 channel would block the caller
+                if (!/^ch\s*<-/.test (trimmed)) {
+                    return null;
+                }
+            }
+            if (/^return\b/.test (trimmed)) {
+                if (trimmed !== 'return nil') {
+                    // every core-level return ast-transpiler emits is `return nil`;
+                    // anything else is a shape this rewrite does not understand
+                    return null;
+                }
+                rewritten.push (line.replace (/return nil$/, 'return ch'));
+            } else {
+                rewritten.push (line);
+            }
+        } else {
+            if (GO_CORE_SEND.test (trimmed)) {
+                // a send from inside a closure: `return` there only leaves the
+                // closure, so the core can reach another send further down
+                return null;
+            }
+            rewritten.push (line);
+        }
+        const starts: number[] = [];
+        GO_FUNC_LITERAL.lastIndex = 0;
+        let literal = GO_FUNC_LITERAL.exec (code);
+        while (literal !== null) {
+            starts.push (literal.index);
+            literal = GO_FUNC_LITERAL.exec (code);
+        }
+        for (let i = 0; i < code.length; i++) {
+            if (code[i] === '{') {
+                // a brace opened by the nearest `func(` on this line, with no other
+                // brace in between, opens a function literal body
+                const opensLiteral = starts.some ((at) => (at < i) && (code.slice (at, i).indexOf ('{') < 0));
+                funcLiteral.push (opensLiteral);
+            } else if (code[i] === '}') {
+                funcLiteral.pop ();
+            }
+        }
+    }
+    if (funcLiteral.length) {
+        return null;
+    }
+    // dedent the body by the one level the goroutine used to add
+    const flattened = rewritten.map ((line) => (line.startsWith (unit) ? line.slice (unit.length) : line));
+    return {
+        'signature': signatureLine.replace (/\)\s*<-\s?chan\s+any\s*\{$/, ') (out <-chan any) {'),
+        'body': [ lines[start], indent + 'out = ch', lines[start + 2], lines[start + 3] ].concat (flattened),
+        'end': end,
+    };
+}
+
+function flattenAsyncCoreChannels (content: string): string {
+    if (content.indexOf ('go func() any {') < 0) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const result: string[] = [];
+    let index = 0;
+    while (index < lines.length) {
+        const isCore = (index + 4 < lines.length)
+            && GO_CORE_MAKE.test (lines[index])
+            && GO_CORE_GOROUTINE.test (lines[index + 1])
+            && GO_CORE_CLOSE.test (lines[index + 2])
+            && GO_CORE_PANIC.test (lines[index + 3])
+            && (GO_CORE_MAKE.exec (lines[index]) as RegExpExecArray)[1] === (GO_CORE_GOROUTINE.exec (lines[index + 1]) as RegExpExecArray)[1]
+            && result.length > 0;
+        const flattened = isCore ? flattenAsyncCore (lines, index, result[result.length - 1]) : null;
+        if (flattened === null) {
+            result.push (lines[index]);
+            index++;
+            continue;
+        }
+        result[result.length - 1] = flattened.signature;
+        for (const line of flattened.body) {
+            result.push (line);
+        }
+        // Skip both the goroutine's `}()` and the core's own trailing `return ch`.
+        // The body keeps its own final return (the rewritten `return nil`), so the
+        // function still ends in a terminating statement — guaranteed, because the
+        // `go func() any` this body came from had to end in one to compile at all.
+        // Emitting the outer `return ch` as well would make it unreachable code,
+        // which `go vet` reports as an error.
+        index = flattened.end + 2;
+    }
+    return result.join ('\n');
+}
+
 // gofmt indents with tabs while the transpiler emits 4-space indentation, so
 // we run the generated code through gofmt at write time: the emitted .go files
 // already have tabs and running gofmt over the tree afterwards does nothing
@@ -82,7 +294,7 @@ function formatGoSource (filePath: string, content: string): string {
     if (!filePath.endsWith ('.go')) {
         return content;
     }
-    content = bufferAsyncCoreChannels (content);
+    content = flattenAsyncCoreChannels (bufferAsyncCoreChannels (content));
     const gofmt = spawnSync ('gofmt', [], {
         'input': content,
         'encoding': 'utf8',
@@ -2203,8 +2415,8 @@ ${constStatements.join('\n')}
             ].join('\n');
             const file = fileHeader + '\n' + structDef + methods + shims + "\n";
             // this is the one generated .go write that does not go through
-            // overwriteFileAndFolder()/formatGoSource(), so buffer its async cores here
-            fs.writeFileSync (goPredictionBase, bufferAsyncCoreChannels (file));
+            // overwriteFileAndFolder()/formatGoSource(), so buffer + flatten its async cores here
+            fs.writeFileSync (goPredictionBase, flattenAsyncCoreChannels (bufferAsyncCoreChannels (file)));
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
