@@ -1938,6 +1938,10 @@
             }
         }
     },
+    "opinion": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911"
+    },
     "onetrading": {
         "skip": "API was changed: https://github.com/ccxt/ccxt/pull/21991, also our regular proxy does not seem to work, need smth fix",
         "skipWs": "same",
