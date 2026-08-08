@@ -381,7 +381,10 @@
             },
             "watchTradesForSymbols.java": "flaky on Java: tight overlap with watchTrades trips exchange flood-detection / connection-close (engine watchMultiple race window only Java's ForkJoinPool exposes deterministically)",
             "watchOrderBookForSymbols.java": "same as watchTradesForSymbols.java",
-            "watchOHLCVForSymbols.java": "same as watchTradesForSymbols.java"
+            "watchOHLCVForSymbols.java": "same as watchTradesForSymbols.java",
+            "fetchTrades": {
+                "sideSequence": "todo check"
+            }
         }
     },
     "bithumb": {
@@ -836,7 +839,8 @@
                 "compareOHLC": "24h high/low can lag the latest price, so close occasionally falls outside the 24h range"
             },
             "fetchTrades": {
-                "sideSequence": "todo check"
+                "sideSequence": "todo check",
+                "requireBothSides": "todo check"
             }
         }
     },
@@ -2451,7 +2455,8 @@
                 "limits": "incorrect for some currencies"
             },
             "fetchTrades": {
-                "side": "not set"
+                "side": "not set",
+                "sideSequence": "todo check"
             },
             "watchTickers": {
                 "compareOHLC": "broken by exchange https://github.com/ccxt/ccxt/actions/runs/16057416332/job/45315454452?pr=26334#step:11:2055"
@@ -2550,7 +2555,8 @@
                 "spread": " bid > ask issue, https://github.com/ccxt/ccxt/actions/runs/19507537406/job/55838385322?pr=25884"
             },
             "fetchTrades": {
-                "sideSequence": "todo check"
+                "sideSequence": "todo check",
+                "requireBothSides": "todo check"
             }
         }
     },

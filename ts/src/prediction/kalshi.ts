@@ -1311,7 +1311,7 @@ export default class kalshi extends Exchange {
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const request: Dict = { 'ticker': ticker };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 1000);
         }
         const response = await this.kalshiPublicGetMarketsTrades (this.extend (request, params));
         const trades = this.safeList (response, 'trades', []);
