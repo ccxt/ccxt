@@ -57,7 +57,7 @@ func (this *ExmoCore) PublicGetRequiredAmount(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetRequiredAmount", args...)
 }
 
-// PublicGetPaymentsProvidersCryptoList returns a channel that yields a JSON object.
+// PublicGetPaymentsProvidersCryptoList returns a channel that yields a JSON object or a JSON array.
 func (this *ExmoCore) PublicGetPaymentsProvidersCryptoList(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetPaymentsProvidersCryptoList", args...)
 }

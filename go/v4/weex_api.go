@@ -37,7 +37,7 @@ func (this *WeexCore) PublicGetApiV3MarketTickerPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV3MarketTickerPrice", args...)
 }
 
-// PublicGetApiV3MarketTicker24hr returns a channel that yields a JSON array.
+// PublicGetApiV3MarketTicker24hr returns a channel that yields a JSON object or a JSON array.
 func (this *WeexCore) PublicGetApiV3MarketTicker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV3MarketTicker24hr", args...)
 }
@@ -247,7 +247,7 @@ func (this *WeexCore) ContractGetCapiV3MarketApiTradingSymbols(args ...any) <-ch
 	return this.callEndpointAsync("contractGetCapiV3MarketApiTradingSymbols", args...)
 }
 
-// ContractPrivateGetCapiV3AccountBalance returns a channel that yields a JSON object.
+// ContractPrivateGetCapiV3AccountBalance returns a channel that yields a JSON array.
 func (this *WeexCore) ContractPrivateGetCapiV3AccountBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetCapiV3AccountBalance", args...)
 }

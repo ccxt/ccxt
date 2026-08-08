@@ -52,7 +52,7 @@ func (this *NadoCore) ArchivePost(args ...any) <-chan any {
 	return this.callEndpointAsync("archivePost", args...)
 }
 
-// ArchiveV2PublicGetTickers returns a channel that yields a JSON array.
+// ArchiveV2PublicGetTickers returns a channel that yields a JSON object.
 func (this *NadoCore) ArchiveV2PublicGetTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("archiveV2PublicGetTickers", args...)
 }

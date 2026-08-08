@@ -7,7 +7,7 @@
 
 package ccxt
 
-// PublicGetPublicCurrency returns a channel that yields a JSON array.
+// PublicGetPublicCurrency returns a channel that yields a JSON object.
 func (this *HitbtcCore) PublicGetPublicCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetPublicCurrency", args...)
 }

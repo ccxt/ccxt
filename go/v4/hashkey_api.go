@@ -157,7 +157,7 @@ func (this *HashkeyCore) PrivateGetApiV1AccountVipInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountVipInfo", args...)
 }
 
-// PrivateGetApiV1Account returns a channel that yields a JSON array.
+// PrivateGetApiV1Account returns a channel that yields a JSON object.
 func (this *HashkeyCore) PrivateGetApiV1Account(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1Account", args...)
 }

@@ -37,7 +37,7 @@ func (this *TokocryptoCore) BinanceGetHistoricalTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("binanceGetHistoricalTrades", args...)
 }
 
-// BinanceGetKlines returns a channel that yields a JSON object.
+// BinanceGetKlines returns a channel that yields a JSON array.
 func (this *TokocryptoCore) BinanceGetKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("binanceGetKlines", args...)
 }

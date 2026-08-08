@@ -207,7 +207,7 @@ func (this *ToobitCore) PrivateGetApiV1FuturesHistoryPositions(args ...any) <-ch
 	return this.callEndpointAsync("privateGetApiV1FuturesHistoryPositions", args...)
 }
 
-// PrivateGetApiV1FuturesBalance returns a channel that yields a JSON object.
+// PrivateGetApiV1FuturesBalance returns a channel that yields a JSON array.
 func (this *ToobitCore) PrivateGetApiV1FuturesBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesBalance", args...)
 }
