@@ -1240,7 +1240,8 @@
             },
             "fetchBalance": "tmp skip",
             "fetchTrades": {
-                "sideSequence": "todo check"
+                "sideSequence": "todo check",
+                "requireBothSides": "todo check"
             }
         }
     },
@@ -2600,6 +2601,9 @@
             },
             "watchTradesForSymbols": {
                 "takerOrMaker": "todo fix"
+            },
+            "fetchTrades": {
+                "sideSequence": "todo check"
             }
         }
     },
