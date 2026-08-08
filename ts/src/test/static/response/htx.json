@@ -2430,7 +2430,7 @@
                         "takerOrMaker": null,
                         "price": 73225.45,
                         "amount": 0.026931,
-                        "cost": 1972.82617975,
+                        "cost": 1972.03459395,
                         "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
