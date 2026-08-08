@@ -205,17 +205,6 @@
                     0.4
                 ],
                 "output": "{\"salt\":\"1786098500188\",\"maker\":\"0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd\",\"signer\":\"0xabababababababababababababababababababab\",\"taker\":\"0x0000000000000000000000000000000000000000\",\"tokenId\":\"28693516923723830335610225677829403677173535256277787397410382793775279999599\",\"makerAmount\":\"5000000000000000000\",\"takerAmount\":\"2000000000000000000\",\"expiration\":\"0\",\"nonce\":\"0\",\"feeRateBps\":\"0\",\"side\":\"1\",\"signatureType\":\"2\",\"signature\":\"0xf868c73bb40809667af0ac32b3c9ac265dcb38167d7868d3be68f389efbcad067213316abe5fa8906b619d445d99b330b508a66c80492f9a30b60634f2a2471c1c\",\"sign\":\"f868c73bb40809667af0ac32b3c9ac265dcb38167d7868d3be68f389efbcad06\",\"contractAddress\":\"\",\"currencyAddress\":\"0x55d398326f99059fF775485246999027B3197955\",\"topicId\":26356,\"price\":\"0.4\",\"tradingMethod\":1,\"timestamp\":1786098500,\"safeRate\":\"0\",\"orderExpTime\":\"0\",\"postOnly\":false}"
-            },
-            {
-                "description": "createOrder market sell without a price fetches the latest trade price first",
-                "method": "createOrder",
-                "url": "https://openapi.opinion.trade/openapi/token/latest-price?token_id=28693516923723830335610225677829403677173535256277787397410382793775279999599",
-                "input": [
-                    "PRICE_BITCOIN_HIT_AUGUST_UP_100000:YES",
-                    "market",
-                    "sell",
-                    5
-                ]
             }
         ],
         "cancelOrder": [

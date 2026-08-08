@@ -991,7 +991,7 @@ export default class opinion extends Exchange {
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount for limit orders, the number of outcome shares to trade; for market orders, the quote (USDT) to spend on a BUY or the shares to sell on a SELL
-     * @param {float} [price] the price per outcome token between 0 and 1; required for limit orders. for market SELL orders it acts as the reference (worst acceptable) price — when omitted the latest trade price is fetched instead; ignored for market BUY orders (amount is already the quote to spend)
+     * @param {float} [price] the price per outcome token between 0 and 1; required for limit orders and market SELL orders (where it acts as the reference / worst acceptable price for the taker amount); ignored for market BUY orders (amount is already the quote to spend)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.postOnly] limit orders only - reject the order if it would cross the spread
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
@@ -1003,22 +1003,18 @@ export default class opinion extends Exchange {
         const tokenId = outcomeObj['outcomeId'] as string;
         const isMarket = (type === 'market');
         const sideStr = (side as string).toUpperCase ();
-        if (!isMarket && (price === undefined)) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a price for limit orders');
+        if (price === undefined) {
+            if (!isMarket) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price for limit orders');
+            }
+            if (sideStr === 'SELL') {
+                // the reference (worst acceptable) price the taker amount is computed from
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price for market sell orders');
+            }
         }
         let marketOrderPrice = '0';
-        let effectivePrice = price;
         if (isMarket && (sideStr === 'SELL')) {
-            // a market SELL needs a reference price for the taker amount — prefer the caller's
-            // price (their worst acceptable one) and only fetch the latest trade price without it
-            if (price !== undefined) {
-                marketOrderPrice = this.numberToString (price);
-            } else {
-                const priceResponse = await this.opinionPublicGetTokenLatestPrice ({ 'token_id': tokenId });
-                const priceResult = this.safeDict (priceResponse, 'result', {});
-                marketOrderPrice = this.safeString (priceResult, 'price', '0');
-                effectivePrice = this.parseNumber (marketOrderPrice);
-            }
+            marketOrderPrice = this.numberToString (price);
         }
         const info = this.safeDict (outcomeObj, 'info', {});
         const topicId = this.safeInteger (info, 'marketId');
@@ -1026,7 +1022,7 @@ export default class opinion extends Exchange {
         const quoteToken = await this.loadQuoteToken (quoteTokenAddress);
         const exchangeAddress = this.safeString (quoteToken, 'ctfExchangeAddress', '');
         const decimals = this.safeInteger (quoteToken, 'decimal', 18);
-        const amounts = this.opinionOrderRawAmounts (isMarket, sideStr, amount, effectivePrice, decimals);
+        const amounts = this.opinionOrderRawAmounts (isMarket, sideStr, amount, price, decimals);
         const makerAmount = this.safeString (amounts, 'makerAmount');
         const takerAmount = this.safeString (amounts, 'takerAmount');
         const sideInt = (sideStr === 'BUY') ? 0 : 1;
