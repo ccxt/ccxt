@@ -190,7 +190,7 @@ export default class sxbet extends Exchange {
     override async fetchMarkets (params = {}): Promise<Market[]> {
         const rest = this.omit (params, [ 'limit' ]);
         const userLimit = this.safeInteger (params, 'limit');
-        const rawMarkets = await this.fetchRawActiveMarkets (rest, userLimit);
+        const rawMarkets = await this.fetchRawMarketsPaged (rest, userLimit);
         const markets: Market[] = [];
         const rawMarketsLength = rawMarkets.length;
         for (let i = 0; i < rawMarketsLength; i++) {
@@ -206,13 +206,13 @@ export default class sxbet extends Exchange {
     /**
      * @ignore
      * @method
-     * @name sxbet#fetchRawActiveMarkets
+     * @name sxbet#fetchRawMarketsPaged
      * @description pages through GET /markets/active (cursor-based via paginationKey/nextKey), stopping once options.maxMarketsPages pages or userLimit raw markets have been collected
      * @param {object} [extra] extra request params merged into every page (e.g. leagueId, sportId, sportXeventId)
      * @param {int} [userLimit] stop collecting once this many raw markets have been gathered
      * @returns {object[]} the raw (unparsed) sx.bet market objects
      */
-    async fetchRawActiveMarkets (extra: Dict = {}, userLimit: Int = undefined): Promise<any[]> {
+    async fetchRawMarketsPaged (extra: Dict = {}, userLimit: Int = undefined): Promise<any[]> {
         const pageSize = this.safeInteger (this.options, 'marketsPageSize', 100);
         const maxPages = this.safeInteger (this.options, 'maxMarketsPages', 50);
         const rawMarkets: any[] = [];
@@ -311,7 +311,12 @@ export default class sxbet extends Exchange {
         const marketSymbol = this.slugToMarketSymbol (eventSlug, marketSlug);
         const status = this.safeString (raw, 'status');
         const active = (status === 'ACTIVE');
-        const gameTime = this.safeTimestamp (raw, 'gameTime');
+        // guard against a zero sentinel for "no scheduled game time" - safeTimestamp would
+        // turn it into the 1970 epoch
+        let gameTime = undefined;
+        if (this.safeInteger (raw, 'gameTime', 0) !== 0) {
+            gameTime = this.safeTimestamp (raw, 'gameTime');
+        }
         const outcomeLabels = [ outcomeOneName, outcomeTwoName ];
         const outcomeIds = [ marketHash, marketHash + '-2' ];
         const outcomes: any[] = [];
@@ -414,18 +419,18 @@ export default class sxbet extends Exchange {
         const rest = this.omit (params, [ 'eventId', 'slug', 'leagueId', 'sportId', 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit' ]);
         let rawMarkets: any[];
         if (eventId !== undefined) {
-            rawMarkets = await this.fetchRawActiveMarkets (this.extend ({ 'sportXeventId': eventId }, rest), undefined);
+            rawMarkets = await this.fetchRawMarketsPaged (this.extend ({ 'sportXeventId': eventId }, rest), undefined);
             // the venue's sportXeventId filter on /markets/active is unreliable (observed live
             // returning every fixture) — enforce the scope client-side
             rawMarkets = this.filterRawMarketsByFixture (rawMarkets, eventId);
         } else if (leagueId !== undefined) {
-            rawMarkets = await this.fetchRawActiveMarkets (this.extend ({ 'leagueId': leagueId }, rest), undefined);
+            rawMarkets = await this.fetchRawMarketsPaged (this.extend ({ 'leagueId': leagueId }, rest), undefined);
         } else if (sportId !== undefined) {
-            rawMarkets = await this.fetchRawActiveMarkets (this.extend ({ 'sportId': sportId }, rest), undefined);
+            rawMarkets = await this.fetchRawMarketsPaged (this.extend ({ 'sportId': sportId }, rest), undefined);
         } else {
             // no server-side scope left, only query/tags — full scan (same bound as fetchMarkets)
             // then filter client-side, since sx.bet exposes no full-text search endpoint
-            rawMarkets = await this.fetchRawActiveMarkets (rest, undefined);
+            rawMarkets = await this.fetchRawMarketsPaged (rest, undefined);
         }
         const queriesLength = queries.length;
         if (queriesLength > 0) {
@@ -484,7 +489,7 @@ export default class sxbet extends Exchange {
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
     override async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
-        let rawMarkets = await this.fetchRawActiveMarkets (this.extend ({ 'sportXeventId': id }, params), undefined);
+        let rawMarkets = await this.fetchRawMarketsPaged (this.extend ({ 'sportXeventId': id }, params), undefined);
         // enforce the fixture scope client-side — see filterRawMarketsByFixture
         rawMarkets = this.filterRawMarketsByFixture (rawMarkets, id);
         const rawMarketsLength = rawMarkets.length;
@@ -567,7 +572,8 @@ export default class sxbet extends Exchange {
                 leagueLabel = this.safeString (raw, 'leagueLabel');
             }
             const gameTime = this.safeString (raw, 'gameTime');
-            if ((gameTime !== undefined) && ((earliestGameTime === undefined) || (gameTime < earliestGameTime))) {
+            // skip the zero sentinel for "no scheduled game time" so it can't become the epoch
+            if ((gameTime !== undefined) && (gameTime !== '0') && ((earliestGameTime === undefined) || (gameTime < earliestGameTime))) {
                 earliestGameTime = gameTime;
             }
         }
@@ -832,7 +838,7 @@ export default class sxbet extends Exchange {
      * @param {string} type 'limit' (resting maker order) or 'market' (immediate taker fill)
      * @param {string} side 'buy' bets the requested outcome directly; 'sell' bets the complementary outcome of the same market
      * @param {float} amount the USDC amount to stake/risk
-     * @param {float} [price] implied probability (0-1) of the requested outcome; required for 'limit', optional for 'market' (defaults to the current best fillable price)
+     * @param {float} [price] implied probability (0-1) of the requested outcome; required for both order types — for 'market' it acts as the reference (worst acceptable) fill price the oddsSlippage tolerance applies to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.apiExpiry] unix seconds the maker order expires at (limit only), defaults to options.defaultOrderExpirySeconds from now
      * @param {int} [params.oddsSlippage] percent tolerance (0-100) on the fill price (market only), defaults to 5
@@ -841,9 +847,6 @@ export default class sxbet extends Exchange {
      */
     override async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
         this.checkRequiredCredentials ();
-        if (this.privateKey === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a privateKey to sign orders');
-        }
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         if (type === 'limit') {
@@ -984,16 +987,11 @@ export default class sxbet extends Exchange {
         const isOutcomeOne = (outcomeId === marketHash);
         const isBuy = (side === 'buy');
         const isTakerBettingOutcomeOne = (isBuy) ? isOutcomeOne : !isOutcomeOne;
-        let requestedProbability = price;
-        if (requestedProbability === undefined) {
-            const outcomeHandle = this.safeString (outcomeObj, 'outcome');
-            const ticker = await this.fetchTicker (outcomeHandle);
-            requestedProbability = (isBuy) ? this.safeNumber (ticker, 'ask') : this.safeNumber (ticker, 'bid');
-            if (requestedProbability === undefined) {
-                throw new InvalidOrder (this.id + " createOrder() could not resolve a default price for a 'market' order - no resting liquidity on the opposite side, pass a price explicitly");
-            }
+        if (price === undefined) {
+            // the reference (worst acceptable) price the desiredOdds are computed from
+            throw new ArgumentsRequired (this.id + " createOrder() requires a price for a 'market' order");
         }
-        const requestedProbabilityStr = this.numberToString (requestedProbability);
+        const requestedProbabilityStr = this.numberToString (price);
         const takerProbability = (isBuy) ? requestedProbabilityStr : Precise.stringSub ('1', requestedProbabilityStr);
         const desiredOdds = this.decimalToPrecision (Precise.stringMul (takerProbability, '100000000000000000000'), ROUND, 0, DECIMAL_PLACES);
         let oddsSlippage = undefined;
@@ -1097,7 +1095,7 @@ export default class sxbet extends Exchange {
             'type': 'market',
             'timeInForce': undefined,
             'side': side,
-            'price': (averagePrice !== undefined) ? averagePrice : requestedProbability,
+            'price': (averagePrice !== undefined) ? averagePrice : price,
             'average': averagePrice,
             'amount': amount,
             'filled': filled,
