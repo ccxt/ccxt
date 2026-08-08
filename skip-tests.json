@@ -550,6 +550,9 @@
                 "compareToZero": "tmp",
                 "compareToNextItem": "tmp",
                 "spread": "tmp"
+            },
+            "fetchTrades": {
+                "sideSequence": "todo check"
             }
         }
     },
@@ -679,6 +682,9 @@
             "orderBook": {
                 "compareToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263287870#L2201",
                 "compareToNextItem": "sometimes bid equals to next bid"
+            },
+            "fetchTrades": {
+                "sideSequence": "todo check"
             }
         }
     },
@@ -719,7 +725,10 @@
             },
             "watchTradesForSymbols.java": "flaky on Java: tight overlap with watchTrades trips bybit flood-detection / connection-close (engine watchMultiple race window only Java's ForkJoinPool exposes deterministically)",
             "watchOrderBookForSymbols.java": "same as watchTradesForSymbols.java",
-            "watchOHLCVForSymbols.java": "same as watchTradesForSymbols.java"
+            "watchOHLCVForSymbols.java": "same as watchTradesForSymbols.java",
+            "fetchTrades": {
+                "sideSequence": "todo check"
+            }
         }
     },
     "bybiteu": {
@@ -1114,6 +1123,9 @@
                 "type": "todo",
                 "activeMajorCurrencies": "todo",
                 "activeCurrenciesQuota": "todo"
+            },
+            "fetchTrades": {
+                "sideSequence": "todo check"
             }
         }
     },
@@ -1182,7 +1194,8 @@
             },
             "fetchOrderBook": "not implemented",
             "fetchTrades": {
-                "takerOrMaker": "todo fix"
+                "takerOrMaker": "todo fix",
+                "sideSequence": "todo check"
             }
         }
     },
@@ -1525,6 +1538,9 @@
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
+            },
+            "fetchTrades": {
+                "sideSequence": "todo check"
             }
         }
     },
@@ -1582,7 +1598,8 @@
                 "checkActiveSymbols": "todo"
             },
             "fetchTrades": {
-                "fees": "missing"
+                "fees": "missing",
+                "sideSequence": "todo check"
             }
         }
     },
@@ -1615,7 +1632,8 @@
                 "activeMajorCurrencies": "todo"
             },
             "fetchTrades": {
-                "side": "side is undefined"
+                "side": "side is undefined",
+                "sideSequence": "todo check"
             },
             "fetchTickers": "negative values",
             "orderBook": {
@@ -1695,7 +1713,8 @@
             "watchOrderBookForSymbols.java": "same as watchTradesForSymbols.java",
             "watchOHLCVForSymbols.java": "same as watchTradesForSymbols.java",
             "fetchTrades": {
-                "timestampSort": "todo check"
+                "timestampSort": "todo check",
+                "sideSequence": "todo check"
             }
         },
         "timeout": 120000
@@ -1938,6 +1957,9 @@
                 "deposit": "not provided",
                 "activeMajorCurrencies": "todo",
                 "type": "todo"
+            },
+            "fetchTrades": {
+                "sideSequence": "todo check"
             }
         }
     },
@@ -1964,6 +1986,9 @@
             "fetchCurrencies": {
                 "precision": "not provided",
                 "activeMajorCurrencies": "perp assets are included for market currency id validation but are not depositable or withdrawable"
+            },
+            "fetchTrades": {
+                "sideSequence": "todo check"
             }
         }
     },
@@ -2356,7 +2381,8 @@
                 "checkActiveSymbols": "todo"
             },
             "fetchTrades": {
-                "sideSequence": "todo check"
+                "sideSequence": "todo check",
+                "requireBothSides": "todo check"
             }
         }
     },
@@ -2400,7 +2426,10 @@
                 "active": "undefined",
                 "currencyIdAndCode": "messed"
             },
-            "fetchCurrencies": "doesnt return currencies, todo"
+            "fetchCurrencies": "doesnt return currencies, todo",
+            "fetchTrades": {
+                "sideSequence": "todo check"
+            }
         }
     },
     "wazirx": {
