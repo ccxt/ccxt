@@ -7,15 +7,31 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testLoadedMarketTypes(BaseExchange exchange, object skippedProperties)
+    async static public Task<object> testLoadMarkets(BaseExchange exchange, object skippedProperties)
     {
+        object method = "loadMarkets";
+        object markets = await ((dynamic)exchange).loadMarkets();
+        assert(exchange.isDictionary(exchange.markets), ".markets is not a dict");
+        assert(((exchange.symbols is IList<object>) || (exchange.symbols.GetType().IsGenericType && exchange.symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ".symbols is not an array");
+        object symbolsLength = getArrayLength(exchange.symbols);
+        assert(!isEqual(exchange.markets, null), ".markets is undefined");
+        object marketKeys = new List<object>(((IDictionary<string,object>)exchange.markets).Keys);
+        object marketKeysLength = getArrayLength(marketKeys);
+        assert(isGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)");
+        assert(isGreaterThan(marketKeysLength, 0), ".markets objects keys length <= 0 (less than or equal to zero)");
+        assert(isEqual(symbolsLength, marketKeysLength), "number of .symbols is not equal to the number of .markets");
+        object marketValues = new List<object>(((IDictionary<string,object>)markets).Values);
+        for (object i = 0; isLessThan(i, getArrayLength(marketValues)); postFixIncrement(ref i))
+        {
+            testMarket(exchange, skippedProperties, method, getValue(marketValues, i));
+        }
+        // market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
         object marketTypes = new List<object>() {"spot", "swap", "future", "option", "index"};
         object collectedTypes = new List<object>() {};
-        assert(!isEqual(exchange.markets, null), ".markets is undefined");
-        object markets = new List<object>(((IDictionary<string,object>)exchange.markets).Values);
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        object allMarkets = new List<object>(((IDictionary<string,object>)exchange.markets).Values);
+        for (object i = 0; isLessThan(i, getArrayLength(allMarkets)); postFixIncrement(ref i))
         {
-            object market = getValue(markets, i);
+            object market = getValue(allMarkets, i);
             if (!isTrue(exchange.inArray(getValue(market, "type"), collectedTypes)))
             {
                 ((IList<object>)collectedTypes).Add(getValue(market, "type"));
@@ -37,26 +53,6 @@ public partial class testMainClass : BaseTest
                 assert(!isTrue(exchange.inArray(mType, collectedTypes)) || isTrue(isKnownException), add(add(add(add("exchange.has[", mType), "] is false, but markets of type "), mType), " were found in exchange.markets"));
             }
         }
-    }
-    async static public Task<object> testLoadMarkets(BaseExchange exchange, object skippedProperties)
-    {
-        object method = "loadMarkets";
-        object markets = await ((dynamic)exchange).loadMarkets();
-        assert(exchange.isDictionary(exchange.markets), ".markets is not a dict");
-        assert(((exchange.symbols is IList<object>) || (exchange.symbols.GetType().IsGenericType && exchange.symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ".symbols is not an array");
-        object symbolsLength = getArrayLength(exchange.symbols);
-        assert(!isEqual(exchange.markets, null), ".markets is undefined");
-        object marketKeys = new List<object>(((IDictionary<string,object>)exchange.markets).Keys);
-        object marketKeysLength = getArrayLength(marketKeys);
-        assert(isGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)");
-        assert(isGreaterThan(marketKeysLength, 0), ".markets objects keys length <= 0 (less than or equal to zero)");
-        assert(isEqual(symbolsLength, marketKeysLength), "number of .symbols is not equal to the number of .markets");
-        object marketValues = new List<object>(((IDictionary<string,object>)markets).Values);
-        for (object i = 0; isLessThan(i, getArrayLength(marketValues)); postFixIncrement(ref i))
-        {
-            testMarket(exchange, skippedProperties, method, getValue(marketValues, i));
-        }
-        testLoadedMarketTypes(exchange, skippedProperties);
         return true;
     }
 

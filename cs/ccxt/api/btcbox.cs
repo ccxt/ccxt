@@ -12,80 +12,80 @@ public partial class btcbox : Exchange
     public btcbox (object args = null): base(args) {}
 
     /// <summary>Calls the publicGetDepth endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> publicGetDepth (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetDepth (object parameters = null)
     {
-        return await this.callAsync ("publicGetDepth",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetDepth",parameters);
     }
 
     /// <summary>Calls the publicGetOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> publicGetOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetOrders (object parameters = null)
     {
-        return await this.callAsync ("publicGetOrders",parameters);
+        return await this.callAsync<List<object>> ("publicGetOrders",parameters);
     }
 
     /// <summary>Calls the publicGetTicker endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> publicGetTicker (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetTicker (object parameters = null)
     {
-        return await this.callAsync ("publicGetTicker",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetTicker",parameters);
     }
 
     /// <summary>Calls the publicGetTickers endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> publicGetTickers (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetTickers (object parameters = null)
     {
-        return await this.callAsync ("publicGetTickers",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetTickers",parameters);
     }
 
     /// <summary>Calls the privatePostBalance endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostBalance (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostBalance (object parameters = null)
     {
-        return await this.callAsync ("privatePostBalance",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostBalance",parameters);
     }
 
     /// <summary>Calls the privatePostTradeAdd endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostTradeAdd (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeAdd (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeAdd",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeAdd",parameters);
     }
 
     /// <summary>Calls the privatePostTradeCancel endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostTradeCancel (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeCancel (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeCancel",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeCancel",parameters);
     }
 
     /// <summary>Calls the privatePostTradeList endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> privatePostTradeList (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostTradeList (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeList",parameters);
+        return await this.callAsync<List<object>> ("privatePostTradeList",parameters);
     }
 
     /// <summary>Calls the privatePostTradeView endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostTradeView (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeView (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeView",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeView",parameters);
     }
 
     /// <summary>Calls the privatePostWallet endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostWallet (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostWallet (object parameters = null)
     {
-        return await this.callAsync ("privatePostWallet",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostWallet",parameters);
     }
 
     /// <summary>Calls the webApiGetAjaxCoinCoinInfo endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> webApiGetAjaxCoinCoinInfo (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> webApiGetAjaxCoinCoinInfo (object parameters = null)
     {
-        return await this.callAsync ("webApiGetAjaxCoinCoinInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("webApiGetAjaxCoinCoinInfo",parameters);
     }
 
 }

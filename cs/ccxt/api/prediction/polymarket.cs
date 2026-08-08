@@ -12,899 +12,899 @@ public partial class polymarket : PredictionExchange
     public polymarket (object args = null): base(args) {}
 
     /// <summary>Calls the gammaPublicGetStatus endpoint.</summary>
-    /// <returns>a JSON scalar (runtime type: string)</returns>
-    public async Task<object> gammaPublicGetStatus (object parameters = null)
+    /// <returns>a JSON scalar</returns>
+    public async Task<string> gammaPublicGetStatus (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetStatus",parameters);
+        return await this.callAsync<string> ("gammaPublicGetStatus",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetComments endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> gammaPublicGetComments (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gammaPublicGetComments (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetComments",parameters);
+        return await this.callAsync<List<object>> ("gammaPublicGetComments",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetCommentsId endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> gammaPublicGetCommentsId (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gammaPublicGetCommentsId (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetCommentsId",parameters);
+        return await this.callAsync<List<object>> ("gammaPublicGetCommentsId",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetCommentsUserAddressUserAddress endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> gammaPublicGetCommentsUserAddressUserAddress (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gammaPublicGetCommentsUserAddressUserAddress (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetCommentsUserAddressUserAddress",parameters);
+        return await this.callAsync<List<object>> ("gammaPublicGetCommentsUserAddressUserAddress",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetEvents endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> gammaPublicGetEvents (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gammaPublicGetEvents (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetEvents",parameters);
+        return await this.callAsync<List<object>> ("gammaPublicGetEvents",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetEventsCreators endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> gammaPublicGetEventsCreators (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gammaPublicGetEventsCreators (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetEventsCreators",parameters);
+        return await this.callAsync<List<object>> ("gammaPublicGetEventsCreators",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetEventsCreatorsId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetEventsCreatorsId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetEventsCreatorsId (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetEventsCreatorsId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetEventsCreatorsId",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetEventsKeyset endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetEventsKeyset (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetEventsKeyset (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetEventsKeyset",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetEventsKeyset",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetEventsPagination endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetEventsPagination (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetEventsPagination (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetEventsPagination",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetEventsPagination",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetEventsResults endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> gammaPublicGetEventsResults (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gammaPublicGetEventsResults (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetEventsResults",parameters);
+        return await this.callAsync<List<object>> ("gammaPublicGetEventsResults",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetEventsSlugSlug endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetEventsSlugSlug (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetEventsSlugSlug (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetEventsSlugSlug",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetEventsSlugSlug",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetEventsId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetEventsId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetEventsId (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetEventsId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetEventsId",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetEventsIdCommentsCount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetEventsIdCommentsCount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetEventsIdCommentsCount (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetEventsIdCommentsCount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetEventsIdCommentsCount",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetEventsIdTags endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> gammaPublicGetEventsIdTags (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gammaPublicGetEventsIdTags (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetEventsIdTags",parameters);
+        return await this.callAsync<List<object>> ("gammaPublicGetEventsIdTags",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetEventsIdTweetCount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetEventsIdTweetCount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetEventsIdTweetCount (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetEventsIdTweetCount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetEventsIdTweetCount",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetMarkets endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> gammaPublicGetMarkets (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gammaPublicGetMarkets (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetMarkets",parameters);
+        return await this.callAsync<List<object>> ("gammaPublicGetMarkets",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetMarketsKeyset endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetMarketsKeyset (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetMarketsKeyset (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetMarketsKeyset",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetMarketsKeyset",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetMarketsSlugSlug endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetMarketsSlugSlug (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetMarketsSlugSlug (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetMarketsSlugSlug",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetMarketsSlugSlug",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetMarketsId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetMarketsId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetMarketsId (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetMarketsId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetMarketsId",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetMarketsIdDescription endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetMarketsIdDescription (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetMarketsIdDescription (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetMarketsIdDescription",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetMarketsIdDescription",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetMarketsIdTags endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> gammaPublicGetMarketsIdTags (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gammaPublicGetMarketsIdTags (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetMarketsIdTags",parameters);
+        return await this.callAsync<List<object>> ("gammaPublicGetMarketsIdTags",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetProfilesUserAddressUserAddress endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetProfilesUserAddressUserAddress (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetProfilesUserAddressUserAddress (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetProfilesUserAddressUserAddress",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetProfilesUserAddressUserAddress",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetPublicProfile endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetPublicProfile (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetPublicProfile (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetPublicProfile",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetPublicProfile",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetPublicSearch endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetPublicSearch (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetPublicSearch (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetPublicSearch",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetPublicSearch",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetSeries endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> gammaPublicGetSeries (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gammaPublicGetSeries (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetSeries",parameters);
+        return await this.callAsync<List<object>> ("gammaPublicGetSeries",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetSeriesSummarySlugSlug endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetSeriesSummarySlugSlug (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetSeriesSummarySlugSlug (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetSeriesSummarySlugSlug",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetSeriesSummarySlugSlug",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetSeriesSummaryId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetSeriesSummaryId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetSeriesSummaryId (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetSeriesSummaryId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetSeriesSummaryId",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetSeriesId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetSeriesId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetSeriesId (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetSeriesId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetSeriesId",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetSeriesIdCommentsCount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetSeriesIdCommentsCount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetSeriesIdCommentsCount (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetSeriesIdCommentsCount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetSeriesIdCommentsCount",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetSports endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> gammaPublicGetSports (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gammaPublicGetSports (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetSports",parameters);
+        return await this.callAsync<List<object>> ("gammaPublicGetSports",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetSportsMarketTypes endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetSportsMarketTypes (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetSportsMarketTypes (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetSportsMarketTypes",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetSportsMarketTypes",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetTags endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> gammaPublicGetTags (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gammaPublicGetTags (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetTags",parameters);
+        return await this.callAsync<List<object>> ("gammaPublicGetTags",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetTagsSlugSlug endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetTagsSlugSlug (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetTagsSlugSlug (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetTagsSlugSlug",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetTagsSlugSlug",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetTagsSlugSlugRelatedTags endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> gammaPublicGetTagsSlugSlugRelatedTags (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gammaPublicGetTagsSlugSlugRelatedTags (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetTagsSlugSlugRelatedTags",parameters);
+        return await this.callAsync<List<object>> ("gammaPublicGetTagsSlugSlugRelatedTags",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetTagsSlugSlugRelatedTagsTags endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> gammaPublicGetTagsSlugSlugRelatedTagsTags (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gammaPublicGetTagsSlugSlugRelatedTagsTags (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetTagsSlugSlugRelatedTagsTags",parameters);
+        return await this.callAsync<List<object>> ("gammaPublicGetTagsSlugSlugRelatedTagsTags",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetTagsId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetTagsId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetTagsId (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetTagsId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetTagsId",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetTagsIdRelatedTags endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> gammaPublicGetTagsIdRelatedTags (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gammaPublicGetTagsIdRelatedTags (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetTagsIdRelatedTags",parameters);
+        return await this.callAsync<List<object>> ("gammaPublicGetTagsIdRelatedTags",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetTagsIdRelatedTagsTags endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> gammaPublicGetTagsIdRelatedTagsTags (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gammaPublicGetTagsIdRelatedTagsTags (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetTagsIdRelatedTagsTags",parameters);
+        return await this.callAsync<List<object>> ("gammaPublicGetTagsIdRelatedTagsTags",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetTeams endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> gammaPublicGetTeams (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gammaPublicGetTeams (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetTeams",parameters);
+        return await this.callAsync<List<object>> ("gammaPublicGetTeams",parameters);
     }
 
     /// <summary>Calls the gammaPublicGetTeamsId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> gammaPublicGetTeamsId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gammaPublicGetTeamsId (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicGetTeamsId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gammaPublicGetTeamsId",parameters);
     }
 
     /// <summary>Calls the gammaPublicPostMarketsAbridged endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> gammaPublicPostMarketsAbridged (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gammaPublicPostMarketsAbridged (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicPostMarketsAbridged",parameters);
+        return await this.callAsync<List<object>> ("gammaPublicPostMarketsAbridged",parameters);
     }
 
     /// <summary>Calls the gammaPublicPostMarketsInformation endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> gammaPublicPostMarketsInformation (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gammaPublicPostMarketsInformation (object parameters = null)
     {
-        return await this.callAsync ("gammaPublicPostMarketsInformation",parameters);
+        return await this.callAsync<List<object>> ("gammaPublicPostMarketsInformation",parameters);
     }
 
     /// <summary>Calls the clobPublicGetBook endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetBook (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetBook (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetBook",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetBook",parameters);
     }
 
     /// <summary>Calls the clobPublicGetBooks endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> clobPublicGetBooks (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> clobPublicGetBooks (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetBooks",parameters);
+        return await this.callAsync<List<object>> ("clobPublicGetBooks",parameters);
     }
 
     /// <summary>Calls the clobPublicGetBuilderTrades endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetBuilderTrades (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetBuilderTrades (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetBuilderTrades",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetBuilderTrades",parameters);
     }
 
     /// <summary>Calls the clobPublicGetClobMarketsConditionId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetClobMarketsConditionId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetClobMarketsConditionId (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetClobMarketsConditionId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetClobMarketsConditionId",parameters);
     }
 
     /// <summary>Calls the clobPublicGetFeeRate endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetFeeRate (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetFeeRate (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetFeeRate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetFeeRate",parameters);
     }
 
     /// <summary>Calls the clobPublicGetFeeRateTokenId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetFeeRateTokenId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetFeeRateTokenId (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetFeeRateTokenId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetFeeRateTokenId",parameters);
     }
 
     /// <summary>Calls the clobPublicGetLastTradePrice endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetLastTradePrice (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetLastTradePrice (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetLastTradePrice",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetLastTradePrice",parameters);
     }
 
     /// <summary>Calls the clobPublicGetLastTradesPrices endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> clobPublicGetLastTradesPrices (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> clobPublicGetLastTradesPrices (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetLastTradesPrices",parameters);
+        return await this.callAsync<List<object>> ("clobPublicGetLastTradesPrices",parameters);
     }
 
     /// <summary>Calls the clobPublicGetMarketsByTokenTokenId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetMarketsByTokenTokenId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetMarketsByTokenTokenId (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetMarketsByTokenTokenId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetMarketsByTokenTokenId",parameters);
     }
 
     /// <summary>Calls the clobPublicGetMarketsLiveActivityConditionId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetMarketsLiveActivityConditionId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetMarketsLiveActivityConditionId (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetMarketsLiveActivityConditionId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetMarketsLiveActivityConditionId",parameters);
     }
 
     /// <summary>Calls the clobPublicGetMidpoint endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetMidpoint (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetMidpoint (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetMidpoint",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetMidpoint",parameters);
     }
 
     /// <summary>Calls the clobPublicGetMidpoints endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetMidpoints (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetMidpoints (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetMidpoints",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetMidpoints",parameters);
     }
 
     /// <summary>Calls the clobPublicGetNegRisk endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetNegRisk (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetNegRisk (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetNegRisk",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetNegRisk",parameters);
     }
 
     /// <summary>Calls the clobPublicGetNegRiskTokenId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetNegRiskTokenId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetNegRiskTokenId (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetNegRiskTokenId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetNegRiskTokenId",parameters);
     }
 
     /// <summary>Calls the clobPublicGetPrice endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetPrice (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetPrice (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetPrice",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetPrice",parameters);
     }
 
     /// <summary>Calls the clobPublicGetPrices endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetPrices (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetPrices (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetPrices",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetPrices",parameters);
     }
 
     /// <summary>Calls the clobPublicGetPricesHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetPricesHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetPricesHistory (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetPricesHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetPricesHistory",parameters);
     }
 
     /// <summary>Calls the clobPublicGetRebatesCurrent endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> clobPublicGetRebatesCurrent (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> clobPublicGetRebatesCurrent (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetRebatesCurrent",parameters);
+        return await this.callAsync<List<object>> ("clobPublicGetRebatesCurrent",parameters);
     }
 
     /// <summary>Calls the clobPublicGetRewardsMarketsCurrent endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetRewardsMarketsCurrent (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetRewardsMarketsCurrent (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetRewardsMarketsCurrent",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetRewardsMarketsCurrent",parameters);
     }
 
     /// <summary>Calls the clobPublicGetRewardsMarketsMulti endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetRewardsMarketsMulti (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetRewardsMarketsMulti (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetRewardsMarketsMulti",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetRewardsMarketsMulti",parameters);
     }
 
     /// <summary>Calls the clobPublicGetRewardsMarketsConditionId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetRewardsMarketsConditionId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetRewardsMarketsConditionId (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetRewardsMarketsConditionId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetRewardsMarketsConditionId",parameters);
     }
 
     /// <summary>Calls the clobPublicGetSamplingMarkets endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetSamplingMarkets (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetSamplingMarkets (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetSamplingMarkets",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetSamplingMarkets",parameters);
     }
 
     /// <summary>Calls the clobPublicGetSamplingSimplifiedMarkets endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetSamplingSimplifiedMarkets (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetSamplingSimplifiedMarkets (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetSamplingSimplifiedMarkets",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetSamplingSimplifiedMarkets",parameters);
     }
 
     /// <summary>Calls the clobPublicGetSimplifiedMarkets endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetSimplifiedMarkets (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetSimplifiedMarkets (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetSimplifiedMarkets",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetSimplifiedMarkets",parameters);
     }
 
     /// <summary>Calls the clobPublicGetSpread endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetSpread (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetSpread (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetSpread",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetSpread",parameters);
     }
 
     /// <summary>Calls the clobPublicGetTickSize endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetTickSize (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetTickSize (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetTickSize",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetTickSize",parameters);
     }
 
     /// <summary>Calls the clobPublicGetTickSizeTokenId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicGetTickSizeTokenId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicGetTickSizeTokenId (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetTickSizeTokenId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicGetTickSizeTokenId",parameters);
     }
 
     /// <summary>Calls the clobPublicGetTime endpoint.</summary>
-    /// <returns>a JSON scalar (runtime type: string)</returns>
-    public async Task<object> clobPublicGetTime (object parameters = null)
+    /// <returns>a JSON scalar</returns>
+    public async Task<string> clobPublicGetTime (object parameters = null)
     {
-        return await this.callAsync ("clobPublicGetTime",parameters);
+        return await this.callAsync<string> ("clobPublicGetTime",parameters);
     }
 
     /// <summary>Calls the clobPublicPostBatchPricesHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicPostBatchPricesHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicPostBatchPricesHistory (object parameters = null)
     {
-        return await this.callAsync ("clobPublicPostBatchPricesHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicPostBatchPricesHistory",parameters);
     }
 
     /// <summary>Calls the clobPublicPostBooks endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> clobPublicPostBooks (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> clobPublicPostBooks (object parameters = null)
     {
-        return await this.callAsync ("clobPublicPostBooks",parameters);
+        return await this.callAsync<List<object>> ("clobPublicPostBooks",parameters);
     }
 
     /// <summary>Calls the clobPublicPostLastTradesPrices endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> clobPublicPostLastTradesPrices (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> clobPublicPostLastTradesPrices (object parameters = null)
     {
-        return await this.callAsync ("clobPublicPostLastTradesPrices",parameters);
+        return await this.callAsync<List<object>> ("clobPublicPostLastTradesPrices",parameters);
     }
 
     /// <summary>Calls the clobPublicPostMarketsLiveActivity endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> clobPublicPostMarketsLiveActivity (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> clobPublicPostMarketsLiveActivity (object parameters = null)
     {
-        return await this.callAsync ("clobPublicPostMarketsLiveActivity",parameters);
+        return await this.callAsync<List<object>> ("clobPublicPostMarketsLiveActivity",parameters);
     }
 
     /// <summary>Calls the clobPublicPostMidpoints endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicPostMidpoints (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicPostMidpoints (object parameters = null)
     {
-        return await this.callAsync ("clobPublicPostMidpoints",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicPostMidpoints",parameters);
     }
 
     /// <summary>Calls the clobPublicPostPrices endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicPostPrices (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicPostPrices (object parameters = null)
     {
-        return await this.callAsync ("clobPublicPostPrices",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicPostPrices",parameters);
     }
 
     /// <summary>Calls the clobPublicPostSpreads endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPublicPostSpreads (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPublicPostSpreads (object parameters = null)
     {
-        return await this.callAsync ("clobPublicPostSpreads",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPublicPostSpreads",parameters);
     }
 
     /// <summary>Calls the clobPrivateGetAuthApiKeys endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivateGetAuthApiKeys (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivateGetAuthApiKeys (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateGetAuthApiKeys",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivateGetAuthApiKeys",parameters);
     }
 
     /// <summary>Calls the clobPrivateGetAuthBanStatusClosedOnly endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivateGetAuthBanStatusClosedOnly (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivateGetAuthBanStatusClosedOnly (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateGetAuthBanStatusClosedOnly",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivateGetAuthBanStatusClosedOnly",parameters);
     }
 
     /// <summary>Calls the clobPrivateGetAuthBuilderApiKey endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> clobPrivateGetAuthBuilderApiKey (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> clobPrivateGetAuthBuilderApiKey (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateGetAuthBuilderApiKey",parameters);
+        return await this.callAsync<List<object>> ("clobPrivateGetAuthBuilderApiKey",parameters);
     }
 
     /// <summary>Calls the clobPrivateGetAuthDeriveApiKey endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivateGetAuthDeriveApiKey (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivateGetAuthDeriveApiKey (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateGetAuthDeriveApiKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivateGetAuthDeriveApiKey",parameters);
     }
 
     /// <summary>Calls the clobPrivateGetBalanceAllowance endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivateGetBalanceAllowance (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivateGetBalanceAllowance (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateGetBalanceAllowance",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivateGetBalanceAllowance",parameters);
     }
 
     /// <summary>Calls the clobPrivateGetBalanceAllowanceUpdate endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivateGetBalanceAllowanceUpdate (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivateGetBalanceAllowanceUpdate (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateGetBalanceAllowanceUpdate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivateGetBalanceAllowanceUpdate",parameters);
     }
 
     /// <summary>Calls the clobPrivateGetDataOrderId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivateGetDataOrderId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivateGetDataOrderId (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateGetDataOrderId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivateGetDataOrderId",parameters);
     }
 
     /// <summary>Calls the clobPrivateGetDataOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivateGetDataOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivateGetDataOrders (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateGetDataOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivateGetDataOrders",parameters);
     }
 
     /// <summary>Calls the clobPrivateGetDataTrades endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivateGetDataTrades (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivateGetDataTrades (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateGetDataTrades",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivateGetDataTrades",parameters);
     }
 
     /// <summary>Calls the clobPrivateGetNotifications endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> clobPrivateGetNotifications (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> clobPrivateGetNotifications (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateGetNotifications",parameters);
+        return await this.callAsync<List<object>> ("clobPrivateGetNotifications",parameters);
     }
 
     /// <summary>Calls the clobPrivateGetOrderScoring endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivateGetOrderScoring (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivateGetOrderScoring (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateGetOrderScoring",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivateGetOrderScoring",parameters);
     }
 
     /// <summary>Calls the clobPrivateGetOrdersScoring endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivateGetOrdersScoring (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivateGetOrdersScoring (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateGetOrdersScoring",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivateGetOrdersScoring",parameters);
     }
 
     /// <summary>Calls the clobPrivateGetRewardsUser endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivateGetRewardsUser (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivateGetRewardsUser (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateGetRewardsUser",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivateGetRewardsUser",parameters);
     }
 
     /// <summary>Calls the clobPrivateGetRewardsUserMarkets endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivateGetRewardsUserMarkets (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivateGetRewardsUserMarkets (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateGetRewardsUserMarkets",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivateGetRewardsUserMarkets",parameters);
     }
 
     /// <summary>Calls the clobPrivateGetRewardsUserPercentages endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivateGetRewardsUserPercentages (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivateGetRewardsUserPercentages (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateGetRewardsUserPercentages",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivateGetRewardsUserPercentages",parameters);
     }
 
     /// <summary>Calls the clobPrivateGetRewardsUserTotal endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> clobPrivateGetRewardsUserTotal (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> clobPrivateGetRewardsUserTotal (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateGetRewardsUserTotal",parameters);
+        return await this.callAsync<List<object>> ("clobPrivateGetRewardsUserTotal",parameters);
     }
 
     /// <summary>Calls the clobPrivatePostAuthApiKey endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivatePostAuthApiKey (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivatePostAuthApiKey (object parameters = null)
     {
-        return await this.callAsync ("clobPrivatePostAuthApiKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivatePostAuthApiKey",parameters);
     }
 
     /// <summary>Calls the clobPrivatePostAuthBuilderApiKey endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivatePostAuthBuilderApiKey (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivatePostAuthBuilderApiKey (object parameters = null)
     {
-        return await this.callAsync ("clobPrivatePostAuthBuilderApiKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivatePostAuthBuilderApiKey",parameters);
     }
 
     /// <summary>Calls the clobPrivatePostHeartbeats endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivatePostHeartbeats (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivatePostHeartbeats (object parameters = null)
     {
-        return await this.callAsync ("clobPrivatePostHeartbeats",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivatePostHeartbeats",parameters);
     }
 
     /// <summary>Calls the clobPrivatePostOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivatePostOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivatePostOrder (object parameters = null)
     {
-        return await this.callAsync ("clobPrivatePostOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivatePostOrder",parameters);
     }
 
     /// <summary>Calls the clobPrivatePostOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> clobPrivatePostOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> clobPrivatePostOrders (object parameters = null)
     {
-        return await this.callAsync ("clobPrivatePostOrders",parameters);
+        return await this.callAsync<List<object>> ("clobPrivatePostOrders",parameters);
     }
 
     /// <summary>Calls the clobPrivatePostV1Heartbeats endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivatePostV1Heartbeats (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivatePostV1Heartbeats (object parameters = null)
     {
-        return await this.callAsync ("clobPrivatePostV1Heartbeats",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivatePostV1Heartbeats",parameters);
     }
 
     /// <summary>Calls the clobPrivateDeleteAuthApiKey endpoint.</summary>
-    /// <returns>a JSON scalar (runtime type: string)</returns>
-    public async Task<object> clobPrivateDeleteAuthApiKey (object parameters = null)
+    /// <returns>a JSON scalar</returns>
+    public async Task<string> clobPrivateDeleteAuthApiKey (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateDeleteAuthApiKey",parameters);
+        return await this.callAsync<string> ("clobPrivateDeleteAuthApiKey",parameters);
     }
 
     /// <summary>Calls the clobPrivateDeleteAuthBuilderApiKey endpoint.</summary>
-    /// <returns>a JSON scalar (runtime type: string)</returns>
-    public async Task<object> clobPrivateDeleteAuthBuilderApiKey (object parameters = null)
+    /// <returns>a JSON scalar</returns>
+    public async Task<string> clobPrivateDeleteAuthBuilderApiKey (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateDeleteAuthBuilderApiKey",parameters);
+        return await this.callAsync<string> ("clobPrivateDeleteAuthBuilderApiKey",parameters);
     }
 
     /// <summary>Calls the clobPrivateDeleteCancelAll endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivateDeleteCancelAll (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivateDeleteCancelAll (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateDeleteCancelAll",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivateDeleteCancelAll",parameters);
     }
 
     /// <summary>Calls the clobPrivateDeleteCancelMarketOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivateDeleteCancelMarketOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivateDeleteCancelMarketOrders (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateDeleteCancelMarketOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivateDeleteCancelMarketOrders",parameters);
     }
 
     /// <summary>Calls the clobPrivateDeleteNotifications endpoint.</summary>
-    /// <returns>a JSON scalar (runtime type: string)</returns>
-    public async Task<object> clobPrivateDeleteNotifications (object parameters = null)
+    /// <returns>a JSON scalar</returns>
+    public async Task<string> clobPrivateDeleteNotifications (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateDeleteNotifications",parameters);
+        return await this.callAsync<string> ("clobPrivateDeleteNotifications",parameters);
     }
 
     /// <summary>Calls the clobPrivateDeleteOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivateDeleteOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivateDeleteOrder (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateDeleteOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivateDeleteOrder",parameters);
     }
 
     /// <summary>Calls the clobPrivateDeleteOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> clobPrivateDeleteOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> clobPrivateDeleteOrders (object parameters = null)
     {
-        return await this.callAsync ("clobPrivateDeleteOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("clobPrivateDeleteOrders",parameters);
     }
 
     /// <summary>Calls the dataPublicGetActivity endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dataPublicGetActivity (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dataPublicGetActivity (object parameters = null)
     {
-        return await this.callAsync ("dataPublicGetActivity",parameters);
+        return await this.callAsync<List<object>> ("dataPublicGetActivity",parameters);
     }
 
     /// <summary>Calls the dataPublicGetClosedPositions endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dataPublicGetClosedPositions (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dataPublicGetClosedPositions (object parameters = null)
     {
-        return await this.callAsync ("dataPublicGetClosedPositions",parameters);
+        return await this.callAsync<List<object>> ("dataPublicGetClosedPositions",parameters);
     }
 
     /// <summary>Calls the dataPublicGetHolders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dataPublicGetHolders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dataPublicGetHolders (object parameters = null)
     {
-        return await this.callAsync ("dataPublicGetHolders",parameters);
+        return await this.callAsync<List<object>> ("dataPublicGetHolders",parameters);
     }
 
     /// <summary>Calls the dataPublicGetLiveVolume endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dataPublicGetLiveVolume (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dataPublicGetLiveVolume (object parameters = null)
     {
-        return await this.callAsync ("dataPublicGetLiveVolume",parameters);
+        return await this.callAsync<List<object>> ("dataPublicGetLiveVolume",parameters);
     }
 
     /// <summary>Calls the dataPublicGetOi endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dataPublicGetOi (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dataPublicGetOi (object parameters = null)
     {
-        return await this.callAsync ("dataPublicGetOi",parameters);
+        return await this.callAsync<List<object>> ("dataPublicGetOi",parameters);
     }
 
     /// <summary>Calls the dataPublicGetOther endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dataPublicGetOther (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dataPublicGetOther (object parameters = null)
     {
-        return await this.callAsync ("dataPublicGetOther",parameters);
+        return await this.callAsync<List<object>> ("dataPublicGetOther",parameters);
     }
 
     /// <summary>Calls the dataPublicGetPositions endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dataPublicGetPositions (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dataPublicGetPositions (object parameters = null)
     {
-        return await this.callAsync ("dataPublicGetPositions",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dataPublicGetPositions",parameters);
     }
 
     /// <summary>Calls the dataPublicGetRevisions endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dataPublicGetRevisions (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dataPublicGetRevisions (object parameters = null)
     {
-        return await this.callAsync ("dataPublicGetRevisions",parameters);
+        return await this.callAsync<List<object>> ("dataPublicGetRevisions",parameters);
     }
 
     /// <summary>Calls the dataPublicGetTraded endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dataPublicGetTraded (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dataPublicGetTraded (object parameters = null)
     {
-        return await this.callAsync ("dataPublicGetTraded",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dataPublicGetTraded",parameters);
     }
 
     /// <summary>Calls the dataPublicGetTrades endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dataPublicGetTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dataPublicGetTrades (object parameters = null)
     {
-        return await this.callAsync ("dataPublicGetTrades",parameters);
+        return await this.callAsync<List<object>> ("dataPublicGetTrades",parameters);
     }
 
     /// <summary>Calls the dataPublicGetV1AccountingSnapshot endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dataPublicGetV1AccountingSnapshot (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dataPublicGetV1AccountingSnapshot (object parameters = null)
     {
-        return await this.callAsync ("dataPublicGetV1AccountingSnapshot",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dataPublicGetV1AccountingSnapshot",parameters);
     }
 
     /// <summary>Calls the dataPublicGetV1ActivityCombos endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dataPublicGetV1ActivityCombos (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dataPublicGetV1ActivityCombos (object parameters = null)
     {
-        return await this.callAsync ("dataPublicGetV1ActivityCombos",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dataPublicGetV1ActivityCombos",parameters);
     }
 
     /// <summary>Calls the dataPublicGetV1BuildersLeaderboard endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dataPublicGetV1BuildersLeaderboard (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dataPublicGetV1BuildersLeaderboard (object parameters = null)
     {
-        return await this.callAsync ("dataPublicGetV1BuildersLeaderboard",parameters);
+        return await this.callAsync<List<object>> ("dataPublicGetV1BuildersLeaderboard",parameters);
     }
 
     /// <summary>Calls the dataPublicGetV1BuildersVolume endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dataPublicGetV1BuildersVolume (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dataPublicGetV1BuildersVolume (object parameters = null)
     {
-        return await this.callAsync ("dataPublicGetV1BuildersVolume",parameters);
+        return await this.callAsync<List<object>> ("dataPublicGetV1BuildersVolume",parameters);
     }
 
     /// <summary>Calls the dataPublicGetV1Leaderboard endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dataPublicGetV1Leaderboard (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dataPublicGetV1Leaderboard (object parameters = null)
     {
-        return await this.callAsync ("dataPublicGetV1Leaderboard",parameters);
+        return await this.callAsync<List<object>> ("dataPublicGetV1Leaderboard",parameters);
     }
 
     /// <summary>Calls the dataPublicGetV1MarketPositions endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dataPublicGetV1MarketPositions (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dataPublicGetV1MarketPositions (object parameters = null)
     {
-        return await this.callAsync ("dataPublicGetV1MarketPositions",parameters);
+        return await this.callAsync<List<object>> ("dataPublicGetV1MarketPositions",parameters);
     }
 
     /// <summary>Calls the dataPublicGetV1PositionsCombos endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dataPublicGetV1PositionsCombos (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dataPublicGetV1PositionsCombos (object parameters = null)
     {
-        return await this.callAsync ("dataPublicGetV1PositionsCombos",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dataPublicGetV1PositionsCombos",parameters);
     }
 
     /// <summary>Calls the dataPublicGetValue endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dataPublicGetValue (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dataPublicGetValue (object parameters = null)
     {
-        return await this.callAsync ("dataPublicGetValue",parameters);
+        return await this.callAsync<List<object>> ("dataPublicGetValue",parameters);
     }
 
     /// <summary>Calls the combosPublicGetV1RfqComboMarkets endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> combosPublicGetV1RfqComboMarkets (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> combosPublicGetV1RfqComboMarkets (object parameters = null)
     {
-        return await this.callAsync ("combosPublicGetV1RfqComboMarkets",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("combosPublicGetV1RfqComboMarkets",parameters);
     }
 
     /// <summary>Calls the combosPrivatePostV1MakerConfirmations endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> combosPrivatePostV1MakerConfirmations (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> combosPrivatePostV1MakerConfirmations (object parameters = null)
     {
-        return await this.callAsync ("combosPrivatePostV1MakerConfirmations",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("combosPrivatePostV1MakerConfirmations",parameters);
     }
 
     /// <summary>Calls the combosPrivatePostV1MakerQuotes endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> combosPrivatePostV1MakerQuotes (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> combosPrivatePostV1MakerQuotes (object parameters = null)
     {
-        return await this.callAsync ("combosPrivatePostV1MakerQuotes",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("combosPrivatePostV1MakerQuotes",parameters);
     }
 
     /// <summary>Calls the combosPrivatePostV1MakerQuotesCancel endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> combosPrivatePostV1MakerQuotesCancel (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> combosPrivatePostV1MakerQuotesCancel (object parameters = null)
     {
-        return await this.callAsync ("combosPrivatePostV1MakerQuotesCancel",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("combosPrivatePostV1MakerQuotesCancel",parameters);
     }
 
 }
