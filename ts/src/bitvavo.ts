@@ -173,7 +173,7 @@ export default class bitvavo extends Exchange {
                         'ticker/price': { 'cost': 1 } as Endpoint<List>,
                         'ticker/book': { 'cost': 1 } as Endpoint<List>,
                         '{market}/candles': { 'cost': 1 } as Endpoint<List>,
-                        'ticker/24h': { 'cost': 1, 'noMarket': 25 } as Endpoint<List>,
+                        'ticker/24h': { 'cost': 1, 'noMarket': 25 } as Endpoint<Dict | List>,
                         'time': { 'cost': 1 } as Endpoint<Dict>,
                         'markets': { 'cost': 1 } as Endpoint<List>,
                         'assets': { 'cost': 1 } as Endpoint<List>,

@@ -172,7 +172,7 @@ export default class deribit extends Exchange {
                         'get_index_price': { 'cost': 1 } as Endpoint<Dict>,
                         'get_index_price_names': { 'cost': 1 } as Endpoint<Dict>,
                         'get_instrument': { 'cost': 1 } as Endpoint<Dict>,
-                        'get_instruments': { 'cost': 1 } as Endpoint<List>,
+                        'get_instruments': { 'cost': 1 } as Endpoint<Dict>,
                         'get_last_settlements_by_currency': { 'cost': 1 } as Endpoint<Dict>,
                         'get_last_settlements_by_instrument': { 'cost': 1 } as Endpoint<Dict>,
                         'get_last_trades_by_currency': { 'cost': 1 } as Endpoint<Dict>,
