@@ -716,7 +716,6 @@ public partial class whitebit : Exchange
         object margin = isTrue(isCollateral) && !isTrue(swap);
         object contract = false;
         object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "stockPrec")));
-        object contractSize = amountPrecision;
         object linear = null;
         object inverse = null;
         if (isTrue(swap))
@@ -758,7 +757,7 @@ public partial class whitebit : Exchange
             { "inverse", inverse },
             { "taker", this.parseNumber(taker) },
             { "maker", this.parseNumber(maker) },
-            { "contractSize", ((bool) isTrue(isSpot)) ? null : contractSize },
+            { "contractSize", ((bool) isTrue(isSpot)) ? null : this.parseNumber("1") },
             { "expiry", null },
             { "expiryDatetime", null },
             { "strike", null },
