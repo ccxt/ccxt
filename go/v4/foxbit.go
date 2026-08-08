@@ -2618,7 +2618,9 @@ func (this *FoxbitCore) Sign(path any, optionalArgs ...any) any {
 		bodyToSignature = body
 	}
 	headers = map[string]any{
-		"Content-Type": "application/json",
+		"Content-Type":        "application/json",
+		"X-FB-CLIENT":         "ccxt",
+		"X-FB-CLIENT-VERSION": this.GetCcxtVersion(),
 	}
 	if IsTrue(IsEqual(urlPath, "private")) {
 		this.CheckRequiredCredentials()
