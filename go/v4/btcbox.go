@@ -124,13 +124,49 @@ func (this *BtcboxCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"depth", "orders", "ticker", "tickers"},
+				"get": map[string]any{
+					"depth": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"ticker": map[string]any{
+						"cost": 1,
+					},
+					"tickers": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"post": []any{"balance", "trade_add", "trade_cancel", "trade_list", "trade_view", "wallet"},
+				"post": map[string]any{
+					"balance": map[string]any{
+						"cost": 1,
+					},
+					"trade_add": map[string]any{
+						"cost": 1,
+					},
+					"trade_cancel": map[string]any{
+						"cost": 1,
+					},
+					"trade_list": map[string]any{
+						"cost": 1,
+					},
+					"trade_view": map[string]any{
+						"cost": 1,
+					},
+					"wallet": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"webApi": map[string]any{
-				"get": []any{"ajax/coin/coinInfo"},
+				"get": map[string]any{
+					"ajax/coin/coinInfo": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"options": map[string]any{
@@ -246,7 +282,7 @@ func (this *BtcboxCore) FetchMarkets(optionalArgs ...any) <-chan any {
 			var quote any = this.SafeString(symbolParts, 1, "")
 			var quoteId any = ToLower(quote)
 			var id any = ToLower(baseCurr)
-			var res any = GetValue(response1, marketId)
+			var res any = this.SafeDict(response1, marketId, map[string]any{})
 			var symbol any = Add(Add(baseCurr, "/"), quote)
 			var fee any = Ternary(IsTrue((IsEqual(id, "BTC"))), this.ParseNumber("0.0005"), this.ParseNumber("0.0010"))
 			var details any = this.SafeDict(result2Data, id, map[string]any{})

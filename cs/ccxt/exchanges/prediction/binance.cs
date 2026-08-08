@@ -53,28 +53,68 @@ public partial class binance : PredictionExchange
                 { "sapi", new Dictionary<string, object>() {
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "category/list", 200 },
-                            { "market/list", 200 },
-                            { "market/search", 200 },
-                            { "market/detail", 200 },
-                            { "order-book", 200 },
-                            { "order-book/last-trade-price", 200 },
-                            { "wallet/list", 200 },
-                            { "balance/payment-options", 200 },
-                            { "quota/limit/status", 200 },
-                            { "pnl/portfolio", 200 },
-                            { "pnl/query", 200 },
-                            { "position/list", 200 },
-                            { "position/filter", 200 },
-                            { "position/token", 200 },
-                            { "position/settled-history", 200 },
-                            { "order/list", 200 },
-                            { "order/history", 200 },
+                            { "category/list", new Dictionary<string, object>() {
+                                { "cost", 200 },
+                            } },
+                            { "market/list", new Dictionary<string, object>() {
+                                { "cost", 200 },
+                            } },
+                            { "market/search", new Dictionary<string, object>() {
+                                { "cost", 200 },
+                            } },
+                            { "market/detail", new Dictionary<string, object>() {
+                                { "cost", 200 },
+                            } },
+                            { "order-book", new Dictionary<string, object>() {
+                                { "cost", 200 },
+                            } },
+                            { "order-book/last-trade-price", new Dictionary<string, object>() {
+                                { "cost", 200 },
+                            } },
+                            { "wallet/list", new Dictionary<string, object>() {
+                                { "cost", 200 },
+                            } },
+                            { "balance/payment-options", new Dictionary<string, object>() {
+                                { "cost", 200 },
+                            } },
+                            { "quota/limit/status", new Dictionary<string, object>() {
+                                { "cost", 200 },
+                            } },
+                            { "pnl/portfolio", new Dictionary<string, object>() {
+                                { "cost", 200 },
+                            } },
+                            { "pnl/query", new Dictionary<string, object>() {
+                                { "cost", 200 },
+                            } },
+                            { "position/list", new Dictionary<string, object>() {
+                                { "cost", 200 },
+                            } },
+                            { "position/filter", new Dictionary<string, object>() {
+                                { "cost", 200 },
+                            } },
+                            { "position/token", new Dictionary<string, object>() {
+                                { "cost", 200 },
+                            } },
+                            { "position/settled-history", new Dictionary<string, object>() {
+                                { "cost", 200 },
+                            } },
+                            { "order/list", new Dictionary<string, object>() {
+                                { "cost", 200 },
+                            } },
+                            { "order/history", new Dictionary<string, object>() {
+                                { "cost", 200 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "trade/get-quote", 200 },
-                            { "trade/place-order-bundle", 200 },
-                            { "trade/batch-cancel", 200 },
+                            { "trade/get-quote", new Dictionary<string, object>() {
+                                { "cost", 200 },
+                            } },
+                            { "trade/place-order-bundle", new Dictionary<string, object>() {
+                                { "cost", 200 },
+                            } },
+                            { "trade/batch-cancel", new Dictionary<string, object>() {
+                                { "cost", 200 },
+                            } },
                         } },
                     } },
                 } },

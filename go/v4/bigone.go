@@ -120,23 +120,155 @@ func (this *BigoneCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"ping", "asset_pairs", "asset_pairs/{asset_pair_name}/depth", "asset_pairs/{asset_pair_name}/trades", "asset_pairs/{asset_pair_name}/ticker", "asset_pairs/{asset_pair_name}/candles", "asset_pairs/tickers"},
+				"get": map[string]any{
+					"ping": map[string]any{
+						"cost": 1,
+					},
+					"asset_pairs": map[string]any{
+						"cost": 1,
+					},
+					"asset_pairs/{asset_pair_name}/depth": map[string]any{
+						"cost": 1,
+					},
+					"asset_pairs/{asset_pair_name}/trades": map[string]any{
+						"cost": 1,
+					},
+					"asset_pairs/{asset_pair_name}/ticker": map[string]any{
+						"cost": 1,
+					},
+					"asset_pairs/{asset_pair_name}/candles": map[string]any{
+						"cost": 1,
+					},
+					"asset_pairs/tickers": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"get":  []any{"accounts", "fund/accounts", "assets/{asset_symbol}/address", "orders", "orders/{id}", "orders/multi", "trades", "withdrawals", "deposits"},
-				"post": []any{"orders", "orders/{id}/cancel", "orders/cancel", "withdrawals", "transfer"},
+				"get": map[string]any{
+					"accounts": map[string]any{
+						"cost": 1,
+					},
+					"fund/accounts": map[string]any{
+						"cost": 1,
+					},
+					"assets/{asset_symbol}/address": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/{id}": map[string]any{
+						"cost": 1,
+					},
+					"orders/multi": map[string]any{
+						"cost": 1,
+					},
+					"trades": map[string]any{
+						"cost": 1,
+					},
+					"withdrawals": map[string]any{
+						"cost": 1,
+					},
+					"deposits": map[string]any{
+						"cost": 1,
+					},
+				},
+				"post": map[string]any{
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/{id}/cancel": map[string]any{
+						"cost": 1,
+					},
+					"orders/cancel": map[string]any{
+						"cost": 1,
+					},
+					"withdrawals": map[string]any{
+						"cost": 1,
+					},
+					"transfer": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"contractPublic": map[string]any{
-				"get": []any{"symbols", "instruments", "depth@{symbol}/snapshot", "instruments/difference", "instruments/prices"},
+				"get": map[string]any{
+					"symbols": map[string]any{
+						"cost": 1,
+					},
+					"instruments": map[string]any{
+						"cost": 1,
+					},
+					"depth@{symbol}/snapshot": map[string]any{
+						"cost": 1,
+					},
+					"instruments/difference": map[string]any{
+						"cost": 1,
+					},
+					"instruments/prices": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"contractPrivate": map[string]any{
-				"get":    []any{"accounts", "orders/{id}", "orders", "orders/opening", "orders/count", "orders/opening/count", "trades", "trades/count"},
-				"post":   []any{"orders", "orders/batch"},
-				"put":    []any{"positions/{symbol}/margin", "positions/{symbol}/risk-limit"},
-				"delete": []any{"orders/{id}", "orders/batch"},
+				"get": map[string]any{
+					"accounts": map[string]any{
+						"cost": 1,
+					},
+					"orders/{id}": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/opening": map[string]any{
+						"cost": 1,
+					},
+					"orders/count": map[string]any{
+						"cost": 1,
+					},
+					"orders/opening/count": map[string]any{
+						"cost": 1,
+					},
+					"trades": map[string]any{
+						"cost": 1,
+					},
+					"trades/count": map[string]any{
+						"cost": 1,
+					},
+				},
+				"post": map[string]any{
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/batch": map[string]any{
+						"cost": 1,
+					},
+				},
+				"put": map[string]any{
+					"positions/{symbol}/margin": map[string]any{
+						"cost": 1,
+					},
+					"positions/{symbol}/risk-limit": map[string]any{
+						"cost": 1,
+					},
+				},
+				"delete": map[string]any{
+					"orders/{id}": map[string]any{
+						"cost": 1,
+					},
+					"orders/batch": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"webExchange": map[string]any{
-				"get": []any{"v3/assets"},
+				"get": map[string]any{
+					"v3/assets": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"fees": map[string]any{
@@ -670,8 +802,9 @@ func (this *BigoneCore) FetchMarkets(optionalArgs ...any) <-chan any {
 				"info":    market,
 			}))
 		}
-		for i := 0; IsLessThan(i, GetArrayLength(contractResponse)); i++ {
-			var market any = GetValue(contractResponse, i)
+		var contractMarkets any = this.ToArray(contractResponse)
+		for i := 0; IsLessThan(i, GetArrayLength(contractMarkets)); i++ {
+			var market any = GetValue(contractMarkets, i)
 			var baseId any = this.SafeString(market, "baseCurrency")
 			var quoteId any = this.SafeString(market, "quoteCurrency")
 			var settleId any = this.SafeString(market, "settleCurrency")
@@ -835,8 +968,8 @@ func (this *BigoneCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes88712 := (<-this.LoadMarkets())
-			PanicOnError(retRes88712)
+			retRes88812 := (<-this.LoadMarkets())
+			PanicOnError(retRes88812)
 		}
 		var market any = this.Market(symbol)
 		var typeVar any = nil
@@ -903,8 +1036,8 @@ func (this *BigoneCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes93212 := (<-this.LoadMarkets())
-			PanicOnError(retRes93212)
+			retRes93312 := (<-this.LoadMarkets())
+			PanicOnError(retRes93312)
 		}
 		var market any = nil
 		var symbol any = this.SafeString(symbols, 0)
@@ -957,8 +1090,9 @@ func (this *BigoneCore) FetchTickers(optionalArgs ...any) <-chan any {
 			data = this.SafeList(response, "data", []any{})
 		} else {
 
-			data = (<-this.ContractPublicGetInstruments(params))
-			PanicOnError(data)
+			instruments := (<-this.ContractPublicGetInstruments(params))
+			PanicOnError(instruments)
+			data = this.ToArray(instruments)
 		}
 		var tickers any = this.ParseTickers(data, symbols)
 
@@ -1028,8 +1162,8 @@ func (this *BigoneCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes104812 := (<-this.LoadMarkets())
-			PanicOnError(retRes104812)
+			retRes105012 := (<-this.LoadMarkets())
+			PanicOnError(retRes105012)
 		}
 		var market any = this.Market(symbol)
 		var response any = nil
@@ -1302,8 +1436,8 @@ func (this *BigoneCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes128912 := (<-this.LoadMarkets())
-			PanicOnError(retRes128912)
+			retRes129112 := (<-this.LoadMarkets())
+			PanicOnError(retRes129112)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(GetValue(market, "contract")) {
@@ -1388,8 +1522,8 @@ func (this *BigoneCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes136012 := (<-this.LoadMarkets())
-			PanicOnError(retRes136012)
+			retRes136212 := (<-this.LoadMarkets())
+			PanicOnError(retRes136212)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(GetValue(market, "contract")) {
@@ -1492,8 +1626,8 @@ func (this *BigoneCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes145012 := (<-this.LoadMarkets())
-			PanicOnError(retRes145012)
+			retRes145212 := (<-this.LoadMarkets())
+			PanicOnError(retRes145212)
 		}
 		var typeVar any = this.SafeString(params, "type", "")
 		params = this.Omit(params, "type")
@@ -1629,8 +1763,8 @@ func (this *BigoneCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optio
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes157012 := (<-this.LoadMarkets())
-			PanicOnError(retRes157012)
+			retRes157212 := (<-this.LoadMarkets())
+			PanicOnError(retRes157212)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
@@ -1638,9 +1772,9 @@ func (this *BigoneCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optio
 		}
 		AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-		retRes157715 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
-		PanicOnError(retRes157715)
-		ch <- retRes157715
+		retRes157915 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
+		PanicOnError(retRes157915)
+		ch <- retRes157915
 		return nil
 
 	}()
@@ -1679,8 +1813,8 @@ func (this *BigoneCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes160312 := (<-this.LoadMarkets())
-			PanicOnError(retRes160312)
+			retRes160512 := (<-this.LoadMarkets())
+			PanicOnError(retRes160512)
 		}
 		var market any = this.Market(symbol)
 		var isBuy any = (IsEqual(side, "buy"))
@@ -1797,8 +1931,8 @@ func (this *BigoneCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes170412 := (<-this.LoadMarkets())
-			PanicOnError(retRes170412)
+			retRes170612 := (<-this.LoadMarkets())
+			PanicOnError(retRes170612)
 		}
 		var request any = map[string]any{
 			"id": id,
@@ -1847,8 +1981,8 @@ func (this *BigoneCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes173512 := (<-this.LoadMarkets())
-			PanicOnError(retRes173512)
+			retRes173712 := (<-this.LoadMarkets())
+			PanicOnError(retRes173712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1918,8 +2052,8 @@ func (this *BigoneCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes178912 := (<-this.LoadMarkets())
-			PanicOnError(retRes178912)
+			retRes179112 := (<-this.LoadMarkets())
+			PanicOnError(retRes179112)
 		}
 		var request any = map[string]any{
 			"id": id,
@@ -1965,8 +2099,8 @@ func (this *BigoneCore) FetchOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes181312 := (<-this.LoadMarkets())
-			PanicOnError(retRes181312)
+			retRes181512 := (<-this.LoadMarkets())
+			PanicOnError(retRes181512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2036,8 +2170,8 @@ func (this *BigoneCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes186712 := (<-this.LoadMarkets())
-			PanicOnError(retRes186712)
+			retRes186912 := (<-this.LoadMarkets())
+			PanicOnError(retRes186912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2128,9 +2262,9 @@ func (this *BigoneCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 			"state": "PENDING",
 		}
 
-		retRes194015 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes194015)
-		ch <- retRes194015
+		retRes194215 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes194215)
+		ch <- retRes194215
 		return nil
 
 	}()
@@ -2165,9 +2299,9 @@ func (this *BigoneCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 			"state": "FILLED",
 		}
 
-		retRes195815 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes195815)
-		ch <- retRes195815
+		retRes196015 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes196015)
+		ch <- retRes196015
 		return nil
 
 	}()
@@ -2242,8 +2376,8 @@ func (this *BigoneCore) FetchDepositAddress(code any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes201012 := (<-this.LoadMarkets())
-			PanicOnError(retRes201012)
+			retRes201212 := (<-this.LoadMarkets())
+			PanicOnError(retRes201212)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -2422,8 +2556,8 @@ func (this *BigoneCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes216812 := (<-this.LoadMarkets())
-			PanicOnError(retRes216812)
+			retRes217012 := (<-this.LoadMarkets())
+			PanicOnError(retRes217012)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -2493,8 +2627,8 @@ func (this *BigoneCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes222312 := (<-this.LoadMarkets())
-			PanicOnError(retRes222312)
+			retRes222512 := (<-this.LoadMarkets())
+			PanicOnError(retRes222512)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -2559,8 +2693,8 @@ func (this *BigoneCore) Transfer(code any, amount any, fromAccount any, toAccoun
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes227912 := (<-this.LoadMarkets())
-			PanicOnError(retRes227912)
+			retRes228112 := (<-this.LoadMarkets())
+			PanicOnError(retRes228112)
 		}
 		var currency any = this.Currency(code)
 		var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
@@ -2654,8 +2788,8 @@ func (this *BigoneCore) Withdraw(code any, amount any, address any, optionalArgs
 		params = GetValue(tagparamsVariable, 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes235712 := (<-this.LoadMarkets())
-			PanicOnError(retRes235712)
+			retRes235912 := (<-this.LoadMarkets())
+			PanicOnError(retRes235912)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{

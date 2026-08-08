@@ -133,13 +133,123 @@ func (this *CoinbaseinternationalCore) Describe() any {
 		"api": map[string]any{
 			"v1": map[string]any{
 				"public": map[string]any{
-					"get": []any{"assets", "assets/{assets}", "assets/{asset}/networks", "instruments", "instruments/{instrument}", "instruments/{instrument}/quote", "instruments/{instrument}/funding", "instruments/{instrument}/candles"},
+					"get": map[string]any{
+						"assets": map[string]any{
+							"cost": 1,
+						},
+						"assets/{assets}": map[string]any{
+							"cost": 1,
+						},
+						"assets/{asset}/networks": map[string]any{
+							"cost": 1,
+						},
+						"instruments": map[string]any{
+							"cost": 1,
+						},
+						"instruments/{instrument}": map[string]any{
+							"cost": 1,
+						},
+						"instruments/{instrument}/quote": map[string]any{
+							"cost": 1,
+						},
+						"instruments/{instrument}/funding": map[string]any{
+							"cost": 1,
+						},
+						"instruments/{instrument}/candles": map[string]any{
+							"cost": 1,
+						},
+					},
 				},
 				"private": map[string]any{
-					"get":    []any{"orders", "orders/{id}", "portfolios", "portfolios/{portfolio}", "portfolios/{portfolio}/detail", "portfolios/{portfolio}/summary", "portfolios/{portfolio}/balances", "portfolios/{portfolio}/balances/{asset}", "portfolios/{portfolio}/positions", "portfolios/{portfolio}/positions/{instrument}", "portfolios/fills", "portfolios/{portfolio}/fills", "transfers", "transfers/{transfer_uuid}"},
-					"post":   []any{"orders", "portfolios", "portfolios/margin", "portfolios/transfer", "transfers/withdraw", "transfers/address", "transfers/create-counterparty-id", "transfers/validate-counterparty-id", "transfers/withdraw/counterparty"},
-					"put":    []any{"orders/{id}", "portfolios/{portfolio}"},
-					"delete": []any{"orders", "orders/{id}"},
+					"get": map[string]any{
+						"orders": map[string]any{
+							"cost": 1,
+						},
+						"orders/{id}": map[string]any{
+							"cost": 1,
+						},
+						"portfolios": map[string]any{
+							"cost": 1,
+						},
+						"portfolios/{portfolio}": map[string]any{
+							"cost": 1,
+						},
+						"portfolios/{portfolio}/detail": map[string]any{
+							"cost": 1,
+						},
+						"portfolios/{portfolio}/summary": map[string]any{
+							"cost": 1,
+						},
+						"portfolios/{portfolio}/balances": map[string]any{
+							"cost": 1,
+						},
+						"portfolios/{portfolio}/balances/{asset}": map[string]any{
+							"cost": 1,
+						},
+						"portfolios/{portfolio}/positions": map[string]any{
+							"cost": 1,
+						},
+						"portfolios/{portfolio}/positions/{instrument}": map[string]any{
+							"cost": 1,
+						},
+						"portfolios/fills": map[string]any{
+							"cost": 1,
+						},
+						"portfolios/{portfolio}/fills": map[string]any{
+							"cost": 1,
+						},
+						"transfers": map[string]any{
+							"cost": 1,
+						},
+						"transfers/{transfer_uuid}": map[string]any{
+							"cost": 1,
+						},
+					},
+					"post": map[string]any{
+						"orders": map[string]any{
+							"cost": 1,
+						},
+						"portfolios": map[string]any{
+							"cost": 1,
+						},
+						"portfolios/margin": map[string]any{
+							"cost": 1,
+						},
+						"portfolios/transfer": map[string]any{
+							"cost": 1,
+						},
+						"transfers/withdraw": map[string]any{
+							"cost": 1,
+						},
+						"transfers/address": map[string]any{
+							"cost": 1,
+						},
+						"transfers/create-counterparty-id": map[string]any{
+							"cost": 1,
+						},
+						"transfers/validate-counterparty-id": map[string]any{
+							"cost": 1,
+						},
+						"transfers/withdraw/counterparty": map[string]any{
+							"cost": 1,
+						},
+					},
+					"put": map[string]any{
+						"orders/{id}": map[string]any{
+							"cost": 1,
+						},
+						"portfolios/{portfolio}": map[string]any{
+							"cost": 1,
+						},
+					},
+					"delete": map[string]any{
+						"orders": map[string]any{
+							"cost": 1,
+						},
+						"orders/{id}": map[string]any{
+							"cost": 1,
+						},
+					},
 				},
 			},
 		},
@@ -1082,9 +1192,10 @@ func (this *CoinbaseinternationalCore) SetMargin(symbol any, amount any, optiona
 			"margin_override": amount,
 		}
 
-		retRes95415 := (<-this.V1PrivatePostPortfoliosMargin(this.Extend(request, params)))
-		PanicOnError(retRes95415)
-		ch <- retRes95415
+		response := (<-this.V1PrivatePostPortfoliosMargin(this.Extend(request, params)))
+		PanicOnError(response)
+
+		ch <- response
 		return nil
 
 	}()
@@ -1122,8 +1233,8 @@ func (this *CoinbaseinternationalCore) FetchDepositsWithdrawals(optionalArgs ...
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes97512 := (<-this.LoadMarkets())
-			PanicOnError(retRes97512)
+			retRes97612 := (<-this.LoadMarkets())
+			PanicOnError(retRes97612)
 		}
 		var paginate any = nil
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDepositsWithdrawals", "paginate")
@@ -1136,9 +1247,9 @@ func (this *CoinbaseinternationalCore) FetchDepositsWithdrawals(optionalArgs ...
 		var pageKey any = "ccxtPageKey"
 		if IsTrue(paginate) {
 
-			retRes98319 := (<-this.FetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, params, pageKey, maxEntriesPerRequest))
-			PanicOnError(retRes98319)
-			ch <- retRes98319
+			retRes98419 := (<-this.FetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, params, pageKey, maxEntriesPerRequest))
+			PanicOnError(retRes98419)
+			ch <- retRes98419
 			return nil
 		}
 		var page any = Subtract(this.SafeInteger(params, pageKey, 1), 1)
@@ -1223,8 +1334,8 @@ func (this *CoinbaseinternationalCore) FetchPosition(symbol any, optionalArgs ..
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes104912 := (<-this.LoadMarkets())
-			PanicOnError(retRes104912)
+			retRes105012 := (<-this.LoadMarkets())
+			PanicOnError(retRes105012)
 		}
 		symbol = this.Symbol(symbol)
 		var portfolio any = nil
@@ -1333,8 +1444,8 @@ func (this *CoinbaseinternationalCore) FetchPositions(optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes113912 := (<-this.LoadMarkets())
-			PanicOnError(retRes113912)
+			retRes114012 := (<-this.LoadMarkets())
+			PanicOnError(retRes114012)
 		}
 		var portfolio any = nil
 		portfolioparamsVariable := (<-this.HandlePortfolioAndParams("fetchPositions", params))
@@ -1409,14 +1520,14 @@ func (this *CoinbaseinternationalCore) FetchWithdrawals(optionalArgs ...any) <-c
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes119012 := (<-this.LoadMarkets())
-			PanicOnError(retRes119012)
+			retRes119112 := (<-this.LoadMarkets())
+			PanicOnError(retRes119112)
 		}
 		AddElementToObject(params, "type", "WITHDRAW")
 
-		retRes119315 := (<-this.FetchDepositsWithdrawals(code, since, limit, params))
-		PanicOnError(retRes119315)
-		ch <- retRes119315
+		retRes119415 := (<-this.FetchDepositsWithdrawals(code, since, limit, params))
+		PanicOnError(retRes119415)
+		ch <- retRes119415
 		return nil
 
 	}()
@@ -1453,14 +1564,14 @@ func (this *CoinbaseinternationalCore) FetchDeposits(optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes121312 := (<-this.LoadMarkets())
-			PanicOnError(retRes121312)
+			retRes121412 := (<-this.LoadMarkets())
+			PanicOnError(retRes121412)
 		}
 		AddElementToObject(params, "type", "DEPOSIT")
 
-		retRes121615 := (<-this.FetchDepositsWithdrawals(code, since, limit, params))
-		PanicOnError(retRes121615)
-		ch <- retRes121615
+		retRes121715 := (<-this.FetchDepositsWithdrawals(code, since, limit, params))
+		PanicOnError(retRes121715)
+		ch <- retRes121715
 		return nil
 
 	}()
@@ -1851,16 +1962,20 @@ func (this *CoinbaseinternationalCore) FetchTickers(optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes156912 := (<-this.LoadMarkets())
-			PanicOnError(retRes156912)
+			retRes157012 := (<-this.LoadMarkets())
+			PanicOnError(retRes157012)
 		}
 		symbols = this.MarketSymbols(symbols)
 
 		instruments := (<-this.V1PublicGetInstruments(params))
 		PanicOnError(instruments)
 		var tickers any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(instruments)); i++ {
-			var instrument any = GetValue(instruments, i)
+		var rows any = []any{}
+		if IsTrue(IsArray(instruments)) {
+			rows = instruments
+		}
+		for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
+			var instrument any = GetValue(rows, i)
 			var marketId any = this.SafeString(instrument, "symbol")
 			var symbol any = this.SafeSymbol(marketId)
 			var quote any = this.SafeDict(instrument, "quote", map[string]any{})
@@ -1892,8 +2007,8 @@ func (this *CoinbaseinternationalCore) FetchTicker(symbol any, optionalArgs ...a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes159512 := (<-this.LoadMarkets())
-			PanicOnError(retRes159512)
+			retRes160012 := (<-this.LoadMarkets())
+			PanicOnError(retRes160012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1974,8 +2089,8 @@ func (this *CoinbaseinternationalCore) FetchBalance(optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes166112 := (<-this.LoadMarkets())
-			PanicOnError(retRes166112)
+			retRes166612 := (<-this.LoadMarkets())
+			PanicOnError(retRes166612)
 		}
 		var portfolio any = nil
 		portfolioparamsVariable := (<-this.HandlePortfolioAndParams("fetchBalance", params))
@@ -2065,8 +2180,8 @@ func (this *CoinbaseinternationalCore) Transfer(code any, amount any, fromAccoun
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes173612 := (<-this.LoadMarkets())
-			PanicOnError(retRes173612)
+			retRes174112 := (<-this.LoadMarkets())
+			PanicOnError(retRes174112)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -2128,8 +2243,8 @@ func (this *CoinbaseinternationalCore) CreateOrder(symbol any, typeVar any, side
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes178212 := (<-this.LoadMarkets())
-			PanicOnError(retRes178212)
+			retRes178712 := (<-this.LoadMarkets())
+			PanicOnError(retRes178712)
 		}
 		var market any = this.Market(symbol)
 		var typeId any = ToUpper(typeVar)
@@ -2325,8 +2440,8 @@ func (this *CoinbaseinternationalCore) CancelOrder(id any, optionalArgs ...any) 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes196112 := (<-this.LoadMarkets())
-			PanicOnError(retRes196112)
+			retRes196612 := (<-this.LoadMarkets())
+			PanicOnError(retRes196612)
 		}
 		var portfolio any = nil
 		portfolioparamsVariable := (<-this.HandlePortfolioAndParams("cancelOrder", params))
@@ -2393,8 +2508,8 @@ func (this *CoinbaseinternationalCore) CancelAllOrders(optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes201012 := (<-this.LoadMarkets())
-			PanicOnError(retRes201012)
+			retRes201512 := (<-this.LoadMarkets())
+			PanicOnError(retRes201512)
 		}
 		var portfolio any = nil
 		portfolioparamsVariable := (<-this.HandlePortfolioAndParams("cancelAllOrders", params))
@@ -2447,8 +2562,8 @@ func (this *CoinbaseinternationalCore) EditOrder(id any, symbol any, typeVar any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes204312 := (<-this.LoadMarkets())
-			PanicOnError(retRes204312)
+			retRes204812 := (<-this.LoadMarkets())
+			PanicOnError(retRes204812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2508,8 +2623,8 @@ func (this *CoinbaseinternationalCore) FetchOrder(id any, optionalArgs ...any) <
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes208512 := (<-this.LoadMarkets())
-			PanicOnError(retRes208512)
+			retRes209012 := (<-this.LoadMarkets())
+			PanicOnError(retRes209012)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2588,8 +2703,8 @@ func (this *CoinbaseinternationalCore) FetchOpenOrders(optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes214212 := (<-this.LoadMarkets())
-			PanicOnError(retRes214212)
+			retRes214712 := (<-this.LoadMarkets())
+			PanicOnError(retRes214712)
 		}
 		var portfolio any = nil
 		portfolioparamsVariable := (<-this.HandlePortfolioAndParams("fetchOpenOrders", params))
@@ -2606,9 +2721,9 @@ func (this *CoinbaseinternationalCore) FetchOpenOrders(optionalArgs ...any) <-ch
 		var pageKey any = "ccxtPageKey"
 		if IsTrue(paginate) {
 
-			retRes215219 := (<-this.FetchPaginatedCallIncremental("fetchOpenOrders", symbol, since, limit, params, pageKey, maxEntriesPerRequest))
-			PanicOnError(retRes215219)
-			ch <- retRes215219
+			retRes215719 := (<-this.FetchPaginatedCallIncremental("fetchOpenOrders", symbol, since, limit, params, pageKey, maxEntriesPerRequest))
+			PanicOnError(retRes215719)
+			ch <- retRes215719
 			return nil
 		}
 		var page any = Subtract(this.SafeInteger(params, pageKey, 1), 1)
@@ -2705,8 +2820,8 @@ func (this *CoinbaseinternationalCore) FetchMyTrades(optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes222812 := (<-this.LoadMarkets())
-			PanicOnError(retRes222812)
+			retRes223312 := (<-this.LoadMarkets())
+			PanicOnError(retRes223312)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -2719,9 +2834,9 @@ func (this *CoinbaseinternationalCore) FetchMyTrades(optionalArgs ...any) <-chan
 		params = GetValue(maxEntriesPerRequestparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes223619 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, pageKey, maxEntriesPerRequest))
-			PanicOnError(retRes223619)
-			ch <- retRes223619
+			retRes224119 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, pageKey, maxEntriesPerRequest))
+			PanicOnError(retRes224119)
+			ch <- retRes224119
 			return nil
 		}
 		var market any = nil
@@ -2830,8 +2945,8 @@ func (this *CoinbaseinternationalCore) Withdraw(code any, amount any, address an
 		this.CheckAddress(address)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes232612 := (<-this.LoadMarkets())
-			PanicOnError(retRes232612)
+			retRes233112 := (<-this.LoadMarkets())
+			PanicOnError(retRes233112)
 		}
 		var currency any = this.Currency(code)
 		var portfolio any = nil

@@ -139,32 +139,76 @@ public partial class indodax : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "api/server_time", 5 },
-                        { "api/pairs", 5 },
-                        { "api/price_increments", 5 },
-                        { "api/summaries", 5 },
-                        { "api/ticker/{pair}", 5 },
-                        { "api/ticker_all", 5 },
-                        { "api/trades/{pair}", 5 },
-                        { "api/depth/{pair}", 5 },
-                        { "tradingview/history_v2", 5 },
+                        { "api/server_time", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/pairs", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/price_increments", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/summaries", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/ticker/{pair}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/ticker_all", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/trades/{pair}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/depth/{pair}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "tradingview/history_v2", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "getInfo", 4 },
-                        { "transHistory", 4 },
-                        { "trade", 1 },
-                        { "tradeHistory", 4 },
-                        { "openOrders", 4 },
-                        { "orderHistory", 4 },
-                        { "getOrder", 4 },
-                        { "cancelOrder", 4 },
-                        { "withdrawFee", 4 },
-                        { "withdrawCoin", 4 },
-                        { "listDownline", 4 },
-                        { "checkDownline", 4 },
-                        { "createVoucher", 4 },
+                        { "getInfo", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "transHistory", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "trade", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tradeHistory", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "openOrders", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "orderHistory", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "getOrder", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "cancelOrder", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "withdrawFee", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "withdrawCoin", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "listDownline", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "checkDownline", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "createVoucher", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
                     } },
                 } },
             } },
@@ -350,9 +394,10 @@ public partial class indodax : Exchange
         //     ]
         //
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object rawMarkets = this.toArray(response);
+        for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
         {
-            object market = getValue(response, i);
+            object market = getValue(rawMarkets, i);
             object id = this.safeString(market, "id");
             object baseId = this.safeString(market, "traded_currency");
             object quoteId = this.safeString(market, "base_currency");
@@ -762,7 +807,7 @@ public partial class indodax : Exchange
         //         }
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
 
     public virtual object parseOrderStatus(object status)
@@ -907,7 +952,7 @@ public partial class indodax : Exchange
             { "order_id", id },
         };
         object response = await this.privatePostGetOrder(this.extend(request, parameters));
-        object orders = getValue(response, "return");
+        object orders = this.safeDict(response, "return", new Dictionary<string, object>() {});
         object order = this.parseOrder(this.extend(new Dictionary<string, object>() {
             { "id", id },
         }, getValue(orders, "order")), market);
@@ -941,7 +986,8 @@ public partial class indodax : Exchange
             ((IDictionary<string,object>)request)["pair"] = getValue(market, "id");
         }
         object response = await this.privatePostOpenOrders(this.extend(request, parameters));
-        object rawOrders = getValue(getValue(response, "return"), "orders");
+        object openOrdersResult = this.safeDict(response, "return", new Dictionary<string, object>() {});
+        object rawOrders = getValue(openOrdersResult, "orders");
         // { success: 1, return: { orders: null }} if no orders
         if (!isTrue(rawOrders))
         {
@@ -993,7 +1039,8 @@ public partial class indodax : Exchange
             { "pair", getValue(market, "id") },
         };
         object response = await this.privatePostOrderHistory(this.extend(request, parameters));
-        object orders = this.parseOrders(getValue(getValue(response, "return"), "orders"), market);
+        object historyResult = this.safeDict(response, "return", new Dictionary<string, object>() {});
+        object orders = this.parseOrders(getValue(historyResult, "orders"), market);
         orders = this.filterBy(orders, "status", "closed");
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }

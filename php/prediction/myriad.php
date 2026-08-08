@@ -97,46 +97,46 @@ class myriad extends Exchange {
                 'myriad' => array(
                     'public' => array(
                         'get' => array(
-                            'questions' => 1,
-                            'questions/{id}' => 1,
-                            'markets' => 1,
-                            'markets/{id}' => 1,
-                            'markets/{networkId}/{id}' => 1,
-                            'markets/{id}/events' => 1,
-                            'markets/{id}/orderbook' => 1,
-                            'markets/{id}/trades' => 1,
-                            'markets/{id}/holders' => 1,
-                            'markets/{id}/referrals' => 1,
-                            'events' => 1,
-                            'orders' => 1,
-                            'orders/{hash}' => 1,
-                            'users/{address}/events' => 1,
-                            'users/{address}/referrals' => 1,
-                            'users/{address}/portfolio' => 1,
-                            'users/{address}/markets' => 1,
-                            'tags' => 1,
-                            'topics' => 1,
+                            'questions' => array( 'cost' => 1 ),
+                            'questions/{id}' => array( 'cost' => 1 ),
+                            'markets' => array( 'cost' => 1 ),
+                            'markets/{id}' => array( 'cost' => 1 ),
+                            'markets/{networkId}/{id}' => array( 'cost' => 1 ),
+                            'markets/{id}/events' => array( 'cost' => 1 ),
+                            'markets/{id}/orderbook' => array( 'cost' => 1 ),
+                            'markets/{id}/trades' => array( 'cost' => 1 ),
+                            'markets/{id}/holders' => array( 'cost' => 1 ),
+                            'markets/{id}/referrals' => array( 'cost' => 1 ),
+                            'events' => array( 'cost' => 1 ),
+                            'orders' => array( 'cost' => 1 ),
+                            'orders/{hash}' => array( 'cost' => 1 ),
+                            'users/{address}/events' => array( 'cost' => 1 ),
+                            'users/{address}/referrals' => array( 'cost' => 1 ),
+                            'users/{address}/portfolio' => array( 'cost' => 1 ),
+                            'users/{address}/markets' => array( 'cost' => 1 ),
+                            'tags' => array( 'cost' => 1 ),
+                            'topics' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'markets/quote' => 1,
-                            'markets/claim' => 1,
-                            'orders' => 1,
-                            'orders/cancel-batch' => 1,
-                            'orders/cancel-all' => 1,
-                            'positions/split' => 1,
-                            'positions/merge' => 1,
-                            'positions/redeem' => 1,
-                            'positions/redeem-voided' => 1,
-                            'positions/neg-risk/split' => 1,
-                            'positions/neg-risk/merge' => 1,
+                            'markets/quote' => array( 'cost' => 1 ),
+                            'markets/claim' => array( 'cost' => 1 ),
+                            'orders' => array( 'cost' => 1 ),
+                            'orders/cancel-batch' => array( 'cost' => 1 ),
+                            'orders/cancel-all' => array( 'cost' => 1 ),
+                            'positions/split' => array( 'cost' => 1 ),
+                            'positions/merge' => array( 'cost' => 1 ),
+                            'positions/redeem' => array( 'cost' => 1 ),
+                            'positions/redeem-voided' => array( 'cost' => 1 ),
+                            'positions/neg-risk/split' => array( 'cost' => 1 ),
+                            'positions/neg-risk/merge' => array( 'cost' => 1 ),
                         ),
                         'delete' => array(
-                            'orders/{hash}' => 1,
+                            'orders/{hash}' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'post' => array(
-                            'markets/quote_with_fee' => 1,
+                            'markets/quote_with_fee' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
@@ -272,7 +272,8 @@ class myriad extends Exchange {
                     'state' => $state,
                     'limit' => $limit,
                 ), $rest)));
-                $foundList = $this->safe_list($response, 'data', $response);
+                $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
+                $foundList = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
                 $found = ($foundList !== null) ? $foundList : array();
                 for ($j = 0; $j < count($found); $j++) {
                     $raw = $found[$j];
@@ -321,7 +322,8 @@ class myriad extends Exchange {
                     'page' => $page,
                     'trading_model' => $tradingModel,
                 ), $rest)));
-                $rawMarketsList = $this->safe_list($response, 'data', $response);
+                $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
+                $rawMarketsList = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
                 $rawMarkets = ($rawMarketsList !== null) ? $rawMarketsList : array();
                 $rawMarketsLength = count($rawMarkets);
                 if ($rawMarketsLength === 0) {
@@ -452,7 +454,8 @@ class myriad extends Exchange {
                     'keyword' => $q,
                     'limit' => $limit,
                 ), $rest)));
-                $foundList = $this->safe_list($response, 'data', $response);
+                $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
+                $foundList = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
                 $found = ($foundList !== null) ? $foundList : array();
                 for ($j = 0; $j < count($found); $j++) {
                     $raw = $found[$j];
@@ -493,7 +496,8 @@ class myriad extends Exchange {
                     $request['state'] = $state;
                 }
                 $response = Async\await($this->myriadPublicGetQuestions($this->extend($request, $rest)));
-                $rawQuestionsList = $this->safe_list($response, 'data', $response);
+                $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
+                $rawQuestionsList = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
                 $rawQuestions = ($rawQuestionsList !== null) ? $rawQuestionsList : array();
                 $rawQuestionsLength = count($rawQuestions);
                 if ($rawQuestionsLength === 0) {
@@ -2959,7 +2963,8 @@ class myriad extends Exchange {
             //         )
             //     }
             //
-            $rowsList = $this->safe_list($response, 'data', $response);
+            $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
+            $rowsList = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
             $rows = ($rowsList !== null) ? $rowsList : array();
             $trades = array();
             for ($i = 0; $i < count($rows); $i++) {

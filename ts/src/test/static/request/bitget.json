@@ -1379,6 +1379,34 @@
                         "uta": true
                     }
                 ]
+            },
+            {
+                "description": "Fetch the uta funding balance",
+                "method": "fetchBalance",
+                "url": "https://api.bitget.com/api/v3/account/funding-assets",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "funding"
+                    }
+                ]
+            }
+        ],
+        "transfer": [
+            {
+                "description": "Uta transfer from spot-funding to the unified account",
+                "method": "transfer",
+                "url": "https://api.bitget.com/api/v3/account/transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "uta",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"fromType\":\"spot\",\"toType\":\"uta\",\"amount\":1,\"coin\":\"USDT\"}"
             }
         ],
         "fetchPosition": [

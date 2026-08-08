@@ -99,7 +99,7 @@ class hyperliquid extends Exchange {
                 ),
                 'private' => array(
                     'post' => array(
-                        'exchange' => 1,
+                        'exchange' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -640,7 +640,7 @@ class hyperliquid extends Exchange {
     public function fetch_tickers(?array $outcomes = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($outcomes, $params) {
             /**
-             * fetches all outcome market $tickers using allMids then optionally enriches with l2Book
+             * fetches all outcome market $tickers using $allMids then optionally enriches with l2Book
              *
              * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-all-$mids-for-all-actively-traded-coins
              *
@@ -667,7 +667,11 @@ class hyperliquid extends Exchange {
             //
             // array( "mids" => array( "#10" => "0.45", "#11" => "0.55", ... ) )
             //
-            $mids = $this->safe_dict($response, 'mids', $response);
+            $allMids = array();
+            if ((gettype($response) !== 'string') && (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
+                $allMids = $response;
+            }
+            $mids = $this->safe_dict($allMids, 'mids', $allMids);
             $tickers = array();
             $outcomesMap = ($this->outcomes !== null) ? $this->outcomes : array();
             $outcomeHandles = is_array($outcomesMap) ? array_keys($outcomesMap) : array();
@@ -819,10 +823,10 @@ class hyperliquid extends Exchange {
              * @param {string} $outcome unified $outcome
              * @param {string} $timeframe '1m', '5m', '15m', '1h', '4h', '1d', etc.
              * @param {int} [$since] timestamp in ms of earliest candle
-             * @param {int} [$limit] max number of candles
+             * @param {int} [$limit] max number of $candles
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] end timestamp in ms
-             * @return {int[][]} a list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} a list of $candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
@@ -870,7 +874,11 @@ class hyperliquid extends Exchange {
             //         }
             //     )
             //
-            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+            $candles = array();
+            if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+                $candles = $response;
+            }
+            return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
         })();
     }
 
@@ -995,7 +1003,11 @@ class hyperliquid extends Exchange {
             $response = $results[0];
             $midsResponse = $results[1];
             $balances = $this->safe_list($response, 'balances', array());
-            $mids = $this->safe_dict($midsResponse, 'mids', $midsResponse);
+            $allMids = array();
+            if ((gettype($midsResponse) !== 'string') && (gettype($midsResponse) !== 'array' || array_keys($midsResponse) !== array_keys(array_keys($midsResponse)))) {
+                $allMids = $midsResponse;
+            }
+            $mids = $this->safe_dict($allMids, 'mids', $allMids);
             $positions = array();
             for ($i = 0; $i < count($balances); $i++) {
                 $balance = $this->safe_dict($balances, $i, array());
@@ -1459,8 +1471,12 @@ class hyperliquid extends Exchange {
             $request = array( 'type' => $method, 'user' => $userAddress );
             $response = Async\await($this->publicPostInfo($this->extend($request, $params)));
             $ordersWithStatus = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $order = $response[$i];
+            $rawOrders = array();
+            if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+                $rawOrders = $response;
+            }
+            for ($i = 0; $i < count($rawOrders); $i++) {
+                $order = $rawOrders[$i];
                 $ordersWithStatus[] = $this->extend($order, array( 'ccxtStatus' => 'open' ));
             }
             $parsed = $this->parse_prediction_orders($ordersWithStatus, null, $since);
@@ -1493,8 +1509,12 @@ class hyperliquid extends Exchange {
             $response = Async\await($this->publicPostInfo($this->extend($request, $params)));
             // Deduplicate by $oid keeping most recent statusTimestamp
             $deduped = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $raw = $response[$i];
+            $historicalOrders = array();
+            if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+                $historicalOrders = $response;
+            }
+            for ($i = 0; $i < count($historicalOrders); $i++) {
+                $raw = $historicalOrders[$i];
                 $entry = $this->safe_dict($raw, 'order');
                 if ($entry === null) {
                     $entry = $raw;
@@ -1549,7 +1569,11 @@ class hyperliquid extends Exchange {
                 $request['oid'] = $isCloid ? $id : $this->parse_to_numeric($id);
             }
             $response = Async\await($this->publicPostInfo($this->extend($request, $params)));
-            $orderWrapper = $this->safe_dict($response, 'order', $response);
+            $orderStatus = array();
+            if ((gettype($response) !== 'string') && (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
+                $orderStatus = $response;
+            }
+            $orderWrapper = $this->safe_dict($orderStatus, 'order', $orderStatus);
             $parsed = $this->parse_prediction_order($orderWrapper, null);
             if ($outcome !== null) {
                 Async\await($this->load_outcome($outcome));
@@ -1700,7 +1724,12 @@ class hyperliquid extends Exchange {
             );
             // recentTrades returns the coin's most recent public $trades (newest first)
             $response = Async\await($this->publicPostInfo($this->extend($request, $params)));
-            $trades = ($response) ? $response : array();
+            $trades = array();
+            if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+                $trades = $response;
+            } elseif (gettype($response) !== 'string') {
+                $trades = $this->to_array($response);
+            }
             return $this->parse_prediction_trades($trades, $outcomeObj, $since, $limit);
         })();
     }
@@ -1743,7 +1772,12 @@ class hyperliquid extends Exchange {
                 $request['endTime'] = $until;
             }
             $response = Async\await($this->publicPostInfo($this->extend($request, $params)));
-            $fills = ($response) ? $response : array();
+            $fills = array();
+            if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+                $fills = $response;
+            } elseif (gettype($response) !== 'string') {
+                $fills = $this->to_array($response);
+            }
             // parse without an $outcome fallback — $fills span every market the wallet traded, so a
             // requested-$outcome fallback would mislabel $fills whose market is no longer listed
             $parsedTrades = $this->parse_prediction_trades($fills, null);

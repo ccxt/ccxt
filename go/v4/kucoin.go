@@ -152,411 +152,1113 @@ func (this *KucoinCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"currencies":                            3,
-					"currencies/{currency}":                 3,
-					"symbols":                               4,
-					"market/orderbook/level1":               2,
-					"market/allTickers":                     15,
-					"market/stats":                          15,
-					"markets":                               3,
-					"market/orderbook/level{level}_{limit}": 4,
-					"market/orderbook/level2_20":            2,
-					"market/orderbook/level2_100":           4,
-					"market/histories":                      3,
-					"market/candles":                        3,
-					"prices":                                3,
-					"timestamp":                             3,
-					"status":                                3,
-					"mark-price/{symbol}/current":           2,
-					"mark-price/all-symbols":                10,
-					"margin/config":                         25,
-					"announcements":                         20,
-					"margin/collateralRatio":                10,
-					"convert/symbol":                        5,
-					"convert/currencies":                    5,
+					"currencies": map[string]any{
+						"cost": 3,
+					},
+					"currencies/{currency}": map[string]any{
+						"cost": 3,
+					},
+					"symbols": map[string]any{
+						"cost": 4,
+					},
+					"market/orderbook/level1": map[string]any{
+						"cost": 2,
+					},
+					"market/allTickers": map[string]any{
+						"cost": 15,
+					},
+					"market/stats": map[string]any{
+						"cost": 15,
+					},
+					"markets": map[string]any{
+						"cost": 3,
+					},
+					"market/orderbook/level{level}_{limit}": map[string]any{
+						"cost": 4,
+					},
+					"market/orderbook/level2_20": map[string]any{
+						"cost": 2,
+					},
+					"market/orderbook/level2_100": map[string]any{
+						"cost": 4,
+					},
+					"market/histories": map[string]any{
+						"cost": 3,
+					},
+					"market/candles": map[string]any{
+						"cost": 3,
+					},
+					"prices": map[string]any{
+						"cost": 3,
+					},
+					"timestamp": map[string]any{
+						"cost": 3,
+					},
+					"status": map[string]any{
+						"cost": 3,
+					},
+					"mark-price/{symbol}/current": map[string]any{
+						"cost": 2,
+					},
+					"mark-price/all-symbols": map[string]any{
+						"cost": 10,
+					},
+					"margin/config": map[string]any{
+						"cost": 25,
+					},
+					"announcements": map[string]any{
+						"cost": 20,
+					},
+					"margin/collateralRatio": map[string]any{
+						"cost": 10,
+					},
+					"convert/symbol": map[string]any{
+						"cost": 5,
+					},
+					"convert/currencies": map[string]any{
+						"cost": 5,
+					},
 				},
 				"post": map[string]any{
-					"bullet-public": 10,
+					"bullet-public": map[string]any{
+						"cost": 10,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"user-info":                                 20,
-					"user/api-key":                              20,
-					"accounts":                                  5,
-					"accounts/{accountId}":                      5,
-					"accounts/ledgers":                          2,
-					"hf/accounts/ledgers":                       2,
-					"hf/margin/account/ledgers":                 2,
-					"transaction-history":                       2,
-					"sub/user":                                  20,
-					"sub-accounts/{subUserId}":                  15,
-					"sub-accounts":                              20,
-					"sub/api-key":                               20,
-					"margin/account":                            40,
-					"margin/accounts":                           15,
-					"isolated/accounts":                         15,
-					"deposit-addresses":                         5,
-					"deposits":                                  5,
-					"hist-deposits":                             5,
-					"withdrawals":                               20,
-					"hist-withdrawals":                          20,
-					"withdrawals/quotas":                        20,
-					"accounts/transferable":                     20,
-					"transfer-list":                             20,
-					"base-fee":                                  3,
-					"trade-fees":                                3,
-					"market/orderbook/level{level}":             3,
-					"market/orderbook/level2":                   3,
-					"market/orderbook/level3":                   3,
-					"hf/accounts/opened":                        2,
-					"hf/orders/active":                          2,
-					"hf/orders/active/symbols":                  2,
-					"hf/margin/order/active/symbols":            2,
-					"hf/orders/done":                            2,
-					"hf/orders/{orderId}":                       2,
-					"hf/orders/client-order/{clientOid}":        2,
-					"hf/orders/dead-cancel-all/query":           2,
-					"hf/fills":                                  2,
-					"orders":                                    2,
-					"limit/orders":                              3,
-					"orders/{orderId}":                          2,
-					"order/client-order/{clientOid}":            2,
-					"fills":                                     10,
-					"limit/fills":                               20,
-					"stop-order":                                8,
-					"stop-order/{orderId}":                      3,
-					"stop-order/queryOrderByClientOid":          3,
-					"oco/order/{orderId}":                       2,
-					"oco/order/details/{orderId}":               2,
-					"oco/client-order/{clientOid}":              2,
-					"oco/orders":                                2,
-					"hf/margin/orders/active":                   4,
-					"hf/margin/orders/done":                     10,
-					"hf/margin/orders/{orderId}":                4,
-					"hf/margin/orders/client-order/{clientOid}": 5,
-					"hf/margin/fills":                           5,
-					"hf/margin/stop-orders":                     8,
-					"hf/margin/stop-order/orderId":              3,
-					"hf/margin/stop-order/clientOid":            3,
-					"hf/margin/oco-order/orderId":               2,
-					"hf/margin/oco-order/clientOid":             2,
-					"hf/margin/oco-order/detail/orderId":        2,
-					"hf/margin/oco-orders":                      2,
-					"etf/info":                                  25,
-					"margin/currencies":                         20,
-					"risk/limit/strategy":                       20,
-					"isolated/symbols":                          3,
-					"margin/symbols":                            3,
-					"isolated/account/{symbol}":                 50,
-					"margin/borrow":                             15,
-					"margin/repay":                              15,
-					"margin/interest":                           20,
-					"project/list":                              10,
-					"project/marketInterestRate":                5,
-					"redeem/orders":                             10,
-					"purchase/orders":                           10,
-					"broker/api/rebase/download":                3,
-					"broker/queryMyCommission":                  3,
-					"broker/queryUser":                          3,
-					"broker/queryDetailByUid":                   3,
-					"migrate/user/account/status":               3,
-					"convert/quote":                             20,
-					"convert/order/detail":                      5,
-					"convert/order/history":                     5,
-					"convert/limit/quote":                       20,
-					"convert/limit/order/detail":                5,
-					"convert/limit/orders":                      5,
-					"affiliate/inviter/statistics":              30,
+					"user-info": map[string]any{
+						"cost": 20,
+					},
+					"user/api-key": map[string]any{
+						"cost": 20,
+					},
+					"accounts": map[string]any{
+						"cost": 5,
+					},
+					"accounts/{accountId}": map[string]any{
+						"cost": 5,
+					},
+					"accounts/ledgers": map[string]any{
+						"cost": 2,
+					},
+					"hf/accounts/ledgers": map[string]any{
+						"cost": 2,
+					},
+					"hf/margin/account/ledgers": map[string]any{
+						"cost": 2,
+					},
+					"transaction-history": map[string]any{
+						"cost": 2,
+					},
+					"sub/user": map[string]any{
+						"cost": 20,
+					},
+					"sub-accounts/{subUserId}": map[string]any{
+						"cost": 15,
+					},
+					"sub-accounts": map[string]any{
+						"cost": 20,
+					},
+					"sub/api-key": map[string]any{
+						"cost": 20,
+					},
+					"margin/account": map[string]any{
+						"cost": 40,
+					},
+					"margin/accounts": map[string]any{
+						"cost": 15,
+					},
+					"isolated/accounts": map[string]any{
+						"cost": 15,
+					},
+					"deposit-addresses": map[string]any{
+						"cost": 5,
+					},
+					"deposits": map[string]any{
+						"cost": 5,
+					},
+					"hist-deposits": map[string]any{
+						"cost": 5,
+					},
+					"withdrawals": map[string]any{
+						"cost": 20,
+					},
+					"hist-withdrawals": map[string]any{
+						"cost": 20,
+					},
+					"withdrawals/quotas": map[string]any{
+						"cost": 20,
+					},
+					"accounts/transferable": map[string]any{
+						"cost": 20,
+					},
+					"transfer-list": map[string]any{
+						"cost": 20,
+					},
+					"base-fee": map[string]any{
+						"cost": 3,
+					},
+					"trade-fees": map[string]any{
+						"cost": 3,
+					},
+					"market/orderbook/level{level}": map[string]any{
+						"cost": 3,
+					},
+					"market/orderbook/level2": map[string]any{
+						"cost": 3,
+					},
+					"market/orderbook/level3": map[string]any{
+						"cost": 3,
+					},
+					"hf/accounts/opened": map[string]any{
+						"cost": 2,
+					},
+					"hf/orders/active": map[string]any{
+						"cost": 2,
+					},
+					"hf/orders/active/symbols": map[string]any{
+						"cost": 2,
+					},
+					"hf/margin/order/active/symbols": map[string]any{
+						"cost": 2,
+					},
+					"hf/orders/done": map[string]any{
+						"cost": 2,
+					},
+					"hf/orders/{orderId}": map[string]any{
+						"cost": 2,
+					},
+					"hf/orders/client-order/{clientOid}": map[string]any{
+						"cost": 2,
+					},
+					"hf/orders/dead-cancel-all/query": map[string]any{
+						"cost": 2,
+					},
+					"hf/fills": map[string]any{
+						"cost": 2,
+					},
+					"orders": map[string]any{
+						"cost": 2,
+					},
+					"limit/orders": map[string]any{
+						"cost": 3,
+					},
+					"orders/{orderId}": map[string]any{
+						"cost": 2,
+					},
+					"order/client-order/{clientOid}": map[string]any{
+						"cost": 2,
+					},
+					"fills": map[string]any{
+						"cost": 10,
+					},
+					"limit/fills": map[string]any{
+						"cost": 20,
+					},
+					"stop-order": map[string]any{
+						"cost": 8,
+					},
+					"stop-order/{orderId}": map[string]any{
+						"cost": 3,
+					},
+					"stop-order/queryOrderByClientOid": map[string]any{
+						"cost": 3,
+					},
+					"oco/order/{orderId}": map[string]any{
+						"cost": 2,
+					},
+					"oco/order/details/{orderId}": map[string]any{
+						"cost": 2,
+					},
+					"oco/client-order/{clientOid}": map[string]any{
+						"cost": 2,
+					},
+					"oco/orders": map[string]any{
+						"cost": 2,
+					},
+					"hf/margin/orders/active": map[string]any{
+						"cost": 4,
+					},
+					"hf/margin/orders/done": map[string]any{
+						"cost": 10,
+					},
+					"hf/margin/orders/{orderId}": map[string]any{
+						"cost": 4,
+					},
+					"hf/margin/orders/client-order/{clientOid}": map[string]any{
+						"cost": 5,
+					},
+					"hf/margin/fills": map[string]any{
+						"cost": 5,
+					},
+					"hf/margin/stop-orders": map[string]any{
+						"cost": 8,
+					},
+					"hf/margin/stop-order/orderId": map[string]any{
+						"cost": 3,
+					},
+					"hf/margin/stop-order/clientOid": map[string]any{
+						"cost": 3,
+					},
+					"hf/margin/oco-order/orderId": map[string]any{
+						"cost": 2,
+					},
+					"hf/margin/oco-order/clientOid": map[string]any{
+						"cost": 2,
+					},
+					"hf/margin/oco-order/detail/orderId": map[string]any{
+						"cost": 2,
+					},
+					"hf/margin/oco-orders": map[string]any{
+						"cost": 2,
+					},
+					"etf/info": map[string]any{
+						"cost": 25,
+					},
+					"margin/currencies": map[string]any{
+						"cost": 20,
+					},
+					"risk/limit/strategy": map[string]any{
+						"cost": 20,
+					},
+					"isolated/symbols": map[string]any{
+						"cost": 3,
+					},
+					"margin/symbols": map[string]any{
+						"cost": 3,
+					},
+					"isolated/account/{symbol}": map[string]any{
+						"cost": 50,
+					},
+					"margin/borrow": map[string]any{
+						"cost": 15,
+					},
+					"margin/repay": map[string]any{
+						"cost": 15,
+					},
+					"margin/interest": map[string]any{
+						"cost": 20,
+					},
+					"project/list": map[string]any{
+						"cost": 10,
+					},
+					"project/marketInterestRate": map[string]any{
+						"cost": 5,
+					},
+					"redeem/orders": map[string]any{
+						"cost": 10,
+					},
+					"purchase/orders": map[string]any{
+						"cost": 10,
+					},
+					"broker/api/rebase/download": map[string]any{
+						"cost": 3,
+					},
+					"broker/queryMyCommission": map[string]any{
+						"cost": 3,
+					},
+					"broker/queryUser": map[string]any{
+						"cost": 3,
+					},
+					"broker/queryDetailByUid": map[string]any{
+						"cost": 3,
+					},
+					"migrate/user/account/status": map[string]any{
+						"cost": 3,
+					},
+					"convert/quote": map[string]any{
+						"cost": 20,
+					},
+					"convert/order/detail": map[string]any{
+						"cost": 5,
+					},
+					"convert/order/history": map[string]any{
+						"cost": 5,
+					},
+					"convert/limit/quote": map[string]any{
+						"cost": 20,
+					},
+					"convert/limit/order/detail": map[string]any{
+						"cost": 5,
+					},
+					"convert/limit/orders": map[string]any{
+						"cost": 5,
+					},
+					"affiliate/inviter/statistics": map[string]any{
+						"cost": 30,
+					},
 				},
 				"post": map[string]any{
-					"sub/user/created":              15,
-					"sub/api-key":                   20,
-					"sub/api-key/update":            30,
-					"deposit-addresses":             20,
-					"withdrawals":                   5,
-					"accounts/universal-transfer":   4,
-					"accounts/sub-transfer":         30,
-					"accounts/inner-transfer":       15,
-					"transfer-out":                  20,
-					"transfer-in":                   20,
-					"hf/orders":                     1,
-					"hf/orders/test":                1,
-					"hf/orders/sync":                1,
-					"hf/orders/multi":               1,
-					"hf/orders/multi/sync":          1,
-					"hf/orders/alter":               1,
-					"hf/orders/dead-cancel-all":     2,
-					"orders":                        2,
-					"orders/test":                   2,
-					"orders/multi":                  3,
-					"stop-order":                    2,
-					"oco/order":                     2,
-					"hf/margin/order":               2,
-					"hf/margin/order/test":          2,
-					"hf/margin/stop-order":          3,
-					"margin/order":                  5,
-					"margin/order/test":             5,
-					"hf/margin/oco-order":           2,
-					"margin/borrow":                 15,
-					"margin/repay":                  10,
-					"purchase":                      15,
-					"redeem":                        15,
-					"lend/purchase/update":          10,
-					"convert/order":                 20,
-					"convert/limit/order":           20,
-					"bullet-private":                10,
-					"position/update-user-leverage": 5,
-					"deposit-address/create":        20,
+					"sub/user/created": map[string]any{
+						"cost": 15,
+					},
+					"sub/api-key": map[string]any{
+						"cost": 20,
+					},
+					"sub/api-key/update": map[string]any{
+						"cost": 30,
+					},
+					"deposit-addresses": map[string]any{
+						"cost": 20,
+					},
+					"withdrawals": map[string]any{
+						"cost": 5,
+					},
+					"accounts/universal-transfer": map[string]any{
+						"cost": 4,
+					},
+					"accounts/sub-transfer": map[string]any{
+						"cost": 30,
+					},
+					"accounts/inner-transfer": map[string]any{
+						"cost": 15,
+					},
+					"transfer-out": map[string]any{
+						"cost": 20,
+					},
+					"transfer-in": map[string]any{
+						"cost": 20,
+					},
+					"hf/orders": map[string]any{
+						"cost": 1,
+					},
+					"hf/orders/test": map[string]any{
+						"cost": 1,
+					},
+					"hf/orders/sync": map[string]any{
+						"cost": 1,
+					},
+					"hf/orders/multi": map[string]any{
+						"cost": 1,
+					},
+					"hf/orders/multi/sync": map[string]any{
+						"cost": 1,
+					},
+					"hf/orders/alter": map[string]any{
+						"cost": 1,
+					},
+					"hf/orders/dead-cancel-all": map[string]any{
+						"cost": 2,
+					},
+					"orders": map[string]any{
+						"cost": 2,
+					},
+					"orders/test": map[string]any{
+						"cost": 2,
+					},
+					"orders/multi": map[string]any{
+						"cost": 3,
+					},
+					"stop-order": map[string]any{
+						"cost": 2,
+					},
+					"oco/order": map[string]any{
+						"cost": 2,
+					},
+					"hf/margin/order": map[string]any{
+						"cost": 2,
+					},
+					"hf/margin/order/test": map[string]any{
+						"cost": 2,
+					},
+					"hf/margin/stop-order": map[string]any{
+						"cost": 3,
+					},
+					"margin/order": map[string]any{
+						"cost": 5,
+					},
+					"margin/order/test": map[string]any{
+						"cost": 5,
+					},
+					"hf/margin/oco-order": map[string]any{
+						"cost": 2,
+					},
+					"margin/borrow": map[string]any{
+						"cost": 15,
+					},
+					"margin/repay": map[string]any{
+						"cost": 10,
+					},
+					"purchase": map[string]any{
+						"cost": 15,
+					},
+					"redeem": map[string]any{
+						"cost": 15,
+					},
+					"lend/purchase/update": map[string]any{
+						"cost": 10,
+					},
+					"convert/order": map[string]any{
+						"cost": 20,
+					},
+					"convert/limit/order": map[string]any{
+						"cost": 20,
+					},
+					"bullet-private": map[string]any{
+						"cost": 10,
+					},
+					"position/update-user-leverage": map[string]any{
+						"cost": 5,
+					},
+					"deposit-address/create": map[string]any{
+						"cost": 20,
+					},
 				},
 				"delete": map[string]any{
-					"sub/api-key":                               30,
-					"withdrawals/{withdrawalId}":                20,
-					"hf/orders/{orderId}":                       1,
-					"hf/orders/sync/{orderId}":                  1,
-					"hf/orders/client-order/{clientOid}":        1,
-					"hf/orders/sync/client-order/{clientOid}":   1,
-					"hf/orders/cancel/{orderId}":                1,
-					"hf/orders":                                 2,
-					"hf/orders/cancelAll":                       30,
-					"orders/{orderId}":                          3,
-					"order/client-order/{clientOid}":            5,
-					"orders":                                    20,
-					"stop-order/{orderId}":                      3,
-					"stop-order/cancelOrderByClientOid":         5,
-					"stop-order/cancel":                         3,
-					"oco/order/{orderId}":                       3,
-					"oco/client-order/{clientOid}":              3,
-					"oco/orders":                                3,
-					"hf/margin/orders/{orderId}":                2,
-					"hf/margin/orders/client-order/{clientOid}": 2,
-					"hf/margin/orders":                          5,
-					"hf/margin/stop-order/cancel-by-id":         3,
-					"hf/margin/stop-order/cancel-by-clientOid":  5,
-					"hf/margin/stop-order/cancel":               3,
-					"hf/margin/oco-order/cancel-by-id":          3,
-					"hf/margin/oco-order/cancel-by-clientOid":   3,
-					"hf/margin/oco-order/cancel":                3,
-					"convert/limit/order/cancel":                5,
+					"sub/api-key": map[string]any{
+						"cost": 30,
+					},
+					"withdrawals/{withdrawalId}": map[string]any{
+						"cost": 20,
+					},
+					"hf/orders/{orderId}": map[string]any{
+						"cost": 1,
+					},
+					"hf/orders/sync/{orderId}": map[string]any{
+						"cost": 1,
+					},
+					"hf/orders/client-order/{clientOid}": map[string]any{
+						"cost": 1,
+					},
+					"hf/orders/sync/client-order/{clientOid}": map[string]any{
+						"cost": 1,
+					},
+					"hf/orders/cancel/{orderId}": map[string]any{
+						"cost": 1,
+					},
+					"hf/orders": map[string]any{
+						"cost": 2,
+					},
+					"hf/orders/cancelAll": map[string]any{
+						"cost": 30,
+					},
+					"orders/{orderId}": map[string]any{
+						"cost": 3,
+					},
+					"order/client-order/{clientOid}": map[string]any{
+						"cost": 5,
+					},
+					"orders": map[string]any{
+						"cost": 20,
+					},
+					"stop-order/{orderId}": map[string]any{
+						"cost": 3,
+					},
+					"stop-order/cancelOrderByClientOid": map[string]any{
+						"cost": 5,
+					},
+					"stop-order/cancel": map[string]any{
+						"cost": 3,
+					},
+					"oco/order/{orderId}": map[string]any{
+						"cost": 3,
+					},
+					"oco/client-order/{clientOid}": map[string]any{
+						"cost": 3,
+					},
+					"oco/orders": map[string]any{
+						"cost": 3,
+					},
+					"hf/margin/orders/{orderId}": map[string]any{
+						"cost": 2,
+					},
+					"hf/margin/orders/client-order/{clientOid}": map[string]any{
+						"cost": 2,
+					},
+					"hf/margin/orders": map[string]any{
+						"cost": 5,
+					},
+					"hf/margin/stop-order/cancel-by-id": map[string]any{
+						"cost": 3,
+					},
+					"hf/margin/stop-order/cancel-by-clientOid": map[string]any{
+						"cost": 5,
+					},
+					"hf/margin/stop-order/cancel": map[string]any{
+						"cost": 3,
+					},
+					"hf/margin/oco-order/cancel-by-id": map[string]any{
+						"cost": 3,
+					},
+					"hf/margin/oco-order/cancel-by-clientOid": map[string]any{
+						"cost": 3,
+					},
+					"hf/margin/oco-order/cancel": map[string]any{
+						"cost": 3,
+					},
+					"convert/limit/order/cancel": map[string]any{
+						"cost": 5,
+					},
 				},
 			},
 			"futuresPublic": map[string]any{
 				"get": map[string]any{
-					"contracts/active":              6,
-					"contracts/{symbol}":            6,
-					"ticker":                        4,
-					"allTickers":                    10,
-					"level2/snapshot":               6,
-					"level2/depth20":                10,
-					"level2/depth100":               20,
-					"trade/history":                 10,
-					"kline/query":                   6,
-					"interest/query":                10,
-					"index/query":                   4,
-					"mark-price/{symbol}/current":   6,
-					"premium/query":                 6,
-					"trade-statistics":              6,
-					"funding-rate/{symbol}/current": 4,
-					"contract/funding-rates":        10,
-					"timestamp":                     4,
-					"status":                        8,
-					"level2/message/query":          1.3953,
-					"contracts/risk-limit/{symbol}": 3,
-					"level3/message/query":          3,
-					"level3/snapshot":               3,
+					"contracts/active": map[string]any{
+						"cost": 6,
+					},
+					"contracts/{symbol}": map[string]any{
+						"cost": 6,
+					},
+					"ticker": map[string]any{
+						"cost": 4,
+					},
+					"allTickers": map[string]any{
+						"cost": 10,
+					},
+					"level2/snapshot": map[string]any{
+						"cost": 6,
+					},
+					"level2/depth20": map[string]any{
+						"cost": 10,
+					},
+					"level2/depth100": map[string]any{
+						"cost": 20,
+					},
+					"trade/history": map[string]any{
+						"cost": 10,
+					},
+					"kline/query": map[string]any{
+						"cost": 6,
+					},
+					"interest/query": map[string]any{
+						"cost": 10,
+					},
+					"index/query": map[string]any{
+						"cost": 4,
+					},
+					"mark-price/{symbol}/current": map[string]any{
+						"cost": 6,
+					},
+					"premium/query": map[string]any{
+						"cost": 6,
+					},
+					"trade-statistics": map[string]any{
+						"cost": 6,
+					},
+					"funding-rate/{symbol}/current": map[string]any{
+						"cost": 4,
+					},
+					"contract/funding-rates": map[string]any{
+						"cost": 10,
+					},
+					"timestamp": map[string]any{
+						"cost": 4,
+					},
+					"status": map[string]any{
+						"cost": 8,
+					},
+					"level2/message/query": map[string]any{
+						"cost": 1.3953,
+					},
+					"contracts/risk-limit/{symbol}": map[string]any{
+						"cost": 3,
+					},
+					"level3/message/query": map[string]any{
+						"cost": 3,
+					},
+					"level3/snapshot": map[string]any{
+						"cost": 3,
+					},
 				},
 				"post": map[string]any{
-					"bullet-public": 20,
+					"bullet-public": map[string]any{
+						"cost": 20,
+					},
 				},
 			},
 			"futuresPrivate": map[string]any{
 				"get": map[string]any{
-					"transaction-history":                  4,
-					"account-overview":                     10,
-					"account-overview-all":                 12,
-					"transfer-list":                        20,
-					"orders":                               4,
-					"stopOrders":                           12,
-					"recentDoneOrders":                     10,
-					"orders/{orderId}":                     10,
-					"orders/byClientOid":                   10,
-					"fills":                                10,
-					"recentFills":                          6,
-					"trade-fees":                           6,
-					"openOrderStatistics":                  20,
-					"position":                             4,
-					"positions":                            4,
-					"margin/maxWithdrawMargin":             20,
-					"contracts/risk-limit/{symbol}":        10,
-					"funding-history":                      10,
-					"copy-trade/futures/get-max-open-size": 8,
-					"copy-trade/futures/position/margin/max-withdraw-margin": 20,
-					"history-positions":        4,
-					"position/getMarginMode":   4,
-					"position/getPositionMode": 4,
-					"deposit-address":          4,
-					"deposit-list":             4,
-					"withdrawals/quotas":       4,
-					"withdrawal-list":          4,
-					"sub/api-key":              4,
-					"trade-statistics":         4,
-					"getMaxOpenSize":           4,
-					"getCrossUserLeverage":     4,
+					"transaction-history": map[string]any{
+						"cost": 4,
+					},
+					"account-overview": map[string]any{
+						"cost": 10,
+					},
+					"account-overview-all": map[string]any{
+						"cost": 12,
+					},
+					"transfer-list": map[string]any{
+						"cost": 20,
+					},
+					"orders": map[string]any{
+						"cost": 4,
+					},
+					"stopOrders": map[string]any{
+						"cost": 12,
+					},
+					"recentDoneOrders": map[string]any{
+						"cost": 10,
+					},
+					"orders/{orderId}": map[string]any{
+						"cost": 10,
+					},
+					"orders/byClientOid": map[string]any{
+						"cost": 10,
+					},
+					"fills": map[string]any{
+						"cost": 10,
+					},
+					"recentFills": map[string]any{
+						"cost": 6,
+					},
+					"trade-fees": map[string]any{
+						"cost": 6,
+					},
+					"openOrderStatistics": map[string]any{
+						"cost": 20,
+					},
+					"position": map[string]any{
+						"cost": 4,
+					},
+					"positions": map[string]any{
+						"cost": 4,
+					},
+					"margin/maxWithdrawMargin": map[string]any{
+						"cost": 20,
+					},
+					"contracts/risk-limit/{symbol}": map[string]any{
+						"cost": 10,
+					},
+					"funding-history": map[string]any{
+						"cost": 10,
+					},
+					"copy-trade/futures/get-max-open-size": map[string]any{
+						"cost": 8,
+					},
+					"copy-trade/futures/position/margin/max-withdraw-margin": map[string]any{
+						"cost": 20,
+					},
+					"history-positions": map[string]any{
+						"cost": 4,
+					},
+					"position/getMarginMode": map[string]any{
+						"cost": 4,
+					},
+					"position/getPositionMode": map[string]any{
+						"cost": 4,
+					},
+					"deposit-address": map[string]any{
+						"cost": 4,
+					},
+					"deposit-list": map[string]any{
+						"cost": 4,
+					},
+					"withdrawals/quotas": map[string]any{
+						"cost": 4,
+					},
+					"withdrawal-list": map[string]any{
+						"cost": 4,
+					},
+					"sub/api-key": map[string]any{
+						"cost": 4,
+					},
+					"trade-statistics": map[string]any{
+						"cost": 4,
+					},
+					"getMaxOpenSize": map[string]any{
+						"cost": 4,
+					},
+					"getCrossUserLeverage": map[string]any{
+						"cost": 4,
+					},
 				},
 				"post": map[string]any{
-					"transfer-out":                        20,
-					"transfer-in":                         20,
-					"orders":                              4,
-					"st-orders":                           4,
-					"orders/test":                         4,
-					"orders/multi":                        6,
-					"position/margin/auto-deposit-status": 8,
-					"margin/withdrawMargin":               10,
-					"position/margin/deposit-margin":      8,
-					"position/risk-limit-level/change":    8,
-					"copy-trade/futures/orders":           4,
-					"copy-trade/futures/orders/test":      4,
-					"copy-trade/futures/st-orders":        4,
-					"copy-trade/futures/position/margin/deposit-margin":      8,
-					"copy-trade/futures/position/margin/withdraw-margin":     20,
-					"copy-trade/futures/position/risk-limit-level/change":    4,
-					"copy-trade/futures/position/margin/auto-deposit-status": 8,
-					"copy-trade/futures/position/changeMarginMode":           4,
-					"copy-trade/futures/position/changeCrossUserLeverage":    4,
-					"copy-trade/getCrossModeMarginRequirement":               6,
-					"copy-trade/position/switchPositionMode":                 4,
-					"changeCrossUserLeverage":                                4,
-					"withdrawals":                                            4,
-					"sub/api-key":                                            4,
-					"sub/api-key/update":                                     4,
-					"position/changeMarginMode":                              4,
-					"position/switchPositionMode":                            4,
-					"bullet-private":                                         20,
+					"transfer-out": map[string]any{
+						"cost": 20,
+					},
+					"transfer-in": map[string]any{
+						"cost": 20,
+					},
+					"orders": map[string]any{
+						"cost": 4,
+					},
+					"st-orders": map[string]any{
+						"cost": 4,
+					},
+					"orders/test": map[string]any{
+						"cost": 4,
+					},
+					"orders/multi": map[string]any{
+						"cost": 6,
+					},
+					"position/margin/auto-deposit-status": map[string]any{
+						"cost": 8,
+					},
+					"margin/withdrawMargin": map[string]any{
+						"cost": 10,
+					},
+					"position/margin/deposit-margin": map[string]any{
+						"cost": 8,
+					},
+					"position/risk-limit-level/change": map[string]any{
+						"cost": 8,
+					},
+					"copy-trade/futures/orders": map[string]any{
+						"cost": 4,
+					},
+					"copy-trade/futures/orders/test": map[string]any{
+						"cost": 4,
+					},
+					"copy-trade/futures/st-orders": map[string]any{
+						"cost": 4,
+					},
+					"copy-trade/futures/position/margin/deposit-margin": map[string]any{
+						"cost": 8,
+					},
+					"copy-trade/futures/position/margin/withdraw-margin": map[string]any{
+						"cost": 20,
+					},
+					"copy-trade/futures/position/risk-limit-level/change": map[string]any{
+						"cost": 4,
+					},
+					"copy-trade/futures/position/margin/auto-deposit-status": map[string]any{
+						"cost": 8,
+					},
+					"copy-trade/futures/position/changeMarginMode": map[string]any{
+						"cost": 4,
+					},
+					"copy-trade/futures/position/changeCrossUserLeverage": map[string]any{
+						"cost": 4,
+					},
+					"copy-trade/getCrossModeMarginRequirement": map[string]any{
+						"cost": 6,
+					},
+					"copy-trade/position/switchPositionMode": map[string]any{
+						"cost": 4,
+					},
+					"changeCrossUserLeverage": map[string]any{
+						"cost": 4,
+					},
+					"withdrawals": map[string]any{
+						"cost": 4,
+					},
+					"sub/api-key": map[string]any{
+						"cost": 4,
+					},
+					"sub/api-key/update": map[string]any{
+						"cost": 4,
+					},
+					"position/changeMarginMode": map[string]any{
+						"cost": 4,
+					},
+					"position/switchPositionMode": map[string]any{
+						"cost": 4,
+					},
+					"bullet-private": map[string]any{
+						"cost": 20,
+					},
 				},
 				"delete": map[string]any{
-					"orders/{orderId}":                       2,
-					"orders/client-order/{clientOid}":        2,
-					"orders":                                 20,
-					"stopOrders":                             30,
-					"copy-trade/futures/orders":              1.5,
-					"copy-trade/futures/orders/client-order": 1.5,
-					"orders/multi-cancel":                    40,
-					"withdrawals/{withdrawalId}":             10,
-					"cancel/transfer-out":                    10,
-					"sub/api-key":                            10,
+					"orders/{orderId}": map[string]any{
+						"cost": 2,
+					},
+					"orders/client-order/{clientOid}": map[string]any{
+						"cost": 2,
+					},
+					"orders": map[string]any{
+						"cost": 20,
+					},
+					"stopOrders": map[string]any{
+						"cost": 30,
+					},
+					"copy-trade/futures/orders": map[string]any{
+						"cost": 1.5,
+					},
+					"copy-trade/futures/orders/client-order": map[string]any{
+						"cost": 1.5,
+					},
+					"orders/multi-cancel": map[string]any{
+						"cost": 40,
+					},
+					"withdrawals/{withdrawalId}": map[string]any{
+						"cost": 10,
+					},
+					"cancel/transfer-out": map[string]any{
+						"cost": 10,
+					},
+					"sub/api-key": map[string]any{
+						"cost": 10,
+					},
 				},
 			},
 			"webExchange": map[string]any{
 				"get": map[string]any{
-					"currency/currency/chain-info":    1,
-					"contract/{symbol}/funding-rates": 2,
+					"currency/currency/chain-info": map[string]any{
+						"cost": 1,
+					},
+					"contract/{symbol}/funding-rates": map[string]any{
+						"cost": 2,
+					},
 				},
 			},
 			"broker": map[string]any{
 				"get": map[string]any{
-					"broker/nd/info":              4,
-					"broker/nd/account":           4,
-					"broker/nd/account/apikey":    4,
-					"broker/nd/rebase/download":   4,
-					"asset/ndbroker/deposit/list": 2,
-					"broker/nd/transfer/detail":   2,
-					"broker/nd/deposit/detail":    2,
-					"broker/nd/withdraw/detail":   2,
+					"broker/nd/info": map[string]any{
+						"cost": 4,
+					},
+					"broker/nd/account": map[string]any{
+						"cost": 4,
+					},
+					"broker/nd/account/apikey": map[string]any{
+						"cost": 4,
+					},
+					"broker/nd/rebase/download": map[string]any{
+						"cost": 4,
+					},
+					"asset/ndbroker/deposit/list": map[string]any{
+						"cost": 2,
+					},
+					"broker/nd/transfer/detail": map[string]any{
+						"cost": 2,
+					},
+					"broker/nd/deposit/detail": map[string]any{
+						"cost": 2,
+					},
+					"broker/nd/withdraw/detail": map[string]any{
+						"cost": 2,
+					},
 				},
 				"post": map[string]any{
-					"broker/nd/transfer":              2,
-					"broker/nd/account":               6,
-					"broker/nd/account/apikey":        6,
-					"broker/nd/account/update-apikey": 6,
+					"broker/nd/transfer": map[string]any{
+						"cost": 2,
+					},
+					"broker/nd/account": map[string]any{
+						"cost": 6,
+					},
+					"broker/nd/account/apikey": map[string]any{
+						"cost": 6,
+					},
+					"broker/nd/account/update-apikey": map[string]any{
+						"cost": 6,
+					},
 				},
 				"delete": map[string]any{
-					"broker/nd/account/apikey": 6,
+					"broker/nd/account/apikey": map[string]any{
+						"cost": 6,
+					},
 				},
 			},
 			"earn": map[string]any{
 				"get": map[string]any{
-					"otc-loan/discount-rate-configs": 20,
-					"otc-loan/loan":                  2,
-					"otc-loan/accounts":              2,
-					"earn/redeem-preview":            10,
-					"earn/saving/products":           10,
-					"earn/hold-assets":               10,
-					"earn/promotion/products":        10,
-					"earn/kcs-staking/products":      10,
-					"earn/staking/products":          10,
-					"earn/eth-staking/products":      10,
-					"struct-earn/dual/products":      6,
-					"struct-earn/orders":             10,
+					"otc-loan/discount-rate-configs": map[string]any{
+						"cost": 20,
+					},
+					"otc-loan/loan": map[string]any{
+						"cost": 2,
+					},
+					"otc-loan/accounts": map[string]any{
+						"cost": 2,
+					},
+					"earn/redeem-preview": map[string]any{
+						"cost": 10,
+					},
+					"earn/saving/products": map[string]any{
+						"cost": 10,
+					},
+					"earn/hold-assets": map[string]any{
+						"cost": 10,
+					},
+					"earn/promotion/products": map[string]any{
+						"cost": 10,
+					},
+					"earn/kcs-staking/products": map[string]any{
+						"cost": 10,
+					},
+					"earn/staking/products": map[string]any{
+						"cost": 10,
+					},
+					"earn/eth-staking/products": map[string]any{
+						"cost": 10,
+					},
+					"struct-earn/dual/products": map[string]any{
+						"cost": 6,
+					},
+					"struct-earn/orders": map[string]any{
+						"cost": 10,
+					},
 				},
 				"post": map[string]any{
-					"earn/orders":        10,
-					"struct-earn/orders": 10,
+					"earn/orders": map[string]any{
+						"cost": 10,
+					},
+					"struct-earn/orders": map[string]any{
+						"cost": 10,
+					},
 				},
 				"delete": map[string]any{
-					"earn/orders": 10,
+					"earn/orders": map[string]any{
+						"cost": 10,
+					},
 				},
 			},
 			"uta": map[string]any{
 				"get": map[string]any{
-					"market/announcement":              40,
-					"market/currency":                  6,
-					"asset/currencies":                 6,
-					"market/instrument":                8,
-					"market/ticker":                    30,
-					"market/trade":                     6,
-					"market/kline":                     6,
-					"market/funding-rate":              4,
-					"market/funding-rate-history":      10,
-					"market/cross-config":              50,
-					"market/collateral-discount-ratio": 20,
-					"market/index-price":               20,
-					"market/position-tiers":            40,
-					"market/open-interest":             20,
-					"server/status":                    6,
-					"market/borrowable-currency":       30,
-					"user/my-ip":                       20,
-					"market/fiat-price":                6,
+					"market/announcement": map[string]any{
+						"cost": 40,
+					},
+					"market/currency": map[string]any{
+						"cost": 6,
+					},
+					"asset/currencies": map[string]any{
+						"cost": 6,
+					},
+					"market/instrument": map[string]any{
+						"cost": 8,
+					},
+					"market/ticker": map[string]any{
+						"cost": 30,
+					},
+					"market/trade": map[string]any{
+						"cost": 6,
+					},
+					"market/kline": map[string]any{
+						"cost": 6,
+					},
+					"market/funding-rate": map[string]any{
+						"cost": 4,
+					},
+					"market/funding-rate-history": map[string]any{
+						"cost": 10,
+					},
+					"market/cross-config": map[string]any{
+						"cost": 50,
+					},
+					"market/collateral-discount-ratio": map[string]any{
+						"cost": 20,
+					},
+					"market/index-price": map[string]any{
+						"cost": 20,
+					},
+					"market/position-tiers": map[string]any{
+						"cost": 40,
+					},
+					"market/open-interest": map[string]any{
+						"cost": 20,
+					},
+					"server/status": map[string]any{
+						"cost": 6,
+					},
+					"market/borrowable-currency": map[string]any{
+						"cost": 30,
+					},
+					"user/my-ip": map[string]any{
+						"cost": 20,
+					},
+					"market/fiat-price": map[string]any{
+						"cost": 6,
+					},
 				},
 			},
 			"utaPrivate": map[string]any{
 				"get": map[string]any{
-					"market/orderbook":                 6,
-					"account/balance":                  10,
-					"account/transfer-quota":           40,
-					"account/mode":                     60,
-					"account/ledger":                   4,
-					"account/interest-history":         30,
-					"asset/deposit/address":            10,
-					"account/deposit/address":          5,
-					"{accountMode}/account/balance":    10,
-					"{accountMode}/account/overview":   10,
-					"{accountMode}/order/detail":       8,
-					"{accountMode}/order/open-list":    8,
-					"{accountMode}/order/history":      8,
-					"{accountMode}/order/execution":    8,
-					"{accountMode}/position/open-list": 6,
-					"{accountMode}/position/history":   4,
-					"position/history":                 4,
-					"{accountMode}/position/tiers":     40,
-					"sub-account/balance":              10,
-					"user/fee-rate":                    6,
-					"dcp/query":                        4,
-					"unified/account/leverage":         20,
-					"position/funding-history":         30,
-					"account/interest-limits":          20,
+					"market/orderbook": map[string]any{
+						"cost": 6,
+					},
+					"account/balance": map[string]any{
+						"cost": 10,
+					},
+					"account/transfer-quota": map[string]any{
+						"cost": 40,
+					},
+					"account/mode": map[string]any{
+						"cost": 60,
+					},
+					"account/ledger": map[string]any{
+						"cost": 4,
+					},
+					"account/interest-history": map[string]any{
+						"cost": 30,
+					},
+					"asset/deposit/address": map[string]any{
+						"cost": 10,
+					},
+					"account/deposit/address": map[string]any{
+						"cost": 5,
+					},
+					"{accountMode}/account/balance": map[string]any{
+						"cost": 10,
+					},
+					"{accountMode}/account/overview": map[string]any{
+						"cost": 10,
+					},
+					"{accountMode}/order/detail": map[string]any{
+						"cost": 8,
+					},
+					"{accountMode}/order/open-list": map[string]any{
+						"cost": 8,
+					},
+					"{accountMode}/order/history": map[string]any{
+						"cost": 8,
+					},
+					"{accountMode}/order/execution": map[string]any{
+						"cost": 8,
+					},
+					"{accountMode}/position/open-list": map[string]any{
+						"cost": 6,
+					},
+					"{accountMode}/position/history": map[string]any{
+						"cost": 4,
+					},
+					"position/history": map[string]any{
+						"cost": 4,
+					},
+					"{accountMode}/position/tiers": map[string]any{
+						"cost": 40,
+					},
+					"sub-account/balance": map[string]any{
+						"cost": 10,
+					},
+					"user/fee-rate": map[string]any{
+						"cost": 6,
+					},
+					"dcp/query": map[string]any{
+						"cost": 4,
+					},
+					"unified/account/leverage": map[string]any{
+						"cost": 20,
+					},
+					"position/funding-history": map[string]any{
+						"cost": 30,
+					},
+					"account/interest-limits": map[string]any{
+						"cost": 20,
+					},
 				},
 				"post": map[string]any{
-					"account/transfer":                                   8,
-					"account/mode":                                       60,
-					"{accountMode}/account/modify-leverage":              40,
-					"{accountMode}/order/place":                          2,
-					"{accountMode}/order/place-batch":                    8,
-					"{accountMode}/order/cancel":                         2,
-					"{accountMode}/order/cancel-batch":                   8,
-					"{accountMode}/order/cancel-all":                     40,
-					"sub-account/canTransferOut":                         10,
-					"dcp/set":                                            4,
-					"{accountMode}/account/modify-leverage-margin-cross": 40,
+					"account/transfer": map[string]any{
+						"cost": 8,
+					},
+					"account/mode": map[string]any{
+						"cost": 60,
+					},
+					"{accountMode}/account/modify-leverage": map[string]any{
+						"cost": 40,
+					},
+					"{accountMode}/order/place": map[string]any{
+						"cost": 2,
+					},
+					"{accountMode}/order/place-batch": map[string]any{
+						"cost": 8,
+					},
+					"{accountMode}/order/cancel": map[string]any{
+						"cost": 2,
+					},
+					"{accountMode}/order/cancel-batch": map[string]any{
+						"cost": 8,
+					},
+					"{accountMode}/order/cancel-all": map[string]any{
+						"cost": 40,
+					},
+					"sub-account/canTransferOut": map[string]any{
+						"cost": 10,
+					},
+					"dcp/set": map[string]any{
+						"cost": 4,
+					},
+					"{accountMode}/account/modify-leverage-margin-cross": map[string]any{
+						"cost": 40,
+					},
 				},
 			},
 		},
@@ -7803,15 +8505,17 @@ func (this *KucoinCore) FetchMySpotTrades(optionalArgs ...any) <-chan any {
 		//     }
 		//
 		var data any = this.SafeDict(response, "data", map[string]any{})
+		// v1 (historical) returns the trade list directly under 'data', v2 nests it under 'items'
 		var trades any = nil
 		if IsTrue(parseResponseData) {
 			trades = data
 		} else {
 			trades = this.SafeList(data, "items", []any{})
 		}
+		// v1 may put a bare list or dict under data; normalize once for parseTrades
 		var tradesList any = []any{}
 		if IsTrue(!IsEqual(trades, nil)) {
-			tradesList = trades
+			tradesList = this.ToArray(trades)
 		}
 
 		ch <- this.ParseTrades(tradesList, market, since, limit)
@@ -7849,8 +8553,8 @@ func (this *KucoinCore) FetchMyContractTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes690212 := (<-this.LoadMarkets())
-			PanicOnError(retRes690212)
+			retRes690412 := (<-this.LoadMarkets())
+			PanicOnError(retRes690412)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -7858,9 +8562,9 @@ func (this *KucoinCore) FetchMyContractTrades(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes690719 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-			PanicOnError(retRes690719)
-			ch <- retRes690719
+			retRes690919 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+			PanicOnError(retRes690919)
+			ch <- retRes690919
 			return nil
 		}
 		var request any = map[string]any{}
@@ -7959,8 +8663,8 @@ func (this *KucoinCore) FetchMyUtaTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes699012 := (<-this.LoadMarkets())
-			PanicOnError(retRes699012)
+			retRes699212 := (<-this.LoadMarkets())
+			PanicOnError(retRes699212)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -7968,9 +8672,9 @@ func (this *KucoinCore) FetchMyUtaTrades(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes699519 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-			PanicOnError(retRes699519)
-			ch <- retRes699519
+			retRes699719 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+			PanicOnError(retRes699719)
+			ch <- retRes699719
 			return nil
 		}
 		var marketType any = this.SafeString(params, "marketType")
@@ -8081,8 +8785,8 @@ func (this *KucoinCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes708112 := (<-this.LoadMarkets())
-			PanicOnError(retRes708112)
+			retRes708312 := (<-this.LoadMarkets())
+			PanicOnError(retRes708312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -8546,8 +9250,8 @@ func (this *KucoinCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes751912 := (<-this.LoadMarkets())
-			PanicOnError(retRes751912)
+			retRes752112 := (<-this.LoadMarkets())
+			PanicOnError(retRes752112)
 		}
 		var market any = this.Market(symbol)
 
@@ -8666,8 +9370,8 @@ func (this *KucoinCore) Withdraw(code any, amount any, address any, optionalArgs
 		params = GetValue(tagparamsVariable, 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes761212 := (<-this.LoadMarkets())
-			PanicOnError(retRes761212)
+			retRes761412 := (<-this.LoadMarkets())
+			PanicOnError(retRes761412)
 		}
 		this.CheckAddress(address)
 		var currency any = this.Currency(code)
@@ -8880,8 +9584,8 @@ func (this *KucoinCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes780512 := (<-this.LoadMarkets())
-			PanicOnError(retRes780512)
+			retRes780712 := (<-this.LoadMarkets())
+			PanicOnError(retRes780712)
 		}
 		var accountType any = "main"
 		accountTypeparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "accountType", accountType)
@@ -8891,9 +9595,9 @@ func (this *KucoinCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		accountType = this.SafeString(accountsByType, accountType, accountType)
 		if IsTrue(IsEqual(accountType, "contract")) {
 
-			retRes781219 := (<-this.FetchContractDeposits(code, since, limit, params))
-			PanicOnError(retRes781219)
-			ch <- retRes781219
+			retRes781419 := (<-this.FetchContractDeposits(code, since, limit, params))
+			PanicOnError(retRes781419)
+			ch <- retRes781419
 			return nil
 		}
 		var paginate any = false
@@ -8902,9 +9606,9 @@ func (this *KucoinCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes781719 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
-			PanicOnError(retRes781719)
-			ch <- retRes781719
+			retRes781919 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+			PanicOnError(retRes781919)
+			ch <- retRes781919
 			return nil
 		}
 		var request any = map[string]any{}
@@ -9009,8 +9713,8 @@ func (this *KucoinCore) FetchContractDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes789512 := (<-this.LoadMarkets())
-			PanicOnError(retRes789512)
+			retRes789712 := (<-this.LoadMarkets())
+			PanicOnError(retRes789712)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -9054,7 +9758,8 @@ func (this *KucoinCore) FetchContractDeposits(optionalArgs ...any) <-chan any {
 		//         }
 		//     }
 		//
-		var responseData any = GetValue(GetValue(response, "data"), "items")
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var responseData any = this.SafeList(data, "items", []any{})
 
 		ch <- this.ParseTransactions(responseData, currency, since, limit, map[string]any{
 			"type": "deposit",
@@ -9095,8 +9800,8 @@ func (this *KucoinCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes795812 := (<-this.LoadMarkets())
-			PanicOnError(retRes795812)
+			retRes796112 := (<-this.LoadMarkets())
+			PanicOnError(retRes796112)
 		}
 		var accountType any = "main"
 		accountTypeparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "accountType", accountType)
@@ -9106,9 +9811,9 @@ func (this *KucoinCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		accountType = this.SafeString(accountsByType, accountType, accountType)
 		if IsTrue(IsEqual(accountType, "contract")) {
 
-			retRes796519 := (<-this.FetchContractWithdrawals(code, since, limit, params))
-			PanicOnError(retRes796519)
-			ch <- retRes796519
+			retRes796819 := (<-this.FetchContractWithdrawals(code, since, limit, params))
+			PanicOnError(retRes796819)
+			ch <- retRes796819
 			return nil
 		}
 		var maxLimit any = 500
@@ -9118,9 +9823,9 @@ func (this *KucoinCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes797119 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params, maxLimit))
-			PanicOnError(retRes797119)
-			ch <- retRes797119
+			retRes797419 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params, maxLimit))
+			PanicOnError(retRes797419)
+			ch <- retRes797419
 			return nil
 		}
 		var request any = map[string]any{}
@@ -9226,8 +9931,8 @@ func (this *KucoinCore) FetchContractWithdrawals(optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes805012 := (<-this.LoadMarkets())
-			PanicOnError(retRes805012)
+			retRes805312 := (<-this.LoadMarkets())
+			PanicOnError(retRes805312)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -9271,7 +9976,8 @@ func (this *KucoinCore) FetchContractWithdrawals(optionalArgs ...any) <-chan any
 		//         }
 		//     }
 		//
-		var responseData any = GetValue(GetValue(response, "data"), "items")
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var responseData any = this.SafeList(data, "items", []any{})
 
 		ch <- this.ParseTransactions(responseData, currency, since, limit, map[string]any{
 			"type": "withdrawal",
@@ -9318,8 +10024,8 @@ func (this *KucoinCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes812612 := (<-this.LoadMarkets())
-			PanicOnError(retRes812612)
+			retRes813012 := (<-this.LoadMarkets())
+			PanicOnError(retRes813012)
 		}
 
 		uta := (<-this.IsUTAEnabled())
@@ -9329,9 +10035,9 @@ func (this *KucoinCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params = GetValue(utaparamsVariable, 1)
 		if IsTrue(uta) {
 
-			retRes813119 := (<-this.FetchUtaBalance(params))
-			PanicOnError(retRes813119)
-			ch <- retRes813119
+			retRes813519 := (<-this.FetchUtaBalance(params))
+			PanicOnError(retRes813519)
+			ch <- retRes813519
 			return nil
 		}
 		var response any = nil
@@ -9350,9 +10056,9 @@ func (this *KucoinCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params = this.Omit(params, "type")
 		if IsTrue(IsEqual(typeVar, "contract")) {
 
-			retRes814619 := (<-this.FetchContractBalance(params))
-			PanicOnError(retRes814619)
-			ch <- retRes814619
+			retRes815019 := (<-this.FetchContractBalance(params))
+			PanicOnError(retRes815019)
+			ch <- retRes815019
 			return nil
 		}
 		var hf any = nil
@@ -9549,8 +10255,8 @@ func (this *KucoinCore) FetchContractBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes832012 := (<-this.LoadMarkets())
-			PanicOnError(retRes832012)
+			retRes832412 := (<-this.LoadMarkets())
+			PanicOnError(retRes832412)
 		}
 		// only fetches one balance at a time
 		var defaultCode any = this.SafeString(this.Options, "code")
@@ -9624,8 +10330,8 @@ func (this *KucoinCore) FetchUtaBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes838012 := (<-this.LoadMarkets())
-			PanicOnError(retRes838012)
+			retRes838412 := (<-this.LoadMarkets())
+			PanicOnError(retRes838412)
 		}
 		var requestedType any = "unified"
 		requestedTypeparamsVariable := this.HandleMarketTypeAndParams("fetchUtaBalance", nil, params, requestedType)
@@ -9792,8 +10498,8 @@ func (this *KucoinCore) Transfer(code any, amount any, fromAccount any, toAccoun
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes852712 := (<-this.LoadMarkets())
-			PanicOnError(retRes852712)
+			retRes853112 := (<-this.LoadMarkets())
+			PanicOnError(retRes853112)
 		}
 
 		uta := (<-this.IsUTAEnabled())
@@ -9803,15 +10509,15 @@ func (this *KucoinCore) Transfer(code any, amount any, fromAccount any, toAccoun
 		params = GetValue(utaparamsVariable, 1)
 		if IsTrue(uta) {
 
-			retRes853219 := (<-this.TransferUta(code, amount, fromAccount, toAccount, params))
-			PanicOnError(retRes853219)
-			ch <- retRes853219
+			retRes853619 := (<-this.TransferUta(code, amount, fromAccount, toAccount, params))
+			PanicOnError(retRes853619)
+			ch <- retRes853619
 			return nil
 		}
 
-		retRes853415 := (<-this.TransferClassic(code, amount, fromAccount, toAccount, params))
-		PanicOnError(retRes853415)
-		ch <- retRes853415
+		retRes853815 := (<-this.TransferClassic(code, amount, fromAccount, toAccount, params))
+		PanicOnError(retRes853815)
+		ch <- retRes853815
 		return nil
 
 	}()
@@ -9842,8 +10548,8 @@ func (this *KucoinCore) TransferUta(code any, amount any, fromAccount any, toAcc
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes855412 := (<-this.LoadMarkets())
-			PanicOnError(retRes855412)
+			retRes855812 := (<-this.LoadMarkets())
+			PanicOnError(retRes855812)
 		}
 		var currency any = this.Currency(code)
 		var requestedAmount any = this.CurrencyToPrecision(code, amount)
@@ -9953,8 +10659,8 @@ func (this *KucoinCore) TransferClassic(code any, amount any, fromAccount any, t
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes864212 := (<-this.LoadMarkets())
-			PanicOnError(retRes864212)
+			retRes864612 := (<-this.LoadMarkets())
+			PanicOnError(retRes864612)
 		}
 		var currency any = this.Currency(code)
 		var requestedAmount any = this.CurrencyToPrecision(code, amount)
@@ -10387,12 +11093,12 @@ func (this *KucoinCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes905312 := (<-this.LoadMarkets())
-			PanicOnError(retRes905312)
+			retRes905712 := (<-this.LoadMarkets())
+			PanicOnError(retRes905712)
 		}
 
-		retRes90558 := (<-this.LoadAccounts())
-		PanicOnError(retRes90558)
+		retRes90598 := (<-this.LoadAccounts())
+		PanicOnError(retRes90598)
 
 		uta := (<-this.IsUTAEnabled())
 		PanicOnError(uta)
@@ -10442,9 +11148,9 @@ func (this *KucoinCore) FetchLedger(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes909219 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, maxLimit))
-			PanicOnError(retRes909219)
-			ch <- retRes909219
+			retRes909619 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, maxLimit))
+			PanicOnError(retRes909619)
+			ch <- retRes909619
 			return nil
 		}
 		var request any = map[string]any{}
@@ -10661,8 +11367,8 @@ func (this *KucoinCore) FetchBorrowInterest(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes927812 := (<-this.LoadMarkets())
-			PanicOnError(retRes927812)
+			retRes928212 := (<-this.LoadMarkets())
+			PanicOnError(retRes928212)
 		}
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBorrowInterest", params, "cross")
@@ -10876,8 +11582,8 @@ func (this *KucoinCore) FetchBorrowRateHistories(optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes946712 := (<-this.LoadMarkets())
-			PanicOnError(retRes946712)
+			retRes947112 := (<-this.LoadMarkets())
+			PanicOnError(retRes947112)
 		}
 		var marginResult any = this.HandleMarginModeAndParams("fetchBorrowRateHistories", params)
 		var marginMode any = this.SafeString(marginResult, 0, "cross")
@@ -10953,8 +11659,8 @@ func (this *KucoinCore) FetchBorrowRateHistory(code any, optionalArgs ...any) <-
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes952312 := (<-this.LoadMarkets())
-			PanicOnError(retRes952312)
+			retRes952712 := (<-this.LoadMarkets())
+			PanicOnError(retRes952712)
 		}
 		var marginResult any = this.HandleMarginModeAndParams("fetchBorrowRateHistories", params)
 		var marginMode any = this.SafeString(marginResult, 0, "cross")
@@ -11055,8 +11761,8 @@ func (this *KucoinCore) FetchCrossBorrowRate(code any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes960912 := (<-this.LoadMarkets())
-			PanicOnError(retRes960912)
+			retRes961312 := (<-this.LoadMarkets())
+			PanicOnError(retRes961312)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -11107,8 +11813,8 @@ func (this *KucoinCore) BorrowCrossMargin(code any, amount any, optionalArgs ...
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes964612 := (<-this.LoadMarkets())
-			PanicOnError(retRes964612)
+			retRes965012 := (<-this.LoadMarkets())
+			PanicOnError(retRes965012)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -11161,8 +11867,8 @@ func (this *KucoinCore) BorrowIsolatedMargin(symbol any, code any, amount any, o
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes968512 := (<-this.LoadMarkets())
-			PanicOnError(retRes968512)
+			retRes968912 := (<-this.LoadMarkets())
+			PanicOnError(retRes968912)
 		}
 		var market any = this.Market(symbol)
 		var currency any = this.Currency(code)
@@ -11216,8 +11922,8 @@ func (this *KucoinCore) RepayCrossMargin(code any, amount any, optionalArgs ...a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes972512 := (<-this.LoadMarkets())
-			PanicOnError(retRes972512)
+			retRes972912 := (<-this.LoadMarkets())
+			PanicOnError(retRes972912)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -11268,8 +11974,8 @@ func (this *KucoinCore) RepayIsolatedMargin(symbol any, code any, amount any, op
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes976212 := (<-this.LoadMarkets())
-			PanicOnError(retRes976212)
+			retRes976612 := (<-this.LoadMarkets())
+			PanicOnError(retRes976612)
 		}
 		var market any = this.Market(symbol)
 		var currency any = this.Currency(code)
@@ -11344,8 +12050,8 @@ func (this *KucoinCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes982012 := (<-this.LoadMarkets())
-			PanicOnError(retRes982012)
+			retRes982412 := (<-this.LoadMarkets())
+			PanicOnError(retRes982412)
 		}
 
 		response := (<-this.PublicGetCurrencies(params))
@@ -11402,8 +12108,8 @@ func (this *KucoinCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan an
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes986112 := (<-this.LoadMarkets())
-			PanicOnError(retRes986112)
+			retRes986512 := (<-this.LoadMarkets())
+			PanicOnError(retRes986512)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
@@ -11463,8 +12169,8 @@ func (this *KucoinCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes990512 := (<-this.LoadMarkets())
-			PanicOnError(retRes990512)
+			retRes990912 := (<-this.LoadMarkets())
+			PanicOnError(retRes990912)
 		}
 		var market any = nil
 		var marketType any = nil
@@ -11478,9 +12184,9 @@ func (this *KucoinCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
 			market = this.Market(symbol)
 			if IsTrue(GetValue(market, "contract")) {
 
-				retRes991623 := (<-this.SetContractLeverage(leverage, symbol, params))
-				PanicOnError(retRes991623)
-				ch <- retRes991623
+				retRes992023 := (<-this.SetContractLeverage(leverage, symbol, params))
+				PanicOnError(retRes992023)
+				ch <- retRes992023
 				return nil
 			}
 		}
@@ -11570,8 +12276,8 @@ func (this *KucoinCore) SetContractLeverage(leverage any, optionalArgs ...any) <
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes997712 := (<-this.LoadMarkets())
-			PanicOnError(retRes997712)
+			retRes998112 := (<-this.LoadMarkets())
+			PanicOnError(retRes998112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -11635,9 +12341,9 @@ func (this *KucoinCore) FetchFundingInterval(symbol any, optionalArgs ...any) <-
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes1002115 := (<-this.FetchFundingRate(symbol, params))
-		PanicOnError(retRes1002115)
-		ch <- retRes1002115
+		retRes1002515 := (<-this.FetchFundingRate(symbol, params))
+		PanicOnError(retRes1002515)
+		ch <- retRes1002515
 		return nil
 
 	}()
@@ -11664,8 +12370,8 @@ func (this *KucoinCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1003712 := (<-this.LoadMarkets())
-			PanicOnError(retRes1003712)
+			retRes1004112 := (<-this.LoadMarkets())
+			PanicOnError(retRes1004112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -11821,8 +12527,8 @@ func (this *KucoinCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any 
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1016912 := (<-this.LoadMarkets())
-			PanicOnError(retRes1016912)
+			retRes1017312 := (<-this.LoadMarkets())
+			PanicOnError(retRes1017312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -11948,8 +12654,8 @@ func (this *KucoinCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1027012 := (<-this.LoadMarkets())
-			PanicOnError(retRes1027012)
+			retRes1027412 := (<-this.LoadMarkets())
+			PanicOnError(retRes1027412)
 		}
 
 		uta := (<-this.IsUTAEnabled())
@@ -12083,8 +12789,8 @@ func (this *KucoinCore) FetchPosition(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1038212 := (<-this.LoadMarkets())
-			PanicOnError(retRes1038212)
+			retRes1038612 := (<-this.LoadMarkets())
+			PanicOnError(retRes1038612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -12210,8 +12916,8 @@ func (this *KucoinCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1048612 := (<-this.LoadMarkets())
-			PanicOnError(retRes1048612)
+			retRes1049012 := (<-this.LoadMarkets())
+			PanicOnError(retRes1049012)
 		}
 
 		uta := (<-this.IsUTAEnabled())
@@ -12271,8 +12977,8 @@ func (this *KucoinCore) FetchPositionsHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1056312 := (<-this.LoadMarkets())
-			PanicOnError(retRes1056312)
+			retRes1056712 := (<-this.LoadMarkets())
+			PanicOnError(retRes1056712)
 		}
 
 		uta := (<-this.IsUTAEnabled())
@@ -12599,8 +13305,8 @@ func (this *KucoinCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1086512 := (<-this.LoadMarkets())
-			PanicOnError(retRes1086512)
+			retRes1086912 := (<-this.LoadMarkets())
+			PanicOnError(retRes1086912)
 		}
 
 		uta := (<-this.IsUTAEnabled())
@@ -12722,8 +13428,8 @@ func (this *KucoinCore) AddMargin(symbol any, amount any, optionalArgs ...any) <
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1096312 := (<-this.LoadMarkets())
-			PanicOnError(retRes1096312)
+			retRes1096712 := (<-this.LoadMarkets())
+			PanicOnError(retRes1096712)
 		}
 		var market any = this.Market(symbol)
 		var uuid any = this.Uuid()
@@ -12816,8 +13522,8 @@ func (this *KucoinCore) ReduceMargin(symbol any, amount any, optionalArgs ...any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1104212 := (<-this.LoadMarkets())
-			PanicOnError(retRes1104212)
+			retRes1104612 := (<-this.LoadMarkets())
+			PanicOnError(retRes1104612)
 		}
 		var market any = this.Market(symbol)
 		var amountString any = this.AmountToPrecision(symbol, amount)
@@ -12941,8 +13647,8 @@ func (this *KucoinCore) FetchMarginMode(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1115112 := (<-this.LoadMarkets())
-			PanicOnError(retRes1115112)
+			retRes1115512 := (<-this.LoadMarkets())
+			PanicOnError(retRes1115512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -13005,8 +13711,8 @@ func (this *KucoinCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
 		this.CheckRequiredArgument("setMarginMode", marginMode, "marginMode", []any{"cross", "isolated"})
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1119712 := (<-this.LoadMarkets())
-			PanicOnError(retRes1119712)
+			retRes1120112 := (<-this.LoadMarkets())
+			PanicOnError(retRes1120112)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
@@ -13030,7 +13736,7 @@ func (this *KucoinCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
 		//
 		var data any = this.SafeDict(response, "data", map[string]any{})
 
-		ch <- this.ParseMarginMode(data, market)
+		ch <- this.ParseMarginMode(data, market) // widened to Dict to match the base setMarginMode return ({}) — narrowing it to MarginMode breaks the Go IExchange interface
 		return nil
 
 	}()
@@ -13058,8 +13764,8 @@ func (this *KucoinCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1123312 := (<-this.LoadMarkets())
-			PanicOnError(retRes1123312)
+			retRes1123712 := (<-this.LoadMarkets())
+			PanicOnError(retRes1123712)
 		}
 		var posMode any = Ternary(IsTrue(hedged), "1", "0")
 		var request any = map[string]any{
@@ -13141,8 +13847,8 @@ func (this *KucoinCore) ClosePosition(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1128412 := (<-this.LoadMarkets())
-			PanicOnError(retRes1128412)
+			retRes1128812 := (<-this.LoadMarkets())
+			PanicOnError(retRes1128812)
 		}
 		var market any = this.Market(symbol)
 		var clientOrderId any = this.SafeString(params, "clientOrderId")
@@ -13194,8 +13900,8 @@ func (this *KucoinCore) FetchMarketLeverageTiers(symbol any, optionalArgs ...any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1132012 := (<-this.LoadMarkets())
-			PanicOnError(retRes1132012)
+			retRes1132412 := (<-this.LoadMarkets())
+			PanicOnError(retRes1132412)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
@@ -13316,8 +14022,8 @@ func (this *KucoinCore) FetchLeverageTiers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1141812 := (<-this.LoadMarkets())
-			PanicOnError(retRes1141812)
+			retRes1142212 := (<-this.LoadMarkets())
+			PanicOnError(retRes1142212)
 		}
 		if IsTrue(IsEqual(symbols, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchLeverageTiers() requires a symbols argument")))
@@ -13377,8 +14083,8 @@ func (this *KucoinCore) FetchLeverageTiers(optionalArgs ...any) <-chan any {
 				if !IsTrue((InOp(result, symbol))) {
 					AddElementToObject(result, symbol, []any{})
 				}
-				retRes1147416 := GetValue(result, symbol)
-				AppendToArray(&retRes1147416, tier)
+				retRes1147816 := GetValue(result, symbol)
+				AppendToArray(&retRes1147816, tier)
 			}
 		}
 
@@ -13409,8 +14115,8 @@ func (this *KucoinCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1149112 := (<-this.LoadMarkets())
-			PanicOnError(retRes1149112)
+			retRes1149512 := (<-this.LoadMarkets())
+			PanicOnError(retRes1149512)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
@@ -13516,8 +14222,8 @@ func (this *KucoinCore) FetchOpenInterestHistory(symbol any, optionalArgs ...any
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1157612 := (<-this.LoadMarkets())
-			PanicOnError(retRes1157612)
+			retRes1158012 := (<-this.LoadMarkets())
+			PanicOnError(retRes1158012)
 		}
 		var market any = this.Market(symbol)
 		var maxLimit any = 200
@@ -13527,9 +14233,9 @@ func (this *KucoinCore) FetchOpenInterestHistory(symbol any, optionalArgs ...any
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes1158319 := (<-this.FetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, maxLimit))
-			PanicOnError(retRes1158319)
-			ch <- retRes1158319
+			retRes1158719 := (<-this.FetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, maxLimit))
+			PanicOnError(retRes1158719)
+			ch <- retRes1158719
 			return nil
 		}
 		var request any = map[string]any{
@@ -13744,8 +14450,8 @@ func (this *KucoinCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1174912 := (<-this.LoadMarkets())
-			PanicOnError(retRes1174912)
+			retRes1175312 := (<-this.LoadMarkets())
+			PanicOnError(retRes1175312)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
@@ -13753,9 +14459,9 @@ func (this *KucoinCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes1175419 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params))
-			PanicOnError(retRes1175419)
-			ch <- retRes1175419
+			retRes1175819 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params))
+			PanicOnError(retRes1175819)
+			ch <- retRes1175819
 			return nil
 		}
 		var request any = map[string]any{
@@ -13840,8 +14546,8 @@ func (this *KucoinCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1182012 := (<-this.LoadMarkets())
-			PanicOnError(retRes1182012)
+			retRes1182412 := (<-this.LoadMarkets())
+			PanicOnError(retRes1182412)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 

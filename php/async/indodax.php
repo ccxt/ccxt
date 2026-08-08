@@ -152,32 +152,32 @@ class indodax extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'api/server_time' => 5,
-                        'api/pairs' => 5,
-                        'api/price_increments' => 5,
-                        'api/summaries' => 5,
-                        'api/ticker/{pair}' => 5,
-                        'api/ticker_all' => 5,
-                        'api/trades/{pair}' => 5,
-                        'api/depth/{pair}' => 5,
-                        'tradingview/history_v2' => 5,
+                        'api/server_time' => array( 'cost' => 5 ),
+                        'api/pairs' => array( 'cost' => 5 ),
+                        'api/price_increments' => array( 'cost' => 5 ),
+                        'api/summaries' => array( 'cost' => 5 ),
+                        'api/ticker/{pair}' => array( 'cost' => 5 ),
+                        'api/ticker_all' => array( 'cost' => 5 ),
+                        'api/trades/{pair}' => array( 'cost' => 5 ),
+                        'api/depth/{pair}' => array( 'cost' => 5 ),
+                        'tradingview/history_v2' => array( 'cost' => 5 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'getInfo' => 4,
-                        'transHistory' => 4,
-                        'trade' => 1,
-                        'tradeHistory' => 4, // TODO add fetchMyTrades
-                        'openOrders' => 4,
-                        'orderHistory' => 4,
-                        'getOrder' => 4,
-                        'cancelOrder' => 4,
-                        'withdrawFee' => 4,
-                        'withdrawCoin' => 4,
-                        'listDownline' => 4,
-                        'checkDownline' => 4,
-                        'createVoucher' => 4, // partner only
+                        'getInfo' => array( 'cost' => 4 ),
+                        'transHistory' => array( 'cost' => 4 ),
+                        'trade' => array( 'cost' => 1 ),
+                        'tradeHistory' => array( 'cost' => 4 ), // TODO add fetchMyTrades
+                        'openOrders' => array( 'cost' => 4 ),
+                        'orderHistory' => array( 'cost' => 4 ),
+                        'getOrder' => array( 'cost' => 4 ),
+                        'cancelOrder' => array( 'cost' => 4 ),
+                        'withdrawFee' => array( 'cost' => 4 ),
+                        'withdrawCoin' => array( 'cost' => 4 ),
+                        'listDownline' => array( 'cost' => 4 ),
+                        'checkDownline' => array( 'cost' => 4 ),
+                        'createVoucher' => array( 'cost' => 4 ), // partner only
                     ),
                 ),
             ),
@@ -373,8 +373,9 @@ class indodax extends Exchange {
             //     )
             //
             $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $market = $response[$i];
+            $rawMarkets = $this->to_array($response);
+            for ($i = 0; $i < count($rawMarkets); $i++) {
+                $market = $rawMarkets[$i];
                 $id = $this->safe_string($market, 'id');
                 $baseId = $this->safe_string($market, 'traded_currency');
                 $quoteId = $this->safe_string($market, 'base_currency');
@@ -772,7 +773,7 @@ class indodax extends Exchange {
             //         }
             //     )
             //
-            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+            return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
         })();
     }
 
@@ -909,7 +910,7 @@ class indodax extends Exchange {
                 'order_id' => $id,
             );
             $response = Async\await($this->privatePostGetOrder($this->extend($request, $params)));
-            $orders = $response['return'];
+            $orders = $this->safe_dict($response, 'return', array());
             $order = $this->parse_order($this->extend(array( 'id' => $id ), $orders['order']), $market);
             $order['info'] = $response;
             return $order;
@@ -939,7 +940,8 @@ class indodax extends Exchange {
                 $request['pair'] = $market['id'];
             }
             $response = Async\await($this->privatePostOpenOrders($this->extend($request, $params)));
-            $rawOrders = $response['return']['orders'];
+            $openOrdersResult = $this->safe_dict($response, 'return', array());
+            $rawOrders = $openOrdersResult['orders'];
             // array( success => 1, return => array( orders => null )) if no orders
             if (!$rawOrders) {
                 return array();
@@ -986,7 +988,8 @@ class indodax extends Exchange {
                 'pair' => $market['id'],
             );
             $response = Async\await($this->privatePostOrderHistory($this->extend($request, $params)));
-            $orders = $this->parse_orders($response['return']['orders'], $market);
+            $historyResult = $this->safe_dict($response, 'return', array());
+            $orders = $this->parse_orders($historyResult['orders'], $market);
             $orders = $this->filter_by($orders, 'status', 'closed');
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
         })();

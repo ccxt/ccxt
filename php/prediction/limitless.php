@@ -79,72 +79,72 @@ class limitless extends Exchange {
                 'limitless' => array(
                     'public' => array(
                         'get' => array(
-                            'markets/active' => 1,
-                            'markets/active/{categoryId}' => 1,
-                            'categories' => 1,
-                            'markets/{addressOrSlug}' => 1,
-                            'markets/categories/count' => 1,
-                            'markets/active/slugs' => 1,
-                            'markets/search' => 1,
-                            'markets/{slug}/orderbook' => 1,
-                            'markets/{slug}/historical-price' => 1,
-                            'auth/signing-message' => 1,
-                            'markets/{addressOrSlug}/oracle-candles' => 1,
-                            'markets/{slug}/get-feed-events' => 1,
-                            'markets/{slug}/events' => 1,
-                            'markets/timeline' => 1,
-                            'markets/{slug}/timeline' => 1,
-                            'navigation' => 1,
-                            'market-pages/by-path' => 1,
-                            'market-pages/{id}/markets' => 1,
-                            'property-keys' => 1,
-                            'property-keys/{id}' => 1,
-                            'property-keys/{id}/options' => 1,
-                            'portfolio/{account}/traded-volume' => 1,
-                            'portfolio/{account}/positions' => 1,
-                            'portfolio/{account}/pnl-chart' => 1,
+                            'markets/active' => array( 'cost' => 1 ),
+                            'markets/active/{categoryId}' => array( 'cost' => 1 ),
+                            'categories' => array( 'cost' => 1 ),
+                            'markets/{addressOrSlug}' => array( 'cost' => 1 ),
+                            'markets/categories/count' => array( 'cost' => 1 ),
+                            'markets/active/slugs' => array( 'cost' => 1 ),
+                            'markets/search' => array( 'cost' => 1 ),
+                            'markets/{slug}/orderbook' => array( 'cost' => 1 ),
+                            'markets/{slug}/historical-price' => array( 'cost' => 1 ),
+                            'auth/signing-message' => array( 'cost' => 1 ),
+                            'markets/{addressOrSlug}/oracle-candles' => array( 'cost' => 1 ),
+                            'markets/{slug}/get-feed-events' => array( 'cost' => 1 ),
+                            'markets/{slug}/events' => array( 'cost' => 1 ),
+                            'markets/timeline' => array( 'cost' => 1 ),
+                            'markets/{slug}/timeline' => array( 'cost' => 1 ),
+                            'navigation' => array( 'cost' => 1 ),
+                            'market-pages/by-path' => array( 'cost' => 1 ),
+                            'market-pages/{id}/markets' => array( 'cost' => 1 ),
+                            'property-keys' => array( 'cost' => 1 ),
+                            'property-keys/{id}' => array( 'cost' => 1 ),
+                            'property-keys/{id}/options' => array( 'cost' => 1 ),
+                            'portfolio/{account}/traded-volume' => array( 'cost' => 1 ),
+                            'portfolio/{account}/positions' => array( 'cost' => 1 ),
+                            'portfolio/{account}/pnl-chart' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'auth/api-keys' => 1,
-                            'profiles/partner-accounts' => 1,
-                            'markets/{slug}/user-orders' => 1,
-                            'portfolio/positions' => 1,
-                            'portfolio/trades' => 1,
-                            'markets/{slug}/locked-balance' => 1,
-                            'profiles/me' => 1,
-                            'profiles/{account}' => 1,
-                            'portfolio/pnl-chart' => 1,
-                            'portfolio/history' => 1,
-                            'portfolio/points' => 1,
-                            'portfolio/trading/allowance' => 1,
-                            'auth/api-tokens/capabilities' => 1,
-                            'auth/api-tokens' => 1,
-                            'profiles/partner-accounts/{profileId}/allowances' => 1,
+                            'auth/api-keys' => array( 'cost' => 1 ),
+                            'profiles/partner-accounts' => array( 'cost' => 1 ),
+                            'markets/{slug}/user-orders' => array( 'cost' => 1 ),
+                            'portfolio/positions' => array( 'cost' => 1 ),
+                            'portfolio/trades' => array( 'cost' => 1 ),
+                            'markets/{slug}/locked-balance' => array( 'cost' => 1 ),
+                            'profiles/me' => array( 'cost' => 1 ),
+                            'profiles/{account}' => array( 'cost' => 1 ),
+                            'portfolio/pnl-chart' => array( 'cost' => 1 ),
+                            'portfolio/history' => array( 'cost' => 1 ),
+                            'portfolio/points' => array( 'cost' => 1 ),
+                            'portfolio/trading/allowance' => array( 'cost' => 1 ),
+                            'auth/api-tokens/capabilities' => array( 'cost' => 1 ),
+                            'auth/api-tokens' => array( 'cost' => 1 ),
+                            'profiles/partner-accounts/{profileId}/allowances' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'auth/logout' => 1,
-                            'auth/api-keys' => 1,
-                            'auth/login' => 1,
-                            'orders' => 1,
-                            'orders/cancel' => 1,
-                            'orders/cancel-batch' => 1,
-                            'orders/batch-cancel' => 1,
-                            'orders/status/batch' => 1,
-                            'portfolio/redeem' => 1,
-                            'portfolio/withdraw' => 1,
-                            'portfolio/withdrawal-addresses' => 1,
-                            'auth/api-tokens/derive' => 1,
-                            'profiles/partner-accounts' => 1,
-                            'profiles/partner-accounts/{profileId}/allowances/retry' => 1,
+                            'auth/logout' => array( 'cost' => 1 ),
+                            'auth/api-keys' => array( 'cost' => 1 ),
+                            'auth/login' => array( 'cost' => 1 ),
+                            'orders' => array( 'cost' => 1 ),
+                            'orders/cancel' => array( 'cost' => 1 ),
+                            'orders/cancel-batch' => array( 'cost' => 1 ),
+                            'orders/batch-cancel' => array( 'cost' => 1 ),
+                            'orders/status/batch' => array( 'cost' => 1 ),
+                            'portfolio/redeem' => array( 'cost' => 1 ),
+                            'portfolio/withdraw' => array( 'cost' => 1 ),
+                            'portfolio/withdrawal-addresses' => array( 'cost' => 1 ),
+                            'auth/api-tokens/derive' => array( 'cost' => 1 ),
+                            'profiles/partner-accounts' => array( 'cost' => 1 ),
+                            'profiles/partner-accounts/{profileId}/allowances/retry' => array( 'cost' => 1 ),
                         ),
                         'delete' => array(
-                            'auth/api-keys' => 1,
-                            'orders/{order_id}' => 1,
-                            'orders/all/{slug}' => 1,
-                            'auth/api-tokens/{tokenId}' => 1,
-                            'portfolio/withdrawal-addresses/{address}' => 1,
+                            'auth/api-keys' => array( 'cost' => 1 ),
+                            'orders/{order_id}' => array( 'cost' => 1 ),
+                            'orders/all/{slug}' => array( 'cost' => 1 ),
+                            'auth/api-tokens/{tokenId}' => array( 'cost' => 1 ),
+                            'portfolio/withdrawal-addresses/{address}' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
@@ -263,7 +263,11 @@ class limitless extends Exchange {
                         $page = $this->sum($page, 1);
                         $request['page'] = $page;
                         $response = Async\await($this->limitlessPublicGetMarketsActive($this->extend($request, $rest)));
-                        $rawPageMarkets = $this->safe_list($response, 'data', $response);
+                        $responseRows = array();
+                        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+                            $responseRows = $response;
+                        }
+                        $rawPageMarkets = $this->safe_list($response, 'data', $responseRows);
                         $page_markets = ($rawPageMarkets !== null) ? $rawPageMarkets : array();
                         $pageMarketsLength = count($page_markets);
                         if (!$page_markets || $pageMarketsLength === 0) {
@@ -1389,7 +1393,11 @@ class limitless extends Exchange {
             //         }
             //     )
             //
-            $rawHistoryList = $this->safe_list($response, 'data', $this->safe_list($response, 'prices', $response));
+            $responseRows = array();
+            if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+                $responseRows = $response;
+            }
+            $rawHistoryList = $this->safe_list($response, 'data', $this->safe_list($response, 'prices', $responseRows));
             $rawHistory = ($rawHistoryList !== null) ? $rawHistoryList : array();
             $history = $rawHistory;
             $rawHistoryLength = count($rawHistory);
@@ -1518,7 +1526,7 @@ class limitless extends Exchange {
             // pass null => parsePredictionOrder sets $outcome to the market $outcome while the $outcome
             // lives under 'outcome', so the base $outcome filter would drop every order; the per-slug
             // endpoint already scopes results and parsePredictionOrder resolves the $outcome via outcomes_by_id
-            return $this->parse_prediction_orders($response, null, $since, $limit);
+            return $this->parse_prediction_orders($this->to_array($response), null, $since, $limit);
         })();
     }
 
@@ -3062,7 +3070,10 @@ class limitless extends Exchange {
              * @return {array[]} $raw limitless market objects, deduped by $slug
              */
             $categoriesResponse = Async\await($this->limitlessPublicGetCategories());
-            $categories = ($categoriesResponse !== null) ? $categoriesResponse : array();
+            $categories = array();
+            if ((gettype($categoriesResponse) === 'array' && array_keys($categoriesResponse) === array_keys(array_keys($categoriesResponse)))) {
+                $categories = $categoriesResponse;
+            }
             $wanted = array();
             for ($i = 0; $i < count($tags); $i++) {
                 $wanted[] = strtolower($tags[$i]);

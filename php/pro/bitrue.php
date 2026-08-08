@@ -42,13 +42,13 @@ class bitrue extends \ccxt\async\bitrue {
                     'v1' => array(
                         'private' => array(
                             'post' => array(
-                                'poseidon/api/v1/listenKey' => 1,
+                                'poseidon/api/v1/listenKey' => array( 'cost' => 1 ),
                             ),
                             'put' => array(
-                                'poseidon/api/v1/listenKey/{listenKey}' => 1,
+                                'poseidon/api/v1/listenKey/{listenKey}' => array( 'cost' => 1 ),
                             ),
                             'delete' => array(
-                                'poseidon/api/v1/listenKey/{listenKey}' => 1,
+                                'poseidon/api/v1/listenKey/{listenKey}' => array( 'cost' => 1 ),
                             ),
                         ),
                     ),

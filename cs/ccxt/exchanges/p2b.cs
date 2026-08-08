@@ -150,28 +150,64 @@ public partial class p2b : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "markets", 1 },
-                        { "market", 1 },
-                        { "tickers", 1 },
-                        { "ticker", 1 },
-                        { "book", 1 },
-                        { "history", 1 },
-                        { "depth/result", 1 },
-                        { "market/kline", 1 },
+                        { "markets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "depth/result", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/kline", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "account/balances", 1 },
-                        { "account/balance", 1 },
-                        { "order/new", 1 },
-                        { "order/cancel", 1 },
-                        { "orders", 1 },
-                        { "account/market_order_history", 1 },
-                        { "account/market_deal_history", 1 },
-                        { "account/order", 1 },
-                        { "account/order_history", 1 },
-                        { "account/executed_history", 1 },
+                        { "account/balances", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/new", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/market_order_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/market_deal_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/order_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/executed_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },

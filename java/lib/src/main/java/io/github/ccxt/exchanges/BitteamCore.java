@@ -178,41 +178,91 @@ public class BitteamCore extends BitteamApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "history", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "api/tw/history/{pairName}/{resolution}", 1 );
+                        put( "api/tw/history/{pairName}/{resolution}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "trade/api/asset", 1 );
-                        put( "trade/api/currencies", 1 );
-                        put( "trade/api/orderbooks/{symbol}", 1 );
-                        put( "trade/api/orders", 1 );
-                        put( "trade/api/pair/{name}", 1 );
-                        put( "trade/api/pairs", 1 );
-                        put( "trade/api/pairs/precisions", 1 );
-                        put( "trade/api/rates", 1 );
-                        put( "trade/api/trade/{id}", 1 );
-                        put( "trade/api/trades", 1 );
-                        put( "trade/api/ccxt/pairs", 1 );
-                        put( "trade/api/cmc/assets", 1 );
-                        put( "trade/api/cmc/orderbook/{pair}", 1 );
-                        put( "trade/api/cmc/summary", 1 );
-                        put( "trade/api/cmc/ticker", 1 );
-                        put( "trade/api/cmc/trades/{pair}", 1 );
+                        put( "trade/api/asset", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/api/currencies", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/api/orderbooks/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/api/orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/api/pair/{name}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/api/pairs", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/api/pairs/precisions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/api/rates", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/api/trade/{id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/api/trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/api/ccxt/pairs", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/api/cmc/assets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/api/cmc/orderbook/{pair}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/api/cmc/summary", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/api/cmc/ticker", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/api/cmc/trades/{pair}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "trade/api/ccxt/balance", 1 );
-                        put( "trade/api/ccxt/order/{id}", 1 );
-                        put( "trade/api/ccxt/ordersOfUser", 1 );
-                        put( "trade/api/ccxt/tradesOfUser", 1 );
-                        put( "trade/api/transactionsOfUser", 1 );
+                        put( "trade/api/ccxt/balance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/api/ccxt/order/{id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/api/ccxt/ordersOfUser", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/api/ccxt/tradesOfUser", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/api/transactionsOfUser", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "trade/api/ccxt/cancel-all-order", 1 );
-                        put( "trade/api/ccxt/cancelorder", 1 );
-                        put( "trade/api/ccxt/ordercreate", 1 );
+                        put( "trade/api/ccxt/cancel-all-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/api/ccxt/cancelorder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/api/ccxt/ordercreate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -1609,13 +1659,14 @@ public class BitteamCore extends BitteamApi
             //     ]
             //
             Object tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            if (!Helpers.isTrue(Helpers.isArray(response)))
+            Object rawTickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(response)))
             {
-                response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                rawTickers = response;
             }
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTickers)); i++)
             {
-                Object rawTicker = Helpers.GetValue(response, i);
+                Object rawTicker = Helpers.GetValue(rawTickers, i);
                 Object ticker = this.parseTicker(rawTicker);
                 ((java.util.List<Object>)tickers).add(ticker);
             }

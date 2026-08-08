@@ -173,41 +173,91 @@ func (this *BitteamCore) Describe() any {
 		"api": map[string]any{
 			"history": map[string]any{
 				"get": map[string]any{
-					"api/tw/history/{pairName}/{resolution}": 1,
+					"api/tw/history/{pairName}/{resolution}": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"public": map[string]any{
 				"get": map[string]any{
-					"trade/api/asset":                1,
-					"trade/api/currencies":           1,
-					"trade/api/orderbooks/{symbol}":  1,
-					"trade/api/orders":               1,
-					"trade/api/pair/{name}":          1,
-					"trade/api/pairs":                1,
-					"trade/api/pairs/precisions":     1,
-					"trade/api/rates":                1,
-					"trade/api/trade/{id}":           1,
-					"trade/api/trades":               1,
-					"trade/api/ccxt/pairs":           1,
-					"trade/api/cmc/assets":           1,
-					"trade/api/cmc/orderbook/{pair}": 1,
-					"trade/api/cmc/summary":          1,
-					"trade/api/cmc/ticker":           1,
-					"trade/api/cmc/trades/{pair}":    1,
+					"trade/api/asset": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/currencies": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/orderbooks/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/orders": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/pair/{name}": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/pairs": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/pairs/precisions": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/rates": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/trade/{id}": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/trades": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/ccxt/pairs": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/cmc/assets": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/cmc/orderbook/{pair}": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/cmc/summary": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/cmc/ticker": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/cmc/trades/{pair}": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"trade/api/ccxt/balance":       1,
-					"trade/api/ccxt/order/{id}":    1,
-					"trade/api/ccxt/ordersOfUser":  1,
-					"trade/api/ccxt/tradesOfUser":  1,
-					"trade/api/transactionsOfUser": 1,
+					"trade/api/ccxt/balance": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/ccxt/order/{id}": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/ccxt/ordersOfUser": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/ccxt/tradesOfUser": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/transactionsOfUser": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"trade/api/ccxt/cancel-all-order": 1,
-					"trade/api/ccxt/cancelorder":      1,
-					"trade/api/ccxt/ordercreate":      1,
+					"trade/api/ccxt/cancel-all-order": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/ccxt/cancelorder": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/ccxt/ordercreate": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -1676,11 +1726,12 @@ func (this *BitteamCore) FetchTickers(optionalArgs ...any) <-chan any {
 		//     ]
 		//
 		var tickers any = []any{}
-		if !IsTrue(IsArray(response)) {
-			response = []any{}
+		var rawTickers any = []any{}
+		if IsTrue(IsArray(response)) {
+			rawTickers = response
 		}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var rawTicker any = GetValue(response, i)
+		for i := 0; IsLessThan(i, GetArrayLength(rawTickers)); i++ {
+			var rawTicker any = GetValue(rawTickers, i)
 			var ticker any = this.ParseTicker(rawTicker)
 			AppendToArray(&tickers, ticker)
 		}
@@ -1710,8 +1761,8 @@ func (this *BitteamCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes148412 := (<-this.LoadMarkets())
-			PanicOnError(retRes148412)
+			retRes148512 := (<-this.LoadMarkets())
+			PanicOnError(retRes148512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2066,8 +2117,8 @@ func (this *BitteamCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes182012 := (<-this.LoadMarkets())
-			PanicOnError(retRes182012)
+			retRes182112 := (<-this.LoadMarkets())
+			PanicOnError(retRes182112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2131,8 +2182,8 @@ func (this *BitteamCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes186412 := (<-this.LoadMarkets())
-			PanicOnError(retRes186412)
+			retRes186512 := (<-this.LoadMarkets())
+			PanicOnError(retRes186512)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2414,8 +2465,8 @@ func (this *BitteamCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes213112 := (<-this.LoadMarkets())
-			PanicOnError(retRes213112)
+			retRes213212 := (<-this.LoadMarkets())
+			PanicOnError(retRes213212)
 		}
 
 		response := (<-this.PrivateGetTradeApiCcxtBalance(params))
@@ -2522,8 +2573,8 @@ func (this *BitteamCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes221912 := (<-this.LoadMarkets())
-			PanicOnError(retRes221912)
+			retRes222012 := (<-this.LoadMarkets())
+			PanicOnError(retRes222012)
 		}
 		var currency any = nil
 		var request any = map[string]any{}

@@ -241,8 +241,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `sapiPrivatePostV3AssetWalletTransfer` | POST | `v3/asset/wallet/transfer` | 5 |
 | `sapiPrivatePostV3AsterUserWithdraw` | POST | `v3/aster/user-withdraw` | 1 |
 | `sapiPrivatePostV3ListenKey` | POST | `v3/listenKey` | 1 |
-| `sapiPrivatePutV1ListenKey` | PUT | `v1/listenKey` |  |
-| `sapiPrivatePutV3ListenKey` | PUT | `v3/listenKey` |  |
+| `sapiPrivatePutV1ListenKey` | PUT | `v1/listenKey` | 1 |
+| `sapiPrivatePutV3ListenKey` | PUT | `v3/listenKey` | 1 |
 | `sapiPrivateDeleteV1Order` | DELETE | `v1/order` | 1 |
 | `sapiPrivateDeleteV1AllOpenOrders` | DELETE | `v1/allOpenOrders` | 1 |
 | `sapiPrivateDeleteV1ListenKey` | DELETE | `v1/listenKey` | 1 |

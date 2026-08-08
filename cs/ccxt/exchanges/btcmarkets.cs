@@ -124,13 +124,123 @@ public partial class btcmarkets : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"markets", "markets/{marketId}/ticker", "markets/{marketId}/trades", "markets/{marketId}/orderbook", "markets/{marketId}/candles", "markets/tickers", "markets/orderbooks", "time"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "markets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "markets/{marketId}/ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "markets/{marketId}/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "markets/{marketId}/orderbook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "markets/{marketId}/candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "markets/tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "markets/orderbooks", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"orders", "orders/{id}", "batchorders/{ids}", "trades", "trades/{id}", "withdrawals", "withdrawals/{id}", "deposits", "deposits/{id}", "transfers", "transfers/{id}", "addresses", "withdrawal-fees", "assets", "accounts/me/trading-fees", "accounts/me/withdrawal-limits", "accounts/me/balances", "accounts/me/transactions", "reports/{id}"} },
-                    { "post", new List<object>() {"orders", "batchorders", "withdrawals", "reports"} },
-                    { "delete", new List<object>() {"orders", "orders/{id}", "batchorders/{ids}"} },
-                    { "put", new List<object>() {"orders/{id}"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "batchorders/{ids}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deposits/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfers/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "addresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawal-fees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accounts/me/trading-fees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accounts/me/withdrawal-limits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accounts/me/balances", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accounts/me/transactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "reports/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "batchorders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "reports", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "delete", new Dictionary<string, object>() {
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "batchorders/{ids}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "put", new Dictionary<string, object>() {
+                        { "orders/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "timeframes", new Dictionary<string, object>() {
@@ -669,7 +779,7 @@ public partial class btcmarkets : Exchange
         //         ["2020-09-12T18:03:00.000000Z","14361.37","14361.37","14361.37","14361.37","0.00345221"],
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
 
     /**

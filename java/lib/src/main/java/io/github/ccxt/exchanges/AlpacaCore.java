@@ -159,19 +159,236 @@ public class AlpacaCore extends AlpacaApi
                 put( "broker", new java.util.HashMap<String, Object>() {{}} );
                 put( "trader", new java.util.HashMap<String, Object>() {{
                     put( "private", new java.util.HashMap<String, Object>() {{
-                        put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("v2/account", "v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/account/portfolio/history", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/account/configurations", "v2/account/activities", "v2/account/activities/{activity_type}", "v2/calendar", "v2/clock", "v2/assets", "v2/assets/{symbol_or_asset_id}", "v2/corporate_actions/announcements/{id}", "v2/corporate_actions/announcements", "v2/wallets", "v2/wallets/transfers")) );
-                        put( "post", new java.util.ArrayList<Object>(java.util.Arrays.asList("v2/orders", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/wallets/transfers")) );
-                        put( "put", new java.util.ArrayList<Object>(java.util.Arrays.asList("v2/orders/{order_id}", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name")) );
-                        put( "patch", new java.util.ArrayList<Object>(java.util.Arrays.asList("v2/orders/{order_id}", "v2/account/configurations")) );
-                        put( "delete", new java.util.ArrayList<Object>(java.util.Arrays.asList("v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/watchlists/{watchlist_id}/{symbol}")) );
+                        put( "get", new java.util.HashMap<String, Object>() {{
+                            put( "v2/account", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/positions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/positions/{symbol_or_asset_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/account/portfolio/history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/watchlists", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/watchlists/{watchlist_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/watchlists:by_name", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/account/configurations", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/account/activities", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/account/activities/{activity_type}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/calendar", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/clock", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/assets", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/assets/{symbol_or_asset_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/corporate_actions/announcements/{id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/corporate_actions/announcements", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/wallets", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/wallets/transfers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
+                        put( "post", new java.util.HashMap<String, Object>() {{
+                            put( "v2/orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/watchlists", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/watchlists/{watchlist_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/watchlists:by_name", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/wallets/transfers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
+                        put( "put", new java.util.HashMap<String, Object>() {{
+                            put( "v2/orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/watchlists/{watchlist_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/watchlists:by_name", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
+                        put( "patch", new java.util.HashMap<String, Object>() {{
+                            put( "v2/orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/account/configurations", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
+                        put( "delete", new java.util.HashMap<String, Object>() {{
+                            put( "v2/orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/positions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/positions/{symbol_or_asset_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/watchlists/{watchlist_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/watchlists:by_name", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/watchlists/{watchlist_id}/{symbol}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
                     }} );
                 }} );
                 put( "market", new java.util.HashMap<String, Object>() {{
                     put( "public", new java.util.HashMap<String, Object>() {{
-                        put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("v1beta3/crypto/{loc}/bars", "v1beta3/crypto/{loc}/latest/bars", "v1beta3/crypto/{loc}/latest/orderbooks", "v1beta3/crypto/{loc}/latest/quotes", "v1beta3/crypto/{loc}/latest/trades", "v1beta3/crypto/{loc}/quotes", "v1beta3/crypto/{loc}/snapshots", "v1beta3/crypto/{loc}/trades")) );
+                        put( "get", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta3/crypto/{loc}/bars", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta3/crypto/{loc}/latest/bars", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta3/crypto/{loc}/latest/orderbooks", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta3/crypto/{loc}/latest/quotes", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta3/crypto/{loc}/latest/trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta3/crypto/{loc}/quotes", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta3/crypto/{loc}/snapshots", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta3/crypto/{loc}/trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
                     }} );
                     put( "private", new java.util.HashMap<String, Object>() {{
-                        put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("v1beta1/corporate-actions", "v1beta1/forex/latest/rates", "v1beta1/forex/rates", "v1beta1/logos/{symbol}", "v1beta1/news", "v1beta1/screener/stocks/most-actives", "v1beta1/screener/{market_type}/movers", "v2/stocks/auctions", "v2/stocks/bars", "v2/stocks/bars/latest", "v2/stocks/meta/conditions/{ticktype}", "v2/stocks/meta/exchanges", "v2/stocks/quotes", "v2/stocks/quotes/latest", "v2/stocks/snapshots", "v2/stocks/trades", "v2/stocks/trades/latest", "v2/stocks/{symbol}/auctions", "v2/stocks/{symbol}/bars", "v2/stocks/{symbol}/bars/latest", "v2/stocks/{symbol}/quotes", "v2/stocks/{symbol}/quotes/latest", "v2/stocks/{symbol}/snapshot", "v2/stocks/{symbol}/trades", "v2/stocks/{symbol}/trades/latest")) );
+                        put( "get", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta1/corporate-actions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta1/forex/latest/rates", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta1/forex/rates", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta1/logos/{symbol}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta1/news", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta1/screener/stocks/most-actives", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta1/screener/{market_type}/movers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/auctions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/bars", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/bars/latest", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/meta/conditions/{ticktype}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/meta/exchanges", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/quotes", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/quotes/latest", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/snapshots", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/trades/latest", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/{symbol}/auctions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/{symbol}/bars", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/{symbol}/bars/latest", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/{symbol}/quotes", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/{symbol}/quotes/latest", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/{symbol}/snapshot", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/{symbol}/trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/{symbol}/trades/latest", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -598,8 +815,8 @@ public class AlpacaCore extends AlpacaApi
                 //    }
                 //
                 Object trades = this.safeDict(response, "trades", new java.util.HashMap<String, Object>() {{}});
-                symbolTrades = this.safeDict(trades, marketId, new java.util.HashMap<String, Object>() {{}});
-                symbolTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbolTrades));
+                Object symbolTrade = this.safeDict(trades, marketId, new java.util.HashMap<String, Object>() {{}});
+                symbolTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbolTrade));
             } else
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTrades() does not support "), method), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")) ;
@@ -790,8 +1007,8 @@ public class AlpacaCore extends AlpacaApi
                 //     }
                 //
                 Object bars = this.safeDict(response, "bars", new java.util.HashMap<String, Object>() {{}});
-                ohlcvs = this.safeDict(bars, marketId, new java.util.HashMap<String, Object>() {{}});
-                ohlcvs = new java.util.ArrayList<Object>(java.util.Arrays.asList(ohlcvs));
+                Object bar = this.safeDict(bars, marketId, new java.util.HashMap<String, Object>() {{}});
+                ohlcvs = new java.util.ArrayList<Object>(java.util.Arrays.asList(bar));
             } else
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOHLCV() does not support "), method), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")) ;
@@ -1924,9 +2141,14 @@ public class AlpacaCore extends AlpacaApi
                 //     ]
                 //
                 Object filtered = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(activities)); i++)
+                Object ledger = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                if (Helpers.isTrue(Helpers.isArray(activities)))
                 {
-                    Object entry = Helpers.GetValue(activities, i);
+                    ledger = activities;
+                }
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ledger)); i++)
+                {
+                    Object entry = Helpers.GetValue(ledger, i);
                     Object activityType = this.safeString(entry, "activity_type");
                     Object amount = this.safeString(entry, "net_amount");
                     Object isIncoming = Helpers.isTrue((Helpers.isEqual(activityType, "CSD"))) || Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(activityType, "TRANS"))) && !Helpers.isTrue(Precise.stringLt(amount, "0"))));
@@ -1957,9 +2179,14 @@ public class AlpacaCore extends AlpacaApi
             //     }
             //
             Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+            Object transfers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(response)))
             {
-                Object entry = Helpers.GetValue(response, i);
+                transfers = response;
+            }
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transfers)); i++)
+            {
+                Object entry = Helpers.GetValue(transfers, i);
                 Object direction = this.safeString(entry, "direction");
                 if (Helpers.isTrue(Helpers.isEqual(direction, type)))
                 {

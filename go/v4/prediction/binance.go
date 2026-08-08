@@ -61,28 +61,68 @@ func (this *BinanceCore) Describe() any {
 			"sapi": map[string]any{
 				"private": map[string]any{
 					"get": map[string]any{
-						"category/list":               200,
-						"market/list":                 200,
-						"market/search":               200,
-						"market/detail":               200,
-						"order-book":                  200,
-						"order-book/last-trade-price": 200,
-						"wallet/list":                 200,
-						"balance/payment-options":     200,
-						"quota/limit/status":          200,
-						"pnl/portfolio":               200,
-						"pnl/query":                   200,
-						"position/list":               200,
-						"position/filter":             200,
-						"position/token":              200,
-						"position/settled-history":    200,
-						"order/list":                  200,
-						"order/history":               200,
+						"category/list": map[string]any{
+							"cost": 200,
+						},
+						"market/list": map[string]any{
+							"cost": 200,
+						},
+						"market/search": map[string]any{
+							"cost": 200,
+						},
+						"market/detail": map[string]any{
+							"cost": 200,
+						},
+						"order-book": map[string]any{
+							"cost": 200,
+						},
+						"order-book/last-trade-price": map[string]any{
+							"cost": 200,
+						},
+						"wallet/list": map[string]any{
+							"cost": 200,
+						},
+						"balance/payment-options": map[string]any{
+							"cost": 200,
+						},
+						"quota/limit/status": map[string]any{
+							"cost": 200,
+						},
+						"pnl/portfolio": map[string]any{
+							"cost": 200,
+						},
+						"pnl/query": map[string]any{
+							"cost": 200,
+						},
+						"position/list": map[string]any{
+							"cost": 200,
+						},
+						"position/filter": map[string]any{
+							"cost": 200,
+						},
+						"position/token": map[string]any{
+							"cost": 200,
+						},
+						"position/settled-history": map[string]any{
+							"cost": 200,
+						},
+						"order/list": map[string]any{
+							"cost": 200,
+						},
+						"order/history": map[string]any{
+							"cost": 200,
+						},
 					},
 					"post": map[string]any{
-						"trade/get-quote":          200,
-						"trade/place-order-bundle": 200,
-						"trade/batch-cancel":       200,
+						"trade/get-quote": map[string]any{
+							"cost": 200,
+						},
+						"trade/place-order-bundle": map[string]any{
+							"cost": 200,
+						},
+						"trade/batch-cancel": map[string]any{
+							"cost": 200,
+						},
 					},
 				},
 			},
@@ -312,9 +352,9 @@ func (this *BinanceCore) FetchRawTopicDetail(topicId any, optionalArgs ...any) <
 			"marketTopicId": topicId,
 		}
 
-		retRes29315 := (<-this.SapiPrivateGetMarketDetail(this.Extend(request, params)))
-		ccxt.PanicOnError(retRes29315)
-		ch <- retRes29315
+		retRes28515 := (<-this.SapiPrivateGetMarketDetail(this.Extend(request, params)))
+		ccxt.PanicOnError(retRes28515)
+		ch <- retRes28515
 		return nil
 
 	}()
@@ -557,9 +597,9 @@ func (this *BinanceCore) FetchEventsByQuery(queries any, limit any, optionalArgs
 			capped = this.ArraySlice(collected, 0, limit)
 		}
 
-		retRes49315 := (<-this.CompleteRawTopics(capped))
-		ccxt.PanicOnError(retRes49315)
-		ch <- retRes49315
+		retRes48515 := (<-this.CompleteRawTopics(capped))
+		ccxt.PanicOnError(retRes48515)
+		ch <- retRes48515
 		return nil
 
 	}()
@@ -868,8 +908,8 @@ func (this *BinanceCore) FetchTicker(outcome any, optionalArgs ...any) <-chan an
 		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes7648 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes7648)
+		retRes7568 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes7568)
 		var outcomeObj any = this.Outcome(outcome)
 		var info any = this.SafeDict(outcomeObj, "info", map[string]any{})
 		var request any = map[string]any{
@@ -976,8 +1016,8 @@ func (this *BinanceCore) FetchTickers(optionalArgs ...any) <-chan any {
 			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")))
 		}
 
-		retRes8538 := (<-this.LoadOutcomes(outcomes))
-		ccxt.PanicOnError(retRes8538)
+		retRes8458 := (<-this.LoadOutcomes(outcomes))
+		ccxt.PanicOnError(retRes8458)
 		var responsesByMarketId any = map[string]any{}
 		var result any = map[string]any{}
 		var outcomesLength any = ccxt.GetArrayLength(outcomes)
@@ -1030,8 +1070,8 @@ func (this *BinanceCore) FetchOrderBook(outcome any, optionalArgs ...any) <-chan
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes8908 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes8908)
+		retRes8828 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes8828)
 		var outcomeObj any = this.Outcome(outcome)
 		var info any = this.SafeDict(outcomeObj, "info", map[string]any{})
 		var request any = map[string]any{
@@ -1253,9 +1293,9 @@ func (this *BinanceCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		var pageKey any = "ccxtPageKey"
 		if ccxt.IsTrue(paginate) {
 
-			retRes107519 := (<-this.FetchPaginatedCallIncremental("fetchOpenOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
-			ccxt.PanicOnError(retRes107519)
-			ch <- retRes107519
+			retRes106719 := (<-this.FetchPaginatedCallIncremental("fetchOpenOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
+			ccxt.PanicOnError(retRes106719)
+			ch <- retRes106719
 			return nil
 		}
 		var page any = ccxt.Subtract(this.SafeInteger(params, pageKey, 1), 1)
@@ -1267,8 +1307,8 @@ func (this *BinanceCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		var outcomeObj any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
-			retRes108512 := (<-this.LoadOutcome(outcome))
-			ccxt.PanicOnError(retRes108512)
+			retRes107712 := (<-this.LoadOutcome(outcome))
+			ccxt.PanicOnError(retRes107712)
 			outcomeObj = this.Outcome(outcome)
 			var market any = this.Market(ccxt.GetValue(outcomeObj, "market"))
 			ccxt.AddElementToObject(request, "marketId", ccxt.GetValue(market, "id"))
@@ -1367,9 +1407,9 @@ func (this *BinanceCore) FetchOrders(optionalArgs ...any) <-chan any {
 		var pageKey any = "ccxtPageKey"
 		if ccxt.IsTrue(paginate) {
 
-			retRes115819 := (<-this.FetchPaginatedCallIncremental("fetchOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
-			ccxt.PanicOnError(retRes115819)
-			ch <- retRes115819
+			retRes115019 := (<-this.FetchPaginatedCallIncremental("fetchOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
+			ccxt.PanicOnError(retRes115019)
+			ch <- retRes115019
 			return nil
 		}
 		var page any = ccxt.Subtract(this.SafeInteger(params, pageKey, 1), 1)
@@ -1381,8 +1421,8 @@ func (this *BinanceCore) FetchOrders(optionalArgs ...any) <-chan any {
 		var outcomeObj any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
-			retRes116812 := (<-this.LoadOutcome(outcome))
-			ccxt.PanicOnError(retRes116812)
+			retRes116012 := (<-this.LoadOutcome(outcome))
+			ccxt.PanicOnError(retRes116012)
 			outcomeObj = this.Outcome(outcome)
 		}
 		if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
@@ -1468,8 +1508,8 @@ func (this *BinanceCore) FetchPositions(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes12368 := (<-this.LoadOutcomes())
-		ccxt.PanicOnError(retRes12368)
+		retRes12288 := (<-this.LoadOutcomes())
+		ccxt.PanicOnError(retRes12288)
 		var requestedOutcomeSymbols any = map[string]any{}
 		if ccxt.IsTrue(!ccxt.IsEqual(outcomes, nil)) {
 			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(outcomes)); i++ {
@@ -1581,8 +1621,8 @@ func (this *BinanceCore) FetchPosition(outcome any, optionalArgs ...any) <-chan 
 		var outcomeObj any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
-			retRes133012 := (<-this.LoadOutcome(outcome))
-			ccxt.PanicOnError(retRes133012)
+			retRes132212 := (<-this.LoadOutcome(outcome))
+			ccxt.PanicOnError(retRes132212)
 			outcomeObj = this.Outcome(outcome)
 			var market any = this.Market(ccxt.GetValue(outcomeObj, "market"))
 			ccxt.AddElementToObject(request, "marketTopicId", ccxt.GetValue(ccxt.GetValue(market, "info"), "marketTopicId"))
@@ -1703,9 +1743,9 @@ func (this *BinanceCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		var pageKey any = "ccxtPageKey"
 		if ccxt.IsTrue(paginate) {
 
-			retRes142319 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
-			ccxt.PanicOnError(retRes142319)
-			ch <- retRes142319
+			retRes141519 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
+			ccxt.PanicOnError(retRes141519)
+			ch <- retRes141519
 			return nil
 		}
 		var page any = ccxt.Subtract(this.SafeInteger(params, pageKey, 1), 1)
@@ -1719,8 +1759,8 @@ func (this *BinanceCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		var outcomeObj any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
-			retRes143512 := (<-this.LoadOutcome(outcome))
-			ccxt.PanicOnError(retRes143512)
+			retRes142712 := (<-this.LoadOutcome(outcome))
+			ccxt.PanicOnError(retRes142712)
 			outcomeObj = this.Outcome(outcome)
 		}
 		if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
@@ -2050,8 +2090,8 @@ func (this *BinanceCore) CreateOrder(outcome any, typeVar any, side any, amount 
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes17158 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes17158)
+		retRes17078 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes17078)
 		var outcomeObj any = this.Outcome(outcome)
 		// markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
 		// is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
@@ -2174,9 +2214,9 @@ func (this *BinanceCore) CreateMarketOrderWithCost(symbol any, side any, cost an
 			"cost": cost,
 		}
 
-		retRes182015 := (<-this.CreateOrder(symbol, "market", side, cost, nil, this.Extend(req, params)))
-		ccxt.PanicOnError(retRes182015)
-		ch <- retRes182015
+		retRes181215 := (<-this.CreateOrder(symbol, "market", side, cost, nil, this.Extend(req, params)))
+		ccxt.PanicOnError(retRes181215)
+		ch <- retRes181215
 		return nil
 
 	}()
@@ -2235,8 +2275,8 @@ func (this *BinanceCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		var outcomeObj any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
-			retRes185112 := (<-this.LoadOutcome(outcome))
-			ccxt.PanicOnError(retRes185112)
+			retRes184312 := (<-this.LoadOutcome(outcome))
+			ccxt.PanicOnError(retRes184312)
 			outcomeObj = this.Outcome(outcome)
 		}
 

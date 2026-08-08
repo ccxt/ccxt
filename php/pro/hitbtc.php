@@ -699,10 +699,10 @@ class hitbtc extends \ccxt\async\hitbtc {
     }
 
     public function parse_ws_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        $trades = $this->to_array($trades);
+        $tradesArray = $this->to_array($trades);
         $result = array();
-        for ($i = 0; $i < count($trades); $i++) {
-            $trade = $this->extend($this->parse_ws_trade($trades[$i], $market), $params);
+        for ($i = 0; $i < count($tradesArray); $i++) {
+            $trade = $this->extend($this->parse_ws_trade($tradesArray[$i], $market), $params);
             $result[] = $trade;
         }
         $result = $this->sort_by_2($result, 'timestamp', 'id');

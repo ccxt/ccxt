@@ -66,12 +66,88 @@ public class PaymiumCore extends PaymiumApi
             }} );
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "public", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("countries", "currencies", "data/{currency}/ticker", "data/{currency}/trades", "data/{currency}/depth", "bitcoin_charts/{id}/trades", "bitcoin_charts/{id}/depth")) );
+                    put( "get", new java.util.HashMap<String, Object>() {{
+                        put( "countries", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "currencies", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "data/{currency}/ticker", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "data/{currency}/trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "data/{currency}/depth", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "bitcoin_charts/{id}/trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "bitcoin_charts/{id}/depth", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("user", "user/addresses", "user/addresses/{address}", "user/orders", "user/orders/{uuid}", "user/price_alerts", "merchant/get_payment/{uuid}")) );
-                    put( "post", new java.util.ArrayList<Object>(java.util.Arrays.asList("user/addresses", "user/orders", "user/withdrawals", "user/email_transfers", "user/payment_requests", "user/price_alerts", "merchant/create_payment")) );
-                    put( "delete", new java.util.ArrayList<Object>(java.util.Arrays.asList("user/orders/{uuid}", "user/orders/{uuid}/cancel", "user/price_alerts/{id}")) );
+                    put( "get", new java.util.HashMap<String, Object>() {{
+                        put( "user", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "user/addresses", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "user/addresses/{address}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "user/orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "user/orders/{uuid}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "user/price_alerts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "merchant/get_payment/{uuid}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
+                    put( "post", new java.util.HashMap<String, Object>() {{
+                        put( "user/addresses", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "user/orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "user/withdrawals", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "user/email_transfers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "user/payment_requests", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "user/price_alerts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "merchant/create_payment", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
+                    put( "delete", new java.util.HashMap<String, Object>() {{
+                        put( "user/orders/{uuid}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "user/orders/{uuid}/cancel", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "user/price_alerts/{id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
                 }} );
             }} );
             put( "markets", new java.util.HashMap<String, Object>() {{
@@ -542,7 +618,7 @@ public class PaymiumCore extends PaymiumApi
             Object response = (this.privatePostUserOrders(this.extend(request, parameters))).join();
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", response );
-                put( "id", Helpers.GetValue(response, "uuid") );
+                put( "id", PaymiumCore.this.safeString(response, "uuid") );
             }}, market);
         });
 

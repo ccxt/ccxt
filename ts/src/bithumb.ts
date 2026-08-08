@@ -7,7 +7,7 @@ import { jwt } from './base/functions/rsa.js';
 import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, NullableDict, FeeString, OrderRequest, List, Fee, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, NullableDict, FeeString, Endpoint, OrderRequest, List, Fee, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -140,89 +140,89 @@ export default class bithumb extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
+                    'get': {
                         // API 1.0
-                        'public/ticker/ALL_{quoteId}',
-                        'public/ticker/{baseId}_{quoteId}',
-                        'public/orderbook/ALL_{quoteId}',
-                        'public/orderbook/{baseId}_{quoteId}',
-                        'public/transaction_history/{baseId}_{quoteId}',
-                        'public/network-info',
-                        'public/assetsstatus/multichain/ALL',
-                        'public/assetsstatus/multichain/{currency}',
-                        'public/withdraw/minimum/ALL',
-                        'public/withdraw/minimum/{currency}',
-                        'public/assetsstatus/ALL',
-                        'public/assetsstatus/{baseId}',
-                        'public/candlestick/{baseId}_{quoteId}/{interval}',
+                        'public/ticker/ALL_{quoteId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/ticker/{baseId}_{quoteId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/orderbook/ALL_{quoteId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/orderbook/{baseId}_{quoteId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/transaction_history/{baseId}_{quoteId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/network-info': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/assetsstatus/multichain/ALL': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/assetsstatus/multichain/{currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/withdraw/minimum/ALL': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/withdraw/minimum/{currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/assetsstatus/ALL': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/assetsstatus/{baseId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/candlestick/{baseId}_{quoteId}/{interval}': { 'cost': 1 } as Endpoint<Dict>,
                         // API 2.0
-                        'v1/market/all',
-                        'v1/candles/minutes/{unit}',
-                        'v1/candles/days',
-                        'v1/candles/weeks',
-                        'v1/candles/months',
-                        'v1/trades/ticks',
-                        'v1/ticker',
-                        'v1/orderbook',
-                        'v1/market/virtual_asset_warning',
-                        'v1/notices',
-                        'v2/fee/inout/{currency}',
-                    ],
+                        'v1/market/all': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/candles/minutes/{unit}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/candles/days': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/candles/weeks': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/candles/months': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/trades/ticks': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/market/virtual_asset_warning': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/notices': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fee/inout/{currency}': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'get': [
+                    'get': {
                         // API 2.0
-                        'v1/accounts',
-                        'v1/orders/chance',
-                        'v1/order',
-                        'v1/orders',
-                        'v1/twap',
-                        'v1/withdraws',
-                        'v1/withdraws/krw',
-                        'v1/withdraw',
-                        'v1/withdraws/chance',
-                        'v1/withdraws/coin_addresses',
-                        'v1/deposits',
-                        'v1/deposits/krw',
-                        'v1/deposit',
-                        'v1/deposits/coin_addresses',
-                        'v1/deposits/coin_address',
-                        'v1/status/wallet',
-                        'v1/api_keys',
-                    ],
-                    'post': [
+                        'v1/accounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/orders/chance': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/twap': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/withdraws': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/withdraws/krw': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/withdraw': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/withdraws/chance': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/withdraws/coin_addresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/deposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/deposits/krw': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/deposit': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/deposits/coin_addresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/deposits/coin_address': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/status/wallet': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/api_keys': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'post': {
                         // API 1.0
-                        'info/account',
-                        'info/balance',
-                        'info/wallet_address',
-                        'info/ticker',
-                        'info/orders',
-                        'info/user_transactions',
-                        'info/order_detail',
-                        'trade/place',
-                        'trade/cancel',
-                        'trade/btc_withdrawal',
-                        'trade/krw_deposit',
-                        'trade/krw_withdrawal',
-                        'trade/market_buy',
-                        'trade/market_sell',
-                        'trade/stop_limit',
+                        'info/account': { 'cost': 1 } as Endpoint<Dict>,
+                        'info/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'info/wallet_address': { 'cost': 1 } as Endpoint<Dict>,
+                        'info/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'info/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'info/user_transactions': { 'cost': 1 } as Endpoint<Dict>,
+                        'info/order_detail': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/place': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/btc_withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/krw_deposit': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/krw_withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/market_buy': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/market_sell': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/stop_limit': { 'cost': 1 } as Endpoint<Dict>,
                         // API 2.0
-                        'v2/orders',
-                        'v2/orders/batch',
-                        'v2/orders/cancel',
-                        'v1/twap',
-                        'v1/withdraws/coin',
-                        'v1/withdraws/krw',
-                        'v1/deposits/generate_coin_address',
-                        'v1/deposits/krw',
-                    ],
-                    'delete': [
+                        'v2/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/orders/batch': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/orders/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/twap': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/withdraws/coin': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/withdraws/krw': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/deposits/generate_coin_address': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/deposits/krw': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'delete': {
                         // API 2.0
-                        'v2/order',
-                        'v1/twap',
-                        'v1/withdraws/coin',
-                    ],
+                        'v2/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/twap': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/withdraws/coin': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -517,7 +517,7 @@ export default class bithumb extends Exchange {
         } else {
             const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
             const quotes = Object.keys (quoteCurrencies);
-            const promises: any[] = [];
+            const promises: Promise<any>[] = [];
             for (let i = 0; i < quotes.length; i++) {
                 request['quoteId'] = quotes[i];
                 promises.push (this.publicGetPublicTickerALLQuoteId (this.extend (request, params)));
@@ -1007,7 +1007,7 @@ export default class bithumb extends Exchange {
                 return result;
             }
             const marketIdsChunks: string[][] = [];
-            const promises = [];
+            const promises: Promise<any>[] = [];
             if (symbols !== undefined) {
                 request['markets'] = marketIds.join (',');
                 marketIdsChunks.push (marketIds);
@@ -1126,7 +1126,7 @@ export default class bithumb extends Exchange {
                     quotes = requiredQuoteIds;
                 }
             }
-            const promises: any[] = [];
+            const promises: Promise<any>[] = [];
             for (let i = 0; i < quotes.length; i++) {
                 request['quoteId'] = quotes[i];
                 promises.push (this.publicGetPublicTickerALLQuoteId (this.extend (request, params)));

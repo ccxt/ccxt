@@ -141,34 +141,34 @@ class btcturk(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'orderbook': 1,
-                        'ticker': 0.1,
-                        'trades': 1,   # ?last=COUNT(max 50)
-                        'ohlc': 1,
-                        'server/exchangeinfo': 1,
+                        'orderbook': {'cost': 1},
+                        'ticker': {'cost': 0.1},
+                        'trades': {'cost': 1},   # ?last=COUNT(max 50)
+                        'ohlc': {'cost': 1},
+                        'server/exchangeinfo': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
-                        'users/balances': 1,
-                        'openOrders': 1,
-                        'allOrders': 1,
-                        'users/transactions/trade': 1,
+                        'users/balances': {'cost': 1},
+                        'openOrders': {'cost': 1},
+                        'allOrders': {'cost': 1},
+                        'users/transactions/trade': {'cost': 1},
                     },
                     'post': {
-                        'users/transactions/crypto': 1,
-                        'users/transactions/fiat': 1,
-                        'order': 1,
-                        'cancelOrder': 1,
+                        'users/transactions/crypto': {'cost': 1},
+                        'users/transactions/fiat': {'cost': 1},
+                        'order': {'cost': 1},
+                        'cancelOrder': {'cost': 1},
                     },
                     'delete': {
-                        'order': 1,
+                        'order': {'cost': 1},
                     },
                 },
                 'graph': {
                     'get': {
-                        'ohlcs': 1,
-                        'klines/history': 1,
+                        'ohlcs': {'cost': 1},
+                        'klines/history': {'cost': 1},
                     },
                 },
             },
