@@ -2135,6 +2135,8 @@ class foxbit extends Exchange {
         }
         $headers = array(
             'Content-Type' => 'application/json',
+            'X-FB-CLIENT' => 'ccxt',
+            'X-FB-CLIENT-VERSION' => $this->get_ccxt_version(),
         );
         if ($urlPath === 'private') {
             $this->check_required_credentials();
