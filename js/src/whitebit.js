@@ -498,7 +498,6 @@ export default class whitebit extends Exchange {
         const margin = isCollateral && !swap;
         let contract = false;
         const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'stockPrec')));
-        const contractSize = amountPrecision;
         let linear = undefined;
         let inverse = undefined;
         if (swap) {
@@ -539,7 +538,7 @@ export default class whitebit extends Exchange {
             'inverse': inverse,
             'taker': this.parseNumber(taker),
             'maker': this.parseNumber(maker),
-            'contractSize': isSpot ? undefined : contractSize,
+            'contractSize': isSpot ? undefined : this.parseNumber('1'), // perpetual amounts are denominated in base currency units
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,

@@ -478,6 +478,7 @@ export declare class BaseExchange {
     handleMessage(client: any, message: any): void;
     ping(client: Client): Dict | Str;
     client(url: Str): WsClient;
+    calculateWsBackoffDelay(url: string): number;
     watchMultiple(url: Str, messageHashes: string[], message?: any, subscribeHashes?: Strings, subscription?: any): FutureInterface;
     watch(url: Str, messageHash: Str, message?: any, subscribeHash?: any, subscription?: any): any;
     onConnected(client: any, message?: any): void;
