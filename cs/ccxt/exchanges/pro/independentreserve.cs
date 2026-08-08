@@ -50,7 +50,10 @@ public partial class independentreserve : ccxt.independentreserve
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object url = add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "?subscribe=ticker-"), getValue(market, "base")), "-"), getValue(market, "quote"));
@@ -136,12 +139,15 @@ public partial class independentreserve : ccxt.independentreserve
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         if (isTrue(isEqual(limit, null)))
@@ -184,6 +190,10 @@ public partial class independentreserve : ccxt.independentreserve
         //
         object eventVar = this.safeString(message, "Event");
         object channel = this.safeString(message, "Channel");
+        if (isTrue(isEqual(channel, null)))
+        {
+            return;
+        }
         object parts = ((string)channel).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object depth = this.safeString(parts, 1);
         object baseId = this.safeString(parts, 2);
@@ -267,7 +277,7 @@ public partial class independentreserve : ccxt.independentreserve
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseBidAsk(delta, "Price", "Volume");
+        object bidAsk = this.parseOrderBookBidAsk(delta, "Price", "Volume");
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
@@ -312,7 +322,7 @@ public partial class independentreserve : ccxt.independentreserve
             { "OrderBookSnapshot", this.handleOrderBook },
             { "OrderBookChange", this.handleOrderBook },
         };
-        object handler = this.safeValue(handlers, eventVar);
+        object handler = ((bool) isTrue((isEqual(eventVar, null)))) ? null : this.safeValue(handlers, eventVar);
         if (isTrue(!isEqual(handler, null)))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});

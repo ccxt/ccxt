@@ -1,11 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitflyer.js';
 import { ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Dict, FundingRate, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFeeInterface, Transaction, Position, int } from './base/types.js';
+import type { Balances, Currency, Dict, Fee, FundingRate, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFeeInterface, Transaction, Position, int, List, NullableDict, Endpoint } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -15,7 +15,7 @@ import { Precise } from './base/Precise.js';
  * @augments Exchange
  */
 export default class bitflyer extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bitflyer',
             'name': 'bitFlyer',
@@ -89,49 +89,49 @@ export default class bitflyer extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'getmarkets/usa', // new (wip)
-                        'getmarkets/eu',  // new (wip)
-                        'getmarkets',     // or 'markets'
-                        'getboard',       // ...
-                        'getticker',
-                        'getexecutions',
-                        'gethealth',
-                        'getboardstate',
-                        'getchats',
-                        'getfundingrate',
-                    ],
+                    'get': {
+                        'getmarkets/usa': { 'cost': 1 } as Endpoint<List>,
+                        'getmarkets/eu': { 'cost': 1 } as Endpoint<List>,
+                        'getmarkets': { 'cost': 1 } as Endpoint<List>,
+                        'getboard': { 'cost': 1 } as Endpoint<Dict>,
+                        'getticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'getexecutions': { 'cost': 1 } as Endpoint<List>,
+                        'gethealth': { 'cost': 1 } as Endpoint<Dict>,
+                        'getboardstate': { 'cost': 1 } as Endpoint<Dict>,
+                        'getchats': { 'cost': 1 } as Endpoint<List>,
+                        'getfundingrate': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'getpermissions',
-                        'getbalance',
-                        'getbalancehistory',
-                        'getcollateral',
-                        'getcollateralhistory',
-                        'getcollateralaccounts',
-                        'getaddresses',
-                        'getcoinins',
-                        'getcoinouts',
-                        'getbankaccounts',
-                        'getdeposits',
-                        'getwithdrawals',
-                        'getchildorders',
-                        'getparentorders',
-                        'getparentorder',
-                        'getexecutions',
-                        'getpositions',
-                        'gettradingcommission',
-                    ],
-                    'post': [
-                        'sendcoin',
-                        'withdraw',
-                        'sendchildorder',
-                        'cancelchildorder',
-                        'sendparentorder',
-                        'cancelparentorder',
-                        'cancelallchildorders',
-                    ],
+                    'get': {
+                        'getpermissions': { 'cost': 1 } as Endpoint<List>,
+                        'getbalance': { 'cost': 1 } as Endpoint<Dict>,
+                        'getbalancehistory': { 'cost': 1 } as Endpoint<List>,
+                        'getcollateral': { 'cost': 1 } as Endpoint<Dict>,
+                        'getcollateralhistory': { 'cost': 1 } as Endpoint<List>,
+                        'getcollateralaccounts': { 'cost': 1 } as Endpoint<List>,
+                        'getaddresses': { 'cost': 1 } as Endpoint<List>,
+                        'getcoinins': { 'cost': 1 } as Endpoint<List>,
+                        'getcoinouts': { 'cost': 1 } as Endpoint<List>,
+                        'getbankaccounts': { 'cost': 1 } as Endpoint<List>,
+                        'getdeposits': { 'cost': 1 } as Endpoint<List>,
+                        'getwithdrawals': { 'cost': 1 } as Endpoint<List>,
+                        'getchildorders': { 'cost': 1 } as Endpoint<List>,
+                        'getparentorders': { 'cost': 1 } as Endpoint<List>,
+                        'getparentorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'getexecutions': { 'cost': 1 } as Endpoint<List>,
+                        'getpositions': { 'cost': 1 } as Endpoint<List>,
+                        'gettradingcommission': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'post': {
+                        'sendcoin': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdraw': { 'cost': 1 } as Endpoint<Dict>,
+                        'sendchildorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelchildorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'sendparentorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelparentorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelallchildorders': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -225,7 +225,7 @@ export default class bitflyer extends Exchange {
         });
     }
 
-    parseExpiryDate (expiry) {
+    parseExpiryDate (expiry: any) {
         const day = expiry.slice (0, 2);
         const monthName = expiry.slice (2, 5);
         const year = expiry.slice (5, 9);
@@ -247,7 +247,7 @@ export default class bitflyer extends Exchange {
         return this.parse8601 (year + '-' + month + '-' + day + 'T00:00:00Z');
     }
 
-    safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
+    override safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         // Bitflyer has a different type of conflict in markets, because
         // some of their ids (ETH/BTC and BTC/JPY) are duplicated in US, EU and JP.
         // Since they're the same we just need to return one
@@ -262,7 +262,7 @@ export default class bitflyer extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params = {}): Promise<Market[]> {
         const jp_markets = await this.publicGetGetmarkets (params);
         //
         //     [
@@ -294,22 +294,22 @@ export default class bitflyer extends Exchange {
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        let markets = this.arrayConcat (jp_markets, us_markets);
-        markets = this.arrayConcat (markets, eu_markets);
-        const result = [];
+        let markets = this.arrayConcat (this.toArray (jp_markets), this.toArray (us_markets));
+        markets = this.arrayConcat (markets, this.toArray (eu_markets));
+        const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'product_code');
-            const currencies = id.split ('_');
+            const currencies = (id as string).split ('_');
             const marketType = this.safeString (market, 'market_type');
             const swap = (marketType === 'FX');
             const future = (marketType === 'Futures');
             const spot = !swap && !future;
             let type = 'spot';
-            let settle = undefined;
-            let baseId = undefined;
-            let quoteId = undefined;
-            let expiry = undefined;
+            let settle: Str = undefined;
+            let baseId: Str = undefined;
+            let quoteId: Str = undefined;
+            let expiry: Int = undefined;
             if (spot) {
                 baseId = this.safeString (currencies, 0);
                 quoteId = this.safeString (currencies, 1);
@@ -323,17 +323,17 @@ export default class bitflyer extends Exchange {
                     // no alias:
                     // { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
                     // TODO this will break if there are products with 4 chars
-                    baseId = id.slice (0, 3);
-                    quoteId = id.slice (3, 6);
+                    baseId = (id as string).slice (0, 3);
+                    quoteId = (id as string).slice (3, 6);
                     // last 9 chars are expiry date
-                    const expiryDate = id.slice (-9);
+                    const expiryDate = (id as string).slice (-9);
                     expiry = this.parseExpiryDate (expiryDate);
                 } else {
                     const splitAlias = alias.split ('_');
                     const currencyIds = this.safeString (splitAlias, 0);
-                    baseId = currencyIds.slice (0, -3);
-                    quoteId = currencyIds.slice (-3);
-                    const splitId = id.split (currencyIds);
+                    baseId = (currencyIds as string).slice (0, -3);
+                    quoteId = (currencyIds as string).slice (-3);
+                    const splitId = (id as string).split (currencyIds as string);
                     const expiryDate = this.safeString (splitId, 1);
                     expiry = this.parseExpiryDate (expiryDate);
                 }
@@ -409,7 +409,7 @@ export default class bitflyer extends Exchange {
         return result;
     }
 
-    parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -418,7 +418,9 @@ export default class bitflyer extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (balance, 'amount');
             account['free'] = this.safeString (balance, 'available');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -431,8 +433,10 @@ export default class bitflyer extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+    override async fetchBalance (params = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privateGetGetbalance (params);
         //
         //     [
@@ -464,10 +468,12 @@ export default class bitflyer extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'product_code': market['id'],
@@ -476,7 +482,7 @@ export default class bitflyer extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'bids', 'asks', 'price', 'size');
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
         const last = this.safeString (ticker, 'ltp');
@@ -513,8 +519,10 @@ export default class bitflyer extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'product_code': market['id'],
@@ -523,7 +531,7 @@ export default class bitflyer extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public) v1
         //
@@ -556,7 +564,7 @@ export default class bitflyer extends Exchange {
                 side = undefined;
             }
         }
-        let order = undefined;
+        let order: Str = undefined;
         if (side !== undefined) {
             const idInner = side + '_child_order_acceptance_id';
             if (idInner in trade) {
@@ -599,8 +607,10 @@ export default class bitflyer extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'product_code': market['id'],
@@ -634,8 +644,10 @@ export default class bitflyer extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
-        await this.loadMarkets ();
+    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'product_code': market['id'],
@@ -670,12 +682,14 @@ export default class bitflyer extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'product_code': this.marketId (symbol),
             'child_order_type': type.toUpperCase (),
-            'side': side.toUpperCase (),
+            'side': (side as string).toUpperCase (),
             'price': price,
             'size': amount,
         };
@@ -698,11 +712,13 @@ export default class bitflyer extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'product_code': this.marketId (symbol),
             'child_order_acceptance_id': id,
@@ -724,10 +740,10 @@ export default class bitflyer extends Exchange {
             'EXPIRED': 'canceled',
             'REJECTED': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         const timestamp = this.parse8601 (this.safeString (order, 'child_order_date'));
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'size');
@@ -738,7 +754,7 @@ export default class bitflyer extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const marketId = this.safeString (order, 'product_code');
         const symbol = this.safeSymbol (marketId, market);
-        let fee = undefined;
+        let fee: Fee = undefined;
         const feeCost = this.safeNumber (order, 'total_commission');
         if (feeCost !== undefined) {
             fee = {
@@ -784,11 +800,13 @@ export default class bitflyer extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = 100, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = 100, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'product_code': market['id'],
@@ -813,7 +831,7 @@ export default class bitflyer extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = 100, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = 100, params = {}): Promise<Order[]> {
         const request: Dict = {
             'child_order_state': 'ACTIVE',
         };
@@ -831,7 +849,7 @@ export default class bitflyer extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = 100, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = 100, params = {}): Promise<Order[]> {
         const request: Dict = {
             'child_order_state': 'COMPLETED',
         };
@@ -848,7 +866,7 @@ export default class bitflyer extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -871,11 +889,13 @@ export default class bitflyer extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'product_code': market['id'],
@@ -910,11 +930,13 @@ export default class bitflyer extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchPositions() requires a `symbols` argument, exactly one symbol in an array');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'product_code': this.marketIds (symbols),
         };
@@ -937,7 +959,7 @@ export default class bitflyer extends Exchange {
         //     ]
         //
         // todo unify parsePosition/parsePositions
-        return response;
+        return response as Position[];
     }
 
     /**
@@ -952,9 +974,11 @@ export default class bitflyer extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         this.checkAddress (address);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (code !== 'JPY' && code !== 'USD' && code !== 'EUR') {
             throw new ExchangeError (this.id + ' allows withdrawing JPY, USD, EUR only, ' + code + ' is not supported');
         }
@@ -984,9 +1008,11 @@ export default class bitflyer extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
-        let currency = undefined;
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let currency: Currency = undefined;
         const request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1023,9 +1049,11 @@ export default class bitflyer extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
-        let currency = undefined;
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let currency: Currency = undefined;
         const request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1053,7 +1081,7 @@ export default class bitflyer extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseDepositStatus (status) {
+    parseDepositStatus (status: any) {
         const statuses: Dict = {
             'PENDING': 'pending',
             'COMPLETED': 'ok',
@@ -1061,7 +1089,7 @@ export default class bitflyer extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseWithdrawalStatus (status) {
+    parseWithdrawalStatus (status: any) {
         const statuses: Dict = {
             'PENDING': 'pending',
             'COMPLETED': 'ok',
@@ -1069,7 +1097,7 @@ export default class bitflyer extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -1113,9 +1141,9 @@ export default class bitflyer extends Exchange {
         const amount = this.safeNumber (transaction, 'amount');
         const txId = this.safeString (transaction, 'tx_hash');
         const rawStatus = this.safeString (transaction, 'status');
-        let type = undefined;
-        let status = undefined;
-        let fee = undefined;
+        let type: Str = undefined;
+        let status: Str = undefined;
+        let fee: Fee = undefined;
         if ('fee' in transaction) {
             type = 'withdrawal';
             status = this.parseWithdrawalStatus (rawStatus);
@@ -1159,8 +1187,10 @@ export default class bitflyer extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
-        await this.loadMarkets ();
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'product_code': market['id'],
@@ -1175,7 +1205,7 @@ export default class bitflyer extends Exchange {
         return this.parseFundingRate (response, market);
     }
 
-    parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //    {
         //        "current_funding_rate": -0.003750000000
@@ -1206,7 +1236,7 @@ export default class bitflyer extends Exchange {
         } as FundingRate;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let request = '/' + this.version + '/';
         if (api === 'private') {
             request += 'me/';
@@ -1222,7 +1252,8 @@ export default class bitflyer extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
-            let auth = [ nonce, method, request ].join ('');
+            const content = [ nonce, method, request ];
+            let auth = content.join ('');
             if (Object.keys (params).length) {
                 if (method !== 'GET') {
                     body = this.json (params);
@@ -1239,7 +1270,7 @@ export default class bitflyer extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to the default error handler
         }

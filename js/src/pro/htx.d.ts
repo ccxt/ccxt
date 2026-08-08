@@ -1,5 +1,5 @@
 import htxRest from '../htx.js';
-import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Dict, Bool } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class htx extends htxRest {
     describe(): any;
@@ -82,7 +82,7 @@ export default class htx extends htxRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
     /**
      * @method
@@ -94,9 +94,9 @@ export default class htx extends htxRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name htx#unWatchOrderBook
@@ -107,9 +107,9 @@ export default class htx extends htxRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
     handleOrderBookSnapshot(client: Client, message: any, subscription: any): void;
     watchOrderBookSnapshot(client: any, message: any, subscription: any): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
@@ -122,6 +122,7 @@ export default class htx extends htxRest {
      * @name htx#watchMyTrades
      * @description watches information on multiple trades made by the user
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53dd5-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a35275ff
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -129,12 +130,14 @@ export default class htx extends htxRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    getOrderChannelAndMessageHash(type: any, subType: any, market?: any, params?: {}): any[];
+    getOrderChannelAndMessageHash(type: any, subType: any, market?: Market, params?: {}): string[];
+    getV5LinearChannelAndMessageHash(topic: any, market?: Market, params?: {}): any[];
     /**
      * @method
      * @name htx#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53c8f-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a208afe7
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -143,20 +146,19 @@ export default class htx extends htxRest {
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): Order;
-    parseOrderTrade(trade: any, market?: any): Trade;
+    parseWsOrder(order: any, market?: Market): Order;
+    parseOrderTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name htx#watchPositions
-     * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7de1c-77b5-11ed-9966-0242ac110003
-     * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7df0f-77b5-11ed-9966-0242ac110003
+     * @description watch all open positions. Note: huobi has one channel for each marginMode and type
      * @see https://www.huobi.com/en-in/opend/newApiPages/?id=28c34a7d-77ae-11ed-9966-0242ac110003
      * @see https://www.huobi.com/en-in/opend/newApiPages/?id=5d5156b5-77b6-11ed-9966-0242ac110003
-     * @description watch all open positions. Note: huobi has one channel for each marginMode and type
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param since
-     * @param limit
-     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a35d6034
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
@@ -166,28 +168,27 @@ export default class htx extends htxRest {
      * @name htx#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec52e28-7773-11ed-9966-0242ac110003
-     * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000084-77b7-11ed-9966-0242ac110003
-     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb7dcca-77b5-11ed-9966-0242ac110003
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c34995-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a6c94551
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): void;
-    handleUnSubscription(client: Client, subscription: Dict): void;
+    handleUnSubscription(client: Client, subscription: Dict | undefined): void;
     handleSystemStatus(client: Client, message: any): any;
     handleSubject(client: Client, message: any): void;
-    pong(client: any, message: any): Promise<void>;
+    pong(client: Client, message: any): Promise<void>;
     handlePing(client: Client, message: any): void;
     handleAuthenticate(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
     handleMyTrade(client: Client, message: any, extendParams?: {}): void;
-    parseWsTrade(trade: any, market?: any): Trade;
-    getUrlByMarketType(type: any, isLinear?: boolean, isPrivate?: boolean, isFeed?: boolean): any;
+    parseWsTrade(trade: any, market?: Market): Trade;
+    getUrlByMarketType(type: any, isLinear?: boolean, isPrivate?: boolean, isFeed?: boolean, isV5?: boolean): Str;
     subscribePublic(url: any, symbol: any, messageHash: any, method?: any, params?: {}): Promise<any>;
     unsubscribePublic(market: Market, subMessageHash: string, topic: string, params?: {}): Promise<any>;
-    subscribePrivate(channel: any, messageHash: any, type: any, subtype: any, params?: {}, subscriptionParams?: {}): Promise<any>;
+    subscribePrivate(channel: any, messageHash: any, type: any, subtype: any, params?: any, subscriptionParams?: {}): Promise<any>;
     authenticate(params?: {}): Promise<any>;
 }

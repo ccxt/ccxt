@@ -1,7 +1,7 @@
 # CCXT – CryptoCurrency eXchange Trading Library
 
 > Unified cryptocurrency trading API for 100+ exchanges.
-> JavaScript/TypeScript, Python, PHP, C#, Go. REST and WebSocket.
+> JavaScript/TypeScript, Python, PHP, C#, Go and Java. REST and WebSocket.
 
 CCXT provides a single, consistent API to interact with cryptocurrency exchanges for market data, trading, and account management. The same code structure works across all supported languages and exchanges.
 
@@ -30,6 +30,12 @@ dotnet add package ccxt
 
 # Go
 go get github.com/ccxt/ccxt/go/v4
+
+# Java
+dependencies {
+    implementation("io.github.ccxt:ccxt:4.5.52")
+}
+
 ```
 
 ## AI Assistant Skills
@@ -87,6 +93,21 @@ exchange := ccxt.NewBinance(map[string]interface{}{"enableRateLimit": true})
 ticker, _ := exchange.FetchTicker("BTC/USDT", nil)
 fmt.Println(ticker.Last)
 ```
+
+### Java
+
+```java
+
+import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.types.Ticker;
+
+Binance exchange = new Binance();
+exchange.loadMarkets(false);
+
+Ticker ticker = exchange.fetchTicker("BTC/USDT");
+System.out.println(ticker.symbol + " " + ticker.last);
+```
+
 
 ## API Methods Overview
 

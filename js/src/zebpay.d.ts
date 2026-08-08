@@ -1,7 +1,7 @@
 import Exchange from './abstract/zebpay.js';
-import type { Balances, Currencies, Dict, Int, int, Leverage, Leverages, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees } from './base/types.js';
+import type { Balances, Currencies, CurrencyInterface, Dict, Int, int, Leverage, Leverages, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Status } from './base/types.js';
 /**
- * @class
+ * @class zebpay
  * @augments Exchange
  */
 export default class zebpay extends Exchange {
@@ -15,16 +15,10 @@ export default class zebpay extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: any;
-        eta: any;
-        url: any;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
-     * @name zebpayfutures#fetchTime
+     * @name zebpay#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the poloniexfutures server
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-server-time
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-time
@@ -38,7 +32,7 @@ export default class zebpay extends Exchange {
      * @description retrieves data on all markets for zebpay
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
@@ -51,6 +45,7 @@ export default class zebpay extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
      * @name zebpay#fetchTradingFee
@@ -65,7 +60,7 @@ export default class zebpay extends Exchange {
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     /**
      * @method
-     * @name zebpay(futures)#fetchTradingFees
+     * @name zebpay#fetchTradingFees
      * @description fetch the trading fees for multiple markets
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fees-all-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -81,7 +76,7 @@ export default class zebpay extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -189,7 +184,7 @@ export default class zebpay extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    orderRequest(symbol: any, type: any, amount: any, request: any, price?: any, params?: {}): any[];
+    orderRequest(symbol: any, type: any, amount: any, request: any, price?: Num, params?: {}): any[];
     /**
      * @method
      * @name zebpay#cancelOrder
@@ -205,13 +200,13 @@ export default class zebpay extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
-     * @name zebpay#cancelOrders
+     * @name zebpay#cancelAllOrders
      * @description cancels all open orders
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders
-     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} [symbol] unified symbol of the market the orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.timestamp] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     * @param {int} [params.timestamp] the timestamp of the request in ms
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     /**
@@ -240,7 +235,7 @@ export default class zebpay extends Exchange {
      * @param {string} [params.timestamp] cancel order by client order id
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrder(id: Str, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -249,7 +244,7 @@ export default class zebpay extends Exchange {
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-close-position
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} side not used by kucoinfutures closePositions
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.positionId] client order id of the order
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
@@ -284,7 +279,7 @@ export default class zebpay extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name zebpay#fetchPositions
@@ -297,7 +292,7 @@ export default class zebpay extends Exchange {
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     /**
      * @method
-     * @name zebpayfutures#addMargin
+     * @name zebpay#addMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-add-margin-to-position
      * @param {string} symbol unified market symbol
@@ -310,7 +305,7 @@ export default class zebpay extends Exchange {
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     /**
      * @method
-     * @name zebpayfutures#reduceMargin
+     * @name zebpay#reduceMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-reduce-margin-from-position
      * @param {string} symbol unified market symbol.
@@ -321,41 +316,41 @@ export default class zebpay extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
-    fetchSpotMarkets(params?: {}): Promise<Market[]>;
-    fetchSwapMarkets(params?: {}): Promise<Market[]>;
+    fetchSpotMarkets(params?: any): Promise<Market[]>;
+    fetchSwapMarkets(params?: any): Promise<Market[]>;
     parseBalance(response: any): Balances;
     parsePosition(position: Dict, market?: Market): {
         info: Dict;
-        symbol: string;
-        timestamp: number;
-        datetime: string;
-        initialMargin: number;
-        initialMarginPercentage: any;
-        maintenanceMargin: any;
-        maintenanceMarginPercentage: any;
-        entryPrice: number;
-        notional: number;
-        leverage: number;
-        unrealizedPnl: any;
-        contracts: number;
-        contractSize: number;
-        marginRatio: any;
-        liquidationPrice: number;
-        markPrice: any;
-        collateral: any;
+        symbol: Str;
+        timestamp: number | undefined;
+        datetime: Str;
+        initialMargin: Num;
+        initialMarginPercentage: undefined;
+        maintenanceMargin: undefined;
+        maintenanceMarginPercentage: undefined;
+        entryPrice: Num;
+        notional: Num;
+        leverage: Num;
+        unrealizedPnl: undefined;
+        contracts: Num;
+        contractSize: Num;
+        marginRatio: undefined;
+        liquidationPrice: Num;
+        markPrice: undefined;
+        collateral: undefined;
         marginType: string;
-        side: string;
-        percentage: any;
+        side: Str;
+        percentage: undefined;
     };
     parseLeverage(leverage: Dict, market?: Market): Leverage;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseMarginModification(info: any, market?: Market): MarginModification;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): {
         url: any;
         method: string;
-        body: any;
-        headers: any;
+        body: Str;
+        headers: NullableDict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

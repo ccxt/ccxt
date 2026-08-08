@@ -13,11 +13,11 @@ import { extend } from 'ccxt';
 class WebSocketServer {
     constructor(config = {}) {
         const defaults = {
-            "terminateTimeout": undefined,
-            "closeTimeout": undefined,
-            "errorTimeout": undefined,
-            "closeCode": 1000,
-            "handshakeDelay": undefined,
+            "terminateTimeout": undefined, // terminate the connection immediately or later
+            "closeTimeout": undefined, // close after a while
+            "errorTimeout": undefined, // error after a while
+            "closeCode": 1000, // default closing code 1000 = ok
+            "handshakeDelay": undefined, // delay the handshake to simulate connection timeout
             "port": 8080,
         };
         // merge to this

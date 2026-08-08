@@ -33,12 +33,14 @@ const precisionConstants = {
     PAD_WITH_ZERO,
 };
 
-const assert = (x, y) => { if (!x) throw new Error (y || 'assertion failed'); };
+const assert = (x: any, y: string | undefined = undefined) => { if (!x) throw new Error (y || 'assertion failed'); };
 
 /*  ------------------------------------------------------------------------ */
 
 // See https://stackoverflow.com/questions/1685680/how-to-avoid-scientific-notation-for-large-numbers-in-javascript for discussion
 
+function numberToString (x: number | string): string;
+function numberToString (x: any): string | undefined;
 function numberToString (x: any): string | undefined { // avoids scientific notation for too large and too small numbers
     if (x === undefined) return undefined;
     if (typeof x !== 'number') return x.toString ();
@@ -83,7 +85,10 @@ const truncate_to_string = (num: number | string, precision = 0) => {
 };
 const truncate = (num: number | string, precision = 0): number => parseFloat (truncate_to_string (num, precision));
 
-function precisionFromString (str: string) {
+function precisionFromString (str: string | undefined): number {
+    if (str === undefined) {
+        return 0;
+    }
     // support string formats like '1e-4'
     if (str.indexOf ('e') > -1 || str.indexOf ('E') > -1) {
         const numStr = str.replace (/\d\.?\d*[eE]/, '')
@@ -101,7 +106,7 @@ function precisionFromString (str: string) {
 /*  ------------------------------------------------------------------------ */
 
 const decimalToPrecision = (
-    x: string,
+    x: string | number | undefined,
     roundingMode: number,
     numPrecisionDigits: any,
     countingMode: number = DECIMAL_PLACES,
@@ -110,7 +115,7 @@ const decimalToPrecision = (
     return _decimalToPrecision (x, roundingMode, numPrecisionDigits, countingMode, paddingMode);
 }
 
-const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: any, countingMode: number = DECIMAL_PLACES, paddingMode: number = NO_PADDING) => {
+const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: any, countingMode: number = DECIMAL_PLACES, paddingMode: number = NO_PADDING): string => {
     assert (numPrecisionDigits !== undefined, 'numPrecisionDigits should not be undefined');
 
     if (typeof numPrecisionDigits === 'string') {
@@ -131,7 +136,7 @@ const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: a
     if (numPrecisionDigits < 0) {
         const toNearest = Math.pow (10, -numPrecisionDigits);
         if (roundingMode === ROUND) {
-            return (toNearest * _decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ();
+            return (toNearest * parseFloat (_decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode))).toString ();
         }
         if (roundingMode === TRUNCATE) {
             return (x - (x % toNearest)).toString ();
@@ -145,7 +150,7 @@ const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: a
         if (roundingMode === TRUNCATE) {
             // First, truncate the string to avoid floating-point precision issues
             const xStr = numberToString(x);
-            const truncatedX = truncate_to_string(xStr, Math.max(0, newNumPrecisionDigits));
+            const truncatedX = truncate_to_string((xStr === undefined) ? '' : xStr, Math.max(0, newNumPrecisionDigits));
             const xNum = Number(truncatedX);
             const scale = Math.pow (10, newNumPrecisionDigits);
             const xScaled = Math.round (xNum * scale);
@@ -314,7 +319,7 @@ const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: a
     return String.fromCharCode (...out);
 };
 
-function omitZero (stringNumber: string) {
+function omitZero (stringNumber: string | undefined) {
     try {
         if (stringNumber === undefined || stringNumber === '') {
             return undefined;

@@ -1,8 +1,7 @@
-- [Benchmark](./examples/ts/)
+```javascript
+// @NO_AUTO_TRANSPILE
 
-
- ```javascript
- import { spawn } from 'child_process';
+import { spawn } from 'child_process';
 import asTable from 'as-table';
 import ccxt, { version } from '../../js/ccxt.js';
 
@@ -136,5 +135,5 @@ const end = new Date ().getTime ();
 
 console.log ((new Date ().toISOString ()), 'Total time:', end - start, 'ms');
 process.exit (0);
- 
+
 ```

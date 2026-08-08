@@ -1,0 +1,206 @@
+// ----------------------------------------------------------------------------
+// Manual test for exchange.close () patterns - NOT wired into CI.
+//
+// Run directly against a live exchange (default: binance):
+//     tsx ts/src/pro/test/base/test.close.manual.ts
+//     node js/src/pro/test/base/test.close.manual.js
+//     WS_CLOSE_TEST_EXCHANGE=kraken tsx ts/src/pro/test/base/test.close.manual.ts
+//
+// Every scenario is timeout-bounded so known races (e.g. a watch loop
+// resurrecting the connection after close) are REPORTED as failures instead
+// of hanging the process. A process-wide unhandledRejection sentinel counts
+// rejection leaks (e.g. from raced watchMultiple futures) instead of letting
+// node crash - each leak is attributed to the scenario that produced it.
+// This file is js-only (not transpiled) so process-level APIs are fine here.
+// ----------------------------------------------------------------------------
+
+import ccxt from '../../../../ccxt.js';
+import { ExchangeClosedByUser, NetworkError } from '../../../base/errors.js';
+
+const exchangeId = process.env['WS_CLOSE_TEST_EXCHANGE'] || 'binance';
+const spotSymbol = process.env['WS_CLOSE_TEST_SYMBOL'] || 'BTC/USDT';
+const multiSymbols = [ 'BTC/USDT', 'ETH/USDT', 'LTC/USDT' ];
+
+const results: any[] = [];
+const rejectionLeaks: any[] = [];
+
+process.on ('unhandledRejection', (reason) => {
+    rejectionLeaks.push (reason);
+});
+
+function sleep (ms: number) {
+    return new Promise ((resolve) => setTimeout (resolve, ms));
+}
+
+const TIMED_OUT = 'TIMED_OUT';
+
+// resolves to TIMED_OUT instead of hanging forever; never rejects
+async function bounded (promise: any, ms: number) {
+    let timer: any;
+    const timeout = new Promise ((resolve) => {
+        timer = setTimeout (() => resolve (TIMED_OUT), ms);
+    });
+    try {
+        return await Promise.race ([ promise, timeout ]);
+    } finally {
+        clearTimeout (timer);
+    }
+}
+
+function record (name: string, passed: boolean, note: string) {
+    results.push ({ name, passed, note });
+    console.log ((passed ? '✓ PASS' : '✗ FAIL') + ' | ' + name + (note ? ' - ' + note : ''));
+}
+
+function newExchange () {
+    return new (ccxt.pro as any)[exchangeId] ({ 'enableRateLimit': true });
+}
+
+async function closeAfter (exchange: any, ms: number) {
+    await sleep (ms);
+    await exchange.close ();
+}
+
+// keeps awaiting the given watch call until it throws or the deadline passes;
+// returns the error it threw, or TIMED_OUT if it was still happily streaming
+async function watchUntilThrown (watchCall: any, deadlineMs: number) {
+    const loop = (async () => {
+        try {
+            while (true) {
+                await watchCall ();
+            }
+        } catch (e) {
+            return e;
+        }
+    }) ();
+    return await bounded (loop, deadlineMs);
+}
+
+// ---------------------------------------------------------------------------
+
+async function testCloseWithoutConnection () {
+    const exchange = newExchange ();
+    try {
+        await exchange.close ();
+        record ('close() on a never-connected exchange', true, 'resolved without error');
+    } catch (e) {
+        record ('close() on a never-connected exchange', false, String (e));
+    }
+}
+
+async function testCloseIdle () {
+    const exchange = newExchange ();
+    try {
+        await exchange.watchTicker (spotSymbol);
+        await exchange.close ();
+        record ('close() after a resolved watch (idle connection)', true, 'resolved without error');
+    } catch (e) {
+        record ('close() after a resolved watch (idle connection)', false, String (e));
+        await exchange.close ();
+    }
+}
+
+async function testDoubleClose () {
+    const exchange = newExchange ();
+    try {
+        await exchange.watchTicker (spotSymbol);
+        await exchange.close ();
+        await exchange.close ();
+        record ('close() called twice (idempotency)', true, 'both calls resolved');
+    } catch (e) {
+        record ('close() called twice (idempotency)', false, String (e));
+    }
+}
+
+async function testCloseDuringSingleWatch () {
+    const exchange = newExchange ();
+    await exchange.watchTicker (spotSymbol); // establish the connection first
+    closeAfter (exchange, 1500).catch (() => {});
+    const outcome = await watchUntilThrown (() => exchange.watchTicker (spotSymbol), 15000);
+    if (outcome === TIMED_OUT) {
+        record ('close() during a pending single watch', false, 'watch loop survived close() - the re-subscribe resurrected the connection (known race)');
+        await exchange.close (); // clean up the resurrected client
+    } else if (outcome instanceof ExchangeClosedByUser) {
+        record ('close() during a pending single watch', true, 'await rejected with ExchangeClosedByUser');
+    } else {
+        record ('close() during a pending single watch', false, 'rejected with unexpected error: ' + String (outcome));
+    }
+}
+
+async function testCloseDuringRacedWatch () {
+    const exchange = newExchange ();
+    const leaksBefore = rejectionLeaks.length;
+    await exchange.watchTradesForSymbols (multiSymbols); // establish the connection first
+    closeAfter (exchange, 1500).catch (() => {});
+    const outcome = await watchUntilThrown (() => exchange.watchTradesForSymbols (multiSymbols), 15000);
+    // give a leaked rejection from the raced per-symbol futures time to surface
+    await sleep (2000);
+    const leaked = rejectionLeaks.length - leaksBefore;
+    if (outcome === TIMED_OUT) {
+        record ('close() during a raced watchMultiple', false, 'watch loop survived close() - the re-subscribe resurrected the connection (known race)');
+        await exchange.close ();
+    } else if (!(outcome instanceof ExchangeClosedByUser)) {
+        record ('close() during a raced watchMultiple', false, 'rejected with unexpected error: ' + String (outcome));
+    } else if (leaked > 0) {
+        record ('close() during a raced watchMultiple', false, 'rejected correctly BUT leaked ' + leaked + ' unhandled rejection(s) from the raced futures');
+    } else {
+        record ('close() during a raced watchMultiple', true, 'rejected with ExchangeClosedByUser, no unhandled rejections leaked');
+    }
+}
+
+async function testCloseWhileConnecting () {
+    const exchange = newExchange ();
+    const pending = exchange.watchTicker (spotSymbol).then (() => undefined, (e: any) => e);
+    await sleep (50); // close mid-handshake, before the connection is established
+    await exchange.close ();
+    const outcome = await bounded (pending, 15000);
+    if (outcome === undefined) {
+        record ('close() while the socket is still connecting', true, 'watch resolved before close took effect (timing-dependent, acceptable)');
+    } else if (outcome instanceof ExchangeClosedByUser) {
+        record ('close() while the socket is still connecting', true, 'rejected with ExchangeClosedByUser');
+    } else if (outcome instanceof NetworkError) {
+        record ('close() while the socket is still connecting', true, 'rejected with NetworkError (current behavior for mid-handshake close)');
+    } else if (outcome === TIMED_OUT) {
+        record ('close() while the socket is still connecting', false, 'watch neither resolved nor rejected within 15s');
+        await exchange.close ();
+    } else {
+        record ('close() while the socket is still connecting', false, 'unexpected error: ' + String (outcome));
+    }
+}
+
+async function testRewatchAfterClose () {
+    const exchange = newExchange ();
+    await exchange.watchTicker (spotSymbol);
+    await exchange.close ();
+    const outcome = await bounded (exchange.watchTicker (spotSymbol).then ((t: any) => t, (e: any) => e), 15000);
+    if (outcome === TIMED_OUT) {
+        record ('watch() again after close()', false, 'neither resolved nor rejected within 15s');
+    } else if (outcome instanceof Error) {
+        record ('watch() again after close()', true, 'rejected with ' + outcome.constructor.name + ' (a sticky-closed exchange would be the stricter design)');
+    } else {
+        record ('watch() again after close()', true, 'silently reconnected and streamed (current by-design behavior - note it resurrects closed exchanges)');
+    }
+    await exchange.close ();
+}
+
+// ---------------------------------------------------------------------------
+
+async function testCloseManual () {
+    console.log ('manual close() pattern tests | exchange:', exchangeId, '| symbol:', spotSymbol);
+    console.log ('---------------------------------------------------------------');
+    await testCloseWithoutConnection ();
+    await testCloseIdle ();
+    await testDoubleClose ();
+    await testCloseDuringSingleWatch ();
+    await testCloseDuringRacedWatch ();
+    await testCloseWhileConnecting ();
+    await testRewatchAfterClose ();
+    console.log ('---------------------------------------------------------------');
+    const failed = results.filter ((r) => !r.passed);
+    console.log (results.length + ' scenarios, ' + failed.length + ' failed, ' + rejectionLeaks.length + ' unhandled rejection(s) leaked overall');
+    process.exit (failed.length ? 1 : 0);
+}
+
+testCloseManual ();
+
+export default testCloseManual;

@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitflyer$1 = require('./abstract/bitflyer.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var Precise = require('./base/Precise.js');
 
 // ----------------------------------------------------------------------------
@@ -21,19 +21,19 @@ class bitflyer extends bitflyer$1["default"] {
             'name': 'bitFlyer',
             'countries': ['JP'],
             'version': 'v1',
-            'rateLimit': 1000,
-            'hostname': 'bitflyer.com',
+            'rateLimit': 1000, // their nonce-timestamp is in seconds...
+            'hostname': 'bitflyer.com', // or bitflyer.com
             'has': {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': undefined,
-                'future': undefined,
+                'swap': undefined, // has but not fully implemented
+                'future': undefined, // has but not fully implemented
                 'option': false,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'borrowMargin': false,
-                'cancelAllOrders': undefined,
+                'cancelAllOrders': undefined, // https://lightning.bitflyer.com/docs?lang=en#cancel-all-orders
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchAllGreeks': false,
@@ -89,49 +89,49 @@ class bitflyer extends bitflyer$1["default"] {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'getmarkets/usa',
-                        'getmarkets/eu',
-                        'getmarkets',
-                        'getboard',
-                        'getticker',
-                        'getexecutions',
-                        'gethealth',
-                        'getboardstate',
-                        'getchats',
-                        'getfundingrate',
-                    ],
+                    'get': {
+                        'getmarkets/usa': { 'cost': 1 },
+                        'getmarkets/eu': { 'cost': 1 },
+                        'getmarkets': { 'cost': 1 },
+                        'getboard': { 'cost': 1 },
+                        'getticker': { 'cost': 1 },
+                        'getexecutions': { 'cost': 1 },
+                        'gethealth': { 'cost': 1 },
+                        'getboardstate': { 'cost': 1 },
+                        'getchats': { 'cost': 1 },
+                        'getfundingrate': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'get': [
-                        'getpermissions',
-                        'getbalance',
-                        'getbalancehistory',
-                        'getcollateral',
-                        'getcollateralhistory',
-                        'getcollateralaccounts',
-                        'getaddresses',
-                        'getcoinins',
-                        'getcoinouts',
-                        'getbankaccounts',
-                        'getdeposits',
-                        'getwithdrawals',
-                        'getchildorders',
-                        'getparentorders',
-                        'getparentorder',
-                        'getexecutions',
-                        'getpositions',
-                        'gettradingcommission',
-                    ],
-                    'post': [
-                        'sendcoin',
-                        'withdraw',
-                        'sendchildorder',
-                        'cancelchildorder',
-                        'sendparentorder',
-                        'cancelparentorder',
-                        'cancelallchildorders',
-                    ],
+                    'get': {
+                        'getpermissions': { 'cost': 1 },
+                        'getbalance': { 'cost': 1 },
+                        'getbalancehistory': { 'cost': 1 },
+                        'getcollateral': { 'cost': 1 },
+                        'getcollateralhistory': { 'cost': 1 },
+                        'getcollateralaccounts': { 'cost': 1 },
+                        'getaddresses': { 'cost': 1 },
+                        'getcoinins': { 'cost': 1 },
+                        'getcoinouts': { 'cost': 1 },
+                        'getbankaccounts': { 'cost': 1 },
+                        'getdeposits': { 'cost': 1 },
+                        'getwithdrawals': { 'cost': 1 },
+                        'getchildorders': { 'cost': 1 },
+                        'getparentorders': { 'cost': 1 },
+                        'getparentorder': { 'cost': 1 },
+                        'getexecutions': { 'cost': 1 },
+                        'getpositions': { 'cost': 1 },
+                        'gettradingcommission': { 'cost': 1 },
+                    },
+                    'post': {
+                        'sendcoin': { 'cost': 1 },
+                        'withdraw': { 'cost': 1 },
+                        'sendchildorder': { 'cost': 1 },
+                        'cancelchildorder': { 'cost': 1 },
+                        'sendparentorder': { 'cost': 1 },
+                        'cancelparentorder': { 'cost': 1 },
+                        'cancelallchildorders': { 'cost': 1 },
+                    },
                 },
             },
             'fees': {
@@ -159,7 +159,7 @@ class bitflyer extends bitflyer$1["default"] {
                             'GTD': true, // todo implement
                         },
                         'hedged': false,
-                        'trailing': false,
+                        'trailing': false, // todo recheck
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
                         'marketBuyByCost': false,
@@ -291,8 +291,8 @@ class bitflyer extends bitflyer$1["default"] {
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        let markets = this.arrayConcat(jp_markets, us_markets);
-        markets = this.arrayConcat(markets, eu_markets);
+        let markets = this.arrayConcat(this.toArray(jp_markets), this.toArray(us_markets));
+        markets = this.arrayConcat(markets, this.toArray(eu_markets));
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -417,7 +417,9 @@ class bitflyer extends bitflyer$1["default"] {
             const account = this.account();
             account['total'] = this.safeString(balance, 'amount');
             account['free'] = this.safeString(balance, 'available');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -430,7 +432,9 @@ class bitflyer extends bitflyer$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetGetbalance(params);
         //
         //     [
@@ -461,10 +465,12 @@ class bitflyer extends bitflyer$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'product_code': market['id'],
@@ -509,7 +515,9 @@ class bitflyer extends bitflyer$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'product_code': market['id'],
@@ -593,7 +601,9 @@ class bitflyer extends bitflyer$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'product_code': market['id'],
@@ -627,7 +637,9 @@ class bitflyer extends bitflyer$1["default"] {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'product_code': market['id'],
@@ -662,7 +674,9 @@ class bitflyer extends bitflyer$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'product_code': this.marketId(symbol),
             'child_order_type': type.toUpperCase(),
@@ -692,7 +706,9 @@ class bitflyer extends bitflyer$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'product_code': this.marketId(symbol),
             'child_order_acceptance_id': id,
@@ -775,7 +791,9 @@ class bitflyer extends bitflyer$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'product_code': market['id'],
@@ -858,7 +876,9 @@ class bitflyer extends bitflyer$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'product_code': market['id'],
@@ -896,7 +916,9 @@ class bitflyer extends bitflyer$1["default"] {
         if (symbols === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchPositions() requires a `symbols` argument, exactly one symbol in an array');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'product_code': this.marketIds(symbols),
         };
@@ -935,7 +957,9 @@ class bitflyer extends bitflyer$1["default"] {
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (code !== 'JPY' && code !== 'USD' && code !== 'EUR') {
             throw new errors.ExchangeError(this.id + ' allows withdrawing JPY, USD, EUR only, ' + code + ' is not supported');
         }
@@ -965,7 +989,9 @@ class bitflyer extends bitflyer$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
@@ -1003,7 +1029,9 @@ class bitflyer extends bitflyer$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
@@ -1136,7 +1164,9 @@ class bitflyer extends bitflyer$1["default"] {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'product_code': market['id'],
@@ -1196,7 +1226,8 @@ class bitflyer extends bitflyer$1["default"] {
         if (api === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
-            let auth = [nonce, method, request].join('');
+            const content = [nonce, method, request];
+            let auth = content.join('');
             if (Object.keys(params).length) {
                 if (method !== 'GET') {
                     body = this.json(params);
@@ -1206,7 +1237,7 @@ class bitflyer extends bitflyer$1["default"] {
             headers = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
-                'ACCESS-SIGN': this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256),
+                'ACCESS-SIGN': this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256),
                 'Content-Type': 'application/json',
             };
         }

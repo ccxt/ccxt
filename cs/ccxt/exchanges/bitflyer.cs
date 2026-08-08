@@ -80,11 +80,119 @@ public partial class bitflyer : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"getmarkets/usa", "getmarkets/eu", "getmarkets", "getboard", "getticker", "getexecutions", "gethealth", "getboardstate", "getchats", "getfundingrate"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "getmarkets/usa", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getmarkets/eu", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getmarkets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getboard", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getexecutions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "gethealth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getboardstate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getchats", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getfundingrate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"getpermissions", "getbalance", "getbalancehistory", "getcollateral", "getcollateralhistory", "getcollateralaccounts", "getaddresses", "getcoinins", "getcoinouts", "getbankaccounts", "getdeposits", "getwithdrawals", "getchildorders", "getparentorders", "getparentorder", "getexecutions", "getpositions", "gettradingcommission"} },
-                    { "post", new List<object>() {"sendcoin", "withdraw", "sendchildorder", "cancelchildorder", "sendparentorder", "cancelparentorder", "cancelallchildorders"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "getpermissions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getbalance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getbalancehistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getcollateral", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getcollateralhistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getcollateralaccounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getaddresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getcoinins", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getcoinouts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getbankaccounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getdeposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getwithdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getchildorders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getparentorders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getparentorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getexecutions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getpositions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "gettradingcommission", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "sendcoin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sendchildorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelchildorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sendparentorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelparentorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelallchildorders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -251,14 +359,14 @@ public partial class bitflyer : Exchange
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        object markets = this.arrayConcat(jp_markets, us_markets);
-        markets = this.arrayConcat(markets, eu_markets);
+        object markets = this.arrayConcat(this.toArray(jp_markets), this.toArray(us_markets));
+        markets = this.arrayConcat(markets, this.toArray(eu_markets));
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             object id = this.safeString(market, "product_code");
-            object currencies = ((string)id).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            object currencies = ((string)((string)id)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             object marketType = this.safeString(market, "market_type");
             object swap = (isEqual(marketType, "FX"));
             object future = (isEqual(marketType, "Futures"));
@@ -285,18 +393,18 @@ public partial class bitflyer : Exchange
                     // no alias:
                     // { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
                     // TODO this will break if there are products with 4 chars
-                    baseId = slice(id, 0, 3);
-                    quoteId = slice(id, 3, 6);
+                    baseId = slice(((string)id), 0, 3);
+                    quoteId = slice(((string)id), 3, 6);
                     // last 9 chars are expiry date
-                    object expiryDate = slice(id, -9, null);
+                    object expiryDate = slice(((string)id), -9, null);
                     expiry = this.parseExpiryDate(expiryDate);
                 } else
                 {
                     object splitAlias = ((string)alias).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
                     object currencyIds = this.safeString(splitAlias, 0);
-                    baseId = slice(currencyIds, 0, -3);
-                    quoteId = slice(currencyIds, -3, null);
-                    object splitId = ((string)id).Split(new [] {((string)currencyIds)}, StringSplitOptions.None).ToList<object>();
+                    baseId = slice(((string)currencyIds), 0, -3);
+                    quoteId = slice(((string)currencyIds), -3, null);
+                    object splitId = ((string)((string)id)).Split(new [] {((string)((string)currencyIds))}, StringSplitOptions.None).ToList<object>();
                     object expiryDate = this.safeString(splitId, 1);
                     expiry = this.parseExpiryDate(expiryDate);
                 }
@@ -387,7 +495,10 @@ public partial class bitflyer : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "amount");
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -403,7 +514,10 @@ public partial class bitflyer : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetGetbalance(parameters);
         //
         //     [
@@ -435,12 +549,15 @@ public partial class bitflyer : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "product_code", getValue(market, "id") },
@@ -490,7 +607,10 @@ public partial class bitflyer : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "product_code", getValue(market, "id") },
@@ -584,7 +704,10 @@ public partial class bitflyer : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "product_code", getValue(market, "id") },
@@ -622,7 +745,10 @@ public partial class bitflyer : Exchange
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "product_code", getValue(market, "id") },
@@ -660,11 +786,14 @@ public partial class bitflyer : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "product_code", this.marketId(symbol) },
             { "child_order_type", ((string)type).ToUpper() },
-            { "side", ((string)side).ToUpper() },
+            { "side", ((string)((string)side)).ToUpper() },
             { "price", price },
             { "size", amount },
         };
@@ -694,7 +823,10 @@ public partial class bitflyer : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "product_code", this.marketId(symbol) },
             { "child_order_acceptance_id", id },
@@ -717,7 +849,7 @@ public partial class bitflyer : Exchange
             { "EXPIRED", "canceled" },
             { "REJECTED", "canceled" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -787,7 +919,10 @@ public partial class bitflyer : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrders() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "product_code", getValue(market, "id") },
@@ -888,7 +1023,10 @@ public partial class bitflyer : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "product_code", getValue(market, "id") },
@@ -931,7 +1069,10 @@ public partial class bitflyer : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchPositions() requires a `symbols` argument, exactly one symbol in an array")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "product_code", this.marketIds(symbols) },
         };
@@ -973,7 +1114,10 @@ public partial class bitflyer : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isTrue(isTrue(!isEqual(code, "JPY")) && isTrue(!isEqual(code, "USD"))) && isTrue(!isEqual(code, "EUR"))))
         {
             throw new ExchangeError ((string)add(add(add(this.id, " allows withdrawing JPY, USD, EUR only, "), code), " is not supported")) ;
@@ -1006,7 +1150,10 @@ public partial class bitflyer : Exchange
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
@@ -1049,7 +1196,10 @@ public partial class bitflyer : Exchange
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
@@ -1197,7 +1347,10 @@ public partial class bitflyer : Exchange
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "product_code", getValue(market, "id") },
@@ -1268,7 +1421,8 @@ public partial class bitflyer : Exchange
         {
             this.checkRequiredCredentials();
             object nonce = ((object)this.nonce()).ToString();
-            object auth = String.Join("", ((IList<object>)new List<object>() {nonce, method, request}).ToArray());
+            object content = new List<object>() {nonce, method, request};
+            object auth = String.Join("", ((IList<object>)content).ToArray());
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
             {
                 if (isTrue(!isEqual(method, "GET")))

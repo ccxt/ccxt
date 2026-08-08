@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitrue.js';
-import type { Balances, Currencies, Currency, Dict, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int, DepositWithdrawFees, Status } from './base/types.js';
 /**
  * @class bitrue
  * @augments Exchange
@@ -15,13 +15,7 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: any;
-        eta: any;
-        url: any;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name bitrue#fetchTime
@@ -39,6 +33,7 @@ export default class bitrue extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
      * @name bitrue#fetchMarkets
@@ -46,7 +41,7 @@ export default class bitrue extends Exchange {
      * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
      * @see https://www.bitrue.com/api-docs#current-open-contract
      * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
@@ -75,7 +70,7 @@ export default class bitrue extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
@@ -144,7 +139,7 @@ export default class bitrue extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseOrderStatus(status: Str): string;
+    parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -157,7 +152,7 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name bitrue#createOrder
@@ -239,7 +234,7 @@ export default class bitrue extends Exchange {
      * @description cancel all open orders in a market
      * @see https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
      * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
-     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
@@ -282,7 +277,7 @@ export default class bitrue extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatusByType(status: any, type?: any): string;
+    parseTransactionStatusByType(status: any, type?: Str): string;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -307,16 +302,16 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
-    parseTransfer(transfer: any, currency?: any): {
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<DepositWithdrawFees>;
+    parseTransfer(transfer: any, currency?: Currency): {
         info: any;
-        id: any;
-        timestamp: number;
-        datetime: string;
-        currency: string;
-        amount: number;
-        fromAccount: any;
-        toAccount: any;
+        id: undefined;
+        timestamp: Int;
+        datetime: string | undefined;
+        currency: Str;
+        amount: Num;
+        fromAccount: Str;
+        toAccount: Str;
         status: string;
     };
     /**
@@ -359,8 +354,8 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
-    parseMarginModification(data: any, market?: any): MarginModification;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
+    parseMarginModification(data: any, market?: Market): MarginModification;
     /**
      * @method
      * @name bitrue#setMargin
@@ -373,12 +368,12 @@ export default class bitrue extends Exchange {
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
     setMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
-        url: any;
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
+        url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: Str;
+        headers: NullableDict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
 }

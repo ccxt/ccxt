@@ -1,4 +1,4 @@
-import { Exchange } from "../../../ccxt";
+import { Exchange } from "../../../ccxt.js";
 import testBalance from './base/test.balance.js';
 
 async function testFetchBalance (exchange: Exchange, skippedProperties: object) {

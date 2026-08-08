@@ -7,8 +7,8 @@
                 "assetCode": "lbk",
                 "min": "2000",
                 "transferAmtScale": "4",
-                "canWithDraw": true,
-                "fee": "819.2020",
+                "canWithDraw": false,
+                "fee": "89.2379",
                 "minTransfer": "0.0001",
                 "type": "1"
             }
@@ -21,13 +21,13 @@
         "name": null,
         "active": null,
         "deposit": null,
-        "withdraw": true,
-        "fee": 819.202,
+        "withdraw": false,
+        "fee": 89.2379,
         "fees": {},
         "networks": {
-            "ETH": {
+            "ERC20": {
                 "id": "erc20",
-                "network": "ETH",
+                "network": "ERC20",
                 "limits": {
                     "withdraw": {
                         "min": 2000,
@@ -40,8 +40,8 @@
                 },
                 "active": null,
                 "deposit": null,
-                "withdraw": true,
-                "fee": 819.202,
+                "withdraw": false,
+                "fee": 89.2379,
                 "precision": 0.0001,
                 "info": {
                     "amountScale": "4",
@@ -49,8 +49,8 @@
                     "assetCode": "lbk",
                     "min": "2000",
                     "transferAmtScale": "4",
-                    "canWithDraw": true,
-                    "fee": "819.2020",
+                    "canWithDraw": false,
+                    "fee": "89.2379",
                     "minTransfer": "0.0001",
                     "type": "1"
                 }
@@ -70,13 +70,13 @@
     "BTC": {
         "info": [
             {
-                "amountScale": "4",
+                "amountScale": "6",
                 "chain": "btc",
                 "assetCode": "btc",
-                "min": "0.001",
+                "min": "0.00005",
                 "transferAmtScale": "4",
                 "canWithDraw": true,
-                "fee": "0.0002",
+                "fee": "0.000050",
                 "minTransfer": "0.0001",
                 "type": "1"
             },
@@ -86,7 +86,7 @@
                 "assetCode": "btc",
                 "min": "0.001",
                 "transferAmtScale": "4",
-                "canWithDraw": true,
+                "canWithDraw": false,
                 "fee": "0.0001",
                 "minTransfer": "0.0001",
                 "type": "1"
@@ -101,7 +101,7 @@
         "active": null,
         "deposit": null,
         "withdraw": true,
-        "fee": 0.0001,
+        "fee": 0.00005,
         "fees": {},
         "networks": {
             "BTC": {
@@ -109,7 +109,7 @@
                 "network": "BTC",
                 "limits": {
                     "withdraw": {
-                        "min": 0.001,
+                        "min": 0.00005,
                         "max": null
                     },
                     "deposit": {
@@ -120,23 +120,23 @@
                 "active": null,
                 "deposit": null,
                 "withdraw": true,
-                "fee": 0.0002,
+                "fee": 0.00005,
                 "precision": 0.0001,
                 "info": {
-                    "amountScale": "4",
+                    "amountScale": "6",
                     "chain": "btc",
                     "assetCode": "btc",
-                    "min": "0.001",
+                    "min": "0.00005",
                     "transferAmtScale": "4",
                     "canWithDraw": true,
-                    "fee": "0.0002",
+                    "fee": "0.000050",
                     "minTransfer": "0.0001",
                     "type": "1"
                 }
             },
-            "TRX": {
+            "TRC20": {
                 "id": "trc20",
-                "network": "TRX",
+                "network": "TRC20",
                 "limits": {
                     "withdraw": {
                         "min": 0.001,
@@ -149,7 +149,7 @@
                 },
                 "active": null,
                 "deposit": null,
-                "withdraw": true,
+                "withdraw": false,
                 "fee": 0.0001,
                 "precision": 0.0001,
                 "info": {
@@ -158,7 +158,7 @@
                     "assetCode": "btc",
                     "min": "0.001",
                     "transferAmtScale": "4",
-                    "canWithDraw": true,
+                    "canWithDraw": false,
                     "fee": "0.0001",
                     "minTransfer": "0.0001",
                     "type": "1"
@@ -167,7 +167,7 @@
         },
         "limits": {
             "withdraw": {
-                "min": 0.001,
+                "min": 0.00005,
                 "max": null
             },
             "deposit": {
@@ -185,7 +185,7 @@
                 "min": "10",
                 "transferAmtScale": "4",
                 "canWithDraw": true,
-                "fee": "0.0000",
+                "fee": "0.2000",
                 "minTransfer": "0.0001",
                 "type": "1"
             },
@@ -193,7 +193,18 @@
                 "amountScale": "4",
                 "chain": "trc20",
                 "assetCode": "usdt",
-                "min": "1",
+                "min": "10",
+                "transferAmtScale": "4",
+                "canWithDraw": true,
+                "fee": "1.5000",
+                "minTransfer": "0.0001",
+                "type": "1"
+            },
+            {
+                "amountScale": "4",
+                "chain": "erc20",
+                "assetCode": "usdt",
+                "min": "10",
                 "transferAmtScale": "4",
                 "canWithDraw": true,
                 "fee": "1.0000",
@@ -202,20 +213,9 @@
             },
             {
                 "amountScale": "4",
-                "chain": "erc20",
-                "assetCode": "usdt",
-                "min": "1",
-                "transferAmtScale": "4",
-                "canWithDraw": true,
-                "fee": "6.0000",
-                "minTransfer": "0.0001",
-                "type": "1"
-            },
-            {
-                "amountScale": "4",
                 "chain": "polygon",
                 "assetCode": "usdt",
-                "min": "1",
+                "min": "5",
                 "transferAmtScale": "4",
                 "canWithDraw": true,
                 "fee": "1.0000",
@@ -234,23 +234,12 @@
             },
             {
                 "amountScale": "4",
-                "chain": "asa",
-                "assetCode": "usdt",
-                "min": "10",
-                "transferAmtScale": "4",
-                "canWithDraw": false,
-                "fee": "5.0000",
-                "minTransfer": "0.0001",
-                "type": "1"
-            },
-            {
-                "amountScale": "4",
                 "chain": "arbitrum one",
                 "assetCode": "usdt",
-                "min": "1",
+                "min": "5",
                 "transferAmtScale": "4",
                 "canWithDraw": true,
-                "fee": "1.0000",
+                "fee": "0.5000",
                 "minTransfer": "0.0001",
                 "type": "1"
             },
@@ -258,10 +247,10 @@
                 "amountScale": "4",
                 "chain": "solana",
                 "assetCode": "usdt",
-                "min": "1",
+                "min": "10",
                 "transferAmtScale": "4",
                 "canWithDraw": true,
-                "fee": "1.0000",
+                "fee": "0.5000",
                 "minTransfer": "0.0001",
                 "type": "1"
             },
@@ -269,7 +258,7 @@
                 "amountScale": "4",
                 "chain": "ton",
                 "assetCode": "usdt",
-                "min": "1",
+                "min": "5",
                 "transferAmtScale": "4",
                 "canWithDraw": true,
                 "fee": "1.0000",
@@ -280,7 +269,7 @@
                 "amountScale": "4",
                 "chain": "near",
                 "assetCode": "usdt",
-                "min": "1",
+                "min": "5",
                 "transferAmtScale": "4",
                 "canWithDraw": true,
                 "fee": "1.0000",
@@ -291,10 +280,32 @@
                 "amountScale": "4",
                 "chain": "c-chain",
                 "assetCode": "usdt",
-                "min": "1",
+                "min": "5",
                 "transferAmtScale": "4",
                 "canWithDraw": false,
                 "fee": "1.0000",
+                "minTransfer": "0.0001",
+                "type": "1"
+            },
+            {
+                "amountScale": "4",
+                "chain": "klay",
+                "assetCode": "usdt",
+                "min": "5",
+                "transferAmtScale": "4",
+                "canWithDraw": true,
+                "fee": "1.0000",
+                "minTransfer": "0.0001",
+                "type": "1"
+            },
+            {
+                "amountScale": "4",
+                "chain": "plasma",
+                "assetCode": "usdt",
+                "min": "1",
+                "transferAmtScale": "4",
+                "canWithDraw": true,
+                "fee": "0.5000",
                 "minTransfer": "0.0001",
                 "type": "1"
             }
@@ -308,12 +319,12 @@
         "active": null,
         "deposit": null,
         "withdraw": true,
-        "fee": 0,
+        "fee": 0.2,
         "fees": {},
         "networks": {
-            "BSC": {
+            "BEP20": {
                 "id": "bep20(bsc)",
-                "network": "BSC",
+                "network": "BEP20",
                 "limits": {
                     "withdraw": {
                         "min": 10,
@@ -327,7 +338,7 @@
                 "active": null,
                 "deposit": null,
                 "withdraw": true,
-                "fee": 0,
+                "fee": 0.2,
                 "precision": 0.0001,
                 "info": {
                     "amountScale": "4",
@@ -336,17 +347,47 @@
                     "min": "10",
                     "transferAmtScale": "4",
                     "canWithDraw": true,
-                    "fee": "0.0000",
+                    "fee": "0.2000",
                     "minTransfer": "0.0001",
                     "type": "1"
                 }
             },
-            "TRX": {
+            "TRC20": {
                 "id": "trc20",
-                "network": "TRX",
+                "network": "TRC20",
                 "limits": {
                     "withdraw": {
-                        "min": 1,
+                        "min": 10,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.0001,
+                        "max": null
+                    }
+                },
+                "active": null,
+                "deposit": null,
+                "withdraw": true,
+                "fee": 1.5,
+                "precision": 0.0001,
+                "info": {
+                    "amountScale": "4",
+                    "chain": "trc20",
+                    "assetCode": "usdt",
+                    "min": "10",
+                    "transferAmtScale": "4",
+                    "canWithDraw": true,
+                    "fee": "1.5000",
+                    "minTransfer": "0.0001",
+                    "type": "1"
+                }
+            },
+            "ERC20": {
+                "id": "erc20",
+                "network": "ERC20",
+                "limits": {
+                    "withdraw": {
+                        "min": 10,
                         "max": null
                     },
                     "deposit": {
@@ -361,42 +402,12 @@
                 "precision": 0.0001,
                 "info": {
                     "amountScale": "4",
-                    "chain": "trc20",
+                    "chain": "erc20",
                     "assetCode": "usdt",
-                    "min": "1",
+                    "min": "10",
                     "transferAmtScale": "4",
                     "canWithDraw": true,
                     "fee": "1.0000",
-                    "minTransfer": "0.0001",
-                    "type": "1"
-                }
-            },
-            "ETH": {
-                "id": "erc20",
-                "network": "ETH",
-                "limits": {
-                    "withdraw": {
-                        "min": 1,
-                        "max": null
-                    },
-                    "deposit": {
-                        "min": 0.0001,
-                        "max": null
-                    }
-                },
-                "active": null,
-                "deposit": null,
-                "withdraw": true,
-                "fee": 6,
-                "precision": 0.0001,
-                "info": {
-                    "amountScale": "4",
-                    "chain": "erc20",
-                    "assetCode": "usdt",
-                    "min": "1",
-                    "transferAmtScale": "4",
-                    "canWithDraw": true,
-                    "fee": "6.0000",
                     "minTransfer": "0.0001",
                     "type": "1"
                 }
@@ -406,7 +417,7 @@
                 "network": "polygon",
                 "limits": {
                     "withdraw": {
-                        "min": 1,
+                        "min": 5,
                         "max": null
                     },
                     "deposit": {
@@ -423,7 +434,7 @@
                     "amountScale": "4",
                     "chain": "polygon",
                     "assetCode": "usdt",
-                    "min": "1",
+                    "min": "5",
                     "transferAmtScale": "4",
                     "canWithDraw": true,
                     "fee": "1.0000",
@@ -460,9 +471,39 @@
                     "type": "1"
                 }
             },
-            "ASA": {
-                "id": "asa",
-                "network": "ASA",
+            "arbitrum one": {
+                "id": "arbitrum one",
+                "network": "arbitrum one",
+                "limits": {
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.0001,
+                        "max": null
+                    }
+                },
+                "active": null,
+                "deposit": null,
+                "withdraw": true,
+                "fee": 0.5,
+                "precision": 0.0001,
+                "info": {
+                    "amountScale": "4",
+                    "chain": "arbitrum one",
+                    "assetCode": "usdt",
+                    "min": "5",
+                    "transferAmtScale": "4",
+                    "canWithDraw": true,
+                    "fee": "0.5000",
+                    "minTransfer": "0.0001",
+                    "type": "1"
+                }
+            },
+            "solana": {
+                "id": "solana",
+                "network": "solana",
                 "limits": {
                     "withdraw": {
                         "min": 10,
@@ -475,77 +516,17 @@
                 },
                 "active": null,
                 "deposit": null,
-                "withdraw": false,
-                "fee": 5,
-                "precision": 0.0001,
-                "info": {
-                    "amountScale": "4",
-                    "chain": "asa",
-                    "assetCode": "usdt",
-                    "min": "10",
-                    "transferAmtScale": "4",
-                    "canWithDraw": false,
-                    "fee": "5.0000",
-                    "minTransfer": "0.0001",
-                    "type": "1"
-                }
-            },
-            "arbitrum one": {
-                "id": "arbitrum one",
-                "network": "arbitrum one",
-                "limits": {
-                    "withdraw": {
-                        "min": 1,
-                        "max": null
-                    },
-                    "deposit": {
-                        "min": 0.0001,
-                        "max": null
-                    }
-                },
-                "active": null,
-                "deposit": null,
                 "withdraw": true,
-                "fee": 1,
-                "precision": 0.0001,
-                "info": {
-                    "amountScale": "4",
-                    "chain": "arbitrum one",
-                    "assetCode": "usdt",
-                    "min": "1",
-                    "transferAmtScale": "4",
-                    "canWithDraw": true,
-                    "fee": "1.0000",
-                    "minTransfer": "0.0001",
-                    "type": "1"
-                }
-            },
-            "solana": {
-                "id": "solana",
-                "network": "solana",
-                "limits": {
-                    "withdraw": {
-                        "min": 1,
-                        "max": null
-                    },
-                    "deposit": {
-                        "min": 0.0001,
-                        "max": null
-                    }
-                },
-                "active": null,
-                "deposit": null,
-                "withdraw": true,
-                "fee": 1,
+                "fee": 0.5,
                 "precision": 0.0001,
                 "info": {
                     "amountScale": "4",
                     "chain": "solana",
                     "assetCode": "usdt",
-                    "min": "1",
+                    "min": "10",
                     "transferAmtScale": "4",
                     "canWithDraw": true,
-                    "fee": "1.0000",
+                    "fee": "0.5000",
                     "minTransfer": "0.0001",
                     "type": "1"
                 }
@@ -555,7 +536,7 @@
                 "network": "ton",
                 "limits": {
                     "withdraw": {
-                        "min": 1,
+                        "min": 5,
                         "max": null
                     },
                     "deposit": {
@@ -572,7 +553,7 @@
                     "amountScale": "4",
                     "chain": "ton",
                     "assetCode": "usdt",
-                    "min": "1",
+                    "min": "5",
                     "transferAmtScale": "4",
                     "canWithDraw": true,
                     "fee": "1.0000",
@@ -585,7 +566,7 @@
                 "network": "near",
                 "limits": {
                     "withdraw": {
-                        "min": 1,
+                        "min": 5,
                         "max": null
                     },
                     "deposit": {
@@ -602,7 +583,7 @@
                     "amountScale": "4",
                     "chain": "near",
                     "assetCode": "usdt",
-                    "min": "1",
+                    "min": "5",
                     "transferAmtScale": "4",
                     "canWithDraw": true,
                     "fee": "1.0000",
@@ -615,7 +596,7 @@
                 "network": "c-chain",
                 "limits": {
                     "withdraw": {
-                        "min": 1,
+                        "min": 5,
                         "max": null
                     },
                     "deposit": {
@@ -632,10 +613,70 @@
                     "amountScale": "4",
                     "chain": "c-chain",
                     "assetCode": "usdt",
-                    "min": "1",
+                    "min": "5",
                     "transferAmtScale": "4",
                     "canWithDraw": false,
                     "fee": "1.0000",
+                    "minTransfer": "0.0001",
+                    "type": "1"
+                }
+            },
+            "klay": {
+                "id": "klay",
+                "network": "klay",
+                "limits": {
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.0001,
+                        "max": null
+                    }
+                },
+                "active": null,
+                "deposit": null,
+                "withdraw": true,
+                "fee": 1,
+                "precision": 0.0001,
+                "info": {
+                    "amountScale": "4",
+                    "chain": "klay",
+                    "assetCode": "usdt",
+                    "min": "5",
+                    "transferAmtScale": "4",
+                    "canWithDraw": true,
+                    "fee": "1.0000",
+                    "minTransfer": "0.0001",
+                    "type": "1"
+                }
+            },
+            "plasma": {
+                "id": "plasma",
+                "network": "plasma",
+                "limits": {
+                    "withdraw": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.0001,
+                        "max": null
+                    }
+                },
+                "active": null,
+                "deposit": null,
+                "withdraw": true,
+                "fee": 0.5,
+                "precision": 0.0001,
+                "info": {
+                    "amountScale": "4",
+                    "chain": "plasma",
+                    "assetCode": "usdt",
+                    "min": "1",
+                    "transferAmtScale": "4",
+                    "canWithDraw": true,
+                    "fee": "0.5000",
                     "minTransfer": "0.0001",
                     "type": "1"
                 }
@@ -729,7 +770,7 @@
                 "min": "0.001",
                 "transferAmtScale": "4",
                 "canWithDraw": true,
-                "fee": "0.0010",
+                "fee": "0.0001",
                 "minTransfer": "0.0001",
                 "type": "1"
             },
@@ -740,7 +781,7 @@
                 "min": "0.01",
                 "transferAmtScale": "4",
                 "canWithDraw": true,
-                "fee": "0.0030",
+                "fee": "0.0001",
                 "minTransfer": "0.0001",
                 "type": "1"
             },
@@ -751,7 +792,7 @@
                 "min": "0.001",
                 "transferAmtScale": "4",
                 "canWithDraw": true,
-                "fee": "0.0010",
+                "fee": "0.0001",
                 "minTransfer": "0.0001",
                 "type": "1"
             },
@@ -762,7 +803,7 @@
                 "min": "0.003",
                 "transferAmtScale": "4",
                 "canWithDraw": true,
-                "fee": "0.0030",
+                "fee": "0.0001",
                 "minTransfer": "0.0001",
                 "type": "1"
             },
@@ -783,7 +824,7 @@
                 "min": "0.0005",
                 "transferAmtScale": "4",
                 "canWithDraw": true,
-                "fee": "0.0005",
+                "fee": "0.0001",
                 "minTransfer": "0.0001",
                 "type": "1"
             },
@@ -794,7 +835,7 @@
                 "min": "0.0006",
                 "transferAmtScale": "4",
                 "canWithDraw": true,
-                "fee": "0.0006",
+                "fee": "0.0001",
                 "minTransfer": "0.0001",
                 "type": "1"
             },
@@ -818,7 +859,7 @@
         "active": null,
         "deposit": null,
         "withdraw": true,
-        "fee": 0.0005,
+        "fee": 0.0001,
         "fees": {},
         "networks": {
             "arbitrum one": {
@@ -837,7 +878,7 @@
                 "active": null,
                 "deposit": null,
                 "withdraw": true,
-                "fee": 0.001,
+                "fee": 0.0001,
                 "precision": 0.0001,
                 "info": {
                     "amountScale": "4",
@@ -846,14 +887,14 @@
                     "min": "0.001",
                     "transferAmtScale": "4",
                     "canWithDraw": true,
-                    "fee": "0.0010",
+                    "fee": "0.0001",
                     "minTransfer": "0.0001",
                     "type": "1"
                 }
             },
-            "ETH": {
+            "ERC20": {
                 "id": "erc20",
-                "network": "ETH",
+                "network": "ERC20",
                 "limits": {
                     "withdraw": {
                         "min": 0.01,
@@ -867,7 +908,7 @@
                 "active": null,
                 "deposit": null,
                 "withdraw": true,
-                "fee": 0.003,
+                "fee": 0.0001,
                 "precision": 0.0001,
                 "info": {
                     "amountScale": "4",
@@ -876,14 +917,14 @@
                     "min": "0.01",
                     "transferAmtScale": "4",
                     "canWithDraw": true,
-                    "fee": "0.0030",
+                    "fee": "0.0001",
                     "minTransfer": "0.0001",
                     "type": "1"
                 }
             },
-            "BSC": {
+            "BEP20": {
                 "id": "bep20(bsc)",
-                "network": "BSC",
+                "network": "BEP20",
                 "limits": {
                     "withdraw": {
                         "min": 0.001,
@@ -897,7 +938,7 @@
                 "active": null,
                 "deposit": null,
                 "withdraw": true,
-                "fee": 0.001,
+                "fee": 0.0001,
                 "precision": 0.0001,
                 "info": {
                     "amountScale": "4",
@@ -906,7 +947,7 @@
                     "min": "0.001",
                     "transferAmtScale": "4",
                     "canWithDraw": true,
-                    "fee": "0.0010",
+                    "fee": "0.0001",
                     "minTransfer": "0.0001",
                     "type": "1"
                 }
@@ -927,7 +968,7 @@
                 "active": null,
                 "deposit": null,
                 "withdraw": true,
-                "fee": 0.003,
+                "fee": 0.0001,
                 "precision": 0.0001,
                 "info": {
                     "amountScale": "4",
@@ -936,7 +977,7 @@
                     "min": "0.003",
                     "transferAmtScale": "4",
                     "canWithDraw": true,
-                    "fee": "0.0030",
+                    "fee": "0.0001",
                     "minTransfer": "0.0001",
                     "type": "1"
                 }
@@ -986,7 +1027,7 @@
                 "active": null,
                 "deposit": null,
                 "withdraw": true,
-                "fee": 0.0005,
+                "fee": 0.0001,
                 "precision": 0.0001,
                 "info": {
                     "amountScale": "4",
@@ -995,7 +1036,7 @@
                     "min": "0.0005",
                     "transferAmtScale": "4",
                     "canWithDraw": true,
-                    "fee": "0.0005",
+                    "fee": "0.0001",
                     "minTransfer": "0.0001",
                     "type": "1"
                 }
@@ -1016,7 +1057,7 @@
                 "active": null,
                 "deposit": null,
                 "withdraw": true,
-                "fee": 0.0006,
+                "fee": 0.0001,
                 "precision": 0.0001,
                 "info": {
                     "amountScale": "4",
@@ -1025,7 +1066,7 @@
                     "min": "0.0006",
                     "transferAmtScale": "4",
                     "canWithDraw": true,
-                    "fee": "0.0006",
+                    "fee": "0.0001",
                     "minTransfer": "0.0001",
                     "type": "1"
                 }
@@ -1148,7 +1189,7 @@
                 "min": "10",
                 "transferAmtScale": "4",
                 "canWithDraw": true,
-                "fee": "0.4111",
+                "fee": "0.7501",
                 "minTransfer": "0.01",
                 "type": "1"
             }
@@ -1162,7 +1203,7 @@
         "active": null,
         "deposit": null,
         "withdraw": true,
-        "fee": 0.4111,
+        "fee": 0.7501,
         "fees": {},
         "networks": {
             "XRP": {
@@ -1181,7 +1222,7 @@
                 "active": null,
                 "deposit": null,
                 "withdraw": true,
-                "fee": 0.4111,
+                "fee": 0.7501,
                 "precision": 0.0001,
                 "info": {
                     "amountScale": "4",
@@ -1190,7 +1231,7 @@
                     "min": "10",
                     "transferAmtScale": "4",
                     "canWithDraw": true,
-                    "fee": "0.4111",
+                    "fee": "0.7501",
                     "minTransfer": "0.01",
                     "type": "1"
                 }
@@ -1216,7 +1257,7 @@
                 "min": "10",
                 "transferAmtScale": "4",
                 "canWithDraw": true,
-                "fee": "6.0000",
+                "fee": "1.0000",
                 "minTransfer": "0.0001",
                 "type": "1"
             },
@@ -1227,7 +1268,7 @@
                 "min": "2",
                 "transferAmtScale": "4",
                 "canWithDraw": false,
-                "fee": "1.0004",
+                "fee": "1.5000",
                 "minTransfer": "0.0001",
                 "type": "1"
             },
@@ -1238,7 +1279,7 @@
                 "min": "10",
                 "transferAmtScale": "4",
                 "canWithDraw": true,
-                "fee": "0.0000",
+                "fee": "0.2000",
                 "minTransfer": "0.0001",
                 "type": "1"
             },
@@ -1246,10 +1287,10 @@
                 "amountScale": "4",
                 "chain": "arbitrum one",
                 "assetCode": "usdc",
-                "min": "1",
+                "min": "5",
                 "transferAmtScale": "4",
                 "canWithDraw": true,
-                "fee": "1.0004",
+                "fee": "0.9989",
                 "minTransfer": "0.0001",
                 "type": "1"
             },
@@ -1257,10 +1298,10 @@
                 "amountScale": "4",
                 "chain": "solana",
                 "assetCode": "usdc",
-                "min": "1",
+                "min": "10",
                 "transferAmtScale": "4",
                 "canWithDraw": true,
-                "fee": "1.0004",
+                "fee": "0.9989",
                 "minTransfer": "0.0001",
                 "type": "1"
             },
@@ -1268,7 +1309,7 @@
                 "amountScale": "4",
                 "chain": "near",
                 "assetCode": "usdc",
-                "min": "1",
+                "min": "5",
                 "transferAmtScale": "4",
                 "canWithDraw": true,
                 "fee": "1.0000",
@@ -1279,10 +1320,21 @@
                 "amountScale": "4",
                 "chain": "base mainnet",
                 "assetCode": "usdc",
+                "min": "5",
+                "transferAmtScale": "4",
+                "canWithDraw": true,
+                "fee": "0.9989",
+                "minTransfer": "0.0001",
+                "type": "1"
+            },
+            {
+                "amountScale": "4",
+                "chain": "polygon",
+                "assetCode": "usdc",
                 "min": "1",
                 "transferAmtScale": "4",
                 "canWithDraw": true,
-                "fee": "1.0004",
+                "fee": "0.1997",
                 "minTransfer": "0.0001",
                 "type": "1"
             }
@@ -1296,12 +1348,12 @@
         "active": null,
         "deposit": null,
         "withdraw": true,
-        "fee": 0,
+        "fee": 0.1997,
         "fees": {},
         "networks": {
-            "ETH": {
+            "ERC20": {
                 "id": "erc20",
-                "network": "ETH",
+                "network": "ERC20",
                 "limits": {
                     "withdraw": {
                         "min": 10,
@@ -1315,7 +1367,7 @@
                 "active": null,
                 "deposit": null,
                 "withdraw": true,
-                "fee": 6,
+                "fee": 1,
                 "precision": 0.0001,
                 "info": {
                     "amountScale": "4",
@@ -1324,14 +1376,14 @@
                     "min": "10",
                     "transferAmtScale": "4",
                     "canWithDraw": true,
-                    "fee": "6.0000",
+                    "fee": "1.0000",
                     "minTransfer": "0.0001",
                     "type": "1"
                 }
             },
-            "TRX": {
+            "TRC20": {
                 "id": "trc20",
-                "network": "TRX",
+                "network": "TRC20",
                 "limits": {
                     "withdraw": {
                         "min": 2,
@@ -1345,7 +1397,7 @@
                 "active": null,
                 "deposit": null,
                 "withdraw": false,
-                "fee": 1.0004,
+                "fee": 1.5,
                 "precision": 0.0001,
                 "info": {
                     "amountScale": "4",
@@ -1354,14 +1406,14 @@
                     "min": "2",
                     "transferAmtScale": "4",
                     "canWithDraw": false,
-                    "fee": "1.0004",
+                    "fee": "1.5000",
                     "minTransfer": "0.0001",
                     "type": "1"
                 }
             },
-            "BSC": {
+            "BEP20": {
                 "id": "bep20(bsc)",
-                "network": "BSC",
+                "network": "BEP20",
                 "limits": {
                     "withdraw": {
                         "min": 10,
@@ -1375,7 +1427,7 @@
                 "active": null,
                 "deposit": null,
                 "withdraw": true,
-                "fee": 0,
+                "fee": 0.2,
                 "precision": 0.0001,
                 "info": {
                     "amountScale": "4",
@@ -1384,7 +1436,7 @@
                     "min": "10",
                     "transferAmtScale": "4",
                     "canWithDraw": true,
-                    "fee": "0.0000",
+                    "fee": "0.2000",
                     "minTransfer": "0.0001",
                     "type": "1"
                 }
@@ -1394,7 +1446,7 @@
                 "network": "arbitrum one",
                 "limits": {
                     "withdraw": {
-                        "min": 1,
+                        "min": 5,
                         "max": null
                     },
                     "deposit": {
@@ -1405,16 +1457,16 @@
                 "active": null,
                 "deposit": null,
                 "withdraw": true,
-                "fee": 1.0004,
+                "fee": 0.9989,
                 "precision": 0.0001,
                 "info": {
                     "amountScale": "4",
                     "chain": "arbitrum one",
                     "assetCode": "usdc",
-                    "min": "1",
+                    "min": "5",
                     "transferAmtScale": "4",
                     "canWithDraw": true,
-                    "fee": "1.0004",
+                    "fee": "0.9989",
                     "minTransfer": "0.0001",
                     "type": "1"
                 }
@@ -1424,7 +1476,7 @@
                 "network": "solana",
                 "limits": {
                     "withdraw": {
-                        "min": 1,
+                        "min": 10,
                         "max": null
                     },
                     "deposit": {
@@ -1435,16 +1487,16 @@
                 "active": null,
                 "deposit": null,
                 "withdraw": true,
-                "fee": 1.0004,
+                "fee": 0.9989,
                 "precision": 0.0001,
                 "info": {
                     "amountScale": "4",
                     "chain": "solana",
                     "assetCode": "usdc",
-                    "min": "1",
+                    "min": "10",
                     "transferAmtScale": "4",
                     "canWithDraw": true,
-                    "fee": "1.0004",
+                    "fee": "0.9989",
                     "minTransfer": "0.0001",
                     "type": "1"
                 }
@@ -1454,7 +1506,7 @@
                 "network": "near",
                 "limits": {
                     "withdraw": {
-                        "min": 1,
+                        "min": 5,
                         "max": null
                     },
                     "deposit": {
@@ -1471,7 +1523,7 @@
                     "amountScale": "4",
                     "chain": "near",
                     "assetCode": "usdc",
-                    "min": "1",
+                    "min": "5",
                     "transferAmtScale": "4",
                     "canWithDraw": true,
                     "fee": "1.0000",
@@ -1482,6 +1534,36 @@
             "base mainnet": {
                 "id": "base mainnet",
                 "network": "base mainnet",
+                "limits": {
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.0001,
+                        "max": null
+                    }
+                },
+                "active": null,
+                "deposit": null,
+                "withdraw": true,
+                "fee": 0.9989,
+                "precision": 0.0001,
+                "info": {
+                    "amountScale": "4",
+                    "chain": "base mainnet",
+                    "assetCode": "usdc",
+                    "min": "5",
+                    "transferAmtScale": "4",
+                    "canWithDraw": true,
+                    "fee": "0.9989",
+                    "minTransfer": "0.0001",
+                    "type": "1"
+                }
+            },
+            "polygon": {
+                "id": "polygon",
+                "network": "polygon",
                 "limits": {
                     "withdraw": {
                         "min": 1,
@@ -1495,16 +1577,16 @@
                 "active": null,
                 "deposit": null,
                 "withdraw": true,
-                "fee": 1.0004,
+                "fee": 0.1997,
                 "precision": 0.0001,
                 "info": {
                     "amountScale": "4",
-                    "chain": "base mainnet",
+                    "chain": "polygon",
                     "assetCode": "usdc",
                     "min": "1",
                     "transferAmtScale": "4",
                     "canWithDraw": true,
-                    "fee": "1.0004",
+                    "fee": "0.1997",
                     "minTransfer": "0.0001",
                     "type": "1"
                 }

@@ -13,16 +13,16 @@ public partial class pacifica : Exchange
             { "countries", new List<object>() {} },
             { "version", "v1" },
             { "isSandboxModeEnabled", false },
-            { "rateLimit", 50 },
+            { "rateLimit", 600 },
             { "certified", false },
             { "pro", true },
             { "dex", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
-                { "spot", false },
+                { "spot", true },
                 { "margin", false },
                 { "swap", true },
-                { "future", true },
+                { "future", false },
                 { "option", false },
                 { "addMargin", false },
                 { "borrowCrossMargin", false },
@@ -44,7 +44,7 @@ public partial class pacifica : Exchange
                 { "createStopOrder", true },
                 { "editOrder", true },
                 { "editOrders", false },
-                { "fetchAccounts", true },
+                { "fetchAccounts", false },
                 { "fetchBalance", true },
                 { "fetchBorrowInterest", false },
                 { "fetchBorrowRateHistories", false },
@@ -58,7 +58,7 @@ public partial class pacifica : Exchange
                 { "fetchDepositAddress", false },
                 { "fetchDepositAddresses", false },
                 { "fetchDeposits", false },
-                { "fetchDepositWithdrawFee", "emulated" },
+                { "fetchDepositWithdrawFee", false },
                 { "fetchDepositWithdrawFees", false },
                 { "fetchFundingHistory", true },
                 { "fetchFundingRate", false },
@@ -124,10 +124,12 @@ public partial class pacifica : Exchange
                 { "8h", "8h" },
                 { "12h", "12h" },
                 { "1d", "1d" },
+                { "1w", "1w" },
+                { "1M", "1M" },
             } },
             { "hostname", "pacifica.fi" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/f795515a-828e-4a04-8fca-bf19fcf17ea4" },
+                { "logo", "https://github.com/user-attachments/assets/03ed021f-cdec-43c8-acb4-941f1282f610" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.{hostname}" },
                     { "private", "https://api.{hostname}" },
@@ -144,54 +146,220 @@ public partial class pacifica : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "info", 1 },
-                        { "info/prices", 1 },
-                        { "kline", 12 },
-                        { "kline/mark", 12 },
-                        { "book", 1 },
-                        { "trades", 1 },
-                        { "funding_rate/history", 1 },
-                        { "account", 1 },
-                        { "account/settings", 1 },
-                        { "positions", 1 },
-                        { "trades/history", 12 },
-                        { "funding/history", 1 },
-                        { "portfolio", 1 },
-                        { "account/balance/history", 12 },
-                        { "orders", 1 },
-                        { "orders/history", 12 },
-                        { "orders/history_by_id", 1 },
-                        { "account/builder_codes/approvals", 1 },
+                        { "info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "info/fees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "info/prices", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "kline", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "kline/mark", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding_rate/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "loan_pool", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/loan", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/settings", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades/history", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "funding/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "portfolio", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/balance/history", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "account/spot_balance/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/spot_asset/deposit/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/spot_asset/withdraw/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/spot_asset/withdraw/pending", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/history", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "orders/history_by_id", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot_assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot_assets/bridge/info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot_assets/bridge/parameters/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/builder_codes/approvals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "account/leverage", 1 },
-                        { "account/margin", 1 },
-                        { "account/withdraw", 1 },
-                        { "account/subaccount/create", 1 },
-                        { "account/subaccount/list", 1 },
-                        { "account/subaccount/transfer", 1 },
-                        { "orders/create", 1 },
-                        { "orders/create_market", 1 },
-                        { "orders/stop/create", 1 },
-                        { "positions/tpsl", 1 },
-                        { "orders/cancel", 0.5 },
-                        { "orders/cancel_all", 0.5 },
-                        { "orders/stop/cancel", 0.5 },
-                        { "orders/edit", 1 },
-                        { "orders/batch", 1 },
-                        { "account/builder_codes/approve", 1 },
-                        { "account/builder_codes/revoke", 1 },
-                        { "agent/bind", 1 },
-                        { "account/api_keys/create", 1 },
-                        { "account/api_keys/revoke", 1 },
-                        { "account/api_keys", 1 },
+                        { "account/leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/margin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/settings/auto_lend_disabled", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/settings/spot", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/spot_asset/withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/subaccount/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/subaccount/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/subaccount/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/subaccount/spot_asset/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions/add_isolated_margin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/create_market", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/stop/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions/tpsl", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/cancel", new Dictionary<string, object>() {
+                            { "cost", 0.5 },
+                        } },
+                        { "orders/cancel_all", new Dictionary<string, object>() {
+                            { "cost", 0.5 },
+                        } },
+                        { "orders/stop/cancel", new Dictionary<string, object>() {
+                            { "cost", 0.5 },
+                        } },
+                        { "orders/edit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/batch", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/builder_codes/approve", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/builder_codes/revoke", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "agent/bind", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/api_keys/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/api_keys/revoke", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/api_keys", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/add_blacklist", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/add_max_leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/add_whitelist", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/claim_manager", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/claim_referral_code", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/deposit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/remove_blacklist", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/remove_max_leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/remove_whitelist", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/update_deposit_cap", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
                 { "swap", new Dictionary<string, object>() {
+                    { "taker", this.parseNumber("0.0004") },
+                    { "maker", this.parseNumber("0.00015") },
+                } },
+                { "spot", new Dictionary<string, object>() {
                     { "taker", this.parseNumber("0.0004") },
                     { "maker", this.parseNumber("0.00015") },
                 } },
@@ -204,10 +372,131 @@ public partial class pacifica : Exchange
             } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
+                    { "0", typeof(ExchangeError) },
+                    { "1", typeof(ExchangeError) },
+                    { "2", typeof(ExchangeError) },
+                    { "3", typeof(ExchangeError) },
+                    { "4", typeof(InvalidOrder) },
+                    { "5", typeof(InsufficientFunds) },
+                    { "6", typeof(OrderNotFound) },
+                    { "7", typeof(InvalidOrder) },
+                    { "8", typeof(InvalidOrder) },
+                    { "9", typeof(InsufficientFunds) },
+                    { "10", typeof(InvalidOrder) },
+                    { "11", typeof(ExchangeError) },
+                    { "12", typeof(ExchangeError) },
+                    { "13", typeof(ExchangeError) },
+                    { "14", typeof(ExchangeError) },
+                    { "15", typeof(BadRequest) },
+                    { "16", typeof(InvalidOrder) },
+                    { "17", typeof(InvalidOrder) },
+                    { "18", typeof(InvalidOrder) },
+                    { "19", typeof(InvalidOrder) },
+                    { "20", typeof(InvalidOrder) },
+                    { "21", typeof(InvalidOrder) },
+                    { "22", typeof(InvalidOrder) },
+                    { "23", typeof(InvalidOrder) },
+                    { "24", typeof(ExchangeError) },
+                    { "25", typeof(InvalidOrder) },
+                    { "26", typeof(ExchangeError) },
+                    { "27", typeof(ExchangeError) },
+                    { "28", typeof(InvalidOrder) },
+                    { "29", typeof(InvalidOrder) },
+                    { "30", typeof(InvalidOrder) },
+                    { "31", typeof(PermissionDenied) },
+                    { "32", typeof(PermissionDenied) },
+                    { "33", typeof(BadRequest) },
+                    { "34", typeof(PermissionDenied) },
+                    { "35", typeof(PermissionDenied) },
+                    { "36", typeof(InvalidOrder) },
+                    { "37", typeof(InvalidOrder) },
+                    { "38", typeof(PermissionDenied) },
+                    { "39", typeof(BadRequest) },
+                    { "40", typeof(PermissionDenied) },
+                    { "41", typeof(InvalidOrder) },
+                    { "42", typeof(ExchangeError) },
+                    { "43", typeof(InvalidOrder) },
+                    { "44", typeof(InvalidOrder) },
+                    { "45", typeof(InvalidOrder) },
+                    { "46", typeof(InvalidOrder) },
+                    { "47", typeof(OrderNotFound) },
+                    { "48", typeof(InvalidOrder) },
+                    { "49", typeof(InvalidOrder) },
+                    { "50", typeof(BadRequest) },
+                    { "51", typeof(NotSupported) },
+                    { "52", typeof(InvalidOrder) },
+                    { "53", typeof(InvalidOrder) },
+                    { "54", typeof(ExchangeError) },
+                    { "55", typeof(ExchangeError) },
+                    { "56", typeof(ExchangeError) },
+                    { "59", typeof(InvalidOrder) },
+                    { "61", typeof(InsufficientFunds) },
+                    { "62", typeof(InsufficientFunds) },
+                    { "63", typeof(ExchangeError) },
+                    { "64", typeof(BadRequest) },
+                    { "65", typeof(InsufficientFunds) },
+                    { "66", typeof(ExchangeError) },
+                    { "67", typeof(ExchangeError) },
+                    { "68", typeof(InvalidOrder) },
+                    { "69", typeof(InvalidOrder) },
+                    { "70", typeof(InsufficientFunds) },
+                    { "71", typeof(ExchangeError) },
+                    { "72", typeof(PermissionDenied) },
+                    { "73", typeof(PermissionDenied) },
+                    { "74", typeof(PermissionDenied) },
+                    { "75", typeof(InvalidOrder) },
+                    { "76", typeof(PermissionDenied) },
+                    { "77", typeof(BadRequest) },
+                    { "78", typeof(InsufficientFunds) },
+                    { "79", typeof(ExchangeError) },
+                    { "80", typeof(InvalidOrder) },
+                    { "81", typeof(BadRequest) },
+                    { "82", typeof(InvalidOrder) },
+                    { "83", typeof(ExchangeNotAvailable) },
+                    { "84", typeof(BadRequest) },
+                    { "85", typeof(BadRequest) },
+                    { "86", typeof(BadRequest) },
+                    { "87", typeof(PermissionDenied) },
+                    { "88", typeof(BadRequest) },
+                    { "89", typeof(BadRequest) },
+                    { "90", typeof(BadRequest) },
+                    { "91", typeof(ExchangeError) },
+                    { "92", typeof(ExchangeNotAvailable) },
+                    { "93", typeof(BadRequest) },
+                    { "94", typeof(InvalidOrder) },
+                    { "95", typeof(ExchangeError) },
+                    { "96", typeof(ExchangeError) },
+                    { "97", typeof(ExchangeError) },
+                    { "99", typeof(InvalidOrder) },
+                    { "100", typeof(PermissionDenied) },
+                    { "101", typeof(ExchangeNotAvailable) },
+                    { "102", typeof(BadRequest) },
+                    { "103", typeof(PermissionDenied) },
+                    { "104", typeof(InvalidOrder) },
+                    { "105", typeof(InvalidOrder) },
+                    { "106", typeof(NotSupported) },
+                    { "107", typeof(NotSupported) },
+                    { "108", typeof(NotSupported) },
+                    { "109", typeof(NotSupported) },
+                    { "110", typeof(BadRequest) },
+                    { "111", typeof(ExchangeNotAvailable) },
+                    { "112", typeof(InvalidOrder) },
+                    { "113", typeof(ExchangeError) },
+                    { "114", typeof(ExchangeError) },
+                    { "115", typeof(ExchangeError) },
+                    { "116", typeof(ExchangeError) },
+                    { "117", typeof(ExchangeError) },
+                    { "118", typeof(ExchangeError) },
+                    { "119", typeof(ExchangeNotAvailable) },
+                    { "120", typeof(PermissionDenied) },
+                    { "121", typeof(InvalidOrder) },
                     { "400", typeof(BadRequest) },
+                    { "401", typeof(AuthenticationError) },
+                    { "402", typeof(AuthenticationError) },
                     { "403", typeof(PermissionDenied) },
                     { "404", typeof(BadRequest) },
                     { "409", typeof(ExchangeError) },
+                    { "420", typeof(ExchangeError) },
                     { "422", typeof(ExchangeError) },
                     { "429", typeof(RateLimitExceeded) },
                     { "500", typeof(ExchangeError) },
@@ -240,7 +529,7 @@ public partial class pacifica : Exchange
                 { "defaultType", "swap" },
                 { "defaultSlippage", "0.5" },
                 { "expiryWindow", 5000 },
-                { "maxCostHugeWithApiKey", 3 },
+                { "maxCostHugeWithApiKey", 4 },
                 { "marketHelperProps", new List<object>() {} },
                 { "defaultMarginMode", "cross" },
                 { "builderSupportOperations", new Dictionary<string, object>() {
@@ -411,19 +700,55 @@ public partial class pacifica : Exchange
      * @method
      * @name pacifica#fetchMarkets
      * @description retrieves data on all markets for pacifica
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-market-info
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of objects representing market data
+     * @returns {object[]} an array of [market structures](https://docs.ccxt.com/#/?id=market-structure)
      */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(this.checkRequiredCredentials(false)))
-        {
-            await this.initializeClient();
-            await this.loadAccountSettings();
-        }
-        object swapMarkets = await this.fetchSwapMarkets(parameters);
-        return swapMarkets;
+        object response = await this.publicGetInfo(parameters); // meta
+        // {
+        //   "success": true,
+        //   "data": [
+        //     {
+        //       "symbol": "BTC",
+        //       "tick_size": "1",
+        //       "min_tick": "0",
+        //       "max_tick": "1000000",
+        //       "lot_size": "0.00001",
+        //       "max_leverage": 50,
+        //       "isolated_only": false,
+        //       "min_order_size": "10",
+        //       "max_order_size": "5000000",
+        //       "funding_rate": "0.0000125",
+        //       "next_funding_rate": "0.0000125",
+        //       "created_at": 1748881333944,
+        //       "instrument_type": "perpetual",
+        //       "base_asset": "BTC"
+        //     },
+        //     {
+        //       "symbol": "SOL-USDC",
+        //       "tick_size": "0.01",
+        //       "min_tick": "0",
+        //       "max_tick": "1000000",
+        //       "lot_size": "0.001",
+        //       "max_leverage": 1,
+        //       "isolated_only": false,
+        //       "min_order_size": "10",
+        //       "max_order_size": "1000000",
+        //       "funding_rate": "0",
+        //       "next_funding_rate": "0",
+        //       "created_at": 1776615970246,
+        //       "instrument_type": "spot",
+        //       "base_asset": "SOL"
+        //     },
+        //   ],
+        //   "error": null,
+        //   "code": null
+        // }
+        object markets = this.safeList(response, "data", new List<object>() {});
+        return this.parseMarkets(markets);
     }
 
     /**
@@ -437,69 +762,13 @@ public partial class pacifica : Exchange
     public async virtual Task<object> fetchSwapMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.publicGetInfo(parameters); // meta
-        // {
-        //   "success": true,
-        //   "data": [
-        //     {
-        //       "symbol": "ETH",
-        //       "tick_size": "0.1",
-        //       "min_tick": "0",
-        //       "max_tick": "1000000",
-        //       "lot_size": "0.0001",
-        //       "max_leverage": 50,
-        //       "isolated_only": false,
-        //       "min_order_size": "10",
-        //       "max_order_size": "5000000",
-        //       "funding_rate": "0.0000125",
-        //       "next_funding_rate": "0.0000125",
-        //       "created_at": 1748881333944
-        //     },
-        //     {
-        //       "symbol": "BTC",
-        //       "tick_size": "1",
-        //       "min_tick": "0",
-        //       "max_tick": "1000000",
-        //       "lot_size": "0.00001",
-        //       "max_leverage": 50,
-        //       "isolated_only": false,
-        //       "min_order_size": "10",
-        //       "max_order_size": "5000000",
-        //       "funding_rate": "0.0000125",
-        //       "next_funding_rate": "0.0000125",
-        //       "created_at": 1748881333944
-        //     },
-        //     ....
-        //   ],
-        //   "error": null,
-        //   "code": null
-        // }
-        object meta = this.safeList(response, "data", new List<object>() {});
-        object results = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(meta)); postFixIncrement(ref i))
-        {
-            ((IList<object>)results).Add(getValue(meta, i));
-        }
-        return this.parseMarkets(results);
+        object markets = await this.fetchMarkets(parameters);
+        return this.filterBy(markets, "type", "swap");
     }
 
     public override object parseMarket(object market)
     {
         //     {
-        //       "symbol": "ETH",
-        //       "tick_size": "0.1",
-        //       "min_tick": "0",
-        //       "max_tick": "1000000",
-        //       "lot_size": "0.0001",
-        //       "max_leverage": 50,
-        //       "isolated_only": false,
-        //       "min_order_size": "10",
-        //       "max_order_size": "5000000",
-        //       "funding_rate": "0.0000125",
-        //       "next_funding_rate": "0.0000125",
-        //       "created_at": 1748881333944
-        //     },
-        //     {
         //       "symbol": "BTC",
         //       "tick_size": "1",
         //       "min_tick": "0",
@@ -511,31 +780,76 @@ public partial class pacifica : Exchange
         //       "max_order_size": "5000000",
         //       "funding_rate": "0.0000125",
         //       "next_funding_rate": "0.0000125",
-        //       "created_at": 1748881333944
+        //       "created_at": 1748881333944,
+        //       "instrument_type": "perpetual",
+        //       "base_asset": "BTC"
         //     },
-        object quoteId = "usdc";
-        object settleId = "usdc";
+        //     {
+        //       "symbol": "SOL-USDC",
+        //       "tick_size": "0.01",
+        //       "min_tick": "0",
+        //       "max_tick": "1000000",
+        //       "lot_size": "0.001",
+        //       "max_leverage": 1,
+        //       "isolated_only": false,
+        //       "min_order_size": "10",
+        //       "max_order_size": "1000000",
+        //       "funding_rate": "0",
+        //       "next_funding_rate": "0",
+        //       "created_at": 1776615970246,
+        //       "instrument_type": "spot",
+        //       "base_asset": "SOL"
+        //     },
         object id = this.safeString(market, "symbol");
-        object baseId = ((string)id).ToLower();
-        object baseName = ((string)id).ToUpper();
-        object bs = this.safeCurrencyCode(baseName);
+        object baseId = this.safeString(market, "base_asset", id);
+        object instrumentType = this.safeString(market, "instrument_type");
+        object isSpot = (isEqual(instrumentType, "spot"));
+        object isSwap = !isTrue(isSpot);
+        object quoteId = "USDC";
+        object settleId = null;
+        object type = "spot";
+        object linear = null;
+        object inverse = null;
+        object contractSize = null;
+        object minLeverage = null;
+        object maxLeverage = null;
+        object crossMargin = null;
+        object isolatedMargin = null;
+        if (isTrue(isEqual(id, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseMarket() missing id")) ;
+        }
+        if (isTrue(isSpot))
+        {
+            object idParts = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            quoteId = this.safeString(idParts, 1, quoteId);
+        }
+        object isolatedOnly = this.safeBool(market, "isolated_only", false);
+        if (isTrue(isSwap))
+        {
+            settleId = quoteId;
+            type = "swap";
+            linear = true;
+            inverse = false;
+            contractSize = this.parseNumber("1");
+            minLeverage = 1;
+            maxLeverage = this.safeInteger(market, "max_leverage");
+            crossMargin = !isTrue(isolatedOnly);
+            isolatedMargin = true;
+        }
+        object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object settle = this.safeCurrencyCode(settleId);
         object symbol = add(add(bs, "/"), quote);
-        object contract = true;
-        object swap = true;
-        if (isTrue(contract))
+        if (isTrue(isSwap))
         {
-            if (isTrue(swap))
-            {
-                symbol = add(add(symbol, ":"), settle);
-            }
+            symbol = add(add(symbol, ":"), settle);
         }
-        object fees = this.safeDict(this.fees, "swap", new Dictionary<string, object>() {});
+        object fees = this.safeDict(this.fees, type, new Dictionary<string, object>() {});
         object taker = this.safeNumber(fees, "taker");
         object maker = this.safeNumber(fees, "maker");
-        object amountPrecisionStr = this.safeString(market, "lot_size");
-        object pricePrecisionStr = this.safeString(market, "tick_size");
+        object amountPrecision = this.safeNumber(market, "lot_size");
+        object pricePrecision = this.safeNumber(market, "tick_size");
         object active = true; // there is no non-active markets comes from endpoint market info
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -544,52 +858,51 @@ public partial class pacifica : Exchange
             { "quote", quote },
             { "settle", settle },
             { "baseId", baseId },
-            { "baseName", baseName },
             { "quoteId", quoteId },
             { "settleId", settleId },
-            { "type", "swap" },
-            { "spot", false },
-            { "margin", null },
-            { "swap", swap },
+            { "type", type },
+            { "spot", isSpot },
+            { "margin", false },
+            { "swap", isSwap },
             { "future", false },
             { "option", false },
             { "active", active },
-            { "contract", contract },
-            { "linear", true },
-            { "inverse", false },
+            { "contract", isSwap },
+            { "linear", linear },
+            { "inverse", inverse },
             { "taker", taker },
             { "maker", maker },
-            { "contractSize", this.parseNumber("1") },
+            { "contractSize", contractSize },
             { "expiry", null },
             { "expiryDatetime", null },
             { "strike", null },
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
-                { "amount", this.parseNumber(amountPrecisionStr) },
-                { "price", this.parseNumber(pricePrecisionStr) },
+                { "amount", amountPrecision },
+                { "price", pricePrecision },
             } },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
-                    { "min", 1 },
-                    { "max", this.safeInteger(market, "max_leverage") },
+                    { "min", minLeverage },
+                    { "max", maxLeverage },
                 } },
                 { "amount", new Dictionary<string, object>() {
                     { "min", null },
                     { "max", null },
                 } },
                 { "price", new Dictionary<string, object>() {
-                    { "min", this.safeString(market, "min_tick") },
-                    { "max", this.safeString(market, "max_tick") },
+                    { "min", this.safeNumber(market, "min_tick") },
+                    { "max", this.safeNumber(market, "max_tick") },
                 } },
                 { "cost", new Dictionary<string, object>() {
-                    { "min", null },
-                    { "max", null },
+                    { "min", this.safeNumber(market, "min_order_size") },
+                    { "max", this.safeNumber(market, "max_order_size") },
                 } },
             } },
-            { "created", null },
+            { "created", this.safeInteger(market, "created_at") },
             { "marginModes", new Dictionary<string, object>() {
-                { "cross", true },
-                { "isolated", true },
+                { "cross", crossMargin },
+                { "isolated", isolatedMargin },
             } },
             { "info", market },
         });
@@ -660,6 +973,7 @@ public partial class pacifica : Exchange
      * @method
      * @name pacifica#fetchLeverage
      * @description fetch the set leverage for a market
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
      * @param {string} symbol  unified symbol of the market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.account] will default to walletAddress if not provided
@@ -669,7 +983,10 @@ public partial class pacifica : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadAccountSettings();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object userAccount = null;
         var userAccountparametersVariable = this.handleOriginAndSingleAddress("fetchLeverage", parameters);
@@ -679,7 +996,7 @@ public partial class pacifica : Exchange
         object settings = null;
         if (isTrue(isEqual(userAccount, cacheAddress)))
         {
-            settings = this.handleOption("fetchLeverage", "settings", null);
+            settings = this.handleOption("fetchLeverage", "settings");
         } else
         {
             object request = new Dictionary<string, object>() {
@@ -687,7 +1004,7 @@ public partial class pacifica : Exchange
             };
             settings = await this.fetchAccountSettings(this.extend(request, parameters));
         }
-        object setting = this.safeDict(settings, symbol, null);
+        object setting = this.safeDict(settings, symbol);
         if (isTrue(isEqual(setting, null)))
         {
             // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -776,7 +1093,7 @@ public partial class pacifica : Exchange
     {
         refresh ??= false;
         parameters ??= new Dictionary<string, object>();
-        object settings = this.handleOption("loadAccountSettings", "settings", null);
+        object settings = this.handleOption("loadAccountSettings", "settings");
         if (isTrue(isTrue((isEqual(settings, null))) || isTrue((isEqual(refresh, true)))))
         {
             ((IDictionary<string,object>)this.options)["settings"] = this.createSafeDictionary();
@@ -807,6 +1124,7 @@ public partial class pacifica : Exchange
      * @method
      * @name pacifica#fetchMarginMode
      * @description fetches the margin mode of the trading pair
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
      * @param {string} symbol unified symbol of the market to fetch the margin mode for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.account] will default to walletAddress if not provided
@@ -824,7 +1142,7 @@ public partial class pacifica : Exchange
         object settings = null;
         if (isTrue(isEqual(userAccount, cacheAddress)))
         {
-            settings = this.handleOption("fetchMarginMode", "settings", null);
+            settings = this.handleOption("fetchMarginMode", "settings");
         } else
         {
             object request = new Dictionary<string, object>() {
@@ -841,7 +1159,7 @@ public partial class pacifica : Exchange
         //       "updated_at": 1758086074002
         //    },
         // }
-        object setting = this.safeDict(settings, symbol, null);
+        object setting = this.safeDict(settings, symbol);
         if (isTrue(isEqual(setting, null)))
         {
             // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -884,12 +1202,15 @@ public partial class pacifica : Exchange
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object aggLevel = null;
         var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "aggLevel", 1);
@@ -949,6 +1270,7 @@ public partial class pacifica : Exchange
      * @method
      * @name pacifica#fetchFundingRates
      * @description retrieves data on all swap markets for pacifica
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
@@ -1035,7 +1357,7 @@ public partial class pacifica : Exchange
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-candle-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-     * @param {string} timeframe the length of time each candle represents, support '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '8h', '12h', '1d'
+     * @param {string} timeframe the length of time each candle represents, support '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '8h', '12h', '1d', '1w', '1M'
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1056,7 +1378,10 @@ public partial class pacifica : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchOHLCV() requires a \"symbol\" argument")) ;
         }
         object defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
@@ -1065,60 +1390,58 @@ public partial class pacifica : Exchange
         if (isTrue(paginate))
         {
             return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, defaultMaxLimit);
-        } else
+        }
+        object tf = this.safeString(this.timeframes, timeframe, timeframe);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "interval", tf },
+            { "start_time", since },
+        };
+        var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object nowMillis = this.milliseconds();
+        object until = this.safeInteger(request, "end_time");
+        if (isTrue(isEqual(until, null)))
         {
-            object tf = this.safeString(this.timeframes, timeframe, timeframe);
-            object request = new Dictionary<string, object>() {
-                { "symbol", getValue(market, "id") },
-                { "interval", tf },
-                { "start_time", since },
-            };
-            var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
-            request = ((IList<object>)requestparametersVariable)[0];
-            parameters = ((IList<object>)requestparametersVariable)[1];
-            object nowMillis = this.milliseconds();
-            object until = this.safeInteger(request, "end_time");
+            if (isTrue(!isEqual(limit, null)))
+            {
+                until = subtract(add(since, (multiply(limit, (multiply(this.parseTimeframe(tf), 1000))))), 1);
+            }
             if (isTrue(isEqual(until, null)))
             {
-                if (isTrue(!isEqual(limit, null)))
-                {
-                    until = subtract(add(since, (multiply(limit, (multiply(this.parseTimeframe(tf), 1000))))), 1);
-                }
-                if (isTrue(isEqual(until, null)))
-                {
-                    until = subtract(add(since, (multiply(defaultMaxLimit, (multiply(this.parseTimeframe(tf), 1000))))), 1);
-                }
-                if (isTrue(isGreaterThan(until, nowMillis)))
-                {
-                    until = nowMillis;
-                }
-                ((IDictionary<string,object>)request)["end_time"] = until;
+                until = subtract(add(since, (multiply(defaultMaxLimit, (multiply(this.parseTimeframe(tf), 1000))))), 1);
             }
-            object response = await this.publicGetKline(this.extend(request, parameters));
-            //
-            // {
-            //   "success": true,
-            //   "data": [
-            //     {
-            //       "t": 1748954160000,
-            //       "T": 1748954220000,
-            //       "s": "BTC",
-            //       "i": "1m",
-            //       "o": "105376",
-            //       "c": "105376",
-            //       "h": "105376",
-            //       "l": "105376",
-            //       "v": "0.00022",
-            //       "n": 2
-            //     }
-            //   ],
-            //   "error": null,
-            //   "code": null
-            // }
-            //
-            object candles = this.safeList(response, "data", new List<object>() {});
-            return this.parseOHLCVs(candles, market, timeframe, since, limit);
+            if (isTrue(isGreaterThan(until, nowMillis)))
+            {
+                until = nowMillis;
+            }
+            ((IDictionary<string,object>)request)["end_time"] = until;
         }
+        object response = await this.publicGetKline(this.extend(request, parameters));
+        //
+        // {
+        //   "success": true,
+        //   "data": [
+        //     {
+        //       "t": 1748954160000,
+        //       "T": 1748954220000,
+        //       "s": "BTC",
+        //       "i": "1m",
+        //       "o": "105376",
+        //       "c": "105376",
+        //       "h": "105376",
+        //       "l": "105376",
+        //       "v": "0.00022",
+        //       "n": 2
+        //     }
+        //   ],
+        //   "error": null,
+        //   "code": null
+        // }
+        //
+        object candles = this.safeList(response, "data", new List<object>() {});
+        return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1154,7 +1477,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1200,7 +1526,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -1226,7 +1555,7 @@ public partial class pacifica : Exchange
         ((IDictionary<string,object>)request)["account"] = userAddress;
         if (isTrue(!isEqual(symbol, null)))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         if (isTrue(!isEqual(limit, null)))
         {
@@ -1374,7 +1703,10 @@ public partial class pacifica : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         var requestoperationTypeVariable = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         var request = ((IList<object>) requestoperationTypeVariable)[0];
@@ -1423,31 +1755,39 @@ public partial class pacifica : Exchange
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @ignore
-        * @name pacifica#createOrderRequest
-        * @description create a trade order
-        * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-limit-order
-        * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-market-order
-        * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-stop-order
-        * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-position-tp-sl
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, but can be used as limit_price of Trigger Order.
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.triggerPrice] The price a trigger order is triggered at
-        * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at (optional provide stopLossCloid)
-        * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
-        * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
-        * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
-        * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
-        * @param {int} [params.expiryWindow] time to live in milliseconds
-        * @returns {object} an [order structure]
-        */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name pacifica#createOrderRequest
+         * @description create a trade order
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-limit-order
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-market-order
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-stop-order
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-position-tp-sl
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, but can be used as limit_price of Trigger Order.
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+         * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at (optional provide stopLossCloid)
+         * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
+         * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
+         * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
+         * @param {int} [params.expiryWindow] time to live in milliseconds
+         * @returns {object} an [order structure]
+         */
         object market = this.market(symbol);
         object sigPayload = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1536,7 +1876,7 @@ public partial class pacifica : Exchange
         {
             ((IDictionary<string,object>)sigPayload)["amount"] = this.amountToPrecision(symbol, amount);
         }
-        object clientOrderId = this.safeStringN(parameters, new List<object>() {"clientOrderId"});
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)sigPayload)["client_order_id"] = clientOrderId;
@@ -1638,7 +1978,10 @@ public partial class pacifica : Exchange
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         object request = this.createOrdersRequest(orders);
         object response = await this.privatePostOrdersBatch(this.extend(request, parameters));
@@ -1666,7 +2009,7 @@ public partial class pacifica : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
             object order = getValue(results, i);
-            object error = this.safeString(order, "error", null);
+            object error = this.safeString(order, "error");
             object success = this.safeBool(order, "success", false);
             object status = null;
             if (isTrue(isTrue((!isEqual(error, null))) || isTrue((!isTrue(success)))))
@@ -1701,7 +2044,10 @@ public partial class pacifica : Exchange
     public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1735,7 +2081,7 @@ public partial class pacifica : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
             object order = getValue(results, i);
-            object error = this.safeString(order, "error", null);
+            object error = this.safeString(order, "error");
             object success = this.safeBool(order, "success", false);
             object status = null;
             if (isTrue(isTrue((!isEqual(error, null))) || isTrue((!isTrue(success)))))
@@ -1791,7 +2137,7 @@ public partial class pacifica : Exchange
      * @name pacifica#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/cancel-all-orders
-     * @param {string} symbol (optional) unified market symbol of the market to cancel orders in.
+     * @param {string} [symbol] (optional) unified market symbol of the market to cancel orders in.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.excludeReduceOnly] whether to exclude reduce-only orders
      * @param {int} [params.expiryWindow] time to live in milliseconds
@@ -1800,7 +2146,10 @@ public partial class pacifica : Exchange
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         object request = this.cancelAllOrdersRequest(symbol, parameters);
         parameters = this.omit(parameters, new List<object>() {"excludeReduceOnly", "expiryWindow"});
@@ -1857,7 +2206,10 @@ public partial class pacifica : Exchange
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1938,7 +2290,10 @@ public partial class pacifica : Exchange
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         object market = this.market(symbol);
         object request = this.editOrderRequest(id, symbol, type, side, amount, price, market, parameters);
@@ -1963,6 +2318,10 @@ public partial class pacifica : Exchange
     public virtual object editOrderRequest(object id, object symbol, object type, object side, object amount, object price, object market, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         if (isTrue(isEqual(amount, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires an amount!")) ;
@@ -1976,7 +2335,7 @@ public partial class pacifica : Exchange
         object priceNormalized = this.priceToPrecision(symbol, price);
         object amountNormalized = this.amountToPrecision(symbol, amount);
         object sigPayload = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", this.safeString(market, "id") },
             { "price", priceNormalized },
             { "amount", amountNormalized },
         };
@@ -2011,7 +2370,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -2082,7 +2444,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object response = await this.publicGetInfoPrices(parameters);
         //
@@ -2113,7 +2478,10 @@ public partial class pacifica : Exchange
             object info = getValue(data, i);
             object ticker = this.parseTicker(info);
             object symbol = this.safeString(ticker, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = ticker;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers(result, "symbol", symbols);
     }
@@ -2155,6 +2523,7 @@ public partial class pacifica : Exchange
      * @method
      * @name pacifica#fetchClosedOrders
      * @description fetch all unfilled currently closed orders
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
@@ -2165,7 +2534,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object orders = await this.fetchOrders(symbol, null, null, parameters); // don't filter here because we don't want to catch open orders
         object closedOrders = this.filterByArray(orders, "status", new List<object>() {"closed"}, false);
         return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
@@ -2175,6 +2547,7 @@ public partial class pacifica : Exchange
      * @method
      * @name pacifica#fetchCanceledOrders
      * @description fetch all canceled orders
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
@@ -2185,7 +2558,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object orders = await this.fetchOrders(symbol, null, null, parameters); // don't filter here because we don't want to catch open orders
         object closedOrders = this.filterByArray(orders, "status", new List<object>() {"canceled"}, false);
         return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
@@ -2195,6 +2571,7 @@ public partial class pacifica : Exchange
      * @method
      * @name pacifica#fetchCanceledAndClosedOrders
      * @description fetch all closed and canceled orders
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
@@ -2205,7 +2582,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object orders = await this.fetchOrders(symbol, null, null, parameters); // don't filter here because we don't want to catch open orders
         object closedOrders = this.filterByArray(orders, "status", new List<object>() {"canceled", "closed", "rejected"}, false);
         return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
@@ -2226,7 +2606,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object userAddress = null;
         var userAddressparametersVariable = this.handleOriginAndSingleAddress("fetchOpenOrders", parameters);
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
@@ -2287,7 +2670,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -2379,7 +2765,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -2474,7 +2863,7 @@ public partial class pacifica : Exchange
         {
             tif = ((string)tifRaw).ToUpper();
         }
-        return this.safeString(tifMap, tif, null);
+        return this.safeString(tifMap, tif);
     }
 
     public virtual object mapSide(object sideRaw)
@@ -2661,7 +3050,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object userAddress = null;
         var userAddressparametersVariable = this.handleOriginAndSingleAddress("fetchPositions", parameters);
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
@@ -2772,7 +3164,10 @@ public partial class pacifica : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object isIsolated = (isEqual(marginMode, "isolated"));
         object sigPayload = new Dictionary<string, object>() {
@@ -2807,7 +3202,10 @@ public partial class pacifica : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object sigPayload = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -2839,7 +3237,10 @@ public partial class pacifica : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object operationType = "withdraw";
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         this.checkAddress(address);
         object sigPayload = new Dictionary<string, object>() {
             { "amount", ((object)amount).ToString() },
@@ -2865,7 +3266,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object userAddress = null;
         var userAddressparametersVariable = this.handleOriginAndSingleAddress("fetchTradingFee", parameters);
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
@@ -2938,6 +3342,7 @@ public partial class pacifica : Exchange
      * @method
      * @name pacifica#fetchOpenInterests
      * @description Retrieves the open interest for a list of symbols
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
      * @param {string[]} [symbols] Unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -2945,7 +3350,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object swapMarkets = await this.fetchSwapMarkets();
         return this.parseOpenInterests(swapMarkets, symbols);
@@ -2955,6 +3363,7 @@ public partial class pacifica : Exchange
      * @method
      * @name pacifica#fetchOpenInterest
      * @description retrieves the open interest of a contract trading pair
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -2963,7 +3372,10 @@ public partial class pacifica : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         symbol = this.symbol(symbol);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object ois = await this.fetchOpenInterests(new List<object>() {symbol}, parameters);
         return getValue(ois, symbol);
     }
@@ -3026,7 +3438,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchLedger", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -3120,13 +3535,14 @@ public partial class pacifica : Exchange
             { "airdrop", "airdrop" },
             { "payout", "payout" },
         };
-        return this.safeString(ledgerType, type, type);
+        return this.safeString(ledgerType, ((string)type), type);
     }
 
     /**
      * @method
      * @name pacifica#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-funding-history
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -3139,7 +3555,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -3289,6 +3708,7 @@ public partial class pacifica : Exchange
      * @method
      * @name pacifica#createSubAccount
      * @description creates a sub-account under the main account
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount
      * @param {string} name unused argument
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.expiryWindow] time to live in milliseconds
@@ -3301,7 +3721,7 @@ public partial class pacifica : Exchange
         parameters ??= new Dictionary<string, object>();
         object finalHeaders = new Dictionary<string, object>() {};
         object agentAddress = null;
-        var agentAddressparametersVariable = this.handleOption("createSubAccount", "agentAddress", null);
+        var agentAddressparametersVariable = this.handleOption("createSubAccount", "agentAddress");
         agentAddress = ((IList<object>)agentAddressparametersVariable)[0];
         parameters = ((IList<object>)agentAddressparametersVariable)[1];
         object originAddress = null;
@@ -3519,7 +3939,7 @@ public partial class pacifica : Exchange
         {
             body = this.json(parameters);
         }
-        if (isTrue(!isEqual(this.handleOption("sign", "apiKey", null), null)))
+        if (isTrue(!isEqual(this.handleOption("sign", "apiKey"), null)))
         {
             ((IDictionary<string,object>)headers)["PF-API-KEY"] = getValue(this.options, "apiKey");
         }
@@ -3539,7 +3959,7 @@ public partial class pacifica : Exchange
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
         if (isTrue(isGreaterThan(costNumber, 1)))
         {
-            if (isTrue(!isEqual(this.handleOption(method, "apiKey", null), null)))
+            if (isTrue(!isEqual(this.handleOption(method, "apiKey"), null)))
             {
                 object costWithKey = this.handleOption(method, "maxCostHugeWithApiKey", 3);
                 return costWithKey;
@@ -3550,7 +3970,7 @@ public partial class pacifica : Exchange
 
     public virtual object sortJsonKeys(object value)
     {
-        if (isTrue((value is IDictionary<string, object>)))
+        if (isTrue(this.isDictionary(value)))
         {
             object result = new Dictionary<string, object>() {};
             object keys = new List<object>(((IDictionary<string,object>)value).Keys);

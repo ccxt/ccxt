@@ -281,12 +281,8 @@ namespace ccxt
         }
         static public string stringAdd(object string1, object string2)
         {
-            if (string1 == null && string2 == null)
+            if (string1 == null || string2 == null)
                 return null;
-            if (string1 == null)
-                return string2.ToString();
-            if (string2 == null)
-                return string1.ToString();
 
             return (new Precise(string1.ToString()).add(new Precise(string2.ToString()))).ToString();
         }

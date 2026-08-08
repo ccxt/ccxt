@@ -285,6 +285,23 @@ func (this *Coinbaseinternational) SetMargin(symbol string, amount float64, opti
 	}
 	return NewMarginModification(res), nil
 }
+
+/**
+ * @method
+ * @name coinbaseinternational#fetchDepositsWithdrawals
+ * @description fetch history of deposits and withdrawals
+ * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
+ * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+ * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+ * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.portfolios] Identifies the portfolios by UUID (e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID (e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
+ * @param {int} [params.until] Only find transfers updated before this time. Use timestamp format
+ * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
+ * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+ */
 func (this *Coinbaseinternational) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 
 	opts := FetchDepositsWithdrawalsOptionsStruct{}
@@ -670,7 +687,7 @@ func (this *Coinbaseinternational) CreateOrder(symbol string, typeVar string, si
  * @description cancels an open order
  * @see https://docs.cloud.coinbase.com/intx/reference/cancelorder
  * @param {string} id order id
- * @param {string} symbol not used by coinbaseinternational cancelOrder()
+ * @param {string} symbol not used by cancelOrder()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -702,7 +719,7 @@ func (this *Coinbaseinternational) CancelOrder(id string, options ...CancelOrder
  * @method
  * @name coinbaseinternational#cancelAllOrders
  * @description cancel all open orders
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1089,10 +1106,10 @@ func (this *Coinbaseinternational) FetchDepositAddresses(options ...FetchDeposit
 func (this *Coinbaseinternational) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
-func (this *Coinbaseinternational) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Coinbaseinternational) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Coinbaseinternational) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Coinbaseinternational) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Coinbaseinternational) FetchFreeBalance(params ...any) (Balance, error) {
@@ -1212,7 +1229,7 @@ func (this *Coinbaseinternational) FetchPaymentMethods(params ...any) (map[strin
 func (this *Coinbaseinternational) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Coinbaseinternational) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Coinbaseinternational) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Coinbaseinternational) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1227,7 +1244,7 @@ func (this *Coinbaseinternational) FetchPositionsRisk(options ...FetchPositionsR
 func (this *Coinbaseinternational) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Coinbaseinternational) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Coinbaseinternational) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Coinbaseinternational) FetchTime(params ...any) (int64, error) {
@@ -1341,7 +1358,7 @@ func (this *Coinbaseinternational) FetchBalanceWs(params ...any) (Balances, erro
 func (this *Coinbaseinternational) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Coinbaseinternational) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Coinbaseinternational) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Coinbaseinternational) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1386,7 +1403,7 @@ func (this *Coinbaseinternational) FetchTradesWs(symbol string, options ...Fetch
 func (this *Coinbaseinternational) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Coinbaseinternational) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Coinbaseinternational) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Coinbaseinternational) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

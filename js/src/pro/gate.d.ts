@@ -1,8 +1,9 @@
 import gateRest from '../gate.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Liquidation, OrderType, OrderSide, Num, Market, MarketType, OrderRequest, Bool } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, OrderType, OrderSide, Num, Market, OrderRequest, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class gate extends gateRest {
     describe(): any;
+    describeData(): any;
     /**
      * @method
      * @name gate#createOrderWs
@@ -32,7 +33,7 @@ export default class gate extends gateRest {
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name gate#createOrdersWs
@@ -152,7 +153,7 @@ export default class gate extends gateRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -161,7 +162,7 @@ export default class gate extends gateRest {
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
@@ -181,7 +182,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name gate#watchTickers
@@ -319,7 +320,7 @@ export default class gate extends gateRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     setPositionsCache(client: Client, type: any, symbols?: Strings): void;
-    loadPositionsSnapshot(client: any, messageHash: any, type: any): Promise<void>;
+    loadPositionsSnapshot(client: Client, messageHash: any, type: any): Promise<void>;
     handlePositions(client: any, message: any): void;
     /**
      * @method
@@ -335,6 +336,8 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] spot, margin, swap, future, or option. Required if listening to all symbols.
      * @param {boolean} [params.isInverse] if future, listen to inverse or linear contracts
+     * @param {boolean} [params.trigger] set to true to watch trigger orders, spot.priceorders and futures.autoorders channels, see https://github.com/ccxt/ccxt/issues/27202
+     * @param {boolean} [params.stop] alias of params.trigger
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -368,18 +371,18 @@ export default class gate extends gateRest {
      */
     watchMyLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     handleLiquidation(client: Client, message: any): void;
-    parseWsLiquidation(liquidation: any, market?: any): Liquidation;
+    parseWsLiquidation(liquidation: any, market?: Market): Liquidation;
     handleErrorMessage(client: Client, message: any): Bool;
-    handleBalanceSubscription(client: Client, message: any, subscription?: any): void;
+    handleBalanceSubscription(client: Client, message: any, subscription?: Dict | undefined): void;
     handleSubscriptionStatus(client: Client, message: any): void;
     handleUnSubscribe(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;
     getUrlByMarket(market: any): any;
-    getTypeByMarket(market: Market): "spot" | "futures" | "options";
-    getUrlByMarketType(type: MarketType, isInverse?: boolean): any;
+    getTypeByMarket(market: Market): "futures" | "options" | "spot" | undefined;
+    getUrlByMarketType(type: Str, isInverse?: boolean): any;
     getMarketTypeByUrl(url: string): any;
     requestId(): any;
-    subscribePublic(url: any, messageHash: any, payload: any, channel: any, params?: {}, subscription?: any): Promise<any>;
+    subscribePublic(url: any, messageHash: any, payload: any, channel: any, params?: {}, subscription?: Dict | undefined): Promise<any>;
     subscribePublicMultiple(url: any, messageHashes: any, payload: any, channel: any, params?: {}): Promise<any>;
     unSubscribePublicMultiple(url: any, topic: any, symbols: any, messageHashes: any, subMessageHashes: any, payload: any, channel: any, params?: {}): Promise<any>;
     authenticate(url: any, messageType: any): Promise<any>;

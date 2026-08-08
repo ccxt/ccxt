@@ -1,12 +1,12 @@
 
 // ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/woo.js';
-import { AuthenticationError, RateLimitExceeded, BadRequest, OperationFailed, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported, OnMaintenance } from './base/errors.js';
+import { AccountSuspended, AuthenticationError, BadSymbol, DuplicateOrderId, InsufficientFunds, OrderNotFound, RateLimitExceeded, BadRequest, OperationFailed, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported, OnMaintenance, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, TradingFeeInterface, ADL } from './base/types.js';
+import type { ADL, Account, Balances, Bool, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, Status, MarginLoan, Endpoint, List } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory,
  * @augments Exchange
  */
 export default class woo extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'woo',
             'name': 'WOO X',
@@ -160,174 +160,174 @@ export default class woo extends Exchange {
                 'v1': {
                     'pub': {
                         'get': {
-                            'hist/kline': 10,
-                            'hist/trades': 10,
+                            'hist/kline': { 'cost': 10 } as Endpoint<Dict>,
+                            'hist/trades': { 'cost': 10 } as Endpoint<Dict>,
                         },
                     },
                     'public': {
                         'get': {
-                            'info': 1,
-                            'info/{symbol}': 1,
-                            'system_info': 1,
-                            'market_trades': 1,
-                            'token': 1,
-                            'token_network': 1,
-                            'funding_rates': 1,
-                            'funding_rate/{symbol}': 1,
-                            'funding_rate_history': 1,
-                            'futures': 1,
-                            'futures/{symbol}': 1,
-                            'orderbook/{symbol}': 1,
-                            'kline': 1,
+                            'info': { 'cost': 1 } as Endpoint<Dict>,
+                            'info/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                            'system_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'market_trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'token': { 'cost': 1 } as Endpoint<Dict>,
+                            'token_network': { 'cost': 1 } as Endpoint<Dict>,
+                            'funding_rates': { 'cost': 1 } as Endpoint<Dict>,
+                            'funding_rate/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                            'funding_rate_history': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                            'orderbook/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                            'kline': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'get': {
-                            'client/token': 1,
-                            'order/{oid}': 1,
-                            'client/order/{client_order_id}': 1,
-                            'orders': 1,
-                            'client/trade/{tid}': 1,
-                            'order/{oid}/trades': 1,
-                            'client/trades': 1,
-                            'client/hist_trades': 1,
-                            'staking/yield_history': 1,
-                            'client/holding': 1,
-                            'asset/deposit': 10,
-                            'asset/history': 60,
-                            'sub_account/all': 60,
-                            'sub_account/assets': 60,
-                            'sub_account/asset_detail': 60,
-                            'sub_account/ip_restriction': 10,
-                            'asset/main_sub_transfer_history': 30,
-                            'token_interest': 60,
-                            'token_interest/{token}': 60,
-                            'interest/history': 60,
-                            'interest/repay': 60,
-                            'funding_fee/history': 30,
-                            'positions': 3.33, // 30 requests per 10 seconds
-                            'position/{symbol}': 3.33,
-                            'client/transaction_history': 60,
-                            'client/futures_leverage': 60,
+                            'client/token': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/{oid}': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/order/{client_order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/trade/{tid}': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/{oid}/trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/hist_trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'staking/yield_history': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/holding': { 'cost': 1 } as Endpoint<Dict>,
+                            'asset/deposit': { 'cost': 10 } as Endpoint<Dict>,
+                            'asset/history': { 'cost': 60 } as Endpoint<Dict>,
+                            'sub_account/all': { 'cost': 60 } as Endpoint<Dict>,
+                            'sub_account/assets': { 'cost': 60 } as Endpoint<Dict>,
+                            'sub_account/asset_detail': { 'cost': 60 } as Endpoint<Dict>,
+                            'sub_account/ip_restriction': { 'cost': 10 } as Endpoint<Dict>,
+                            'asset/main_sub_transfer_history': { 'cost': 30 } as Endpoint<Dict>,
+                            'token_interest': { 'cost': 60 } as Endpoint<Dict>,
+                            'token_interest/{token}': { 'cost': 60 } as Endpoint<Dict>,
+                            'interest/history': { 'cost': 60 } as Endpoint<Dict>,
+                            'interest/repay': { 'cost': 60 } as Endpoint<Dict>,
+                            'funding_fee/history': { 'cost': 30 } as Endpoint<Dict>,
+                            'positions': { 'cost': 3.33 } as Endpoint<Dict>, // 30 requests per 10 seconds
+                            'position/{symbol}': { 'cost': 3.33 } as Endpoint<Dict>,
+                            'client/transaction_history': { 'cost': 60 } as Endpoint<Dict>,
+                            'client/futures_leverage': { 'cost': 60 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'order': 1, // 10 requests per 1 second per symbol
-                            'order/cancel_all_after': 1,
-                            'asset/ltv': 30,
-                            'asset/internal_withdraw': 30,
-                            'interest/repay': 60,
-                            'client/account_mode': 120,
-                            'client/position_mode': 5,
-                            'client/leverage': 120,
-                            'client/futures_leverage': 30,
-                            'client/isolated_margin': 30,
+                            'order': { 'cost': 1 } as Endpoint<Dict>, // 10 requests per 1 second per symbol
+                            'order/cancel_all_after': { 'cost': 1 } as Endpoint<Dict>,
+                            'asset/ltv': { 'cost': 30 } as Endpoint<Dict>,
+                            'asset/internal_withdraw': { 'cost': 30 } as Endpoint<Dict>,
+                            'interest/repay': { 'cost': 60 } as Endpoint<Dict>,
+                            'client/account_mode': { 'cost': 120 } as Endpoint<Dict>,
+                            'client/position_mode': { 'cost': 5 } as Endpoint<Dict>,
+                            'client/leverage': { 'cost': 120 } as Endpoint<Dict>,
+                            'client/futures_leverage': { 'cost': 30 } as Endpoint<Dict>,
+                            'client/isolated_margin': { 'cost': 30 } as Endpoint<Dict>,
                         },
                         'delete': {
-                            'order': 1,
-                            'client/order': 1,
-                            'orders': 1,
-                            'asset/withdraw': 120,  // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
+                            'order': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/order': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders': { 'cost': 1 } as Endpoint<List>,
+                            'asset/withdraw': { 'cost': 120 } as Endpoint<Dict>,  // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
                         },
                     },
                 },
                 'v2': {
                     'private': {
                         'get': {
-                            'client/holding': 1,
+                            'client/holding': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'v3': {
                     'public': {
                         'get': {
-                            'systemInfo': 1, // 10/1s
-                            'instruments': 1, // 10/1s
-                            'token': 1, // 10/1s
-                            'tokenNetwork': 1, // 10/1s
-                            'tokenInfo': 1, // 10/1s
-                            'marketTrades': 1, // 10/1s
-                            'marketTradesHistory': 1, // 10/1s
-                            'orderbook': 1, // 10/1s
-                            'kline': 1, // 10/1s
-                            'klineHistory': 1, // 10/1s
-                            'futures': 1, // 10/1s
-                            'fundingRate': 1, // 10/1s
-                            'fundingRateHistory': 1, // 10/1s
-                            'insuranceFund': 1, // 10/1s
+                            'systemInfo': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'instruments': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'token': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'tokenNetwork': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'tokenInfo': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'marketTrades': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'marketTradesHistory': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'orderbook': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'kline': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'klineHistory': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'futures': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'fundingRate': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'fundingRateHistory': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'insuranceFund': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
                         },
                     },
                     'private': {
                         'get': {
-                            'trade/order': 2, // 5/1s
-                            'trade/orders': 1, // 10/1s
-                            'trade/algoOrder': 1, // 10/1s
-                            'trade/algoOrders': 1, // 10/1s
-                            'trade/transaction': 1, // 10/1s
-                            'trade/transactionHistory': 5, // 2/1s
-                            'trade/tradingFee': 5, // 2/1s
-                            'account/info': 60, // 10/60s
-                            'account/tokenConfig': 1, // 10/1s
-                            'account/symbolConfig': 1, // 10/1s
-                            'account/subAccounts/all': 60, // 10/60s
-                            'account/referral/summary': 60, // 10/60s
-                            'account/referral/rewardHistory': 60, // 10/60s
-                            'account/credentials': 60, // 10/60s
-                            'asset/balances': 1, // 10/1s
-                            'asset/token/history': 60, // 10/60s
-                            'asset/transfer/history': 30, // 20/60s
-                            'asset/wallet/history': 60, // 10/60s
-                            'asset/wallet/deposit': 60, // 10/60s
-                            'asset/staking/yieldHistory': 60, // 10/60s
-                            'futures/positions': 3.33, // 30/10s
-                            'futures/leverage': 60, // 10/60s
-                            'futures/defaultMarginMode': 60, // 10/60s
-                            'futures/fundingFee/history': 30, // 20/60s
-                            'spotMargin/interestRate': 60, // 10/60s
-                            'spotMargin/interestHistory': 60, // 10/60s
-                            'spotMargin/maxMargin': 60, // 10/60s
-                            'algo/order/{oid}': 1,
-                            'algo/orders': 1,
-                            'positions': 3.33,
-                            'buypower': 1,
-                            'convert/exchangeInfo': 1,
-                            'convert/assetInfo': 1,
-                            'convert/rfq': 60,
-                            'convert/trade': 1,
-                            'convert/trades': 1,
+                            'trade/order': { 'cost': 2 } as Endpoint<Dict>, // 5/1s
+                            'trade/orders': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'trade/algoOrder': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'trade/algoOrders': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'trade/transaction': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'trade/transactionHistory': { 'cost': 5 } as Endpoint<Dict>, // 2/1s
+                            'trade/tradingFee': { 'cost': 5 } as Endpoint<Dict>, // 2/1s
+                            'account/info': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'account/tokenConfig': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'account/symbolConfig': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'account/subAccounts/all': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'account/referral/summary': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'account/referral/rewardHistory': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'account/credentials': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'asset/balances': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'asset/token/history': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'asset/transfer/history': { 'cost': 30 } as Endpoint<Dict>, // 20/60s
+                            'asset/wallet/history': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'asset/wallet/deposit': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'asset/staking/yieldHistory': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'futures/positions': { 'cost': 3.33 } as Endpoint<Dict>, // 30/10s
+                            'futures/leverage': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'futures/defaultMarginMode': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'futures/fundingFee/history': { 'cost': 30 } as Endpoint<Dict>, // 20/60s
+                            'spotMargin/interestRate': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'spotMargin/interestHistory': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'spotMargin/maxMargin': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'algo/order/{oid}': { 'cost': 1 } as Endpoint<Dict>,
+                            'algo/orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'positions': { 'cost': 3.33 } as Endpoint<Dict>,
+                            'buypower': { 'cost': 1 } as Endpoint<Dict>,
+                            'convert/exchangeInfo': { 'cost': 1 } as Endpoint<Dict>,
+                            'convert/assetInfo': { 'cost': 1 } as Endpoint<Dict>,
+                            'convert/rfq': { 'cost': 60 } as Endpoint<Dict>,
+                            'convert/trade': { 'cost': 1 } as Endpoint<Dict>,
+                            'convert/trades': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'trade/order': 2, // 5/1s
-                            'trade/algoOrder': 5, // 2/1s
-                            'trade/cancelAllAfter': 1, // 10/1s
-                            'account/tradingMode': 120, // 5/60s
-                            'account/listenKey': 20, // 5/10s
-                            'asset/transfer': 30, // 20/60s
-                            'asset/wallet/withdraw': 60, // 10/60s
-                            'spotMargin/leverage': 120, // 5/60s
-                            'spotMargin/interestRepay': 60, // 10/60s
-                            'algo/order': 5,
-                            'convert/rft': 60,
+                            'trade/order': { 'cost': 2 } as Endpoint<Dict>, // 5/1s
+                            'trade/algoOrder': { 'cost': 5 } as Endpoint<Dict>, // 2/1s
+                            'trade/cancelAllAfter': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'account/tradingMode': { 'cost': 120 } as Endpoint<Dict>, // 5/60s
+                            'account/listenKey': { 'cost': 20 } as Endpoint<Dict>, // 5/10s
+                            'asset/transfer': { 'cost': 30 } as Endpoint<Dict>, // 20/60s
+                            'asset/wallet/withdraw': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'spotMargin/leverage': { 'cost': 120 } as Endpoint<Dict>, // 5/60s
+                            'spotMargin/interestRepay': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'algo/order': { 'cost': 5 } as Endpoint<Dict>,
+                            'convert/rft': { 'cost': 60 } as Endpoint<Dict>,
                         },
                         'put': {
-                            'trade/order': 2, // 5/1s
-                            'trade/algoOrder': 2, // 5/1s
-                            'futures/leverage': 60, // 10/60s
-                            'futures/positionMode': 120, // 5/60s
-                            'order/{oid}': 2,
-                            'order/client/{client_order_id}': 2,
-                            'algo/order/{oid}': 2,
-                            'algo/order/client/{client_order_id}': 2,
+                            'trade/order': { 'cost': 2 } as Endpoint<Dict>, // 5/1s
+                            'trade/algoOrder': { 'cost': 2 } as Endpoint<Dict>, // 5/1s
+                            'futures/leverage': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'futures/positionMode': { 'cost': 120 } as Endpoint<Dict>, // 5/60s
+                            'order/{oid}': { 'cost': 2 } as Endpoint<Dict>,
+                            'order/client/{client_order_id}': { 'cost': 2 } as Endpoint<Dict>,
+                            'algo/order/{oid}': { 'cost': 2 } as Endpoint<Dict>,
+                            'algo/order/client/{client_order_id}': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'delete': {
-                            'trade/order': 1, // 10/1s
-                            'trade/orders': 1, // 10/1s
-                            'trade/algoOrder': 1, // 10/1s
-                            'trade/algoOrders': 1, // 10/1s
-                            'trade/allOrders': 1, // 10/1s
-                            'algo/order/{order_id}': 1,
-                            'algo/orders/pending': 1,
-                            'algo/orders/pending/{symbol}': 1,
-                            'orders/pending': 1,
+                            'trade/order': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'trade/orders': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'trade/algoOrder': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'trade/algoOrders': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'trade/allOrders': { 'cost': 1 } as Endpoint<Dict>, // 10/1s
+                            'algo/order/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'algo/orders/pending': { 'cost': 1 } as Endpoint<Dict>,
+                            'algo/orders/pending/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders/pending': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -357,7 +357,7 @@ export default class woo extends Exchange {
                     'TRC20': 'TRON',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
-                    'ARB': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
@@ -485,6 +485,151 @@ export default class woo extends Exchange {
                     '-1103': InvalidOrder, // { "code": -1103,  "message": "The order price is not following the tick size rule for the symbol." }
                     '-1104': InvalidOrder, // { "code": -1104,  "message": "The order quantity is not following the step size rule for the symbol." }
                     '-1105': InvalidOrder, // { "code": -1105,  "message": "Price is X% too high or X% too low from the mid price." }
+                    '317136': InvalidOrder, // Edit tpsl quantity is not allowed for quantity bracket
+                    '317137': InvalidOrder, // Edit quantity should edit both legs
+                    '317138': InvalidOrder, // Edit quantity should be same for both legs
+                    '317139': InvalidOrder, // Trigger price of 1st leg should not be empty for STOP_BRACKET
+                    '317140': InvalidOrder, // The quantity of a quantity TP/SL order should not be empty.
+                    '317141': InvalidOrder, // The algo quantity TP/SL limit order should have field price
+                    '317142': InvalidOrder, // The algo trigger type of quantity TP/SL should not be CLOSE_POSITION
+                    '317143': InvalidOrder, // The side of TP/SL legs should be the same
+                    '317144': InvalidOrder, // IndexPrice is not supported for non spot symbol `${symbol}`
+                    '317145': InvalidOrder, // same as INVALID_PRICE_QUOTE_MIN but different ‘code’
+                    '317146': InvalidOrder, // same as INVALID_PRICE_QUOTE_MAX but different ‘code’
+                    '317147': InvalidOrder, // same as INVALID_PRICE_TICKER_SIZE but different ‘code’
+                    '317148': BadRequest, // symbol can’t be empty.
+                    '317149': OrderNotFound, // same with TRADE_NOT_FOUND with different ErrorCodes
+                    '317150': InvalidOrder, // trigger price must be greater than `${price}`
+                    '317151': InvalidOrder, // trigger price must be less than `${price}`
+                    '317152': OrderNotFound, // The order not found for the order id : `${orderId}`
+                    '317153': OrderNotFound, // child order not found for the order id : `${orderId}`
+                    '317154': OperationFailed, // RPC failed: error: `${msg}`
+                    '317155': BadSymbol, // unsupported symbol: `${symbol}`
+                    '317156': BadSymbol, // unsupported symbol: `${symbol}`
+                    '317157': InvalidOrder, // Trading with `${symbol1}`/`${symbol2}` is temporarily suspended. Please try again later.
+                    '317158': InvalidOrder, // Trading with `${token}`-PERP is temporarily suspended. Please try again later.
+                    '317159': BadSymbol, // This pair is currently not supported.
+                    '317160': InvalidOrder, // The order id and symbol are not matched
+                    '317161': InvalidOrder, // The order is completed
+                    '317162': BadRequest, // The params should not be null or 0
+                    '317163': InvalidOrder, // cannot edit TP/SL quantity under bracket order
+                    '317164': InvalidOrder, // Invalid client order id
+                    '317165': InvalidOrder, // invalid order id list
+                    '317166': InvalidOrder, // invalid client order id list
+                    '317167': InvalidOrder, // unsupported algo type: `${algoType}`
+                    '317168': OperationFailed, // Order failed due to internal service error. Please contact customer service.
+                    '317169': InvalidOrder, // Trading with `${left}`/`${right}` is temporarily suspended. Please try again later.
+                    '317170': InvalidOrder, // The order quantity must bigger than the executed quantity.
+                    '317171': BadRequest, // error path format
+                    '317172': BadRequest, // The userId should not be null or 0
+                    '317173': BadRequest, // The orderId should not be null or 0
+                    '317174': InvalidOrder, // The order is processing
+                    '317176': InvalidOrder, // The trigger after should from 0 to `${maxTriggerAfter}`
+                    '317177': InvalidOrder, // Order has terminated
+                    '317178': BadRequest, // The receive window is invalid.
+                    '317179': BadRequest, // Request has failed as the receive window: `${recv_window}` millisecond is exceeded from `${api_timestamp}`
+                    '317184': OrderNotFound, // The order cannot be found, or it is already completed.
+                    '317206': InvalidOrder, // Spot trading is disabled while futures credits are active. Please remove or fully utilize your futures credits to enable spot trading.
+                    '317207': InsufficientFunds, // Request failed. Please ensure you have sufficient USDT to cover the futures credits currently in use.
+                    '302001': ExchangeError, // data status is not expected
+                    '302002': ExchangeError, // The data doesn’t exist.
+                    '302003': BadRequest, // The param number is invalid.
+                    '302004': BadRequest, // invalid params
+                    '302005': ExchangeError, // An error has occurred due to other pending requests. Please try again later.
+                    '302101': BadSymbol, // symbol is not exists
+                    '302102': InsufficientFunds, // Your margin is insufficient! Please liquidate assets.
+                    '302103': InsufficientFunds, // Your margin will be insufficient after withdrawal.
+                    '302104': InsufficientFunds, // Your margin will be insufficient after this action.
+                    '302109': OperationFailed, // create order engine error
+                    '302110': ExchangeError, // application is lock now
+                    '302111': InvalidOrder, // Your account position is being liquidated. Trading has been suspended at the moment. Please try again later.
+                    '302112': InvalidOrder, // Remaining order quantity is smaller than transaction quantity
+                    '302113': InvalidOrder, // Order side is not same as transaction side
+                    '302114': InvalidOrder, // Order price too small
+                    '302115': InvalidOrder, // Order quantity too small
+                    '302117': DuplicateOrderId, // The client_order_id is repeated.
+                    '302118': InsufficientFunds, // no enough balance to close
+                    '302119': InsufficientFunds, // Insufficient funds. Please enable margin trading. Note that certain coins do not allow for leverage trading.
+                    '302120': InvalidOrder, // Please lower the leverage ratio below 1.0 and close your short positions.
+                    '302121': InvalidOrder, // Please repay your interest.
+                    '302122': InvalidOrder, // Remaining order amount is smaller than transaction quantity
+                    '302123': ExchangeError, // user group data not found
+                    '302125': InvalidOrder, // Quantity should be less than your position.
+                    '302126': InvalidOrder, // Attempt failed. Please close your futures positions, cancel open orders and try again.
+                    '302127': InvalidOrder, // Your order is terminated.
+                    '302128': InsufficientFunds, // Insufficient `${token}`. Note that `${baseToken}` do not allow for margin trading.
+                    '302129': OrderNotFound, // The order doesn’t exist.
+                    '302130': InvalidOrder, // The order didn’t update.
+                    '302131': InvalidOrder, // Please enable futures trading in Margin & Futures tab. You can create subaccounts to separate margin and futures positions.
+                    '302132': InvalidOrder, // Attempt failed. Please close your negative positions and try again.
+                    '302133': InvalidOrder, // Please repay your interest.
+                    '302134': BadRequest, // The details are empty.
+                    '302135': BadRequest, // The amount must be positive.
+                    '302136': BadRequest, // Your balance must be positive.
+                    '302137': InvalidOrder, // You don’t have enough position for MKT close. Please check your open orders.
+                    '302138': InvalidOrder, // Insufficient position for reduce only order.
+                    '302140': InvalidOrder, // The order price is too small.
+                    '302141': InvalidOrder, // The order quantity is too small.
+                    '302142': InvalidOrder, // The order quantity must bigger than the executed quantity.
+                    '302143': ExchangeError, // Application not found.
+                    '302144': InvalidOrder, // There isn’t a positive amount to repay the interest balance.
+                    '302145': InsufficientFunds, // Your margin will be insufficient after disabling this token as collateral.
+                    '302147': InvalidOrder, // Amount is required for buy market orders when margin disabled.
+                    '302148': InvalidOrder, // Amount is required for ASK buy order when margin disabled.
+                    '302149': InvalidOrder, // Amount is required for BID buy order when margin disabled.
+                    '302150': InvalidOrder, // Quantity is required for sell market orders when margin disabled.
+                    '302151': InvalidOrder, // Quantity is required for ASK sell order when margin disabled.
+                    '302152': InvalidOrder, // Quantity is required for BID sell order when margin disabled.
+                    '302154': InsufficientFunds, // Insufficient `${stableToken}`.
+                    '302155': InsufficientFunds, // Insufficient `${token}`. Please enable margin trading for leverage trading.
+                    '302156': InvalidOrder, // Short selling `${token}` is not available now.
+                    '302157': InsufficientFunds, // Insufficient `${token}`. Please enable margin trading in Margin & Futures tab for spot leverage trading.
+                    '302159': RequestTimeout, // Your request has timed out. Please try again later.
+                    '302160': InvalidOrder, // Reduce only orders are only supported under spot pairs quoted by your account currency `${AccountCurrency}`.
+                    '302162': InvalidOrder, // You are not able to place this order under Reduce Only trading mode.
+                    '302163': InvalidOrder, // Reduce only orders are not allowed.
+                    '302164': InvalidOrder, // The order value should be greater or equal to `${minNotional}`.
+                    '302165': ExchangeError, // The token has no price.
+                    '302166': InvalidOrder, // Token balance cannot be negative under Spot Only.
+                    '302167': InvalidOrder, // Token balance cannot be negative under Spot & Futures.
+                    '302168': InvalidOrder, // The token is not enabled for margin.
+                    '302169': InsufficientFunds, // Collateral is not sufficient to cover initial margin requirements under Spot & Margin.
+                    '302170': InsufficientFunds, // Collateral is not sufficient to cover initial margin requirements under Spot & Futures.
+                    '302171': InvalidOrder, // Buy or sell orders by amount are not supported under Reduce Only trading mode.
+                    '302172': InvalidOrder, // `${token}` max position size of `${maxPosition}` is exceeded.
+                    '302177': InvalidOrder, // Pending new orders cannot be edited.
+                    '302178': InvalidOrder, // Order is rejected as you have an existing market close order.
+                    '302185': InvalidOrder, // Your order request cannot be processed at this moment because the position mode is currently being switched.
+                    '302186': InvalidOrder, // The position side you’ve used is not compatible with your current position mode.
+                    '302188': InvalidOrder, // exceed max open notional
+                    '302189': InvalidOrder, // Changing isolated position leverage is not allowed when there is a pending order.
+                    '302190': InvalidOrder, // Unable to adjust isolated margin while there are pending orders. Please cancel them to proceed.
+                    '302191': InvalidOrder, // Only adjustments to futures isolated margin are allowed.
+                    '302192': InvalidOrder, // The amount exceeds the withdrawable margin limit.
+                    '302193': InsufficientFunds, // The amount exceeds the available USDT balance.
+                    '302194': InvalidOrder, // Maximum number of isolated pending orders for `${symbol}` reached.
+                    '302195': InvalidOrder, // The position side you’ve used is invalid
+                    '302196': InvalidOrder, // Please use up all of your active futures credits before adding more.
+                    '302197': InvalidOrder, // Futures credits cannot be reduced while there are open positions.
+                    '302198': InvalidOrder, // Futures credits cannot be reduced while there are still pending orders.
+                    '302199': InvalidOrder, // Please switch to futures trading mode to adjust futures credits.
+                    '302301': InsufficientFunds, // The balance isn’t enough.
+                    '302303': InvalidOrder, // Too many pending orders on reduce only order
+                    '302305': InsufficientFunds, // Failed to update cross margin leverages due to insufficient margin. Please top up or close your cross positions to proceed.
+                    '302306': BadRequest, // Invalid leverage, please provide positive integer leverage
+                    '302307': AccountSuspended, // The account has been suspended
+                    '302308': InvalidOrder, // Attempt failed. Please close your futures positions, cancel open orders and try again.
+                    '302309': InvalidOrder, // Spot trading is disabled while futures credits are active. Please remove or fully utilize your futures credits to enable spot trading
+                    '302310': InsufficientFunds, // Request failed. Please ensure you have sufficient USDT to cover the futures credits currently in use.
+                    '302311': ExchangeError, // This request is currently being processed.
+                    '302312': ExchangeError, // This request is currently being processed.
+                    '302313': ExchangeError, // This request is currently being processed.
+                    '302314': InvalidOrder, // Quantity should be less than your position.
+                    '302999': ExchangeError, // An unknown error has occurred.
+                    '311001': ExchangeError, // The data status is invalid.
+                    '311002': ExchangeError, // The data does not exist.
+                    '311004': ExchangeError, // The parameters are invalid.
+                    '311999': OperationFailed, // There is a system error.
                 },
                 'broad': {
                     'Can not place': ExchangeError, // { "code": -1011,  "message": "Can not place/cancel orders, it may because internal network error. Please try again in a few seconds." }
@@ -492,7 +637,7 @@ export default class woo extends Exchange {
                     'symbol must not be blank': BadRequest, // when sending 'cancelOrder' without symbol [-1005]
                     'The token is not supported': BadRequest, // when getting incorrect token's deposit address [-1005]
                     'Your order and symbol are not valid or already canceled': BadRequest, // actual response whensending 'cancelOrder' for already canceled id [-1006]
-                    'Insufficient WOO. Please enable margin trading for leverage trading': BadRequest, // when selling insufficent token [-1012]
+                    'Insufficient WOO. Please enable margin trading for leverage trading': BadRequest, // when selling insufficient token [-1012]
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -507,7 +652,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.v3PublicGetSystemInfo (params);
         //
         //     {
@@ -546,7 +691,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params = {}): Promise<Int> {
         const response = await this.v3PublicGetSystemInfo (params);
         //
         //     {
@@ -570,7 +715,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params = {}): Promise<Market[]> {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
@@ -612,11 +757,11 @@ export default class woo extends Exchange {
         return this.parseMarkets (rows);
     }
 
-    parseMarket (market: Dict): Market {
-        const marketId = this.safeString (market, 'symbol');
+    override parseMarket (market: Dict): Market {
+        const marketId = this.safeString (market, 'symbol', '');
         const parts = marketId.split ('_');
         const first = this.safeString (parts, 0);
-        let marketType: MarketType;
+        let marketType: Str = undefined;
         let spot = false;
         let swap = false;
         if (first === 'SPOT') {
@@ -648,7 +793,7 @@ export default class woo extends Exchange {
             inverse = false;
         }
         const active = this.safeString (market, 'status') === 'TRADING';
-        return {
+        return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -657,7 +802,7 @@ export default class woo extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': marketType,
+            'type': (marketType as MarketType),
             'spot': spot,
             'margin': margin,
             'swap': swap,
@@ -696,7 +841,7 @@ export default class woo extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     /**
@@ -710,8 +855,10 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -743,7 +890,7 @@ export default class woo extends Exchange {
         return this.parseTrades (rows, market, since, limit);
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public/market_trades
         //
@@ -775,7 +922,7 @@ export default class woo extends Exchange {
         //
         const isFromFetchOrder = ('id' in trade);
         const timestampString = this.safeString2 (trade, 'executed_timestamp', 'executedTimestamp');
-        let timestamp = undefined;
+        let timestamp: Int = undefined;
         if (timestampString !== undefined) {
             if (timestampString.indexOf ('.') > -1) {
                 timestamp = this.safeTimestamp2 (trade, 'executed_timestamp', 'executedTimestamp');
@@ -791,7 +938,7 @@ export default class woo extends Exchange {
         const order_id = this.safeString2 (trade, 'order_id', 'orderId');
         const fee = this.parseTokenAndFeeTemp (trade, [ 'fee_asset', 'feeAsset' ], [ 'fee' ]);
         const feeCost = this.safeString (fee, 'cost');
-        if (feeCost !== undefined) {
+        if ((fee !== undefined) && (feeCost !== undefined)) {
             fee['cost'] = feeCost;
         }
         const cost = Precise.stringMul (price, amount);
@@ -819,9 +966,9 @@ export default class woo extends Exchange {
         }, market);
     }
 
-    parseTokenAndFeeTemp (item, feeTokenKeys, feeAmountKeys) {
+    parseTokenAndFeeTemp (item: any, feeTokenKeys: any, feeAmountKeys: any) {
         const feeCost = this.safeStringN (item, feeAmountKeys);
-        let fee = undefined;
+        let fee: FeeString = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeStringN (item, feeTokenKeys);
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -857,8 +1004,10 @@ export default class woo extends Exchange {
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
-        await this.loadMarkets ();
+    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -887,8 +1036,10 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    async fetchTradingFees (params = {}): Promise<TradingFees> {
-        await this.loadMarkets ();
+    override async fetchTradingFees (params = {}): Promise<TradingFees> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.v3PrivateGetAccountInfo (params);
         //
         //     {
@@ -925,8 +1076,12 @@ export default class woo extends Exchange {
         const maker = this.safeString (data, 'makerFeeRate');
         const taker = this.safeString (data, 'takerFeeRate');
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        if (symbols === undefined) {
+            return result;
+        }
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -947,7 +1102,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params = {}): Promise<Currencies> {
         const result: Dict = {};
         const tokenResponsePromise = this.v1PublicGetToken (params);
         //
@@ -994,7 +1149,7 @@ export default class woo extends Exchange {
         //     "success": true
         // }
         //
-        // only make one request for currrencies...
+        // only make one request for currencies...
         const tokenNetworkResponsePromise = this.v1PublicGetTokenNetwork (params);
         //
         // {
@@ -1031,21 +1186,38 @@ export default class woo extends Exchange {
         const tokensById = this.groupBy (tokenRows, 'balance_token');
         const currencyIds = Object.keys (tokensById);
         for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const code = this.safeCurrencyCode (currencyId);
-            const tokensByNetworkId = this.indexBy (tokensById[currencyId], 'network');
-            const chainsByNetworkId = this.indexBy (networksById[currencyId], 'network');
-            const keys = Object.keys (chainsByNetworkId);
-            const resultingNetworks: Dict = {};
-            for (let j = 0; j < keys.length; j++) {
-                const networkId = keys[j];
-                const tokenEntry = this.safeDict (tokensByNetworkId, networkId, {});
-                const networkEntry = this.safeDict (chainsByNetworkId, networkId, {});
-                const networkCode = this.networkIdToCode (networkId, code);
-                const specialNetworkId = this.safeString (tokenEntry, 'token');
+            const id = currencyIds[i];
+            const customCurrency = {
+                '_coin_id': id,
+                '_tokens_by_id': tokensById[id],
+                '_networks_by_id': networksById[id],
+            };
+            const parsed = this.parseCurrency (customCurrency);
+            const code = this.safeString (parsed, 'code');
+            if (code !== undefined) {
+                result[code] = parsed;
+            }
+        }
+        return result;
+    }
+
+    override parseCurrency (rawCurrency: Dict): CurrencyInterface {
+        const currencyId = this.safeString (rawCurrency, '_coin_id');
+        const code = this.safeCurrencyCode (currencyId);
+        const tokensByNetworkId = this.indexBy (rawCurrency['_tokens_by_id'], 'network');
+        const chainsByNetworkId = this.indexBy (rawCurrency['_networks_by_id'], 'network');
+        const keys = Object.keys (chainsByNetworkId);
+        const resultingNetworks: Dict = {};
+        for (let j = 0; j < keys.length; j++) {
+            const networkId = keys[j];
+            const tokenEntry = this.safeDict (tokensByNetworkId, networkId, {});
+            const networkEntry = this.safeDict (chainsByNetworkId, networkId, {});
+            const networkCode = this.networkIdToCode (networkId, code);
+            const specialNetworkId = this.safeString (tokenEntry, 'token');
+            if (networkCode !== undefined) {
                 resultingNetworks[networkCode] = {
                     'id': networkId,
-                    'currencyNetworkId': specialNetworkId, // exchange uses special crrency-ids (coin + network junction)
+                    'currencyNetworkId': specialNetworkId, // exchange uses special currency-ids (coin + network junction)
                     'network': networkCode,
                     'active': undefined,
                     'deposit': this.safeString (networkEntry, 'allow_deposit') === '1',
@@ -1062,48 +1234,49 @@ export default class woo extends Exchange {
                             'max': undefined,
                         },
                     },
-                    'info': [ networkEntry, tokenEntry ],
+                    'info': { 'network': networkEntry, 'token': tokenEntry },
                 };
             }
-            result[code] = this.safeCurrencyStructure ({
-                'id': currencyId,
-                'name': undefined,
-                'code': code,
-                'precision': undefined,
-                'active': undefined,
-                'fee': undefined,
-                'networks': resultingNetworks,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'type': 'crypto',
-                'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': [ tokensByNetworkId, chainsByNetworkId ],
-            });
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': currencyId,
+            'name': undefined,
+            'code': code,
+            'precision': undefined,
+            'active': undefined,
+            'fee': undefined,
+            'networks': resultingNetworks,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'type': 'crypto',
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': rawCurrency,
+        });
     }
 
     /**
      * @method
      * @name woo#createMarketBuyOrderWithCost
      * @description create a market buy order by providing the symbol and cost
-     * @see https://docs.woox.io/#send-order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/post_order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
-        await this.loadMarkets ();
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -1115,14 +1288,16 @@ export default class woo extends Exchange {
      * @method
      * @name woo#createMarketSellOrderWithCost
      * @description create a market sell order by providing the symbol and cost
-     * @see https://docs.woox.io/#send-order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/post_order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createMarketSellOrderWithCost (symbol: string, cost: number, params = {}) {
-        await this.loadMarkets ();
+    override async createMarketSellOrderWithCost (symbol: string, cost: number, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports spot orders only');
@@ -1134,7 +1309,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#createTrailingAmountOrder
      * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
-     * @see https://docs.woox.io/#send-algo-order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/post_algo_order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1145,7 +1320,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
+    override async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount: Num = undefined, trailingTriggerPrice: Num = undefined, params: Dict = {}): Promise<Order> {
         if (trailingAmount === undefined) {
             throw new ArgumentsRequired (this.id + ' createTrailingAmountOrder() requires a trailingAmount argument');
         }
@@ -1161,7 +1336,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#createTrailingPercentOrder
      * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
-     * @see https://docs.woox.io/#send-algo-order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/post_algo_order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1172,7 +1347,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
+    override async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent: Num = undefined, trailingTriggerPrice: Num = undefined, params: Dict = {}): Promise<Order> {
         if (trailingPercent === undefined) {
             throw new ArgumentsRequired (this.id + ' createTrailingPercentOrder() requires a trailingPercent argument');
         }
@@ -1210,13 +1385,15 @@ export default class woo extends Exchange {
      * @param {string} [params.position_side] 'SHORT' or 'LONG' - if position mode is HEDGE_MODE and the trading involves futures, then is required, otherwise this parameter is not required
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         params = this.omit (params, [ 'reduceOnly', 'reduce_only' ]);
         const orderType = type.toUpperCase ();
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        const orderSide = side.toUpperCase ();
+        const orderSide = (side as string).toUpperCase ();
         const request: Dict = {
             'symbol': market['id'],
             'side': orderSide,
@@ -1265,7 +1442,7 @@ export default class woo extends Exchange {
             params = this.omit (params, [ 'cost', 'order_amount', 'orderAmount' ]);
             const isPriceProvided = price !== undefined;
             if (market['spot'] && (isPriceProvided || (cost !== undefined))) {
-                let quoteAmount = undefined;
+                let quoteAmount: Str = undefined;
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision (symbol, cost);
                 } else {
@@ -1380,7 +1557,7 @@ export default class woo extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    encodeMarginMode (mode) {
+    encodeMarginMode (mode: any) {
         const modes = {
             'cross': 'CROSS',
             'isolated': 'ISOLATED',
@@ -1411,8 +1588,10 @@ export default class woo extends Exchange {
      * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             // 'quantity': this.amountToPrecision (symbol, amount),
@@ -1494,13 +1673,15 @@ export default class woo extends Exchange {
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         params = this.omit (params, [ 'trigger', 'stop' ]);
         if (!isTrigger && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1519,7 +1700,7 @@ export default class woo extends Exchange {
             }
             response = await this.v3PrivateDeleteTradeAlgoOrder (this.extend (request, params));
         } else {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
             if (isByClientOrder) {
                 request['clientOrderId'] = clientOrderIdExchangeSpecific;
             } else {
@@ -1552,13 +1733,15 @@ export default class woo extends Exchange {
      * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
      * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
      * @description cancel all open orders in a market
-     * @param {string} symbol unified market symbol
+     * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         const request: Dict = {};
@@ -1594,10 +1777,12 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    async cancelAllOrdersAfter (timeout: Int, params = {}) {
-        await this.loadMarkets ();
+    override async cancelAllOrdersAfter (timeout: Int, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
-            'triggerAfter': (timeout > 0) ? Math.min (timeout, 900000) : 0,
+            'triggerAfter': ((timeout as number) > 0) ? Math.min ((timeout as number), 900000) : 0,
         };
         const response = await this.v3PrivatePostTradeCancelAllAfter (this.extend (request, params));
         //
@@ -1624,9 +1809,11 @@ export default class woo extends Exchange {
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
+    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1737,8 +1924,10 @@ export default class woo extends Exchange {
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
@@ -1876,8 +2065,10 @@ export default class woo extends Exchange {
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const extendedParams = this.extend (params, { 'status': 'INCOMPLETE' });
         return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
@@ -1899,8 +2090,10 @@ export default class woo extends Exchange {
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const extendedParams = this.extend (params, { 'status': 'COMPLETED' });
         return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
@@ -1911,10 +2104,10 @@ export default class woo extends Exchange {
             'fok': 'FOK',
             'post_only': 'PO',
         };
-        return this.safeString (timeInForces, timeInForce, undefined);
+        return this.safeString (timeInForces, (timeInForce as string));
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
         //     {
@@ -1996,7 +2189,7 @@ export default class woo extends Exchange {
         //         "positionSide": "BOTH"
         //     }
         //
-        let timestamp = undefined;
+        let timestamp: Int = undefined;
         const timestrampString = this.safeString (order, 'createdTime');
         if (timestrampString !== undefined) {
             if (timestrampString.indexOf ('.') >= 0) {
@@ -2026,7 +2219,7 @@ export default class woo extends Exchange {
         const feeCurrency = this.safeString (order, 'feeAsset');
         const triggerPrice = this.safeNumber (order, 'triggerPrice');
         const lastUpdateTimestampString = this.safeString (order, 'updatedTime');
-        let lastUpdateTimestamp = undefined;
+        let lastUpdateTimestamp: Int = undefined;
         if (lastUpdateTimestampString !== undefined) {
             if (lastUpdateTimestampString.indexOf ('.') >= 0) {
                 lastUpdateTimestamp = this.safeTimestamp (order, 'updatedTime'); // algo orders
@@ -2092,10 +2285,12 @@ export default class woo extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2143,8 +2338,10 @@ export default class woo extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2189,7 +2386,7 @@ export default class woo extends Exchange {
         return this.parseOHLCVs (rows, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 'startTimestamp'),
             this.safeNumber (ohlcv, 'open'),
@@ -2212,8 +2409,10 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2256,8 +2455,10 @@ export default class woo extends Exchange {
      * @param {boolean} [params.paginate] set to true if you want to fetch trades with pagination
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -2324,7 +2525,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    async fetchAccounts (params = {}): Promise<Account[]> {
+    override async fetchAccounts (params = {}): Promise<Account[]> {
         const mainAccountPromise = this.v3PrivateGetAccountInfo (params);
         //
         //     {
@@ -2380,7 +2581,7 @@ export default class woo extends Exchange {
         return this.parseAccounts (rows, params);
     }
 
-    parseAccount (account) {
+    override parseAccount (account: any) {
         //
         //     {
         //         "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
@@ -2425,12 +2626,14 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.woox.io/#get-current-holding-get-balance-new
+     * @see https://developer.woox.io/api-reference/endpoint/assets/get_balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+    override async fetchBalance (params = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.v3PrivateGetAssetBalances (params);
         //
         //     {
@@ -2459,7 +2662,7 @@ export default class woo extends Exchange {
         return this.parseBalance (data);
     }
 
-    parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
         };
@@ -2470,7 +2673,9 @@ export default class woo extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (balance, 'holding');
             account['free'] = this.safeString (balance, 'availableBalance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -2484,15 +2689,17 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         // this method is TODO because of networks unification
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const request: Dict = {
             'token': currency['id'],
-            'network': this.networkCodeToId (networkCode),
+            'network': this.networkCodeToId (networkCode, currency['code']),
         };
         const response = await this.v3PrivateGetAssetWalletDeposit (this.extend (request, params));
         //
@@ -2509,11 +2716,11 @@ export default class woo extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    getDedicatedNetworkId (currency, params: Dict): any {
-        let networkCode = undefined;
+    getDedicatedNetworkId (currency: any, params: Dict): any {
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         networkCode = this.networkIdToCode (networkCode, currency['code']);
-        const networkEntry = this.safeDict (currency['networks'], networkCode);
+        const networkEntry = (networkCode === undefined) ? undefined : this.safeDict (currency['networks'], networkCode);
         if (networkEntry === undefined) {
             const supportedNetworks = Object.keys (currency['networks']);
             throw new BadRequest (this.id + '  can not determine a network code, please provide unified "network" param, one from the following: ' + this.json (supportedNetworks));
@@ -2522,7 +2729,7 @@ export default class woo extends Exchange {
         return [ currentyNetworkId, params ];
     }
 
-    parseDepositAddress (depositEntry, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositEntry: any, currency: Currency = undefined): DepositAddress {
         const address = this.safeString (depositEntry, 'address');
         this.checkAddress (address);
         return {
@@ -2535,17 +2742,19 @@ export default class woo extends Exchange {
     }
 
     async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['token'] = currency['id'];
         }
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['network'] = this.networkCodeToId (networkCode);
+            request['network'] = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2567,7 +2776,7 @@ export default class woo extends Exchange {
         //                 {
         //                     "createdTime": "1734964440.523",
         //                     "updatedTime": "1734964614.081",
-        //                     "id": "24122314340000585",
+        //                     "id": "24122314340000586",
         //                     "externalId": "241223143600621",
         //                     "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
         //                     "token": "ARB_USDCNATIVE",
@@ -2609,14 +2818,14 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         const currencyRows = await this.getAssetHistoryRows (code, since, limit, params);
         const currency = this.safeValue (currencyRows, 0);
         const rows = this.safeList (currencyRows, 1);
         return this.parseLedger (rows, currency, since, limit, params);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+    override parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         //     {
         //         "createdTime": "1734964440.523",
@@ -2666,15 +2875,15 @@ export default class woo extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
-    getCurrencyFromChaincode (networkizedCode, currency) {
+    getCurrencyFromChaincode (networkizedCode: any, currency: any) {
         if (currency !== undefined) {
             return currency;
         } else {
@@ -2701,7 +2910,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const request: Dict = {
             'tokenSide': 'DEPOSIT',
         };
@@ -2719,7 +2928,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const request: Dict = {
             'tokenSide': 'WITHDRAW',
         };
@@ -2737,17 +2946,17 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const request: Dict = {
             'type': 'BALANCE',
         };
         const currencyRows = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
         const currency = this.safeValue (currencyRows, 0);
-        const rows = this.safeList (currencyRows, 1);
+        const rows = this.safeList (currencyRows, 1, []);
         return this.parseTransactions (rows, currency, since, limit, params);
     }
 
-    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "createdTime": "1734964440.523",
@@ -2801,7 +3010,7 @@ export default class woo extends Exchange {
             'comment': undefined,
             'internal': undefined,
             'fee': fee,
-            'network': this.networkIdToCode (this.safeString (transaction, 'network')),
+            'network': this.networkIdToCode (this.safeString (transaction, 'network'), code),
         } as Transaction;
     }
 
@@ -2813,14 +3022,14 @@ export default class woo extends Exchange {
             'COMPLETED': 'ok',
             'CANCELED': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     /**
      * @method
      * @name woo#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://docs.woox.io/#get-transfer-history
+     * @see https://developer.woox.io/api-reference/endpoint/assets/transfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -2828,8 +3037,10 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
-        await this.loadMarkets ();
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'token': currency['id'],
@@ -2875,9 +3086,9 @@ export default class woo extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         const request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2929,7 +3140,7 @@ export default class woo extends Exchange {
         return this.parseTransfers (rows, currency, since, limit, params);
     }
 
-    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+    override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         //    fetchTransfers
         //     {
@@ -2997,14 +3208,14 @@ export default class woo extends Exchange {
             'COMPLETED': 'ok',
             'CANCELED': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     /**
      * @method
      * @name woo#withdraw
      * @description make a withdrawal
-     * @see https://docs.woox.io/#token-withdraw-v3
+     * @see https://developer.woox.io/api-reference/endpoint/assets/wallet_withdraw
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -3012,9 +3223,11 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         this.checkAddress (address);
         const currency = this.currency (code);
         const request: Dict = {
@@ -3030,7 +3243,7 @@ export default class woo extends Exchange {
         }
         params = this.omit (params, 'network');
         request['token'] = currency['id'];
-        request['network'] = this.networkCodeToId (network);
+        request['network'] = this.networkCodeToId (network, currency['code']);
         const response = await this.v3PrivatePostAssetWalletWithdraw (this.extend (request, params));
         //
         //     {
@@ -3064,8 +3277,10 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    async repayMargin (code: string, amount: number, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async repayMargin (code: string, amount: number, symbol: Str = undefined, params = {}): Promise<MarginLoan> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -3082,14 +3297,14 @@ export default class woo extends Exchange {
         //         "success": true,
         //     }
         //
-        const transaction = this.parseMarginLoan (response, currency);
+        const transaction: MarginLoan = this.parseMarginLoan (response, currency);
         return this.extend (transaction, {
             'amount': amount,
             'symbol': symbol,
         });
     }
 
-    parseMarginLoan (info, currency: Currency = undefined) {
+    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
         //
         //     {
         //         "success": true,
@@ -3106,11 +3321,11 @@ export default class woo extends Exchange {
         };
     }
 
-    nonce () {
+    override nonce () {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    override sign (path: any, section = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams (path, params);
@@ -3181,7 +3396,7 @@ export default class woo extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (!response) {
             return undefined; // fallback to default error handler
         }
@@ -3199,7 +3414,7 @@ export default class woo extends Exchange {
         return undefined;
     }
 
-    parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined) {
         //
         //     {
         //         "id": 1286360,
@@ -3247,8 +3462,10 @@ export default class woo extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
@@ -3304,7 +3521,7 @@ export default class woo extends Exchange {
         return this.parseIncomes (rows, market, since, limit);
     }
 
-    parseFundingRate (fundingRate, market: Market = undefined): FundingRate {
+    override parseFundingRate (fundingRate: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "PERP_BTC_USDT",
@@ -3331,7 +3548,7 @@ export default class woo extends Exchange {
         const estFundingRateTimestamp = this.safeInteger (fundingRate, 'estFundingRateTimestamp');
         const lastFundingRateTimestamp = this.safeInteger (fundingRate, 'lastFundingRateTimestamp');
         const intervalString = this.safeString (fundingRate, 'estFundingIntervalHours');
-        let interval = undefined;
+        let interval: Str = undefined;
         if (intervalString !== undefined) {
             interval = intervalString + 'h';
         }
@@ -3366,7 +3583,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
         return await this.fetchFundingRate (symbol, params);
     }
 
@@ -3379,8 +3596,10 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
-        await this.loadMarkets ();
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -3421,8 +3640,10 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
-        await this.loadMarkets ();
+    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const response = await this.v3PublicGetFundingRate (params);
         //
@@ -3463,8 +3684,10 @@ export default class woo extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -3507,7 +3730,7 @@ export default class woo extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const rows = this.safeList (data, 'rows', []);
-        const rates = [];
+        const rates: Dict[] = [];
         for (let i = 0; i < rows.length; i++) {
             const entry = rows[i];
             const marketId = this.safeString (entry, 'symbol');
@@ -3534,8 +3757,8 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
-        let hedgeMode = undefined;
+    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+        let hedgeMode: Str = undefined;
         if (hedged) {
             hedgeMode = 'HEDGE_MODE';
         } else {
@@ -3566,10 +3789,12 @@ export default class woo extends Exchange {
      * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
-        await this.loadMarkets ();
+    override async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let response: Dict = undefined;
+        let response = undefined;
         if (market['spot']) {
             response = await this.v3PrivateGetAccountInfo (params);
             //
@@ -3656,13 +3881,13 @@ export default class woo extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'symbol');
         market = this.safeMarket (marketId, market);
         const marginMode = this.safeStringLower (leverage, 'marginMode');
         let spotLeverage = this.safeInteger (leverage, 'leverage');
         if (spotLeverage === 0) {
-            spotLeverage = null;
+            spotLeverage = undefined;
         }
         let longLeverage = spotLeverage;
         let shortLeverage = spotLeverage;
@@ -3702,8 +3927,10 @@ export default class woo extends Exchange {
      * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'leverage': leverage,
         };
@@ -3711,16 +3938,16 @@ export default class woo extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        if ((symbol === undefined) || market['spot']) {
+        if ((symbol === undefined) || this.safeBool (market, 'spot')) {
             return await this.v3PrivatePostSpotMarginLeverage (this.extend (request, params));
-        } else if (market['swap']) {
-            request['symbol'] = market['id'];
+        } else if (this.safeBool (market, 'swap')) {
+            request['symbol'] = this.safeString (market, 'id');
             let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params, 'cross');
             request['marginMode'] = this.encodeMarginMode (marginMode);
             return await this.v3PrivatePutFuturesLeverage (this.extend (request, params));
         } else {
-            throw new NotSupported (this.id + ' fetchLeverage() is not supported for ' + market['type'] + ' markets');
+            throw new NotSupported (this.id + ' fetchLeverage() is not supported for ' + this.safeString (market, 'type') + ' markets');
         }
     }
 
@@ -3735,7 +3962,7 @@ export default class woo extends Exchange {
      * @param {string} [params.position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'ADD', params);
     }
 
@@ -3750,12 +3977,14 @@ export default class woo extends Exchange {
      * @param {string} [params.position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'REDUCE', params);
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
-        await this.loadMarkets ();
+    async modifyMarginHelper (symbol: string, amount: any, type: any, params = {}): Promise<MarginModification> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -3775,8 +4004,10 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPosition (symbol: Str, params = {}) {
-        await this.loadMarkets ();
+    override async fetchPosition (symbol: string, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -3828,8 +4059,10 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.v3PrivateGetFuturesPositions (params);
         //
         //     {
@@ -3867,7 +4100,7 @@ export default class woo extends Exchange {
         return this.parsePositions (positions, symbols);
     }
 
-    parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined) {
         //
         // v1PrivateGetPositionSymbol
         //     {
@@ -3928,7 +4161,7 @@ export default class woo extends Exchange {
         const contractSize = this.safeString (market, 'contractSize');
         const markPrice = this.safeString2 (position, 'markPrice', 'mark_price');
         const timestampString = this.safeString (position, 'timestamp');
-        let timestamp = undefined;
+        let timestamp: Int = undefined;
         if (timestampString !== undefined) {
             if (timestampString.indexOf ('.') > -1) {
                 timestamp = this.safeTimestamp (position, 'timestamp');
@@ -3984,8 +4217,10 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
-        await this.loadMarkets ();
+    override async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'sellToken': fromCode.toUpperCase (),
             'buyToken': toCode.toUpperCase (),
@@ -4028,8 +4263,10 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
-        await this.loadMarkets ();
+    override async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'quoteId': id,
         };
@@ -4058,8 +4295,10 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    async fetchConvertTrade (id: string, code: Str = undefined, params = {}): Promise<Conversion> {
-        await this.loadMarkets ();
+    override async fetchConvertTrade (id: string, code: Str = undefined, params = {}): Promise<Conversion> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'quoteId': id,
         };
@@ -4081,8 +4320,8 @@ export default class woo extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const fromCurrencyId = this.safeString (data, 'sellAsset');
         const toCurrencyId = this.safeString (data, 'buyAsset');
-        let fromCurrency = undefined;
-        let toCurrency = undefined;
+        let fromCurrency: Currency = undefined;
+        let toCurrency: Currency = undefined;
         if (fromCurrencyId !== undefined) {
             fromCurrency = this.currency (fromCurrencyId);
         }
@@ -4104,8 +4343,10 @@ export default class woo extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
      * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Conversion[]> {
-        await this.loadMarkets ();
+    override async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Conversion[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let request: Dict = {};
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
@@ -4140,7 +4381,7 @@ export default class woo extends Exchange {
         return this.parseConversions (rows, code, 'sellAsset', 'buyAsset', since, limit);
     }
 
-    parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+    override parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         //
         // fetchConvertQuote
         //
@@ -4203,8 +4444,10 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchConvertCurrencies (params = {}): Promise<Currencies> {
-        await this.loadMarkets ();
+    override async fetchConvertCurrencies (params = {}): Promise<Currencies> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.v3PrivateGetConvertAssetInfo (params);
         //
         //     {
@@ -4225,34 +4468,36 @@ export default class woo extends Exchange {
             const entry = data[i];
             const id = this.safeString (entry, 'token');
             const code = this.safeCurrencyCode (id);
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': undefined,
-                'type': undefined,
-                'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': this.safeNumber (entry, 'tick'),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (code !== undefined) {
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': undefined,
+                    'type': undefined,
+                    'name': undefined,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': this.safeNumber (entry, 'tick'),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': this.safeTimestamp (entry, 'createdTime'),
-            };
+                    'created': this.safeTimestamp (entry, 'createdTime'),
+                };
+            }
         }
         return result;
     }
@@ -4261,13 +4506,15 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
-     * @see https://docs.woox.io/#get-all-position-info-new
+     * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
      * @param {string[]} [symbols] a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
-    async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
-        await this.loadMarkets ();
+    override async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const response = await this.v3PrivateGetFuturesPositions (params);
         //
@@ -4306,7 +4553,7 @@ export default class woo extends Exchange {
         return this.parseADLRanks (positions, symbols);
     }
 
-    parseADLRank (info: Dict, market: Market = undefined): ADL {
+    override parseADLRank (info: Dict, market: Market = undefined): ADL {
         //
         // fetchPositionsADLRank
         //
@@ -4345,7 +4592,7 @@ export default class woo extends Exchange {
         } as ADL;
     }
 
-    defaultNetworkCodeForCurrency (code) { // TODO: can be moved into base as an unified method
+    defaultNetworkCodeForCurrency (code: any) { // TODO: can be moved into base as an unified method
         const currencyItem = this.currency (code);
         const networks = currencyItem['networks'];
         const networkKeys = Object.keys (networks);
@@ -4359,7 +4606,7 @@ export default class woo extends Exchange {
         return this.safeValue (networkKeys, 0);
     }
 
-    setSandboxMode (enable: boolean) {
+    override setSandboxMode (enable: boolean) {
         super.setSandboxMode (enable);
         this.options['sandboxMode'] = enable;
     }

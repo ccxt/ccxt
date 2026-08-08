@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinmate.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, NullableDict, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int } from './base/types.js';
 /**
  * @class coinmate
  * @augments Exchange
@@ -9,10 +9,10 @@ export default class coinmate extends Exchange {
     /**
      * @method
      * @name coinmate#fetchTime
-     * @description fetches the current integer timestamp in milliseconds from the bingx server
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
      * @see https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int} the current integer timestamp in milliseconds from the bingx server
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     fetchTime(params?: {}): Promise<Int>;
     /**
@@ -42,7 +42,7 @@ export default class coinmate extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -78,7 +78,7 @@ export default class coinmate extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -157,8 +157,8 @@ export default class coinmate extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    parseOrderStatus(status: Str): string;
-    parseOrderType(type: Str): string;
+    parseOrderStatus(status: Str): Str;
+    parseOrderType(type: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -195,17 +195,17 @@ export default class coinmate extends Exchange {
      * @description cancels an open order
      * @see https://coinmate.docs.apiary.io/#reference/order/cancel-order/post
      * @param {string} id order id
-     * @param {string} symbol not used by coinmate cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: string;
         method: string;
         body: any;
-        headers: any;
+        headers: NullableDict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

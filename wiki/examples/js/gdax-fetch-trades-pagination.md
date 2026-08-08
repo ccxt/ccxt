@@ -1,8 +1,5 @@
-- [Gdax Fetch Trades Pagination](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
+```javascript
+import ccxt from '../../js/ccxt.js';
 import ololog from 'ololog';
 
 const { noLocate } = ololog;
@@ -31,5 +28,5 @@ const exchange = new ccxt.coinbasepro ()
     }
 
 }) ()
- 
+
 ```

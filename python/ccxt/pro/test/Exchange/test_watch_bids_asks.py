@@ -30,7 +30,7 @@ async def test_watch_bids_asks_helper(exchange, skipped_properties, arg_symbols,
     while now < ends:
         success = True
         should_return = False
-        response = None
+        response = {}
         try:
             response = await exchange.watch_bids_asks(arg_symbols, arg_params)
         except Exception as e:
@@ -49,7 +49,7 @@ async def test_watch_bids_asks_helper(exchange, skipped_properties, arg_symbols,
         if should_return:
             return False
         if success:
-            assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + exchange.json(arg_symbols) + ' must return an object. ' + exchange.json(response)
+            assert exchange.is_dictionary(response), exchange.id + ' ' + method + ' ' + exchange.json(arg_symbols) + ' must return a dictionary. ' + exchange.json(response)
             values = list(response.values())
             checked_symbol = None
             if arg_symbols is not None and len(arg_symbols) == 1:

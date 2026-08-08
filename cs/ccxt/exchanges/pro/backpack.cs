@@ -59,7 +59,10 @@ public partial class backpack : ccxt.backpack
     {
         parameters ??= new Dictionary<string, object>();
         unwatch ??= false;
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         object method = ((bool) isTrue(unwatch)) ? "UNSUBSCRIBE" : "SUBSCRIBE";
         object request = new Dictionary<string, object>() {
@@ -131,7 +134,7 @@ public partial class backpack : ccxt.backpack
                 object splitHashes = ((string)messageHash).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
                 object symbol = this.safeString(splitHashes, 2);
                 object timeframe = this.safeString(splitHashes, 3);
-                if (isTrue(inOp(this.ohlcvs, symbol)))
+                if (isTrue(isTrue(isTrue((!isEqual(symbol, null))) && isTrue((!isEqual(timeframe, null)))) && isTrue((inOp(this.ohlcvs, symbol)))))
                 {
                     if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
                     {
@@ -157,18 +160,22 @@ public partial class backpack : ccxt.backpack
                 if (isTrue(isEqual(messageHash, "unsubscribe:orders")))
                 {
                     object cache = this.orders;
-                    object keys = new List<object>(((IDictionary<string,object>)cache).Keys);
-                    for (object j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
+                    if (isTrue(!isEqual(cache, null)))
                     {
-                        object symbol = getValue(keys, j);
-                        ((IDictionary<string,object>)this.orders).Remove((string)symbol);
+                        object keys = new List<object>(((IDictionary<string,object>)cache).Keys);
+                        for (object j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
+                        {
+                            object symbol = getValue(keys, j);
+                            ((IDictionary<string,object>)cache).Remove((string)symbol);
+                        }
                     }
                 } else
                 {
                     object symbol = ((string)messageHash).Replace((string)"unsubscribe:orders:", (string)"");
-                    if (isTrue(inOp(this.orders, symbol)))
+                    object cache = this.orders;
+                    if (isTrue(isTrue((!isEqual(cache, null))) && isTrue((inOp(cache, symbol)))))
                     {
-                        ((IDictionary<string,object>)this.orders).Remove((string)symbol);
+                        ((IDictionary<string,object>)cache).Remove((string)symbol);
                     }
                 }
             } else if (isTrue(isGreaterThanOrEqual(getIndexOf(messageHash, "positions"), 0)))
@@ -206,7 +213,10 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object topic = add(add("ticker", "."), getValue(market, "id"));
@@ -241,7 +251,10 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object messageHashes = new List<object>() {};
         object topics = new List<object>() {};
@@ -268,7 +281,10 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object topics = new List<object>() {};
         object messageHashes = new List<object>() {};
@@ -327,7 +343,7 @@ public partial class backpack : ccxt.backpack
         //         v: '5542.3911'
         //     }
         //
-        object microseconds = this.safeInteger(ticker, "E");
+        object microseconds = this.safeInteger(ticker, "E", 0);
         object timestamp = this.parseToInt(divide(microseconds, 1000));
         object marketId = this.safeString(ticker, "s");
         market = this.safeMarket(marketId, market);
@@ -370,7 +386,10 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object topics = new List<object>() {};
         object messageHashes = new List<object>() {};
@@ -396,7 +415,10 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object topics = new List<object>() {};
         object messageHashes = new List<object>() {};
@@ -455,7 +477,7 @@ public partial class backpack : ccxt.backpack
         object marketId = this.safeString(ticker, "s");
         market = this.safeMarket(marketId, market);
         object symbol = this.safeString(market, "symbol");
-        object microseconds = this.safeInteger(ticker, "E");
+        object microseconds = this.safeInteger(ticker, "E", 0);
         object timestamp = this.parseToInt(divide(microseconds, 1000));
         object ask = this.safeString(ticker, "a");
         object askVolume = this.safeString(ticker, "A");
@@ -529,7 +551,10 @@ public partial class backpack : ccxt.backpack
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object topics = new List<object>() {};
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
@@ -571,7 +596,10 @@ public partial class backpack : ccxt.backpack
         {
             throw new ArgumentsRequired ((string)add(this.id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object topics = new List<object>() {};
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
@@ -612,9 +640,9 @@ public partial class backpack : ccxt.backpack
         object marketId = this.safeString(data, "s");
         object market = this.market(marketId);
         object symbol = getValue(market, "symbol");
-        object stream = this.safeString(message, "stream");
+        object stream = this.safeString(message, "stream", "");
         object parts = ((string)stream).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
-        object timeframe = this.safeString(parts, 1);
+        object timeframe = this.safeString(parts, 1, "");
         if (!isTrue((inOp(this.ohlcvs, symbol))))
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
@@ -699,7 +727,10 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
@@ -738,7 +769,10 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
@@ -810,14 +844,25 @@ public partial class backpack : ccxt.backpack
         //         t: 10782547
         //     }
         //
-        object microseconds = this.safeInteger(trade, "E");
+        object microseconds = this.safeInteger(trade, "E", 0);
         object timestamp = this.parseToInt(divide(microseconds, 1000));
         object id = this.safeString(trade, "t");
         object marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market);
-        object isMaker = this.safeBool(trade, "m");
-        object side = ((bool) isTrue(isMaker)) ? "sell" : "buy";
-        object takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+        object isBuyerMaker = this.safeBool(trade, "m");
+        object side = null;
+        object takerOrMaker = null;
+        if (isTrue(!isEqual(isBuyerMaker, null)))
+        {
+            takerOrMaker = "taker";
+            if (isTrue(isBuyerMaker))
+            {
+                side = "sell";
+            } else
+            {
+                side = "buy";
+            }
+        }
         object price = this.safeString(trade, "p");
         object amount = this.safeString(trade, "q");
         object orderId = null;
@@ -856,7 +901,7 @@ public partial class backpack : ccxt.backpack
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -873,12 +918,15 @@ public partial class backpack : ccxt.backpack
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object marketIds = this.marketIds(symbols);
         object messageHashes = new List<object>() {};
@@ -901,7 +949,7 @@ public partial class backpack : ccxt.backpack
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
@@ -916,12 +964,15 @@ public partial class backpack : ccxt.backpack
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object marketIds = this.marketIds(symbols);
         object messageHashes = new List<object>() {};
@@ -980,7 +1031,7 @@ public partial class backpack : ccxt.backpack
             }
             ((IList<object>)(storedOrderBook as ccxt.pro.OrderBook).cache).Add(data);
             return;
-        } else if (isTrue(isGreaterThan(nonce, deltaNonce)))
+        } else if (isTrue(isTrue((!isEqual(deltaNonce, null))) && isTrue((isGreaterThan(nonce, deltaNonce)))))
         {
             return;
         }
@@ -990,7 +1041,7 @@ public partial class backpack : ccxt.backpack
 
     public override void handleDelta(object orderbook, object delta)
     {
-        object timestamp = this.parseToInt(divide(this.safeInteger(delta, "T"), 1000));
+        object timestamp = this.parseToInt(divide(this.safeInteger(delta, "T", 0), 1000));
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(delta, "u");
@@ -1006,7 +1057,7 @@ public partial class backpack : ccxt.backpack
     {
         for (object i = 0; isLessThan(i, getArrayLength(bidAsks)); postFixIncrement(ref i))
         {
-            object bidAsk = this.parseBidAsk(getValue(bidAsks, i));
+            object bidAsk = this.parseOrderBookBidAsk(getValue(bidAsks, i));
             (bookSide as IOrderBookSide).storeArray(bidAsk);
         }
     }
@@ -1018,6 +1069,14 @@ public partial class backpack : ccxt.backpack
         object firstDelta = this.safeDict(cache, 0);
         object nonce = this.safeInteger(orderbook, "nonce");
         object firstDeltaStart = this.safeInteger(firstDelta, "U");
+        if (isTrue(isEqual(nonce, null)))
+        {
+            return getArrayLength(cache);
+        }
+        if (isTrue(isEqual(firstDeltaStart, null)))
+        {
+            return -1;
+        }
         if (isTrue(isLessThan(nonce, subtract(firstDeltaStart, 1))))
         {
             return -1;
@@ -1027,6 +1086,10 @@ public partial class backpack : ccxt.backpack
             object delta = getValue(cache, i);
             object deltaStart = this.safeInteger(delta, "U");
             object deltaEnd = this.safeInteger(delta, "u");
+            if (isTrue(isTrue((isEqual(deltaStart, null))) || isTrue((isEqual(deltaEnd, null)))))
+            {
+                return getArrayLength(cache);
+            }
             if (isTrue(isTrue((isGreaterThanOrEqual(nonce, subtract(deltaStart, 1)))) && isTrue((isLessThan(nonce, deltaEnd)))))
             {
                 return i;
@@ -1049,7 +1112,10 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -1083,7 +1149,10 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -1175,7 +1244,7 @@ public partial class backpack : ccxt.backpack
         //
         object id = this.safeString(order, "i");
         object clientOrderId = this.safeString(order, "c");
-        object microseconds = this.safeInteger(order, "E");
+        object microseconds = this.safeInteger(order, "E", 0);
         object timestamp = this.parseToInt(divide(microseconds, 1000));
         object status = this.parseWsOrderStatus(this.safeString(order, "X"), market);
         object marketId = this.safeString(order, "s");
@@ -1260,7 +1329,10 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object messageHashes = new List<object>() {};
         object topics = new List<object>() {};
@@ -1297,7 +1369,10 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> unWatchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object messageHashes = new List<object>() {};
         object topics = new List<object>() {};
@@ -1350,7 +1425,7 @@ public partial class backpack : ccxt.backpack
         }
         object cache = this.positions;
         object parsedPosition = this.parseWsPosition(data);
-        object microseconds = this.safeInteger(data, "E");
+        object microseconds = this.safeInteger(data, "E", 0);
         object timestamp = this.parseToInt(divide(microseconds, 1000));
         ((IDictionary<string,object>)parsedPosition)["timestamp"] = timestamp;
         ((IDictionary<string,object>)parsedPosition)["datetime"] = this.iso8601(timestamp);
@@ -1384,8 +1459,9 @@ public partial class backpack : ccxt.backpack
         //
         object id = this.safeString(position, "i");
         object marketId = this.safeString(position, "s");
-        market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        object marketResolved = this.safeMarket(marketId, market);
+        market = marketResolved;
+        object symbol = getValue(marketResolved, "symbol");
         object notional = this.safeString(position, "n");
         object liquidationPrice = this.safeString(position, "l");
         object entryPrice = this.safeString(position, "b");
@@ -1396,16 +1472,18 @@ public partial class backpack : ccxt.backpack
         object netQuantity = this.safeNumber(position, "q");
         object hedged = false;
         object side = "long";
-        if (isTrue(isLessThan(netQuantity, 0)))
+        if (isTrue(!isEqual(netQuantity, null)))
         {
-            side = "short";
-        }
-        if (isTrue(isEqual(netQuantity, null)))
+            if (isTrue(isLessThan(netQuantity, 0)))
+            {
+                side = "short";
+            }
+        } else
         {
             hedged = null;
             side = null;
         }
-        object microseconds = this.safeInteger(position, "E");
+        object microseconds = this.safeInteger(position, "E", 0);
         object timestamp = this.parseToInt(divide(microseconds, 1000));
         object maintenanceMarginPercentage = this.safeNumber(position, "m");
         object initialMarginPercentage = this.safeNumber(position, "f");

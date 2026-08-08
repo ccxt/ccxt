@@ -1,5 +1,5 @@
 /* eslint-disable no-bitwise */
-import { hexToBytes } from '../../noble-curves/abstract/utils';
+import { hexToBytes } from '@noble/curves/utils.js';
 
 import { ADDR_BOUND, ZERO } from '../constants.js';
 import { BigNumberish } from '../types/index.js';

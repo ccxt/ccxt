@@ -121,17 +121,228 @@ func (this *CoinspotCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"latest"},
+				"get": map[string]any{
+					"latest": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"post": []any{"orders", "orders/history", "my/coin/deposit", "my/coin/send", "quote/buy", "quote/sell", "my/balances", "my/orders", "my/buy", "my/sell", "my/buy/cancel", "my/sell/cancel", "ro/my/balances", "ro/my/balances/{cointype}", "ro/my/deposits", "ro/my/withdrawals", "ro/my/transactions", "ro/my/transactions/{cointype}", "ro/my/transactions/open", "ro/my/transactions/{cointype}/open", "ro/my/sendreceive", "ro/my/affiliatepayments", "ro/my/referralpayments"},
+				"post": map[string]any{
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/history": map[string]any{
+						"cost": 1,
+					},
+					"my/coin/deposit": map[string]any{
+						"cost": 1,
+					},
+					"my/coin/send": map[string]any{
+						"cost": 1,
+					},
+					"quote/buy": map[string]any{
+						"cost": 1,
+					},
+					"quote/sell": map[string]any{
+						"cost": 1,
+					},
+					"my/balances": map[string]any{
+						"cost": 1,
+					},
+					"my/orders": map[string]any{
+						"cost": 1,
+					},
+					"my/buy": map[string]any{
+						"cost": 1,
+					},
+					"my/sell": map[string]any{
+						"cost": 1,
+					},
+					"my/buy/cancel": map[string]any{
+						"cost": 1,
+					},
+					"my/sell/cancel": map[string]any{
+						"cost": 1,
+					},
+					"ro/my/balances": map[string]any{
+						"cost": 1,
+					},
+					"ro/my/balances/{cointype}": map[string]any{
+						"cost": 1,
+					},
+					"ro/my/deposits": map[string]any{
+						"cost": 1,
+					},
+					"ro/my/withdrawals": map[string]any{
+						"cost": 1,
+					},
+					"ro/my/transactions": map[string]any{
+						"cost": 1,
+					},
+					"ro/my/transactions/{cointype}": map[string]any{
+						"cost": 1,
+					},
+					"ro/my/transactions/open": map[string]any{
+						"cost": 1,
+					},
+					"ro/my/transactions/{cointype}/open": map[string]any{
+						"cost": 1,
+					},
+					"ro/my/sendreceive": map[string]any{
+						"cost": 1,
+					},
+					"ro/my/affiliatepayments": map[string]any{
+						"cost": 1,
+					},
+					"ro/my/referralpayments": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"v2": map[string]any{
 				"public": map[string]any{
-					"get": []any{"latest", "latest/{cointype}", "latest/{cointype}/{markettype}", "buyprice/{cointype}", "buyprice/{cointype}/{markettype}", "sellprice/{cointype}", "sellprice/{cointype}/{markettype}", "orders/open/{cointype}", "orders/open/{cointype}/{markettype}", "orders/completed/{cointype}", "orders/completed/{cointype}/{markettype}", "orders/summary/completed/{cointype}", "orders/summary/completed/{cointype}/{markettype}"},
+					"get": map[string]any{
+						"latest": map[string]any{
+							"cost": 1,
+						},
+						"latest/{cointype}": map[string]any{
+							"cost": 1,
+						},
+						"latest/{cointype}/{markettype}": map[string]any{
+							"cost": 1,
+						},
+						"buyprice/{cointype}": map[string]any{
+							"cost": 1,
+						},
+						"buyprice/{cointype}/{markettype}": map[string]any{
+							"cost": 1,
+						},
+						"sellprice/{cointype}": map[string]any{
+							"cost": 1,
+						},
+						"sellprice/{cointype}/{markettype}": map[string]any{
+							"cost": 1,
+						},
+						"orders/open/{cointype}": map[string]any{
+							"cost": 1,
+						},
+						"orders/open/{cointype}/{markettype}": map[string]any{
+							"cost": 1,
+						},
+						"orders/completed/{cointype}": map[string]any{
+							"cost": 1,
+						},
+						"orders/completed/{cointype}/{markettype}": map[string]any{
+							"cost": 1,
+						},
+						"orders/summary/completed/{cointype}": map[string]any{
+							"cost": 1,
+						},
+						"orders/summary/completed/{cointype}/{markettype}": map[string]any{
+							"cost": 1,
+						},
+					},
 				},
 				"private": map[string]any{
-					"post": []any{"status", "my/coin/deposit", "quote/buy/now", "quote/sell/now", "quote/swap/now", "my/buy", "my/buy/edit", "my/sell", "my/sell/edit", "my/buy/now", "my/sell/now", "my/swap/now", "my/buy/cancel", "my/buy/cancel/all", "my/sell/cancel", "my/sell/cancel/all", "my/coin/withdraw/senddetails", "my/coin/withdraw/send", "ro/status", "ro/orders/market/open", "ro/orders/market/completed", "ro/my/balances", "ro/my/balance/{cointype}", "ro/my/orders/market/open", "ro/my/orders/limit/open", "ro/my/orders/completed", "ro/my/orders/market/completed", "ro/my/sendreceive", "ro/my/deposits", "ro/my/withdrawals", "ro/my/affiliatepayments", "ro/my/referralpayments"},
+					"post": map[string]any{
+						"status": map[string]any{
+							"cost": 1,
+						},
+						"my/coin/deposit": map[string]any{
+							"cost": 1,
+						},
+						"quote/buy/now": map[string]any{
+							"cost": 1,
+						},
+						"quote/sell/now": map[string]any{
+							"cost": 1,
+						},
+						"quote/swap/now": map[string]any{
+							"cost": 1,
+						},
+						"my/buy": map[string]any{
+							"cost": 1,
+						},
+						"my/buy/edit": map[string]any{
+							"cost": 1,
+						},
+						"my/sell": map[string]any{
+							"cost": 1,
+						},
+						"my/sell/edit": map[string]any{
+							"cost": 1,
+						},
+						"my/buy/now": map[string]any{
+							"cost": 1,
+						},
+						"my/sell/now": map[string]any{
+							"cost": 1,
+						},
+						"my/swap/now": map[string]any{
+							"cost": 1,
+						},
+						"my/buy/cancel": map[string]any{
+							"cost": 1,
+						},
+						"my/buy/cancel/all": map[string]any{
+							"cost": 1,
+						},
+						"my/sell/cancel": map[string]any{
+							"cost": 1,
+						},
+						"my/sell/cancel/all": map[string]any{
+							"cost": 1,
+						},
+						"my/coin/withdraw/senddetails": map[string]any{
+							"cost": 1,
+						},
+						"my/coin/withdraw/send": map[string]any{
+							"cost": 1,
+						},
+						"ro/status": map[string]any{
+							"cost": 1,
+						},
+						"ro/orders/market/open": map[string]any{
+							"cost": 1,
+						},
+						"ro/orders/market/completed": map[string]any{
+							"cost": 1,
+						},
+						"ro/my/balances": map[string]any{
+							"cost": 1,
+						},
+						"ro/my/balance/{cointype}": map[string]any{
+							"cost": 1,
+						},
+						"ro/my/orders/market/open": map[string]any{
+							"cost": 1,
+						},
+						"ro/my/orders/limit/open": map[string]any{
+							"cost": 1,
+						},
+						"ro/my/orders/completed": map[string]any{
+							"cost": 1,
+						},
+						"ro/my/orders/market/completed": map[string]any{
+							"cost": 1,
+						},
+						"ro/my/sendreceive": map[string]any{
+							"cost": 1,
+						},
+						"ro/my/deposits": map[string]any{
+							"cost": 1,
+						},
+						"ro/my/withdrawals": map[string]any{
+							"cost": 1,
+						},
+						"ro/my/affiliatepayments": map[string]any{
+							"cost": 1,
+						},
+						"ro/my/referralpayments": map[string]any{
+							"cost": 1,
+						},
+					},
 				},
 			},
 		},
@@ -379,7 +590,9 @@ func (this *CoinspotCore) ParseBalance(response any) any {
 				var code any = this.SafeCurrencyCode(currencyId)
 				var account any = this.Account()
 				AddElementToObject(account, "total", this.SafeString(balance, "balance"))
-				AddElementToObject(result, code, account)
+				if IsTrue(!IsEqual(code, nil)) {
+					AddElementToObject(result, code, account)
+				}
 			}
 		}
 	} else {
@@ -389,7 +602,9 @@ func (this *CoinspotCore) ParseBalance(response any) any {
 			var code any = this.SafeCurrencyCode(currencyId)
 			var account any = this.Account()
 			AddElementToObject(account, "total", this.SafeString(balances, currencyId))
-			AddElementToObject(result, code, account)
+			if IsTrue(!IsEqual(code, nil)) {
+				AddElementToObject(result, code, account)
+			}
 		}
 	}
 	return this.SafeBalance(result)
@@ -410,9 +625,11 @@ func (this *CoinspotCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes3398 := (<-this.LoadMarkets())
-		PanicOnError(retRes3398)
+			retRes33212 := (<-this.LoadMarkets())
+			PanicOnError(retRes33212)
+		}
 		var method any = this.SafeString(this.Options, "fetchBalance", "private_post_my_balances")
 
 		response := (<-this.CallDynamically(method, params))
@@ -449,7 +666,7 @@ func (this *CoinspotCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *CoinspotCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -460,9 +677,11 @@ func (this *CoinspotCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes3728 := (<-this.LoadMarkets())
-		PanicOnError(retRes3728)
+			retRes36712 := (<-this.LoadMarkets())
+			PanicOnError(retRes36712)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"cointype": GetValue(market, "id"),
@@ -531,14 +750,16 @@ func (this *CoinspotCore) FetchTicker(symbol any, optionalArgs ...any) <-chan an
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes4278 := (<-this.LoadMarkets())
-		PanicOnError(retRes4278)
+			retRes42412 := (<-this.LoadMarkets())
+			PanicOnError(retRes42412)
+		}
 		var market any = this.Market(symbol)
 
 		response := (<-this.PublicGetLatest(params))
 		PanicOnError(response)
-		var id any = GetValue(market, "id")
+		var id any = this.SafeString(market, "id", "")
 		id = ToLower(id)
 		var prices any = this.SafeDict(response, "prices", map[string]any{})
 		//
@@ -553,7 +774,7 @@ func (this *CoinspotCore) FetchTicker(symbol any, optionalArgs ...any) <-chan an
 		//         }
 		//     }
 		//
-		var ticker any = this.SafeDict(prices, id)
+		var ticker any = this.SafeDict(prices, id, map[string]any{})
 
 		ch <- this.ParseTicker(ticker, market)
 		return nil
@@ -580,9 +801,11 @@ func (this *CoinspotCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes4598 := (<-this.LoadMarkets())
-		PanicOnError(retRes4598)
+			retRes45812 := (<-this.LoadMarkets())
+			PanicOnError(retRes45812)
+		}
 
 		response := (<-this.PublicGetLatest(params))
 		PanicOnError(response)
@@ -645,9 +868,11 @@ func (this *CoinspotCore) FetchTrades(symbol any, optionalArgs ...any) <-chan an
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5058 := (<-this.LoadMarkets())
-		PanicOnError(retRes5058)
+			retRes50612 := (<-this.LoadMarkets())
+			PanicOnError(retRes50612)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"cointype": GetValue(market, "id"),
@@ -696,9 +921,11 @@ func (this *CoinspotCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5358 := (<-this.LoadMarkets())
-		PanicOnError(retRes5358)
+			retRes53812 := (<-this.LoadMarkets())
+			PanicOnError(retRes53812)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -846,10 +1073,15 @@ func (this *CoinspotCore) CreateOrder(symbol any, typeVar any, side any, amount 
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6678 := (<-this.LoadMarkets())
-		PanicOnError(retRes6678)
-		var method any = Add("privatePostMy", this.Capitalize(side))
+			retRes67212 := (<-this.LoadMarkets())
+			PanicOnError(retRes67212)
+		}
+		if IsTrue(IsEqual(side, nil)) {
+			panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
+		}
+		var sideUpper any = ToUpper(side)
 		if IsTrue(IsEqual(typeVar, "market")) {
 			panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
 		}
@@ -859,11 +1091,25 @@ func (this *CoinspotCore) CreateOrder(symbol any, typeVar any, side any, amount 
 			"amount":   amount,
 			"rate":     price,
 		}
+		var response any = nil
+		if IsTrue(IsEqual(sideUpper, "BUY")) {
 
-		response := (<-this.CallDynamically(method, this.Extend(request, params)))
-		PanicOnError(response)
+			response = (<-this.PrivatePostMyBuy(this.Extend(request, params)))
+			PanicOnError(response)
+		} else if IsTrue(IsEqual(sideUpper, "SELL")) {
 
-		ch <- this.ParseOrder(response)
+			response = (<-this.PrivatePostMySell(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+			panic(NotSupported(Add(this.Id, " createOrder only support buy/sell side")))
+		}
+
+		//
+		// status - ok, error
+		//
+		ch <- this.SafeOrder(map[string]any{
+			"info": response,
+		})
 		return nil
 
 	}()
@@ -877,7 +1123,7 @@ func (this *CoinspotCore) CreateOrder(symbol any, typeVar any, side any, amount 
  * @see https://www.coinspot.com.au/api#cancelbuyorder
  * @see https://www.coinspot.com.au/api#cancelsellorder
  * @param {string} id order id
- * @param {string} symbol not used by coinspot cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -919,6 +1165,17 @@ func (this *CoinspotCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 
 	}()
 	return ch
+}
+func (this *CoinspotCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+	if !IsTrue(response) {
+		return nil // fallback to default error handler
+	}
+	var status any = this.SafeString(response, "status")
+	if IsTrue(IsEqual(status, "error")) {
+		var feedback any = Add(Add(this.Id, " "), this.Json(response))
+		panic(ExchangeError(feedback))
+	}
+	return nil
 }
 func (this *CoinspotCore) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")

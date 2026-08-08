@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var coinspot$1 = require('./abstract/coinspot.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 var Precise = require('./base/Precise.js');
 
 // ----------------------------------------------------------------------------
@@ -19,7 +19,7 @@ class coinspot extends coinspot$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'coinspot',
             'name': 'CoinSpot',
-            'countries': ['AU'],
+            'countries': ['AU'], // Australia
             'rateLimit': 1000,
             'pro': false,
             'has': {
@@ -123,102 +123,90 @@ class coinspot extends coinspot$1["default"] {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'latest',
-                    ],
+                    'get': {
+                        'latest': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'post': [
-                        'orders',
-                        'orders/history',
-                        'my/coin/deposit',
-                        'my/coin/send',
-                        'quote/buy',
-                        'quote/sell',
-                        'my/balances',
-                        'my/orders',
-                        'my/buy',
-                        'my/sell',
-                        'my/buy/cancel',
-                        'my/sell/cancel',
-                        'ro/my/balances',
-                        'ro/my/balances/{cointype}',
-                        'ro/my/deposits',
-                        'ro/my/withdrawals',
-                        'ro/my/transactions',
-                        'ro/my/transactions/{cointype}',
-                        'ro/my/transactions/open',
-                        'ro/my/transactions/{cointype}/open',
-                        'ro/my/sendreceive',
-                        'ro/my/affiliatepayments',
-                        'ro/my/referralpayments',
-                    ],
+                    'post': {
+                        'orders': { 'cost': 1 },
+                        'orders/history': { 'cost': 1 },
+                        'my/coin/deposit': { 'cost': 1 },
+                        'my/coin/send': { 'cost': 1 },
+                        'quote/buy': { 'cost': 1 },
+                        'quote/sell': { 'cost': 1 },
+                        'my/balances': { 'cost': 1 },
+                        'my/orders': { 'cost': 1 },
+                        'my/buy': { 'cost': 1 },
+                        'my/sell': { 'cost': 1 },
+                        'my/buy/cancel': { 'cost': 1 },
+                        'my/sell/cancel': { 'cost': 1 },
+                        'ro/my/balances': { 'cost': 1 },
+                        'ro/my/balances/{cointype}': { 'cost': 1 },
+                        'ro/my/deposits': { 'cost': 1 },
+                        'ro/my/withdrawals': { 'cost': 1 },
+                        'ro/my/transactions': { 'cost': 1 },
+                        'ro/my/transactions/{cointype}': { 'cost': 1 },
+                        'ro/my/transactions/open': { 'cost': 1 },
+                        'ro/my/transactions/{cointype}/open': { 'cost': 1 },
+                        'ro/my/sendreceive': { 'cost': 1 },
+                        'ro/my/affiliatepayments': { 'cost': 1 },
+                        'ro/my/referralpayments': { 'cost': 1 },
+                    },
                 },
                 'v2': {
                     'public': {
-                        'get': [
-                            'latest',
-                            'latest/{cointype}',
-                            'latest/{cointype}/{markettype}',
-                            'buyprice/{cointype}',
-                            'buyprice/{cointype}/{markettype}',
-                            'sellprice/{cointype}',
-                            'sellprice/{cointype}/{markettype}',
-                            'orders/open/{cointype}',
-                            'orders/open/{cointype}/{markettype}',
-                            'orders/completed/{cointype}',
-                            'orders/completed/{cointype}/{markettype}',
-                            'orders/summary/completed/{cointype}',
-                            'orders/summary/completed/{cointype}/{markettype}',
-                        ],
+                        'get': {
+                            'latest': { 'cost': 1 },
+                            'latest/{cointype}': { 'cost': 1 },
+                            'latest/{cointype}/{markettype}': { 'cost': 1 },
+                            'buyprice/{cointype}': { 'cost': 1 },
+                            'buyprice/{cointype}/{markettype}': { 'cost': 1 },
+                            'sellprice/{cointype}': { 'cost': 1 },
+                            'sellprice/{cointype}/{markettype}': { 'cost': 1 },
+                            'orders/open/{cointype}': { 'cost': 1 },
+                            'orders/open/{cointype}/{markettype}': { 'cost': 1 },
+                            'orders/completed/{cointype}': { 'cost': 1 },
+                            'orders/completed/{cointype}/{markettype}': { 'cost': 1 },
+                            'orders/summary/completed/{cointype}': { 'cost': 1 },
+                            'orders/summary/completed/{cointype}/{markettype}': { 'cost': 1 },
+                        },
                     },
                     'private': {
-                        'post': [
-                            // Status & Account
-                            'status',
-                            'my/coin/deposit',
-                            // Quotes
-                            'quote/buy/now',
-                            'quote/sell/now',
-                            'quote/swap/now',
-                            // Market Orders
-                            'my/buy',
-                            'my/buy/edit',
-                            'my/sell',
-                            'my/sell/edit',
-                            // Instant Orders
-                            'my/buy/now',
-                            'my/sell/now',
-                            'my/swap/now',
-                            // Cancel Orders
-                            'my/buy/cancel',
-                            'my/buy/cancel/all',
-                            'my/sell/cancel',
-                            'my/sell/cancel/all',
-                            // Withdrawals
-                            'my/coin/withdraw/senddetails',
-                            'my/coin/withdraw/send',
-                            // Read Only Status
-                            'ro/status',
-                            // Read Only Market Orders
-                            'ro/orders/market/open',
-                            'ro/orders/market/completed',
-                            // Read Only Balances
-                            'ro/my/balances',
-                            'ro/my/balance/{cointype}',
-                            // Read Only Orders
-                            'ro/my/orders/market/open',
-                            'ro/my/orders/limit/open',
-                            'ro/my/orders/completed',
-                            'ro/my/orders/market/completed',
-                            // Read Only Transactions
-                            'ro/my/sendreceive',
-                            'ro/my/deposits',
-                            'ro/my/withdrawals',
-                            // Read Only Payments
-                            'ro/my/affiliatepayments',
-                            'ro/my/referralpayments',
-                        ],
+                        'post': {
+                            'status': { 'cost': 1 },
+                            'my/coin/deposit': { 'cost': 1 },
+                            'quote/buy/now': { 'cost': 1 },
+                            'quote/sell/now': { 'cost': 1 },
+                            'quote/swap/now': { 'cost': 1 },
+                            'my/buy': { 'cost': 1 },
+                            'my/buy/edit': { 'cost': 1 },
+                            'my/sell': { 'cost': 1 },
+                            'my/sell/edit': { 'cost': 1 },
+                            'my/buy/now': { 'cost': 1 },
+                            'my/sell/now': { 'cost': 1 },
+                            'my/swap/now': { 'cost': 1 },
+                            'my/buy/cancel': { 'cost': 1 },
+                            'my/buy/cancel/all': { 'cost': 1 },
+                            'my/sell/cancel': { 'cost': 1 },
+                            'my/sell/cancel/all': { 'cost': 1 },
+                            'my/coin/withdraw/senddetails': { 'cost': 1 },
+                            'my/coin/withdraw/send': { 'cost': 1 },
+                            'ro/status': { 'cost': 1 },
+                            'ro/orders/market/open': { 'cost': 1 },
+                            'ro/orders/market/completed': { 'cost': 1 },
+                            'ro/my/balances': { 'cost': 1 },
+                            'ro/my/balance/{cointype}': { 'cost': 1 },
+                            'ro/my/orders/market/open': { 'cost': 1 },
+                            'ro/my/orders/limit/open': { 'cost': 1 },
+                            'ro/my/orders/completed': { 'cost': 1 },
+                            'ro/my/orders/market/completed': { 'cost': 1 },
+                            'ro/my/sendreceive': { 'cost': 1 },
+                            'ro/my/deposits': { 'cost': 1 },
+                            'ro/my/withdrawals': { 'cost': 1 },
+                            'ro/my/affiliatepayments': { 'cost': 1 },
+                            'ro/my/referralpayments': { 'cost': 1 },
+                        },
                     },
                 },
             },
@@ -277,13 +265,13 @@ class coinspot extends coinspot$1["default"] {
                         'marginMode': false,
                         'limit': undefined,
                         'daysBack': 100000,
-                        'untilDays': 100000,
+                        'untilDays': 100000, // todo implement
                         'symbolRequired': false,
                     },
                     'fetchOrder': undefined,
-                    'fetchOpenOrders': undefined,
+                    'fetchOpenOrders': undefined, // todo implement
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo implement
                     'fetchOHLCV': undefined,
                 },
                 'swap': {
@@ -311,7 +299,9 @@ class coinspot extends coinspot$1["default"] {
                     const code = this.safeCurrencyCode(currencyId);
                     const account = this.account();
                     account['total'] = this.safeString(balance, 'balance');
-                    result[code] = account;
+                    if (code !== undefined) {
+                        result[code] = account;
+                    }
                 }
             }
         }
@@ -322,7 +312,9 @@ class coinspot extends coinspot$1["default"] {
                 const code = this.safeCurrencyCode(currencyId);
                 const account = this.account();
                 account['total'] = this.safeString(balances, currencyId);
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -336,7 +328,9 @@ class coinspot extends coinspot$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const method = this.safeString(this.options, 'fetchBalance', 'private_post_my_balances');
         const response = await this[method](params);
         //
@@ -365,10 +359,12 @@ class coinspot extends coinspot$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'cointype': market['id'],
@@ -421,10 +417,12 @@ class coinspot extends coinspot$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const response = await this.publicGetLatest(params);
-        let id = market['id'];
+        let id = this.safeString(market, 'id', '');
         id = id.toLowerCase();
         const prices = this.safeDict(response, 'prices', {});
         //
@@ -439,7 +437,7 @@ class coinspot extends coinspot$1["default"] {
         //         }
         //     }
         //
-        const ticker = this.safeDict(prices, id);
+        const ticker = this.safeDict(prices, id, {});
         return this.parseTicker(ticker, market);
     }
     /**
@@ -452,7 +450,9 @@ class coinspot extends coinspot$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetLatest(params);
         //
         //    {
@@ -497,7 +497,9 @@ class coinspot extends coinspot$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'cointype': market['id'],
@@ -526,7 +528,9 @@ class coinspot extends coinspot$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -657,8 +661,13 @@ class coinspot extends coinspot$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
-        const method = 'privatePostMy' + this.capitalize(side);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
+        const sideUpper = side.toUpperCase();
         if (type === 'market') {
             throw new errors.ExchangeError(this.id + ' createOrder() allows limit orders only');
         }
@@ -668,8 +677,22 @@ class coinspot extends coinspot$1["default"] {
             'amount': amount,
             'rate': price,
         };
-        const response = await this[method](this.extend(request, params));
-        return this.parseOrder(response);
+        let response;
+        if (sideUpper === 'BUY') {
+            response = await this.privatePostMyBuy(this.extend(request, params));
+        }
+        else if (sideUpper === 'SELL') {
+            response = await this.privatePostMySell(this.extend(request, params));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' createOrder only support buy/sell side');
+        }
+        //
+        // status - ok, error
+        //
+        return this.safeOrder({
+            'info': response,
+        });
     }
     /**
      * @method
@@ -678,7 +701,7 @@ class coinspot extends coinspot$1["default"] {
      * @see https://www.coinspot.com.au/api#cancelbuyorder
      * @see https://www.coinspot.com.au/api#cancelsellorder
      * @param {string} id order id
-     * @param {string} symbol not used by coinspot cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -691,7 +714,7 @@ class coinspot extends coinspot$1["default"] {
         const request = {
             'id': id,
         };
-        let response = undefined;
+        let response;
         if (side === 'buy') {
             response = await this.privatePostMyBuyCancel(this.extend(request, params));
         }
@@ -704,6 +727,17 @@ class coinspot extends coinspot$1["default"] {
         return this.safeOrder({
             'info': response,
         });
+    }
+    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (!response) {
+            return undefined; // fallback to default error handler
+        }
+        const status = this.safeString(response, 'status');
+        if (status === 'error') {
+            const feedback = this.id + ' ' + this.json(response);
+            throw new errors.ExchangeError(feedback);
+        }
+        return undefined;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const isVersionedApi = Array.isArray(api);
@@ -719,7 +753,7 @@ class coinspot extends coinspot$1["default"] {
             headers = {
                 'Content-Type': 'application/json',
                 'key': this.apiKey,
-                'sign': this.hmac(this.encode(body), this.encode(this.secret), sha512.sha512),
+                'sign': this.hmac(this.encode(body), this.encode(this.secret), sha2_js.sha512),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

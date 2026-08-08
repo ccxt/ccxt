@@ -14,7 +14,6 @@ import asyncio
 import ccxt.pro as ccxt  # noqa: E402
 
 
-# AUTO-TRANSPILE #
 async def example():
     exchange = ccxt.binanceusdm({
         'apiKey': 'YOUR_API_KEY',

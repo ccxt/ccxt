@@ -11,16 +11,17 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise;
+use React\Promise\PromiseInterface;
+
+use const ccxt\TICK_SIZE;
 
 class derive extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'derive',
-            'name' => 'derive',
+            'name' => 'Derive',
             'countries' => array(),
             'version' => 'v1',
             'rateLimit' => 50,
@@ -29,11 +30,11 @@ class derive extends Exchange {
             'dex' => true,
             'has' => array(
                 'CORS' => null,
-                'spot' => false,
+                'spot' => true,
                 'margin' => false,
-                'swap' => false,
+                'swap' => true,
                 'future' => false,
-                'option' => false,
+                'option' => true,
                 'addMargin' => false,
                 'borrowCrossMargin' => false,
                 'borrowIsolatedMargin' => false,
@@ -136,9 +137,8 @@ class derive extends Exchange {
                 '1w' => '1w',
                 '1M' => '1M',
             ),
-            'hostname' => 'derive.xyz',
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/f835b95f-033a-43dd-b6bb-24e698fc498c',
+                'logo' => 'https://github.com/user-attachments/assets/9e640700-c870-41f9-8907-fba58e120fed',
                 'api' => array(
                     'public' => 'https://api.lyra.finance/public',
                     'private' => 'https://api.lyra.finance/private',
@@ -155,125 +155,125 @@ class derive extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'get_all_currencies',
+                        'get_all_currencies' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'build_register_session_key_tx',
-                        'register_session_key',
-                        'deregister_session_key',
-                        'login',
-                        'statistics',
-                        'get_all_currencies',
-                        'get_currency',
-                        'get_instrument',
-                        'get_all_instruments',
-                        'get_instruments',
-                        'get_ticker',
-                        'get_latest_signed_feeds',
-                        'get_option_settlement_prices',
-                        'get_spot_feed_history',
-                        'get_spot_feed_history_candles',
-                        'get_funding_rate_history',
-                        'get_trade_history',
-                        'get_option_settlement_history',
-                        'get_liquidation_history',
-                        'get_interest_rate_history',
-                        'get_transaction',
-                        'get_margin',
-                        'margin_watch',
-                        'validate_invite_code',
-                        'get_points',
-                        'get_all_points',
-                        'get_points_leaderboard',
-                        'get_descendant_tree',
-                        'get_tree_roots',
-                        'get_swell_percent_points',
-                        'get_vault_assets',
-                        'get_etherfi_effective_balances',
-                        'get_kelp_effective_balances',
-                        'get_bridge_balances',
-                        'get_ethena_participants',
-                        'get_vault_share',
-                        'get_vault_statistics',
-                        'get_vault_balances',
-                        'estimate_integrator_points',
-                        'create_subaccount_debug',
-                        'deposit_debug',
-                        'withdraw_debug',
-                        'send_quote_debug',
-                        'execute_quote_debug',
-                        'get_invite_code',
-                        'register_invite',
-                        'get_time',
-                        'get_live_incidents',
-                        'get_maker_programs',
-                        'get_maker_program_scores',
+                        'build_register_session_key_tx' => array( 'cost' => 1 ),
+                        'register_session_key' => array( 'cost' => 1 ),
+                        'deregister_session_key' => array( 'cost' => 1 ),
+                        'login' => array( 'cost' => 1 ),
+                        'statistics' => array( 'cost' => 1 ),
+                        'get_all_currencies' => array( 'cost' => 1 ),
+                        'get_currency' => array( 'cost' => 1 ),
+                        'get_instrument' => array( 'cost' => 1 ),
+                        'get_all_instruments' => array( 'cost' => 1 ),
+                        'get_instruments' => array( 'cost' => 1 ),
+                        'get_ticker' => array( 'cost' => 1 ),
+                        'get_latest_signed_feeds' => array( 'cost' => 1 ),
+                        'get_option_settlement_prices' => array( 'cost' => 1 ),
+                        'get_spot_feed_history' => array( 'cost' => 1 ),
+                        'get_spot_feed_history_candles' => array( 'cost' => 1 ),
+                        'get_funding_rate_history' => array( 'cost' => 1 ),
+                        'get_trade_history' => array( 'cost' => 1 ),
+                        'get_option_settlement_history' => array( 'cost' => 1 ),
+                        'get_liquidation_history' => array( 'cost' => 1 ),
+                        'get_interest_rate_history' => array( 'cost' => 1 ),
+                        'get_transaction' => array( 'cost' => 1 ),
+                        'get_margin' => array( 'cost' => 1 ),
+                        'margin_watch' => array( 'cost' => 1 ),
+                        'validate_invite_code' => array( 'cost' => 1 ),
+                        'get_points' => array( 'cost' => 1 ),
+                        'get_all_points' => array( 'cost' => 1 ),
+                        'get_points_leaderboard' => array( 'cost' => 1 ),
+                        'get_descendant_tree' => array( 'cost' => 1 ),
+                        'get_tree_roots' => array( 'cost' => 1 ),
+                        'get_swell_percent_points' => array( 'cost' => 1 ),
+                        'get_vault_assets' => array( 'cost' => 1 ),
+                        'get_etherfi_effective_balances' => array( 'cost' => 1 ),
+                        'get_kelp_effective_balances' => array( 'cost' => 1 ),
+                        'get_bridge_balances' => array( 'cost' => 1 ),
+                        'get_ethena_participants' => array( 'cost' => 1 ),
+                        'get_vault_share' => array( 'cost' => 1 ),
+                        'get_vault_statistics' => array( 'cost' => 1 ),
+                        'get_vault_balances' => array( 'cost' => 1 ),
+                        'estimate_integrator_points' => array( 'cost' => 1 ),
+                        'create_subaccount_debug' => array( 'cost' => 1 ),
+                        'deposit_debug' => array( 'cost' => 1 ),
+                        'withdraw_debug' => array( 'cost' => 1 ),
+                        'send_quote_debug' => array( 'cost' => 1 ),
+                        'execute_quote_debug' => array( 'cost' => 1 ),
+                        'get_invite_code' => array( 'cost' => 1 ),
+                        'register_invite' => array( 'cost' => 1 ),
+                        'get_time' => array( 'cost' => 1 ),
+                        'get_live_incidents' => array( 'cost' => 1 ),
+                        'get_maker_programs' => array( 'cost' => 1 ),
+                        'get_maker_program_scores' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'get_account',
-                        'create_subaccount',
-                        'get_subaccount',
-                        'get_subaccounts',
-                        'get_all_portfolios',
-                        'change_subaccount_label',
-                        'get_notificationsv',
-                        'update_notifications',
-                        'deposit',
-                        'withdraw',
-                        'transfer_erc20',
-                        'transfer_position',
-                        'transfer_positions',
-                        'order',
-                        'replace',
-                        'order_debug',
-                        'get_order',
-                        'get_orders',
-                        'get_open_orders',
-                        'cancel',
-                        'cancel_by_label',
-                        'cancel_by_nonce',
-                        'cancel_by_instrument',
-                        'cancel_all',
-                        'cancel_trigger_order',
-                        'get_order_history',
-                        'get_trade_history',
-                        'get_deposit_history',
-                        'get_withdrawal_history',
-                        'send_rfq',
-                        'cancel_rfq',
-                        'cancel_batch_rfqs',
-                        'get_rfqs',
-                        'poll_rfqs',
-                        'send_quote',
-                        'cancel_quote',
-                        'cancel_batch_quotes',
-                        'get_quotes',
-                        'poll_quotes',
-                        'execute_quote',
-                        'rfq_get_best_quote',
-                        'get_margin',
-                        'get_collaterals',
-                        'get_positions',
-                        'get_option_settlement_history',
-                        'get_subaccount_value_history',
-                        'expired_and_cancelled_history',
-                        'get_funding_history',
-                        'get_interest_history',
-                        'get_erc20_transfer_history',
-                        'get_liquidation_history',
-                        'liquidate',
-                        'get_liquidator_history',
-                        'session_keys',
-                        'edit_session_key',
-                        'register_scoped_session_key',
-                        'get_mmp_config',
-                        'set_mmp_config',
-                        'reset_mmp',
-                        'set_cancel_on_disconnect',
-                        'get_invite_code',
-                        'register_invite',
+                        'get_account' => array( 'cost' => 1 ),
+                        'create_subaccount' => array( 'cost' => 1 ),
+                        'get_subaccount' => array( 'cost' => 1 ),
+                        'get_subaccounts' => array( 'cost' => 1 ),
+                        'get_all_portfolios' => array( 'cost' => 1 ),
+                        'change_subaccount_label' => array( 'cost' => 1 ),
+                        'get_notificationsv' => array( 'cost' => 1 ),
+                        'update_notifications' => array( 'cost' => 1 ),
+                        'deposit' => array( 'cost' => 1 ),
+                        'withdraw' => array( 'cost' => 1 ),
+                        'transfer_erc20' => array( 'cost' => 1 ),
+                        'transfer_position' => array( 'cost' => 1 ),
+                        'transfer_positions' => array( 'cost' => 1 ),
+                        'order' => array( 'cost' => 1 ),
+                        'replace' => array( 'cost' => 1 ),
+                        'order_debug' => array( 'cost' => 1 ),
+                        'get_order' => array( 'cost' => 1 ),
+                        'get_orders' => array( 'cost' => 1 ),
+                        'get_open_orders' => array( 'cost' => 1 ),
+                        'cancel' => array( 'cost' => 1 ),
+                        'cancel_by_label' => array( 'cost' => 1 ),
+                        'cancel_by_nonce' => array( 'cost' => 1 ),
+                        'cancel_by_instrument' => array( 'cost' => 1 ),
+                        'cancel_all' => array( 'cost' => 1 ),
+                        'cancel_trigger_order' => array( 'cost' => 1 ),
+                        'get_order_history' => array( 'cost' => 1 ),
+                        'get_trade_history' => array( 'cost' => 1 ),
+                        'get_deposit_history' => array( 'cost' => 1 ),
+                        'get_withdrawal_history' => array( 'cost' => 1 ),
+                        'send_rfq' => array( 'cost' => 1 ),
+                        'cancel_rfq' => array( 'cost' => 1 ),
+                        'cancel_batch_rfqs' => array( 'cost' => 1 ),
+                        'get_rfqs' => array( 'cost' => 1 ),
+                        'poll_rfqs' => array( 'cost' => 1 ),
+                        'send_quote' => array( 'cost' => 1 ),
+                        'cancel_quote' => array( 'cost' => 1 ),
+                        'cancel_batch_quotes' => array( 'cost' => 1 ),
+                        'get_quotes' => array( 'cost' => 1 ),
+                        'poll_quotes' => array( 'cost' => 1 ),
+                        'execute_quote' => array( 'cost' => 1 ),
+                        'rfq_get_best_quote' => array( 'cost' => 1 ),
+                        'get_margin' => array( 'cost' => 1 ),
+                        'get_collaterals' => array( 'cost' => 1 ),
+                        'get_positions' => array( 'cost' => 1 ),
+                        'get_option_settlement_history' => array( 'cost' => 1 ),
+                        'get_subaccount_value_history' => array( 'cost' => 1 ),
+                        'expired_and_cancelled_history' => array( 'cost' => 1 ),
+                        'get_funding_history' => array( 'cost' => 1 ),
+                        'get_interest_history' => array( 'cost' => 1 ),
+                        'get_erc20_transfer_history' => array( 'cost' => 1 ),
+                        'get_liquidation_history' => array( 'cost' => 1 ),
+                        'liquidate' => array( 'cost' => 1 ),
+                        'get_liquidator_history' => array( 'cost' => 1 ),
+                        'session_keys' => array( 'cost' => 1 ),
+                        'edit_session_key' => array( 'cost' => 1 ),
+                        'register_scoped_session_key' => array( 'cost' => 1 ),
+                        'get_mmp_config' => array( 'cost' => 1 ),
+                        'set_mmp_config' => array( 'cost' => 1 ),
+                        'reset_mmp' => array( 'cost' => 1 ),
+                        'set_cancel_on_disconnect' => array( 'cost' => 1 ),
+                        'get_invite_code' => array( 'cost' => 1 ),
+                        'register_invite' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -379,7 +379,7 @@ class derive extends Exchange {
                     '14020' => '\\ccxt\\BadRequest', // The X-LyraWallet header does not match the requested subaccount_id or wallet
                     '14021' => '\\ccxt\\BadRequest', // The X-LyraWallet header not provided
                     '14022' => '\\ccxt\\AuthenticationError', // Subscription to a private channel failed
-                    '14023' => '\\ccxt\\InvalidOrder', // array(is_array(on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet") && array_key_exists("code":"14023","message":"Signer, on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet"))
+                    '14023' => '\\ccxt\\InvalidOrder', // array(is_array(on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet") && array_key_exists("code":"14023","message":"Signer ?? '', on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet"))
                     '14024' => '\\ccxt\\BadRequest', // Chain ID must match the current roll up chain id
                     '14025' => '\\ccxt\\BadRequest', // The private request is missing a wallet or subaccount_id param
                     '14026' => '\\ccxt\\BadRequest', // Session key not found
@@ -428,7 +428,7 @@ class derive extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array()) {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -438,7 +438,7 @@ class derive extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->publicPostGetTime ($params));
+            $response = Async\await($this->publicPostGetTime($params));
             //
             // {
             //     "result" => 1735846536758,
@@ -446,10 +446,10 @@ class derive extends Exchange {
             // }
             //
             return $this->safe_integer($response, 'result');
-        }) ();
+        })();
     }
 
-    public function fetch_currencies($params = array ()): PromiseInterface {
+    public function fetch_currencies($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available $currencies on an exchange
@@ -459,14 +459,13 @@ class derive extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of $currencies
              */
-            $result = array();
-            $tokenResponse = Async\await($this->publicGetGetAllCurrencies ($params));
+            $tokenResponse = Async\await($this->publicGetGetAllCurrencies($params));
             //
             //    {
-            //        "result" => array(
+            //        "result" => [
             //            {
             //                "currency" => "SEI",
-            //                "instrument_types" => [
+            //                "instrument_types" => array(
             //                    "perp"
             //                ),
             //                "protocol_asset_addresses" => array(
@@ -510,38 +509,38 @@ class derive extends Exchange {
             // }
             //
             $currencies = $this->safe_list($tokenResponse, 'result', array());
-            for ($i = 0; $i < count($currencies); $i++) {
-                $currency = $currencies[$i];
-                $currencyId = $this->safe_string($currency, 'currency');
-                $code = $this->safe_currency_code($currencyId);
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $currencyId,
-                    'name' => null,
-                    'code' => $code,
-                    'precision' => null,
-                    'active' => null,
-                    'fee' => null,
-                    'networks' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'limits' => array(
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'info' => $currency,
-                ));
-            }
-            return $result;
-        }) ();
+            return $this->parse_currencies($currencies);
+        })();
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, 'currency');
+        $code = $this->safe_currency_code($currencyId);
+        return $this->safe_currency_structure(array(
+            'id' => $currencyId,
+            'name' => null,
+            'code' => $code,
+            'precision' => null,
+            'active' => null,
+            'fee' => null,
+            'networks' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'limits' => array(
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'info' => $rawCurrency,
+        ));
+    }
+
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for bybit
@@ -603,50 +602,51 @@ class derive extends Exchange {
             $result = $this->array_concat($spotMarkets, $swapMarkets);
             $result = $this->array_concat($result, $optionMarkets);
             return $result;
-        }) ();
+        })();
     }
 
-    public function fetch_spot_markets($params = array ()): PromiseInterface {
+    public function fetch_spot_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             $request = array(
                 'expired' => false,
                 'instrument_type' => 'erc20',
             );
-            $response = Async\await($this->publicPostGetAllInstruments ($this->extend($request, $params)));
+            $response = Async\await($this->publicPostGetAllInstruments($this->extend($request, $params)));
             $result = $this->safe_dict($response, 'result', array());
             $data = $this->safe_list($result, 'instruments', array());
             return $this->parse_markets($data);
-        }) ();
+        })();
     }
 
-    public function fetch_swap_markets($params = array ()): PromiseInterface {
+    public function fetch_swap_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             $request = array(
                 'expired' => false,
                 'instrument_type' => 'perp',
             );
-            $response = Async\await($this->publicPostGetAllInstruments ($this->extend($request, $params)));
+            $response = Async\await($this->publicPostGetAllInstruments($this->extend($request, $params)));
             $result = $this->safe_dict($response, 'result', array());
             $data = $this->safe_list($result, 'instruments', array());
             return $this->parse_markets($data);
-        }) ();
+        })();
     }
 
-    public function fetch_option_markets($params = array ()): PromiseInterface {
+    public function fetch_option_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             $request = array(
                 'expired' => false,
                 'instrument_type' => 'option',
             );
-            $response = Async\await($this->publicPostGetAllInstruments ($this->extend($request, $params)));
+            $response = Async\await($this->publicPostGetAllInstruments($this->extend($request, $params)));
             $result = $this->safe_dict($response, 'result', array());
             $data = $this->safe_list($result, 'instruments', array());
             return $this->parse_markets($data);
-        }) ();
+        })();
     }
 
     public function parse_market(array $market): array {
         $type = $this->safe_string($market, 'instrument_type');
+        $marketType = null;
         $spot = false;
         $margin = true;
         $swap = false;
@@ -696,6 +696,8 @@ class derive extends Exchange {
             $linear = true;
             $inverse = false;
         }
+        $contractSize = ($spot) ? null : 1;
+        $isContract = ($swap || $option);
         return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -712,10 +714,10 @@ class derive extends Exchange {
             'future' => false,
             'option' => $option,
             'active' => $this->safe_bool($market, 'is_active'),
-            'contract' => ($swap || $option),
+            'contract' => $isContract,
             'linear' => $linear,
             'inverse' => $inverse,
-            'contractSize' => ($spot) ? null : 1,
+            'contractSize' => $contractSize,
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
             'taker' => $this->safe_number($market, 'taker_fee_rate'),
@@ -749,7 +751,7 @@ class derive extends Exchange {
         ));
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -760,12 +762,14 @@ class derive extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'instrument_name' => $market['id'],
             );
-            $response = Async\await($this->publicPostGetTicker ($this->extend($request, $params)));
+            $response = Async\await($this->publicPostGetTicker($this->extend($request, $params)));
             //
             // spot
             //
@@ -828,7 +832,7 @@ class derive extends Exchange {
             //
             $data = $this->safe_dict($response, 'result', array());
             return $this->parse_ticker($data, $market);
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -918,7 +922,7 @@ class derive extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -932,7 +936,9 @@ class derive extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch trades for
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $market = null;
             if ($symbol !== null) {
@@ -953,7 +959,7 @@ class derive extends Exchange {
             if ($until !== null) {
                 $request['to_timestamp'] = $until;
             }
-            $response = Async\await($this->publicPostGetTradeHistory ($this->extend($request, $params)));
+            $response = Async\await($this->publicPostGetTradeHistory($this->extend($request, $params)));
             //
             // {
             //     "result" => {
@@ -989,17 +995,37 @@ class derive extends Exchange {
             $result = $this->safe_dict($response, 'result', array());
             $data = $this->safe_list($result, 'trades', array());
             return $this->parse_trades($data, $market, $since, $limit);
-        }) ();
+        })();
+    }
+
+    public function parse_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+        $tradesArray = $this->to_array($trades);
+        $result = array();
+        for ($i = 0; $i < count($tradesArray); $i++) {
+            $rawTrade = $tradesArray[$i];
+            $isFetchTrades = !(is_array($rawTrade) && array_key_exists('order_id' ?? '', $rawTrade));
+            $liquidityRole = $this->safe_string($rawTrade, 'liquidity_role');
+            if ($isFetchTrades && ($liquidityRole === 'maker')) {
+                // skip maker $trades
+                continue;
+            }
+            $parsed = $this->parse_trade($rawTrade, $market);
+            $trade = $this->extend($parsed, $params);
+            $result[] = $trade;
+        }
+        $result = $this->sort_by_2($result, 'timestamp', 'id');
+        $symbol = $this->safe_string($market, 'symbol');
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
         //
+        // fetchTrades & fetchMyTrades
+        //
         // {
         //     "subaccount_id" => 130837,
-        //     "order_id" => "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
         //     "instrument_name" => "BTC-PERP",
         //     "direction" => "sell",
-        //     "label" => "test1234",
         //     "quote_id" => null,
         //     "trade_id" => "f8a30740-488c-4c2d-905d-e17057bafde1",
         //     "timestamp" => 1738065303708,
@@ -1010,11 +1036,17 @@ class derive extends Exchange {
         //     "liquidity_role" => "taker",
         //     "realized_pnl" => "0",
         //     "realized_pnl_excl_fees" => "0",
-        //     "is_transfer" => false,
         //     "tx_status" => "settled",
         //     "trade_fee" => "1.127415534092999815",
         //     "tx_hash" => "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        //     "transaction_id" => "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        //     "label" => "test1234",                                      // only fetchMyTrades
+        //     "order_id" => "30c48194-8d48-43ac-ad00-0d5ba29eddc9",       // only fetchMyTrades
+        //     "is_transfer" => false,                                     // only fetchMyTrades
+        //     "transaction_id" => "e18b9426-3fa5-41bb-99d3-8b54fb4d11bb", // only fetchMyTrades
+        //     "rfq_id" => null,                                           // only fetchTrades
+        //     "wallet" => "0x353Bf69715DdbF7A2b0C6Deba8EAC1F1D160c123",   // only fetchTrades
+        //     "expected_rebate" => "0",                                   // only fetchTrades
+        //     "extra_fee" => "0",                                         // only fetchTrades
         // }
         //
         $marketId = $this->safe_string($trade, 'instrument_name');
@@ -1041,7 +1073,7 @@ class derive extends Exchange {
         ), $market);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding rate prices
@@ -1054,7 +1086,9 @@ class derive extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'instrument_name' => $market['id'],
@@ -1067,7 +1101,7 @@ class derive extends Exchange {
             if ($until !== null) {
                 $request['to_timestamp'] = $until;
             }
-            $response = Async\await($this->publicPostGetFundingRateHistory ($this->extend($request, $params)));
+            $response = Async\await($this->publicPostGetFundingRateHistory($this->extend($request, $params)));
             //
             // {
             //     "result" => {
@@ -1097,10 +1131,10 @@ class derive extends Exchange {
             }
             $sorted = $this->sort_by($rates, 'timestamp');
             return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_funding_rate(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -1128,10 +1162,10 @@ class derive extends Exchange {
             //
             $data = $this->safe_dict($response, 0);
             return $this->parse_funding_rate($data);
-        }) ();
+        })();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         $symbol = $this->safe_string($contract, 'symbol');
         $fundingTimestamp = $this->safe_integer($contract, 'timestamp');
         return array(
@@ -1156,7 +1190,7 @@ class derive extends Exchange {
         );
     }
 
-    public function hash_order_message($order) {
+    public function hash_order_message(mixed $order) {
         $accountHash = $this->hash($this->eth_abi_encode(array(
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ), $order), 'keccak', 'binary');
@@ -1167,12 +1201,12 @@ class derive extends Exchange {
         return $this->hash($this->binary_concat($prefix, $binaryDomainSeparator, $accountHash), 'keccak', 'hex');
     }
 
-    public function sign_order($order, $privateKey) {
+    public function sign_order(mixed $order, mixed $privateKey) {
         $hashOrder = $this->hash_order_message($order);
         return $this->sign_hash(mb_substr($hashOrder, -64), mb_substr($privateKey, -64));
     }
 
-    public function hash_message($message) {
+    public function hash_message(mixed $message) {
         $binaryMessage = $this->encode($message);
         $binaryMessageLength = $this->binary_length($binaryMessage);
         $x19 = $this->base16_to_binary('19');
@@ -1181,7 +1215,7 @@ class derive extends Exchange {
         return '0x' . $this->hash($this->binary_concat($prefix, $binaryMessage), 'keccak', 'hex');
     }
 
-    public function sign_hash($hash, $privateKey) {
+    public function sign_hash(mixed $hash, mixed $privateKey) {
         $this->check_required_credentials();
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
@@ -1190,7 +1224,7 @@ class derive extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_message($message, $privateKey) {
+    public function sign_message(mixed $message, mixed $privateKey) {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
@@ -1198,7 +1232,7 @@ class derive extends Exchange {
         return Precise::string_mul($num, $dec);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -1220,7 +1254,9 @@ class derive extends Exchange {
              * @param {float} [$params->max_fee] *required* the maximum fee you are willing to pay for the $order
              * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if ($price === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument');
@@ -1249,15 +1285,15 @@ class derive extends Exchange {
             $amountString = $this->number_to_string($amount);
             $tradeModuleDataHash = $this->hash($this->eth_abi_encode(array(
                 'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
-            ), [
+            ), array(
                 $market['info']['base_asset_address'],
                 $this->parse_to_numeric($market['info']['base_asset_sub_id']),
-                $this->convert_to_big_int($this->parse_units($priceString)),
-                $this->convert_to_big_int($this->parse_units($this->amount_to_precision($symbol, $amountString))),
-                $this->convert_to_big_int($this->parse_units($maxFeeString)),
+                $this->convert_to_big_int(($this->parse_units($priceString))),
+                $this->convert_to_big_int(($this->parse_units(($this->amount_to_precision($symbol, $amountString))))),
+                $this->convert_to_big_int(($this->parse_units($maxFeeString))),
                 $subaccountId,
                 $orderSide === 'buy',
-            ]), 'keccak', 'binary');
+            )), 'keccak', 'binary');
             $deriveWalletAddress = null;
             list($deriveWalletAddress, $params) = $this->handle_derive_wallet_address('createOrder', $params);
             $signature = $this->sign_order(array(
@@ -1314,11 +1350,10 @@ class derive extends Exchange {
             }
             $request['signature'] = $signature;
             $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type' ));
-            $response = null;
             if ($test) {
-                $response = Async\await($this->privatePostOrderDebug ($this->extend($request, $params)));
+                $response = Async\await($this->privatePostOrderDebug($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privatePostOrder ($this->extend($request, $params)));
+                $response = Async\await($this->privatePostOrder($this->extend($request, $params)));
             }
             //
             // {
@@ -1390,15 +1425,15 @@ class derive extends Exchange {
             $result = $this->safe_dict($response, 'result');
             $rawOrder = $this->safe_dict($result, 'raw_data');
             if ($rawOrder === null) {
-                $rawOrder = $this->safe_dict($result, 'order');
+                $rawOrder = $this->safe_dict($result, 'order', array());
             }
             $order = $this->parse_order($rawOrder, $market);
             $order['type'] = $type;
             return $order;
-        }) ();
+        })();
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade $order
@@ -1415,7 +1450,9 @@ class derive extends Exchange {
              * @param {string} [$params->subaccount_id] *required* the subaccount $id
              * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $subaccountId = null;
             list($subaccountId, $params) = $this->handle_derive_subaccount_id('editOrder', $params);
@@ -1435,15 +1472,15 @@ class derive extends Exchange {
             $amountString = $this->number_to_string($amount);
             $tradeModuleDataHash = $this->hash($this->eth_abi_encode(array(
                 'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
-            ), [
+            ), array(
                 $market['info']['base_asset_address'],
                 $this->parse_to_numeric($market['info']['base_asset_sub_id']),
-                $this->convert_to_big_int($this->parse_units($priceString)),
-                $this->convert_to_big_int($this->parse_units($this->amount_to_precision($symbol, $amountString))),
-                $this->convert_to_big_int($this->parse_units($maxFeeString)),
+                $this->convert_to_big_int(($this->parse_units($priceString))),
+                $this->convert_to_big_int(($this->parse_units(($this->amount_to_precision($symbol, $amountString))))),
+                $this->convert_to_big_int(($this->parse_units($maxFeeString))),
                 $subaccountId,
                 $orderSide === 'buy',
-            ]), 'keccak', 'binary');
+            )), 'keccak', 'binary');
             $deriveWalletAddress = null;
             list($deriveWalletAddress, $params) = $this->handle_derive_wallet_address('editOrder', $params);
             $signature = $this->sign_order(array(
@@ -1486,7 +1523,7 @@ class derive extends Exchange {
             }
             $request['signature'] = $signature;
             $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId' ));
-            $response = Async\await($this->privatePostReplace ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostReplace($this->extend($request, $params)));
             //
             //   {
             //     "result":
@@ -1562,13 +1599,13 @@ class derive extends Exchange {
             //   }
             //
             $result = $this->safe_dict($response, 'result');
-            $rawOrder = $this->safe_dict($result, 'order');
+            $rawOrder = $this->safe_dict($result, 'order', array());
             $order = $this->parse_order($rawOrder, $market);
             return $order;
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              *
@@ -1585,7 +1622,9 @@ class derive extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
             $subaccountId = null;
@@ -1598,17 +1637,16 @@ class derive extends Exchange {
             $clientOrderIdUnified = $this->safe_string($params, 'clientOrderId');
             $clientOrderIdExchangeSpecific = $this->safe_string($params, 'label', $clientOrderIdUnified);
             $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
-            $response = null;
             if ($isByClientOrder) {
                 $request['label'] = $clientOrderIdExchangeSpecific;
                 $params = $this->omit($params, array( 'clientOrderId', 'label' ));
-                $response = Async\await($this->privatePostCancelByLabel ($this->extend($request, $params)));
+                $response = Async\await($this->privatePostCancelByLabel($this->extend($request, $params)));
             } else {
                 $request['order_id'] = $id;
                 if ($isTrigger) {
-                    $response = Async\await($this->privatePostCancelTriggerOrder ($this->extend($request, $params)));
+                    $response = Async\await($this->privatePostCancelTriggerOrder($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->privatePostCancel ($this->extend($request, $params)));
+                    $response = Async\await($this->privatePostCancel($this->extend($request, $params)));
                 }
             }
             //
@@ -1655,15 +1693,15 @@ class derive extends Exchange {
             // }
             //
             $extendParams = array( 'symbol' => $symbol );
-            $order = $this->safe_dict($response, 'result');
+            $order = $this->safe_dict($response, 'result', array());
             if ($isByClientOrder) {
                 $extendParams['client_order_id'] = $clientOrderIdExchangeSpecific;
             }
             return $this->extend($this->parse_order($order, $market), $extendParams);
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -1671,12 +1709,14 @@ class derive extends Exchange {
              * @see https://docs.derive.xyz/reference/post_private-cancel-all
              *
              * cancel all open orders in a $market
-             * @param {string} $symbol unified $market $symbol
+             * @param {string} [$symbol] unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subaccount_id] *required* the subaccount id
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -1686,19 +1726,18 @@ class derive extends Exchange {
             $request = array(
                 'subaccount_id' => $subaccountId,
             );
-            $response = null;
             if ($market !== null) {
                 $request['instrument_name'] = $market['id'];
-                $response = Async\await($this->privatePostCancelByInstrument ($this->extend($request, $params)));
+                $response = Async\await($this->privatePostCancelByInstrument($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privatePostCancelAll ($this->extend($request, $params)));
+                $response = Async\await($this->privatePostCancelAll($this->extend($request, $params)));
             }
             //
             // {
             //     "result" => array(
             //         "cancelled_orders" => 0
             //     ),
-            //     "id" => "9d633799-2098-4559-b547-605bb6f4d8f4"
+            //     "id" => "9d633799-2098-4559-b547-605bb6f4d8f5"
             // }
             //
             // {
@@ -1707,10 +1746,10 @@ class derive extends Exchange {
             // }
             //
             return array( $this->safe_order(array( 'info' => $response )) );
-        }) ();
+        })();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
@@ -1726,7 +1765,9 @@ class derive extends Exchange {
              * @param {string} [$params->subaccount_id] *required* the subaccount id
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
             if ($paginate) {
@@ -1752,7 +1793,7 @@ class derive extends Exchange {
             if ($isTrigger) {
                 $request['status'] = 'untriggered';
             }
-            $response = Async\await($this->privatePostGetOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostGetOrders($this->extend($request, $params)));
             //
             // {
             //     "result" => {
@@ -1802,17 +1843,17 @@ class derive extends Exchange {
             $page = $this->safe_integer($params, 'page');
             if ($page !== null) {
                 $pagination = $this->safe_dict($data, 'pagination');
-                $currentPage = $this->safe_integer($pagination, 'num_pages');
+                $currentPage = $this->safe_integer($pagination, 'num_pages', 0);
                 if ($page > $currentPage) {
                     return array();
                 }
             }
-            $orders = $this->safe_list($data, 'orders');
+            $orders = $this->safe_list($data, 'orders', array());
             return $this->parse_orders($orders, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -1826,13 +1867,15 @@ class derive extends Exchange {
              * @param {boolean} [$params->paginate] set to true if you want to fetch orders with pagination
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $extendedParams = $this->extend($params, array( 'status' => 'open' ));
             return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
-        }) ();
+        })();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -1846,13 +1889,15 @@ class derive extends Exchange {
              * @param {boolean} [$params->paginate] set to true if you want to fetch orders with pagination
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $extendedParams = $this->extend($params, array( 'status' => 'filled' ));
             return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
-        }) ();
+        })();
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled orders made by the user
@@ -1866,10 +1911,12 @@ class derive extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $extendedParams = $this->extend($params, array( 'status' => 'cancelled' ));
             return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
-        }) ();
+        })();
     }
 
     public function parse_time_in_force(?string $timeInForce) {
@@ -1879,7 +1926,7 @@ class derive extends Exchange {
             'gtc' => 'GTC',
             'post_only' => 'PO',
         );
-        return $this->safe_string($timeInForces, $timeInForce, null);
+        return $this->safe_string($timeInForces, $timeInForce);
     }
 
     public function parse_order_status(?string $status) {
@@ -1958,7 +2005,7 @@ class derive extends Exchange {
         if ($marketId !== null) {
             $market = $this->safe_market($marketId, $market);
         }
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
         $price = $this->safe_string($order, 'limit_price');
         $average = $this->safe_string($order, 'average_price');
         $amount = $this->safe_string($order, 'desired_amount');
@@ -2021,7 +2068,7 @@ class derive extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the $trades made from a single order
@@ -2036,7 +2083,9 @@ class derive extends Exchange {
              * @param {string} [$params->subaccount_id] *required* the subaccount $id
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $subaccountId = null;
             list($subaccountId, $params) = $this->handle_derive_subaccount_id('fetchOrderTrades', $params);
             $request = array(
@@ -2054,7 +2103,7 @@ class derive extends Exchange {
             if ($since !== null) {
                 $request['from_timestamp'] = $since;
             }
-            $response = Async\await($this->privatePostGetTradeHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostGetTradeHistory($this->extend($request, $params)));
             //
             // {
             //     "result" => {
@@ -2094,10 +2143,10 @@ class derive extends Exchange {
             $result = $this->safe_dict($response, 'result', array());
             $trades = $this->safe_list($result, 'trades', array());
             return $this->parse_trades($trades, $market, $since, $limit, $params);
-        }) ();
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
@@ -2112,7 +2161,9 @@ class derive extends Exchange {
              * @param {string} [$params->subaccount_id] *required* the subaccount id
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
             if ($paginate) {
@@ -2134,7 +2185,7 @@ class derive extends Exchange {
             if ($since !== null) {
                 $request['from_timestamp'] = $since;
             }
-            $response = Async\await($this->privatePostGetTradeHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostGetTradeHistory($this->extend($request, $params)));
             //
             // {
             //     "result" => {
@@ -2175,36 +2226,38 @@ class derive extends Exchange {
             $page = $this->safe_integer($params, 'page');
             if ($page !== null) {
                 $pagination = $this->safe_dict($result, 'pagination');
-                $currentPage = $this->safe_integer($pagination, 'num_pages');
+                $currentPage = $this->safe_integer($pagination, 'num_pages', 0);
                 if ($page > $currentPage) {
                     return array();
                 }
             }
             $trades = $this->safe_list($result, 'trades', array());
             return $this->parse_trades($trades, $market, $since, $limit, $params);
-        }) ();
+        })();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions
              *
              * @see https://docs.derive.xyz/reference/post_private-get-$positions
              *
-             * @param {string[]} [$symbols] not used by kraken fetchPositions ()
+             * @param {string[]} [$symbols] not used by fetchPositions ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subaccount_id] *required* the subaccount id
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $subaccountId = null;
             list($subaccountId, $params) = $this->handle_derive_subaccount_id('fetchPositions', $params);
             $request = array(
                 'subaccount_id' => $subaccountId,
             );
             $params = $this->omit($params, array( 'subaccount_id' ));
-            $response = Async\await($this->privatePostGetPositions ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostGetPositions($this->extend($request, $params)));
             //
             // {
             //     "result" => {
@@ -2246,7 +2299,7 @@ class derive extends Exchange {
             $result = $this->safe_dict($response, 'result', array());
             $positions = $this->safe_list($result, 'positions', array());
             return $this->parse_positions($positions, $symbols);
-        }) ();
+        })();
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -2326,7 +2379,7 @@ class derive extends Exchange {
         ));
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch the history of funding payments paid and received on this account
@@ -2340,7 +2393,9 @@ class derive extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#$pagination-$params)
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
             if ($paginate) {
@@ -2362,7 +2417,7 @@ class derive extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $response = Async\await($this->privatePostGetFundingHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostGetFundingHistory($this->extend($request, $params)));
             //
             // {
             //     "result" => {
@@ -2398,17 +2453,17 @@ class derive extends Exchange {
             $page = $this->safe_integer($params, 'page');
             if ($page !== null) {
                 $pagination = $this->safe_dict($result, 'pagination');
-                $currentPage = $this->safe_integer($pagination, 'num_pages');
+                $currentPage = $this->safe_integer($pagination, 'num_pages', 0);
                 if ($page > $currentPage) {
                     return array();
                 }
             }
             $events = $this->safe_list($result, 'events', array());
             return $this->parse_incomes($events, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         // {
         //     "instrument_name" => "BTC-PERP",
@@ -2434,7 +2489,7 @@ class derive extends Exchange {
         );
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -2444,13 +2499,15 @@ class derive extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $deriveWalletAddress = null;
             list($deriveWalletAddress, $params) = $this->handle_derive_wallet_address('fetchBalance', $params);
             $request = array(
                 'wallet' => $deriveWalletAddress,
             );
-            $response = Async\await($this->privatePostGetAllPortfolios ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostGetAllPortfolios($this->extend($request, $params)));
             //
             // {
             //     "result" => [{
@@ -2501,10 +2558,10 @@ class derive extends Exchange {
             //
             $result = $this->safe_list($response, 'result');
             return $this->parse_balance($result);
-        }) ();
+        })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
         );
@@ -2522,13 +2579,15 @@ class derive extends Exchange {
                     $amount = $this->safe_string($balance, 'amount');
                     $account['total'] = Precise::string_add($account['total'], $amount);
                 }
-                $result[$code] = $account;
+                if ($code !== null) {
+                    $result[$code] = $account;
+                }
             }
         }
         return $this->safe_balance($result);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -2542,7 +2601,9 @@ class derive extends Exchange {
              * @param {string} [$params->subaccount_id] *required* the subaccount id
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $subaccountId = null;
             list($subaccountId, $params) = $this->handle_derive_subaccount_id('fetchDeposits', $params);
             $request = array(
@@ -2551,7 +2612,7 @@ class derive extends Exchange {
             if ($since !== null) {
                 $request['start_timestamp'] = $since;
             }
-            $response = Async\await($this->privatePostGetDepositHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostGetDepositHistory($this->extend($request, $params)));
             //
             // {
             //     "result" => {
@@ -2572,12 +2633,12 @@ class derive extends Exchange {
             //
             $currency = $this->safe_currency($code);
             $result = $this->safe_dict($response, 'result', array());
-            $events = $this->safe_list($result, 'events');
+            $events = $this->safe_list($result, 'events', array());
             return $this->parse_transactions($events, $currency, $since, $limit, $params);
-        }) ();
+        })();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -2591,7 +2652,9 @@ class derive extends Exchange {
              * @param {string} [$params->subaccount_id] *required* the subaccount id
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $subaccountId = null;
             list($subaccountId, $params) = $this->handle_derive_subaccount_id('fetchWithdrawals', $params);
             $request = array(
@@ -2600,7 +2663,7 @@ class derive extends Exchange {
             if ($since !== null) {
                 $request['start_timestamp'] = $since;
             }
-            $response = Async\await($this->privatePostGetWithdrawalHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostGetWithdrawalHistory($this->extend($request, $params)));
             //
             // {
             //     "result" => {
@@ -2621,9 +2684,9 @@ class derive extends Exchange {
             //
             $currency = $this->safe_currency($code);
             $result = $this->safe_dict($response, 'result', array());
-            $events = $this->safe_list($result, 'events');
+            $events = $this->safe_list($result, 'events', array());
             return $this->parse_transactions($events, $currency, $since, $limit, $params);
-        }) ();
+        })();
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2676,7 +2739,7 @@ class derive extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function handle_derive_subaccount_id(string $methodName, array $params) {
+    public function handle_derive_subaccount_id(string $methodName, array $params): array {
         $derivesubAccountId = null;
         list($derivesubAccountId, $params) = $this->handle_option_and_params($params, $methodName, 'subaccount_id');
         if (($derivesubAccountId !== null) && ($derivesubAccountId !== '')) {
@@ -2704,7 +2767,7 @@ class derive extends Exchange {
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $deriveWalletAddress parameter inside \'params\' or exchange.options[\'deriveWalletAddress\'] = ADDRESS, the address can find in HOME => Developers tab.');
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             return null; // fallback to default $error handler
         }
@@ -2719,7 +2782,7 @@ class derive extends Exchange {
         return null;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($method === 'POST') {
             $headers = array(

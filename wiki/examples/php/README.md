@@ -10,6 +10,8 @@ To run PHP examples from any folder type in console:
 php -f path/to/example.php # substitute for actual filename here
 ```
 
+- [Apex Watch](./examples/php/apex-watch.md)
+
 - [Arbitrage Pairs](./examples/php/arbitrage-pairs.md)
 
 - [Async Await Fetch Multiple](./examples/php/async-await-fetch-multiple.md)
@@ -24,17 +26,21 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Binance Fetch All Trades For All Traded Symbols](./examples/php/binance-fetch-all-trades-for-all-traded-symbols.md)
 
+- [Binance Fetch Balance Snapshot Watch Balance Updates](./examples/php/binance-fetch-balance-snapshot-watch-balance-updates.md)
+
+- [Binance Https Proxy](./examples/php/binance-https-proxy.md)
+
 - [Binance Oco Order](./examples/php/binance-oco-order.md)
 
 - [Binance Set Futures Leverage](./examples/php/binance-set-futures-leverage.md)
 
 - [Binance Spot Trailing](./examples/php/binance-spot-trailing.md)
 
-- [Bitfinex2 Fetch Ohlcv Since Limit](./examples/php/bitfinex2-fetch-ohlcv-since-limit.md)
+- [Bitfinex Fetch Ohlcv Since Limit](./examples/php/bitfinex-fetch-ohlcv-since-limit.md)
 
-- [Bitfinex2 Fetch Ohlcv](./examples/php/bitfinex2-fetch-ohlcv.md)
+- [Bitfinex Fetch Ohlcv](./examples/php/bitfinex-fetch-ohlcv.md)
 
-- [Bitfinex2 Fetch Trades Since](./examples/php/bitfinex2-fetch-trades-since.md)
+- [Bitfinex Fetch Trades Since](./examples/php/bitfinex-fetch-trades-since.md)
 
 - [Bitmex Create Order](./examples/php/bitmex-create-order.md)
 
@@ -44,17 +50,13 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Bybit Updated](./examples/php/bybit-updated.md)
 
-- [Bytetrade Create Order](./examples/php/bytetrade-create-order.md)
-
 - [Cache Exchange Instance Reuse](./examples/php/cache-exchange-instance-reuse.md)
 
 - [Cancel Order](./examples/php/cancel-order.md)
 
 - [Cli](./examples/php/cli.md)
 
-- [Coinbase Fetch All Balances](./examples/php/coinbase-fetch-all-balances.md)
-
-- [Coinbasepro Cursor Pagination](./examples/php/coinbasepro-cursor-pagination.md)
+- [Coinbaseexchange Cursor Pagination](./examples/php/coinbaseexchange-cursor-pagination.md)
 
 - [Coinone Markets](./examples/php/coinone-markets.md)
 
@@ -74,7 +76,9 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Exchange Properties](./examples/php/exchange-properties.md)
 
-- [Exchange Rate Limiter Rollingwindow](./examples/php/exchange-rate-limiter-rollingWindow.md)
+- [Exchange Rate Limiter RollingWindow](./examples/php/exchange-rate-limiter-rollingWindow.md)
+
+- [Fetch Balance Snapshot Watch Balance Updates](./examples/php/fetch-balance-snapshot-watch-balance-updates.md)
 
 - [Fetch Balance](./examples/php/fetch-balance.md)
 
@@ -90,15 +94,17 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Fetch Tickers](./examples/php/fetch-tickers.md)
 
-- [Gateio Futures](./examples/php/gateio-futures.md)
+- [Gate Futures](./examples/php/gate-futures.md)
 
-- [Gateio Swaps](./examples/php/gateio-swaps.md)
+- [Gate Swaps](./examples/php/gate-swaps.md)
 
-- [Huobi Fetch Balance](./examples/php/huobi-fetch-balance.md)
+- [Gate Watch Balance](./examples/php/gate-watch-balance.md)
 
-- [Huobi Futures](./examples/php/huobi-futures.md)
+- [Htx Fetch Balance](./examples/php/htx-fetch-balance.md)
 
-- [Huobi Swaps](./examples/php/huobi-swaps.md)
+- [Htx Futures](./examples/php/htx-futures.md)
+
+- [Htx Swaps](./examples/php/htx-swaps.md)
 
 - [Hyperliquid Load Hip3 Dexes](./examples/php/hyperliquid-load-hip3-dexes.md)
 
@@ -118,15 +124,23 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Load All At Once](./examples/php/load-all-at-once.md)
 
+- [Many Exchanges Many Accounts](./examples/php/many-exchanges-many-accounts.md)
+
+- [Many Exchanges Synchronously](./examples/php/many-exchanges-synchronously.md)
+
 - [Margin Loan Borrow Buy Sell Repay](./examples/php/margin-loan-borrow-buy-sell-repay.md)
 
 - [Method Overload Override](./examples/php/method-overload-override.md)
 
 - [Nonce Override](./examples/php/nonce-override.md)
 
+- [One Exchange Many Streams](./examples/php/one-exchange-many-streams.md)
+
 - [Order Book Level Depth Extra Param](./examples/php/order-book-level-depth-extra-param.md)
 
 - [Phemex Create Order Position With Takeprofit Stoploss](./examples/php/phemex-create-order-position-with-takeprofit-stoploss.md)
+
+- [📂 Prediction](https://github.com/ccxt/ccxt/tree/master/./examples/php/prediction)
 
 - [Proxy Usage](./examples/php/proxy-usage.md)
 
@@ -140,21 +154,23 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Trading View](./examples/php/trading-view.md)
 
-- [Watch Ohlcv For Symbols](./examples/php/watch-OHLCV-For-Symbols.md)
+- [Watch OHLCV For Symbols](./examples/php/watch-OHLCV-For-Symbols.md)
 
-- [Watch Ohlcv](./examples/php/watch-OHLCV.md)
+- [Watch OHLCV](./examples/php/watch-OHLCV.md)
 
-- [Watch Orderbook For Symbols](./examples/php/watch-OrderBook-For-Symbols.md)
+- [Watch OrderBook For Symbols](./examples/php/watch-OrderBook-For-Symbols.md)
 
 - [Watch Trades For Symbols](./examples/php/watch-Trades-For-Symbols.md)
 
+- [Watch Multiple Methods Multiple Exchanges](./examples/php/watch-multiple-methods-multiple-exchanges.md)
+
 - [Watch Tickers](./examples/php/watch-tickers.md)
 
-- [Watchpositions Many Exchanges Continuosly](./examples/php/watchPositions-many-exchanges-continuosly.md)
+- [WatchPositions Many Exchanges Continuosly](./examples/php/watchPositions-many-exchanges-continuosly.md)
 
-- [Watchpositions](./examples/php/watchPositions.md)
+- [WatchPositions](./examples/php/watchPositions.md)
 
-- [Watchpositionsforsymbols](./examples/php/watchPositionsForSymbols.md)
+- [WatchPositionsForSymbols](./examples/php/watchPositionsForSymbols.md)
 
-- [Watchtradesforsymbols](./examples/php/watchTradesForSymbols.md)
+- [WatchTradesForSymbols](./examples/php/watchTradesForSymbols.md)
 

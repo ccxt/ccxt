@@ -1,7 +1,6 @@
 import apexRest from '../apex.js';
-import type { Int, Trade, OrderBook, Ticker, Strings, Tickers, Bool } from '../base/types.js';
+import type { Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { OHLCV, Order, Position, Str } from '../base/types.js';
 export default class apex extends apexRest {
     describe(): any;
     /**
@@ -29,7 +28,7 @@ export default class apex extends apexRest {
      */
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name apex#watchOrderBook
@@ -38,7 +37,7 @@ export default class apex extends apexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -49,10 +48,12 @@ export default class apex extends apexRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     watchTopics(url: any, messageHashes: any, topics: any, params?: {}): Promise<any>;
+    getWsPublicUrl(): string;
+    getWsPrivateUrl(): string;
     handleOrderBook(client: Client, message: any): void;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
@@ -89,7 +90,7 @@ export default class apex extends apexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name apex#watchOHLCVForSymbols
@@ -103,7 +104,7 @@ export default class apex extends apexRest {
      */
     watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
     handleOHLCV(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
+    parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
      * @name apex#watchMyTrades
@@ -144,7 +145,7 @@ export default class apex extends apexRest {
     handleMyTrades(client: Client, lists: any): void;
     handleOrder(client: Client, lists: any): void;
     setPositionsCache(client: Client, symbols?: Strings): void;
-    loadPositionsSnapshot(client: any, messageHash: any): Promise<void>;
+    loadPositionsSnapshot(client: Client, messageHash: any): Promise<void>;
     handlePositions(client: any, lists: any): void;
     authenticate(url: any, params?: {}): Promise<any>;
     handleErrorMessage(client: Client, message: any): Bool;
@@ -153,7 +154,7 @@ export default class apex extends apexRest {
         args: string[];
         op: string;
     };
-    pong(client: any, message: any): Promise<void>;
+    pong(client: Client, message: any): Promise<void>;
     handlePong(client: Client, message: any): any;
     handlePing(client: Client, message: any): void;
     handleAccount(client: Client, message: any): void;

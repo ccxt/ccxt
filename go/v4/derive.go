@@ -16,7 +16,7 @@ func NewDeriveCore() *DeriveCore {
 func (this *DeriveCore) Describe() any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "derive",
-		"name":      "derive",
+		"name":      "Derive",
 		"countries": []any{},
 		"version":   "v1",
 		"rateLimit": 50,
@@ -25,11 +25,11 @@ func (this *DeriveCore) Describe() any {
 		"dex":       true,
 		"has": map[string]any{
 			"CORS":                          nil,
-			"spot":                          false,
+			"spot":                          true,
 			"margin":                        false,
-			"swap":                          false,
+			"swap":                          true,
 			"future":                        false,
-			"option":                        false,
+			"option":                        true,
 			"addMargin":                     false,
 			"borrowCrossMargin":             false,
 			"borrowIsolatedMargin":          false,
@@ -132,9 +132,8 @@ func (this *DeriveCore) Describe() any {
 			"1w":  "1w",
 			"1M":  "1M",
 		},
-		"hostname": "derive.xyz",
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/f835b95f-033a-43dd-b6bb-24e698fc498c",
+			"logo": "https://github.com/user-attachments/assets/9e640700-c870-41f9-8907-fba58e120fed",
 			"api": map[string]any{
 				"public":  "https://api.lyra.finance/public",
 				"private": "https://api.lyra.finance/private",
@@ -150,11 +149,353 @@ func (this *DeriveCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get":  []any{"get_all_currencies"},
-				"post": []any{"build_register_session_key_tx", "register_session_key", "deregister_session_key", "login", "statistics", "get_all_currencies", "get_currency", "get_instrument", "get_all_instruments", "get_instruments", "get_ticker", "get_latest_signed_feeds", "get_option_settlement_prices", "get_spot_feed_history", "get_spot_feed_history_candles", "get_funding_rate_history", "get_trade_history", "get_option_settlement_history", "get_liquidation_history", "get_interest_rate_history", "get_transaction", "get_margin", "margin_watch", "validate_invite_code", "get_points", "get_all_points", "get_points_leaderboard", "get_descendant_tree", "get_tree_roots", "get_swell_percent_points", "get_vault_assets", "get_etherfi_effective_balances", "get_kelp_effective_balances", "get_bridge_balances", "get_ethena_participants", "get_vault_share", "get_vault_statistics", "get_vault_balances", "estimate_integrator_points", "create_subaccount_debug", "deposit_debug", "withdraw_debug", "send_quote_debug", "execute_quote_debug", "get_invite_code", "register_invite", "get_time", "get_live_incidents", "get_maker_programs", "get_maker_program_scores"},
+				"get": map[string]any{
+					"get_all_currencies": map[string]any{
+						"cost": 1,
+					},
+				},
+				"post": map[string]any{
+					"build_register_session_key_tx": map[string]any{
+						"cost": 1,
+					},
+					"register_session_key": map[string]any{
+						"cost": 1,
+					},
+					"deregister_session_key": map[string]any{
+						"cost": 1,
+					},
+					"login": map[string]any{
+						"cost": 1,
+					},
+					"statistics": map[string]any{
+						"cost": 1,
+					},
+					"get_all_currencies": map[string]any{
+						"cost": 1,
+					},
+					"get_currency": map[string]any{
+						"cost": 1,
+					},
+					"get_instrument": map[string]any{
+						"cost": 1,
+					},
+					"get_all_instruments": map[string]any{
+						"cost": 1,
+					},
+					"get_instruments": map[string]any{
+						"cost": 1,
+					},
+					"get_ticker": map[string]any{
+						"cost": 1,
+					},
+					"get_latest_signed_feeds": map[string]any{
+						"cost": 1,
+					},
+					"get_option_settlement_prices": map[string]any{
+						"cost": 1,
+					},
+					"get_spot_feed_history": map[string]any{
+						"cost": 1,
+					},
+					"get_spot_feed_history_candles": map[string]any{
+						"cost": 1,
+					},
+					"get_funding_rate_history": map[string]any{
+						"cost": 1,
+					},
+					"get_trade_history": map[string]any{
+						"cost": 1,
+					},
+					"get_option_settlement_history": map[string]any{
+						"cost": 1,
+					},
+					"get_liquidation_history": map[string]any{
+						"cost": 1,
+					},
+					"get_interest_rate_history": map[string]any{
+						"cost": 1,
+					},
+					"get_transaction": map[string]any{
+						"cost": 1,
+					},
+					"get_margin": map[string]any{
+						"cost": 1,
+					},
+					"margin_watch": map[string]any{
+						"cost": 1,
+					},
+					"validate_invite_code": map[string]any{
+						"cost": 1,
+					},
+					"get_points": map[string]any{
+						"cost": 1,
+					},
+					"get_all_points": map[string]any{
+						"cost": 1,
+					},
+					"get_points_leaderboard": map[string]any{
+						"cost": 1,
+					},
+					"get_descendant_tree": map[string]any{
+						"cost": 1,
+					},
+					"get_tree_roots": map[string]any{
+						"cost": 1,
+					},
+					"get_swell_percent_points": map[string]any{
+						"cost": 1,
+					},
+					"get_vault_assets": map[string]any{
+						"cost": 1,
+					},
+					"get_etherfi_effective_balances": map[string]any{
+						"cost": 1,
+					},
+					"get_kelp_effective_balances": map[string]any{
+						"cost": 1,
+					},
+					"get_bridge_balances": map[string]any{
+						"cost": 1,
+					},
+					"get_ethena_participants": map[string]any{
+						"cost": 1,
+					},
+					"get_vault_share": map[string]any{
+						"cost": 1,
+					},
+					"get_vault_statistics": map[string]any{
+						"cost": 1,
+					},
+					"get_vault_balances": map[string]any{
+						"cost": 1,
+					},
+					"estimate_integrator_points": map[string]any{
+						"cost": 1,
+					},
+					"create_subaccount_debug": map[string]any{
+						"cost": 1,
+					},
+					"deposit_debug": map[string]any{
+						"cost": 1,
+					},
+					"withdraw_debug": map[string]any{
+						"cost": 1,
+					},
+					"send_quote_debug": map[string]any{
+						"cost": 1,
+					},
+					"execute_quote_debug": map[string]any{
+						"cost": 1,
+					},
+					"get_invite_code": map[string]any{
+						"cost": 1,
+					},
+					"register_invite": map[string]any{
+						"cost": 1,
+					},
+					"get_time": map[string]any{
+						"cost": 1,
+					},
+					"get_live_incidents": map[string]any{
+						"cost": 1,
+					},
+					"get_maker_programs": map[string]any{
+						"cost": 1,
+					},
+					"get_maker_program_scores": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"post": []any{"get_account", "create_subaccount", "get_subaccount", "get_subaccounts", "get_all_portfolios", "change_subaccount_label", "get_notificationsv", "update_notifications", "deposit", "withdraw", "transfer_erc20", "transfer_position", "transfer_positions", "order", "replace", "order_debug", "get_order", "get_orders", "get_open_orders", "cancel", "cancel_by_label", "cancel_by_nonce", "cancel_by_instrument", "cancel_all", "cancel_trigger_order", "get_order_history", "get_trade_history", "get_deposit_history", "get_withdrawal_history", "send_rfq", "cancel_rfq", "cancel_batch_rfqs", "get_rfqs", "poll_rfqs", "send_quote", "cancel_quote", "cancel_batch_quotes", "get_quotes", "poll_quotes", "execute_quote", "rfq_get_best_quote", "get_margin", "get_collaterals", "get_positions", "get_option_settlement_history", "get_subaccount_value_history", "expired_and_cancelled_history", "get_funding_history", "get_interest_history", "get_erc20_transfer_history", "get_liquidation_history", "liquidate", "get_liquidator_history", "session_keys", "edit_session_key", "register_scoped_session_key", "get_mmp_config", "set_mmp_config", "reset_mmp", "set_cancel_on_disconnect", "get_invite_code", "register_invite"},
+				"post": map[string]any{
+					"get_account": map[string]any{
+						"cost": 1,
+					},
+					"create_subaccount": map[string]any{
+						"cost": 1,
+					},
+					"get_subaccount": map[string]any{
+						"cost": 1,
+					},
+					"get_subaccounts": map[string]any{
+						"cost": 1,
+					},
+					"get_all_portfolios": map[string]any{
+						"cost": 1,
+					},
+					"change_subaccount_label": map[string]any{
+						"cost": 1,
+					},
+					"get_notificationsv": map[string]any{
+						"cost": 1,
+					},
+					"update_notifications": map[string]any{
+						"cost": 1,
+					},
+					"deposit": map[string]any{
+						"cost": 1,
+					},
+					"withdraw": map[string]any{
+						"cost": 1,
+					},
+					"transfer_erc20": map[string]any{
+						"cost": 1,
+					},
+					"transfer_position": map[string]any{
+						"cost": 1,
+					},
+					"transfer_positions": map[string]any{
+						"cost": 1,
+					},
+					"order": map[string]any{
+						"cost": 1,
+					},
+					"replace": map[string]any{
+						"cost": 1,
+					},
+					"order_debug": map[string]any{
+						"cost": 1,
+					},
+					"get_order": map[string]any{
+						"cost": 1,
+					},
+					"get_orders": map[string]any{
+						"cost": 1,
+					},
+					"get_open_orders": map[string]any{
+						"cost": 1,
+					},
+					"cancel": map[string]any{
+						"cost": 1,
+					},
+					"cancel_by_label": map[string]any{
+						"cost": 1,
+					},
+					"cancel_by_nonce": map[string]any{
+						"cost": 1,
+					},
+					"cancel_by_instrument": map[string]any{
+						"cost": 1,
+					},
+					"cancel_all": map[string]any{
+						"cost": 1,
+					},
+					"cancel_trigger_order": map[string]any{
+						"cost": 1,
+					},
+					"get_order_history": map[string]any{
+						"cost": 1,
+					},
+					"get_trade_history": map[string]any{
+						"cost": 1,
+					},
+					"get_deposit_history": map[string]any{
+						"cost": 1,
+					},
+					"get_withdrawal_history": map[string]any{
+						"cost": 1,
+					},
+					"send_rfq": map[string]any{
+						"cost": 1,
+					},
+					"cancel_rfq": map[string]any{
+						"cost": 1,
+					},
+					"cancel_batch_rfqs": map[string]any{
+						"cost": 1,
+					},
+					"get_rfqs": map[string]any{
+						"cost": 1,
+					},
+					"poll_rfqs": map[string]any{
+						"cost": 1,
+					},
+					"send_quote": map[string]any{
+						"cost": 1,
+					},
+					"cancel_quote": map[string]any{
+						"cost": 1,
+					},
+					"cancel_batch_quotes": map[string]any{
+						"cost": 1,
+					},
+					"get_quotes": map[string]any{
+						"cost": 1,
+					},
+					"poll_quotes": map[string]any{
+						"cost": 1,
+					},
+					"execute_quote": map[string]any{
+						"cost": 1,
+					},
+					"rfq_get_best_quote": map[string]any{
+						"cost": 1,
+					},
+					"get_margin": map[string]any{
+						"cost": 1,
+					},
+					"get_collaterals": map[string]any{
+						"cost": 1,
+					},
+					"get_positions": map[string]any{
+						"cost": 1,
+					},
+					"get_option_settlement_history": map[string]any{
+						"cost": 1,
+					},
+					"get_subaccount_value_history": map[string]any{
+						"cost": 1,
+					},
+					"expired_and_cancelled_history": map[string]any{
+						"cost": 1,
+					},
+					"get_funding_history": map[string]any{
+						"cost": 1,
+					},
+					"get_interest_history": map[string]any{
+						"cost": 1,
+					},
+					"get_erc20_transfer_history": map[string]any{
+						"cost": 1,
+					},
+					"get_liquidation_history": map[string]any{
+						"cost": 1,
+					},
+					"liquidate": map[string]any{
+						"cost": 1,
+					},
+					"get_liquidator_history": map[string]any{
+						"cost": 1,
+					},
+					"session_keys": map[string]any{
+						"cost": 1,
+					},
+					"edit_session_key": map[string]any{
+						"cost": 1,
+					},
+					"register_scoped_session_key": map[string]any{
+						"cost": 1,
+					},
+					"get_mmp_config": map[string]any{
+						"cost": 1,
+					},
+					"set_mmp_config": map[string]any{
+						"cost": 1,
+					},
+					"reset_mmp": map[string]any{
+						"cost": 1,
+					},
+					"set_cancel_on_disconnect": map[string]any{
+						"cost": 1,
+					},
+					"get_invite_code": map[string]any{
+						"cost": 1,
+					},
+					"register_invite": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"fees": map[string]any{},
@@ -351,7 +692,6 @@ func (this *DeriveCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var result any = map[string]any{}
 
 		tokenResponse := (<-this.PublicGetGetAllCurrencies(params))
 		PanicOnError(tokenResponse)
@@ -404,39 +744,38 @@ func (this *DeriveCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		// }
 		//
 		var currencies any = this.SafeList(tokenResponse, "result", []any{})
-		for i := 0; IsLessThan(i, GetArrayLength(currencies)); i++ {
-			var currency any = GetValue(currencies, i)
-			var currencyId any = this.SafeString(currency, "currency")
-			var code any = this.SafeCurrencyCode(currencyId)
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"id":        currencyId,
-				"name":      nil,
-				"code":      code,
-				"precision": nil,
-				"active":    nil,
-				"fee":       nil,
-				"networks":  nil,
-				"deposit":   nil,
-				"withdraw":  nil,
-				"limits": map[string]any{
-					"deposit": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"withdraw": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-				},
-				"info": currency,
-			}))
-		}
 
-		ch <- result
+		ch <- this.ParseCurrencies(currencies)
 		return nil
 
 	}()
 	return ch
+}
+func (this *DeriveCore) ParseCurrency(rawCurrency any) any {
+	var currencyId any = this.SafeString(rawCurrency, "currency")
+	var code any = this.SafeCurrencyCode(currencyId)
+	return this.SafeCurrencyStructure(map[string]any{
+		"id":        currencyId,
+		"name":      nil,
+		"code":      code,
+		"precision": nil,
+		"active":    nil,
+		"fee":       nil,
+		"networks":  nil,
+		"deposit":   nil,
+		"withdraw":  nil,
+		"limits": map[string]any{
+			"deposit": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"withdraw": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+		"info": rawCurrency,
+	})
 }
 
 /**
@@ -636,6 +975,8 @@ func (this *DeriveCore) ParseMarket(market any) any {
 		linear = true
 		inverse = false
 	}
+	var contractSize any = Ternary(IsTrue((spot)), nil, 1)
+	var isContract any = (IsTrue(swap) || IsTrue(option))
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
@@ -652,10 +993,10 @@ func (this *DeriveCore) ParseMarket(market any) any {
 		"future":         false,
 		"option":         option,
 		"active":         this.SafeBool(market, "is_active"),
-		"contract":       (IsTrue(swap) || IsTrue(option)),
+		"contract":       isContract,
 		"linear":         linear,
 		"inverse":        inverse,
-		"contractSize":   Ternary(IsTrue((spot)), nil, 1),
+		"contractSize":   contractSize,
 		"expiry":         expiry,
 		"expiryDatetime": this.Iso8601(expiry),
 		"taker":          this.SafeNumber(market, "taker_fee_rate"),
@@ -705,9 +1046,11 @@ func (this *DeriveCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any 
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes7508 := (<-this.LoadMarkets())
-		PanicOnError(retRes7508)
+			retRes75112 := (<-this.LoadMarkets())
+			PanicOnError(retRes75112)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"instrument_name": GetValue(market, "id"),
@@ -895,9 +1238,11 @@ func (this *DeriveCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9208 := (<-this.LoadMarkets())
-		PanicOnError(retRes9208)
+			retRes92312 := (<-this.LoadMarkets())
+			PanicOnError(retRes92312)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -962,14 +1307,40 @@ func (this *DeriveCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 	}()
 	return ch
 }
+func (this *DeriveCore) ParseTrades(trades any, optionalArgs ...any) any {
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var tradesArray any = this.ToArray(trades)
+	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(tradesArray)); i++ {
+		var rawTrade any = GetValue(tradesArray, i)
+		var isFetchTrades any = !IsTrue((InOp(rawTrade, "order_id")))
+		var liquidityRole any = this.SafeString(rawTrade, "liquidity_role")
+		if IsTrue(IsTrue(isFetchTrades) && IsTrue((IsEqual(liquidityRole, "maker")))) {
+			continue
+		}
+		var parsed any = this.ParseTrade(rawTrade, market)
+		var trade any = this.Extend(parsed, params)
+		AppendToArray(&result, trade)
+	}
+	result = this.SortBy2(result, "timestamp", "id")
+	var symbol any = this.SafeString(market, "symbol")
+	return this.FilterBySymbolSinceLimit(result, symbol, since, limit)
+}
 func (this *DeriveCore) ParseTrade(trade any, optionalArgs ...any) any {
+	//
+	// fetchTrades & fetchMyTrades
 	//
 	// {
 	//     "subaccount_id": 130837,
-	//     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
 	//     "instrument_name": "BTC-PERP",
 	//     "direction": "sell",
-	//     "label": "test1234",
 	//     "quote_id": null,
 	//     "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
 	//     "timestamp": 1738065303708,
@@ -980,11 +1351,17 @@ func (this *DeriveCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//     "liquidity_role": "taker",
 	//     "realized_pnl": "0",
 	//     "realized_pnl_excl_fees": "0",
-	//     "is_transfer": false,
 	//     "tx_status": "settled",
 	//     "trade_fee": "1.127415534092999815",
 	//     "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-	//     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+	//     "label": "test1234",                                      // only fetchMyTrades
+	//     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",       // only fetchMyTrades
+	//     "is_transfer": false,                                     // only fetchMyTrades
+	//     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d11bb", // only fetchMyTrades
+	//     "rfq_id": null,                                           // only fetchTrades
+	//     "wallet": "0x353Bf69715DdbF7A2b0C6Deba8EAC1F1D160c123",   // only fetchTrades
+	//     "expected_rebate": "0",                                   // only fetchTrades
+	//     "extra_fee": "0",                                         // only fetchTrades
 	// }
 	//
 	market := GetArg(optionalArgs, 0, nil)
@@ -1037,9 +1414,11 @@ func (this *DeriveCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any 
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10408 := (<-this.LoadMarkets())
-		PanicOnError(retRes10408)
+			retRes107112 := (<-this.LoadMarkets())
+			PanicOnError(retRes107112)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"instrument_name": GetValue(market, "id"),
@@ -1224,9 +1603,11 @@ func (this *DeriveCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes12028 := (<-this.LoadMarkets())
-		PanicOnError(retRes12028)
+			retRes123512 := (<-this.LoadMarkets())
+			PanicOnError(retRes123512)
+		}
 		var market any = this.Market(symbol)
 		if IsTrue(IsEqual(price, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a price argument")))
@@ -1387,7 +1768,7 @@ func (this *DeriveCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		var result any = this.SafeDict(response, "result")
 		var rawOrder any = this.SafeDict(result, "raw_data")
 		if IsTrue(IsEqual(rawOrder, nil)) {
-			rawOrder = this.SafeDict(result, "order")
+			rawOrder = this.SafeDict(result, "order", map[string]any{})
 		}
 		var order any = this.ParseOrder(rawOrder, market)
 		AddElementToObject(order, "type", typeVar)
@@ -1425,9 +1806,11 @@ func (this *DeriveCore) EditOrder(id any, symbol any, typeVar any, side any, opt
 		_ = price
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes13958 := (<-this.LoadMarkets())
-		PanicOnError(retRes13958)
+			retRes143012 := (<-this.LoadMarkets())
+			PanicOnError(retRes143012)
+		}
 		var market any = this.Market(symbol)
 		var subaccountId any = nil
 		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("editOrder", params)
@@ -1561,7 +1944,7 @@ func (this *DeriveCore) EditOrder(id any, symbol any, typeVar any, side any, opt
 		//   }
 		//
 		var result any = this.SafeDict(response, "result")
-		var rawOrder any = this.SafeDict(result, "order")
+		var rawOrder any = this.SafeDict(result, "order", map[string]any{})
 		var order any = this.ParseOrder(rawOrder, market)
 
 		ch <- order
@@ -1595,9 +1978,11 @@ func (this *DeriveCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes15638 := (<-this.LoadMarkets())
-		PanicOnError(retRes15638)
+			retRes160012 := (<-this.LoadMarkets())
+			PanicOnError(retRes160012)
+		}
 		var market any = this.Market(symbol)
 		var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
 		var subaccountId any = nil
@@ -1677,7 +2062,7 @@ func (this *DeriveCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		var extendParams any = map[string]any{
 			"symbol": symbol,
 		}
-		var order any = this.SafeDict(response, "result")
+		var order any = this.SafeDict(response, "result", map[string]any{})
 		if IsTrue(isByClientOrder) {
 			AddElementToObject(extendParams, "client_order_id", clientOrderIdExchangeSpecific)
 		}
@@ -1695,7 +2080,7 @@ func (this *DeriveCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @see https://docs.derive.xyz/reference/post_private-cancel-by-instrument
  * @see https://docs.derive.xyz/reference/post_private-cancel-all
  * @description cancel all open orders in a market
- * @param {string} symbol unified market symbol
+ * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subaccount_id] *required* the subaccount id
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1709,9 +2094,11 @@ func (this *DeriveCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16528 := (<-this.LoadMarkets())
-		PanicOnError(retRes16528)
+			retRes169112 := (<-this.LoadMarkets())
+			PanicOnError(retRes169112)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -1740,7 +2127,7 @@ func (this *DeriveCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		//     "result": {
 		//         "cancelled_orders": 0
 		//     },
-		//     "id": "9d633799-2098-4559-b547-605bb6f4d8f4"
+		//     "id": "9d633799-2098-4559-b547-605bb6f4d8f5"
 		// }
 		//
 		// {
@@ -1784,18 +2171,20 @@ func (this *DeriveCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17008 := (<-this.LoadMarkets())
-		PanicOnError(retRes17008)
+			retRes174112 := (<-this.LoadMarkets())
+			PanicOnError(retRes174112)
+		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes170419 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes170419)
-			ch <- retRes170419
+			retRes174619 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes174619)
+			ch <- retRes174619
 			return nil
 		}
 		var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
@@ -1872,14 +2261,14 @@ func (this *DeriveCore) FetchOrders(optionalArgs ...any) <-chan any {
 		var page any = this.SafeInteger(params, "page")
 		if IsTrue(!IsEqual(page, nil)) {
 			var pagination any = this.SafeDict(data, "pagination")
-			var currentPage any = this.SafeInteger(pagination, "num_pages")
+			var currentPage any = this.SafeInteger(pagination, "num_pages", 0)
 			if IsTrue(IsGreaterThan(page, currentPage)) {
 
 				ch <- []any{}
 				return nil
 			}
 		}
-		var orders any = this.SafeList(data, "orders")
+		var orders any = this.SafeList(data, "orders", []any{})
 
 		ch <- this.ParseOrders(orders, market, since, limit)
 		return nil
@@ -1913,16 +2302,18 @@ func (this *DeriveCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17988 := (<-this.LoadMarkets())
-		PanicOnError(retRes17988)
+			retRes184112 := (<-this.LoadMarkets())
+			PanicOnError(retRes184112)
+		}
 		var extendedParams any = this.Extend(params, map[string]any{
 			"status": "open",
 		})
 
-		retRes180015 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes180015)
-		ch <- retRes180015
+		retRes184415 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+		PanicOnError(retRes184415)
+		ch <- retRes184415
 		return nil
 
 	}()
@@ -1954,16 +2345,18 @@ func (this *DeriveCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes18168 := (<-this.LoadMarkets())
-		PanicOnError(retRes18168)
+			retRes186112 := (<-this.LoadMarkets())
+			PanicOnError(retRes186112)
+		}
 		var extendedParams any = this.Extend(params, map[string]any{
 			"status": "filled",
 		})
 
-		retRes181815 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes181815)
-		ch <- retRes181815
+		retRes186415 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+		PanicOnError(retRes186415)
+		ch <- retRes186415
 		return nil
 
 	}()
@@ -1995,16 +2388,18 @@ func (this *DeriveCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes18348 := (<-this.LoadMarkets())
-		PanicOnError(retRes18348)
+			retRes188112 := (<-this.LoadMarkets())
+			PanicOnError(retRes188112)
+		}
 		var extendedParams any = this.Extend(params, map[string]any{
 			"status": "cancelled",
 		})
 
-		retRes183615 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes183615)
-		ch <- retRes183615
+		retRes188415 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+		PanicOnError(retRes188415)
+		ch <- retRes188415
 		return nil
 
 	}()
@@ -2017,7 +2412,7 @@ func (this *DeriveCore) ParseTimeInForce(timeInForce any) any {
 		"gtc":       "GTC",
 		"post_only": "PO",
 	}
-	return this.SafeString(timeInForces, timeInForce, nil)
+	return this.SafeString(timeInForces, timeInForce)
 }
 func (this *DeriveCore) ParseOrderStatus(status any) any {
 	if IsTrue(!IsEqual(status, nil)) {
@@ -2096,7 +2491,7 @@ func (this *DeriveCore) ParseOrder(rawOrder any, optionalArgs ...any) any {
 	if IsTrue(!IsEqual(marketId, nil)) {
 		market = this.SafeMarket(marketId, market)
 	}
-	var symbol any = GetValue(market, "symbol")
+	var symbol any = this.SafeString(market, "symbol")
 	var price any = this.SafeString(order, "limit_price")
 	var average any = this.SafeString(order, "average_price")
 	var amount any = this.SafeString(order, "desired_amount")
@@ -2185,9 +2580,11 @@ func (this *DeriveCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes20028 := (<-this.LoadMarkets())
-		PanicOnError(retRes20028)
+			retRes205112 := (<-this.LoadMarkets())
+			PanicOnError(retRes205112)
+		}
 		var subaccountId any = nil
 		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchOrderTrades", params)
 		subaccountId = GetValue(subaccountIdparamsVariable, 0)
@@ -2282,18 +2679,20 @@ func (this *DeriveCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes20768 := (<-this.LoadMarkets())
-		PanicOnError(retRes20768)
+			retRes212712 := (<-this.LoadMarkets())
+			PanicOnError(retRes212712)
+		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes208019 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes208019)
-			ch <- retRes208019
+			retRes213219 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes213219)
+			ch <- retRes213219
 			return nil
 		}
 		var subaccountId any = nil
@@ -2357,7 +2756,7 @@ func (this *DeriveCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		var page any = this.SafeInteger(params, "page")
 		if IsTrue(!IsEqual(page, nil)) {
 			var pagination any = this.SafeDict(result, "pagination")
-			var currentPage any = this.SafeInteger(pagination, "num_pages")
+			var currentPage any = this.SafeInteger(pagination, "num_pages", 0)
 			if IsTrue(IsGreaterThan(page, currentPage)) {
 
 				ch <- []any{}
@@ -2378,7 +2777,7 @@ func (this *DeriveCore) FetchMyTrades(optionalArgs ...any) <-chan any {
  * @name derive#fetchPositions
  * @description fetch all open positions
  * @see https://docs.derive.xyz/reference/post_private-get-positions
- * @param {string[]} [symbols] not used by kraken fetchPositions ()
+ * @param {string[]} [symbols] not used by fetchPositions ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subaccount_id] *required* the subaccount id
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -2392,9 +2791,11 @@ func (this *DeriveCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes21598 := (<-this.LoadMarkets())
-		PanicOnError(retRes21598)
+			retRes221212 := (<-this.LoadMarkets())
+			PanicOnError(retRes221212)
+		}
 		var subaccountId any = nil
 		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchPositions", params)
 		subaccountId = GetValue(subaccountIdparamsVariable, 0)
@@ -2557,18 +2958,20 @@ func (this *DeriveCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes23008 := (<-this.LoadMarkets())
-		PanicOnError(retRes23008)
+			retRes235512 := (<-this.LoadMarkets())
+			PanicOnError(retRes235512)
+		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes230419 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes230419)
-			ch <- retRes230419
+			retRes236019 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes236019)
+			ch <- retRes236019
 			return nil
 		}
 		var subaccountId any = nil
@@ -2627,7 +3030,7 @@ func (this *DeriveCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		var page any = this.SafeInteger(params, "page")
 		if IsTrue(!IsEqual(page, nil)) {
 			var pagination any = this.SafeDict(result, "pagination")
-			var currentPage any = this.SafeInteger(pagination, "num_pages")
+			var currentPage any = this.SafeInteger(pagination, "num_pages", 0)
 			if IsTrue(IsGreaterThan(page, currentPage)) {
 
 				ch <- []any{}
@@ -2685,9 +3088,11 @@ func (this *DeriveCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes24028 := (<-this.LoadMarkets())
-		PanicOnError(retRes24028)
+			retRes245912 := (<-this.LoadMarkets())
+			PanicOnError(retRes245912)
+		}
 		var deriveWalletAddress any = nil
 		deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("fetchBalance", params)
 		deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
@@ -2772,7 +3177,9 @@ func (this *DeriveCore) ParseBalance(response any) any {
 				var amount any = this.SafeString(balance, "amount")
 				AddElementToObject(account, "total", Precise.StringAdd(GetValue(account, "total"), amount))
 			}
-			AddElementToObject(result, code, account)
+			if IsTrue(!IsEqual(code, nil)) {
+				AddElementToObject(result, code, account)
+			}
 		}
 	}
 	return this.SafeBalance(result)
@@ -2803,9 +3210,11 @@ func (this *DeriveCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes24988 := (<-this.LoadMarkets())
-		PanicOnError(retRes24988)
+			retRes255912 := (<-this.LoadMarkets())
+			PanicOnError(retRes255912)
+		}
 		var subaccountId any = nil
 		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchDeposits", params)
 		subaccountId = GetValue(subaccountIdparamsVariable, 0)
@@ -2839,7 +3248,7 @@ func (this *DeriveCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		//
 		var currency any = this.SafeCurrency(code)
 		var result any = this.SafeDict(response, "result", map[string]any{})
-		var events any = this.SafeList(result, "events")
+		var events any = this.SafeList(result, "events", []any{})
 
 		ch <- this.ParseTransactions(events, currency, since, limit, params)
 		return nil
@@ -2873,9 +3282,11 @@ func (this *DeriveCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes25458 := (<-this.LoadMarkets())
-		PanicOnError(retRes25458)
+			retRes260812 := (<-this.LoadMarkets())
+			PanicOnError(retRes260812)
+		}
 		var subaccountId any = nil
 		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchWithdrawals", params)
 		subaccountId = GetValue(subaccountIdparamsVariable, 0)
@@ -2909,7 +3320,7 @@ func (this *DeriveCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		//
 		var currency any = this.SafeCurrency(code)
 		var result any = this.SafeDict(response, "result", map[string]any{})
-		var events any = this.SafeList(result, "events")
+		var events any = this.SafeList(result, "events", []any{})
 
 		ch <- this.ParseTransactions(events, currency, since, limit, params)
 		return nil
@@ -2980,7 +3391,7 @@ func (this *DeriveCore) HandleDeriveSubaccountId(methodName any, params any) any
 	if IsTrue(!IsEqual(optionsWallet, nil)) {
 		return []any{optionsWallet, params}
 	}
-	panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a subaccount_id parameter inside \\'params\\' or exchange.options[\\'subaccount_id\\']=ID.")))
+	panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")))
 }
 func (this *DeriveCore) HandleDeriveWalletAddress(methodName any, params any) any {
 	var deriveWalletAddress any = nil
@@ -2995,7 +3406,7 @@ func (this *DeriveCore) HandleDeriveWalletAddress(methodName any, params any) an
 	if IsTrue(!IsEqual(optionsWallet, nil)) {
 		return []any{optionsWallet, params}
 	}
-	panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a deriveWalletAddress parameter inside \\'params\\' or exchange.options[\\'deriveWalletAddress\\'] = ADDRESS, the address can find in HOME => Developers tab.")))
+	panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab.")))
 }
 func (this *DeriveCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if !IsTrue(response) {

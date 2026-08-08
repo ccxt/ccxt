@@ -5,14 +5,12 @@ Object.defineProperty(exports, '__esModule', { value: true });
 require('./_virtual/_commonjsHelpers.js');
 require('./_virtual/index.cjs.js');
 var Exchange = require('./src/base/Exchange.js');
+var PredictionExchange = require('./src/base/PredictionExchange.js');
 var Precise = require('./src/base/Precise.js');
 var functions = require('./src/base/functions.js');
 var errors = require('./src/base/errors.js');
-var aftermath = require('./src/aftermath.js');
 var alpaca = require('./src/alpaca.js');
 var apex = require('./src/apex.js');
-var arkham = require('./src/arkham.js');
-var ascendex = require('./src/ascendex.js');
 var aster = require('./src/aster.js');
 var backpack = require('./src/backpack.js');
 var bequant = require('./src/bequant.js');
@@ -29,7 +27,6 @@ var bitfinex = require('./src/bitfinex.js');
 var bitflyer = require('./src/bitflyer.js');
 var bitget = require('./src/bitget.js');
 var bithumb = require('./src/bithumb.js');
-var bitmart = require('./src/bitmart.js');
 var bitmex = require('./src/bitmex.js');
 var bitopro = require('./src/bitopro.js');
 var bitrue = require('./src/bitrue.js');
@@ -45,16 +42,15 @@ var btcmarkets = require('./src/btcmarkets.js');
 var btcturk = require('./src/btcturk.js');
 var bullish = require('./src/bullish.js');
 var bybit = require('./src/bybit.js');
+var bybiteu = require('./src/bybiteu.js');
 var bydfi = require('./src/bydfi.js');
 var cex = require('./src/cex.js');
 var coinbase = require('./src/coinbase.js');
-var coinbaseadvanced = require('./src/coinbaseadvanced.js');
 var coinbaseexchange = require('./src/coinbaseexchange.js');
 var coinbaseinternational = require('./src/coinbaseinternational.js');
 var coincheck = require('./src/coincheck.js');
 var coinex = require('./src/coinex.js');
 var coinmate = require('./src/coinmate.js');
-var coinmetro = require('./src/coinmetro.js');
 var coinone = require('./src/coinone.js');
 var coinsph = require('./src/coinsph.js');
 var coinspot = require('./src/coinspot.js');
@@ -67,10 +63,11 @@ var derive = require('./src/derive.js');
 var digifinex = require('./src/digifinex.js');
 var dydx = require('./src/dydx.js');
 var exmo = require('./src/exmo.js');
+var extended = require('./src/extended.js');
 var fmfwio = require('./src/fmfwio.js');
 var foxbit = require('./src/foxbit.js');
 var gate = require('./src/gate.js');
-var gateio = require('./src/gateio.js');
+var gateeu = require('./src/gateeu.js');
 var gemini = require('./src/gemini.js');
 var grvt = require('./src/grvt.js');
 var hashkey = require('./src/hashkey.js');
@@ -78,7 +75,6 @@ var hibachi = require('./src/hibachi.js');
 var hitbtc = require('./src/hitbtc.js');
 var hollaex = require('./src/hollaex.js');
 var htx = require('./src/htx.js');
-var huobi = require('./src/huobi.js');
 var hyperliquid = require('./src/hyperliquid.js');
 var independentreserve = require('./src/independentreserve.js');
 var indodax = require('./src/indodax.js');
@@ -93,13 +89,13 @@ var luno = require('./src/luno.js');
 var mercado = require('./src/mercado.js');
 var mexc = require('./src/mexc.js');
 var modetrade = require('./src/modetrade.js');
+var mudrex = require('./src/mudrex.js');
 var myokx = require('./src/myokx.js');
+var nado = require('./src/nado.js');
 var ndax = require('./src/ndax.js');
-var novadax = require('./src/novadax.js');
 var okx = require('./src/okx.js');
 var okxus = require('./src/okxus.js');
 var onetrading = require('./src/onetrading.js');
-var oxfun = require('./src/oxfun.js');
 var p2b = require('./src/p2b.js');
 var pacifica = require('./src/pacifica.js');
 var paradex = require('./src/paradex.js');
@@ -109,21 +105,15 @@ var poloniex = require('./src/poloniex.js');
 var tokocrypto = require('./src/tokocrypto.js');
 var toobit = require('./src/toobit.js');
 var upbit = require('./src/upbit.js');
-var wavesexchange = require('./src/wavesexchange.js');
 var weex = require('./src/weex.js');
 var whitebit = require('./src/whitebit.js');
 var woo = require('./src/woo.js');
 var woofipro = require('./src/woofipro.js');
 var xt = require('./src/xt.js');
-var yobit = require('./src/yobit.js');
 var zaif = require('./src/zaif.js');
 var zebpay = require('./src/zebpay.js');
-var zonda = require('./src/zonda.js');
-var aftermath$1 = require('./src/pro/aftermath.js');
 var alpaca$1 = require('./src/pro/alpaca.js');
 var apex$1 = require('./src/pro/apex.js');
-var arkham$1 = require('./src/pro/arkham.js');
-var ascendex$1 = require('./src/pro/ascendex.js');
 var aster$1 = require('./src/pro/aster.js');
 var backpack$1 = require('./src/pro/backpack.js');
 var bequant$1 = require('./src/pro/bequant.js');
@@ -135,7 +125,6 @@ var bingx$1 = require('./src/pro/bingx.js');
 var bitfinex$1 = require('./src/pro/bitfinex.js');
 var bitget$1 = require('./src/pro/bitget.js');
 var bithumb$1 = require('./src/pro/bithumb.js');
-var bitmart$1 = require('./src/pro/bitmart.js');
 var bitmex$1 = require('./src/pro/bitmex.js');
 var bitopro$1 = require('./src/pro/bitopro.js');
 var bitrue$1 = require('./src/pro/bitrue.js');
@@ -146,10 +135,10 @@ var blockchaincom$1 = require('./src/pro/blockchaincom.js');
 var blofin$1 = require('./src/pro/blofin.js');
 var bullish$1 = require('./src/pro/bullish.js');
 var bybit$1 = require('./src/pro/bybit.js');
+var bybiteu$1 = require('./src/pro/bybiteu.js');
 var bydfi$1 = require('./src/pro/bydfi.js');
 var cex$1 = require('./src/pro/cex.js');
 var coinbase$1 = require('./src/pro/coinbase.js');
-var coinbaseadvanced$1 = require('./src/pro/coinbaseadvanced.js');
 var coinbaseexchange$1 = require('./src/pro/coinbaseexchange.js');
 var coinbaseinternational$1 = require('./src/pro/coinbaseinternational.js');
 var coincheck$1 = require('./src/pro/coincheck.js');
@@ -161,15 +150,15 @@ var deribit$1 = require('./src/pro/deribit.js');
 var derive$1 = require('./src/pro/derive.js');
 var dydx$1 = require('./src/pro/dydx.js');
 var exmo$1 = require('./src/pro/exmo.js');
+var extended$1 = require('./src/pro/extended.js');
 var gate$1 = require('./src/pro/gate.js');
-var gateio$1 = require('./src/pro/gateio.js');
+var gateeu$1 = require('./src/pro/gateeu.js');
 var gemini$1 = require('./src/pro/gemini.js');
 var grvt$1 = require('./src/pro/grvt.js');
 var hashkey$1 = require('./src/pro/hashkey.js');
 var hitbtc$1 = require('./src/pro/hitbtc.js');
 var hollaex$1 = require('./src/pro/hollaex.js');
 var htx$1 = require('./src/pro/htx.js');
-var huobi$1 = require('./src/pro/huobi.js');
 var hyperliquid$1 = require('./src/pro/hyperliquid.js');
 var independentreserve$1 = require('./src/pro/independentreserve.js');
 var kraken$1 = require('./src/pro/kraken.js');
@@ -181,12 +170,13 @@ var lighter$1 = require('./src/pro/lighter.js');
 var luno$1 = require('./src/pro/luno.js');
 var mexc$1 = require('./src/pro/mexc.js');
 var modetrade$1 = require('./src/pro/modetrade.js');
+var mudrex$1 = require('./src/pro/mudrex.js');
 var myokx$1 = require('./src/pro/myokx.js');
+var nado$1 = require('./src/pro/nado.js');
 var ndax$1 = require('./src/pro/ndax.js');
 var okx$1 = require('./src/pro/okx.js');
 var okxus$1 = require('./src/pro/okxus.js');
 var onetrading$1 = require('./src/pro/onetrading.js');
-var oxfun$1 = require('./src/pro/oxfun.js');
 var p2b$1 = require('./src/pro/p2b.js');
 var pacifica$1 = require('./src/pro/pacifica.js');
 var paradex$1 = require('./src/pro/paradex.js');
@@ -199,17 +189,19 @@ var whitebit$1 = require('./src/pro/whitebit.js');
 var woo$1 = require('./src/pro/woo.js');
 var woofipro$1 = require('./src/pro/woofipro.js');
 var xt$1 = require('./src/pro/xt.js');
+var binance$2 = require('./src/prediction/binance.js');
+var hyperliquid$2 = require('./src/prediction/hyperliquid.js');
+var kalshi = require('./src/prediction/kalshi.js');
+var limitless = require('./src/prediction/limitless.js');
+var myriad = require('./src/prediction/myriad.js');
+var polymarket = require('./src/prediction/polymarket.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.52';
-Exchange["default"].ccxtVersion = version;
+const version = '4.5.71';
 const exchanges = {
-    'aftermath': aftermath["default"],
     'alpaca': alpaca["default"],
     'apex': apex["default"],
-    'arkham': arkham["default"],
-    'ascendex': ascendex["default"],
     'aster': aster["default"],
     'backpack': backpack["default"],
     'bequant': bequant["default"],
@@ -226,7 +218,6 @@ const exchanges = {
     'bitflyer': bitflyer["default"],
     'bitget': bitget["default"],
     'bithumb': bithumb["default"],
-    'bitmart': bitmart["default"],
     'bitmex': bitmex["default"],
     'bitopro': bitopro["default"],
     'bitrue': bitrue["default"],
@@ -242,16 +233,15 @@ const exchanges = {
     'btcturk': btcturk["default"],
     'bullish': bullish["default"],
     'bybit': bybit["default"],
+    'bybiteu': bybiteu["default"],
     'bydfi': bydfi["default"],
     'cex': cex["default"],
     'coinbase': coinbase["default"],
-    'coinbaseadvanced': coinbaseadvanced["default"],
     'coinbaseexchange': coinbaseexchange["default"],
     'coinbaseinternational': coinbaseinternational["default"],
     'coincheck': coincheck["default"],
     'coinex': coinex["default"],
     'coinmate': coinmate["default"],
-    'coinmetro': coinmetro["default"],
     'coinone': coinone["default"],
     'coinsph': coinsph["default"],
     'coinspot': coinspot["default"],
@@ -264,10 +254,11 @@ const exchanges = {
     'digifinex': digifinex["default"],
     'dydx': dydx["default"],
     'exmo': exmo["default"],
+    'extended': extended["default"],
     'fmfwio': fmfwio["default"],
     'foxbit': foxbit["default"],
     'gate': gate["default"],
-    'gateio': gateio["default"],
+    'gateeu': gateeu["default"],
     'gemini': gemini["default"],
     'grvt': grvt["default"],
     'hashkey': hashkey["default"],
@@ -275,7 +266,6 @@ const exchanges = {
     'hitbtc': hitbtc["default"],
     'hollaex': hollaex["default"],
     'htx': htx["default"],
-    'huobi': huobi["default"],
     'hyperliquid': hyperliquid["default"],
     'independentreserve': independentreserve["default"],
     'indodax': indodax["default"],
@@ -290,13 +280,13 @@ const exchanges = {
     'mercado': mercado["default"],
     'mexc': mexc["default"],
     'modetrade': modetrade["default"],
+    'mudrex': mudrex["default"],
     'myokx': myokx["default"],
+    'nado': nado["default"],
     'ndax': ndax["default"],
-    'novadax': novadax["default"],
     'okx': okx["default"],
     'okxus': okxus["default"],
     'onetrading': onetrading["default"],
-    'oxfun': oxfun["default"],
     'p2b': p2b["default"],
     'pacifica': pacifica["default"],
     'paradex': paradex["default"],
@@ -306,23 +296,17 @@ const exchanges = {
     'tokocrypto': tokocrypto["default"],
     'toobit': toobit["default"],
     'upbit': upbit["default"],
-    'wavesexchange': wavesexchange["default"],
     'weex': weex["default"],
     'whitebit': whitebit["default"],
     'woo': woo["default"],
     'woofipro': woofipro["default"],
     'xt': xt["default"],
-    'yobit': yobit["default"],
     'zaif': zaif["default"],
     'zebpay': zebpay["default"],
-    'zonda': zonda["default"],
 };
 const pro = {
-    'aftermath': aftermath$1["default"],
     'alpaca': alpaca$1["default"],
     'apex': apex$1["default"],
-    'arkham': arkham$1["default"],
-    'ascendex': ascendex$1["default"],
     'aster': aster$1["default"],
     'backpack': backpack$1["default"],
     'bequant': bequant$1["default"],
@@ -334,7 +318,6 @@ const pro = {
     'bitfinex': bitfinex$1["default"],
     'bitget': bitget$1["default"],
     'bithumb': bithumb$1["default"],
-    'bitmart': bitmart$1["default"],
     'bitmex': bitmex$1["default"],
     'bitopro': bitopro$1["default"],
     'bitrue': bitrue$1["default"],
@@ -345,10 +328,10 @@ const pro = {
     'blofin': blofin$1["default"],
     'bullish': bullish$1["default"],
     'bybit': bybit$1["default"],
+    'bybiteu': bybiteu$1["default"],
     'bydfi': bydfi$1["default"],
     'cex': cex$1["default"],
     'coinbase': coinbase$1["default"],
-    'coinbaseadvanced': coinbaseadvanced$1["default"],
     'coinbaseexchange': coinbaseexchange$1["default"],
     'coinbaseinternational': coinbaseinternational$1["default"],
     'coincheck': coincheck$1["default"],
@@ -360,15 +343,15 @@ const pro = {
     'derive': derive$1["default"],
     'dydx': dydx$1["default"],
     'exmo': exmo$1["default"],
+    'extended': extended$1["default"],
     'gate': gate$1["default"],
-    'gateio': gateio$1["default"],
+    'gateeu': gateeu$1["default"],
     'gemini': gemini$1["default"],
     'grvt': grvt$1["default"],
     'hashkey': hashkey$1["default"],
     'hitbtc': hitbtc$1["default"],
     'hollaex': hollaex$1["default"],
     'htx': htx$1["default"],
-    'huobi': huobi$1["default"],
     'hyperliquid': hyperliquid$1["default"],
     'independentreserve': independentreserve$1["default"],
     'kraken': kraken$1["default"],
@@ -380,12 +363,13 @@ const pro = {
     'luno': luno$1["default"],
     'mexc': mexc$1["default"],
     'modetrade': modetrade$1["default"],
+    'mudrex': mudrex$1["default"],
     'myokx': myokx$1["default"],
+    'nado': nado$1["default"],
     'ndax': ndax$1["default"],
     'okx': okx$1["default"],
     'okxus': okxus$1["default"],
     'onetrading': onetrading$1["default"],
-    'oxfun': oxfun$1["default"],
     'p2b': p2b$1["default"],
     'pacifica': pacifica$1["default"],
     'paradex': paradex$1["default"],
@@ -402,10 +386,25 @@ const pro = {
 pro.exchanges = Object.keys(pro);
 pro['Exchange'] = Exchange["default"]; // now the same for rest and ts
 //-----------------------------------------------------------------------------
-const ccxt = Object.assign({ version, Exchange: Exchange["default"], Precise: Precise["default"], 'exchanges': Object.keys(exchanges), 'pro': pro }, exchanges, functions, errors);
+const prediction = {
+    'binance': binance$2["default"],
+    'hyperliquid': hyperliquid$2["default"],
+    'kalshi': kalshi["default"],
+    'limitless': limitless["default"],
+    'myriad': myriad["default"],
+    'polymarket': polymarket["default"],
+};
+prediction.exchanges = Object.keys(prediction);
+// the namespace's `Exchange` alias must be the prediction base, not the crypto Exchange —
+// prediction instances are `instanceof PredictionExchange`, NOT `instanceof Exchange` (siblings)
+prediction['Exchange'] = PredictionExchange["default"];
+//-----------------------------------------------------------------------------
+const ccxt = Object.assign({ version, Exchange: Exchange["default"], BaseExchange: Exchange.BaseExchange, PredictionExchange: PredictionExchange["default"], Precise: Precise["default"], 'exchanges': Object.keys(exchanges), 'pro': pro, 'prediction': prediction }, exchanges, functions, errors);
 //-----------------------------------------------------------------------------
 
+exports.BaseExchange = Exchange.BaseExchange;
 exports.Exchange = Exchange["default"];
+exports.PredictionExchange = PredictionExchange["default"];
 exports.Precise = Precise["default"];
 exports.functions = functions;
 exports.AccountNotEnabled = errors.AccountNotEnabled;
@@ -450,11 +449,8 @@ exports.RequestTimeout = errors.RequestTimeout;
 exports.RestrictedLocation = errors.RestrictedLocation;
 exports.UnsubscribeError = errors.UnsubscribeError;
 exports.errors = errors;
-exports.aftermath = aftermath["default"];
 exports.alpaca = alpaca["default"];
 exports.apex = apex["default"];
-exports.arkham = arkham["default"];
-exports.ascendex = ascendex["default"];
 exports.aster = aster["default"];
 exports.backpack = backpack["default"];
 exports.bequant = bequant["default"];
@@ -471,7 +467,6 @@ exports.bitfinex = bitfinex["default"];
 exports.bitflyer = bitflyer["default"];
 exports.bitget = bitget["default"];
 exports.bithumb = bithumb["default"];
-exports.bitmart = bitmart["default"];
 exports.bitmex = bitmex["default"];
 exports.bitopro = bitopro["default"];
 exports.bitrue = bitrue["default"];
@@ -487,16 +482,15 @@ exports.btcmarkets = btcmarkets["default"];
 exports.btcturk = btcturk["default"];
 exports.bullish = bullish["default"];
 exports.bybit = bybit["default"];
+exports.bybiteu = bybiteu["default"];
 exports.bydfi = bydfi["default"];
 exports.cex = cex["default"];
 exports.coinbase = coinbase["default"];
-exports.coinbaseadvanced = coinbaseadvanced["default"];
 exports.coinbaseexchange = coinbaseexchange["default"];
 exports.coinbaseinternational = coinbaseinternational["default"];
 exports.coincheck = coincheck["default"];
 exports.coinex = coinex["default"];
 exports.coinmate = coinmate["default"];
-exports.coinmetro = coinmetro["default"];
 exports.coinone = coinone["default"];
 exports.coinsph = coinsph["default"];
 exports.coinspot = coinspot["default"];
@@ -509,10 +503,11 @@ exports.derive = derive["default"];
 exports.digifinex = digifinex["default"];
 exports.dydx = dydx["default"];
 exports.exmo = exmo["default"];
+exports.extended = extended["default"];
 exports.fmfwio = fmfwio["default"];
 exports.foxbit = foxbit["default"];
 exports.gate = gate["default"];
-exports.gateio = gateio["default"];
+exports.gateeu = gateeu["default"];
 exports.gemini = gemini["default"];
 exports.grvt = grvt["default"];
 exports.hashkey = hashkey["default"];
@@ -520,7 +515,6 @@ exports.hibachi = hibachi["default"];
 exports.hitbtc = hitbtc["default"];
 exports.hollaex = hollaex["default"];
 exports.htx = htx["default"];
-exports.huobi = huobi["default"];
 exports.hyperliquid = hyperliquid["default"];
 exports.independentreserve = independentreserve["default"];
 exports.indodax = indodax["default"];
@@ -535,13 +529,13 @@ exports.luno = luno["default"];
 exports.mercado = mercado["default"];
 exports.mexc = mexc["default"];
 exports.modetrade = modetrade["default"];
+exports.mudrex = mudrex["default"];
 exports.myokx = myokx["default"];
+exports.nado = nado["default"];
 exports.ndax = ndax["default"];
-exports.novadax = novadax["default"];
 exports.okx = okx["default"];
 exports.okxus = okxus["default"];
 exports.onetrading = onetrading["default"];
-exports.oxfun = oxfun["default"];
 exports.p2b = p2b["default"];
 exports.pacifica = pacifica["default"];
 exports.paradex = paradex["default"];
@@ -551,17 +545,15 @@ exports.poloniex = poloniex["default"];
 exports.tokocrypto = tokocrypto["default"];
 exports.toobit = toobit["default"];
 exports.upbit = upbit["default"];
-exports.wavesexchange = wavesexchange["default"];
 exports.weex = weex["default"];
 exports.whitebit = whitebit["default"];
 exports.woo = woo["default"];
 exports.woofipro = woofipro["default"];
 exports.xt = xt["default"];
-exports.yobit = yobit["default"];
 exports.zaif = zaif["default"];
 exports.zebpay = zebpay["default"];
-exports.zonda = zonda["default"];
 exports["default"] = ccxt;
 exports.exchanges = exchanges;
+exports.prediction = prediction;
 exports.pro = pro;
 exports.version = version;

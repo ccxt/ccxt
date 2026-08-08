@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ----------------------------------------------------------------------------
-import { isNumber, isDictionary, isArray } from './type.js';
+import { isNumber, isDict, isArray } from './type.js';
 // ----------------------------------------------------------------------------
 const keys = Object.keys; // eslint-disable-line padding-line-between-statements
 const values = (x) => ((!isArray(x)) ? Object.values(x) : x); // don't copy arrays if they're already arrays
@@ -18,7 +18,12 @@ const unique = (x) => Array.from(index(x));
 const arrayConcat = (a, b) => a.concat(b);
 // ------------------------------------------------------------------------
 const inArray = (needle, haystack) => haystack.includes(needle);
-const toArray = (object) => Object.values(object);
+const toArray = (object) => {
+    if ((object === undefined) || (object === null)) {
+        return [];
+    }
+    return Object.values(object);
+};
 const isEmpty = (object) => {
     if (object === null || object === undefined) {
         return true;
@@ -26,12 +31,15 @@ const isEmpty = (object) => {
     if (Array.isArray(object)) {
         return object.length < 1;
     }
-    if (isDictionary(object)) {
+    if (isDict(object)) {
         return Object.keys(object).length < 1;
     }
     return false;
 };
 const keysort = (x, out = {}) => {
+    if (x === undefined) {
+        return out;
+    }
     for (const k of keys(x).sort()) {
         out[k] = x[k];
     }
@@ -58,6 +66,9 @@ const sort = (array) => {
     }
 */
 const groupBy = (x, k, out = {}) => {
+    if (x === undefined) {
+        return out;
+    }
     for (const v of values(x)) {
         if (k in v) {
             const p = v[k];
@@ -68,6 +79,9 @@ const groupBy = (x, k, out = {}) => {
     return out;
 };
 const indexBy = (x, k, out = {}) => {
+    if (x === undefined) {
+        return out;
+    }
     for (const v of values(x)) {
         if (k in v) {
             out[v[k]] = v;
@@ -76,6 +90,9 @@ const indexBy = (x, k, out = {}) => {
     return out;
 };
 const filterBy = (x, k, value = undefined, out = []) => {
+    if (x === undefined) {
+        return out;
+    }
     for (const v of values(x)) {
         if (v[k] === value) {
             out.push(v);
@@ -128,6 +145,9 @@ const flatten = function flatten(x, out = []) {
 };
 const pluck = (x, k) => values(x).filter((v) => k in v).map((v) => v[k]);
 const omit = (x, ...args) => {
+    if (x === undefined) {
+        return x;
+    }
     if (!Array.isArray(x)) {
         const out = clone(x);
         for (const k of args) {

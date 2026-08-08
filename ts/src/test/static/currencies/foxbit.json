@@ -60,7 +60,7 @@
                         "status": "ENABLED"
                     },
                     "withdraw_info": {
-                        "fee": "0.0001",
+                        "fee": "0.000015",
                         "status": "ENABLED"
                     },
                     "has_destination_tag": false
@@ -75,19 +75,21 @@
             },
             "withdraw_info": {
                 "enabled": true,
-                "min_amount": "0.0004",
-                "fee": "0.0001"
+                "min_amount": "0.00001164",
+                "fee": "0.000015"
             },
             "default_network_code": "bitcoin"
         },
         "id": "btc",
+        "numericId": null,
         "code": "BTC",
         "precision": 8,
+        "type": "crypto",
         "name": "Bitcoin",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.0001,
+        "fee": 0.000015,
         "fees": {},
         "networks": {
             "BTC": {
@@ -106,7 +108,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.0001",
+                                "fee": "0.000015",
                                 "status": "ENABLED"
                             },
                             "has_destination_tag": false
@@ -121,8 +123,8 @@
                     },
                     "withdraw_info": {
                         "enabled": true,
-                        "min_amount": "0.0004",
-                        "fee": "0.0001"
+                        "min_amount": "0.00001164",
+                        "fee": "0.000015"
                     },
                     "default_network_code": "bitcoin"
                 },
@@ -133,25 +135,35 @@
                 "withdraw": true,
                 "active": true,
                 "precision": 8,
-                "fee": 0.0001,
+                "fee": 0.000015,
                 "limits": {
-                    "amount": {},
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
                     "deposit": {
-                        "min": 0.0008
+                        "min": 0.0008,
+                        "max": null
                     },
                     "withdraw": {
-                        "min": 0.0004
+                        "min": 0.00001164,
+                        "max": null
                     }
                 }
             }
         },
         "limits": {
-            "amount": {},
+            "amount": {
+                "min": null,
+                "max": null
+            },
             "deposit": {
-                "min": 0.0008
+                "min": 0.0008,
+                "max": null
             },
             "withdraw": {
-                "min": 0.0004
+                "min": 0.00001164,
+                "max": null
             }
         }
     },
@@ -171,7 +183,7 @@
                         "status": "ENABLED"
                     },
                     "withdraw_info": {
-                        "fee": "0.1",
+                        "fee": "0.2",
                         "status": "ENABLED"
                     },
                     "has_destination_tag": true
@@ -187,7 +199,7 @@
             "withdraw_info": {
                 "enabled": true,
                 "min_amount": "1",
-                "fee": "0.1"
+                "fee": "0.2"
             },
             "default_network_code": "ripple"
         },
@@ -200,7 +212,7 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.1,
+        "fee": 0.2,
         "fees": {},
         "networks": {
             "XRP": {
@@ -219,7 +231,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.1",
+                                "fee": "0.2",
                                 "status": "ENABLED"
                             },
                             "has_destination_tag": true
@@ -235,7 +247,7 @@
                     "withdraw_info": {
                         "enabled": true,
                         "min_amount": "1",
-                        "fee": "0.1"
+                        "fee": "0.2"
                     },
                     "default_network_code": "ripple"
                 },
@@ -246,7 +258,7 @@
                 "withdraw": true,
                 "active": true,
                 "precision": 6,
-                "fee": 0.1,
+                "fee": 0.2,
                 "limits": {
                     "amount": {
                         "min": null,
@@ -294,7 +306,7 @@
                         "status": "ENABLED"
                     },
                     "withdraw_info": {
-                        "fee": "0.0448559852334171",
+                        "fee": "1.0",
                         "status": "ENABLED"
                     },
                     "has_destination_tag": false
@@ -306,7 +318,7 @@
                         "status": "ENABLED"
                     },
                     "withdraw_info": {
-                        "fee": "0.0737336504161712",
+                        "fee": "0.0026700927551012",
                         "status": "DISABLED"
                     },
                     "has_destination_tag": false
@@ -318,7 +330,7 @@
                         "status": "ENABLED"
                     },
                     "withdraw_info": {
-                        "fee": "6.4866981059505291",
+                        "fee": "1.5",
                         "status": "ENABLED"
                     },
                     "has_destination_tag": false
@@ -330,8 +342,8 @@
                         "status": "ENABLED"
                     },
                     "withdraw_info": {
-                        "fee": "0.0004781046114572",
-                        "status": "DISABLED"
+                        "fee": "0.1",
+                        "status": "ENABLED"
                     },
                     "has_destination_tag": false
                 },
@@ -342,7 +354,7 @@
                         "status": "ENABLED"
                     },
                     "withdraw_info": {
-                        "fee": "0.1303303507637873",
+                        "fee": "0.357089724774331",
                         "status": "DISABLED"
                     },
                     "has_destination_tag": true
@@ -358,21 +370,23 @@
             "withdraw_info": {
                 "enabled": true,
                 "min_amount": "0.01",
-                "fee": "7.7"
+                "fee": "1"
             },
             "default_network_code": "erc20"
         },
         "id": "usdt",
+        "numericId": null,
         "code": "USDT",
         "precision": 8,
+        "type": "crypto",
         "name": "Tether",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.0004781046114572,
+        "fee": 0.0026700927551012,
         "fees": {},
         "networks": {
-            "ETH": {
+            "ERC20": {
                 "info": {
                     "name": "Tether",
                     "precision": "8",
@@ -388,7 +402,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.0448559852334171",
+                                "fee": "1.0",
                                 "status": "ENABLED"
                             },
                             "has_destination_tag": false
@@ -400,7 +414,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.0737336504161712",
+                                "fee": "0.0026700927551012",
                                 "status": "DISABLED"
                             },
                             "has_destination_tag": false
@@ -412,7 +426,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "6.4866981059505291",
+                                "fee": "1.5",
                                 "status": "ENABLED"
                             },
                             "has_destination_tag": false
@@ -424,8 +438,8 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.0004781046114572",
-                                "status": "DISABLED"
+                                "fee": "0.1",
+                                "status": "ENABLED"
                             },
                             "has_destination_tag": false
                         },
@@ -436,7 +450,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.1303303507637873",
+                                "fee": "0.357089724774331",
                                 "status": "DISABLED"
                             },
                             "has_destination_tag": true
@@ -452,25 +466,30 @@
                     "withdraw_info": {
                         "enabled": true,
                         "min_amount": "0.01",
-                        "fee": "7.7"
+                        "fee": "1"
                     },
                     "default_network_code": "erc20"
                 },
                 "id": "erc20",
-                "network": "ETH",
+                "network": "ERC20",
                 "name": "Ethereum (ERC-20)",
                 "deposit": true,
                 "withdraw": true,
                 "active": true,
                 "precision": 8,
-                "fee": 0.0448559852334171,
+                "fee": 1,
                 "limits": {
-                    "amount": {},
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
                     "deposit": {
-                        "min": 5
+                        "min": 5,
+                        "max": null
                     },
                     "withdraw": {
-                        "min": 0.01
+                        "min": 0.01,
+                        "max": null
                     }
                 }
             },
@@ -490,7 +509,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.0448559852334171",
+                                "fee": "1.0",
                                 "status": "ENABLED"
                             },
                             "has_destination_tag": false
@@ -502,7 +521,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.0737336504161712",
+                                "fee": "0.0026700927551012",
                                 "status": "DISABLED"
                             },
                             "has_destination_tag": false
@@ -514,7 +533,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "6.4866981059505291",
+                                "fee": "1.5",
                                 "status": "ENABLED"
                             },
                             "has_destination_tag": false
@@ -526,8 +545,8 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.0004781046114572",
-                                "status": "DISABLED"
+                                "fee": "0.1",
+                                "status": "ENABLED"
                             },
                             "has_destination_tag": false
                         },
@@ -538,7 +557,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.1303303507637873",
+                                "fee": "0.357089724774331",
                                 "status": "DISABLED"
                             },
                             "has_destination_tag": true
@@ -554,7 +573,7 @@
                     "withdraw_info": {
                         "enabled": true,
                         "min_amount": "0.01",
-                        "fee": "7.7"
+                        "fee": "1"
                     },
                     "default_network_code": "erc20"
                 },
@@ -565,14 +584,19 @@
                 "withdraw": false,
                 "active": true,
                 "precision": 8,
-                "fee": 0.0737336504161712,
+                "fee": 0.0026700927551012,
                 "limits": {
-                    "amount": {},
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
                     "deposit": {
-                        "min": 5
+                        "min": 5,
+                        "max": null
                     },
                     "withdraw": {
-                        "min": 0.01
+                        "min": 0.01,
+                        "max": null
                     }
                 }
             },
@@ -592,7 +616,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.0448559852334171",
+                                "fee": "1.0",
                                 "status": "ENABLED"
                             },
                             "has_destination_tag": false
@@ -604,7 +628,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.0737336504161712",
+                                "fee": "0.0026700927551012",
                                 "status": "DISABLED"
                             },
                             "has_destination_tag": false
@@ -616,7 +640,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "6.4866981059505291",
+                                "fee": "1.5",
                                 "status": "ENABLED"
                             },
                             "has_destination_tag": false
@@ -628,8 +652,8 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.0004781046114572",
-                                "status": "DISABLED"
+                                "fee": "0.1",
+                                "status": "ENABLED"
                             },
                             "has_destination_tag": false
                         },
@@ -640,7 +664,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.1303303507637873",
+                                "fee": "0.357089724774331",
                                 "status": "DISABLED"
                             },
                             "has_destination_tag": true
@@ -656,7 +680,7 @@
                     "withdraw_info": {
                         "enabled": true,
                         "min_amount": "0.01",
-                        "fee": "7.7"
+                        "fee": "1"
                     },
                     "default_network_code": "erc20"
                 },
@@ -667,14 +691,19 @@
                 "withdraw": true,
                 "active": true,
                 "precision": 8,
-                "fee": 6.486698105950529,
+                "fee": 1.5,
                 "limits": {
-                    "amount": {},
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
                     "deposit": {
-                        "min": 5
+                        "min": 5,
+                        "max": null
                     },
                     "withdraw": {
-                        "min": 0.01
+                        "min": 0.01,
+                        "max": null
                     }
                 }
             },
@@ -694,7 +723,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.0448559852334171",
+                                "fee": "1.0",
                                 "status": "ENABLED"
                             },
                             "has_destination_tag": false
@@ -706,7 +735,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.0737336504161712",
+                                "fee": "0.0026700927551012",
                                 "status": "DISABLED"
                             },
                             "has_destination_tag": false
@@ -718,7 +747,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "6.4866981059505291",
+                                "fee": "1.5",
                                 "status": "ENABLED"
                             },
                             "has_destination_tag": false
@@ -730,8 +759,8 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.0004781046114572",
-                                "status": "DISABLED"
+                                "fee": "0.1",
+                                "status": "ENABLED"
                             },
                             "has_destination_tag": false
                         },
@@ -742,7 +771,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.1303303507637873",
+                                "fee": "0.357089724774331",
                                 "status": "DISABLED"
                             },
                             "has_destination_tag": true
@@ -758,7 +787,7 @@
                     "withdraw_info": {
                         "enabled": true,
                         "min_amount": "0.01",
-                        "fee": "7.7"
+                        "fee": "1"
                     },
                     "default_network_code": "erc20"
                 },
@@ -766,17 +795,22 @@
                 "network": "MATIC",
                 "name": "Polygon",
                 "deposit": true,
-                "withdraw": false,
+                "withdraw": true,
                 "active": true,
                 "precision": 8,
-                "fee": 0.0004781046114572,
+                "fee": 0.1,
                 "limits": {
-                    "amount": {},
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
                     "deposit": {
-                        "min": 5
+                        "min": 5,
+                        "max": null
                     },
                     "withdraw": {
-                        "min": 0.01
+                        "min": 0.01,
+                        "max": null
                     }
                 }
             },
@@ -796,7 +830,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.0448559852334171",
+                                "fee": "1.0",
                                 "status": "ENABLED"
                             },
                             "has_destination_tag": false
@@ -808,7 +842,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.0737336504161712",
+                                "fee": "0.0026700927551012",
                                 "status": "DISABLED"
                             },
                             "has_destination_tag": false
@@ -820,7 +854,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "6.4866981059505291",
+                                "fee": "1.5",
                                 "status": "ENABLED"
                             },
                             "has_destination_tag": false
@@ -832,8 +866,8 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.0004781046114572",
-                                "status": "DISABLED"
+                                "fee": "0.1",
+                                "status": "ENABLED"
                             },
                             "has_destination_tag": false
                         },
@@ -844,7 +878,7 @@
                                 "status": "ENABLED"
                             },
                             "withdraw_info": {
-                                "fee": "0.1303303507637873",
+                                "fee": "0.357089724774331",
                                 "status": "DISABLED"
                             },
                             "has_destination_tag": true
@@ -860,7 +894,7 @@
                     "withdraw_info": {
                         "enabled": true,
                         "min_amount": "0.01",
-                        "fee": "7.7"
+                        "fee": "1"
                     },
                     "default_network_code": "erc20"
                 },
@@ -871,25 +905,35 @@
                 "withdraw": false,
                 "active": true,
                 "precision": 8,
-                "fee": 0.1303303507637873,
+                "fee": 0.357089724774331,
                 "limits": {
-                    "amount": {},
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
                     "deposit": {
-                        "min": 5
+                        "min": 5,
+                        "max": null
                     },
                     "withdraw": {
-                        "min": 0.01
+                        "min": 0.01,
+                        "max": null
                     }
                 }
             }
         },
         "limits": {
-            "amount": {},
+            "amount": {
+                "min": null,
+                "max": null
+            },
             "deposit": {
-                "min": 5
+                "min": 5,
+                "max": null
             },
             "withdraw": {
-                "min": 0.01
+                "min": 0.01,
+                "max": null
             }
         }
     }

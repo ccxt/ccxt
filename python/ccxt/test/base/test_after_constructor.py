@@ -99,7 +99,7 @@ def helper_test_init_market():
             'BTC/USD': sample_market,
         },
     })
-    assert exchange2.markets['BTC/USD'] is not None
+    assert (exchange2.markets is not None) and (exchange2.markets['BTC/USD'] is not None)
 
 
 def helper_test_properties():
@@ -117,21 +117,13 @@ def helper_test_properties():
     # options
     #
     assert exchange.options is not None
-    default_network_code_replacements = {
-        'ETH': {
-            'ERC20': 'ETH',
-        },
-        'TRX': {
-            'TRC20': 'TRX',
-        },
-        'CRO': {
-            'CRC20': 'CRONOS',
-        },
-        'BRC20': {
-            'BRC20': 'BTC',
-        },
-    }
-    test_shared_methods.assert_deep_equal(exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], default_network_code_replacements)
+    # const defaultNetworkCodeReplacements = [
+    #     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
+    #     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
+    #     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
+    #     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
+    # ];
+    # testSharedMethods.assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
     #
     # credentials
     #
@@ -286,7 +278,6 @@ def helper_test_properties():
     assert exchange.timeout == 10000, 'timeout should be 10000'
     assert exchange.verbose is False, 'verbose should be false'
     # assert (testSharedMethods.exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); # todo WS
-    # assert (exchange.requiresEddsa === false);
     assert not test_shared_methods.exchange_prop(exchange, 'reloadingMarkets'), 'reloadingMarkets should be false'
     assert test_shared_methods.exchange_prop(exchange, 'marketsLoading') is None, 'marketsLoading should be undefined'
     # undefined or false
@@ -300,23 +291,23 @@ def helper_test_properties():
     # instance dynamic cache
     #
     # todo: remove initialization from GO
-    test_shared_methods.assert_deep_equal(exchange, {}, 'balance', exchange.balance, {})
-    test_shared_methods.assert_deep_equal(exchange, {}, 'bidsasks', exchange.bidsasks, {})
-    test_shared_methods.assert_deep_equal(exchange, {}, 'orderbooks', exchange.orderbooks, {})
-    test_shared_methods.assert_deep_equal(exchange, {}, 'tickers', exchange.tickers, {})
+    test_shared_methods.assert_deep_equal(exchange, {}, 'balance', exchange.balance, exchange.create_safe_dictionary(True))
+    test_shared_methods.assert_deep_equal(exchange, {}, 'bidsasks', exchange.bidsasks, exchange.create_safe_dictionary(True))
+    test_shared_methods.assert_deep_equal(exchange, {}, 'orderbooks', exchange.orderbooks, exchange.create_safe_dictionary(True))
+    test_shared_methods.assert_deep_equal(exchange, {}, 'tickers', exchange.tickers, exchange.create_safe_dictionary(True))
     assert exchange.liquidations is None, 'liquidations should be undefined'
-    assert exchange.orders is None, 'orders should be undefined'
-    test_shared_methods.assert_deep_equal(exchange, {}, 'trades', exchange.trades, {})
-    test_shared_methods.assert_deep_equal(exchange, {}, 'transactions', exchange.transactions, {})
-    test_shared_methods.assert_deep_equal(exchange, {}, 'ohlcvs', exchange.ohlcvs, {})
     assert test_shared_methods.exchange_prop(exchange, 'myLiquidations') is None
+    assert exchange.orders is None, 'orders should be undefined'
+    test_shared_methods.assert_deep_equal(exchange, {}, 'trades', exchange.trades, exchange.create_safe_dictionary(True))
+    test_shared_methods.assert_deep_equal(exchange, {}, 'transactions', exchange.transactions, exchange.create_safe_dictionary())
+    test_shared_methods.assert_deep_equal(exchange, {}, 'ohlcvs', exchange.ohlcvs, exchange.create_safe_dictionary(True))
     assert test_shared_methods.exchange_prop(exchange, 'myTrades') is None
     assert exchange.positions is None, 'positions should be undefined'
     #
     # common props
     #
     assert exchange.markets is None, 'markets should be undefined'
-    assert exchange.symbols is None, 'symbols should be undefined'
+    assert len(exchange.symbols) == 0, 'symbols should be an empty array'
     assert exchange.markets_by_id is None, 'markets_by_id should be undefined'
     assert exchange.ids is None, 'ids should be undefined'
     test_shared_methods.assert_deep_equal(exchange, {}, 'currencies', exchange.currencies, {})
@@ -331,6 +322,9 @@ def helper_test_properties():
         'XBT': 'BTC',
         'BCHSV': 'BSV',
     })
+    # fetch history
+    fetch_history_cache = exchange.get_fetch_cache()
+    assert len(fetch_history_cache) == 0, 'fetchHistoryCache should be an empty array'
 
 
 def test_after_constructor():

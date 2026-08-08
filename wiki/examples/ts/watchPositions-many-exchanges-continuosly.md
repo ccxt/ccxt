@@ -1,10 +1,5 @@
-- [Watchpositions Many Exchanges Continuosly](./examples/ts/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
-
-// AUTO-TRANSPILE //
+```javascript
+import ccxt from '../../js/ccxt.js';
 
 // watch and handle constinuosly
 async function watchPositionsContinuously (exchange) {
@@ -39,7 +34,7 @@ async function example () {
             'apiKey': 'YOUR_API_KEY',
             'secret': 'YOUR_API_SECRET',
         },
-        'huobi':{
+        'htx':{
             'apiKey': 'YOUR_API_KEY',
             'secret': 'YOUR_API_SECRET',
         },
@@ -55,5 +50,5 @@ async function example () {
 }
 
 await example ();
- 
+
 ```

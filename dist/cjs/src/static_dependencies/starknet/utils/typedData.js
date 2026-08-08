@@ -8,7 +8,7 @@ require('../types/lib/index.js');
 var typedData = require('../types/typedData.js');
 var assert = require('./assert.js');
 var byteArray = require('./calldata/byteArray.js');
-require('../../noble-curves/abstract/modular.js');
+require('@noble/curves/abstract/poseidon.js');
 var selector = require('./selector.js');
 var classHash = require('./hash/classHash.js');
 var merkle = require('./merkle.js');

@@ -11,91 +11,127 @@ public partial class p2b : Exchange
 {
     public p2b (object args = null): base(args) {}
 
+    /// <summary>Calls the publicGetMarkets endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetMarkets (object parameters = null)
     {
         return await this.callAsync ("publicGetMarkets",parameters);
     }
 
+    /// <summary>Calls the publicGetMarket endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetMarket (object parameters = null)
     {
         return await this.callAsync ("publicGetMarket",parameters);
     }
 
+    /// <summary>Calls the publicGetTickers endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetTickers (object parameters = null)
     {
         return await this.callAsync ("publicGetTickers",parameters);
     }
 
+    /// <summary>Calls the publicGetTicker endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetTicker (object parameters = null)
     {
         return await this.callAsync ("publicGetTicker",parameters);
     }
 
+    /// <summary>Calls the publicGetBook endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetBook (object parameters = null)
     {
         return await this.callAsync ("publicGetBook",parameters);
     }
 
+    /// <summary>Calls the publicGetHistory endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetHistory (object parameters = null)
     {
         return await this.callAsync ("publicGetHistory",parameters);
     }
 
+    /// <summary>Calls the publicGetDepthResult endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetDepthResult (object parameters = null)
     {
         return await this.callAsync ("publicGetDepthResult",parameters);
     }
 
+    /// <summary>Calls the publicGetMarketKline endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetMarketKline (object parameters = null)
     {
         return await this.callAsync ("publicGetMarketKline",parameters);
     }
 
+    /// <summary>Calls the privatePostAccountBalances endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostAccountBalances (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountBalances",parameters);
     }
 
+    /// <summary>Calls the privatePostAccountBalance endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostAccountBalance (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountBalance",parameters);
     }
 
+    /// <summary>Calls the privatePostOrderNew endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostOrderNew (object parameters = null)
     {
         return await this.callAsync ("privatePostOrderNew",parameters);
     }
 
+    /// <summary>Calls the privatePostOrderCancel endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostOrderCancel (object parameters = null)
     {
         return await this.callAsync ("privatePostOrderCancel",parameters);
     }
 
+    /// <summary>Calls the privatePostOrders endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostOrders (object parameters = null)
     {
         return await this.callAsync ("privatePostOrders",parameters);
     }
 
+    /// <summary>Calls the privatePostAccountMarketOrderHistory endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostAccountMarketOrderHistory (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountMarketOrderHistory",parameters);
     }
 
+    /// <summary>Calls the privatePostAccountMarketDealHistory endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostAccountMarketDealHistory (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountMarketDealHistory",parameters);
     }
 
+    /// <summary>Calls the privatePostAccountOrder endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostAccountOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountOrder",parameters);
     }
 
+    /// <summary>Calls the privatePostAccountOrderHistory endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostAccountOrderHistory (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountOrderHistory",parameters);
     }
 
+    /// <summary>Calls the privatePostAccountExecutedHistory endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostAccountExecutedHistory (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountExecutedHistory",parameters);

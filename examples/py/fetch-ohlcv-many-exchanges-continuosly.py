@@ -12,7 +12,6 @@ sys.path.append(root + '/python')
 # ----------------------------------------------------------------------------
 
 
-# AUTO-TRANSPILE #
 # fetch and handle constinuosly
 async def fetch_ohlcv_continuously(exchange, symbol):
     while True:

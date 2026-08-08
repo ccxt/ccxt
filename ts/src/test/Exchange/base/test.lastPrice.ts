@@ -1,5 +1,5 @@
-import { Exchange } from "../../../../ccxt";
-import { LastPrice } from "../../../base/types";
+import { Exchange } from "../../../../ccxt.js";
+import { LastPrice } from "../../../base/types.js";
 import testSharedMethods from './test.sharedMethods.js';
 
 function testLastPrice (exchange: Exchange, skippedProperties: object, method: string, entry: LastPrice, symbol: string) {

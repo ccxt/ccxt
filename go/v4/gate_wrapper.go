@@ -61,40 +61,40 @@ func (this *Gate) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	}
 	return NewMarketInterfaceArray(res), nil
 }
-func (this *Gate) FetchSpotMarkets(params ...any) ([]map[string]any, error) {
+func (this *Gate) FetchSpotMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchSpotMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMarketInterfaceArray(res), nil
 }
-func (this *Gate) FetchSwapMarkets(params ...any) ([]map[string]any, error) {
+func (this *Gate) FetchSwapMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchSwapMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMarketInterfaceArray(res), nil
 }
-func (this *Gate) FetchFutureMarkets(params ...any) ([]map[string]any, error) {
+func (this *Gate) FetchFutureMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchFutureMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMarketInterfaceArray(res), nil
 }
-func (this *Gate) FetchOptionMarkets(params ...any) ([]map[string]any, error) {
+func (this *Gate) FetchOptionMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchOptionMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMarketInterfaceArray(res), nil
 }
-func (this *Gate) FetchOptionUnderlyings() ([]map[string]any, error) {
+func (this *Gate) FetchOptionUnderlyings() ([]string, error) {
 	res := <-this.Core.FetchOptionUnderlyings()
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewStringArray(res), nil
 }
 
 /**
@@ -336,7 +336,7 @@ func (this *Gate) FetchTransactionFees(options ...FetchTransactionFeesOptions) (
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Gate) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Gate) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 
 	opts := FetchDepositWithdrawFeesOptionsStruct{}
 
@@ -355,9 +355,9 @@ func (this *Gate) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOp
 	}
 	res := <-this.Core.FetchDepositWithdrawFees(codes, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return DepositWithdrawFees{}, CreateReturnError(res)
 	}
-	return (res).(map[string]any), nil
+	return NewDepositWithdrawFees(res), nil
 }
 
 /**
@@ -417,7 +417,7 @@ func (this *Gate) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Gate) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -535,6 +535,25 @@ func (this *Gate) FetchBalance(params ...any) (Balances, error) {
 	}
 	return NewBalances(res), nil
 }
+
+/**
+ * @method
+ * @name gate#fetchOHLCV
+ * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @see https://www.gate.com/docs/developers/apiv4/en/#market-k-line-chart                       // spot
+ * @see https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart               // swap
+ * @see https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart-2             // future
+ * @see https://www.gate.com/docs/developers/apiv4/en/#options-contract-market-candlestick-chart // option
+ * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {int} [since] timestamp in ms of the earliest candle to fetch
+ * @param {int} [limit] the maximum amount of candles to fetch, limit is conflicted with since and params["until"], If either since and params["until"] is specified, request will be rejected
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
+ */
 func (this *Gate) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {
 
 	opts := FetchOHLCVOptionsStruct{}
@@ -1211,6 +1230,7 @@ func (this *Gate) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, e
  * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
  * @param {boolean} [params.historical] *swap only* true for using historical endpoint
  * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Gate) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
@@ -1246,7 +1266,7 @@ func (this *Gate) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Orde
 	}
 	return NewOrderArray(res), nil
 }
-func (this *Gate) FetchOrdersByStatus(status any, options ...FetchOrdersByStatusOptions) (map[string]any, error) {
+func (this *Gate) FetchOrdersByStatus(status any, options ...FetchOrdersByStatusOptions) ([]Order, error) {
 
 	opts := FetchOrdersByStatusOptionsStruct{}
 
@@ -1275,9 +1295,9 @@ func (this *Gate) FetchOrdersByStatus(status any, options ...FetchOrdersByStatus
 	}
 	res := <-this.Core.FetchOrdersByStatus(status, symbol, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewOrderArray(res), nil
 }
 
 /**
@@ -1399,7 +1419,7 @@ func (this *Gate) CancelOrdersForSymbols(orders []CancellationRequest, options .
  * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status-2
  * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-auto-orders-3
  * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status-3
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1722,7 +1742,7 @@ func (this *Gate) FetchOpenInterestHistory(symbol string, options ...FetchOpenIn
  * @param {object} [params] exchange specific params
  * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
-func (this *Gate) FetchSettlementHistory(options ...FetchSettlementHistoryOptions) (map[string]any, error) {
+func (this *Gate) FetchSettlementHistory(options ...FetchSettlementHistoryOptions) ([]map[string]any, error) {
 
 	opts := FetchSettlementHistoryOptionsStruct{}
 
@@ -1751,9 +1771,9 @@ func (this *Gate) FetchSettlementHistory(options ...FetchSettlementHistoryOption
 	}
 	res := <-this.Core.FetchSettlementHistory(symbol, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**
@@ -1897,12 +1917,12 @@ func (this *Gate) SetPositionMode(hedged bool, options ...SetPositionModeOptions
  * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
  * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
  */
-func (this *Gate) FetchUnderlyingAssets(params ...any) ([]map[string]any, error) {
+func (this *Gate) FetchUnderlyingAssets(params ...any) ([]string, error) {
 	res := <-this.Core.FetchUnderlyingAssets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewStringArray(res), nil
 }
 
 /**
@@ -2152,7 +2172,7 @@ func (this *Gate) FetchOptionChain(code string, options ...FetchOptionChainOptio
  * @param {string[]} symbols unified conract symbols, must all have the same settle currency and the same market type
  * @param {int} [since] the earliest time in ms to fetch positions for
  * @param {int} [limit] the maximum amount of records to fetch, default=1000
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch positions for
  *
  * EXCHANGE SPECIFIC PARAMETERS
@@ -2326,7 +2346,7 @@ func (this *Gate) FetchDepositAddresses(options ...FetchDepositAddressesOptions)
 func (this *Gate) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Gate) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Gate) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
 func (this *Gate) FetchFreeBalance(params ...any) (Balance, error) {
@@ -2401,7 +2421,7 @@ func (this *Gate) FetchPaymentMethods(params ...any) (map[string]any, error) {
 func (this *Gate) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Gate) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Gate) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Gate) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -2413,7 +2433,7 @@ func (this *Gate) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Po
 func (this *Gate) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Gate) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Gate) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Gate) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
@@ -2515,7 +2535,7 @@ func (this *Gate) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Gate) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Gate) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Gate) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Gate) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -2560,7 +2580,7 @@ func (this *Gate) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) 
 func (this *Gate) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Gate) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Gate) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Gate) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

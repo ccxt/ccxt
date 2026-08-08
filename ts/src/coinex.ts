@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
+import { md5 } from '@noble/hashes/legacy.js';
 import Exchange from './abstract/coinex.js';
 import { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout, BadRequest, RateLimitExceeded, NotSupported, AccountSuspended, OperationFailed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, LeverageTiers, LeverageTier, int, FundingRate, FundingRates, DepositAddress, BorrowInterest } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, NullableDict, FeeString, List, LeverageTiers, LeverageTier, int, FundingRate, FundingRates, DepositAddress, BorrowInterest, DepositWithdrawFee, DepositWithdrawFees, MarginLoan, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -16,7 +16,7 @@ import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Marke
  * @augments Exchange
  */
 export default class coinex extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coinex',
             'name': 'CoinEx',
@@ -154,289 +154,289 @@ export default class coinex extends Exchange {
                 'v1': {
                     'public': {
                         'get': {
-                            'amm/market': 1,
-                            'common/currency/rate': 1,
-                            'common/asset/config': 1,
-                            'common/maintain/info': 1,
-                            'common/temp-maintain/info': 1,
-                            'margin/market': 1,
-                            'market/info': 1,
-                            'market/list': 1,
-                            'market/ticker': 1,
-                            'market/ticker/all': 1,
-                            'market/depth': 1,
-                            'market/deals': 1,
-                            'market/kline': 1,
-                            'market/detail': 1,
+                            'amm/market': { 'cost': 1 } as Endpoint<Dict>,
+                            'common/currency/rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'common/asset/config': { 'cost': 1 } as Endpoint<Dict>,
+                            'common/maintain/info': { 'cost': 1 } as Endpoint<Dict>,
+                            'common/temp-maintain/info': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/market': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/info': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/ticker/all': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/deals': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/detail': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'get': {
-                            'account/amm/balance': 40,
-                            'account/investment/balance': 40,
-                            'account/balance/history': 40,
-                            'account/market/fee': 40,
-                            'balance/coin/deposit': 40,
-                            'balance/coin/withdraw': 40,
-                            'balance/info': 40,
-                            'balance/deposit/address/{coin_type}': 40,
-                            'contract/transfer/history': 40,
-                            'credit/info': 40,
-                            'credit/balance': 40,
-                            'investment/transfer/history': 40,
-                            'margin/account': 1,
-                            'margin/config': 1,
-                            'margin/loan/history': 40,
-                            'margin/transfer/history': 40,
-                            'order/deals': 40,
-                            'order/finished': 40,
-                            'order/pending': 8,
-                            'order/status': 8,
-                            'order/status/batch': 8,
-                            'order/user/deals': 40,
-                            'order/stop/finished': 40,
-                            'order/stop/pending': 8,
-                            'order/user/trade/fee': 1,
-                            'order/market/trade/info': 1,
-                            'sub_account/balance': 1,
-                            'sub_account/transfer/history': 40,
-                            'sub_account/auth/api': 40,
-                            'sub_account/auth/api/{user_auth_id}': 40,
+                            'account/amm/balance': { 'cost': 40 } as Endpoint<Dict>,
+                            'account/investment/balance': { 'cost': 40 } as Endpoint<Dict>,
+                            'account/balance/history': { 'cost': 40 } as Endpoint<Dict>,
+                            'account/market/fee': { 'cost': 40 } as Endpoint<Dict>,
+                            'balance/coin/deposit': { 'cost': 40 } as Endpoint<Dict>,
+                            'balance/coin/withdraw': { 'cost': 40 } as Endpoint<Dict>,
+                            'balance/info': { 'cost': 40 } as Endpoint<Dict>,
+                            'balance/deposit/address/{coin_type}': { 'cost': 40 } as Endpoint<Dict>,
+                            'contract/transfer/history': { 'cost': 40 } as Endpoint<Dict>,
+                            'credit/info': { 'cost': 40 } as Endpoint<Dict>,
+                            'credit/balance': { 'cost': 40 } as Endpoint<Dict>,
+                            'investment/transfer/history': { 'cost': 40 } as Endpoint<Dict>,
+                            'margin/account': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/config': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/loan/history': { 'cost': 40 } as Endpoint<Dict>,
+                            'margin/transfer/history': { 'cost': 40 } as Endpoint<Dict>,
+                            'order/deals': { 'cost': 40 } as Endpoint<Dict>,
+                            'order/finished': { 'cost': 40 } as Endpoint<Dict>,
+                            'order/pending': { 'cost': 8 } as Endpoint<Dict>,
+                            'order/status': { 'cost': 8 } as Endpoint<Dict>,
+                            'order/status/batch': { 'cost': 8 } as Endpoint<Dict>,
+                            'order/user/deals': { 'cost': 40 } as Endpoint<Dict>,
+                            'order/stop/finished': { 'cost': 40 } as Endpoint<Dict>,
+                            'order/stop/pending': { 'cost': 8 } as Endpoint<Dict>,
+                            'order/user/trade/fee': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/market/trade/info': { 'cost': 1 } as Endpoint<Dict>,
+                            'sub_account/balance': { 'cost': 1 } as Endpoint<Dict>,
+                            'sub_account/transfer/history': { 'cost': 40 } as Endpoint<Dict>,
+                            'sub_account/auth/api': { 'cost': 40 } as Endpoint<Dict>,
+                            'sub_account/auth/api/{user_auth_id}': { 'cost': 40 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'balance/coin/withdraw': 40,
-                            'contract/balance/transfer': 40,
-                            'margin/flat': 40,
-                            'margin/loan': 40,
-                            'margin/transfer': 40,
-                            'order/limit/batch': 40,
-                            'order/ioc': 13.334,
-                            'order/limit': 13.334,
-                            'order/market': 13.334,
-                            'order/modify': 13.334,
-                            'order/stop/limit': 13.334,
-                            'order/stop/market': 13.334,
-                            'order/stop/modify': 13.334,
-                            'sub_account/transfer': 40,
-                            'sub_account/register': 1,
-                            'sub_account/unfrozen': 40,
-                            'sub_account/frozen': 40,
-                            'sub_account/auth/api': 40,
+                            'balance/coin/withdraw': { 'cost': 40 } as Endpoint<Dict>,
+                            'contract/balance/transfer': { 'cost': 40 } as Endpoint<Dict>,
+                            'margin/flat': { 'cost': 40 } as Endpoint<Dict>,
+                            'margin/loan': { 'cost': 40 } as Endpoint<Dict>,
+                            'margin/transfer': { 'cost': 40 } as Endpoint<Dict>,
+                            'order/limit/batch': { 'cost': 40 } as Endpoint<Dict>,
+                            'order/ioc': { 'cost': 13.334 } as Endpoint<Dict>,
+                            'order/limit': { 'cost': 13.334 } as Endpoint<Dict>,
+                            'order/market': { 'cost': 13.334 } as Endpoint<Dict>,
+                            'order/modify': { 'cost': 13.334 } as Endpoint<Dict>,
+                            'order/stop/limit': { 'cost': 13.334 } as Endpoint<Dict>,
+                            'order/stop/market': { 'cost': 13.334 } as Endpoint<Dict>,
+                            'order/stop/modify': { 'cost': 13.334 } as Endpoint<Dict>,
+                            'sub_account/transfer': { 'cost': 40 } as Endpoint<Dict>,
+                            'sub_account/register': { 'cost': 1 } as Endpoint<Dict>,
+                            'sub_account/unfrozen': { 'cost': 40 } as Endpoint<Dict>,
+                            'sub_account/frozen': { 'cost': 40 } as Endpoint<Dict>,
+                            'sub_account/auth/api': { 'cost': 40 } as Endpoint<Dict>,
                         },
                         'put': {
-                            'balance/deposit/address/{coin_type}': 40,
-                            'sub_account/unfrozen': 40,
-                            'sub_account/frozen': 40,
-                            'sub_account/auth/api/{user_auth_id}': 40,
-                            'v1/account/settings': 40,
+                            'balance/deposit/address/{coin_type}': { 'cost': 40 } as Endpoint<Dict>,
+                            'sub_account/unfrozen': { 'cost': 40 } as Endpoint<Dict>,
+                            'sub_account/frozen': { 'cost': 40 } as Endpoint<Dict>,
+                            'sub_account/auth/api/{user_auth_id}': { 'cost': 40 } as Endpoint<Dict>,
+                            'v1/account/settings': { 'cost': 40 } as Endpoint<Dict>,
                         },
                         'delete': {
-                            'balance/coin/withdraw': 40,
-                            'order/pending/batch': 40,
-                            'order/pending': 13.334,
-                            'order/stop/pending': 40,
-                            'order/stop/pending/{id}': 13.334,
-                            'order/pending/by_client_id': 40,
-                            'order/stop/pending/by_client_id': 40,
-                            'sub_account/auth/api/{user_auth_id}': 40,
-                            'sub_account/authorize/{id}': 40,
+                            'balance/coin/withdraw': { 'cost': 40 } as Endpoint<Dict>,
+                            'order/pending/batch': { 'cost': 40 } as Endpoint<Dict>,
+                            'order/pending': { 'cost': 13.334 } as Endpoint<Dict>,
+                            'order/stop/pending': { 'cost': 40 } as Endpoint<Dict>,
+                            'order/stop/pending/{id}': { 'cost': 13.334 } as Endpoint<Dict>,
+                            'order/pending/by_client_id': { 'cost': 40 } as Endpoint<Dict>,
+                            'order/stop/pending/by_client_id': { 'cost': 40 } as Endpoint<Dict>,
+                            'sub_account/auth/api/{user_auth_id}': { 'cost': 40 } as Endpoint<Dict>,
+                            'sub_account/authorize/{id}': { 'cost': 40 } as Endpoint<Dict>,
                         },
                     },
                     'perpetualPublic': {
                         'get': {
-                            'ping': 1,
-                            'time': 1,
-                            'market/list': 1,
-                            'market/limit_config': 1,
-                            'market/ticker': 1,
-                            'market/ticker/all': 1,
-                            'market/depth': 1,
-                            'market/deals': 1,
-                            'market/funding_history': 1,
-                            'market/kline': 1,
+                            'ping': { 'cost': 1 } as Endpoint<Dict>,
+                            'time': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/limit_config': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/ticker/all': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/deals': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/funding_history': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/kline': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'perpetualPrivate': {
                         'get': {
-                            'market/user_deals': 1,
-                            'asset/query': 40,
-                            'order/pending': 8,
-                            'order/finished': 40,
-                            'order/stop_finished': 40,
-                            'order/stop_pending': 8,
-                            'order/status': 8,
-                            'order/stop_status': 8,
-                            'position/finished': 40,
-                            'position/pending': 40,
-                            'position/funding': 40,
-                            'position/adl_history': 40,
-                            'market/preference': 40,
-                            'position/margin_history': 40,
-                            'position/settle_history': 40,
+                            'market/user_deals': { 'cost': 1 } as Endpoint<Dict>,
+                            'asset/query': { 'cost': 40 } as Endpoint<Dict>,
+                            'order/pending': { 'cost': 8 } as Endpoint<Dict>,
+                            'order/finished': { 'cost': 40 } as Endpoint<Dict>,
+                            'order/stop_finished': { 'cost': 40 } as Endpoint<Dict>,
+                            'order/stop_pending': { 'cost': 8 } as Endpoint<Dict>,
+                            'order/status': { 'cost': 8 } as Endpoint<Dict>,
+                            'order/stop_status': { 'cost': 8 } as Endpoint<Dict>,
+                            'position/finished': { 'cost': 40 } as Endpoint<Dict>,
+                            'position/pending': { 'cost': 40 } as Endpoint<Dict>,
+                            'position/funding': { 'cost': 40 } as Endpoint<Dict>,
+                            'position/adl_history': { 'cost': 40 } as Endpoint<Dict>,
+                            'market/preference': { 'cost': 40 } as Endpoint<Dict>,
+                            'position/margin_history': { 'cost': 40 } as Endpoint<Dict>,
+                            'position/settle_history': { 'cost': 40 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'market/adjust_leverage': 1,
-                            'market/position_expect': 1,
-                            'order/put_limit': 20,
-                            'order/put_market': 20,
-                            'order/put_stop_limit': 20,
-                            'order/put_stop_market': 20,
-                            'order/modify': 20,
-                            'order/modify_stop': 20,
-                            'order/cancel': 20,
-                            'order/cancel_all': 40,
-                            'order/cancel_batch': 40,
-                            'order/cancel_stop': 20,
-                            'order/cancel_stop_all': 40,
-                            'order/close_limit': 20,
-                            'order/close_market': 20,
-                            'position/adjust_margin': 20,
-                            'position/stop_loss': 20,
-                            'position/take_profit': 20,
-                            'position/market_close': 20,
-                            'order/cancel/by_client_id': 20,
-                            'order/cancel_stop/by_client_id': 20,
-                            'market/preference': 20,
+                            'market/adjust_leverage': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/position_expect': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/put_limit': { 'cost': 20 } as Endpoint<Dict>,
+                            'order/put_market': { 'cost': 20 } as Endpoint<Dict>,
+                            'order/put_stop_limit': { 'cost': 20 } as Endpoint<Dict>,
+                            'order/put_stop_market': { 'cost': 20 } as Endpoint<Dict>,
+                            'order/modify': { 'cost': 20 } as Endpoint<Dict>,
+                            'order/modify_stop': { 'cost': 20 } as Endpoint<Dict>,
+                            'order/cancel': { 'cost': 20 } as Endpoint<Dict>,
+                            'order/cancel_all': { 'cost': 40 } as Endpoint<Dict>,
+                            'order/cancel_batch': { 'cost': 40 } as Endpoint<Dict>,
+                            'order/cancel_stop': { 'cost': 20 } as Endpoint<Dict>,
+                            'order/cancel_stop_all': { 'cost': 40 } as Endpoint<Dict>,
+                            'order/close_limit': { 'cost': 20 } as Endpoint<Dict>,
+                            'order/close_market': { 'cost': 20 } as Endpoint<Dict>,
+                            'position/adjust_margin': { 'cost': 20 } as Endpoint<Dict>,
+                            'position/stop_loss': { 'cost': 20 } as Endpoint<Dict>,
+                            'position/take_profit': { 'cost': 20 } as Endpoint<Dict>,
+                            'position/market_close': { 'cost': 20 } as Endpoint<Dict>,
+                            'order/cancel/by_client_id': { 'cost': 20 } as Endpoint<Dict>,
+                            'order/cancel_stop/by_client_id': { 'cost': 20 } as Endpoint<Dict>,
+                            'market/preference': { 'cost': 20 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'v2': {
                     'public': {
                         'get': {
-                            'maintain/info': 1,
-                            'ping': 1,
-                            'time': 1,
-                            'spot/market': 1,
-                            'spot/ticker': 1,
-                            'spot/depth': 1,
-                            'spot/deals': 1,
-                            'spot/kline': 1,
-                            'spot/index': 1,
-                            'futures/market': 1,
-                            'futures/ticker': 1,
-                            'futures/depth': 1,
-                            'futures/deals': 1,
-                            'futures/kline': 1,
-                            'futures/index': 1,
-                            'futures/funding-rate': 1,
-                            'futures/funding-rate-history': 1,
-                            'futures/premium-index-history': 1,
-                            'futures/position-level': 1,
-                            'futures/liquidation-history': 1,
-                            'futures/basis-history': 1,
-                            'assets/deposit-withdraw-config': 1,
-                            'assets/all-deposit-withdraw-config': 1,
+                            'maintain/info': { 'cost': 1 } as Endpoint<Dict>,
+                            'ping': { 'cost': 1 } as Endpoint<Dict>,
+                            'time': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/market': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/deals': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/index': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/market': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/deals': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/index': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/funding-rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/funding-rate-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/premium-index-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/position-level': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/liquidation-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/basis-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'assets/deposit-withdraw-config': { 'cost': 1 } as Endpoint<Dict>,
+                            'assets/all-deposit-withdraw-config': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'get': {
-                            'account/subs': 1,
-                            'account/subs/api-detail': 40,
-                            'account/subs/info': 1,
-                            'account/subs/api': 40,
-                            'account/subs/transfer-history': 40,
-                            'account/subs/balance': 1,
-                            'account/subs/spot-balance': 1,
-                            'account/trade-fee-rate': 40,
-                            'account/futures-market-settings': 1,
-                            'account/info': 1,
-                            'assets/spot/balance': 40,
-                            'assets/futures/balance': 40,
-                            'assets/margin/balance': 1,
-                            'assets/financial/balance': 40,
-                            'assets/amm/liquidity': 40,
-                            'assets/credit/info': 40,
-                            'assets/spot/transcation-history': 1,
-                            'assets/margin/borrow-history': 40,
-                            'assets/margin/interest-limit': 1,
-                            'assets/deposit-address': 40,
-                            'assets/deposit-history': 40,
-                            'assets/withdraw': 40,
-                            'assets/transfer-history': 40,
-                            'assets/amm/liquidity-pool': 40,
-                            'assets/amm/income-history': 40,
-                            'spot/order-status': 8,
-                            'spot/batch-order-status': 8,
-                            'spot/pending-order': 8,
-                            'spot/finished-order': 40,
-                            'spot/pending-stop-order': 8,
-                            'spot/finished-stop-order': 40,
-                            'spot/user-deals': 40,
-                            'spot/order-deals': 40,
-                            'futures/order-status': 8,
-                            'futures/batch-order-status': 1,
-                            'futures/pending-order': 8,
-                            'futures/finished-order': 40,
-                            'futures/pending-stop-order': 8,
-                            'futures/finished-stop-order': 40,
-                            'futures/user-deals': 1,
-                            'futures/order-deals': 1,
-                            'futures/pending-position': 40,
-                            'futures/finished-position': 1,
-                            'futures/position-margin-history': 1,
-                            'futures/position-funding-history': 40,
-                            'futures/position-adl-history': 1,
-                            'futures/position-settle-history': 1,
-                            'refer/referee': 1,
-                            'refer/referee-rebate/record': 1,
-                            'refer/referee-rebate/detail': 1,
-                            'refer/agent-referee': 1,
-                            'refer/agent-rebate/record': 1,
-                            'refer/agent-rebate/detail': 1,
+                            'account/subs': { 'cost': 1 } as Endpoint<Dict>,
+                            'account/subs/api-detail': { 'cost': 40 } as Endpoint<Dict>,
+                            'account/subs/info': { 'cost': 1 } as Endpoint<Dict>,
+                            'account/subs/api': { 'cost': 40 } as Endpoint<Dict>,
+                            'account/subs/transfer-history': { 'cost': 40 } as Endpoint<Dict>,
+                            'account/subs/balance': { 'cost': 1 } as Endpoint<Dict>,
+                            'account/subs/spot-balance': { 'cost': 1 } as Endpoint<Dict>,
+                            'account/trade-fee-rate': { 'cost': 40 } as Endpoint<Dict>,
+                            'account/futures-market-settings': { 'cost': 1 } as Endpoint<Dict>,
+                            'account/info': { 'cost': 1 } as Endpoint<Dict>,
+                            'assets/spot/balance': { 'cost': 40 } as Endpoint<Dict>,
+                            'assets/futures/balance': { 'cost': 40 } as Endpoint<Dict>,
+                            'assets/margin/balance': { 'cost': 1 } as Endpoint<Dict>,
+                            'assets/financial/balance': { 'cost': 40 } as Endpoint<Dict>,
+                            'assets/amm/liquidity': { 'cost': 40 } as Endpoint<Dict>,
+                            'assets/credit/info': { 'cost': 40 } as Endpoint<Dict>,
+                            'assets/spot/transcation-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'assets/margin/borrow-history': { 'cost': 40 } as Endpoint<Dict>,
+                            'assets/margin/interest-limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'assets/deposit-address': { 'cost': 40 } as Endpoint<Dict>,
+                            'assets/deposit-history': { 'cost': 40 } as Endpoint<Dict>,
+                            'assets/withdraw': { 'cost': 40 } as Endpoint<Dict>,
+                            'assets/transfer-history': { 'cost': 40 } as Endpoint<Dict>,
+                            'assets/amm/liquidity-pool': { 'cost': 40 } as Endpoint<Dict>,
+                            'assets/amm/income-history': { 'cost': 40 } as Endpoint<Dict>,
+                            'spot/order-status': { 'cost': 8 } as Endpoint<Dict>,
+                            'spot/batch-order-status': { 'cost': 8 } as Endpoint<Dict>,
+                            'spot/pending-order': { 'cost': 8 } as Endpoint<Dict>,
+                            'spot/finished-order': { 'cost': 40 } as Endpoint<Dict>,
+                            'spot/pending-stop-order': { 'cost': 8 } as Endpoint<Dict>,
+                            'spot/finished-stop-order': { 'cost': 40 } as Endpoint<Dict>,
+                            'spot/user-deals': { 'cost': 40 } as Endpoint<Dict>,
+                            'spot/order-deals': { 'cost': 40 } as Endpoint<Dict>,
+                            'futures/order-status': { 'cost': 8 } as Endpoint<Dict>,
+                            'futures/batch-order-status': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/pending-order': { 'cost': 8 } as Endpoint<Dict>,
+                            'futures/finished-order': { 'cost': 40 } as Endpoint<Dict>,
+                            'futures/pending-stop-order': { 'cost': 8 } as Endpoint<Dict>,
+                            'futures/finished-stop-order': { 'cost': 40 } as Endpoint<Dict>,
+                            'futures/user-deals': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/order-deals': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/pending-position': { 'cost': 40 } as Endpoint<Dict>,
+                            'futures/finished-position': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/position-margin-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/position-funding-history': { 'cost': 40 } as Endpoint<Dict>,
+                            'futures/position-adl-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/position-settle-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'refer/referee': { 'cost': 1 } as Endpoint<Dict>,
+                            'refer/referee-rebate/record': { 'cost': 1 } as Endpoint<Dict>,
+                            'refer/referee-rebate/detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'refer/agent-referee': { 'cost': 1 } as Endpoint<Dict>,
+                            'refer/agent-rebate/record': { 'cost': 1 } as Endpoint<Dict>,
+                            'refer/agent-rebate/detail': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'account/subs': 40,
-                            'account/subs/frozen': 40,
-                            'account/subs/unfrozen': 40,
-                            'account/subs/api': 40,
-                            'account/subs/edit-api': 40,
-                            'account/subs/delete-api': 40,
-                            'account/subs/transfer': 40,
-                            'account/settings': 40,
-                            'account/futures-market-settings': 40,
-                            'assets/margin/borrow': 40,
-                            'assets/margin/repay': 40,
-                            'assets/renewal-deposit-address': 40,
-                            'assets/withdraw': 40,
-                            'assets/cancel-withdraw': 40,
-                            'assets/transfer': 40,
-                            'assets/amm/add-liquidity': 1,
-                            'assets/amm/remove-liquidity': 1,
-                            'spot/order': 13.334,
-                            'spot/stop-order': 13.334,
-                            'spot/batch-order': 40,
-                            'spot/batch-stop-order': 1,
-                            'spot/modify-order': 13.334,
-                            'spot/modify-stop-order': 13.334,
-                            'spot/batch-modify-order': 13.334,
-                            'spot/cancel-all-order': 1,
-                            'spot/cancel-order': 6.667,
-                            'spot/cancel-stop-order': 6.667,
-                            'spot/cancel-batch-order': 10,
-                            'spot/cancel-batch-stop-order': 10,
-                            'spot/cancel-order-by-client-id': 1,
-                            'spot/cancel-stop-order-by-client-id': 1,
-                            'futures/order': 20,
-                            'futures/stop-order': 20,
-                            'futures/batch-order': 1,
-                            'futures/batch-stop-order': 1,
-                            'futures/cancel-position-stop-loss': 20,
-                            'futures/cancel-position-take-profit': 20,
-                            'futures/modify-order': 20,
-                            'futures/modify-stop-order': 20,
-                            'futures/batch-modify-order': 20,
-                            'futures/cancel-all-order': 1,
-                            'futures/cancel-order': 10,
-                            'futures/cancel-stop-order': 10,
-                            'futures/cancel-batch-order': 20,
-                            'futures/cancel-batch-stop-order': 20,
-                            'futures/cancel-order-by-client-id': 1,
-                            'futures/cancel-stop-order-by-client-id': 1,
-                            'futures/close-position': 20,
-                            'futures/adjust-position-margin': 20,
-                            'futures/adjust-position-leverage': 20,
-                            'futures/set-position-stop-loss': 20,
-                            'futures/set-position-take-profit': 20,
+                            'account/subs': { 'cost': 40 } as Endpoint<Dict>,
+                            'account/subs/frozen': { 'cost': 40 } as Endpoint<Dict>,
+                            'account/subs/unfrozen': { 'cost': 40 } as Endpoint<Dict>,
+                            'account/subs/api': { 'cost': 40 } as Endpoint<Dict>,
+                            'account/subs/edit-api': { 'cost': 40 } as Endpoint<Dict>,
+                            'account/subs/delete-api': { 'cost': 40 } as Endpoint<Dict>,
+                            'account/subs/transfer': { 'cost': 40 } as Endpoint<Dict>,
+                            'account/settings': { 'cost': 40 } as Endpoint<Dict>,
+                            'account/futures-market-settings': { 'cost': 40 } as Endpoint<Dict>,
+                            'assets/margin/borrow': { 'cost': 40 } as Endpoint<Dict>,
+                            'assets/margin/repay': { 'cost': 40 } as Endpoint<Dict>,
+                            'assets/renewal-deposit-address': { 'cost': 40 } as Endpoint<Dict>,
+                            'assets/withdraw': { 'cost': 40 } as Endpoint<Dict>,
+                            'assets/cancel-withdraw': { 'cost': 40 } as Endpoint<Dict>,
+                            'assets/transfer': { 'cost': 40 } as Endpoint<Dict>,
+                            'assets/amm/add-liquidity': { 'cost': 1 } as Endpoint<Dict>,
+                            'assets/amm/remove-liquidity': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/order': { 'cost': 13.334 } as Endpoint<Dict>,
+                            'spot/stop-order': { 'cost': 13.334 } as Endpoint<Dict>,
+                            'spot/batch-order': { 'cost': 40 } as Endpoint<Dict>,
+                            'spot/batch-stop-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/modify-order': { 'cost': 13.334 } as Endpoint<Dict>,
+                            'spot/modify-stop-order': { 'cost': 13.334 } as Endpoint<Dict>,
+                            'spot/batch-modify-order': { 'cost': 13.334 } as Endpoint<Dict>,
+                            'spot/cancel-all-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/cancel-order': { 'cost': 6.667 } as Endpoint<Dict>,
+                            'spot/cancel-stop-order': { 'cost': 6.667 } as Endpoint<Dict>,
+                            'spot/cancel-batch-order': { 'cost': 10 } as Endpoint<Dict>,
+                            'spot/cancel-batch-stop-order': { 'cost': 10 } as Endpoint<Dict>,
+                            'spot/cancel-order-by-client-id': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/cancel-stop-order-by-client-id': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/order': { 'cost': 20 } as Endpoint<Dict>,
+                            'futures/stop-order': { 'cost': 20 } as Endpoint<Dict>,
+                            'futures/batch-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/batch-stop-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/cancel-position-stop-loss': { 'cost': 20 } as Endpoint<Dict>,
+                            'futures/cancel-position-take-profit': { 'cost': 20 } as Endpoint<Dict>,
+                            'futures/modify-order': { 'cost': 20 } as Endpoint<Dict>,
+                            'futures/modify-stop-order': { 'cost': 20 } as Endpoint<Dict>,
+                            'futures/batch-modify-order': { 'cost': 20 } as Endpoint<Dict>,
+                            'futures/cancel-all-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/cancel-order': { 'cost': 10 } as Endpoint<Dict>,
+                            'futures/cancel-stop-order': { 'cost': 10 } as Endpoint<Dict>,
+                            'futures/cancel-batch-order': { 'cost': 20 } as Endpoint<Dict>,
+                            'futures/cancel-batch-stop-order': { 'cost': 20 } as Endpoint<Dict>,
+                            'futures/cancel-order-by-client-id': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/cancel-stop-order-by-client-id': { 'cost': 1 } as Endpoint<Dict>,
+                            'futures/close-position': { 'cost': 20 } as Endpoint<Dict>,
+                            'futures/adjust-position-margin': { 'cost': 20 } as Endpoint<Dict>,
+                            'futures/adjust-position-leverage': { 'cost': 20 } as Endpoint<Dict>,
+                            'futures/set-position-stop-loss': { 'cost': 20 } as Endpoint<Dict>,
+                            'futures/set-position-take-profit': { 'cost': 20 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -496,8 +496,8 @@ export default class coinex extends Exchange {
                     'ACA': 'ACA',
                     'CHZ': 'CHILIZ',
                     'ADA': 'ADA',
-                    'ARB': 'ARBITRUM',
-                    'ARBNOVA': 'ARBITRUM_NOVA',
+                    'ARBITRUM': 'ARBITRUM',
+                    'ARBITRUM_NOVA': 'ARBITRUM_NOVA',
                     'OP': 'OPTIMISM',
                     'APT': 'APTOS',
                     'ATOM': 'ATOM',
@@ -693,7 +693,7 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params = {}): Promise<Currencies> {
         const response = await this.v2PublicGetAssetsAllDepositWithdrawConfig (params);
         //
         //     {
@@ -731,90 +731,78 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const result: Dict = {};
-        for (let i = 0; i < data.length; i++) {
-            const coin = data[i];
-            const asset = this.safeDict (coin, 'asset', {});
-            const chains = this.safeList (coin, 'chains', []);
-            const currencyId = this.safeString (asset, 'ccy');
-            if (currencyId === undefined) {
-                continue; // coinex returns empty structures for some reason
+        return this.parseCurrencies (data);
+    }
+
+    override parseCurrency (coin: Dict): CurrencyInterface {
+        const asset = this.safeDict (coin, 'asset', {});
+        const currencyId = this.safeString (asset, 'ccy');
+        const chains = this.safeList (coin, 'chains', []);
+        const code = this.safeCurrencyCode (currencyId);
+        const networks: Dict = {};
+        for (let j = 0; j < chains.length; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString (chain, 'chain');
+            const networkCode = this.networkIdToCode (networkId, code);
+            if (networkId === undefined) {
+                continue;
             }
-            const code = this.safeCurrencyCode (currencyId);
-            const canDeposit = this.safeBool (asset, 'deposit_enabled');
-            const canWithdraw = this.safeBool (asset, 'withdraw_enabled');
-            const firstChain = this.safeDict (chains, 0, {});
-            const firstPrecisionString = this.parsePrecision (this.safeString (firstChain, 'withdrawal_precision'));
-            const networks: Dict = {};
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString (chain, 'chain');
-                const networkCode = this.networkIdToCode (networkId, code);
-                if (networkId === undefined) {
-                    continue;
-                }
-                const precisionString = this.parsePrecision (this.safeString (chain, 'withdrawal_precision'));
-                const feeString = this.safeString (chain, 'withdrawal_fee');
-                const minNetworkDepositString = this.safeString (chain, 'min_deposit_amount');
-                const minNetworkWithdrawString = this.safeString (chain, 'min_withdraw_amount');
-                const canDepositChain = this.safeBool (chain, 'deposit_enabled');
-                const canWithdrawChain = this.safeBool (chain, 'withdraw_enabled');
-                const network: Dict = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'name': undefined,
-                    'active': canDepositChain && canWithdrawChain,
-                    'deposit': canDepositChain,
-                    'withdraw': canWithdrawChain,
-                    'fee': this.parseNumber (feeString),
-                    'precision': this.parseNumber (precisionString),
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.parseNumber (minNetworkDepositString),
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': this.parseNumber (minNetworkWithdrawString),
-                            'max': undefined,
-                        },
-                    },
-                    'info': chain,
-                };
-                networks[networkCode] = network;
-            }
-            result[code] = this.safeCurrencyStructure ({
-                'id': currencyId,
-                'code': code,
+            const network: Dict = {
+                'id': networkId,
+                'network': networkCode,
                 'name': undefined,
-                'active': canDeposit && canWithdraw,
-                'deposit': canDeposit,
-                'withdraw': canWithdraw,
-                'fee': undefined,
-                'precision': this.parseNumber (firstPrecisionString),
+                'active': undefined,
+                'deposit': this.safeBool (chain, 'deposit_enabled'),
+                'withdraw': this.safeBool (chain, 'withdraw_enabled'),
+                'fee': this.safeNumber (chain, 'withdrawal_fee'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'withdrawal_precision'))),
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': undefined,
+                        'min': this.safeNumber (chain, 'min_deposit_amount'),
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.safeNumber (chain, 'min_withdraw_amount'),
                         'max': undefined,
                     },
                 },
-                'networks': networks,
-                'type': 'crypto',
-                'info': coin,
-            });
+                'info': chain,
+            };
+            if (networkCode !== undefined) {
+                networks[networkCode] = network;
+            }
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': currencyId,
+            'code': code,
+            'name': undefined,
+            'active': undefined,
+            'deposit': this.safeBool (asset, 'deposit_enabled'),
+            'withdraw': this.safeBool (asset, 'withdraw_enabled'),
+            'fee': undefined,
+            'precision': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+            'type': 'crypto',
+            'info': coin,
+        });
     }
 
     /**
@@ -826,7 +814,7 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params = {}): Promise<Market[]> {
         const promisesUnresolved = [
             this.fetchSpotMarkets (params),
             this.fetchContractMarkets (params),
@@ -837,7 +825,7 @@ export default class coinex extends Exchange {
         return this.arrayConcat (spotMarkets, swapMarkets);
     }
 
-    async fetchSpotMarkets (params): Promise<Market[]> {
+    async fetchSpotMarkets (params: any): Promise<Market[]> {
         const response = await this.v2PublicGetSpotMarket (params);
         //
         //     {
@@ -862,7 +850,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const markets = this.safeList (response, 'data', []);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'market');
@@ -926,7 +914,7 @@ export default class coinex extends Exchange {
         return result;
     }
 
-    async fetchContractMarkets (params) {
+    async fetchContractMarkets (params: any): Promise<Market[]> {
         const response = await this.v2PublicGetFuturesMarket (params);
         //
         //     {
@@ -950,7 +938,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const markets = this.safeList (response, 'data', []);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             const entry = markets[i];
             const fees = this.fees;
@@ -1022,7 +1010,7 @@ export default class coinex extends Exchange {
         return result;
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // Spot fetchTicker, fetchTickers
         //
@@ -1060,7 +1048,11 @@ export default class coinex extends Exchange {
         //
         const marketType = ('mark_price' in ticker) ? 'swap' : 'spot';
         const marketId = this.safeString (ticker, 'market');
-        const symbol = this.safeSymbol (marketId, market, undefined, marketType);
+        market = this.safeMarket (marketId, market, undefined, marketType);
+        const symbol = market['symbol'];
+        // on inverse contracts 'value' is denominated in the settle currency, not
+        // the quote, so it is the quote volume only for spot and linear markets
+        const quoteVolume = market['inverse'] ? undefined : this.safeString (ticker, 'value');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
@@ -1080,7 +1072,7 @@ export default class coinex extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'volume'),
-            'quoteVolume': undefined,
+            'quoteVolume': quoteVolume,
             'markPrice': this.safeString (ticker, 'mark_price'),
             'indexPrice': this.safeString (ticker, 'index_price'),
             'info': ticker,
@@ -1097,13 +1089,15 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
         };
-        let response = undefined;
+        let response: Dict;
         if (market['swap']) {
             response = await this.v2PublicGetFuturesTicker (this.extend (request, params));
         } else {
@@ -1171,10 +1165,12 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
-        let market = undefined;
+        let market: Market = undefined;
         if (symbols !== undefined) {
             const symbol = this.safeValue (symbols, 0);
             market = this.market (symbol);
@@ -1245,7 +1241,7 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params = {}): Promise<Int> {
         const response = await this.v2PublicGetTime (params);
         //
         //     {
@@ -1269,10 +1265,12 @@ export default class coinex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = 20, params = {}) {
-        await this.loadMarkets ();
+    override async fetchOrderBook (symbol: string, limit: Int = 20, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (limit === undefined) {
             limit = 20; // default
@@ -1282,7 +1280,7 @@ export default class coinex extends Exchange {
             'limit': limit,
             'interval': '0',
         };
-        let response = undefined;
+        let response: Dict;
         if (market['swap']) {
             response = await this.v2PublicGetFuturesDepth (this.extend (request, params));
             //
@@ -1344,7 +1342,7 @@ export default class coinex extends Exchange {
         return this.parseOrderBook (depth, symbol, timestamp);
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // Spot and Swap fetchTrades (public)
         //
@@ -1392,7 +1390,7 @@ export default class coinex extends Exchange {
         const marketId = this.safeString (trade, 'market');
         market = this.safeMarket (marketId, market, undefined, defaultType);
         const feeCostString = this.safeString (trade, 'fee');
-        let fee = undefined;
+        let fee: FeeString = undefined;
         if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_ccy');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -1430,17 +1428,19 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
             // 'last_id': 0,
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 1000);
         }
-        let response = undefined;
+        let response: Dict;
         if (market['swap']) {
             response = await this.v2PublicGetFuturesDeals (this.extend (request, params));
         } else {
@@ -1476,13 +1476,15 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
-        await this.loadMarkets ();
+    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
         };
-        let response = undefined;
+        let response: Dict;
         if (market['spot']) {
             response = await this.v2PublicGetSpotMarket (this.extend (request, params));
             //
@@ -1543,11 +1545,13 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    async fetchTradingFees (params = {}): Promise<TradingFees> {
-        await this.loadMarkets ();
-        let type = undefined;
+    override async fetchTradingFees (params = {}): Promise<TradingFees> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
-        let response = undefined;
+        let response: Dict;
         if (type === 'swap') {
             response = await this.v2PublicGetFuturesMarket (params);
             //
@@ -1619,7 +1623,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "close": "66999.95",
@@ -1655,8 +1659,10 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
@@ -1665,7 +1671,7 @@ export default class coinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response: Dict;
         if (market['swap']) {
             response = await this.v2PublicGetFuturesKline (this.extend (request, params));
         } else {
@@ -1691,12 +1697,14 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     async fetchMarginBalance (params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.v2PrivateGetAssetsMarginBalance (params);
         //
         //     {
@@ -1745,13 +1753,17 @@ export default class coinex extends Exchange {
             const baseDebt = this.safeString (loan, 'base_ccy');
             const baseInterest = this.safeString (interest, 'base_ccy');
             baseAccount['debt'] = Precise.stringAdd (baseDebt, baseInterest);
-            result[baseCurrencyCode] = baseAccount;
+            if (baseCurrencyCode !== undefined) {
+                result[baseCurrencyCode] = baseAccount;
+            }
         }
         return this.safeBalance (result);
     }
 
     async fetchSpotBalance (params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.v2PrivateGetAssetsSpotBalance (params);
         //
         //     {
@@ -1775,13 +1787,17 @@ export default class coinex extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (entry, 'available');
             account['used'] = this.safeString (entry, 'frozen');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
 
     async fetchSwapBalance (params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.v2PrivateGetAssetsFuturesBalance (params);
         //
         //     {
@@ -1808,13 +1824,17 @@ export default class coinex extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (entry, 'available');
             account['used'] = this.safeString (entry, 'frozen');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
 
     async fetchFinancialBalance (params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.v2PrivateGetAssetsFinancialBalance (params);
         //
         //     {
@@ -1838,7 +1858,9 @@ export default class coinex extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (entry, 'available');
             account['used'] = this.safeString (entry, 'frozen');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1855,10 +1877,10 @@ export default class coinex extends Exchange {
      * @param {string} [params.type] 'margin', 'swap', 'financial', or 'spot'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
-        let marketType = undefined;
+    override async fetchBalance (params = {}): Promise<Balances> {
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         const isMargin = (marginMode !== undefined) || (marketType === 'margin');
         if (marketType === 'swap') {
@@ -1884,7 +1906,7 @@ export default class coinex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // Spot and Margin createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders
         //
@@ -2163,8 +2185,10 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
-        await this.loadMarkets ();
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -2173,7 +2197,13 @@ export default class coinex extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         const swap = market['swap'];
         const clientOrderId = this.safeString2 (params, 'client_id', 'clientOrderId');
@@ -2237,7 +2267,7 @@ export default class coinex extends Exchange {
                 }
             }
         } else {
-            let marginMode = undefined;
+            let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
             if (marginMode !== undefined) {
                 request['market_type'] = 'MARGIN';
@@ -2298,8 +2328,10 @@ export default class coinex extends Exchange {
      * @param {boolean} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const reduceOnly = this.safeBool (params, 'reduceOnly');
         const triggerPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
@@ -2529,10 +2561,12 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the api endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        const ordersRequests = [];
-        let symbol = undefined;
+    override async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const ordersRequests: Dict[] = [];
+        let symbol: Str = undefined;
         let reduceOnly = false;
         let isTriggerOrder = false;
         let isStopLossOrTakeProfitTrigger = false;
@@ -2691,10 +2725,10 @@ export default class coinex extends Exchange {
             }
         }
         const data = this.safeList (response, 'data', []);
-        const results = [];
+        const results: List = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
-            let status = undefined;
+            let status: Str = undefined;
             const code = this.safeInteger (entry, 'code');
             if (code !== undefined) {
                 if (code !== 0) {
@@ -2704,7 +2738,7 @@ export default class coinex extends Exchange {
                 }
             }
             const innerData = this.safeDict (entry, 'data', {});
-            let order = undefined;
+            let order: Order;
             if (market['spot'] && !isTriggerOrder) {
                 entry['status'] = status;
                 order = this.parseOrder (entry, market);
@@ -2731,11 +2765,13 @@ export default class coinex extends Exchange {
      * @param {boolean} [params.trigger] set to true for canceling stop orders
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
@@ -2743,7 +2779,7 @@ export default class coinex extends Exchange {
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
-        const requestIds = [];
+        const requestIds: List = [];
         for (let i = 0; i < ids.length; i++) {
             requestIds.push (parseInt (ids[i]));
         }
@@ -2891,7 +2927,7 @@ export default class coinex extends Exchange {
             }
         }
         const data = this.safeList (response, 'data', []);
-        const results = [];
+        const results: List = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const item = this.safeDict (entry, 'data', {});
@@ -2919,11 +2955,13 @@ export default class coinex extends Exchange {
      * @param {float} [params.triggerPrice] the price to trigger stop orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
@@ -2944,7 +2982,7 @@ export default class coinex extends Exchange {
         } else {
             request['order_id'] = this.parseToNumeric (id);
         }
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('editOrder', params);
         if (market['spot']) {
             if (marginMode !== undefined) {
@@ -3055,20 +3093,24 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editOrders (orders: OrderRequest[], params = {}) : Promise<Order[]> {
-        await this.loadMarkets ();
-        const ordersRequests = [];
-        let orderSymbols = [];
+    override async editOrders (orders: OrderRequest[], params = {}) : Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const ordersRequests: Dict[] = [];
+        let orderSymbols: string[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
             const market = this.market (marketId);
-            orderSymbols.push (marketId);
+            if (marketId !== undefined) {
+                orderSymbols.push (marketId);
+            }
             const id = this.safeString (rawOrder, 'id');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             let orderParams = this.safeDict (rawOrder, 'params', {});
-            let marginMode = undefined;
+            let marginMode: Str = undefined;
             [ marginMode, orderParams ] = this.handleMarginModeAndParams ('editOrders', orderParams);
             let market_type = 'SPOT';
             if (market['swap']) {
@@ -3102,11 +3144,11 @@ export default class coinex extends Exchange {
             response = await this.v2PrivatePostFuturesBatchModifyOrder (this.extend (request, params));
         }
         const data = this.safeList (response, 'data', []);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const code = this.safeString (entry, 'code');
-            const message = this.safeString (entry, 'message');
+            const message = this.safeString (entry, 'message', '');
             if ((code !== '0') || ((message !== 'Success') && (message !== 'Succeeded') && (message.toLowerCase () !== 'ok') && !data)) {
                 const feedback = this.id + ' ' + message;
                 this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
@@ -3139,18 +3181,20 @@ export default class coinex extends Exchange {
      * @param {boolean} [params.trigger] set to true for canceling a trigger order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const isTriggerOrder = this.safeBool2 (params, 'stop', 'trigger');
         const swap = market['swap'];
         const request: Dict = {
             'market': market['id'],
         };
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
         if (swap) {
             request['market_type'] = 'FUTURES';
@@ -3405,14 +3449,14 @@ export default class coinex extends Exchange {
                 }
             }
         }
-        let data = undefined;
+        let data: NullableDict = undefined;
         if (clientOrderId !== undefined) {
             const rows = this.safeList (response, 'data', []);
             data = this.safeDict (rows[0], 'data', {});
         } else {
             data = this.safeDict (response, 'data', {});
         }
-        return this.parseOrder (data, market);
+        return this.parseOrder (data as Dict, market);
     }
 
     /**
@@ -3426,11 +3470,13 @@ export default class coinex extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated' for canceling spot margin orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
@@ -3443,7 +3489,7 @@ export default class coinex extends Exchange {
             // {"code":0,"data":{},"message":"OK"}
             //
         } else {
-            let marginMode = undefined;
+            let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
             if (marginMode !== undefined) {
                 request['market_type'] = 'MARGIN';
@@ -3473,11 +3519,13 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
@@ -3569,10 +3617,12 @@ export default class coinex extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated' for fetching spot margin orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -3582,7 +3632,7 @@ export default class coinex extends Exchange {
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         let response = undefined;
         const isClosed = (status === 'finished') || (status === 'closed');
@@ -3720,7 +3770,7 @@ export default class coinex extends Exchange {
                 }
             }
         } else {
-            let marginMode = undefined;
+            let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params);
             if (marginMode !== undefined) {
                 request['market_type'] = 'MARGIN';
@@ -3863,7 +3913,7 @@ export default class coinex extends Exchange {
                 }
             }
         }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -3883,7 +3933,7 @@ export default class coinex extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated' for fetching spot margin orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const openOrders = await this.fetchOrdersByStatus ('pending', symbol, since, limit, params);
         for (let i = 0; i < openOrders.length; i++) {
             openOrders[i]['status'] = 'open';
@@ -3907,7 +3957,7 @@ export default class coinex extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated' for fetching spot margin orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params);
     }
 
@@ -3921,8 +3971,10 @@ export default class coinex extends Exchange {
      * @param {string} [params.network] the blockchain network to create a deposit address on
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        await this.loadMarkets ();
+    override async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const network = this.safeString2 (params, 'chain', 'network');
         if (network === undefined) {
@@ -3958,18 +4010,20 @@ export default class coinex extends Exchange {
      * @param {string} [params.network] the blockchain network to create a deposit address on
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        await this.loadMarkets ();
+    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'ccy': currency['id'],
         };
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a "network" parameter');
         }
-        request['chain'] = this.networkCodeToId (networkCode); // required for on-chain, not required for inter-user transfer
+        request['chain'] = this.networkCodeToId (networkCode, currency['code']); // required for on-chain, not required for inter-user transfer
         const response = await this.v2PrivateGetAssetsDepositAddress (this.extend (request, params));
         //
         //     {
@@ -3985,17 +4039,17 @@ export default class coinex extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
         //         "memo": ""
         //     }
         //
-        const coinAddress = this.safeString (depositAddress, 'address');
+        const coinAddress = this.safeString (depositAddress, 'address', '');
         const parts = coinAddress.split (':');
-        let address = undefined;
-        let tag = undefined;
+        let address: Str = undefined;
+        let tag: Str = undefined;
         const partsLength = parts.length;
         if (partsLength > 1 && parts[0] !== 'cfx') {
             address = parts[0];
@@ -4026,11 +4080,13 @@ export default class coinex extends Exchange {
      * @param {string} [params.side] the side of the trades, either 'buy' or 'sell', required for swap
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         let request: Dict = {
             'market': market['id'],
@@ -4067,7 +4123,7 @@ export default class coinex extends Exchange {
             //     }
             //
         } else {
-            let marginMode = undefined;
+            let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
             if (marginMode !== undefined) {
                 request['market_type'] = 'MARGIN';
@@ -4097,7 +4153,7 @@ export default class coinex extends Exchange {
             //     }
             //
         }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -4112,17 +4168,19 @@ export default class coinex extends Exchange {
      * @param {string} [params.method] the method to use 'v2PrivateGetFuturesPendingPosition' or 'v2PrivateGetFuturesFinishedPosition' default is 'v2PrivateGetFuturesPendingPosition'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
-        let defaultMethod = undefined;
+    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let defaultMethod: Str = undefined;
         [ defaultMethod, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'v2PrivateGetFuturesPendingPosition');
         symbols = this.marketSymbols (symbols);
         const request: Dict = {
             'market_type': 'FUTURES',
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbols !== undefined) {
-            let symbol = undefined;
+            let symbol: Str = undefined;
             if (Array.isArray (symbols)) {
                 const symbolsLength = symbols.length;
                 if (symbolsLength > 1) {
@@ -4135,7 +4193,7 @@ export default class coinex extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        let response = undefined;
+        let response: Dict;
         if (defaultMethod === 'v2PrivateGetFuturesPendingPosition') {
             response = await this.v2PrivateGetFuturesPendingPosition (this.extend (request, params));
         } else {
@@ -4185,7 +4243,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const position = this.safeList (response, 'data', []);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < position.length; i++) {
             result.push (this.parsePosition (position[i], market));
         }
@@ -4201,8 +4259,10 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPosition (symbol: string, params = {}) {
-        await this.loadMarkets ();
+    override async fetchPosition (symbol: string, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market_type': 'FUTURES',
@@ -4252,11 +4312,11 @@ export default class coinex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parsePosition (data[0], market);
     }
 
-    parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined) {
         //
         //     {
         //         "position_id": 305891033,
@@ -4337,7 +4397,7 @@ export default class coinex extends Exchange {
      * @param {int} params.leverage the rate of leverage
      * @returns {object} response from the exchange
      */
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    override async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -4345,7 +4405,9 @@ export default class coinex extends Exchange {
         if (marginMode !== 'isolated' && marginMode !== 'cross') {
             throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (market['type'] !== 'swap') {
             throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
@@ -4388,16 +4450,18 @@ export default class coinex extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated' (default is 'cross')
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
         }
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
         const minLeverage = this.safeInteger (market['limits']['leverage'], 'min', 1);
         const maxLeverage = this.safeInteger (market['limits']['leverage'], 'max', 100);
@@ -4432,8 +4496,10 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
-        await this.loadMarkets ();
+    override async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         if (symbols !== undefined) {
             const marketIds = this.marketIds (symbols);
@@ -4469,20 +4535,22 @@ export default class coinex extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'market');
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
-        const tiers = [];
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
+        const tiers: List = [];
         const brackets = this.safeList (info, 'level', []);
-        let minNotional = 0;
+        let minNotional: Num = 0;
         for (let i = 0; i < brackets.length; i++) {
             const tier = brackets[i];
             const marketId = this.safeString (info, 'market');
             market = this.safeMarket (marketId, market, undefined, 'swap');
             const maxNotional = this.safeNumber (tier, 'amount');
+            const curr = market['linear'] ? market['base'] : market['quote'];
+            const notional = minNotional;
             tiers.push ({
                 'tier': this.sum (i, 1),
                 'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
-                'currency': market['linear'] ? market['base'] : market['quote'],
-                'minNotional': minNotional,
+                'currency': curr,
+                'minNotional': notional,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': this.safeNumber (tier, 'maintenance_margin_rate'),
                 'maxLeverage': this.safeInteger (tier, 'leverage'),
@@ -4493,8 +4561,10 @@ export default class coinex extends Exchange {
         return tiers as LeverageTier[];
     }
 
-    async modifyMarginHelper (symbol: string, amount, addOrReduce, params = {}) {
-        await this.loadMarkets ();
+    async modifyMarginHelper (symbol: string, amount: any, addOrReduce: any, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const rawAmount = this.amountToPrecision (symbol, amount);
         let requestAmount = rawAmount;
@@ -4545,7 +4615,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         const status = this.safeStringLower (response, 'message');
         const type = (addOrReduce === 'reduce') ? 'reduce' : 'add';
         return this.extend (this.parseMarginModification (data, market), {
@@ -4555,7 +4625,7 @@ export default class coinex extends Exchange {
         });
     }
 
-    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
+    override parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         // addMargin/reduceMargin
         //
@@ -4619,7 +4689,7 @@ export default class coinex extends Exchange {
             'marginMode': 'isolated',
             'amount': this.parseNumber (Precise.stringAbs (change)),
             'total': this.safeNumber (data, 'margin_avbl'),
-            'code': market['quote'],
+            'code': this.safeString (market, 'quote'),
             'status': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -4636,7 +4706,7 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
@@ -4650,7 +4720,7 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
@@ -4665,11 +4735,13 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         let request: Dict = {
             'market': market['id'],
@@ -4705,7 +4777,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const timestamp = this.safeInteger (entry, 'created_at');
@@ -4733,8 +4805,10 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
-        await this.loadMarkets ();
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
@@ -4775,11 +4849,11 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
         return await this.fetchFundingRate (symbol, params);
     }
 
-    parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         // fetchFundingRate, fetchFundingRates, fetchFundingInterval
         //
@@ -4822,7 +4896,7 @@ export default class coinex extends Exchange {
         } as FundingRate;
     }
 
-    parseFundingInterval (interval) {
+    parseFundingInterval (interval: any) {
         const intervals: Dict = {
             '3600000': '1h',
             '14400000': '4h',
@@ -4842,11 +4916,13 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
-        await this.loadMarkets ();
+    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbols !== undefined) {
             const symbol = this.safeValue (symbols, 0);
             market = this.market (symbol);
@@ -4892,10 +4968,12 @@ export default class coinex extends Exchange {
      * @param {string} [params.network] unified network code
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'ccy': currency['id'],
@@ -4905,10 +4983,10 @@ export default class coinex extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode); // required for on-chain, not required for inter-user transfer
+            request['chain'] = this.networkCodeToId (networkCode, currency['code']); // required for on-chain, not required for inter-user transfer
         }
         const response = await this.v2PrivatePostAssetsWithdraw (this.extend (request, params));
         //
@@ -4970,11 +5048,13 @@ export default class coinex extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -5010,7 +5090,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const rates = [];
+        const rates: List = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const marketId = this.safeString (entry, 'market');
@@ -5028,7 +5108,7 @@ export default class coinex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -5107,7 +5187,7 @@ export default class coinex extends Exchange {
         if (type === 'deposit') {
             feeCost = '0';
         }
-        const feeCurrencyId = this.safeString (transaction, 'fee_asset');
+        const feeCurrencyId = this.safeString2 (transaction, 'fee_asset', 'fee_ccy'); // https://github.com/ccxt/ccxt/issues/25153
         const fee = {
             'cost': this.parseNumber (feeCost),
             'currency': this.safeCurrencyCode (feeCurrencyId),
@@ -5118,7 +5198,7 @@ export default class coinex extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': this.networkIdToCode (networkId),
+            'network': this.networkIdToCode (networkId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -5149,8 +5229,10 @@ export default class coinex extends Exchange {
      * @param {string} [params.symbol] unified ccxt symbol, required when either the fromAccount or toAccount is margin
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        await this.loadMarkets ();
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
@@ -5188,7 +5270,7 @@ export default class coinex extends Exchange {
         });
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: Str) {
         const statuses: Dict = {
             '0': 'ok',
             'SUCCESS': 'ok',
@@ -5199,7 +5281,7 @@ export default class coinex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+    override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         const timestamp = this.safeInteger (transfer, 'created_at');
         const currencyId = this.safeString (transfer, 'ccy');
         const fromId = this.safeString (transfer, 'from_account_type');
@@ -5229,8 +5311,10 @@ export default class coinex extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated' for fetching transfers to and from your margin account
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
-        await this.loadMarkets ();
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a code argument');
         }
@@ -5238,7 +5322,7 @@ export default class coinex extends Exchange {
         let request: Dict = {
             'ccy': currency['id'],
         };
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTransfers', params);
         if (marginMode !== undefined) {
             request['transfer_type'] = 'MARGIN';
@@ -5273,7 +5357,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTransfers (data, currency, since, limit);
     }
 
@@ -5288,10 +5372,12 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['ccy'] = currency['id'];
@@ -5332,7 +5418,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -5347,10 +5433,12 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['ccy'] = currency['id'];
@@ -5388,11 +5476,11 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseIsolatedBorrowRate (info: Dict, market: Market = undefined): IsolatedBorrowRate {
+    override parseIsolatedBorrowRate (info: Dict, market: Market = undefined): IsolatedBorrowRate {
         //
         //     {
         //         "market": "BTCUSDT",
@@ -5407,8 +5495,8 @@ export default class coinex extends Exchange {
         market = this.safeMarket (marketId, market, undefined, 'spot');
         const currency = this.safeString (info, 'ccy');
         const rate = this.safeNumber (info, 'daily_interest_rate');
-        let baseRate = undefined;
-        let quoteRate = undefined;
+        let baseRate: Num = undefined;
+        let quoteRate: Num = undefined;
         if (currency === market['baseId']) {
             baseRate = rate;
         } else if (currency === market['quoteId']) {
@@ -5437,8 +5525,10 @@ export default class coinex extends Exchange {
      * @param {string} params.code unified currency code
      * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
      */
-    async fetchIsolatedBorrowRate (symbol: string, params = {}): Promise<IsolatedBorrowRate> {
-        await this.loadMarkets ();
+    override async fetchIsolatedBorrowRate (symbol: string, params = {}): Promise<IsolatedBorrowRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const code = this.safeString (params, 'code');
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchIsolatedBorrowRate() requires a code parameter');
@@ -5481,10 +5571,12 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
-    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
-        await this.loadMarkets ();
+    override async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -5522,7 +5614,7 @@ export default class coinex extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
+    override parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
         //
         //     {
         //         "borrow_id": 2642934,
@@ -5565,8 +5657,10 @@ export default class coinex extends Exchange {
      * @param {boolean} [params.isAutoRenew] whether to renew the margin loan automatically or not, default is false
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
-        await this.loadMarkets ();
+    override async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}): Promise<MarginLoan> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const currency = this.currency (code);
         const isAutoRenew = this.safeBool2 (params, 'isAutoRenew', 'is_auto_renew', false);
@@ -5595,7 +5689,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const transaction = this.parseMarginLoan (data, currency);
+        const transaction: MarginLoan = this.parseMarginLoan (data, currency);
         return this.extend (transaction, {
             'amount': amount,
             'symbol': symbol,
@@ -5614,8 +5708,10 @@ export default class coinex extends Exchange {
      * @param {string} [params.borrow_id] extra parameter that is not required
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
-        await this.loadMarkets ();
+    override async repayIsolatedMargin (symbol: string, code: string, amount: number, params = {}): Promise<MarginLoan> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const currency = this.currency (code);
         const request: Dict = {
@@ -5632,14 +5728,14 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const transaction = this.parseMarginLoan (data, currency);
+        const transaction: MarginLoan = this.parseMarginLoan (data, currency);
         return this.extend (transaction, {
             'amount': amount,
             'symbol': symbol,
         });
     }
 
-    parseMarginLoan (info, currency: Currency = undefined) {
+    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
         //
         //     {
         //         "borrow_id": 13784021,
@@ -5656,9 +5752,9 @@ export default class coinex extends Exchange {
         const marketId = this.safeString (info, 'market');
         const timestamp = this.safeInteger (info, 'expired_at');
         return {
-            'id': this.safeInteger (info, 'borrow_id'),
+            'id': this.safeString (info, 'borrow_id'),
             'currency': this.safeCurrencyCode (currencyId, currency),
-            'amount': this.safeString (info, 'borrow_amount'),
+            'amount': this.safeNumber (info, 'borrow_amount'),
             'symbol': this.safeSymbol (marketId, undefined, undefined, 'spot'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -5675,8 +5771,10 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchDepositWithdrawFee (code: string, params = {}) {
-        await this.loadMarkets ();
+    override async fetchDepositWithdrawFee (code: string, params = {}): Promise<DepositWithdrawFee> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'ccy': currency['id'],
@@ -5716,7 +5814,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseDepositWithdrawFee (data, currency) as any;
+        return this.parseDepositWithdrawFee (data, currency) as DepositWithdrawFee;
     }
 
     /**
@@ -5724,12 +5822,14 @@ export default class coinex extends Exchange {
      * @name coinex#fetchDepositWithdrawFees
      * @description fetch the fees for deposits and withdrawals
      * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
-     * @param codes
+     * @param {string[]} [codes] list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<DepositWithdrawFees> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.v2PublicGetAssetsAllDepositWithdrawConfig (params);
         //
         //     {
@@ -5777,13 +5877,15 @@ export default class coinex extends Exchange {
             }
             const code = this.safeCurrencyCode (currencyId);
             if (codes === undefined || this.inArray (code, codes)) {
-                result[code] = this.parseDepositWithdrawFee (item);
+                if (code !== undefined) {
+                    result[code] = this.parseDepositWithdrawFee (item);
+                }
             }
         }
         return result;
     }
 
-    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         //     {
         //         "asset": {
@@ -5835,17 +5937,21 @@ export default class coinex extends Exchange {
                 result['withdraw']['percentage'] = false;
                 const networkId = this.safeString (entry, 'chain');
                 if (networkId) {
-                    const networkCode = this.networkIdToCode (networkId, this.safeString (asset, 'ccy'));
-                    result['networks'][networkCode] = {
-                        'withdraw': {
-                            'fee': this.safeNumber (entry, 'withdrawal_fee'),
-                            'percentage': false,
-                        },
-                        'deposit': {
-                            'fee': undefined,
-                            'percentage': undefined,
-                        },
-                    };
+                    const currencyId = this.safeString (asset, 'ccy');
+                    const feeCode = this.safeCurrencyCode (currencyId, currency);
+                    const networkCode = this.networkIdToCode (networkId, feeCode);
+                    if (networkCode !== undefined) {
+                        result['networks'][networkCode] = {
+                            'withdraw': {
+                                'fee': this.safeNumber (entry, 'withdrawal_fee'),
+                                'percentage': false,
+                            },
+                            'deposit': {
+                                'fee': undefined,
+                                'percentage': undefined,
+                            },
+                        };
+                    }
                 }
             }
         }
@@ -5862,8 +5968,10 @@ export default class coinex extends Exchange {
      * @param {string} params.code unified currency code
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
-        await this.loadMarkets ();
+    override async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const code = this.safeString (params, 'code');
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchLeverage() requires a code parameter');
@@ -5894,7 +6002,7 @@ export default class coinex extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         //
         //     {
         //         "market": "BTCUSDT",
@@ -5924,12 +6032,14 @@ export default class coinex extends Exchange {
      * @param {string} symbol unified contract symbol
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum amount of records to fetch, default is 10
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch positions for
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+    override async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         let request: Dict = {
             'market_type': 'FUTURES',
@@ -6005,8 +6115,10 @@ export default class coinex extends Exchange {
      * @param {string} [params.clientOrderId] the client id of the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+    override async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const type = this.safeString (params, 'type', 'market');
         const request: Dict = {
@@ -6052,17 +6164,17 @@ export default class coinex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
+    override handleMarginModeAndParams (methodName: string, params = {}, defaultValue: any = undefined): [any, Dict] {
         /**
          * @ignore
          * @method
          * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
-         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {object} params extra parameters specific to the exchange API endpoint
          * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeBool (params, 'margin', false);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if (marginMode === undefined) {
             if ((defaultType === 'margin') || (isMargin === true)) {
@@ -6072,11 +6184,11 @@ export default class coinex extends Exchange {
         return [ marginMode, params ];
     }
 
-    nonce () {
+    override nonce () {
         return this.milliseconds ();
     }
 
-    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    override sign (path: any, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         path = this.implodeParams (path, params);
         const version = api[0];
         const requestUrl = api[1];
@@ -6181,13 +6293,13 @@ export default class coinex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }
         const code = this.safeString (response, 'code');
         const data = this.safeValue (response, 'data');
-        const message = this.safeString (response, 'message');
+        const message = this.safeString (response, 'message', '');
         if ((code !== '0') || ((message !== 'Success') && (message !== 'Succeeded') && (message.toLowerCase () !== 'ok') && !data)) {
             const feedback = this.id + ' ' + message;
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
@@ -6206,13 +6318,15 @@ export default class coinex extends Exchange {
      * @param {string} [type] not used by coinex fetchMarginAdjustmentHistory
      * @param {int} [since] timestamp in ms of the earliest change to fetch
      * @param {int} [limit] the maximum amount of changes to fetch, default is 10
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest change to fetch
      * @param {int} [params.positionId] the id of the position that you want to retrieve margin adjustment history for
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    async fetchMarginAdjustmentHistory (symbol: Str = undefined, type: Str = undefined, since: Num = undefined, limit: Num = undefined, params = {}): Promise<MarginModification[]> {
-        await this.loadMarkets ();
+    override async fetchMarginAdjustmentHistory (symbol: Str = undefined, type: Str = undefined, since: Num = undefined, limit: Num = undefined, params = {}): Promise<MarginModification[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMarginAdjustmentHistory() requires a symbol argument');
         }

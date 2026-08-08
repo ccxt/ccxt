@@ -45,13 +45,14 @@ func (this *OkxusCore) Describe() any {
 			"option": false,
 		},
 		"features": map[string]any{
-			"swap": map[string]any{
-				"linear":  nil,
-				"inverse": nil,
-			},
 			"future": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
+			},
+		},
+		"options": map[string]any{
+			"fetchMarkets": map[string]any{
+				"types": []any{"spot"},
 			},
 		},
 	})

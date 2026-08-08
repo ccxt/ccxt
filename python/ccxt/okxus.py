@@ -42,13 +42,14 @@ class okxus(okx, ImplicitAPI):
                 'option': False,
             },
             'features': {
-                'swap': {
-                    'linear': None,
-                    'inverse': None,
-                },
                 'future': {
                     'linear': None,
                     'inverse': None,
+                },
+            },
+            'options': {
+                'fetchMarkets': {
+                    'types': ['spot'],  # only spot supported for now
                 },
             },
         })

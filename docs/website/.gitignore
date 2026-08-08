@@ -1,0 +1,35 @@
+# deps
+/node_modules
+
+# generated content
+.source
+# runtime exchange-status snapshots written by the status monitor (see lib/exchange-status.ts)
+/data
+# converted from wiki/ by build/wiki-to-fumadocs.ts (regenerate with `npm run fumadocs-content`)
+/content/docs
+
+# test & build
+/coverage
+/.next/
+/out/
+/build
+*.tsbuildinfo
+
+# local migration notes (not part of the PR)
+/DECISIONS.md
+
+# misc
+.DS_Store
+*.pem
+/.pnp
+.pnp.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# others
+.env
+.env.*
+.env*.local
+.vercel
+next-env.d.ts

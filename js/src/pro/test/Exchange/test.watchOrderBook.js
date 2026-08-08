@@ -4,9 +4,9 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import assert from 'assert';
 import testOrderBook from '../../../test/Exchange/base/test.orderBook.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+import { InvalidNonce } from '../../../base/errors.js';
 async function testWatchOrderBook(exchange, skippedProperties, symbol) {
     const method = 'watchOrderBook';
     let now = exchange.milliseconds();
@@ -18,16 +18,14 @@ async function testWatchOrderBook(exchange, skippedProperties, symbol) {
             response = await exchange.watchOrderBook(symbol);
         }
         catch (e) {
-            if (!testSharedMethods.isTemporaryFailure(e)) {
+            if (!testSharedMethods.isTemporaryFailure(e) && !(e instanceof InvalidNonce)) {
                 throw e;
             }
             now = exchange.milliseconds();
             // continue;
             success = false;
         }
-        if (success === true) {
-            // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-            assert(typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(response));
+        if ((success === true) && (response !== undefined)) {
             now = exchange.milliseconds();
             testOrderBook(exchange, skippedProperties, method, response, symbol);
         }

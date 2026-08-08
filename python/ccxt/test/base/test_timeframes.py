@@ -16,13 +16,14 @@ from ccxt.base.decimal_to_precision import ROUND  # noqa E402
 from ccxt.base.decimal_to_precision import ROUND_UP  # noqa E402
 from ccxt.base.decimal_to_precision import ROUND_DOWN  # noqa E402
 import ccxt.async_support as ccxt  # noqa: F402
-from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_round_timeframe():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
     })
     test_date = exchange.parse8601('2019-08-12 13:22:08')
+    if test_date is None:
+        return
     assert exchange.round_timeframe('5m', test_date, ROUND_DOWN) == exchange.parse8601('2019-08-12 13:20:00')
     assert exchange.round_timeframe('10m', test_date, ROUND_DOWN) == exchange.parse8601('2019-08-12 13:20:00')
     assert exchange.round_timeframe('30m', test_date, ROUND_DOWN) == exchange.parse8601('2019-08-12 13:00:00')

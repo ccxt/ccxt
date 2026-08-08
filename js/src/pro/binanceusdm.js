@@ -14,7 +14,8 @@ export default class binanceusdm extends binance {
         // eslint-disable-next-line new-cap
         const restInstance = new binanceusdmRest();
         const restDescribe = restInstance.describe();
-        const extended = this.deepExtend(super.describe(), restDescribe);
+        const parentWsDescribe = super.describeData();
+        const extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, {
             'id': 'binanceusdm',
             'name': 'Binance USDⓈ-M',
@@ -32,8 +33,8 @@ export default class binanceusdm extends binance {
             // https://developers.binance.com/docs/derivatives/usds-margined-futures/error-code
             'exceptions': {
                 'exact': {
-                    '-5021': InvalidOrder,
-                    '-5022': InvalidOrder,
+                    '-5021': InvalidOrder, // {"code":-5021,"msg":"Due to the order could not be filled immediately, the FOK order has been rejected."}
+                    '-5022': InvalidOrder, // {"code":-5022,"msg":"Due to the order could not be executed as maker, the Post Only order will be rejected."}
                     '-5028': InvalidOrder, // {"code":-5028,"msg":"Timestamp for this request is outside of the ME recvWindow."}
                 },
             },

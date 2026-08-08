@@ -6,12 +6,16 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\BadSymbol;
 use ccxt\NotSupported;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class xt extends \ccxt\async\xt {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -31,6 +35,8 @@ class xt extends \ccxt\async\xt {
                 'watchOrders' => true,
                 'watchMyTrades' => true,
                 'watchPositions' => true,
+                'watchFundingRate' => true,
+                'unWatchFundingRate' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -71,8 +77,8 @@ class xt extends \ccxt\async\xt {
              * required for private endpoints
              * @param {string} $isContract true for contract trades
              *
-             * @see https://doc.xt.com/#websocket_privategetToken
-             * @see https://doc.xt.com/#futures_user_websocket_v2base
+             * @see https://doc.xt.com/docs/spot/WebSocket%20Private/GetWsToken
+             * @see https://doc.xt.com/docs/futures/UserWebsocket/General_WSS_information
              *
              * @return {string} listen key / access $token
              */
@@ -86,7 +92,7 @@ class xt extends \ccxt\async\xt {
             $token = $this->safe_string($client->subscriptions, 'token');
             if ($token === null) {
                 if ($isContract) {
-                    $response = Async\await($this->privateLinearGetFutureUserV1UserListenKey ());
+                    $response = Async\await($this->privateLinearGetFutureUserV1UserListenKey());
                     //
                     //    {
                     //        returnCode => '0',
@@ -97,7 +103,7 @@ class xt extends \ccxt\async\xt {
                     //
                     $client->subscriptions['token'] = $this->safe_string($response, 'result');
                 } else {
-                    $response = Async\await($this->privateSpotPostWsToken ());
+                    $response = Async\await($this->privateSpotPostWsToken());
                     //
                     //    {
                     //        "rc" => 0,
@@ -114,28 +120,28 @@ class xt extends \ccxt\async\xt {
                 }
             }
             return $client->subscriptions['token'];
-        }) ();
+        })();
     }
 
-    public function get_cache_index($orderbook, $cache) {
+    public function get_cache_index(mixed $orderbook, mixed $cache) {
         // return the first index of the $cache that can be applied to the $orderbook or -1 if not possible
         $nonce = $this->safe_integer($orderbook, 'nonce');
         $firstDelta = $this->safe_value($cache, 0);
         $firstDeltaNonce = $this->safe_integer_2($firstDelta, 'i', 'u');
-        if ($nonce < $firstDeltaNonce - 1) {
+        if (($nonce !== null) && ($firstDeltaNonce !== null) && ($nonce < $firstDeltaNonce - 1)) {
             return -1;
         }
         for ($i = 0; $i < count($cache); $i++) {
             $delta = $cache[$i];
             $deltaNonce = $this->safe_integer_2($delta, 'i', 'u');
-            if ($deltaNonce >= $nonce) {
+            if (($deltaNonce !== null) && ($nonce !== null) && ($deltaNonce >= $nonce)) {
                 return $i;
             }
         }
         return count($cache);
     }
 
-    public function handle_delta($orderbook, $delta) {
+    public function handle_delta(mixed $orderbook, mixed $delta) {
         $orderbook['nonce'] = $this->safe_integer_2($delta, 'i', 'u');
         $obAsks = $this->safe_list($delta, 'a', array());
         $obBids = $this->safe_list($delta, 'b', array());
@@ -145,26 +151,26 @@ class xt extends \ccxt\async\xt {
             $bid = $obBids[$i];
             $price = $this->safe_number($bid, 0);
             $quantity = $this->safe_number($bid, 1);
-            $bids->store ($price, $quantity);
+            $bids->store($price, $quantity);
         }
         for ($i = 0; $i < count($obAsks); $i++) {
             $ask = $obAsks[$i];
             $price = $this->safe_number($ask, 0);
             $quantity = $this->safe_number($ask, 1);
-            $asks->store ($price, $quantity);
+            $asks->store($price, $quantity);
         }
-        // $this->handleBidAsks (storedBids, $bids);
-        // $this->handleBidAsks (storedAsks, $asks);
+        // $this->handleBidAsks(storedBids, $bids);
+        // $this->handleBidAsks(storedAsks, $asks);
     }
 
-    public function subscribe(string $name, string $access, string $methodName, ?array $market = null, ?array $symbols = null, $params = array ()) {
+    public function subscribe(string $name, string $access, string $methodName, ?array $market = null, ?array $symbols = null, $params = array()) {
         return Async\async(function () use ($name, $access, $methodName, $market, $symbols, $params) {
             /**
              * @ignore
              * Connects to a websocket channel
              *
-             * @see https://doc.xt.com/#websocket_privaterequestFormat
-             * @see https://doc.xt.com/#futures_market_websocket_v2base
+             * @see https://doc.xt.com/docs/spot/WebSocket%20Private/RequestMessageFormat
+             * @see https://doc.xt.com/docs/futures/WebsocKetV2/General_WSS_information
              *
              * @$param {string} $name name of the channel
              * @$param {string} $access public or private
@@ -210,17 +216,17 @@ class xt extends \ccxt\async\xt {
             );
             $url = $this->urls['api']['ws'][$tradeType] . '/' . $tail;
             return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
-        }) ();
+        })();
     }
 
-    public function un_subscribe(string $messageHash, string $name, string $access, string $methodName, string $topic, ?array $market = null, ?array $symbols = null, $params = array (), $subscriptionParams = array ()): PromiseInterface {
+    public function un_subscribe(string $messageHash, string $name, string $access, string $methodName, string $topic, ?array $market = null, ?array $symbols = null, $params = array(), $subscriptionParams = array()): PromiseInterface {
         return Async\async(function () use ($messageHash, $name, $access, $methodName, $topic, $market, $symbols, $params, $subscriptionParams) {
             /**
              * @ignore
              * Connects to a websocket channel
              *
-             * @see https://doc.xt.com/#websocket_privaterequestFormat
-             * @see https://doc.xt.com/#futures_market_websocket_v2base
+             * @see https://doc.xt.com/docs/spot/WebSocket%20Private/RequestMessageFormat
+             * @see https://doc.xt.com/docs/futures/WebsocKetV2/General_WSS_information
              *
              * @$param {string} $messageHash the message hash of the $subscription
              * @$param {string} $name name of the channel
@@ -276,48 +282,50 @@ class xt extends \ccxt\async\xt {
                 $subscriptionParams = $this->omit($subscriptionParams, 'symbolsAndTimeframes');
             }
             return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $this->extend($subscription, $subscriptionParams)));
-        }) ();
+        })();
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              *
-             * @see https://doc.xt.com/#websocket_publictickerRealTime
-             * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
-             * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+             * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+             * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $options = $this->safe_dict($this->options, 'watchTicker');
             $defaultMethod = $this->safe_string($options, 'method', 'ticker');
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $name = $method . '@' . $market['id'];
             return Async\await($this->subscribe($name, 'public', 'watchTicker', $market, null, $params));
-        }) ();
+        })();
     }
 
-    public function un_watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              *
-             * @see https://doc.xt.com/#websocket_publictickerRealTime
-             * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
-             * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+             * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+             * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $options = $this->safe_dict($this->options, 'unWatchTicker');
             $defaultMethod = $this->safe_string($options, 'method', 'ticker');
@@ -325,24 +333,25 @@ class xt extends \ccxt\async\xt {
             $name = $method . '@' . $market['id'];
             $messageHash = 'unsubscribe::' . $name;
             return Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchTicker', $defaultMethod, $market, null, $params));
-        }) ();
+        })();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              *
-             * @see https://doc.xt.com/#websocket_publicallTicker
-             * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
-             * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+             * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+             * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
              *
              * @param {string} [$symbols] unified $market $symbols
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $options = $this->safe_dict($this->options, 'watchTickers');
             $defaultMethod = $this->safe_string($options, 'method', 'tickers');
             $name = $this->safe_string($params, 'method', $defaultMethod);
@@ -355,24 +364,25 @@ class xt extends \ccxt\async\xt {
                 return $tickers;
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function un_watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              *
-             * @see https://doc.xt.com/#websocket_publicallTicker
-             * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
-             * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+             * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+             * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
              *
              * @param {string} [$symbols] unified market $symbols
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $options = $this->safe_dict($this->options, 'unWatchTickers');
             $defaultMethod = $this->safe_string($options, 'method', 'tickers');
             $name = $this->safe_string($params, 'method', $defaultMethod);
@@ -385,119 +395,129 @@ class xt extends \ccxt\async\xt {
                 return $tickers;
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              *
-             * @see https://doc.xt.com/#websocket_publicsymbolKline
-             * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
+             * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Kline
+             * @see https://doc.xt.com/docs/futures/WebsocKetV2/Kline
              *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
              * @param {int} [$since] not used by xt watchOHLCV
              * @param {int} [$limit] not used by xt watchOHLCV
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $name = 'kline@' . $market['id'] . ',' . $timeframe;
             $ohlcv = Async\await($this->subscribe($name, 'public', 'watchOHLCV', $market, null, $params));
             if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit ($symbol, $limit);
+                $limit = $ohlcv->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        }) ();
+        })();
     }
 
-    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()): PromiseInterface {
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $params) {
             /**
              * stops watching historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              *
-             * @see https://doc.xt.com/#websocket_publicsymbolKline
-             * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
+             * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Kline
+             * @see https://doc.xt.com/docs/futures/WebsocKetV2/Kline
              *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $name = 'kline@' . $market['id'] . ',' . $timeframe;
             $messageHash = 'unsubscribe::' . $name;
-            $symbolsAndTimeframes = [ [ $market['symbol'], $timeframe ] ];
+            $symbolsAndTimeframes = array( array( $market['symbol'], $timeframe ) );
             return Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchOHLCV', 'ohlcv', $market, array( $symbol ), $params, array( 'symbolsAndTimeframes' => $symbolsAndTimeframes )));
-        }) ();
+        })();
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
              *
-             * @see https://doc.xt.com/#websocket_publicdealRecord
-             * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
+             * @see https://doc.xt.com/docs/spot/WebSocket%20Public/TradeRecord
+             * @see https://doc.xt.com/docs/futures/WebsocKetV2/TradeRecord
              *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $name = 'trade@' . $market['id'];
             $trades = Async\await($this->subscribe($name, 'public', 'watchTrades', $market, null, $params));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
-        }) ();
+        })();
     }
 
-    public function un_watch_trades(string $symbol, $params = array ()): PromiseInterface {
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * stops watching the list of most recent trades for a particular $symbol
              *
-             * @see https://doc.xt.com/#websocket_publicdealRecord
-             * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
+             * @see https://doc.xt.com/docs/spot/WebSocket%20Public/TradeRecord
+             * @see https://doc.xt.com/docs/futures/WebsocKetV2/TradeRecord
              *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $name = 'trade@' . $market['id'];
             $messageHash = 'unsubscribe::' . $name;
             return Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchTrades', 'trades', $market, array( $symbol ), $params));
-        }) ();
+        })();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              *
-             * @see https://doc.xt.com/#websocket_publiclimitDepth
-             * @see https://doc.xt.com/#websocket_publicincreDepth
-             * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
-             * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
+             * @see https://doc.xt.com/docs/spot/WebSocket%20Public/LimitedDepth
+             * @see https://doc.xt.com/docs/spot/WebSocket%20Public/IncrementalDepth
+             * @see https://doc.xt.com/docs/futures/WebsocKetV2/LimitedDepth
+             * @see https://doc.xt.com/docs/futures/WebsocKetV2/IncrementalDepth
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] not used by xt watchOrderBook
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {int} [$params->levels] 5, 10, 20, or 50
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $levels = $this->safe_string($params, 'levels');
             $params = $this->omit($params, 'levels');
@@ -506,26 +526,28 @@ class xt extends \ccxt\async\xt {
                 $name = 'depth@' . $market['id'] . ',' . $levels;
             }
             $orderbook = Async\await($this->subscribe($name, 'public', 'watchOrderBook', $market, null, $params));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
-    public function un_watch_order_book(string $symbol, $params = array ()): PromiseInterface {
+    public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * stops watching information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              *
-             * @see https://doc.xt.com/#websocket_publiclimitDepth
-             * @see https://doc.xt.com/#websocket_publicincreDepth
-             * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
-             * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
+             * @see https://doc.xt.com/docs/spot/WebSocket%20Public/LimitedDepth
+             * @see https://doc.xt.com/docs/spot/WebSocket%20Public/IncrementalDepth
+             * @see https://doc.xt.com/docs/futures/WebsocKetV2/LimitedDepth
+             * @see https://doc.xt.com/docs/futures/WebsocKetV2/IncrementalDepth
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {int} [$params->levels] 5, 10, 20, or 50
              * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $levels = $this->safe_string($params, 'levels');
             $params = $this->omit($params, 'levels');
@@ -535,24 +557,26 @@ class xt extends \ccxt\async\xt {
             }
             $messageHash = 'unsubscribe::' . $name;
             return Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchOrderBook', 'orderbook', $market, array( $symbol ), $params));
-        }) ();
+        })();
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
              *
-             * @see https://doc.xt.com/#websocket_privateorderChange
-             * @see https://doc.xt.com/#futures_user_websocket_v2order
+             * @see https://doc.xt.com/docs/spot/WebSocket%20Private/OrderChange
+             * @see https://doc.xt.com/docs/futures/UserWebsocket/UserOrder
              *
              * @param {string} [$symbol] unified $market $symbol
              * @param {int} [$since] not used by xt watchOrders
              * @param {int} [$limit] the maximum number of $orders to return
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'order';
             $market = null;
             if ($symbol !== null) {
@@ -560,27 +584,29 @@ class xt extends \ccxt\async\xt {
             }
             $orders = Async\await($this->subscribe($name, 'private', 'watchOrders', $market, null, $params));
             if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
+                $limit = $orders->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp');
-        }) ();
+        })();
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
              *
-             * @see https://doc.xt.com/#websocket_privateorderDeal
-             * @see https://doc.xt.com/#futures_user_websocket_v2trade
+             * @see https://doc.xt.com/docs/spot/WebSocket%20Private/OrderFilled
+             * @see https://doc.xt.com/docs/futures/UserWebsocket/Transactions
              *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the kucoin api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'trade';
             $market = null;
             if ($symbol !== null) {
@@ -588,34 +614,36 @@ class xt extends \ccxt\async\xt {
             }
             $trades = Async\await($this->subscribe($name, 'private', 'watchMyTrades', $market, null, $params));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
-        }) ();
+        })();
     }
 
-    public function watch_balance($params = array ()): PromiseInterface {
+    public function watch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watches information on multiple orders made by the user
              *
-             * @see https://doc.xt.com/#websocket_privatebalanceChange
-             * @see https://doc.xt.com/#futures_user_websocket_v2balance
+             * @see https://doc.xt.com/docs/spot/WebSocket%20Private/BalanceChange
+             * @see https://doc.xt.com/docs/futures/UserWebsocket/BalanceChange
              *
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=balance-structure balance structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'balance';
             return Async\await($this->subscribe($name, 'private', 'watchBalance', null, null, $params));
-        }) ();
+        })();
     }
 
-    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              *
-             * @see https://doc.xt.com/#futures_user_websocket_v2position
+             * @see https://doc.xt.com/docs/futures/UserWebsocket/ChangePosition
              *
              * watch all open positions
              * @param {string[]|null} $symbols list of unified market $symbols
@@ -624,7 +652,9 @@ class xt extends \ccxt\async\xt {
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws']['contract'] . '/' . 'user';
             $client = $this->client($url);
             $this->set_positions_cache($client);
@@ -632,7 +662,7 @@ class xt extends \ccxt\async\xt {
             $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
             $cache = $this->positions;
             if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->is_empty($cache)) {
-                $snapshot = Async\await($client->future ('fetchPositionsSnapshot'));
+                $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
                 return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
             }
             $name = 'position';
@@ -641,45 +671,124 @@ class xt extends \ccxt\async\xt {
                 return $newPositions;
             }
             return $this->filter_by_symbols_since_limit($cache, $symbols, $since, $limit, true);
-        }) ();
+        })();
+    }
+
+    public function watch_funding_rate(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * watch the current funding rate
+             *
+             * @see https://doc.xt.com/docs/futures/WebsocKetV2/FundRate
+             *
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+             */
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $market = $this->market($symbol);
+            if (!$market['swap']) {
+                throw new BadSymbol($this->id . ' watchFundingRate() supports swap contracts only');
+            }
+            $name = 'fund_rate@' . $market['id'];
+            return Async\await($this->subscribe($name, 'public', 'watchFundingRate', $market, null, $params));
+        })();
+    }
+
+    public function un_watch_funding_rate(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * stops watching the funding rate
+             *
+             * @see https://doc.xt.com/docs/futures/WebsocKetV2/FundRate
+             *
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+             */
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $market = $this->market($symbol);
+            if (!$market['swap']) {
+                throw new BadSymbol($this->id . ' unWatchFundingRate() supports swap contracts only');
+            }
+            $name = 'fund_rate@' . $market['id'];
+            $messageHash = 'unsubscribe::' . $name;
+            return Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchFundingRate', 'fund_rate', $market, null, $params));
+        })();
+    }
+
+    public function handle_funding_rate(Client $client, array $message) {
+        //
+        //     {
+        //         "topic" => "fund_rate",
+        //         "event" => "fund_rate@btc_usdt",
+        //         "data" => {
+        //             "s" => "btc_usdt",  // $symbol
+        //             "r" => "0.01",      // funding rate
+        //             "t" => 123124124    // $timestamp
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($message, 'data');
+        $marketId = $this->safe_string($data, 's');
+        if ($marketId !== null) {
+            $raw = array(
+                'symbol' => $marketId,
+                'fundingRate' => $this->safe_string($data, 'r'),
+            );
+            $fundingRate = $this->parse_funding_rate($raw);
+            $timestamp = $this->safe_integer($data, 't');
+            $fundingRate['timestamp'] = $timestamp;
+            $fundingRate['datetime'] = $this->iso8601($timestamp);
+            $symbol = $fundingRate['symbol'];
+            $this->fundingRates[$symbol] = $fundingRate;
+            $event = $this->safe_string($message, 'event');
+            $messageHash = $event . '::contract';
+            $client->resolve($fundingRate, $messageHash);
+        }
+        return $message;
     }
 
     public function set_positions_cache(Client $client) {
         if ($this->positions === null) {
-            $this->positions = new ArrayCacheBySymbolBySide ();
+            $this->positions = new ArrayCacheBySymbolBySide();
         }
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot');
         if ($fetchPositionsSnapshot) {
             $messageHash = 'fetchPositionsSnapshot';
-            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
-                $client->future ($messageHash);
+            if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
+                $client->future($messageHash);
                 $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash);
             }
         }
     }
 
-    public function load_positions_snapshot($client, $messageHash) {
+    public function load_positions_snapshot(Client $client, mixed $messageHash) {
         return Async\async(function () use ($client, $messageHash) {
-            $positions = Async\await($this->fetch_positions(null));
-            $this->positions = new ArrayCacheBySymbolBySide ();
+            $positions = Async\await($this->fetch_positions());
+            $this->positions = new ArrayCacheBySymbolBySide();
             $cache = $this->positions;
             for ($i = 0; $i < count($positions); $i++) {
                 $position = $positions[$i];
                 $contracts = $this->safe_number($position, 'contracts', 0);
-                if ($contracts > 0) {
-                    $cache->append ($position);
+                if (($contracts !== null) && ($contracts > 0)) {
+                    $cache->append($position);
                 }
             }
             // don't remove the $future from the .futures $cache
-            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
                 $future = $client->futures[$messageHash];
-                $future->resolve ($cache);
-                $client->resolve ($cache, 'position::contract');
+                $future->resolve($cache);
+                $client->resolve($cache, 'position::contract');
             }
-        }) ();
+        })();
     }
 
-    public function handle_position($client, $message) {
+    public function handle_position(mixed $client, mixed $message) {
         //
         //    {
         //      topic => 'position',
@@ -711,12 +820,12 @@ class xt extends \ccxt\async\xt {
         //    }
         //
         if ($this->positions === null) {
-            $this->positions = new ArrayCacheBySymbolBySide ();
+            $this->positions = new ArrayCacheBySymbolBySide();
         }
         $cache = $this->positions;
         $data = $this->safe_dict($message, 'data', array());
         $position = $this->parse_position($data);
-        $cache->append ($position);
+        $cache->append($position);
         $messageHashes = $this->find_message_hashes($client, 'position::contract');
         for ($i = 0; $i < count($messageHashes); $i++) {
             $messageHash = $messageHashes[$i];
@@ -725,10 +834,10 @@ class xt extends \ccxt\async\xt {
             $symbols = explode(',', $symbolsString);
             $positions = $this->filter_by_array(array( $position ), 'symbol', $symbols, false);
             if (!$this->is_empty($positions)) {
-                $client->resolve ($positions, $messageHash);
+                $client->resolve($positions, $messageHash);
             }
         }
-        $client->resolve (array( $position ), 'position::contract');
+        $client->resolve(array( $position ), 'position::contract');
     }
 
     public function handle_ticker(Client $client, array $message) {
@@ -799,11 +908,13 @@ class xt extends \ccxt\async\xt {
             $isSpot = $cv !== null;
             $ticker = $this->parse_ticker($data);
             $symbol = $ticker['symbol'];
-            $this->tickers[$symbol] = $ticker;
+            if ($symbol !== null) {
+                $this->tickers[$symbol] = $ticker;
+            }
             $event = $this->safe_string($message, 'event');
             $messageHashTail = $isSpot ? 'spot' : 'contract';
             $messageHash = $event . '::' . $messageHashTail;
-            $client->resolve ($ticker, $messageHash);
+            $client->resolve($ticker, $messageHash);
         }
         return $message;
     }
@@ -885,7 +996,9 @@ class xt extends \ccxt\async\xt {
             $tickerData = $data[$i];
             $ticker = $this->parse_ticker($tickerData);
             $symbol = $ticker['symbol'];
-            $this->tickers[$symbol] = $ticker;
+            if ($symbol !== null) {
+                $this->tickers[$symbol] = $ticker;
+            }
             $newTickers[] = $ticker;
         }
         $messageHashStart = $this->safe_string($message, 'topic') . '::' . $tradeType;
@@ -899,10 +1012,10 @@ class xt extends \ccxt\async\xt {
             $tickersSymbols = is_array($tickers) ? array_keys($tickers) : array();
             $numTickers = count($tickersSymbols);
             if ($numTickers > 0) {
-                $client->resolve ($tickers, $messageHash);
+                $client->resolve($tickers, $messageHash);
             }
         }
-        $client->resolve ($this->tickers, $messageHashStart);
+        $client->resolve($this->tickers, $messageHashStart);
         return $message;
     }
 
@@ -947,8 +1060,8 @@ class xt extends \ccxt\async\xt {
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
         if ($marketId !== null) {
-            $timeframe = $this->safe_string($data, 'i');
-            $tradeType = (is_array($data) && array_key_exists('q', $data)) ? 'spot' : 'contract';
+            $timeframe = $this->safe_string($data, 'i', '');
+            $tradeType = (is_array($data) && array_key_exists('q' ?? '', $data)) ? 'spot' : 'contract';
             $market = $this->safe_market($marketId, null, null, $tradeType);
             $symbol = $market['symbol'];
             $parsed = $this->parse_ohlcv($data, $market);
@@ -956,13 +1069,13 @@ class xt extends \ccxt\async\xt {
             $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                $stored = new ArrayCacheByTimestamp ($limit);
+                $stored = new ArrayCacheByTimestamp($limit);
                 $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
-            $stored->append ($parsed);
+            $stored->append($parsed);
             $event = $this->safe_string($message, 'event');
             $messageHash = $event . '::' . $tradeType;
-            $client->resolve ($stored, $messageHash);
+            $client->resolve($stored, $messageHash);
         }
         return $message;
     }
@@ -1010,12 +1123,12 @@ class xt extends \ccxt\async\xt {
             $tradesArray = $this->safe_value($this->trades, $symbol);
             if ($tradesArray === null) {
                 $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-                $tradesArray = new ArrayCache ($tradesLimit);
+                $tradesArray = new ArrayCache($tradesLimit);
                 $this->trades[$symbol] = $tradesArray;
             }
-            $tradesArray->append ($trade);
+            $tradesArray->append($trade);
             $messageHash = $event . '::' . $tradeType;
-            $client->resolve ($tradesArray, $messageHash);
+            $client->resolve($tradesArray, $messageHash);
         }
         return $message;
     }
@@ -1031,16 +1144,16 @@ class xt extends \ccxt\async\xt {
         //            "s" => "btc_usdt",        // $symbol
         //            "fi" => 1681433733351,    // firstUpdateId = previous lastUpdateId + 1
         //            "i" => 1681433733371,     // updateId
-        //            "a" => [                  // $asks(sell order)
-        //                [                   // [0]$price, [1]$quantity
+        //            "a" => array(                  // $asks(sell order)
+        //                array(                   // [0]$price, [1]$quantity
         //                    "34000",        // $price
         //                    "1.2"           // $quantity
-        //                ],
+        //                ),
         //                array(
         //                    "34001",
         //                    "2.3"
         //                )
-        //            ],
+        //            ),
         //            "b" => array(                   // $bids(buy order)
         //                array(
         //                    "32000",
@@ -1083,16 +1196,19 @@ class xt extends \ccxt\async\xt {
         $data = $this->safe_dict($message, 'data');
         $marketId = $this->safe_string($data, 's');
         if ($marketId !== null) {
-            $event = $this->safe_string($message, 'event');
+            $event = $this->safe_string($message, 'event', '');
             $splitEvent = explode(',', $event);
-            $event = $this->safe_string($splitEvent, 0);
-            $tradeType = (is_array($data) && array_key_exists('fu', $data)) ? 'contract' : 'spot';
+            $event = $this->safe_string($splitEvent, 0, '');
+            $tradeType = 'spot';
+            if (($data !== null) && (is_array($data) && array_key_exists('fu' ?? '', $data))) {
+                $tradeType = 'contract';
+            }
             $market = $this->safe_market($marketId, null, null, $tradeType);
             $symbol = $market['symbol'];
             $obAsks = $this->safe_list($data, 'a');
             $obBids = $this->safe_list($data, 'b');
             $messageHash = $event . '::' . $tradeType;
-            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
                 $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
                 $limit = $this->safe_integer($subscription, 'limit');
                 $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
@@ -1114,7 +1230,7 @@ class xt extends \ccxt\async\xt {
                     $ask = $obAsks[$i];
                     $price = $this->safe_number($ask, 0);
                     $quantity = $this->safe_number($ask, 1);
-                    $asks->store ($price, $quantity);
+                    $asks->store($price, $quantity);
                 }
             }
             if ($obBids !== null) {
@@ -1123,7 +1239,7 @@ class xt extends \ccxt\async\xt {
                     $bid = $obBids[$i];
                     $price = $this->safe_number($bid, 0);
                     $quantity = $this->safe_number($bid, 1);
-                    $bids->store ($price, $quantity);
+                    $bids->store($price, $quantity);
                 }
             }
             $timestamp = $this->safe_integer($data, 't');
@@ -1131,7 +1247,7 @@ class xt extends \ccxt\async\xt {
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601($timestamp);
             $orderbook['symbol'] = $symbol;
-            $client->resolve ($orderbook, $messageHash);
+            $client->resolve($orderbook, $messageHash);
         }
     }
 
@@ -1169,7 +1285,7 @@ class xt extends \ccxt\async\xt {
         //    }
         //
         $marketId = $this->safe_string($trade, 's');
-        $tradeType = (is_array($trade) && array_key_exists('symbol', $trade)) ? 'contract' : 'spot';
+        $tradeType = (is_array($trade) && array_key_exists('symbol' ?? '', $trade)) ? 'contract' : 'spot';
         $market = $this->safe_market($marketId, $market, null, $tradeType);
         $timestamp = $this->safe_string($trade, 't');
         return $this->safe_trade(array(
@@ -1237,7 +1353,7 @@ class xt extends \ccxt\async\xt {
         //    }
         //
         $marketId = $this->safe_string_2($order, 's', 'symbol');
-        $tradeType = (is_array($order) && array_key_exists('symbol', $order)) ? 'contract' : 'spot';
+        $tradeType = (is_array($order) && array_key_exists('symbol' ?? '', $order)) ? 'contract' : 'spot';
         $market = $this->safe_market($marketId, $market, null, $tradeType);
         $timestamp = $this->safe_integer_2($order, 'ct', 'createTime');
         return $this->safe_order(array(
@@ -1316,17 +1432,17 @@ class xt extends \ccxt\async\xt {
         $orders = $this->orders;
         if ($orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit');
-            $orders = new ArrayCacheBySymbolById ($limit);
+            $orders = new ArrayCacheBySymbolById($limit);
             $this->orders = $orders;
         }
         $order = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string_2($order, 's', 'symbol');
         if ($marketId !== null) {
-            $tradeType = (is_array($order) && array_key_exists('symbol', $order)) ? 'contract' : 'spot';
+            $tradeType = (is_array($order) && array_key_exists('symbol' ?? '', $order)) ? 'contract' : 'spot';
             $market = $this->safe_market($marketId, null, null, $tradeType);
             $parsed = $this->parse_ws_order($order, $market);
-            $orders->append ($parsed);
-            $client->resolve ($orders, 'order::' . $tradeType);
+            $orders->append($parsed);
+            $client->resolve($orders, 'order::' . $tradeType);
         }
         return $message;
     }
@@ -1373,10 +1489,12 @@ class xt extends \ccxt\async\xt {
         $account['free'] = $this->safe_string($data, 'availableBalance');
         $account['used'] = $this->safe_string($data, 'f');
         $account['total'] = $this->safe_string_2($data, 'b', 'walletBalance');
-        $this->balance[$code] = $account;
+        if ($code !== null) {
+            $this->balance[$code] = $account;
+        }
         $this->balance = $this->safe_balance($this->balance);
-        $tradeType = (is_array($data) && array_key_exists('coin', $data)) ? 'contract' : 'spot';
-        $client->resolve ($this->balance, 'balance::' . $tradeType);
+        $tradeType = (is_array($data) && array_key_exists('coin' ?? '', $data)) ? 'contract' : 'spot';
+        $client->resolve($this->balance, 'balance::' . $tradeType);
     }
 
     public function handle_my_trades(Client $client, array $message) {
@@ -1418,20 +1536,24 @@ class xt extends \ccxt\async\xt {
         $stored = $this->myTrades;
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = new ArrayCacheBySymbolById ($limit);
+            $stored = new ArrayCacheBySymbolById($limit);
             $this->myTrades = $stored;
         }
         $parsedTrade = $this->parse_trade($data);
-        $market = $this->market($parsedTrade['symbol']);
-        $stored->append ($parsedTrade);
+        $tradeSymbol = $parsedTrade['symbol'];
+        if ($tradeSymbol === null) {
+            return;
+        }
+        $market = $this->market($tradeSymbol);
+        $stored->append($parsedTrade);
         $tradeType = $market['contract'] ? 'contract' : 'spot';
-        $client->resolve ($stored, 'trade::' . $tradeType);
+        $client->resolve($stored, 'trade::' . $tradeType);
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         $event = $this->safe_string($message, 'event');
         if ($event === 'pong') {
-            $client->onPong ();
+            $client->onPong();
         } elseif ($event !== null) {
             $topic = $this->safe_string($message, 'topic');
             $methods = array(
@@ -1445,11 +1567,12 @@ class xt extends \ccxt\async\xt {
                 'balance' => array($this, 'handle_balance'),
                 'order' => array($this, 'handle_order'),
                 'position' => array($this, 'handle_position'),
+                'fund_rate' => array($this, 'handle_funding_rate'),
             );
-            $method = $this->safe_value($methods, $topic);
+            $method = ($topic === null) ? null : $this->safe_value($methods, $topic);
             if ($topic === 'trade') {
                 $data = $this->safe_dict($message, 'data');
-                if ((is_array($data) && array_key_exists('oi', $data)) || (is_array($data) && array_key_exists('orderId', $data))) {
+                if (($data !== null) && ((is_array($data) && array_key_exists('oi' ?? '', $data)) || (is_array($data) && array_key_exists('orderId' ?? '', $data)))) {
                     $method = array($this, 'handle_my_trades');
                 } else {
                     $method = array($this, 'handle_trade');
@@ -1468,7 +1591,7 @@ class xt extends \ccxt\async\xt {
         return 'ping';
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
         //         $id => '1763045665228ticker@eth_usdt',
@@ -1522,6 +1645,6 @@ class xt extends \ccxt\async\xt {
             $this->get_listen_key(true);
             return;
         }
-        $client->reject ($message);
+        $client->reject($message);
     }
 }

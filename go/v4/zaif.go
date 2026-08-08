@@ -80,7 +80,7 @@ func (this *ZaifCore) Describe() any {
 			"withdraw":                   true,
 		},
 		"urls": map[string]any{
-			"logo": "https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg",
+			"logo": "https://github.com/user-attachments/assets/c6c97d18-5bde-46ed-8eb1-85404d36150e",
 			"api": map[string]any{
 				"rest": "https://api.zaif.jp",
 			},
@@ -98,56 +98,124 @@ func (this *ZaifCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"depth/{pair}":          1,
-					"currencies/{pair}":     1,
-					"currencies/all":        1,
-					"currency_pairs/{pair}": 1,
-					"currency_pairs/all":    1,
-					"last_price/{pair}":     1,
-					"ticker/{pair}":         1,
-					"trades/{pair}":         1,
+					"depth/{pair}": map[string]any{
+						"cost": 1,
+					},
+					"currencies/{pair}": map[string]any{
+						"cost": 1,
+					},
+					"currencies/all": map[string]any{
+						"cost": 1,
+					},
+					"currency_pairs/{pair}": map[string]any{
+						"cost": 1,
+					},
+					"currency_pairs/all": map[string]any{
+						"cost": 1,
+					},
+					"last_price/{pair}": map[string]any{
+						"cost": 1,
+					},
+					"ticker/{pair}": map[string]any{
+						"cost": 1,
+					},
+					"trades/{pair}": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"post": map[string]any{
-					"active_orders":     5,
-					"cancel_order":      5,
-					"deposit_history":   5,
-					"get_id_info":       5,
-					"get_info":          10,
-					"get_info2":         5,
-					"get_personal_info": 5,
-					"trade":             5,
-					"trade_history":     50,
-					"withdraw":          5,
-					"withdraw_history":  5,
+					"active_orders": map[string]any{
+						"cost": 5,
+					},
+					"cancel_order": map[string]any{
+						"cost": 5,
+					},
+					"deposit_history": map[string]any{
+						"cost": 5,
+					},
+					"get_id_info": map[string]any{
+						"cost": 5,
+					},
+					"get_info": map[string]any{
+						"cost": 10,
+					},
+					"get_info2": map[string]any{
+						"cost": 5,
+					},
+					"get_personal_info": map[string]any{
+						"cost": 5,
+					},
+					"trade": map[string]any{
+						"cost": 5,
+					},
+					"trade_history": map[string]any{
+						"cost": 50,
+					},
+					"withdraw": map[string]any{
+						"cost": 5,
+					},
+					"withdraw_history": map[string]any{
+						"cost": 5,
+					},
 				},
 			},
 			"ecapi": map[string]any{
 				"post": map[string]any{
-					"createInvoice":              1,
-					"getInvoice":                 1,
-					"getInvoiceIdsByOrderNumber": 1,
-					"cancelInvoice":              1,
+					"createInvoice": map[string]any{
+						"cost": 1,
+					},
+					"getInvoice": map[string]any{
+						"cost": 1,
+					},
+					"getInvoiceIdsByOrderNumber": map[string]any{
+						"cost": 1,
+					},
+					"cancelInvoice": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"tlapi": map[string]any{
 				"post": map[string]any{
-					"get_positions":    66,
-					"position_history": 66,
-					"active_positions": 5,
-					"create_position":  33,
-					"change_position":  33,
-					"cancel_position":  33,
+					"get_positions": map[string]any{
+						"cost": 66,
+					},
+					"position_history": map[string]any{
+						"cost": 66,
+					},
+					"active_positions": map[string]any{
+						"cost": 5,
+					},
+					"create_position": map[string]any{
+						"cost": 33,
+					},
+					"change_position": map[string]any{
+						"cost": 33,
+					},
+					"cancel_position": map[string]any{
+						"cost": 33,
+					},
 				},
 			},
 			"fapi": map[string]any{
 				"get": map[string]any{
-					"groups/{group_id}":            1,
-					"last_price/{group_id}/{pair}": 1,
-					"ticker/{group_id}/{pair}":     1,
-					"trades/{group_id}/{pair}":     1,
-					"depth/{group_id}/{pair}":      1,
+					"groups/{group_id}": map[string]any{
+						"cost": 1,
+					},
+					"last_price/{group_id}/{pair}": map[string]any{
+						"cost": 1,
+					},
+					"ticker/{group_id}/{pair}": map[string]any{
+						"cost": 1,
+					},
+					"trades/{group_id}/{pair}": map[string]any{
+						"cost": 1,
+					},
+					"depth/{group_id}/{pair}": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -268,13 +336,16 @@ func (this *ZaifCore) FetchMarkets(optionalArgs ...any) <-chan any {
 func (this *ZaifCore) ParseMarket(market any) any {
 	var id any = this.SafeString(market, "currency_pair")
 	var name any = this.SafeString(market, "name")
+	if IsTrue(IsEqual(name, nil)) {
+		panic(ExchangeError(Add(this.Id, " parseMarket() missing name")))
+	}
 	baseIdquoteIdVariable := Split(name, "/")
 	baseId := GetValue(baseIdquoteIdVariable, 0)
 	quoteId := GetValue(baseIdquoteIdVariable, 1)
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
 	var symbol any = Add(Add(base, "/"), quote)
-	return map[string]any{
+	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         symbol,
 		"base":           base,
@@ -322,7 +393,7 @@ func (this *ZaifCore) ParseMarket(market any) any {
 		},
 		"created": nil,
 		"info":    market,
-	}
+	})
 }
 func (this *ZaifCore) ParseBalance(response any) any {
 	var balances any = this.SafeValue(response, "return", map[string]any{})
@@ -346,7 +417,9 @@ func (this *ZaifCore) ParseBalance(response any) any {
 				AddElementToObject(account, "total", this.SafeString(deposit, currencyId))
 			}
 		}
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -366,9 +439,11 @@ func (this *ZaifCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes3608 := (<-this.LoadMarkets())
-		PanicOnError(retRes3608)
+			retRes36612 := (<-this.LoadMarkets())
+			PanicOnError(retRes36612)
+		}
 
 		response := (<-this.PrivatePostGetInfo(params))
 		PanicOnError(response)
@@ -388,7 +463,7 @@ func (this *ZaifCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *ZaifCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -399,9 +474,11 @@ func (this *ZaifCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes3768 := (<-this.LoadMarkets())
-		PanicOnError(retRes3768)
+			retRes38412 := (<-this.LoadMarkets())
+			PanicOnError(retRes38412)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -475,9 +552,11 @@ func (this *ZaifCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes4368 := (<-this.LoadMarkets())
-		PanicOnError(retRes4368)
+			retRes44612 := (<-this.LoadMarkets())
+			PanicOnError(retRes44612)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -565,9 +644,11 @@ func (this *ZaifCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5068 := (<-this.LoadMarkets())
-		PanicOnError(retRes5068)
+			retRes51812 := (<-this.LoadMarkets())
+			PanicOnError(retRes51812)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -587,15 +668,16 @@ func (this *ZaifCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		//          }, ...
 		//      ]
 		//
-		var numTrades any = GetArrayLength(response)
+		var trades any = this.ToArray(response)
+		var numTrades any = GetArrayLength(trades)
 		if IsTrue(IsEqual(numTrades, 1)) {
-			var firstTrade any = GetValue(response, 0)
+			var firstTrade any = this.SafeDict(trades, 0, map[string]any{})
 			if !IsTrue(GetArrayLength(ObjectKeys(firstTrade))) {
-				response = []any{}
+				trades = []any{}
 			}
 		}
 
-		ch <- this.ParseTrades(response, market, since, limit)
+		ch <- this.ParseTrades(trades, market, since, limit)
 		return nil
 
 	}()
@@ -624,9 +706,11 @@ func (this *ZaifCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5488 := (<-this.LoadMarkets())
-		PanicOnError(retRes5488)
+			retRes56312 := (<-this.LoadMarkets())
+			PanicOnError(retRes56312)
+		}
 		if IsTrue(!IsEqual(typeVar, "limit")) {
 			panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
 		}
@@ -640,10 +724,11 @@ func (this *ZaifCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 
 		response := (<-this.PrivatePostTrade(this.Extend(request, params)))
 		PanicOnError(response)
+		var data any = this.SafeDict(response, "return", map[string]any{})
 
 		ch <- this.SafeOrder(map[string]any{
 			"info": response,
-			"id":   ToString(GetValue(GetValue(response, "return"), "order_id")),
+			"id":   ToString(GetValue(data, "order_id")),
 		}, market)
 		return nil
 
@@ -657,7 +742,7 @@ func (this *ZaifCore) CreateOrder(symbol any, typeVar any, side any, amount any,
  * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id37
  * @description cancels an open order
  * @param {string} id order id
- * @param {string} symbol not used by zaif cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -690,7 +775,7 @@ func (this *ZaifCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		//        }
 		//    }
 		//
-		var data any = this.SafeDict(response, "return")
+		var data any = this.SafeDict(response, "return", map[string]any{})
 
 		ch <- this.ParseOrder(data)
 		return nil
@@ -780,9 +865,11 @@ func (this *ZaifCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6678 := (<-this.LoadMarkets())
-		PanicOnError(retRes6678)
+			retRes68512 := (<-this.LoadMarkets())
+			PanicOnError(retRes68512)
+		}
 		var market any = nil
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -792,8 +879,9 @@ func (this *ZaifCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 
 		response := (<-this.PrivatePostActiveOrders(this.Extend(request, params)))
 		PanicOnError(response)
+		var data any = this.SafeDict(response, "return", map[string]any{})
 
-		ch <- this.ParseOrders(GetValue(response, "return"), market, since, limit)
+		ch <- this.ParseOrders(data, market, since, limit)
 		return nil
 
 	}()
@@ -824,9 +912,11 @@ func (this *ZaifCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6938 := (<-this.LoadMarkets())
-		PanicOnError(retRes6938)
+			retRes71412 := (<-this.LoadMarkets())
+			PanicOnError(retRes71412)
+		}
 		var market any = nil
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -836,8 +926,9 @@ func (this *ZaifCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 
 		response := (<-this.PrivatePostTradeHistory(this.Extend(request, params)))
 		PanicOnError(response)
+		var data any = this.SafeDict(response, "return", map[string]any{})
 
-		ch <- this.ParseOrders(GetValue(response, "return"), market, since, limit)
+		ch <- this.ParseOrders(data, market, since, limit)
 		return nil
 
 	}()
@@ -869,9 +960,11 @@ func (this *ZaifCore) Withdraw(code any, amount any, address any, optionalArgs .
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes7288 := (<-this.LoadMarkets())
-		PanicOnError(retRes7288)
+			retRes75212 := (<-this.LoadMarkets())
+			PanicOnError(retRes75212)
+		}
 		var currency any = this.Currency(code)
 		if IsTrue(IsEqual(code, "JPY")) {
 			panic(ExchangeError(Add(Add(Add(this.Id, " withdraw() does not allow "), code), " withdrawals")))
@@ -903,7 +996,7 @@ func (this *ZaifCore) Withdraw(code any, amount any, address any, optionalArgs .
 		//         }
 		//     }
 		//
-		var returnData any = this.SafeDict(result, "return")
+		var returnData any = this.SafeDict(result, "return", map[string]any{})
 
 		ch <- this.ParseTransaction(returnData, currency)
 		return nil

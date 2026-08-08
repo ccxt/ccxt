@@ -1,9 +1,5 @@
-- [Create Orders Example](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
-// AUTO-TRANSPILE //
+```javascript
+import ccxt from '../../js/ccxt.js';
 async function example() {
     const exchange = new ccxt.binance({
         'apiKey': 'MY_API_KEY',
@@ -19,5 +15,5 @@ async function example() {
     console.log(orders);
 }
 await example();
- 
+
 ```

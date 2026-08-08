@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinone import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Currencies, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -140,87 +140,87 @@ class coinone(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'orderbook',
-                        'ticker',
-                        'ticker_utc',
-                        'trades',
-                    ],
+                    'get': {
+                        'orderbook': {'cost': 1},
+                        'ticker': {'cost': 1},
+                        'ticker_utc': {'cost': 1},
+                        'trades': {'cost': 1},
+                    },
                 },
                 'v2Public': {
-                    'get': [
-                        'range_units',
-                        'markets/{quote_currency}',
-                        'markets/{quote_currency}/{target_currency}',
-                        'orderbook/{quote_currency}/{target_currency}',
-                        'trades/{quote_currency}/{target_currency}',
-                        'ticker_new/{quote_currency}',
-                        'ticker_new/{quote_currency}/{target_currency}',
-                        'ticker_utc_new/{quote_currency}',
-                        'ticker_utc_new/{quote_currency}/{target_currency}',
-                        'currencies',
-                        'currencies/{currency}',
-                        'chart/{quote_currency}/{target_currency}',
-                    ],
+                    'get': {
+                        'range_units': {'cost': 1},
+                        'markets/{quote_currency}': {'cost': 1},
+                        'markets/{quote_currency}/{target_currency}': {'cost': 1},
+                        'orderbook/{quote_currency}/{target_currency}': {'cost': 1},
+                        'trades/{quote_currency}/{target_currency}': {'cost': 1},
+                        'ticker_new/{quote_currency}': {'cost': 1},
+                        'ticker_new/{quote_currency}/{target_currency}': {'cost': 1},
+                        'ticker_utc_new/{quote_currency}': {'cost': 1},
+                        'ticker_utc_new/{quote_currency}/{target_currency}': {'cost': 1},
+                        'currencies': {'cost': 1},
+                        'currencies/{currency}': {'cost': 1},
+                        'chart/{quote_currency}/{target_currency}': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'post': [
-                        'account/deposit_address',
-                        'account/btc_deposit_address',
-                        'account/balance',
-                        'account/daily_balance',
-                        'account/user_info',
-                        'account/virtual_account',
-                        'order/cancel_all',
-                        'order/cancel',
-                        'order/limit_buy',
-                        'order/limit_sell',
-                        'order/complete_orders',
-                        'order/limit_orders',
-                        'order/order_info',
-                        'transaction/auth_number',
-                        'transaction/history',
-                        'transaction/krw/history',
-                        'transaction/btc',
-                        'transaction/coin',
-                    ],
+                    'post': {
+                        'account/deposit_address': {'cost': 1},
+                        'account/btc_deposit_address': {'cost': 1},
+                        'account/balance': {'cost': 1},
+                        'account/daily_balance': {'cost': 1},
+                        'account/user_info': {'cost': 1},
+                        'account/virtual_account': {'cost': 1},
+                        'order/cancel_all': {'cost': 1},
+                        'order/cancel': {'cost': 1},
+                        'order/limit_buy': {'cost': 1},
+                        'order/limit_sell': {'cost': 1},
+                        'order/complete_orders': {'cost': 1},
+                        'order/limit_orders': {'cost': 1},
+                        'order/order_info': {'cost': 1},
+                        'transaction/auth_number': {'cost': 1},
+                        'transaction/history': {'cost': 1},
+                        'transaction/krw/history': {'cost': 1},
+                        'transaction/btc': {'cost': 1},
+                        'transaction/coin': {'cost': 1},
+                    },
                 },
                 'v2Private': {
-                    'post': [
-                        'account/balance',
-                        'account/deposit_address',
-                        'account/user_info',
-                        'account/virtual_account',
-                        'order/cancel',
-                        'order/limit_buy',
-                        'order/limit_sell',
-                        'order/limit_orders',
-                        'order/complete_orders',
-                        'order/query_order',
-                        'transaction/auth_number',
-                        'transaction/btc',
-                        'transaction/history',
-                        'transaction/krw/history',
-                    ],
+                    'post': {
+                        'account/balance': {'cost': 1},
+                        'account/deposit_address': {'cost': 1},
+                        'account/user_info': {'cost': 1},
+                        'account/virtual_account': {'cost': 1},
+                        'order/cancel': {'cost': 1},
+                        'order/limit_buy': {'cost': 1},
+                        'order/limit_sell': {'cost': 1},
+                        'order/limit_orders': {'cost': 1},
+                        'order/complete_orders': {'cost': 1},
+                        'order/query_order': {'cost': 1},
+                        'transaction/auth_number': {'cost': 1},
+                        'transaction/btc': {'cost': 1},
+                        'transaction/history': {'cost': 1},
+                        'transaction/krw/history': {'cost': 1},
+                    },
                 },
                 'v2_1Private': {
-                    'post': [
-                        'account/balance/all',
-                        'account/balance',
-                        'account/trade_fee',
-                        'account/trade_fee/{quote_currency}/{target_currency}',
-                        'order/limit',
-                        'order/cancel',
-                        'order/cancel/all',
-                        'order/open_orders',
-                        'order/open_orders/all',
-                        'order/complete_orders',
-                        'order/complete_orders/all',
-                        'order/info',
-                        'transaction/krw/history',
-                        'transaction/coin/history',
-                        'transaction/coin/withdrawal/limit',
-                    ],
+                    'post': {
+                        'account/balance/all': {'cost': 1},
+                        'account/balance': {'cost': 1},
+                        'account/trade_fee': {'cost': 1},
+                        'account/trade_fee/{quote_currency}/{target_currency}': {'cost': 1},
+                        'order/limit': {'cost': 1},
+                        'order/cancel': {'cost': 1},
+                        'order/cancel/all': {'cost': 1},
+                        'order/open_orders': {'cost': 1},
+                        'order/open_orders/all': {'cost': 1},
+                        'order/complete_orders': {'cost': 1},
+                        'order/complete_orders/all': {'cost': 1},
+                        'order/info': {'cost': 1},
+                        'transaction/krw/history': {'cost': 1},
+                        'transaction/coin/history': {'cost': 1},
+                        'transaction/coin/withdrawal/limit': {'cost': 1},
+                    },
                 },
             },
             'fees': {
@@ -332,39 +332,38 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result: dict = {}
         currencies = self.safe_list(response, 'currencies', [])
-        for i in range(0, len(currencies)):
-            entry = currencies[i]
-            id = self.safe_string(entry, 'symbol')
-            code = self.safe_currency_code(id)
-            isWithdrawEnabled = self.safe_string(entry, 'withdraw_status', '') == 'normal'
-            isDepositEnabled = self.safe_string(entry, 'deposit_status', '') == 'normal'
-            type = 'crypto' if (code != 'KRW') else 'fiat'
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'info': entry,
-                'name': self.safe_string(entry, 'name'),
-                'active': None,
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'fee': self.safe_number(entry, 'withdrawal_fee'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(entry, 'max_precision'))),
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': self.safe_number(entry, 'withdrawal_min_amount'),
-                        'max': None,
-                    },
+        return self.parse_currencies(currencies)
+
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+        id = self.safe_string(rawCurrency, 'symbol')
+        code = self.safe_currency_code(id)
+        isWithdrawEnabled = self.safe_string(rawCurrency, 'withdraw_status', '') == 'normal'
+        isDepositEnabled = self.safe_string(rawCurrency, 'deposit_status', '') == 'normal'
+        type = 'crypto' if (code != 'KRW') else 'fiat'
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'name': self.safe_string(rawCurrency, 'name'),
+            'active': None,
+            'deposit': isDepositEnabled,
+            'withdraw': isWithdrawEnabled,
+            'fee': self.safe_number(rawCurrency, 'withdrawal_fee'),
+            'precision': self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'max_precision'))),
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
                 },
-                'networks': {},
-                'type': type,
-            })
-        return result
+                'withdraw': {
+                    'min': self.safe_number(rawCurrency, 'withdrawal_min_amount'),
+                    'max': None,
+                },
+            },
+            'networks': {},
+            'type': type,
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -375,7 +374,7 @@ class coinone(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        request: dict = {
+        request = {
             'quote_currency': 'KRW',
         }
         response = await self.v2PublicGetTickerNewQuoteCurrency(request)
@@ -473,8 +472,8 @@ class coinone(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response) -> Balances:
-        result: dict = {'info': response}
+    def parse_balance(self, response: Any) -> Balances:
+        result = {'info': response}
         balances = self.omit(response, [
             'errorCode',
             'result',
@@ -488,7 +487,8 @@ class coinone(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(balance, 'avail')
             account['total'] = self.safe_string(balance, 'balance')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -500,7 +500,8 @@ class coinone(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.v2PrivatePostAccountBalance(params)
         return self.parse_balance(response)
 
@@ -513,11 +514,12 @@ class coinone(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'quote_currency': market['quote'],
             'target_currency': market['base'],
         }
@@ -561,9 +563,10 @@ class coinone(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
-        request: dict = {
+        request = {
             'quote_currency': 'KRW',
         }
         market = None
@@ -622,9 +625,10 @@ class coinone(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'quote_currency': market['quote'],
             'target_currency': market['base'],
         }
@@ -797,9 +801,10 @@ class coinone(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'quote_currency': market['quote'],
             'target_currency': market['base'],
         }
@@ -831,33 +836,42 @@ class coinone(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
-        https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+        https://docs.coinone.co.kr/reference/order-v21
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param float price: the price at which the order is to be fulfilled, in units of the quote currency, required for the limit orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        if type != 'limit':
+        orderType = type.upper()  # unified lowercase order types, uppercase exchange-specific overrides accepted as-is
+        orderSide = side.upper()  # unified lowercase order sides, same override rule
+        if orderType != 'LIMIT':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
-        await self.load_markets()
+        if price is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for the limit orders')
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
-            'price': price,
-            'currency': market['id'],
-            'qty': amount,
+        # the v1 order/limit_buy and order/limit_sell endpoints were retired by
+        # the exchange and return 404, the v2.1 order endpoint replaces them,
+        # see https://github.com/ccxt/ccxt/issues/23174
+        request = {
+            'quote_currency': market['quoteId'],
+            'target_currency': market['baseId'],
+            'type': orderType,
+            'side': orderSide,
+            'price': self.price_to_precision(symbol, price),
+            'qty': self.amount_to_precision(symbol, amount),
         }
-        method = 'privatePostOrder' + self.capitalize(type) + self.capitalize(side)
-        response = await getattr(self, method)(self.extend(request, params))
+        response = await self.v2_1PrivatePostOrderLimit(self.extend(request, params))
         #
         #     {
         #         "result": "success",
-        #         "errorCode": "0",
-        #         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
+        #         "error_code": "0",
+        #         "order_id": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         #     }
         #
         return self.parse_order(response, market)
@@ -872,9 +886,10 @@ class coinone(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'order_id': id,
             'currency': market['id'],
         }
@@ -903,7 +918,7 @@ class coinone(Exchange, ImplicitAPI):
         return self.parse_order(response, market)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'live': 'open',
             'partially_filled': 'open',
             'partially_canceled': 'open',
@@ -956,9 +971,9 @@ class coinone(Exchange, ImplicitAPI):
         #         "feeRate": "-0.0015"
         #     }
         #
-        id = self.safe_string(order, 'orderId')
-        baseId = self.safe_string(order, 'baseCurrency')
-        quoteId = self.safe_string(order, 'targetCurrency')
+        id = self.safe_string_2(order, 'orderId', 'order_id')
+        baseId = self.safe_string_2(order, 'baseCurrency', 'target_currency')
+        quoteId = self.safe_string_2(order, 'targetCurrency', 'quote_currency')
         base = None
         quote = None
         if baseId is not None:
@@ -970,13 +985,17 @@ class coinone(Exchange, ImplicitAPI):
             symbol = base + '/' + quote
             market = self.safe_market(symbol, market, '/')
         timestamp = self.safe_timestamp_2(order, 'timestamp', 'updatedAt')
-        side = self.safe_string_2(order, 'type', 'side')
+        if timestamp is None:
+            timestamp = self.safe_integer_2(order, 'ordered_at', 'updated_at')  # v2.1 sends milliseconds
+        side = self.safe_string_lower_2(order, 'type', 'side')
+        if (side == 'limit') or (side == 'market') or (side == 'stop_limit'):
+            side = self.safe_string_lower(order, 'side')  # in v2.1 rows the type field carries the order type, the side lives in side
         if side == 'ask':
             side = 'sell'
         elif side == 'bid':
             side = 'buy'
-        remainingString = self.safe_string(order, 'remainQty')
-        amountString = self.safe_string_2(order, 'originalQty', 'qty')
+        remainingString = self.safe_string_2(order, 'remainQty', 'remain_qty')
+        amountString = self.safe_string_n(order, ['originalQty', 'qty', 'original_qty'])
         status = self.safe_string(order, 'status')
         # https://github.com/ccxt/ccxt/pull/7067
         if status == 'live':
@@ -991,7 +1010,7 @@ class coinone(Exchange, ImplicitAPI):
             feeCurrencyCode = quote if (side == 'sell') else base
             fee = {
                 'cost': feeCostString,
-                'rate': self.safe_string(order, 'feeRate'),
+                'rate': self.safe_string_2(order, 'feeRate', 'fee_rate'),
                 'currency': feeCurrencyCode,
             }
         return self.safe_order({
@@ -1009,9 +1028,9 @@ class coinone(Exchange, ImplicitAPI):
             'price': self.safe_string(order, 'price'),
             'triggerPrice': None,
             'cost': None,
-            'average': self.safe_string(order, 'averageExecutedPrice'),
+            'average': self.safe_string_2(order, 'averageExecutedPrice', 'average_executed_price'),
             'amount': amountString,
-            'filled': self.safe_string(order, 'executedQty'),
+            'filled': self.safe_string_2(order, 'executedQty', 'executed_qty'),
             'remaining': remainingString,
             'status': status,
             'fee': fee,
@@ -1031,12 +1050,14 @@ class coinone(Exchange, ImplicitAPI):
         # For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
         if symbol is None:
             raise ExchangeError(self.id + ' fetchOpenOrders() allows fetching closed orders with a specific symbol')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
-            'currency': market['id'],
+        request = {
+            'quote_currency': market['quoteId'],
+            'target_currency': market['baseId'],
         }
-        response = await self.privatePostOrderLimitOrders(self.extend(request, params))
+        response = await self.v2_1PrivatePostOrderOpenOrders(self.extend(request, params))
         #
         #     {
         #         "result": "success",
@@ -1054,8 +1075,8 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        limitOrders = self.safe_list(response, 'limitOrders', [])
-        return self.parse_orders(limitOrders, market, since, limit)
+        openOrders = self.safe_list_2(response, 'open_orders', 'limitOrders', [])
+        return self.parse_orders(openOrders, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -1068,9 +1089,10 @@ class coinone(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currency': market['id'],
         }
         response = await self.v2PrivatePostOrderCompleteOrders(self.extend(request, params))
@@ -1106,16 +1128,15 @@ class coinone(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
-            # eslint-disable-next-line quotes
             raise ArgumentsRequired(self.id + " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
         price = self.safe_number(params, 'price')
         qty = self.safe_number(params, 'qty')
         isAsk = self.safe_integer(params, 'is_ask')
         if (price is None) or (qty is None) or (isAsk is None):
-            # eslint-disable-next-line quotes
             raise ArgumentsRequired(self.id + " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             'order_id': id,
             'price': price,
             'qty': qty,
@@ -1138,7 +1159,8 @@ class coinone(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `address structures <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.v2PrivatePostAccountDepositAddress(params)
         #
         #     {
@@ -1156,7 +1178,7 @@ class coinone(Exchange, ImplicitAPI):
         #
         walletAddress = self.safe_dict(response, 'walletAddress', {})
         keys = list(walletAddress.keys())
-        result: dict = {}
+        result = {}
         for i in range(0, len(keys)):
             key = keys[i]
             value = walletAddress[key]
@@ -1182,10 +1204,11 @@ class coinone(Exchange, ImplicitAPI):
             if (secondPart == 'tag' or secondPart == 'memo'):
                 depositAddress['tag'] = value
                 depositAddress['info'] = [address, value]
-            result[code] = depositAddress
+            if code is not None:
+                result[code] = depositAddress
         return result
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api']['rest'] + '/'
@@ -1203,7 +1226,12 @@ class coinone(Exchange, ImplicitAPI):
         else:
             self.check_required_credentials()
             url += request
-            nonce = str(self.nonce())
+            # the v2.1 api requires a uuid nonce, the older apis use a numeric one
+            nonce = None
+            if api == 'v2_1Private':
+                nonce = self.uuid()
+            else:
+                nonce = str(self.nonce())
             json = self.json(self.extend({
                 'access_token': self.apiKey,
                 'nonce': nonce,
@@ -1219,7 +1247,7 @@ class coinone(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         #

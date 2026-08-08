@@ -5,7 +5,7 @@
     "methods": {
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
+                "description": "default",
                 "method": "fetchCurrencies",
                 "input": [],
                 "httpResponse": {
@@ -615,7 +615,7 @@
                                 "TWA6QJ-ZO4EM-6QIHQJ"
                             ],
                             "reason": null,
-                            "closetm": "1705260547.4728658"
+                            "closetm": "1705260547.4730000"
                         }
                     }
                 },
@@ -653,7 +653,7 @@
                             "TWA6QJ-ZO4EM-6QIHQJ"
                         ],
                         "reason": null,
-                        "closetm": "1705260547.4728658"
+                        "closetm": "1705260547.4730000"
                     },
                     "timestamp": 1705260547472,
                     "datetime": "2024-01-14T19:29:07.472Z",
@@ -699,7 +699,7 @@
                             "currency": "USDT"
                         }
                     ],
-                    "lastUpdateTimestamp": null,
+                    "lastUpdateTimestamp": 1705260547473,
                     "reduceOnly": null
                 }
             }
@@ -1190,7 +1190,7 @@
                     "misc": "",
                     "oflags": "fciq",
                     "reason": "User requested",
-                    "closetm": "1733920121.745514"
+                    "closetm": "1733920121.745114"
                   }
                 },
                 "count": "1"
@@ -1229,7 +1229,7 @@
                   "misc": "",
                   "oflags": "fciq",
                   "reason": "User requested",
-                  "closetm": "1733920121.745514"
+                  "closetm": "1733920121.745114"
                 },
                 "timestamp": 1733920032330,
                 "datetime": "2024-12-11T12:27:12.330Z",
@@ -1264,7 +1264,7 @@
                     "currency": "USDT"
                   }
                 ],
-                "lastUpdateTimestamp": null
+                "lastUpdateTimestamp": 1733920121745
               }
             ]
           }
@@ -1643,7 +1643,7 @@
                     "entryPrice": null,
                     "unrealizedPnl": -0.01022,
                     "realizedPnl": null,
-                    "percentage": null,
+                    "percentage": -0.67,
                     "contracts": 10,
                     "contractSize": null,
                     "markPrice": null,

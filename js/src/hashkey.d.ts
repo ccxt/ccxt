@@ -1,5 +1,5 @@
 import Exchange from './abstract/hashkey.js';
-import type { Account, Balances, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress, int } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, NullableDict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, MarginModification, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress, int, Status } from './base/types.js';
 /**
  * @class hashkey
  * @augments Exchange
@@ -23,13 +23,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: any;
-        eta: any;
-        url: any;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name hashkey#fetchMarkets
@@ -50,6 +44,7 @@ export default class hashkey extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
      * @name hashkey#fetchOrderBook
@@ -58,7 +53,7 @@ export default class hashkey extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (maximum value is 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -212,7 +207,7 @@ export default class hashkey extends Exchange {
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseTransactionStatus(status: any): string;
+    parseTransactionStatus(status: Str): Str;
     /**
      * @method
      * @name hashkey#transfer
@@ -229,14 +224,14 @@ export default class hashkey extends Exchange {
      */
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: any, currency?: Currency): {
-        id: string;
-        timestamp: number;
-        datetime: string;
-        currency: string;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: string;
+        id: Str;
+        timestamp: Int;
+        datetime: string | undefined;
+        currency: Str;
+        amount: undefined;
+        fromAccount: undefined;
+        toAccount: undefined;
+        status: Str;
         info: any;
     };
     /**
@@ -249,9 +244,9 @@ export default class hashkey extends Exchange {
      */
     fetchAccounts(params?: {}): Promise<Account[]>;
     parseAccount(account: any): {
-        id: string;
+        id: Str;
         type: string;
-        code: any;
+        code: undefined;
         info: any;
     };
     parseAccountType(type: any): string;
@@ -326,9 +321,9 @@ export default class hashkey extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createSpotOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Dict;
-    createSpotOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Dict;
-    createSwapOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Dict;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Dict;
+    createSpotOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
+    createSwapOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Dict;
     /**
      * @method
      * @name hashkey#createSwapOrder
@@ -497,10 +492,10 @@ export default class hashkey extends Exchange {
      */
     fetchCanceledAndClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     checkTypeParam(methodName: any, params: any): void;
-    handleTriggerOptionAndParams(params: object, methodName: string, defaultValue?: any): any[];
+    handleTriggerOptionAndParams(params: object, methodName: string, defaultValue?: Bool): [Bool, object];
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderSideAndReduceOnly(unparsed: any): any[];
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): Str;
     parseOrderTypeTimeInForceAndPostOnly(type: any, timeInForce: any): any[];
     parseOrderType(type: any): string;
     /**
@@ -587,6 +582,43 @@ export default class hashkey extends Exchange {
     setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Leverage>;
     /**
      * @method
+     * @name hashkey#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/change-margin-type
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
+    /**
+     * @method
+     * @name hashkey#addMargin
+     * @description add margin
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.side position side, either 'long' or 'short'
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    /**
+     * @method
+     * @name hashkey#reduceMargin
+     * @description remove margin from a position
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.side position side, either 'long' or 'short'
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
+    parseMarginModification(data: Dict, market?: Market): MarginModification;
+    /**
+     * @method
      * @name hashkey#fetchLeverageTiers
      * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
      * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
@@ -600,7 +632,7 @@ export default class hashkey extends Exchange {
      * @method
      * @name hashkey#fetchTradingFee
      * @description fetch the trading fees for a market
-     * @see https://developers.binance.com/docs/wallet/asset/trade-fee // spot
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information // spot
      * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight // swap
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -611,18 +643,18 @@ export default class hashkey extends Exchange {
      * @method
      * @name hashkey#fetchTradingFees
      * @description *for spot markets only* fetch the trading fees for multiple markets
-     * @see https://developers.binance.com/docs/wallet/asset/trade-fee
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: string;
         method: string;
         body: any;
-        headers: any;
+        headers: NullableDict;
     };
     customUrlencode(params?: Dict): Str;
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
 }

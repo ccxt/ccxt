@@ -1,8 +1,5 @@
-- [Hitbtc Withdraw](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 from pprint import pprint
 
@@ -43,5 +40,5 @@ withdraw = exchange.withdraw('ETH', 0.01, '0x811DCfeb6dC0b9ed825808B6B060Ca469b8
 
 pprint('Withdraw:')
 pprint(withdraw)
- 
+
 ```

@@ -1,11 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/mercado.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, NullableDict, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int, Endpoint, List } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -15,7 +15,7 @@ import { Precise } from './base/Precise.js';
  * @augments Exchange
  */
 export default class mercado extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'mercado',
             'name': 'Mercado Bitcoin',
@@ -143,41 +143,41 @@ export default class mercado extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'coins',
-                        '{coin}/orderbook/', // last slash critical
-                        '{coin}/ticker/',
-                        '{coin}/trades/',
-                        '{coin}/trades/{from}/',
-                        '{coin}/trades/{from}/{to}',
-                        '{coin}/day-summary/{year}/{month}/{day}/',
-                    ],
+                    'get': {
+                        'coins': { 'cost': 1 } as Endpoint<List>,
+                        '{coin}/orderbook/': { 'cost': 1 } as Endpoint<Dict>,
+                        '{coin}/ticker/': { 'cost': 1 } as Endpoint<Dict>,
+                        '{coin}/trades/': { 'cost': 1 } as Endpoint<List>,
+                        '{coin}/trades/{from}/': { 'cost': 1 } as Endpoint<List>,
+                        '{coin}/trades/{from}/{to}': { 'cost': 1 } as Endpoint<List>,
+                        '{coin}/day-summary/{year}/{month}/{day}/': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'cancel_order',
-                        'get_account_info',
-                        'get_order',
-                        'get_withdrawal',
-                        'list_system_messages',
-                        'list_orders',
-                        'list_orderbook',
-                        'place_buy_order',
-                        'place_sell_order',
-                        'place_market_buy_order',
-                        'place_market_sell_order',
-                        'withdraw_coin',
-                    ],
+                    'post': {
+                        'cancel_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_account_info': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'list_system_messages': { 'cost': 1 } as Endpoint<Dict>,
+                        'list_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'list_orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                        'place_buy_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'place_sell_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'place_market_buy_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'place_market_sell_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdraw_coin': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'v4Public': {
-                    'get': [
-                        '{coin}/candle/',
-                    ],
+                    'get': {
+                        '{coin}/candle/': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'v4PublicNet': {
-                    'get': [
-                        'candles',
-                    ],
+                    'get': {
+                        'candles': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -275,7 +275,7 @@ export default class mercado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params = {}): Promise<Market[]> {
         const response = await this.publicGetCoins (params);
         //
         //     [
@@ -298,14 +298,18 @@ export default class mercado extends Exchange {
         //         "LINK"
         //     ]
         //
-        const result = [];
+        const result: Market[] = [];
         const amountLimits = this.safeValue (this.options, 'limits', {});
-        for (let i = 0; i < response.length; i++) {
-            const coin = response[i];
+        const coins = this.toArray (response);
+        for (let i = 0; i < coins.length; i++) {
+            const coin = coins[i];
             const baseId = coin;
             const quoteId = 'BRL';
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const id = quote + base;
             result.push ({
                 'id': id,
@@ -367,10 +371,12 @@ export default class mercado extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'coin': market['base'],
@@ -379,7 +385,7 @@ export default class mercado extends Exchange {
         return this.parseOrderBook (response, market['symbol']);
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "high":"103.96000000",
@@ -427,8 +433,10 @@ export default class mercado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'coin': market['base'],
@@ -452,7 +460,7 @@ export default class mercado extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         const timestamp = this.safeTimestamp2 (trade, 'date', 'executed_timestamp');
         market = this.safeMarket (undefined, market);
         const id = this.safeString2 (trade, 'tid', 'operation_id');
@@ -461,7 +469,7 @@ export default class mercado extends Exchange {
         const price = this.safeString (trade, 'price');
         const amount = this.safeString2 (trade, 'amount', 'quantity');
         const feeCost = this.safeString (trade, 'fee_rate');
-        let fee = undefined;
+        let fee: FeeString = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -495,8 +503,10 @@ export default class mercado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         let method = 'publicGetCoinTrades';
         const request: Dict = {
@@ -514,7 +524,7 @@ export default class mercado extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const data = this.safeValue (response, 'response_data', {});
         const balances = this.safeValue (data, 'balance', {});
         const result: Dict = { 'info': response };
@@ -527,7 +537,9 @@ export default class mercado extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'available');
                 account['total'] = this.safeString (balance, 'total');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance (result);
@@ -540,8 +552,10 @@ export default class mercado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+    override async fetchBalance (params = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privatePostGetAccountInfo (params);
         return this.parseBalance (response);
     }
@@ -558,8 +572,10 @@ export default class mercado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'coin_pair': market['id'],
@@ -600,11 +616,13 @@ export default class mercado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'coin_pair': market['id'],
@@ -636,7 +654,7 @@ export default class mercado extends Exchange {
         //
         const responseData = this.safeValue (response, 'response_data', {});
         const order = this.safeDict (responseData, 'order', {});
-        return this.parseOrder (order, market);
+        return this.parseOrder (order as Dict, market);
     }
 
     parseOrderStatus (status: Str) {
@@ -648,7 +666,7 @@ export default class mercado extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "order_id": 4,
@@ -676,7 +694,7 @@ export default class mercado extends Exchange {
         //
         const id = this.safeString (order, 'order_id');
         const order_type = this.safeString (order, 'order_type');
-        let side = undefined;
+        let side: Str = undefined;
         if ('order_type' in order) {
             side = (order_type === '1') ? 'buy' : 'sell';
         }
@@ -695,6 +713,7 @@ export default class mercado extends Exchange {
         const filled = this.safeString (order, 'executed_quantity');
         const lastTradeTimestamp = this.safeTimestamp (order, 'updated_timestamp');
         const rawTrades = this.safeValue (order, 'operations', []);
+        const symbol = market['symbol'];
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -702,7 +721,7 @@ export default class mercado extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': 'limit',
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -729,11 +748,13 @@ export default class mercado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'coin_pair': market['id'],
@@ -742,7 +763,7 @@ export default class mercado extends Exchange {
         const response = await this.privatePostGetOrder (this.extend (request, params));
         const responseData = this.safeValue (response, 'response_data', {});
         const order = this.safeDict (responseData, 'order');
-        return this.parseOrder (order, market);
+        return this.parseOrder (order as Dict, market);
     }
 
     /**
@@ -756,10 +777,12 @@ export default class mercado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'coin': currency['id'],
@@ -808,10 +831,10 @@ export default class mercado extends Exchange {
         //
         const responseData = this.safeValue (response, 'response_data', {});
         const withdrawal = this.safeDict (responseData, 'withdrawal');
-        return this.parseTransaction (withdrawal, currency);
+        return this.parseTransaction (withdrawal as Dict, currency);
     }
 
-    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "id": 1,
@@ -850,7 +873,7 @@ export default class mercado extends Exchange {
         } as Transaction;
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
@@ -872,8 +895,10 @@ export default class mercado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe: string = '15m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+    override async fetchOHLCV (symbol: string, timeframe: string = '15m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
@@ -890,8 +915,9 @@ export default class mercado extends Exchange {
             request['from'] = request['to'] - (limit * this.parseTimeframe (timeframe));
         }
         const response = await this.v4PublicNetGetCandles (this.extend (request, params));
-        const candles = this.convertTradingViewToOHLCV (response, 't', 'o', 'h', 'l', 'c', 'v');
-        return this.parseOHLCVs (candles, market, timeframe, since, limit);
+        // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
+        // then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix
+        return this.parseTradingViewOHLCV (response, market, timeframe, since, limit);
     }
 
     /**
@@ -904,11 +930,13 @@ export default class mercado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'coin_pair': market['id'],
@@ -929,11 +957,13 @@ export default class mercado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'coin_pair': market['id'],
@@ -955,11 +985,13 @@ export default class mercado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'coin_pair': market['id'],
@@ -973,8 +1005,8 @@ export default class mercado extends Exchange {
         return this.filterBySymbolSinceLimit (trades, market['symbol'], since, limit) as Trade[];
     }
 
-    ordersToTrades (orders) {
-        const result = [];
+    ordersToTrades (orders: any) {
+        const result: Trade[] = [];
         for (let i = 0; i < orders.length; i++) {
             const trades = this.safeValue (orders[i], 'trades', []);
             for (let y = 0; y < trades.length; y++) {
@@ -984,7 +1016,7 @@ export default class mercado extends Exchange {
         return result;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/';
         const query = this.omit (params, this.extractParams (path));
         if ((api === 'public') || (api === 'v4Public') || (api === 'v4PublicNet')) {
@@ -1010,7 +1042,7 @@ export default class mercado extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }

@@ -1,12 +1,14 @@
 import assert from 'assert';
-import { Exchange } from "../../../ccxt";
+import { Exchange } from "../../../ccxt.js";
 import testOrderBook from './base/test.orderBook.js';
 
 async function testFetchOrderBooks (exchange: Exchange, skippedProperties: object) {
     const method = 'fetchOrderBooks';
-    const symbol = exchange.symbols[0];
+    const symbols = exchange.symbols;
+    assert (symbols !== undefined, exchange.id + ' ' + method + ' requires exchange.symbols to be loaded');
+    const symbol = symbols[0];
     const orderBooks = await exchange.fetchOrderBooks ([ symbol ]);
-    assert (typeof orderBooks === 'object', exchange.id + ' ' + method + ' must return an object. ' + exchange.json (orderBooks));
+    assert (exchange.isDictionary (orderBooks), exchange.id + ' ' + method + ' must return a dict. ' + exchange.json (orderBooks));
     const orderBookKeys = Object.keys (orderBooks);
     assert (orderBookKeys.length, exchange.id + ' ' + method + ' returned 0 length data');
     for (let i = 0; i < orderBookKeys.length; i++) {

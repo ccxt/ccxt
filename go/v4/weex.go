@@ -186,7 +186,7 @@ func (this *WeexCore) Describe() any {
 			"withdraw":                             false,
 		},
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/ccbadb2d-5035-403d-898f-dce831bdc936",
+			"logo": "https://github.com/user-attachments/assets/bc67b9f2-75d2-4b8d-963a-18f2fcd9d13c",
 			"api": map[string]any{
 				"public":          "https://api-spot.weex.com",
 				"private":         "https://api-spot.weex.com",
@@ -200,102 +200,254 @@ func (this *WeexCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"api/v3/time":                     5,
-					"api/v3/coins":                    25,
-					"api/v3/exchangeInfo":             100,
-					"api/v3/ping":                     5,
-					"api/v3/apiTradingSymbols":        25,
-					"api/v3/market/ticker/price":      20,
-					"api/v3/market/ticker/24hr":       10,
-					"api/v3/market/trades":            125,
-					"api/v3/market/klines":            10,
-					"api/v3/market/depth":             25,
-					"api/v3/market/ticker/bookTicker": 20,
+					"api/v3/time": map[string]any{
+						"cost": 5,
+					},
+					"api/v3/coins": map[string]any{
+						"cost": 25,
+					},
+					"api/v3/exchangeInfo": map[string]any{
+						"cost": 100,
+					},
+					"api/v3/ping": map[string]any{
+						"cost": 5,
+					},
+					"api/v3/apiTradingSymbols": map[string]any{
+						"cost": 25,
+					},
+					"api/v3/market/ticker/price": map[string]any{
+						"cost": 20,
+					},
+					"api/v3/market/ticker/24hr": map[string]any{
+						"cost": 10,
+					},
+					"api/v3/market/trades": map[string]any{
+						"cost": 125,
+					},
+					"api/v3/market/klines": map[string]any{
+						"cost": 10,
+					},
+					"api/v3/market/depth": map[string]any{
+						"cost": 25,
+					},
+					"api/v3/market/ticker/bookTicker": map[string]any{
+						"cost": 20,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"api/v3/account/":                          5,
-					"api/v3/account/transferRecords":           3,
-					"api/v3/order":                             2,
-					"api/v3/openOrders":                        3,
-					"api/v3/allOrders":                         10,
-					"api/v3/myTrades":                          5,
-					"api/v3/rebate/affiliate/getAffiliateUIDs": 20,
-					"api/v3/rebate/affiliate/getChannelUserTradeAndAsset": 20,
-					"api/v3/rebate/affiliate/getAffiliateCommission":      20,
-					"api/v3/rebate/affiliate/getInternalWithdrawalStatus": 100,
-					"api/v3/rebate/affiliate/querySubChannelTransactions": 10,
-					"api/v3/agency/verifyReferrals":                       20,
-					"api/v3/agency/getAssert":                             20,
-					"api/v3/agency/getDealData":                           20,
+					"api/v3/account/": map[string]any{
+						"cost": 5,
+					},
+					"api/v3/account/transferRecords": map[string]any{
+						"cost": 3,
+					},
+					"api/v3/order": map[string]any{
+						"cost": 2,
+					},
+					"api/v3/openOrders": map[string]any{
+						"cost": 3,
+					},
+					"api/v3/allOrders": map[string]any{
+						"cost": 10,
+					},
+					"api/v3/myTrades": map[string]any{
+						"cost": 5,
+					},
+					"api/v3/rebate/affiliate/getAffiliateUIDs": map[string]any{
+						"cost": 20,
+					},
+					"api/v3/rebate/affiliate/getChannelUserTradeAndAsset": map[string]any{
+						"cost": 20,
+					},
+					"api/v3/rebate/affiliate/getAffiliateCommission": map[string]any{
+						"cost": 20,
+					},
+					"api/v3/rebate/affiliate/getInternalWithdrawalStatus": map[string]any{
+						"cost": 100,
+					},
+					"api/v3/rebate/affiliate/querySubChannelTransactions": map[string]any{
+						"cost": 10,
+					},
+					"api/v3/agency/verifyReferrals": map[string]any{
+						"cost": 20,
+					},
+					"api/v3/agency/getAssert": map[string]any{
+						"cost": 20,
+					},
+					"api/v3/agency/getDealData": map[string]any{
+						"cost": 20,
+					},
 				},
 				"post": map[string]any{
-					"api/v3/account/bills":                       5,
-					"api/v3/account/fundingBills":                5,
-					"api/v3/order":                               5,
-					"api/v3/order/batch":                         50,
-					"api/v3/rebate/affiliate/internalWithdrawal": 100,
+					"api/v3/account/bills": map[string]any{
+						"cost": 5,
+					},
+					"api/v3/account/fundingBills": map[string]any{
+						"cost": 5,
+					},
+					"api/v3/order": map[string]any{
+						"cost": 5,
+					},
+					"api/v3/order/batch": map[string]any{
+						"cost": 50,
+					},
+					"api/v3/rebate/affiliate/internalWithdrawal": map[string]any{
+						"cost": 100,
+					},
 				},
 				"delete": map[string]any{
-					"api/v3/order":       1,
-					"api/v3/openOrders":  1,
-					"api/v3/order/batch": 10,
+					"api/v3/order": map[string]any{
+						"cost": 1,
+					},
+					"api/v3/openOrders": map[string]any{
+						"cost": 1,
+					},
+					"api/v3/order/batch": map[string]any{
+						"cost": 10,
+					},
 				},
 			},
 			"contract": map[string]any{
 				"get": map[string]any{
-					"capi/v3/market/time":              5,
-					"capi/v3/market/exchangeInfo":      5,
-					"capi/v3/market/depth":             5,
-					"capi/v3/market/ticker/24hr":       200,
-					"capi/v3/market/ticker/bookTicker": 5,
-					"capi/v3/market/trades":            25,
-					"capi/v3/market/klines":            5,
-					"capi/v3/market/indexPriceKlines":  5,
-					"capi/v3/market/markPriceKlines":   5,
-					"capi/v3/market/historyKlines":     25,
-					"capi/v3/market/symbolPrice":       5,
-					"capi/v3/market/openInterest":      10,
-					"capi/v3/market/premiumIndex":      5,
-					"capi/v3/market/fundingRate":       25,
-					"capi/v3/market/apiTradingSymbols": 25,
+					"capi/v3/market/time": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/market/exchangeInfo": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/market/depth": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/market/ticker/24hr": map[string]any{
+						"cost": 200,
+					},
+					"capi/v3/market/ticker/bookTicker": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/market/trades": map[string]any{
+						"cost": 25,
+					},
+					"capi/v3/market/klines": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/market/indexPriceKlines": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/market/markPriceKlines": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/market/historyKlines": map[string]any{
+						"cost": 25,
+					},
+					"capi/v3/market/symbolPrice": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/market/openInterest": map[string]any{
+						"cost": 10,
+					},
+					"capi/v3/market/premiumIndex": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/market/fundingRate": map[string]any{
+						"cost": 25,
+					},
+					"capi/v3/market/apiTradingSymbols": map[string]any{
+						"cost": 25,
+					},
 				},
 			},
 			"contractPrivate": map[string]any{
 				"get": map[string]any{
-					"capi/v3/account/balance":                 10,
-					"capi/v3/account/commissionRate":          10,
-					"capi/v3/account/accountConfig":           10,
-					"capi/v3/account/symbolConfig":            10,
-					"capi/v3/account/position/allPosition":    15,
-					"capi/v3/account/position/singlePosition": 3,
-					"capi/v3/order":                           3,
-					"capi/v3/openOrders":                      5,
-					"capi/v3/order/history":                   10,
-					"capi/v3/userTrades":                      5,
-					"capi/v3/openAlgoOrders":                  3,
-					"capi/v3/allAlgoOrders":                   10,
+					"capi/v3/account/balance": map[string]any{
+						"cost": 10,
+					},
+					"capi/v3/account/commissionRate": map[string]any{
+						"cost": 10,
+					},
+					"capi/v3/account/accountConfig": map[string]any{
+						"cost": 10,
+					},
+					"capi/v3/account/symbolConfig": map[string]any{
+						"cost": 10,
+					},
+					"capi/v3/account/position/allPosition": map[string]any{
+						"cost": 15,
+					},
+					"capi/v3/account/position/singlePosition": map[string]any{
+						"cost": 3,
+					},
+					"capi/v3/order": map[string]any{
+						"cost": 3,
+					},
+					"capi/v3/openOrders": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/order/history": map[string]any{
+						"cost": 10,
+					},
+					"capi/v3/userTrades": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/openAlgoOrders": map[string]any{
+						"cost": 3,
+					},
+					"capi/v3/allAlgoOrders": map[string]any{
+						"cost": 10,
+					},
 				},
 				"post": map[string]any{
-					"capi/v3/account/income":                 5,
-					"capi/v3/account/marginType":             50,
-					"capi/v3/account/leverage":               20,
-					"capi/v3/account/positionMargin":         30,
-					"capi/v3/account/modifyAutoAppendMargin": 30,
-					"capi/v3/order":                          5,
-					"capi/v3/batchOrders":                    10,
-					"capi/v3/closePositions":                 50,
-					"capi/v3/algoOrder":                      5,
-					"capi/v3/placeTpSlOrder":                 5,
-					"capi/v3/modifyTpSlOrder":                5,
+					"capi/v3/account/income": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/account/marginType": map[string]any{
+						"cost": 50,
+					},
+					"capi/v3/account/leverage": map[string]any{
+						"cost": 20,
+					},
+					"capi/v3/account/positionMargin": map[string]any{
+						"cost": 30,
+					},
+					"capi/v3/account/modifyAutoAppendMargin": map[string]any{
+						"cost": 30,
+					},
+					"capi/v3/order": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/batchOrders": map[string]any{
+						"cost": 10,
+					},
+					"capi/v3/closePositions": map[string]any{
+						"cost": 50,
+					},
+					"capi/v3/algoOrder": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/placeTpSlOrder": map[string]any{
+						"cost": 5,
+					},
+					"capi/v3/modifyTpSlOrder": map[string]any{
+						"cost": 5,
+					},
 				},
 				"delete": map[string]any{
-					"capi/v3/order":          3,
-					"capi/v3/batchOrders":    10,
-					"capi/v3/allOpenOrders":  10,
-					"capi/v3/algoOrder":      3,
-					"capi/v3/algoOpenOrders": 10,
+					"capi/v3/order": map[string]any{
+						"cost": 3,
+					},
+					"capi/v3/batchOrders": map[string]any{
+						"cost": 10,
+					},
+					"capi/v3/allOpenOrders": map[string]any{
+						"cost": 10,
+					},
+					"capi/v3/algoOrder": map[string]any{
+						"cost": 3,
+					},
+					"capi/v3/algoOpenOrders": map[string]any{
+						"cost": 10,
+					},
 				},
 			},
 		},
@@ -424,26 +576,23 @@ func (this *WeexCore) Describe() any {
 				"futures":  "contract",
 			},
 			"networks": map[string]any{
-				"BEP20":      "BEP20(BSC)",
-				"BSC":        "BEP20(BSC)",
-				"ERC20":      "ERC20",
-				"ETH":        "ERC20",
-				"POLYGON":    "POLYGON(MATIC)",
-				"MATIC":      "POLYGON(MATIC)",
-				"ARBITRUM":   "ARBITRUM(ARB)",
-				"ARB":        "ARBITRUM(ARB)",
-				"SOLANA":     "SOLANA(SOL)",
-				"SOL":        "SOLANA(SOL)",
-				"OP":         "OPTIMISM(OP)",
-				"OPTIMISM":   "OPTIMISM(OP)",
-				"AVALANCHEC": "AVALANCHE_C(AVAX_C)",
-				"AVAXC":      "AVALANCHE_C(AVAX_C)",
+				"BEP20":    "BEP20(BSC)",
+				"BSC":      "BEP20(BSC)",
+				"ERC20":    "ERC20",
+				"ETH":      "ERC20",
+				"POLYGON":  "POLYGON(MATIC)",
+				"MATIC":    "POLYGON(MATIC)",
+				"ARBITRUM": "ARBITRUM(ARB)",
+				"SOL":      "SOLANA(SOL)",
+				"OP":       "OPTIMISM(OP)",
+				"OPTIMISM": "OPTIMISM(OP)",
+				"AVAXC":    "AVALANCHE_C(AVAX_C)",
 			},
 			"networksById": map[string]any{
 				"BEP20(BSC)":          "BEP20",
 				"ERC20":               "ERC20",
 				"POLYGON(MATIC)":      "MATIC",
-				"ARBITRUM(ARB)":       "ARB",
+				"ARBITRUM(ARB)":       "ARBITRUM",
 				"SOLANA(SOL)":         "SOL",
 				"OPTIMISM(OP)":        "OP",
 				"AVALANCHE_C(AVAX_C)": "AVAXC",
@@ -641,7 +790,7 @@ func (this *WeexCore) FetchStatus(optionalArgs ...any) <-chan any {
 		response := (<-this.PublicGetApiV3Ping(params))
 		PanicOnError(response)
 
-		// reutns an empty response if the exchange is alive, otherwise will trigger an error
+		// returns an empty response if the exchange is alive, otherwise will trigger an error
 		ch <- map[string]any{
 			"status":  "ok",
 			"updated": nil,
@@ -717,6 +866,7 @@ func (this *WeexCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 
 		response := (<-this.PublicGetApiV3Coins(params))
 		PanicOnError(response)
+
 		//
 		//     [
 		//         {
@@ -827,78 +977,77 @@ func (this *WeexCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		//         }
 		//     ]
 		//
-		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var currency any = this.SafeDict(response, i)
-			var currencyId any = this.SafeString(currency, "coin")
-			var code any = this.SafeCurrencyCode(currencyId)
-			var name any = this.SafeString(currency, "name")
-			var networks any = map[string]any{}
-			var chains any = this.SafeList(currency, "networkList", []any{})
-			for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
-				var chain any = this.SafeDict(chains, j)
-				var networkId any = this.SafeString(chain, "network")
-				var networkCode any = this.NetworkIdToCode(networkId)
-				AddElementToObject(networks, networkCode, map[string]any{
-					"info":      chain,
-					"id":        networkId,
-					"network":   networkCode,
-					"active":    nil,
-					"deposit":   this.SafeBool(chain, "depositEnable"),
-					"withdraw":  this.SafeBool(chain, "withdrawEnable"),
-					"fee":       this.SafeNumber(chain, "withdrawFee"),
-					"precision": this.SafeNumber(chain, "withdrawIntegerMultiple"),
-					"isDefault": this.SafeBool(chain, "isDefault", false),
-					"limits": map[string]any{
-						"withdraw": map[string]any{
-							"min": this.SafeNumber(chain, "withdrawMin"),
-							"max": nil,
-						},
-						"deposit": map[string]any{
-							"min": this.SafeNumber(chain, "depositDust"),
-							"max": nil,
-						},
-					},
-				})
-			}
-			var networkKeys any = ObjectKeys(networks)
-			var networksLength any = GetArrayLength(networkKeys)
-			var emptyChains any = IsEqual(networksLength, 0) // non-functional coins
-			var valueForEmpty any = Ternary(IsTrue(emptyChains), false, nil)
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"info":      currency,
-				"code":      code,
-				"id":        currencyId,
-				"type":      "crypto",
-				"name":      name,
-				"active":    nil,
-				"deposit":   valueForEmpty,
-				"withdraw":  valueForEmpty,
-				"fee":       nil,
-				"precision": nil,
-				"limits": map[string]any{
-					"amount": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"withdraw": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"deposit": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-				},
-				"networks": networks,
-			}))
-		}
-
-		ch <- result
+		ch <- this.ParseCurrencies(response)
 		return nil
 
 	}()
 	return ch
+}
+func (this *WeexCore) ParseCurrency(rawCurrency any) any {
+	var currencyId any = this.SafeString(rawCurrency, "coin")
+	var code any = this.SafeCurrencyCode(currencyId)
+	var name any = this.SafeString(rawCurrency, "name")
+	var networks any = map[string]any{}
+	var chains any = this.SafeList(rawCurrency, "networkList", []any{})
+	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
+		var chain any = this.SafeDict(chains, j)
+		var networkId any = this.SafeString(chain, "network")
+		var networkCode any = this.NetworkIdToCode(networkId, code)
+		if IsTrue(!IsEqual(networkCode, nil)) {
+			AddElementToObject(networks, networkCode, map[string]any{
+				"info":      chain,
+				"id":        networkId,
+				"network":   networkCode,
+				"active":    nil,
+				"deposit":   this.SafeBool(chain, "depositEnable"),
+				"withdraw":  this.SafeBool(chain, "withdrawEnable"),
+				"fee":       this.SafeNumber(chain, "withdrawFee"),
+				"precision": this.SafeNumber(chain, "withdrawIntegerMultiple"),
+				"isDefault": this.SafeBool(chain, "isDefault", false),
+				"limits": map[string]any{
+					"withdraw": map[string]any{
+						"min": this.SafeNumber(chain, "withdrawMin"),
+						"max": nil,
+					},
+					"deposit": map[string]any{
+						"min": this.SafeNumber(chain, "depositDust"),
+						"max": nil,
+					},
+				},
+			})
+		}
+	}
+	var networkKeys any = ObjectKeys(networks)
+	var networksLength any = GetArrayLength(networkKeys)
+	var emptyChains any = IsEqual(networksLength, 0) // non-functional coins
+	var valueForEmpty any = Ternary(IsTrue(emptyChains), false, nil)
+	return this.SafeCurrencyStructure(map[string]any{
+		"info":      rawCurrency,
+		"code":      code,
+		"id":        currencyId,
+		"type":      "crypto",
+		"name":      name,
+		"active":    nil,
+		"deposit":   valueForEmpty,
+		"withdraw":  valueForEmpty,
+		"fee":       nil,
+		"precision": nil,
+		"limits": map[string]any{
+			"amount": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"withdraw": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"deposit": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+		"networks": networks,
+	})
 }
 
 /**
@@ -919,8 +1068,8 @@ func (this *WeexCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes93812 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes93812)
+			retRes93612 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes93612)
 		}
 		var promises any = []any{this.PublicGetApiV3ExchangeInfo(params), this.ContractGetCapiV3MarketExchangeInfo(params)}
 		spotResponsecontractResponseVariable := (<-promiseAll(promises))
@@ -1016,7 +1165,7 @@ func (this *WeexCore) ParseMarket(market any) any {
 			isInverse = true
 		}
 	} else {
-		active = this.SafeBool(market, "enableTrade")
+		active = IsEqual(this.SafeBool(market, "enableTrade", false), true)
 	}
 	var amountPrecision any = this.SafeNumber(market, "stepSize")
 	var pricePrecision any = this.SafeNumber(market, "tickSize")
@@ -1027,6 +1176,9 @@ func (this *WeexCore) ParseMarket(market any) any {
 		pricePrecision = this.ParseNumber(pricePrecisionString)
 	}
 	var fees any = this.SafeDict(this.Fees, Ternary(IsTrue(isSpot), "spot", "contract"), map[string]any{})
+	if IsTrue(IsEqual(id, nil)) {
+		panic(ExchangeError(Add(this.Id, " method() missing id")))
+	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"lowercaseId":    ToLower(id),
@@ -1106,9 +1258,11 @@ func (this *WeexCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11138 := (<-this.LoadMarkets())
-		PanicOnError(retRes11138)
+			retRes111512 := (<-this.LoadMarkets())
+			PanicOnError(retRes111512)
+		}
 		symbols = this.MarketSymbols(symbols, nil, true, true)
 		var market any = this.GetMarketFromSymbols(symbols)
 		var marketType any = nil
@@ -1121,7 +1275,7 @@ func (this *WeexCore) FetchTickers(optionalArgs ...any) <-chan any {
 		}
 		var request any = map[string]any{}
 		if IsTrue(IsEqual(symbolsLength, 1)) {
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 		}
 		var response any = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
@@ -1280,6 +1434,7 @@ func (this *WeexCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	}
 	market = this.SafeMarket(marketId, market, nil, marketType)
 	var timestamp any = this.SafeInteger2(ticker, "closeTime", "time")
+	var percentage any = Precise.StringMul(this.SafeString(ticker, "priceChangePercent"), "100")
 	return this.SafeTicker(map[string]any{
 		"symbol":        GetValue(market, "symbol"),
 		"timestamp":     timestamp,
@@ -1296,7 +1451,7 @@ func (this *WeexCore) ParseTicker(ticker any, optionalArgs ...any) any {
 		"last":          this.SafeString(ticker, "lastPrice"),
 		"previousClose": nil,
 		"change":        this.SafeString(ticker, "priceChange"),
-		"percentage":    this.SafeString(ticker, "priceChangePercent"),
+		"percentage":    percentage,
 		"average":       nil,
 		"baseVolume":    this.SafeString(ticker, "volume"),
 		"quoteVolume":   this.SafeString(ticker, "quoteVolume"),
@@ -1315,7 +1470,7 @@ func (this *WeexCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return (default 15, max 200)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *WeexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1326,9 +1481,11 @@ func (this *WeexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes12928 := (<-this.LoadMarkets())
-		PanicOnError(retRes12928)
+			retRes129712 := (<-this.LoadMarkets())
+			PanicOnError(retRes129712)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -1403,21 +1560,23 @@ func (this *WeexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes13468 := (<-this.LoadMarkets())
-		PanicOnError(retRes13468)
+			retRes135312 := (<-this.LoadMarkets())
+			PanicOnError(retRes135312)
+		}
 		var market any = this.Market(symbol)
 		if IsTrue(GetValue(market, "spot")) {
 
-			retRes134919 := (<-this.FetchSpotOHLCV(symbol, timeframe, since, limit, params))
-			PanicOnError(retRes134919)
-			ch <- retRes134919
+			retRes135719 := (<-this.FetchSpotOHLCV(symbol, timeframe, since, limit, params))
+			PanicOnError(retRes135719)
+			ch <- retRes135719
 			return nil
 		} else {
 
-			retRes135119 := (<-this.FetchContractOHLCV(symbol, timeframe, since, limit, params))
-			PanicOnError(retRes135119)
-			ch <- retRes135119
+			retRes135919 := (<-this.FetchContractOHLCV(symbol, timeframe, since, limit, params))
+			PanicOnError(retRes135919)
+			ch <- retRes135919
 			return nil
 		}
 
@@ -1451,9 +1610,11 @@ func (this *WeexCore) FetchSpotOHLCV(symbol any, optionalArgs ...any) <-chan any
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes13698 := (<-this.LoadMarkets())
-		PanicOnError(retRes13698)
+			retRes137812 := (<-this.LoadMarkets())
+			PanicOnError(retRes137812)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol":   GetValue(market, "id"),
@@ -1463,7 +1624,7 @@ func (this *WeexCore) FetchSpotOHLCV(symbol any, optionalArgs ...any) <-chan any
 		response := (<-this.PublicGetApiV3MarketKlines(this.Extend(request, params)))
 		PanicOnError(response)
 
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
 		return nil
 
 	}()
@@ -1502,9 +1663,11 @@ func (this *WeexCore) FetchContractOHLCV(symbol any, optionalArgs ...any) <-chan
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes13998 := (<-this.LoadMarkets())
-		PanicOnError(retRes13998)
+			retRes141012 := (<-this.LoadMarkets())
+			PanicOnError(retRes141012)
+		}
 		var maxHistoricalLimit any = 100
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
@@ -1515,9 +1678,9 @@ func (this *WeexCore) FetchContractOHLCV(symbol any, optionalArgs ...any) <-chan
 				"historical": true,
 			})
 
-			retRes140519 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxHistoricalLimit))
-			PanicOnError(retRes140519)
-			ch <- retRes140519
+			retRes141719 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxHistoricalLimit))
+			PanicOnError(retRes141719)
+			ch <- retRes141719
 			return nil
 		}
 		var until any = this.SafeInteger(params, "until")
@@ -1535,6 +1698,9 @@ func (this *WeexCore) FetchContractOHLCV(symbol any, optionalArgs ...any) <-chan
 		var priceType any = this.SafeStringUpper(params, "price")
 		params = this.Omit(params, []any{"historical", "until", "price"})
 		var response any = nil
+		if IsTrue(!IsEqual(limit, nil)) {
+			limit = mathMin(limit, 1000) // hardcap threshold
+		}
 		if IsTrue(historical) {
 			if IsTrue(!IsEqual(priceType, nil)) {
 				AddElementToObject(request, "priceType", priceType)
@@ -1550,6 +1716,9 @@ func (this *WeexCore) FetchContractOHLCV(symbol any, optionalArgs ...any) <-chan
 					endTime = now
 					startTime = Subtract(now, timeDelta)
 				} else if IsTrue(IsEqual(since, nil)) {
+					if IsTrue(IsEqual(until, nil)) {
+						panic(ArgumentsRequired(Add(this.Id, " fetchOHLCV() requires a since or until argument")))
+					}
 					startTime = Subtract(until, timeDelta)
 				} else {
 					endTime = Add(since, timeDelta)
@@ -1579,7 +1748,7 @@ func (this *WeexCore) FetchContractOHLCV(symbol any, optionalArgs ...any) <-chan
 			}
 		}
 
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
 		return nil
 
 	}()
@@ -1614,15 +1783,17 @@ func (this *WeexCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes14828 := (<-this.LoadMarkets())
-		PanicOnError(retRes14828)
+			retRes150112 := (<-this.LoadMarkets())
+			PanicOnError(retRes150112)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
+			AddElementToObject(request, "limit", mathMin(limit, 1000))
 		}
 		var response any = nil
 		if IsTrue(GetValue(market, "spot")) {
@@ -1634,7 +1805,6 @@ func (this *WeexCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 			response = (<-this.ContractGetCapiV3MarketTrades(this.Extend(request, params)))
 			PanicOnError(response)
 		}
-
 		//
 		//     [
 		//         {
@@ -1648,7 +1818,12 @@ func (this *WeexCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		//         }
 		//     ]
 		//
-		ch <- this.ParseTrades(response, market, since, limit)
+		var responseList any = []any{}
+		if IsTrue(!IsEqual(response, nil)) {
+			responseList = this.ToArray(response)
+		}
+
+		ch <- this.ParseTrades(responseList, market, since, limit)
 		return nil
 
 	}()
@@ -1703,8 +1878,11 @@ func (this *WeexCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp any = this.SafeInteger(trade, "time")
 	var isBuyer any = this.SafeBool(trade, "isBuyer")
 	var side any = this.SafeStringLower(trade, "side")
+	var isBuyerMaker any = this.SafeBool(trade, "isBuyerMaker")
 	if IsTrue(!IsEqual(isBuyer, nil)) {
 		side = Ternary(IsTrue(isBuyer), "buy", "sell")
+	} else if IsTrue(!IsEqual(isBuyerMaker, nil)) {
+		side = Ternary(IsTrue(isBuyerMaker), "sell", "buy")
 	}
 	var isSpot any = true
 	if IsTrue(IsEqual(market, nil)) {
@@ -1737,6 +1915,8 @@ func (this *WeexCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker any = nil
 	if IsTrue(!IsEqual(isMaker, nil)) {
 		takerOrMaker = Ternary(IsTrue(isMaker), "maker", "taker")
+	} else if IsTrue(!IsEqual(isBuyerMaker, nil)) {
+		takerOrMaker = "taker"
 	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -1771,9 +1951,11 @@ func (this *WeexCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan 
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16218 := (<-this.LoadMarkets())
-		PanicOnError(retRes16218)
+			retRes165112 := (<-this.LoadMarkets())
+			PanicOnError(retRes165112)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -1830,9 +2012,11 @@ func (this *WeexCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16628 := (<-this.LoadMarkets())
-		PanicOnError(retRes16628)
+			retRes169412 := (<-this.LoadMarkets())
+			PanicOnError(retRes169412)
+		}
 		symbols = this.MarketSymbols(symbols)
 		var symbolsLength any = 0
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -1841,7 +2025,7 @@ func (this *WeexCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		var request any = map[string]any{}
 		if IsTrue(IsEqual(symbolsLength, 1)) {
 			var market any = this.GetMarketFromSymbols(symbols)
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 		}
 
 		response := (<-this.ContractGetCapiV3MarketPremiumIndex(this.Extend(request, params)))
@@ -1931,9 +2115,11 @@ func (this *WeexCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17418 := (<-this.LoadMarkets())
-		PanicOnError(retRes17418)
+			retRes177512 := (<-this.LoadMarkets())
+			PanicOnError(retRes177512)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -2068,7 +2254,9 @@ func (this *WeexCore) ParseBalance(response any) any {
 		AddElementToObject(account, "free", this.SafeString2(entry, "availableBalance", "free"))
 		AddElementToObject(account, "used", this.SafeString2(entry, "frozen", "locked"))
 		AddElementToObject(account, "total", this.SafeString(entry, "balance"))
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -2098,9 +2286,11 @@ func (this *WeexCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes18688 := (<-this.LoadMarkets())
-		PanicOnError(retRes18688)
+			retRes190612 := (<-this.LoadMarkets())
+			PanicOnError(retRes190612)
+		}
 		var request any = map[string]any{}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2113,9 +2303,9 @@ func (this *WeexCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes187819 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params, maxLimit))
-			PanicOnError(retRes187819)
-			ch <- retRes187819
+			retRes191719 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params, maxLimit))
+			PanicOnError(retRes191719)
+			ch <- retRes191719
 			return nil
 		}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -2203,21 +2393,23 @@ func (this *WeexCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes19488 := (<-this.LoadMarkets())
-		PanicOnError(retRes19488)
+			retRes198812 := (<-this.LoadMarkets())
+			PanicOnError(retRes198812)
+		}
 		var market any = this.Market(symbol)
 		if IsTrue(GetValue(market, "contract")) {
 
-			retRes195119 := (<-this.CreateContractOrder(symbol, typeVar, side, amount, price, params))
-			PanicOnError(retRes195119)
-			ch <- retRes195119
+			retRes199219 := (<-this.CreateContractOrder(symbol, typeVar, side, amount, price, params))
+			PanicOnError(retRes199219)
+			ch <- retRes199219
 			return nil
 		} else {
 
-			retRes195319 := (<-this.CreateSpotOrder(symbol, typeVar, side, amount, price, params))
-			PanicOnError(retRes195319)
-			ch <- retRes195319
+			retRes199419 := (<-this.CreateSpotOrder(symbol, typeVar, side, amount, price, params))
+			PanicOnError(retRes199419)
+			ch <- retRes199419
 			return nil
 		}
 
@@ -2249,15 +2441,16 @@ func (this *WeexCore) CreateSpotOrder(symbol any, typeVar any, side any, amount 
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes19738 := (<-this.LoadMarkets())
-		PanicOnError(retRes19738)
+			retRes201512 := (<-this.LoadMarkets())
+			PanicOnError(retRes201512)
+		}
 		var market any = this.Market(symbol)
 		var request any = this.CreateSpotOrderRequest(symbol, typeVar, side, amount, price, params)
 
 		response := (<-this.PrivatePostApiV3Order(request))
 		PanicOnError(response)
-
 		//
 		//     {
 		//         "symbol": "DOGEUSDT",
@@ -2266,6 +2459,10 @@ func (this *WeexCore) CreateSpotOrder(symbol any, typeVar any, side any, amount 
 		//         "transactTime": 1775608924724
 		//     }
 		//
+		if IsTrue(IsEqual(response, nil)) {
+			panic(NullResponse(Add(this.Id, " parseOrder() returned empty response")))
+		}
+
 		ch <- this.ParseOrder(response, market)
 		return nil
 
@@ -2277,7 +2474,16 @@ func (this *WeexCore) CreateSpotOrderRequest(symbol any, typeVar any, side any, 
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
+	if IsTrue(IsEqual(typeVar, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
+	}
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
+	}
 	var market any = this.Market(symbol)
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " createSpotOrderRequest() requires a side argument")))
+	}
 	var request any = map[string]any{
 		"symbol":   GetValue(market, "id"),
 		"side":     ToUpper(side),
@@ -2334,9 +2540,11 @@ func (this *WeexCore) CreateContractOrder(symbol any, typeVar any, side any, amo
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes20388 := (<-this.LoadMarkets())
-		PanicOnError(retRes20388)
+			retRes209412 := (<-this.LoadMarkets())
+			PanicOnError(retRes209412)
+		}
 		var market any = this.Market(symbol)
 		var request any = this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, params)
 		var triggerPrice any = this.SafeString(request, "triggerPrice")
@@ -2350,6 +2558,9 @@ func (this *WeexCore) CreateContractOrder(symbol any, typeVar any, side any, amo
 			response = (<-this.ContractPrivatePostCapiV3Order(request))
 			PanicOnError(response)
 		}
+		if IsTrue(IsEqual(response, nil)) {
+			panic(NullResponse(Add(this.Id, " createOrder() returned empty response")))
+		}
 
 		ch <- this.ParseOrder(response, market)
 		return nil
@@ -2362,7 +2573,16 @@ func (this *WeexCore) CreateContractOrderRequest(symbol any, typeVar any, side a
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
+	if IsTrue(IsEqual(typeVar, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
+	}
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
+	}
 	var market any = this.Market(symbol)
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " createContractOrderRequest() requires a side argument")))
+	}
 	var request any = map[string]any{
 		"symbol":   GetValue(market, "id"),
 		"side":     ToUpper(side),
@@ -2503,9 +2723,11 @@ func (this *WeexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes21828 := (<-this.LoadMarkets())
-		PanicOnError(retRes21828)
+			retRes225212 := (<-this.LoadMarkets())
+			PanicOnError(retRes225212)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -2554,6 +2776,9 @@ func (this *WeexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 			response = (<-this.ContractPrivateDeleteCapiV3Order(this.Extend(request, params)))
 			PanicOnError(response)
 		}
+		if IsTrue(IsEqual(response, nil)) {
+			panic(NullResponse(Add(this.Id, " parseOrder() returned empty response")))
+		}
 		var order any = this.ParseOrder(response, market)
 		AddElementToObject(order, "status", "canceled")
 
@@ -2586,9 +2811,11 @@ func (this *WeexCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes22428 := (<-this.LoadMarkets())
-		PanicOnError(retRes22428)
+			retRes231712 := (<-this.LoadMarkets())
+			PanicOnError(retRes231712)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2651,9 +2878,11 @@ func (this *WeexCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes22848 := (<-this.LoadMarkets())
-		PanicOnError(retRes22848)
+			retRes236112 := (<-this.LoadMarkets())
+			PanicOnError(retRes236112)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2725,9 +2954,11 @@ func (this *WeexCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes23378 := (<-this.LoadMarkets())
-		PanicOnError(retRes23378)
+			retRes241612 := (<-this.LoadMarkets())
+			PanicOnError(retRes241612)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -2778,6 +3009,9 @@ func (this *WeexCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 			response = (<-this.ContractPrivateGetCapiV3Order(this.Extend(request, params)))
 			PanicOnError(response)
 		}
+		if IsTrue(IsEqual(response, nil)) {
+			panic(NullResponse(Add(this.Id, " parseOrder() returned empty response")))
+		}
 
 		ch <- this.ParseOrder(response, market)
 		return nil
@@ -2814,9 +3048,11 @@ func (this *WeexCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes24018 := (<-this.LoadMarkets())
-		PanicOnError(retRes24018)
+			retRes248512 := (<-this.LoadMarkets())
+			PanicOnError(retRes248512)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -2836,14 +3072,14 @@ func (this *WeexCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 				panic(NotSupported(Add(this.Id, " fetchOpenOrders() pagination is not supported for spot markets")))
 			}
 
-			retRes241619 := (<-this.FetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params, maxLimit))
-			PanicOnError(retRes241619)
-			ch <- retRes241619
+			retRes250119 := (<-this.FetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params, maxLimit))
+			PanicOnError(retRes250119)
+			ch <- retRes250119
 			return nil
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 		}
 		var response any = nil
 		if IsTrue(isSpot) {
@@ -2985,9 +3221,11 @@ func (this *WeexCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes25378 := (<-this.LoadMarkets())
-		PanicOnError(retRes25378)
+			retRes262312 := (<-this.LoadMarkets())
+			PanicOnError(retRes262312)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3044,9 +3282,11 @@ func (this *WeexCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes25718 := (<-this.LoadMarkets())
-		PanicOnError(retRes25718)
+			retRes265912 := (<-this.LoadMarkets())
+			PanicOnError(retRes265912)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3105,9 +3345,11 @@ func (this *WeexCore) FetchOrders(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes26078 := (<-this.LoadMarkets())
-		PanicOnError(retRes26078)
+			retRes269712 := (<-this.LoadMarkets())
+			PanicOnError(retRes269712)
+		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " fetchOrders() supports spot markets only")))
@@ -3119,9 +3361,9 @@ func (this *WeexCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes261619 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params, maxLimit))
-			PanicOnError(retRes261619)
-			ch <- retRes261619
+			retRes270719 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params, maxLimit))
+			PanicOnError(retRes270719)
+			ch <- retRes270719
 			return nil
 		}
 		var request any = map[string]any{
@@ -3194,9 +3436,11 @@ func (this *WeexCore) FetchCanceledAndClosedOrders(optionalArgs ...any) <-chan a
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes26678 := (<-this.LoadMarkets())
-		PanicOnError(retRes26678)
+			retRes275912 := (<-this.LoadMarkets())
+			PanicOnError(retRes275912)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3215,14 +3459,14 @@ func (this *WeexCore) FetchCanceledAndClosedOrders(optionalArgs ...any) <-chan a
 		var maxLimit any = 1000
 		if IsTrue(paginate) {
 
-			retRes268119 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params, maxLimit))
-			PanicOnError(retRes268119)
-			ch <- retRes268119
+			retRes277419 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params, maxLimit))
+			PanicOnError(retRes277419)
+			ch <- retRes277419
 			return nil
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 		}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "startTime", since)
@@ -3490,16 +3734,18 @@ func (this *WeexCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes29348 := (<-this.LoadMarkets())
-		PanicOnError(retRes29348)
+			retRes302812 := (<-this.LoadMarkets())
+			PanicOnError(retRes302812)
+		}
 		var request any = map[string]any{
 			"orderId": id,
 		}
 
-		retRes293815 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes293815)
-		ch <- retRes293815
+		retRes303315 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes303315)
+		ch <- retRes303315
 		return nil
 
 	}()
@@ -3533,9 +3779,11 @@ func (this *WeexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes29568 := (<-this.LoadMarkets())
-		PanicOnError(retRes29568)
+			retRes305212 := (<-this.LoadMarkets())
+			PanicOnError(retRes305212)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3555,14 +3803,14 @@ func (this *WeexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		var maxLimit any = 100
 		if IsTrue(paginate) {
 
-			retRes297119 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, maxLimit))
-			PanicOnError(retRes297119)
-			ch <- retRes297119
+			retRes306819 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, maxLimit))
+			PanicOnError(retRes306819)
+			ch <- retRes306819
 			return nil
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 		}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "startTime", since)
@@ -3618,8 +3866,12 @@ func (this *WeexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			response = (<-this.ContractPrivateGetCapiV3UserTrades(this.Extend(request, params)))
 			PanicOnError(response)
 		}
+		var responseList any = []any{}
+		if IsTrue(!IsEqual(response, nil)) {
+			responseList = this.ToArray(response)
+		}
 
-		ch <- this.ParseTrades(response, market, since, limit)
+		ch <- this.ParseTrades(responseList, market, since, limit)
 		return nil
 
 	}()
@@ -3655,9 +3907,11 @@ func (this *WeexCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes30458 := (<-this.LoadMarkets())
-		PanicOnError(retRes30458)
+			retRes314712 := (<-this.LoadMarkets())
+			PanicOnError(retRes314712)
+		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate", false)
 		paginate = GetValue(paginateparamsVariable, 0)
@@ -3665,9 +3919,9 @@ func (this *WeexCore) FetchLedger(optionalArgs ...any) <-chan any {
 		var maxLimit any = 100
 		if IsTrue(paginate) {
 
-			retRes305019 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, maxLimit))
-			PanicOnError(retRes305019)
-			ch <- retRes305019
+			retRes315319 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, maxLimit))
+			PanicOnError(retRes315319)
+			ch <- retRes315319
 			return nil
 		}
 		var accountType any = nil
@@ -3683,6 +3937,9 @@ func (this *WeexCore) FetchLedger(optionalArgs ...any) <-chan any {
 			currency = this.Currency(code)
 		}
 		if IsTrue(IsEqual(accountType, "contract")) {
+			if IsTrue(IsEqual(currency, nil)) {
+				panic(ExchangeError(Add(this.Id, " fetchLedger() could not resolve currency")))
+			}
 			if IsTrue(!IsEqual(code, nil)) {
 				AddElementToObject(request, "currency", GetValue(currency, "id"))
 			}
@@ -3724,8 +3981,9 @@ func (this *WeexCore) FetchLedger(optionalArgs ...any) <-chan any {
 			request = GetValue(requestparamsVariable, 0)
 			params = GetValue(requestparamsVariable, 1)
 
-			items = (<-this.PrivatePostApiV3AccountBills(this.Extend(request, params)))
-			PanicOnError(items)
+			billsResponse := (<-this.PrivatePostApiV3AccountBills(this.Extend(request, params)))
+			PanicOnError(billsResponse)
+			items = this.ToArray(billsResponse)
 		}
 
 		ch <- this.ParseLedger(items, currency, since, limit)
@@ -3788,6 +4046,9 @@ func (this *WeexCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var before any = Precise.StringSub(after, amountRaw)
 	var amount any = this.ParseNumber(Precise.StringAbs(amountRaw))
 	var direction any = "in"
+	if IsTrue(IsEqual(amountRaw, nil)) {
+		panic(ExchangeError(Add(this.Id, " parseLedgerEntry() missing amountRaw")))
+	}
 	if IsTrue(IsGreaterThanOrEqual(GetIndexOf(amountRaw, "-"), 0)) {
 		direction = "out"
 	}
@@ -3854,9 +4115,11 @@ func (this *WeexCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes32098 := (<-this.LoadMarkets())
-		PanicOnError(retRes32098)
+			retRes332012 := (<-this.LoadMarkets())
+			PanicOnError(retRes332012)
+		}
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.ContractPrivateGetCapiV3AccountPositionAllPosition(params))
@@ -3913,9 +4176,11 @@ func (this *WeexCore) FetchPositionsForSymbol(symbol any, optionalArgs ...any) <
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes32408 := (<-this.LoadMarkets())
-		PanicOnError(retRes32408)
+			retRes335312 := (<-this.LoadMarkets())
+			PanicOnError(retRes335312)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -4001,7 +4266,7 @@ func (this *WeexCore) ParsePosition(position any, optionalArgs ...any) any {
 	if IsTrue(!IsEqual(errorMessage, nil)) {
 		this.HandleOrderOrPositionError(errorCode, errorMessage, position)
 	}
-	var marketId any = this.SafeString(position, "symbol")
+	var marketId any = this.SafeString2(position, "symbol", "coinId") // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
 	market = this.SafeMarket(marketId, market, nil, "contract")
 	var timestamp any = this.SafeInteger(position, "createdTime")
 	var marginType any = this.SafeString2(position, "marginType", "marginMode")
@@ -4016,20 +4281,23 @@ func (this *WeexCore) ParsePosition(position any, optionalArgs ...any) any {
 	} else if IsTrue(IsEqual(separatedMode, "SEPARATED")) {
 		hedged = true
 	}
+	var notional any = this.SafeString(position, "openValue")
+	var size any = this.SafeString(position, "size")
+	var entryPrice any = Precise.StringDiv(notional, size)
 	return this.SafePosition(map[string]any{
 		"symbol":                      GetValue(market, "symbol"),
 		"id":                          this.SafeString2(position, "id", "positionId"),
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
-		"contracts":                   this.SafeNumber(position, "size"),
+		"contracts":                   this.ParseNumber(size),
 		"contractSize":                nil,
 		"side":                        this.SafeStringLower(position, "side"),
-		"notional":                    this.SafeNumber(position, "openValue"),
+		"notional":                    this.ParseNumber(notional),
 		"leverage":                    this.SafeNumber(position, "leverage"),
 		"unrealizedPnl":               this.SafeNumber(position, "unrealizePnl"),
 		"realizedPnl":                 nil,
 		"collateral":                  nil,
-		"entryPrice":                  nil,
+		"entryPrice":                  this.ParseNumber(entryPrice),
 		"markPrice":                   nil,
 		"liquidationPrice":            this.SafeNumber(position, "liquidatePrice"),
 		"marginMode":                  marginMode,
@@ -4044,7 +4312,7 @@ func (this *WeexCore) ParsePosition(position any, optionalArgs ...any) any {
 		"stopLossPrice":               nil,
 		"takeProfitPrice":             nil,
 		"percentage":                  nil,
-		"info":                        nil,
+		"info":                        position,
 	})
 }
 
@@ -4063,9 +4331,11 @@ func (this *WeexCore) CloseAllPositions(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes33748 := (<-this.LoadMarkets())
-		PanicOnError(retRes33748)
+			retRes349212 := (<-this.LoadMarkets())
+			PanicOnError(retRes349212)
+		}
 
 		response := (<-this.ContractPrivatePostCapiV3ClosePositions(params))
 		PanicOnError(response)
@@ -4106,9 +4376,11 @@ func (this *WeexCore) ClosePosition(symbol any, optionalArgs ...any) <-chan any 
 		_ = side
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes34008 := (<-this.LoadMarkets())
-		PanicOnError(retRes34008)
+			retRes352012 := (<-this.LoadMarkets())
+			PanicOnError(retRes352012)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -4141,9 +4413,11 @@ func (this *WeexCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan an
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes34208 := (<-this.LoadMarkets())
-		PanicOnError(retRes34208)
+			retRes354212 := (<-this.LoadMarkets())
+			PanicOnError(retRes354212)
+		}
 		var market any = this.Market(symbol)
 		if IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " fetchTradingFee() is not supported for spot markets")))
@@ -4206,9 +4480,11 @@ func (this *WeexCore) FetchMarginMode(symbol any, optionalArgs ...any) <-chan an
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes34708 := (<-this.LoadMarkets())
-		PanicOnError(retRes34708)
+			retRes359412 := (<-this.LoadMarkets())
+			PanicOnError(retRes359412)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -4255,15 +4531,17 @@ func (this *WeexCore) FetchMarginModes(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes35028 := (<-this.LoadMarkets())
-		PanicOnError(retRes35028)
+			retRes362812 := (<-this.LoadMarkets())
+			PanicOnError(retRes362812)
+		}
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.ContractPrivateGetCapiV3AccountSymbolConfig(params))
 		PanicOnError(response)
 
-		ch <- this.ParseMarginModes(response, symbols, "symbol", "swap")
+		ch <- this.ParseMarginModes(this.ToArray(response), symbols, "symbol", "swap")
 		return nil
 
 	}()
@@ -4310,18 +4588,20 @@ func (this *WeexCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan 
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes35408 := (<-this.LoadMarkets())
-		PanicOnError(retRes35408)
+			retRes366812 := (<-this.LoadMarkets())
+			PanicOnError(retRes366812)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol":     GetValue(market, "id"),
 			"marginType": this.EncodeMarginMode(marginMode),
 		}
 
-		retRes354615 := (<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params)))
-		PanicOnError(retRes354615)
-		ch <- retRes354615
+		retRes367515 := (<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params)))
+		PanicOnError(retRes367515)
+		ch <- retRes367515
 		return nil
 
 	}()
@@ -4355,9 +4635,11 @@ func (this *WeexCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any 
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes35718 := (<-this.LoadMarkets())
-		PanicOnError(retRes35718)
+			retRes370112 := (<-this.LoadMarkets())
+			PanicOnError(retRes370112)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -4392,15 +4674,17 @@ func (this *WeexCore) FetchLeverages(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes35918 := (<-this.LoadMarkets())
-		PanicOnError(retRes35918)
+			retRes372312 := (<-this.LoadMarkets())
+			PanicOnError(retRes372312)
+		}
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.ContractPrivateGetCapiV3AccountSymbolConfig(params))
 		PanicOnError(response)
 
-		ch <- this.ParseLeverages(response, symbols, "symbol", "swap")
+		ch <- this.ParseLeverages(this.ToArray(response), symbols, "symbol", "swap")
 		return nil
 
 	}()
@@ -4459,9 +4743,11 @@ func (this *WeexCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any 
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes36408 := (<-this.LoadMarkets())
-		PanicOnError(retRes36408)
+			retRes377412 := (<-this.LoadMarkets())
+			PanicOnError(retRes377412)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -4485,9 +4771,9 @@ func (this *WeexCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any 
 			}
 		}
 
-		retRes366115 := (<-this.ContractPrivatePostCapiV3AccountLeverage(this.Extend(request, params)))
-		PanicOnError(retRes366115)
-		ch <- retRes366115
+		retRes379615 := (<-this.ContractPrivatePostCapiV3AccountLeverage(this.Extend(request, params)))
+		PanicOnError(retRes379615)
+		ch <- retRes379615
 		return nil
 
 	}()
@@ -4512,9 +4798,11 @@ func (this *WeexCore) FetchPositionMode(optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes36748 := (<-this.LoadMarkets())
-		PanicOnError(retRes36748)
+			retRes381012 := (<-this.LoadMarkets())
+			PanicOnError(retRes381012)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -4558,9 +4846,11 @@ func (this *WeexCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan an
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " setPositionMode() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes37038 := (<-this.LoadMarkets())
-		PanicOnError(retRes37038)
+			retRes384112 := (<-this.LoadMarkets())
+			PanicOnError(retRes384112)
+		}
 		var market any = this.Market(symbol)
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("setPositionMode", params)
@@ -4576,9 +4866,9 @@ func (this *WeexCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan an
 			"separatedType": separatedType,
 		}
 
-		retRes371615 := (<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params)))
-		PanicOnError(retRes371615)
-		ch <- retRes371615
+		retRes385515 := (<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params)))
+		PanicOnError(retRes385515)
+		ch <- retRes385515
 		return nil
 
 	}()
@@ -4591,9 +4881,11 @@ func (this *WeexCore) ModifyMarginHelper(symbol any, amount any, typeVar any, op
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes37208 := (<-this.LoadMarkets())
-		PanicOnError(retRes37208)
+			retRes386012 := (<-this.LoadMarkets())
+			PanicOnError(retRes386012)
+		}
 		var isolatedPositionId any = this.SafeStringN(params, []any{"positionId", "id", "isolatedPositionId"})
 		if IsTrue(IsEqual(isolatedPositionId, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " modifyMarginHelper() requires a positionId parameter")))
@@ -4634,12 +4926,12 @@ func (this *WeexCore) ParseMarginModification(data any, optionalArgs ...any) any
 	var timestamp any = this.SafeInteger(data, "requestTime")
 	return map[string]any{
 		"info":       data,
-		"symbol":     GetValue(market, "symbol"),
+		"symbol":     this.SafeString(market, "symbol"),
 		"type":       nil,
 		"marginMode": "isolated",
 		"amount":     nil,
 		"total":      nil,
-		"code":       GetValue(market, "settle"),
+		"code":       this.SafeString(market, "settle"),
 		"status":     status,
 		"timestamp":  timestamp,
 		"datetime":   this.Iso8601(timestamp),
@@ -4665,9 +4957,9 @@ func (this *WeexCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes377715 := (<-this.ModifyMarginHelper(symbol, amount, 2, params))
-		PanicOnError(retRes377715)
-		ch <- retRes377715
+		retRes391815 := (<-this.ModifyMarginHelper(symbol, amount, 2, params))
+		PanicOnError(retRes391815)
+		ch <- retRes391815
 		return nil
 
 	}()
@@ -4693,9 +4985,9 @@ func (this *WeexCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-c
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes379215 := (<-this.ModifyMarginHelper(symbol, amount, 1, params))
-		PanicOnError(retRes379215)
-		ch <- retRes379215
+		retRes393315 := (<-this.ModifyMarginHelper(symbol, amount, 1, params))
+		PanicOnError(retRes393315)
+		ch <- retRes393315
 		return nil
 
 	}()

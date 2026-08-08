@@ -1,15 +1,15 @@
 //  ---------------------------------------------------------------------------
 
 import toobitRest from '../toobit.js';
-import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Market, Strings, Tickers, Balances, Position, Bool } from '../base/types.js';
+import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, List, Market, Strings, Tickers, Balances, Position, Bool, Fee } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class toobit extends toobitRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -51,7 +51,7 @@ export default class toobit extends toobitRest {
                         '1w': '1w',
                         '1M': '1M',
                     },
-                    'watchOrderBook': {
+                    'watchOrderBookForSymbols': {
                         'channel': 'depth', // depth, diffDepth
                     },
                     'listenKeyRefreshRate': 1200000, // 20 mins
@@ -70,13 +70,13 @@ export default class toobit extends toobitRest {
         });
     }
 
-    ping (client: Client) {
+    override ping (client: Client) {
         return {
             'ping': this.milliseconds (),
         };
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         //
         // public
         //
@@ -140,7 +140,7 @@ export default class toobit extends toobitRest {
             'ticketInfo': this.handleMyTrade,
             'outboundContractPositionInfo': this.handlePositions,
         };
-        const method = this.safeValue (methods, topic);
+        const method = (topic === undefined) ? undefined : this.safeValue (methods, topic);
         if (method !== undefined) {
             method.call (this, client, message);
         } else {
@@ -148,7 +148,7 @@ export default class toobit extends toobitRest {
             for (let i = 0; i < message.length; i++) {
                 const item = message[i];
                 const event = this.safeString (item, 'e');
-                const method2 = this.safeValue (methods, event);
+                const method2 = (event === undefined) ? undefined : this.safeValue (methods, event);
                 if (method2 !== undefined) {
                     method2.call (this, client, item);
                 }
@@ -164,22 +164,22 @@ export default class toobit extends toobitRest {
      * @method
      * @name toobit#watchTrades
      * @description watches information on multiple trades made in a market
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     /**
      * @method
      * @name toobit#watchTradesForSymbols
      * @description get the list of most recent trades for a list of symbols
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -187,11 +187,13 @@ export default class toobit extends toobitRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
-        const messageHashes = [];
-        const subParams = [];
+        const messageHashes: List = [];
+        const subParams: List = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -215,7 +217,7 @@ export default class toobit extends toobitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //     {
         //         symbol: "DOGEUSDT",
@@ -258,7 +260,7 @@ export default class toobit extends toobitRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         return this.parseTrade (trade, market);
     }
 
@@ -266,7 +268,8 @@ export default class toobit extends toobitRest {
      * @method
      * @name toobit#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -274,7 +277,7 @@ export default class toobit extends toobitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
         return result[symbol][timeframe];
@@ -284,19 +287,22 @@ export default class toobit extends toobitRest {
      * @method
      * @name toobit#watchOHLCVForSymbols
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const url = this.urls['api']['ws']['common'] + '/quote/ws/v1';
-        const messageHashes = [];
+        const messageHashes: List = [];
         const timeframes = this.safeDict (this.options['ws'], 'timeframes', {});
-        const marketIds = [];
+        const marketIds: List = [];
         let selectedTimeframe: Str = undefined;
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
@@ -326,7 +332,7 @@ export default class toobit extends toobitRest {
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         symbol: 'DOGEUSDT',
@@ -361,11 +367,14 @@ export default class toobit extends toobitRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
             const limit = this.safeInteger (this.options['ws'], 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            stored = new ArrayCacheByTimestamp (limit);
+            if (timeframe !== undefined) {
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
         }
-        const stored = this.ohlcvs[symbol][timeframe];
         const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseWsOHLCV (data[i], market);
@@ -376,7 +385,7 @@ export default class toobit extends toobitRest {
         client.resolve (resolveData, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //             {
         //                 t: 1757251200000,
@@ -397,14 +406,17 @@ export default class toobit extends toobitRest {
     /**
      * @method
      * @name toobit#watchTicker
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbol = this.symbol (symbol);
         const tickers = await this.watchTickers ([ symbol ], params);
         return tickers[symbol];
@@ -413,17 +425,20 @@ export default class toobit extends toobitRest {
     /**
      * @method
      * @name toobit#watchTickers
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
-        const messageHashes = [];
-        const subParams = [];
+        const messageHashes: List = [];
+        const subParams: List = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -447,7 +462,7 @@ export default class toobit extends toobitRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTickers (client: Client, message) {
+    handleTickers (client: Client, message: any) {
         //
         //    {
         //        "symbol": "DOGEUSDT",
@@ -484,20 +499,27 @@ export default class toobit extends toobitRest {
         //    }
         //
         const data = this.safeList (message, 'data');
-        const newTickers = {};
+        if (data === undefined) {
+            return;
+        }
+        const newTickers: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = data[i];
             const parsed = this.parseWsTicker (ticker);
             const symbol = parsed['symbol'];
-            this.tickers[symbol] = parsed;
-            newTickers[symbol] = parsed;
+            if (symbol !== undefined) {
+                this.tickers[symbol] = parsed;
+            }
+            if (symbol !== undefined) {
+                newTickers[symbol] = parsed;
+            }
             const messageHash = 'ticker::' + symbol;
             client.resolve (parsed, messageHash);
         }
         client.resolve (newTickers, 'tickers');
     }
 
-    parseWsTicker (ticker, market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         return this.parseTicker (ticker, market);
     }
 
@@ -505,33 +527,41 @@ export default class toobit extends toobitRest {
      * @method
      * @name toobit#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    override watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        return this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
     /**
      * @method
      * @name toobit#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
         let channel: Str = undefined;
-        [ channel, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'channel', 'depth');
-        const messageHashes = [];
-        const subParams = [];
+        [ channel, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'channel', 'depth');
+        const messageHashes: List = [];
+        const subParams: List = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -550,7 +580,7 @@ export default class toobit extends toobitRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         symbol: 'DOGEUSDT',
@@ -600,12 +630,12 @@ export default class toobit extends toobitRest {
         }
     }
 
-    handleDelta (bookside, delta) {
-        const bidAsk = this.parseBidAsk (delta);
+    override handleDelta (bookside: any, delta: any) {
+        const bidAsk = this.parseOrderBookBidAsk (delta);
         bookside.storeArray (bidAsk);
     }
 
-    handleOrderBookPartialSnapshot (client: Client, message) {
+    handleOrderBookPartialSnapshot (client: Client, message: any) {
         //
         //     {
         //         symbol: 'DOGEUSDT',
@@ -631,7 +661,7 @@ export default class toobit extends toobitRest {
         this.setOrderBookSnapshot (client, message, 'depth');
     }
 
-    setOrderBookSnapshot (client: Client, message, channel: string) {
+    setOrderBookSnapshot (client: Client, message: any, channel: string) {
         const data = this.safeList (message, 'data', []);
         const length = data.length;
         if (length === 0) {
@@ -658,14 +688,17 @@ export default class toobit extends toobitRest {
      * @method
      * @name toobit#watchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-account-update
+     * @see https://api-docs.toobit.com/api/spot-websocket-account.html#payload-account-update
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+    override async watchBalance (params = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const isSpot = (marketType === 'spot');
         const type = isSpot ? 'spot' : 'contract';
@@ -675,6 +708,9 @@ export default class toobit extends toobitRest {
         const swapMessageHash = 'contract:balance';
         const messageHash = isSpot ? spotMessageHash : swapMessageHash;
         const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
+        if (subscriptionHash === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchBalance() requires a subscription hash');
+        }
         const url = this.getUserStreamUrl ();
         const client = this.client (url);
         this.setBalanceCache (client, marketType, subscriptionHash, params);
@@ -682,8 +718,8 @@ export default class toobit extends toobitRest {
         return await this.watch (url, messageHash, params, subscriptionHash);
     }
 
-    setBalanceCache (client: Client, marketType, subscriptionHash: Str = undefined, params = {}) {
-        if (subscriptionHash in client.subscriptions) {
+    setBalanceCache (client: Client, marketType: any, subscriptionHash: Str = undefined, params = {}) {
+        if ((subscriptionHash === undefined) || (subscriptionHash in client.subscriptions)) {
             return;
         }
         const type = (marketType === 'spot') ? 'spot' : 'contract';
@@ -694,7 +730,7 @@ export default class toobit extends toobitRest {
         }
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         // spot
         //
@@ -746,13 +782,15 @@ export default class toobit extends toobitRest {
             account['info'] = balance;
             account['used'] = this.safeString (balance, 'l');
             account['free'] = this.safeString (balance, 'f');
-            this.balance[type][code] = account;
+            if ((type !== undefined) && (code !== undefined)) {
+                this.balance[type][code] = account;
+            }
         }
         this.balance[type] = this.safeBalance (this.balance[type]);
         client.resolve (this.balance[type], type + ':balance');
     }
 
-    async loadBalanceSnapshot (client, messageHash, marketType) {
+    async loadBalanceSnapshot (client: Client, messageHash: any, marketType: any) {
         const response = await this.fetchBalance ({ 'type': marketType });
         const type = (marketType === 'spot') ? 'spot' : 'contract';
         this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
@@ -769,15 +807,18 @@ export default class toobit extends toobitRest {
      * @method
      * @name toobit#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-order-update
+     * @see https://api-docs.toobit.com/api/spot-websocket-account.html#payload-order-update
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-order
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const market = this.marketOrNull (symbol);
         symbol = this.safeString (market, 'symbol', symbol);
@@ -793,7 +834,7 @@ export default class toobit extends toobitRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         //    {
         //        "e": "executionReport",
@@ -838,7 +879,7 @@ export default class toobit extends toobitRest {
         client.resolve (orders, messageHash);
     }
 
-    parseWsOrder (order, market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         const timestamp = this.safeInteger (order, 'O');
         const marketId = this.safeString (order, 's');
         const symbol = this.safeSymbol (marketId, market);
@@ -851,7 +892,7 @@ export default class toobit extends toobitRest {
             orderType = rawOrderType;
         }
         const feeCost = this.safeNumber (order, 'n');
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -888,7 +929,8 @@ export default class toobit extends toobitRest {
      * @method
      * @name toobit#watchMyTrades
      * @description watches information on multiple trades made by the user
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-ticket-push
+     * @see https://api-docs.toobit.com/api/spot-websocket-account.html#payload-ticket-push
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-trade-update
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -896,8 +938,10 @@ export default class toobit extends toobitRest {
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const market = this.marketOrNull (symbol);
         symbol = this.safeString (market, 'symbol', symbol);
@@ -913,7 +957,7 @@ export default class toobit extends toobitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleMyTrade (client: Client, message) {
+    handleMyTrade (client: Client, message: any) {
         //
         //    {
         //        "e": "ticketInfo",
@@ -943,7 +987,7 @@ export default class toobit extends toobitRest {
         client.resolve (myTrades, messageHash);
     }
 
-    parseMyTrade (trade, market = undefined) {
+    parseMyTrade (trade: any, market: Market = undefined) {
         const marketId = this.safeString (trade, 's');
         const ts = this.safeString (trade, 't');
         return this.safeTrade ({
@@ -966,7 +1010,7 @@ export default class toobit extends toobitRest {
     /**
      * @method
      * @name toobit#watchPositions
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#event-position-update
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-position-update
      * @description watch all open positions
      * @param {string[]} [symbols] list of unified market symbols
      * @param {int} [since] the earliest time in ms to fetch positions for
@@ -974,12 +1018,17 @@ export default class toobit extends toobitRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         let messageHash = '';
         if (!this.isEmpty (symbols)) {
             symbols = this.marketSymbols (symbols);
+            if (symbols === undefined) {
+                throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
+            }
             messageHash = '::' + symbols.join (',');
         }
         const url = this.getUserStreamUrl ();
@@ -998,7 +1047,7 @@ export default class toobit extends toobitRest {
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type, symbols: Strings = undefined, isPortfolioMargin = false) {
+    setPositionsCache (client: Client, type: any, symbols: Strings = undefined, isPortfolioMargin = false) {
         if (this.positions === undefined) {
             this.positions = {};
         }
@@ -1017,7 +1066,7 @@ export default class toobit extends toobitRest {
         }
     }
 
-    async loadPositionsSnapshot (client, messageHash, type) {
+    async loadPositionsSnapshot (client: Client, messageHash: any, type: any) {
         const params: Dict = {
             'type': type,
         };
@@ -1036,7 +1085,7 @@ export default class toobit extends toobitRest {
         }
     }
 
-    handlePositions (client, message) {
+    handlePositions (client: any, message: any) {
         //
         // [
         //     {
@@ -1070,7 +1119,7 @@ export default class toobit extends toobitRest {
             this.positions[accountType] = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions[accountType];
-        const newPositions = [];
+        const newPositions: List = [];
         for (let i = 0; i < message.length; i++) {
             const rawPosition = message[i];
             const position = this.parseWsPosition (rawPosition);
@@ -1094,12 +1143,12 @@ export default class toobit extends toobitRest {
         client.resolve (newPositions, accountType + ':positions');
     }
 
-    parseWsPosition (position, market = undefined) {
+    parseWsPosition (position: any, market: Market = undefined) {
         const marketId = this.safeString (position, 's');
         return this.safePosition ({
             'info': position,
             'id': undefined,
-            'symbol': this.safeSymbol (marketId, undefined),
+            'symbol': this.safeSymbol (marketId),
             'notional': this.omitZero (this.safeString (position, 'pv')),
             'marginMode': this.safeStringLower (position, 'mt'),
             'liquidationPrice': this.safeString (position, 'f'),
@@ -1187,7 +1236,7 @@ export default class toobit extends toobitRest {
         return this.urls['api']['ws']['common'] + '/api/v1/ws/' + this.options['ws']['listenKey'];
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //    {
         //        "code": '-100010',
@@ -1198,7 +1247,7 @@ export default class toobit extends toobitRest {
         if (code !== undefined) {
             const desc = this.safeString (message, 'desc');
             const msg = this.id + ' code: ' + code + ' message: ' + desc;
-            const exception = new ExchangeError ((msg as string)); // c# fix
+            const exception = new ExchangeError (msg as string); // c# fix
             client.reject (exception);
             return true;
         }

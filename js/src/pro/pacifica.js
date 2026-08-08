@@ -18,7 +18,7 @@ export default class pacifica extends pacificaRest {
                 'cancelOrdersWs': true,
                 'cancelAllOrdersWs': true,
                 'createOrderWs': true,
-                'createOrdersWs': true,
+                'createOrdersWs': false,
                 'editOrderWs': true,
                 'watchBalance': false,
                 'watchMyTrades': true,
@@ -73,7 +73,7 @@ export default class pacifica extends pacificaRest {
             headers['PF-API-KEY'] = key;
         }
         else {
-            if (this.handleOption('setupApiKeyHeaders', 'apiKey', undefined) !== undefined) {
+            if (this.handleOption('setupApiKeyHeaders', 'apiKey') !== undefined) {
                 headers['PF-API-KEY'] = this.options['apiKey'];
             }
         }
@@ -103,7 +103,9 @@ export default class pacifica extends pacificaRest {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const [request, operationType] = this.createOrderRequest(symbol, type, side, amount, price, params);
         params = this.omit(params, [
             'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
@@ -185,7 +187,9 @@ export default class pacifica extends pacificaRest {
      */
     async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const batchOperationType = 'edit_order';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = this.editOrderRequest(id, symbol, type, side, amount, price, market, params);
         params = this.omit(params, ['originAddress', 'agentAddress', 'expiryWindow', 'clientOrderId']);
@@ -240,7 +244,9 @@ export default class pacifica extends pacificaRest {
      */
     async cancelOrdersWs(ids, symbol = undefined, params = {}) {
         const batchOperationType = 'batch_orders';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + 'cancelOrders() requires a "symbol" argument!');
         }
@@ -280,7 +286,7 @@ export default class pacifica extends pacificaRest {
         const ordersToReturn = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
-            const error = this.safeString(order, 'error', undefined);
+            const error = this.safeString(order, 'error');
             const success = this.safeBool(order, 'success', false);
             const marketId = this.safeString(order, 'symbol');
             const market = this.safeMarket(marketId);
@@ -314,7 +320,9 @@ export default class pacifica extends pacificaRest {
      */
     async cancelOrderWs(id, symbol = undefined, params = {}) {
         const operationType = 'cancel_order';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' cancelOrderWs() requires a symbol argument');
         }
@@ -370,7 +378,9 @@ export default class pacifica extends pacificaRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrdersWs(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const operationType = 'cancel_all_orders';
         const request = this.cancelAllOrdersRequest(symbol, params);
         params = this.omit(params, ['excludeReduceOnly', 'agentAddress', 'originAddress', 'expiryWindow']);
@@ -405,11 +415,13 @@ export default class pacifica extends pacificaRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         this.setupApiKeyHeaders();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let aggLevel = undefined;
         [aggLevel, params] = this.handleOptionAndParams(params, 'fetchOrderBook', 'aggLevel', 1);
@@ -437,10 +449,12 @@ export default class pacifica extends pacificaRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let aggLevel = undefined;
         [aggLevel, params] = this.handleOptionAndParams(params, 'fetchOrderBook', 'aggLevel', 1);
@@ -542,7 +556,9 @@ export default class pacifica extends pacificaRest {
      */
     async watchTickers(symbols = undefined, params = {}) {
         this.setupApiKeyHeaders();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true);
         const messageHash = 'tickers';
         const isTestnet = this.isSandboxModeEnabled;
@@ -570,7 +586,9 @@ export default class pacifica extends pacificaRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true);
         const subMessageHash = 'tickers';
         const messageHash = 'unsubscribe:' + subMessageHash;
@@ -600,7 +618,9 @@ export default class pacifica extends pacificaRest {
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let userAddress = undefined;
         [userAddress, params] = this.handleOriginAndSingleAddress('watchMyTrades', params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
             symbol = this.symbol(symbol);
@@ -634,7 +654,9 @@ export default class pacifica extends pacificaRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async unWatchMyTrades(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol !== undefined) {
             throw new NotSupported(this.id + ' unWatchMyTrades does not support a symbol argument, unWatch from all markets only');
         }
@@ -733,7 +755,9 @@ export default class pacifica extends pacificaRest {
             const rawTrade = data[i];
             const parsed = this.parseWsTrade(rawTrade);
             const symbol = parsed['symbol'];
-            symbols[symbol] = true;
+            if (symbol !== undefined) {
+                symbols[symbol] = true;
+            }
             trades.append(parsed);
         }
         const keys = Object.keys(symbols);
@@ -757,7 +781,9 @@ export default class pacifica extends pacificaRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'trade:' + symbol;
@@ -788,7 +814,9 @@ export default class pacifica extends pacificaRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async unWatchTrades(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const subMessageHash = 'trade:' + symbol;
@@ -836,7 +864,7 @@ export default class pacifica extends pacificaRest {
         }
         const trades = this.trades[symbol];
         for (let i = 0; i < entry.length; i++) {
-            const data = this.safeDict(entry, i);
+            const data = this.safeDict(entry, i, {});
             const trade = this.parseWsTrade(data);
             trades.append(trade);
         }
@@ -938,7 +966,9 @@ export default class pacifica extends pacificaRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const isTestnet = this.isSandboxModeEnabled;
@@ -972,7 +1002,9 @@ export default class pacifica extends pacificaRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const isTestnet = this.isSandboxModeEnabled;
@@ -1014,15 +1046,19 @@ export default class pacifica extends pacificaRest {
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const timeframe = this.safeString(data, 'i');
+        if (timeframe === undefined) {
+            return;
+        }
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        const symbolOhlcvs = this.safeValue(this.ohlcvs, symbol, {});
+        let ohlcv = this.safeValue(symbolOhlcvs, timeframe);
+        if (ohlcv === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
-            const stored = new ArrayCacheByTimestamp(limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            ohlcv = new ArrayCacheByTimestamp(limit);
+            symbolOhlcvs[timeframe] = ohlcv;
         }
-        const ohlcv = this.ohlcvs[symbol][timeframe];
         const parsed = this.parseOHLCV(data);
         ohlcv.append(parsed);
         const messageHash = 'candles:' + timeframe + ':' + symbol;
@@ -1041,7 +1077,9 @@ export default class pacifica extends pacificaRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let userAddress = undefined;
         [userAddress, params] = this.handleOriginAndSingleAddress('watchOrders', params);
         let market = undefined;
@@ -1079,7 +1117,9 @@ export default class pacifica extends pacificaRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async unWatchOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol !== undefined) {
             throw new NotSupported(this.id + ' unWatchOrders() does not support a symbol argument, unWatch from all markets only');
         }
@@ -1144,7 +1184,9 @@ export default class pacifica extends pacificaRest {
             const order = this.parseOrder(rawOrder);
             stored.append(order);
             const symbol = this.safeString(order, 'symbol');
-            marketSymbols[symbol] = true;
+            if (symbol !== undefined) {
+                marketSymbols[symbol] = true;
+            }
         }
         const keys = Object.keys(marketSymbols);
         for (let i = 0; i < keys.length; i++) {
@@ -1212,11 +1254,14 @@ export default class pacifica extends pacificaRest {
         const symbol = market['symbol'];
         const interval = this.safeString(subscription, 'interval');
         const timeframe = this.findTimeframe(interval);
+        if (timeframe === undefined) {
+            return;
+        }
         const subMessageHash = 'candles:' + timeframe + ':' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if (symbol in this.ohlcvs) {
-            if (timeframe in this.ohlcvs[symbol]) {
+        if ((symbol !== undefined) && (symbol in this.ohlcvs)) {
+            if ((timeframe !== undefined) && (timeframe in this.ohlcvs[symbol])) {
                 delete this.ohlcvs[symbol][timeframe];
             }
         }
@@ -1301,7 +1346,7 @@ export default class pacifica extends pacificaRest {
         if (this.handleErrorMessage(client, message)) {
             return;
         }
-        const postType = this.safeString(message, 'type', undefined);
+        const postType = this.safeString(message, 'type');
         const topic = this.safeString(message, 'channel', '');
         const methods = {
             'pong': this.handlePong,

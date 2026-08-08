@@ -45,7 +45,7 @@ public partial class whitebit : Exchange
                 { "fetchConvertQuote", true },
                 { "fetchConvertTrade", false },
                 { "fetchConvertTradeHistory", true },
-                { "fetchCrossBorrowRate", true },
+                { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDeposit", true },
@@ -137,27 +137,366 @@ public partial class whitebit : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "web", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"v1/healthcheck"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "v1/healthcheck", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "v1", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"markets", "tickers", "ticker", "symbols", "depth/result", "history", "kline"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "markets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "tickers", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ticker", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "symbols", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "depth/result", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "kline", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                     { "private", new Dictionary<string, object>() {
-                        { "post", new List<object>() {"account/balance", "order/new", "order/cancel", "orders", "account/order_history", "account/executed_history", "account/executed_history/all", "account/order"} },
+                        { "post", new Dictionary<string, object>() {
+                            { "account/balance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/new", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "account/order_history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "account/executed_history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "account/executed_history/all", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "account/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                 } },
                 { "v2", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"markets", "ticker", "assets", "fee", "depth/{market}", "trades/{market}"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "markets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ticker", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "assets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "fee", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "depth/{market}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trades/{market}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                 } },
                 { "v4", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"assets", "collateral/markets", "fee", "funding-history/{market}", "orderbook/depth/{market}", "orderbook/{market}", "ticker", "trades/{market}", "time", "ping", "markets", "futures", "platform/status", "mining-pool"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "assets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "collateral/markets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "fee", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "funding-history/{market}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orderbook/depth/{market}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orderbook/{market}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ticker", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trades/{market}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "time", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ping", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "futures", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "platform/status", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "mining-pool", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                     { "private", new Dictionary<string, object>() {
-                        { "post", new List<object>() {"collateral-account/balance", "collateral-account/balance-summary", "collateral-account/positions/history", "collateral-account/leverage", "collateral-account/positions/open", "collateral-account/summary", "collateral-account/funding-history", "main-account/address", "main-account/balance", "main-account/create-new-address", "main-account/codes", "main-account/codes/apply", "main-account/codes/my", "main-account/codes/history", "main-account/fiat-deposit-url", "main-account/history", "main-account/withdraw", "main-account/withdraw-pay", "main-account/transfer", "main-account/smart/plans", "main-account/smart/investment", "main-account/smart/investment/close", "main-account/smart/investments", "main-account/fee", "main-account/smart/interest-payment-history", "trade-account/balance", "trade-account/executed-history", "trade-account/order/history", "trade-account/order", "order/collateral/limit", "order/collateral/market", "order/collateral/stop-limit", "order/collateral/trigger-market", "order/collateral/bulk", "order/new", "order/market", "order/stock_market", "order/stop_limit", "order/stop_market", "order/cancel", "order/cancel/all", "order/kill-switch", "order/kill-switch/status", "order/bulk", "order/modify", "order/conditional-cancel", "orders", "oco-orders", "order/collateral/oco", "order/oco-cancel", "order/oto-cancel", "profile/websocket_token", "convert/estimate", "convert/confirm", "convert/history", "sub-account/create", "sub-account/delete", "sub-account/edit", "sub-account/list", "sub-account/transfer", "sub-account/block", "sub-account/unblock", "sub-account/balances", "sub-account/transfer/history", "sub-account/api-key/create", "sub-account/api-key/edit", "sub-account/api-key/delete", "sub-account/api-key/list", "sub-account/api-key/reset", "sub-account/api-key/ip-address/list", "sub-account/api-key/ip-address/create", "sub-account/api-key/ip-address/delete", "mining/rewards", "market/fee", "conditional-orders"} },
+                        { "post", new Dictionary<string, object>() {
+                            { "collateral-account/balance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "collateral-account/balance-summary", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "collateral-account/positions/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "collateral-account/leverage", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "collateral-account/positions/open", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "collateral-account/summary", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "collateral-account/funding-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/address", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/balance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/create-new-address", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/codes", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/codes/apply", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/codes/my", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/codes/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/fiat-deposit-url", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/withdraw", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/withdraw-pay", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/transfer", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/smart/plans", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/smart/investment", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/smart/investment/close", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/smart/investments", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/fee", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/smart/interest-payment-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trade-account/balance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trade-account/executed-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trade-account/order/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trade-account/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/collateral/limit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/collateral/market", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/collateral/stop-limit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/collateral/trigger-market", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/collateral/bulk", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/new", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/market", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/stock_market", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/stop_limit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/stop_market", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/cancel/all", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/kill-switch", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/kill-switch/status", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/bulk", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/modify", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/conditional-cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "oco-orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/collateral/oco", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/oco-cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/oto-cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "profile/websocket_token", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "convert/estimate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "convert/confirm", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "convert/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sub-account/create", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sub-account/delete", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sub-account/edit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sub-account/list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sub-account/transfer", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sub-account/block", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sub-account/unblock", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sub-account/balances", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sub-account/transfer/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sub-account/api-key/create", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sub-account/api-key/edit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sub-account/api-key/delete", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sub-account/api-key/list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sub-account/api-key/reset", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sub-account/api-key/ip-address/list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sub-account/api-key/ip-address/create", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sub-account/api-key/ip-address/delete", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "mining/rewards", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market/fee", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "conditional-orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                 } },
             } },
@@ -398,7 +737,7 @@ public partial class whitebit : Exchange
         object makerFeeRate = this.safeString(market, "makerFee");
         object maker = Precise.stringDiv(makerFeeRate, "100");
         object isSpot = !isTrue(swap);
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
             { "base", bs },
@@ -448,7 +787,7 @@ public partial class whitebit : Exchange
             } },
             { "created", null },
             { "info", market },
-        };
+        });
     }
 
     /**
@@ -528,29 +867,32 @@ public partial class whitebit : Exchange
         //   }
         // }
         //
-        object ids = new List<object>(((IDictionary<string,object>)response).Keys);
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        object enhancedArray = this.addKeyInArrayItems(response, "_coin_id");
+        return this.parseCurrencies(enhancedArray);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
+        object id = this.safeString(rawCurrency, "_coin_id");
+        object code = this.safeCurrencyCode(id);
+        object hasProvider = (inOp(rawCurrency, "providers"));
+        object networks = new Dictionary<string, object>() {};
+        object rawNetworks = this.safeDict(rawCurrency, "networks", new Dictionary<string, object>() {});
+        object depositsNetworks = this.safeList(rawNetworks, "deposits", new List<object>() {});
+        object withdrawsNetworks = this.safeList(rawNetworks, "withdraws", new List<object>() {});
+        object networkLimits = this.safeDict(rawCurrency, "limits", new Dictionary<string, object>() {});
+        object depositLimits = this.safeDict(networkLimits, "deposit", new Dictionary<string, object>() {});
+        object withdrawLimits = this.safeDict(networkLimits, "withdraw", new Dictionary<string, object>() {});
+        object allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
+        for (object j = 0; isLessThan(j, getArrayLength(allNetworks)); postFixIncrement(ref j))
         {
-            object id = getValue(ids, i);
-            object currency = getValue(response, id);
-            // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
-            object code = this.safeCurrencyCode(id);
-            object hasProvider = (inOp(currency, "providers"));
-            object networks = new Dictionary<string, object>() {};
-            object rawNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
-            object depositsNetworks = this.safeList(rawNetworks, "deposits", new List<object>() {});
-            object withdrawsNetworks = this.safeList(rawNetworks, "withdraws", new List<object>() {});
-            object networkLimits = this.safeDict(currency, "limits", new Dictionary<string, object>() {});
-            object depositLimits = this.safeDict(networkLimits, "deposit", new Dictionary<string, object>() {});
-            object withdrawLimits = this.safeDict(networkLimits, "withdraw", new Dictionary<string, object>() {});
-            object allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
-            for (object j = 0; isLessThan(j, getArrayLength(allNetworks)); postFixIncrement(ref j))
+            object networkId = getValue(allNetworks, j);
+            object networkCode = this.networkIdToCode(networkId, code);
+            object networkDepositLimits = this.safeDict(depositLimits, networkId, new Dictionary<string, object>() {});
+            object networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, new Dictionary<string, object>() {});
+            if (isTrue(!isEqual(networkCode, null)))
             {
-                object networkId = getValue(allNetworks, j);
-                object networkCode = this.networkIdToCode(networkId);
-                object networkDepositLimits = this.safeDict(depositLimits, networkId, new Dictionary<string, object>() {});
-                object networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, new Dictionary<string, object>() {});
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "id", networkId },
                     { "network", networkCode },
@@ -571,35 +913,34 @@ public partial class whitebit : Exchange
                     } },
                 };
             }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "info", currency },
-                { "name", null },
-                { "active", null },
-                { "deposit", this.safeBool(currency, "can_deposit") },
-                { "withdraw", this.safeBool(currency, "can_withdraw") },
-                { "fee", null },
-                { "networks", networks },
-                { "type", ((bool) isTrue(hasProvider)) ? "fiat" : "crypto" },
-                { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "currency_precision"))) },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(currency, "min_withdraw") },
-                        { "max", this.safeNumber(currency, "max_withdraw") },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(currency, "min_deposit") },
-                        { "max", this.safeNumber(currency, "max_deposit") },
-                    } },
-                } },
-            });
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "info", rawCurrency },
+            { "name", null },
+            { "active", null },
+            { "deposit", this.safeBool(rawCurrency, "can_deposit") },
+            { "withdraw", this.safeBool(rawCurrency, "can_withdraw") },
+            { "fee", null },
+            { "networks", networks },
+            { "type", ((bool) isTrue(hasProvider)) ? "fiat" : "crypto" },
+            { "precision", this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "currency_precision"))) },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(rawCurrency, "min_withdraw") },
+                    { "max", this.safeNumber(rawCurrency, "max_withdraw") },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(rawCurrency, "min_deposit") },
+                    { "max", this.safeNumber(rawCurrency, "max_deposit") },
+                } },
+            } },
+        });
     }
 
     /**
@@ -615,7 +956,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchTransactionFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.v4PublicGetFee(parameters);
         //
         //      {
@@ -648,12 +992,18 @@ public partial class whitebit : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(currenciesIds)); postFixIncrement(ref i))
         {
             object currency = getValue(currenciesIds, i);
-            object data = getValue(response, currency);
+            object data = this.safeDict(response, currency, new Dictionary<string, object>() {});
             object code = this.safeCurrencyCode(currency);
             object withdraw = this.safeValue(data, "withdraw", new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)withdrawFees)[(string)code] = this.safeString(withdraw, "fixed");
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)withdrawFees)[(string)code] = this.safeString(withdraw, "fixed");
+            }
             object deposit = this.safeValue(data, "deposit", new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)depositFees)[(string)code] = this.safeString(deposit, "fixed");
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)depositFees)[(string)code] = this.safeString(deposit, "fixed");
+            }
         }
         return new Dictionary<string, object>() {
             { "withdraw", withdrawFees },
@@ -674,7 +1024,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.v4PublicGetFee(parameters);
         //
         //    {
@@ -775,7 +1128,7 @@ public partial class whitebit : Exchange
             object currencyId = getValue(splitEntry, 0);
             object feeInfo = getValue(response, entry);
             object code = this.safeCurrencyCode(currencyId);
-            if (isTrue(isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))
+            if (isTrue(isTrue((!isEqual(code, null))) && isTrue((isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))))
             {
                 object depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
                 if (isTrue(isEqual(depositWithdrawFee, null)))
@@ -800,11 +1153,14 @@ public partial class whitebit : Exchange
                 {
                     object networkLength = ((string)networkId).Length;
                     networkId = slice(networkId, 1, subtract(networkLength, 1));
-                    object networkCode = this.networkIdToCode(networkId);
-                    ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                        { "withdraw", withdrawResult },
-                        { "deposit", depositResult },
-                    };
+                    object networkCode = this.networkIdToCode(networkId, code);
+                    if (isTrue(!isEqual(networkCode, null)))
+                    {
+                        ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                            { "withdraw", withdrawResult },
+                            { "deposit", depositResult },
+                        };
+                    }
                 } else
                 {
                     ((IDictionary<string,object>)getValue(depositWithdrawFees, code))["withdraw"] = withdrawResult;
@@ -833,7 +1189,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.v4PublicGetAssets(parameters);
         //
         //      {
@@ -853,9 +1212,10 @@ public partial class whitebit : Exchange
         //      }
         //
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             object fee = this.safeValue(response, getValue(market, "baseId"), new Dictionary<string, object>() {});
             object makerFee = this.safeString(fee, "maker_fee");
@@ -886,7 +1246,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchTradingLimits(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         //
         // Trading limits are derived from market information already loaded by loadMarkets()
         // Market structure includes:
@@ -933,11 +1296,16 @@ public partial class whitebit : Exchange
         //
         object result = new Dictionary<string, object>() {};
         // Process all markets from the loaded markets cache
-        object marketIds = new List<object>(((IDictionary<string,object>)this.markets).Keys);
+        object markets = this.markets;
+        if (isTrue(isEqual(markets, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " markets not loaded")) ;
+        }
+        object marketIds = new List<object>(((IDictionary<string,object>)markets).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
-            object market = getValue(this.markets, marketId);
+            object market = getValue(markets, marketId);
             if (isTrue(!isTrue(market) || !isTrue(getValue(market, "symbol"))))
             {
                 continue;
@@ -1006,7 +1374,10 @@ public partial class whitebit : Exchange
     public async virtual Task<object> fetchFundingLimits(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         // Fetch both currencies and fees data for comprehensive funding limits
         var currenciesDatafeesDataVariable = await promiseAll(new List<object> {this.fetchCurrencies(), this.v4PublicGetFee(parameters)});
         var currenciesData = ((IList<object>) currenciesDatafeesDataVariable)[0];
@@ -1087,7 +1458,7 @@ public partial class whitebit : Exchange
             for (object j = 0; isLessThan(j, getArrayLength(feeKeys)); postFixIncrement(ref j))
             {
                 object feeKey = getValue(feeKeys, j);
-                object fee = getValue(feesData, feeKey);
+                object fee = this.safeDict(feesData, feeKey);
                 if (isTrue(isTrue(fee) && isTrue(isEqual(getValue(fee, "ticker"), code))))
                 {
                     feeData = fee;
@@ -1095,14 +1466,15 @@ public partial class whitebit : Exchange
                 }
             }
             // Build comprehensive funding limits
+            object currencyLimits = this.safeDict(currency, "limits", new Dictionary<string, object>() {});
             object limits = new Dictionary<string, object>() {
                 { "deposit", new Dictionary<string, object>() {
-                    { "min", getValue(getValue(getValue(currency, "limits"), "deposit"), "min") },
-                    { "max", getValue(getValue(getValue(currency, "limits"), "deposit"), "max") },
+                    { "min", getValue(getValue(currencyLimits, "deposit"), "min") },
+                    { "max", getValue(getValue(currencyLimits, "deposit"), "max") },
                 } },
                 { "withdraw", new Dictionary<string, object>() {
-                    { "min", getValue(getValue(getValue(currency, "limits"), "withdraw"), "min") },
-                    { "max", getValue(getValue(getValue(currency, "limits"), "withdraw"), "max") },
+                    { "min", getValue(getValue(currencyLimits, "withdraw"), "min") },
+                    { "max", getValue(getValue(currencyLimits, "withdraw"), "max") },
                 } },
             };
             // Add fee information if available
@@ -1166,7 +1538,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -1326,7 +1701,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         // Extract control parameters from params
         object checkActive = this.safeBool(parameters, "checkActive", true);
         object checkExecuted = this.safeBool(parameters, "checkExecuted", true);
@@ -1346,9 +1724,10 @@ public partial class whitebit : Exchange
             {
                 object response = await this.v4PrivatePostOrders(this.extend(request, parameters));
                 // Search for order in active orders response (array format)
-                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                object orders = this.toArray(response);
+                for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
                 {
-                    object order = getValue(response, i);
+                    object order = getValue(orders, i);
                     object orderId = this.safeString(order, "orderId");
                     if (isTrue(isEqual(orderId, id)))
                     {
@@ -1377,10 +1756,10 @@ public partial class whitebit : Exchange
                 {
                     object marketId = getValue(marketIds, i);
                     object marketNew = this.safeMarket(marketId, null, "_");
-                    object orders = getValue(response, marketId);
-                    for (object j = 0; isLessThan(j, getArrayLength(orders)); postFixIncrement(ref j))
+                    object marketOrders = this.safeList(response, marketId, new List<object>() {});
+                    for (object j = 0; isLessThan(j, getArrayLength(marketOrders)); postFixIncrement(ref j))
                     {
-                        object order = getValue(orders, j);
+                        object order = getValue(marketOrders, j);
                         object orderId = this.safeString(order, "id");
                         if (isTrue(isEqual(orderId, id)))
                         {
@@ -1413,7 +1792,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object onlyContractSymbols = true;
         if (isTrue(!isEqual(symbols, null)))
@@ -1525,7 +1907,7 @@ public partial class whitebit : Exchange
             object market = this.safeMarket(marketId);
             object ticker = this.parseTicker(getValue(response, marketId), market);
             object symbol = getValue(ticker, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = ticker;
+            ((IDictionary<string,object>)result)[(string)((string)symbol)] = ticker;
         }
         return this.filterByArrayTickers(result, "symbol", symbols);
     }
@@ -1538,12 +1920,15 @@ public partial class whitebit : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -1590,7 +1975,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -1625,7 +2013,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
@@ -1793,7 +2184,10 @@ public partial class whitebit : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -1946,6 +2340,7 @@ public partial class whitebit : Exchange
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.timeInForce] "GTC", "IOC" or "PO"; IOC and PO are limit-order only, not supported for stop orders
      * @param {string} [params.clientOrderId] a unique id for the order
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1953,7 +2348,10 @@ public partial class whitebit : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -1992,7 +2390,21 @@ public partial class whitebit : Exchange
         object isMarketOrder = isEqual(type, "market");
         object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "activation_price"});
         object isStopOrder = (!isEqual(triggerPrice, null));
+        object timeInForce = this.safeStringUpper(parameters, "timeInForce");
+        if (isTrue(isTrue(isTrue(isTrue((!isEqual(timeInForce, null))) && isTrue((!isEqual(timeInForce, "GTC")))) && isTrue((!isEqual(timeInForce, "IOC")))) && isTrue((!isEqual(timeInForce, "PO")))))
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " createOrder() does not support timeInForce "), timeInForce), ", only GTC, IOC and PO are allowed")) ;
+        }
         object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
+        object ioc = (isEqual(timeInForce, "IOC"));
+        if (isTrue(isTrue(isStopOrder) && isTrue((isTrue(postOnly) || isTrue(ioc)))))
+        {
+            throw new NotSupported ((string)add(this.id, " createOrder() does not support postOnly or timeInForce IOC for stop orders")) ;
+        }
+        if (isTrue(isTrue(ioc) && !isTrue(isLimitOrder)))
+        {
+            throw new NotSupported ((string)add(this.id, " createOrder() timeInForce IOC is only supported for limit orders")) ;
+        }
         var marginModequeryVariable = this.handleMarginModeAndParams("createOrder", parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
         var query = ((IList<object>) marginModequeryVariable)[1];
@@ -2000,11 +2412,15 @@ public partial class whitebit : Exchange
         {
             ((IDictionary<string,object>)request)["postOnly"] = true;
         }
+        if (isTrue(ioc))
+        {
+            ((IDictionary<string,object>)request)["ioc"] = true;
+        }
         if (isTrue(isTrue(!isEqual(marginMode, null)) && isTrue(!isEqual(marginMode, "cross"))))
         {
             throw new NotSupported ((string)add(this.id, " createOrder() is only available for cross margin")) ;
         }
-        parameters = this.omit(query, new List<object>() {"postOnly", "triggerPrice", "stopPrice"});
+        parameters = this.omit(query, new List<object>() {"postOnly", "triggerPrice", "stopPrice", "timeInForce"});
         object useCollateralEndpoint = isTrue(!isEqual(marginMode, null)) || isTrue(isEqual(marketType, "swap"));
         object response = null;
         if (isTrue(isStopOrder))
@@ -2077,7 +2493,10 @@ public partial class whitebit : Exchange
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -2153,7 +2572,10 @@ public partial class whitebit : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -2187,7 +2609,7 @@ public partial class whitebit : Exchange
      * @name whitebit#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.whitebit.com/private/http-trade-v4/#cancel-all-orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] market type, ['swap', 'spot']
      * @param {boolean} [params.isMargin] cancel all margin orders
@@ -2196,7 +2618,10 @@ public partial class whitebit : Exchange
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
@@ -2252,7 +2677,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         // Fetch both open and closed orders in parallel
         var openOrdersclosedOrdersVariable = await promiseAll(new List<object> {this.fetchOpenOrders(symbol, since, limit, parameters), this.fetchClosedOrders(symbol, since, limit, parameters)});
         var openOrders = ((IList<object>) openOrdersclosedOrdersVariable)[0];
@@ -2282,7 +2710,10 @@ public partial class whitebit : Exchange
     public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object symbol = this.safeString(parameters, "symbol");
         if (isTrue(isEqual(symbol, null)))
         {
@@ -2290,10 +2721,18 @@ public partial class whitebit : Exchange
         }
         object market = this.market(symbol);
         parameters = this.omit(parameters, "symbol");
+        if (isTrue(isEqual(timeout, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
+        }
         object isBiggerThanZero = (isGreaterThan(timeout, 0));
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
+        if (isTrue(isEqual(timeout, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
+        }
         if (isTrue(isBiggerThanZero))
         {
             ((IDictionary<string,object>)request)["timeout"] = this.numberToString(divide(timeout, 1000));
@@ -2322,18 +2761,24 @@ public partial class whitebit : Exchange
             object id = getValue(balanceKeys, i);
             object code = this.safeCurrencyCode(id);
             object balance = getValue(response, id);
-            if (isTrue(isTrue((balance is IDictionary<string, object>)) && isTrue(!isEqual(balance, null))))
+            if (isTrue(isTrue(!isEqual(balance, null)) && isTrue(this.isDictionary(balance))))
             {
                 object account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString2(balance, "available", "main_balance");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "freeze");
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "main_balance");
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             } else
             {
                 object account = this.account();
                 ((IDictionary<string,object>)account)["total"] = balance;
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -2351,7 +2796,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
@@ -2413,7 +2861,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
@@ -2465,7 +2916,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -2502,7 +2956,7 @@ public partial class whitebit : Exchange
         {
             object marketId = getValue(marketIds, i);
             object marketNew = this.safeMarket(marketId, null, "_");
-            object orders = getValue(response, marketId);
+            object orders = this.safeList(response, marketId, new List<object>() {});
             for (object j = 0; isLessThan(j, getArrayLength(orders)); postFixIncrement(ref j))
             {
                 object order = this.parseOrder(getValue(orders, j), marketNew);
@@ -2527,7 +2981,7 @@ public partial class whitebit : Exchange
             { "margin limit", "limit" },
             { "margin market", "market" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -2608,6 +3062,16 @@ public partial class whitebit : Exchange
         }
         object timestamp = this.safeTimestamp2(order, "ctime", "timestamp");
         object lastTradeTimestamp = this.safeTimestamp(order, "ftime");
+        object postOnly = this.safeBool(order, "postOnly");
+        object ioc = this.safeBool(order, "ioc");
+        object timeInForce = null;
+        if (isTrue(isEqual(ioc, true)))
+        {
+            timeInForce = "IOC";
+        } else if (isTrue(isEqual(postOnly, true)))
+        {
+            timeInForce = "PO";
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", orderId },
@@ -2616,8 +3080,8 @@ public partial class whitebit : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", lastTradeTimestamp },
-            { "timeInForce", null },
-            { "postOnly", null },
+            { "timeInForce", timeInForce },
+            { "postOnly", postOnly },
             { "status", this.parseOrderStatus(this.safeString(order, "status")) },
             { "side", side },
             { "price", price },
@@ -2641,7 +3105,7 @@ public partial class whitebit : Exchange
             { "PARTIALLY_FILLED", "open" },
             { "FILLED", "closed" },
         };
-        return this.safeStringLower(statuses, status, status);
+        return this.safeStringLower(statuses, ((string)status), status);
     }
 
     /**
@@ -2659,7 +3123,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "orderId", parseInt(id) },
         };
@@ -2712,7 +3179,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
@@ -2771,7 +3241,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchTransactions(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
@@ -2811,7 +3284,8 @@ public partial class whitebit : Exchange
         //         { ... }                                 // More transactions (deposits and withdrawals)
         //     ]
         //
-        return this.parseTransactions(response, currency, since, limit);
+        object records = this.safeList(response, "records", new List<object>() {});
+        return this.parseTransactions(records, currency, since, limit);
     }
 
     /**
@@ -2827,7 +3301,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "ticker", getValue(currency, "id") },
@@ -2911,7 +3388,10 @@ public partial class whitebit : Exchange
     public async override Task<object> createDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "ticker", getValue(currency, "id") },
@@ -2967,7 +3447,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object accounts = new List<object>() {};
         // Fetch sub-accounts
         //
@@ -3016,7 +3499,10 @@ public partial class whitebit : Exchange
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(!isEqual(symbol, null)))
         {
             throw new NotSupported ((string)add(this.id, " setLeverage() does not allow to set per symbol")) ;
@@ -3046,7 +3532,10 @@ public partial class whitebit : Exchange
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object accountsByType = this.safeValue(this.options, "accountsByType");
         object fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -3098,7 +3587,10 @@ public partial class whitebit : Exchange
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code); // check if it has canDeposit
         object request = new Dictionary<string, object>() {
             { "ticker", getValue(currency, "id") },
@@ -3222,7 +3714,7 @@ public partial class whitebit : Exchange
             { "16", "pending" },
             { "17", "pending" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     /**
@@ -3231,14 +3723,17 @@ public partial class whitebit : Exchange
      * @description fetch information on a deposit
      * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
      * @param {string} id deposit id
-     * @param {string} code not used by whitebit fetchDeposit ()
+     * @param {string} code not used by fetchDeposit ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async virtual Task<object> fetchDeposit(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {
             { "transactionMethod", 1 },
@@ -3308,7 +3803,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {
             { "transactionMethod", 1 },
@@ -3363,7 +3861,12 @@ public partial class whitebit : Exchange
         //     }
         //
         object records = this.safeList(response, "records", new List<object>() {});
-        return this.parseTransactions(records, currency, since, limit);
+        object recordsList = new List<object>() {};
+        if (isTrue(!isEqual(records, null)))
+        {
+            recordsList = records;
+        }
+        return this.parseTransactions(recordsList, currency, since, limit);
     }
 
     /**
@@ -3381,7 +3884,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchBorrowInterest(object code = null, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -3464,7 +3970,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object response = await this.fetchFundingRates(new List<object>() {symbol}, parameters);
         return this.safeValue(response, symbol);
@@ -3482,7 +3991,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object response = await this.v4PublicGetFutures(parameters);
         //
@@ -3610,7 +4122,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
@@ -3712,7 +4227,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
@@ -3764,7 +4282,12 @@ public partial class whitebit : Exchange
         //    }
         //
         object records = this.safeList(response, "records");
-        return this.parseTransactions(records, currency, since, limit);
+        object recordsList = new List<object>() {};
+        if (isTrue(!isEqual(records, null)))
+        {
+            recordsList = records;
+        }
+        return this.parseTransactions(recordsList, currency, since, limit);
     }
 
     /**
@@ -3781,7 +4304,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object fromCurrency = this.currency(fromCode);
         object toCurrency = this.currency(toCode);
         object request = new Dictionary<string, object>() {
@@ -3820,7 +4346,10 @@ public partial class whitebit : Exchange
     public async override Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object fromCurrency = this.currency(fromCode);
         object toCurrency = this.currency(toCode);
         object request = new Dictionary<string, object>() {
@@ -3854,7 +4383,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
         {
@@ -3970,14 +4502,17 @@ public partial class whitebit : Exchange
      * @param {string} symbol unified contract symbol
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum amount of records to fetch
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.positionId] the id of the requested position
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositionHistory(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -4033,7 +4568,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object response = await this.v4PrivatePostCollateralAccountPositionsOpen(parameters);
         //
@@ -4072,7 +4610,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -4184,46 +4725,6 @@ public partial class whitebit : Exchange
         });
     }
 
-    /**
-     * @method
-     * @name whitebit#fetchCrossBorrowRate
-     * @description fetch the rate of interest to borrow a currency for margin trading
-     * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
-     * @param {string} code unified currency code
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
-     */
-    public async override Task<object> fetchCrossBorrowRate(object code, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
-            { "ticker", getValue(currency, "id") },
-        };
-        object response = await this.v4PrivatePostMainAccountSmartPlans(this.extend(request, parameters));
-        //
-        //
-        object data = this.safeList(response, 0, new List<object>() {});
-        return this.parseBorrowRate(data, currency);
-    }
-
-    public override object parseBorrowRate(object info, object currency = null)
-    {
-        //
-        //
-        object currencyId = this.safeString(info, "ticker");
-        object percent = this.safeString(info, "percent");
-        return new Dictionary<string, object>() {
-            { "currency", this.safeCurrencyCode(currencyId, currency) },
-            { "rate", this.parseNumber(Precise.stringDiv(percent, "100")) },
-            { "period", this.safeInteger(info, "duration") },
-            { "timestamp", null },
-            { "datetime", null },
-            { "info", info },
-        };
-    }
-
     public virtual object isFiat(object currency)
     {
         object fiatCurrencies = this.safeValue(this.options, "fiatCurrencies", new List<object>() {});
@@ -4258,7 +4759,10 @@ public partial class whitebit : Exchange
         {
             return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, maxLimit);
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -4314,8 +4818,8 @@ public partial class whitebit : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
-        object version = this.safeValue(((object)api), 0);
-        object accessibility = this.safeValue(((object)api), 1);
+        object version = this.safeValue(api, 0);
+        object accessibility = this.safeValue(api, 1);
         if (isTrue(isEqual(headers, null)))
         {
             headers = new Dictionary<string, object>() {};

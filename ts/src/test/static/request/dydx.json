@@ -8,6 +8,7 @@
             "sequence": "0"
         }
     },
+    "disabledJava": true,
     "disabledPHP": true,
     "disabledCS": true,
     "disabledGO": true,

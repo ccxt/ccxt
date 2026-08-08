@@ -128,10 +128,195 @@ func (this *CoinmateCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"orderBook", "ticker", "tickerAll", "products", "transactions", "tradingPairs", "system/time"},
+				"get": map[string]any{
+					"orderBook": map[string]any{
+						"cost": 1,
+					},
+					"ticker": map[string]any{
+						"cost": 1,
+					},
+					"tickerAll": map[string]any{
+						"cost": 1,
+					},
+					"products": map[string]any{
+						"cost": 1,
+					},
+					"transactions": map[string]any{
+						"cost": 1,
+					},
+					"tradingPairs": map[string]any{
+						"cost": 1,
+					},
+					"system/time": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"post": []any{"currencies", "balances", "bitcoinCashWithdrawal", "bitcoinCashDepositAddresses", "bitcoinDepositAddresses", "bitcoinWithdrawal", "bitcoinWithdrawalFees", "buyInstant", "buyLimit", "cancelOrder", "cancelOrderWithInfo", "createVoucher", "dashDepositAddresses", "dashWithdrawal", "ethereumWithdrawal", "ethereumDepositAddresses", "litecoinWithdrawal", "litecoinDepositAddresses", "openOrders", "order", "orderHistory", "orderById", "pusherAuth", "redeemVoucher", "replaceByBuyLimit", "replaceByBuyInstant", "replaceBySellLimit", "replaceBySellInstant", "rippleDepositAddresses", "rippleWithdrawal", "sellInstant", "sellLimit", "transactionHistory", "traderFees", "tradeHistory", "transfer", "transferHistory", "unconfirmedBitcoinDeposits", "unconfirmedBitcoinCashDeposits", "unconfirmedDashDeposits", "unconfirmedEthereumDeposits", "unconfirmedLitecoinDeposits", "unconfirmedRippleDeposits", "cancelAllOpenOrders", "withdrawVirtualCurrency", "virtualCurrencyDepositAddresses", "unconfirmedVirtualCurrencyDeposits", "adaWithdrawal", "adaDepositAddresses", "unconfirmedAdaDeposits", "solWithdrawal", "solDepositAddresses", "unconfirmedSolDeposits", "bankWireWithdrawal"},
+				"post": map[string]any{
+					"currencies": map[string]any{
+						"cost": 1,
+					},
+					"balances": map[string]any{
+						"cost": 1,
+					},
+					"bitcoinCashWithdrawal": map[string]any{
+						"cost": 1,
+					},
+					"bitcoinCashDepositAddresses": map[string]any{
+						"cost": 1,
+					},
+					"bitcoinDepositAddresses": map[string]any{
+						"cost": 1,
+					},
+					"bitcoinWithdrawal": map[string]any{
+						"cost": 1,
+					},
+					"bitcoinWithdrawalFees": map[string]any{
+						"cost": 1,
+					},
+					"buyInstant": map[string]any{
+						"cost": 1,
+					},
+					"buyLimit": map[string]any{
+						"cost": 1,
+					},
+					"cancelOrder": map[string]any{
+						"cost": 1,
+					},
+					"cancelOrderWithInfo": map[string]any{
+						"cost": 1,
+					},
+					"createVoucher": map[string]any{
+						"cost": 1,
+					},
+					"dashDepositAddresses": map[string]any{
+						"cost": 1,
+					},
+					"dashWithdrawal": map[string]any{
+						"cost": 1,
+					},
+					"ethereumWithdrawal": map[string]any{
+						"cost": 1,
+					},
+					"ethereumDepositAddresses": map[string]any{
+						"cost": 1,
+					},
+					"litecoinWithdrawal": map[string]any{
+						"cost": 1,
+					},
+					"litecoinDepositAddresses": map[string]any{
+						"cost": 1,
+					},
+					"openOrders": map[string]any{
+						"cost": 1,
+					},
+					"order": map[string]any{
+						"cost": 1,
+					},
+					"orderHistory": map[string]any{
+						"cost": 1,
+					},
+					"orderById": map[string]any{
+						"cost": 1,
+					},
+					"pusherAuth": map[string]any{
+						"cost": 1,
+					},
+					"redeemVoucher": map[string]any{
+						"cost": 1,
+					},
+					"replaceByBuyLimit": map[string]any{
+						"cost": 1,
+					},
+					"replaceByBuyInstant": map[string]any{
+						"cost": 1,
+					},
+					"replaceBySellLimit": map[string]any{
+						"cost": 1,
+					},
+					"replaceBySellInstant": map[string]any{
+						"cost": 1,
+					},
+					"rippleDepositAddresses": map[string]any{
+						"cost": 1,
+					},
+					"rippleWithdrawal": map[string]any{
+						"cost": 1,
+					},
+					"sellInstant": map[string]any{
+						"cost": 1,
+					},
+					"sellLimit": map[string]any{
+						"cost": 1,
+					},
+					"transactionHistory": map[string]any{
+						"cost": 1,
+					},
+					"traderFees": map[string]any{
+						"cost": 1,
+					},
+					"tradeHistory": map[string]any{
+						"cost": 1,
+					},
+					"transfer": map[string]any{
+						"cost": 1,
+					},
+					"transferHistory": map[string]any{
+						"cost": 1,
+					},
+					"unconfirmedBitcoinDeposits": map[string]any{
+						"cost": 1,
+					},
+					"unconfirmedBitcoinCashDeposits": map[string]any{
+						"cost": 1,
+					},
+					"unconfirmedDashDeposits": map[string]any{
+						"cost": 1,
+					},
+					"unconfirmedEthereumDeposits": map[string]any{
+						"cost": 1,
+					},
+					"unconfirmedLitecoinDeposits": map[string]any{
+						"cost": 1,
+					},
+					"unconfirmedRippleDeposits": map[string]any{
+						"cost": 1,
+					},
+					"cancelAllOpenOrders": map[string]any{
+						"cost": 1,
+					},
+					"withdrawVirtualCurrency": map[string]any{
+						"cost": 1,
+					},
+					"virtualCurrencyDepositAddresses": map[string]any{
+						"cost": 1,
+					},
+					"unconfirmedVirtualCurrencyDeposits": map[string]any{
+						"cost": 1,
+					},
+					"adaWithdrawal": map[string]any{
+						"cost": 1,
+					},
+					"adaDepositAddresses": map[string]any{
+						"cost": 1,
+					},
+					"unconfirmedAdaDeposits": map[string]any{
+						"cost": 1,
+					},
+					"solWithdrawal": map[string]any{
+						"cost": 1,
+					},
+					"solDepositAddresses": map[string]any{
+						"cost": 1,
+					},
+					"unconfirmedSolDeposits": map[string]any{
+						"cost": 1,
+					},
+					"bankWireWithdrawal": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"fees": map[string]any{
@@ -249,10 +434,10 @@ func (this *CoinmateCore) Describe() any {
 /**
  * @method
  * @name coinmate#fetchTime
- * @description fetches the current integer timestamp in milliseconds from the bingx server
+ * @description fetches the current integer timestamp in milliseconds from the exchange server
  * @see https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {int} the current integer timestamp in milliseconds from the bingx server
+ * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
 func (this *CoinmateCore) FetchTime(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -415,9 +600,11 @@ func (this *CoinmateCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes4708 := (<-this.LoadMarkets())
-		PanicOnError(retRes4708)
+			retRes47112 := (<-this.LoadMarkets())
+			PanicOnError(retRes47112)
+		}
 
 		response := (<-this.PrivatePostBalances(params))
 		PanicOnError(response)
@@ -437,7 +624,7 @@ func (this *CoinmateCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *CoinmateCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -448,9 +635,11 @@ func (this *CoinmateCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes4868 := (<-this.LoadMarkets())
-		PanicOnError(retRes4868)
+			retRes48912 := (<-this.LoadMarkets())
+			PanicOnError(retRes48912)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"currencyPair":      GetValue(market, "id"),
@@ -459,7 +648,7 @@ func (this *CoinmateCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
 
 		response := (<-this.PublicGetOrderBook(this.Extend(request, params)))
 		PanicOnError(response)
-		var orderbook any = GetValue(response, "data")
+		var orderbook any = this.SafeDict(response, "data", map[string]any{})
 		var timestamp any = this.SafeTimestamp(orderbook, "timestamp")
 
 		ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount")
@@ -485,9 +674,11 @@ func (this *CoinmateCore) FetchTicker(symbol any, optionalArgs ...any) <-chan an
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5088 := (<-this.LoadMarkets())
-		PanicOnError(retRes5088)
+			retRes51312 := (<-this.LoadMarkets())
+			PanicOnError(retRes51312)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"currencyPair": GetValue(market, "id"),
@@ -539,9 +730,11 @@ func (this *CoinmateCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5458 := (<-this.LoadMarkets())
-		PanicOnError(retRes5458)
+			retRes55212 := (<-this.LoadMarkets())
+			PanicOnError(retRes55212)
+		}
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.PublicGetTickerAll(params))
@@ -599,7 +792,7 @@ func (this *CoinmateCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var timestamp any = this.SafeTimestamp(ticker, "timestamp")
 	var last any = this.SafeNumber(ticker, "last")
 	return this.SafeTicker(map[string]any{
-		"symbol":        GetValue(market, "symbol"),
+		"symbol":        this.SafeString(market, "symbol"),
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
 		"high":          this.SafeNumber(ticker, "high"),
@@ -646,9 +839,11 @@ func (this *CoinmateCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan a
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6308 := (<-this.LoadMarkets())
-		PanicOnError(retRes6308)
+			retRes63912 := (<-this.LoadMarkets())
+			PanicOnError(retRes63912)
+		}
 		var request any = map[string]any{
 			"limit": 1000,
 		}
@@ -665,7 +860,7 @@ func (this *CoinmateCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan a
 
 		response := (<-this.PrivatePostTransferHistory(this.Extend(request, params)))
 		PanicOnError(response)
-		var items any = GetValue(response, "data")
+		var items any = this.SafeList(response, "data", []any{})
 
 		ch <- this.ParseTransactions(items, nil, since, limit)
 		return nil
@@ -789,9 +984,11 @@ func (this *CoinmateCore) Withdraw(code any, amount any, address any, optionalAr
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes7548 := (<-this.LoadMarkets())
-		PanicOnError(retRes7548)
+			retRes76512 := (<-this.LoadMarkets())
+			PanicOnError(retRes76512)
+		}
 		var currency any = this.Currency(code)
 		var withdrawOptions any = this.SafeValue(this.Options, "withdraw", map[string]any{})
 		var methods any = this.SafeValue(withdrawOptions, "methods", map[string]any{})
@@ -862,9 +1059,11 @@ func (this *CoinmateCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8068 := (<-this.LoadMarkets())
-		PanicOnError(retRes8068)
+			retRes81912 := (<-this.LoadMarkets())
+			PanicOnError(retRes81912)
+		}
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = 1000
 		}
@@ -977,9 +1176,11 @@ func (this *CoinmateCore) FetchTrades(symbol any, optionalArgs ...any) <-chan an
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9018 := (<-this.LoadMarkets())
-		PanicOnError(retRes9018)
+			retRes91612 := (<-this.LoadMarkets())
+			PanicOnError(retRes91612)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"currencyPair":       GetValue(market, "id"),
@@ -1029,9 +1230,11 @@ func (this *CoinmateCore) FetchTradingFee(symbol any, optionalArgs ...any) <-cha
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9388 := (<-this.LoadMarkets())
-		PanicOnError(retRes9388)
+			retRes95512 := (<-this.LoadMarkets())
+			PanicOnError(retRes95512)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"currencyPair": GetValue(market, "id"),
@@ -1096,8 +1299,9 @@ func (this *CoinmateCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		var extension any = map[string]any{
 			"status": "open",
 		}
+		var data any = this.SafeList(response, "data", []any{})
 
-		ch <- this.ParseOrders(GetValue(response, "data"), nil, since, limit, extension)
+		ch <- this.ParseOrders(data, nil, since, limit, extension)
 		return nil
 
 	}()
@@ -1131,9 +1335,11 @@ func (this *CoinmateCore) FetchOrders(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9988 := (<-this.LoadMarkets())
-		PanicOnError(retRes9988)
+			retRes101812 := (<-this.LoadMarkets())
+			PanicOnError(retRes101812)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"currencyPair": GetValue(market, "id"),
@@ -1145,8 +1351,9 @@ func (this *CoinmateCore) FetchOrders(optionalArgs ...any) <-chan any {
 
 		response := (<-this.PrivatePostOrderHistory(this.Extend(request, params)))
 		PanicOnError(response)
+		var data any = this.SafeList(response, "data", []any{})
 
-		ch <- this.ParseOrders(GetValue(response, "data"), market, since, limit)
+		ch <- this.ParseOrders(data, market, since, limit)
 		return nil
 
 	}()
@@ -1282,9 +1489,11 @@ func (this *CoinmateCore) CreateOrder(symbol any, typeVar any, side any, amount 
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11338 := (<-this.LoadMarkets())
-		PanicOnError(retRes11338)
+			retRes115612 := (<-this.LoadMarkets())
+			PanicOnError(retRes115612)
+		}
 		var method any = Add("privatePost", this.Capitalize(side))
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1337,9 +1546,11 @@ func (this *CoinmateCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11718 := (<-this.LoadMarkets())
-		PanicOnError(retRes11718)
+			retRes119612 := (<-this.LoadMarkets())
+			PanicOnError(retRes119612)
+		}
 		var request any = map[string]any{
 			"orderId": id,
 		}
@@ -1365,7 +1576,7 @@ func (this *CoinmateCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @description cancels an open order
  * @see https://coinmate.docs.apiary.io/#reference/order/cancel-order/post
  * @param {string} id order id
- * @param {string} symbol not used by coinmate cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */

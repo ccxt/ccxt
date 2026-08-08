@@ -1,5 +1,216 @@
 {
     "exchange": "huobijp",
     "skipKeys": [],
-    "methods": {}
+    "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "status": "ok",
+                    "data": [
+                        {
+                            "currency-addr-with-tag": false,
+                            "fast-confirms": "999",
+                            "safe-confirms": "999",
+                            "quote-currency": true,
+                            "currency-type": "eth",
+                            "show-precision": "0",
+                            "white-enabled": false,
+                            "country-disabled": false,
+                            "otc-enable": "0",
+                            "visible": true,
+                            "deposit-enabled": true,
+                            "withdraw-enabled": true,
+                            "deposit-min-amount": "1000",
+                            "withdraw-min-amount": "1000",
+                            "support-sites": [],
+                            "weight": "7",
+                            "withdraw-enable-timestamp": "1262275201000",
+                            "deposit-enable-timestamp": "1561377600000",
+                            "currency-partition": "all",
+                            "visible-assets-timestamp": "1542380400000",
+                            "withdraw-precision": "0",
+                            "full-name": "",
+                            "tags": "",
+                            "name": "jpy",
+                            "state": "online",
+                            "display-name": "JPY",
+                            "suspend-withdraw-desc": "",
+                            "withdraw-desc": null,
+                            "suspend-deposit-desc": "",
+                            "deposit-desc": null,
+                            "suspend-visible-desc": null
+                        },
+                        {
+                            "currency-addr-with-tag": false,
+                            "fast-confirms": "1",
+                            "safe-confirms": "1",
+                            "quote-currency": true,
+                            "currency-type": "eth",
+                            "show-precision": "8",
+                            "white-enabled": false,
+                            "country-disabled": false,
+                            "otc-enable": "1",
+                            "visible": true,
+                            "deposit-enabled": false,
+                            "withdraw-enabled": false,
+                            "deposit-min-amount": "1",
+                            "withdraw-min-amount": "1",
+                            "support-sites": [
+                                "OTC",
+                                "INSTITUTION",
+                                "MINEPOOL"
+                            ],
+                            "weight": "11006",
+                            "withdraw-enable-timestamp": "1893427201000",
+                            "deposit-enable-timestamp": "1893427201000",
+                            "currency-partition": "all",
+                            "visible-assets-timestamp": "1508839200000",
+                            "withdraw-precision": "6",
+                            "full-name": "Tether USDT",
+                            "tags": "stablecoin",
+                            "name": "usdt",
+                            "state": "online",
+                            "display-name": "USDT",
+                            "suspend-withdraw-desc": "TRC20 Withdrawal Suspended",
+                            "withdraw-desc": "Minimum withdrawal amount: 1  USDT (TRC20). !>_<!To ensure the safety of your funds, your withdrawal request will be manually reviewed if your security strategy or password is changed. Please wait for phone calls or emails from our staff.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
+                            "suspend-deposit-desc": "TRC20 Deposit Suspended",
+                            "deposit-desc": "Please don’t deposit any other digital assets except TRC20_ USDT to the above address.!>_<!Depositing to the above address requires confirmations of the entire network. It will arrive after 1 confirmations, and it will be available to withdraw after 1 confirmations. !>_<!Minimum deposit amount: 1 USDT. Any deposits less than the minimum will not be credited or refunded.!>_<!Your deposit address won’t change frequently. Any changes, we will inform you by announcement or email.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
+                            "suspend-visible-desc": null
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "JPY": {
+                        "info": {
+                            "currency-addr-with-tag": false,
+                            "fast-confirms": "999",
+                            "safe-confirms": "999",
+                            "quote-currency": true,
+                            "currency-type": "eth",
+                            "show-precision": "0",
+                            "white-enabled": false,
+                            "country-disabled": false,
+                            "otc-enable": "0",
+                            "visible": true,
+                            "deposit-enabled": true,
+                            "withdraw-enabled": true,
+                            "deposit-min-amount": "1000",
+                            "withdraw-min-amount": "1000",
+                            "support-sites": [],
+                            "weight": "7",
+                            "withdraw-enable-timestamp": "1262275201000",
+                            "deposit-enable-timestamp": "1561377600000",
+                            "currency-partition": "all",
+                            "visible-assets-timestamp": "1542380400000",
+                            "withdraw-precision": "0",
+                            "full-name": "",
+                            "tags": "",
+                            "name": "jpy",
+                            "state": "online",
+                            "display-name": "JPY",
+                            "suspend-withdraw-desc": "",
+                            "withdraw-desc": null,
+                            "suspend-deposit-desc": "",
+                            "deposit-desc": null,
+                            "suspend-visible-desc": null
+                        },
+                        "id": "jpy",
+                        "numericId": null,
+                        "code": "JPY",
+                        "precision": 1,
+                        "type": "crypto",
+                        "name": "JPY",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": 1,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": 1000,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 1000,
+                                "max": null
+                            }
+                        }
+                    },
+                    "USDT": {
+                        "info": {
+                            "currency-addr-with-tag": false,
+                            "fast-confirms": "1",
+                            "safe-confirms": "1",
+                            "quote-currency": true,
+                            "currency-type": "eth",
+                            "show-precision": "8",
+                            "white-enabled": false,
+                            "country-disabled": false,
+                            "otc-enable": "1",
+                            "visible": true,
+                            "deposit-enabled": false,
+                            "withdraw-enabled": false,
+                            "deposit-min-amount": "1",
+                            "withdraw-min-amount": "1",
+                            "support-sites": [
+                                "OTC",
+                                "INSTITUTION",
+                                "MINEPOOL"
+                            ],
+                            "weight": "11006",
+                            "withdraw-enable-timestamp": "1893427201000",
+                            "deposit-enable-timestamp": "1893427201000",
+                            "currency-partition": "all",
+                            "visible-assets-timestamp": "1508839200000",
+                            "withdraw-precision": "6",
+                            "full-name": "Tether USDT",
+                            "tags": "stablecoin",
+                            "name": "usdt",
+                            "state": "online",
+                            "display-name": "USDT",
+                            "suspend-withdraw-desc": "TRC20 Withdrawal Suspended",
+                            "withdraw-desc": "Minimum withdrawal amount: 1  USDT (TRC20). !>_<!To ensure the safety of your funds, your withdrawal request will be manually reviewed if your security strategy or password is changed. Please wait for phone calls or emails from our staff.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
+                            "suspend-deposit-desc": "TRC20 Deposit Suspended",
+                            "deposit-desc": "Please don’t deposit any other digital assets except TRC20_ USDT to the above address.!>_<!Depositing to the above address requires confirmations of the entire network. It will arrive after 1 confirmations, and it will be available to withdraw after 1 confirmations. !>_<!Minimum deposit amount: 1 USDT. Any deposits less than the minimum will not be credited or refunded.!>_<!Your deposit address won’t change frequently. Any changes, we will inform you by announcement or email.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
+                            "suspend-visible-desc": null
+                        },
+                        "id": "usdt",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.000001,
+                        "type": "crypto",
+                        "name": "USDT",
+                        "active": false,
+                        "deposit": false,
+                        "withdraw": false,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": 0.000001,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": 1,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 1,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+  }
 }

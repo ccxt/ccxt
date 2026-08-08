@@ -86,7 +86,7 @@ public partial class indodax
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -360,6 +360,26 @@ public partial class indodax
     {
         var res = await this.fetchTransactionFee(code, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetch the withdrawal fee for a currency; indodax charges no crypto deposit fees, see https://github.com/ccxt/ccxt/issues/25800
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
+    public async Task<DepositWithdrawFee> FetchDepositWithdrawFee(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositWithdrawFee(code, parameters);
+        return new DepositWithdrawFee(res);
     }
     /// <summary>
     /// fetch history of deposits and withdrawals

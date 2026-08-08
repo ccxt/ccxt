@@ -7,8 +7,17 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testTrade(Exchange exchange, object skippedProperties, object method, object entry, object symbol, object now)
+    public static void testTrade(BaseExchange exchange, object skippedProperties, object method, object entry, object symbol, object now)
     {
+        // prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
+        // PredictionTrade type carries a single `fee` but omits the `fees` list entirely
+        if (isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        {
+            skippedProperties = exchange.extend(new Dictionary<string, object>() {
+                { "symbol", true },
+                { "fees", true },
+            }, skippedProperties);
+        }
         object format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "id", "12345-67890:09876/54321" },
@@ -22,7 +31,10 @@ public partial class testMainClass : BaseTest
             { "amount", exchange.parseNumber("1.5") },
             { "cost", exchange.parseNumber("0.10376526") },
             { "fees", new List<object>() {} },
-            { "fee", new Dictionary<string, object>() {} },
+            { "fee", new Dictionary<string, object>() {
+                { "cost", exchange.parseNumber("0.001") },
+                { "currency", "USDT" },
+            } },
         };
         // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
         // removed side because some public endpoints return trades without side

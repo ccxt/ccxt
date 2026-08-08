@@ -5,15 +5,15 @@ import { CompiledSierra, SierraContractClass } from './sierra.js';
  *
  * CompressedCompiledContract
  */
-export declare type ContractClass = LegacyContractClass | SierraContractClass;
+export type ContractClass = LegacyContractClass | SierraContractClass;
 /**
  * format produced after compile .cairo to .json
  */
-export declare type CompiledContract = LegacyCompiledContract | CompiledSierra;
+export type CompiledContract = LegacyCompiledContract | CompiledSierra;
 /**
  * Compressed or decompressed Cairo0 or Cairo1 Contract
  */
-export declare type CairoContract = ContractClass | CompiledContract;
+export type CairoContract = ContractClass | CompiledContract;
 export declare enum EntryPointType {
     EXTERNAL = "EXTERNAL",
     L1_HANDLER = "L1_HANDLER",

@@ -126,7 +126,7 @@ func (this *DydxCore) Describe() any {
 			"1d":  "1DAY",
 		},
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/617ea0c1-f05a-4d26-9fcb-a0d1d4091ae1",
+			"logo": "https://github.com/user-attachments/assets/def0a54a-020a-4286-ba95-0f84e50a944d",
 			"api": map[string]any{
 				"indexer":  "https://indexer.dydx.trade/v4",
 				"nodeRpc":  "https://dydx-ops-rpc.kingnodes.com",
@@ -140,75 +140,183 @@ func (this *DydxCore) Describe() any {
 			"www":      "https://www.dydx.xyz",
 			"doc":      []any{"https://docs.dydx.xyz"},
 			"fees":     []any{"https://docs.dydx.exchange/introduction-trading_fees"},
-			"referral": "dydx.trade?ref=ccxt",
+			"referral": "https://dydx.trade?ref=ccxt",
 		},
 		"api": map[string]any{
 			"indexer": map[string]any{
 				"get": map[string]any{
-					"addresses/{address}": 1,
-					"addresses/{address}/parentSubaccountNumber/{number}":     1,
-					"addresses/{address}/subaccountNumber/{subaccountNumber}": 1,
-					"assetPositions":                                1,
-					"assetPositions/parentSubaccountNumber":         1,
-					"candles/perpetualMarkets/{market}":             1,
-					"compliance/screen/{address}":                   1,
-					"fills":                                         1,
-					"fills/parentSubaccountNumber":                  1,
-					"fundingPayments":                               1,
-					"fundingPayments/parentSubaccount":              1,
-					"height":                                        0.1,
-					"historical-pnl":                                1,
-					"historical-pnl/parentSubaccountNumber":         1,
-					"historicalBlockTradingRewards/{address}":       1,
-					"historicalFunding/{market}":                    1,
-					"historicalTradingRewardAggregations/{address}": 1,
-					"orderbooks/perpetualMarket/{market}":           1,
-					"orders":                                        1,
-					"orders/parentSubaccountNumber":                 1,
-					"orders/{orderId}":                              1,
-					"perpetualMarkets":                              1,
-					"perpetualPositions":                            1,
-					"perpetualPositions/parentSubaccountNumber":     1,
-					"screen":                              1,
-					"sparklines":                          1,
-					"time":                                1,
-					"trades/perpetualMarket/{market}":     1,
-					"transfers":                           1,
-					"transfers/between":                   1,
-					"transfers/parentSubaccountNumber":    1,
-					"vault/v1/megavault/historicalPnl":    1,
-					"vault/v1/megavault/positions":        1,
-					"vault/v1/vaults/historicalPnl":       1,
-					"perpetualMarketSparklines":           1,
-					"perpetualMarkets/{ticker}":           1,
-					"perpetualMarkets/{ticker}/orderbook": 1,
-					"trades/perpetualMarket/{ticker}":     1,
-					"historicalFunding/{ticker}":          1,
-					"candles/{ticker}/{resolution}":       1,
-					"addresses/{address}/subaccounts":     1,
-					"addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions":     1,
-					"addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions": 1,
-					"addresses/{address}/subaccountNumber/{subaccountNumber}/orders":             1,
-					"fills/parentSubaccount":          1,
-					"historical-pnl/parentSubaccount": 1,
+					"addresses/{address}": map[string]any{
+						"cost": 1,
+					},
+					"addresses/{address}/parentSubaccountNumber/{number}": map[string]any{
+						"cost": 1,
+					},
+					"addresses/{address}/subaccountNumber/{subaccountNumber}": map[string]any{
+						"cost": 1,
+					},
+					"assetPositions": map[string]any{
+						"cost": 1,
+					},
+					"assetPositions/parentSubaccountNumber": map[string]any{
+						"cost": 1,
+					},
+					"candles/perpetualMarkets/{market}": map[string]any{
+						"cost": 1,
+					},
+					"compliance/screen/{address}": map[string]any{
+						"cost": 1,
+					},
+					"fills": map[string]any{
+						"cost": 1,
+					},
+					"fills/parentSubaccountNumber": map[string]any{
+						"cost": 1,
+					},
+					"fundingPayments": map[string]any{
+						"cost": 1,
+					},
+					"fundingPayments/parentSubaccount": map[string]any{
+						"cost": 1,
+					},
+					"height": map[string]any{
+						"cost": 0.1,
+					},
+					"historical-pnl": map[string]any{
+						"cost": 1,
+					},
+					"historical-pnl/parentSubaccountNumber": map[string]any{
+						"cost": 1,
+					},
+					"historicalBlockTradingRewards/{address}": map[string]any{
+						"cost": 1,
+					},
+					"historicalFunding/{market}": map[string]any{
+						"cost": 1,
+					},
+					"historicalTradingRewardAggregations/{address}": map[string]any{
+						"cost": 1,
+					},
+					"orderbooks/perpetualMarket/{market}": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/parentSubaccountNumber": map[string]any{
+						"cost": 1,
+					},
+					"orders/{orderId}": map[string]any{
+						"cost": 1,
+					},
+					"perpetualMarkets": map[string]any{
+						"cost": 1,
+					},
+					"perpetualPositions": map[string]any{
+						"cost": 1,
+					},
+					"perpetualPositions/parentSubaccountNumber": map[string]any{
+						"cost": 1,
+					},
+					"screen": map[string]any{
+						"cost": 1,
+					},
+					"sparklines": map[string]any{
+						"cost": 1,
+					},
+					"time": map[string]any{
+						"cost": 1,
+					},
+					"trades/perpetualMarket/{market}": map[string]any{
+						"cost": 1,
+					},
+					"transfers": map[string]any{
+						"cost": 1,
+					},
+					"transfers/between": map[string]any{
+						"cost": 1,
+					},
+					"transfers/parentSubaccountNumber": map[string]any{
+						"cost": 1,
+					},
+					"vault/v1/megavault/historicalPnl": map[string]any{
+						"cost": 1,
+					},
+					"vault/v1/megavault/positions": map[string]any{
+						"cost": 1,
+					},
+					"vault/v1/vaults/historicalPnl": map[string]any{
+						"cost": 1,
+					},
+					"perpetualMarketSparklines": map[string]any{
+						"cost": 1,
+					},
+					"perpetualMarkets/{ticker}": map[string]any{
+						"cost": 1,
+					},
+					"perpetualMarkets/{ticker}/orderbook": map[string]any{
+						"cost": 1,
+					},
+					"trades/perpetualMarket/{ticker}": map[string]any{
+						"cost": 1,
+					},
+					"historicalFunding/{ticker}": map[string]any{
+						"cost": 1,
+					},
+					"candles/{ticker}/{resolution}": map[string]any{
+						"cost": 1,
+					},
+					"addresses/{address}/subaccounts": map[string]any{
+						"cost": 1,
+					},
+					"addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions": map[string]any{
+						"cost": 1,
+					},
+					"addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions": map[string]any{
+						"cost": 1,
+					},
+					"addresses/{address}/subaccountNumber/{subaccountNumber}/orders": map[string]any{
+						"cost": 1,
+					},
+					"fills/parentSubaccount": map[string]any{
+						"cost": 1,
+					},
+					"historical-pnl/parentSubaccount": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"nodeRpc": map[string]any{
 				"get": map[string]any{
-					"abci_info":          1,
-					"block":              1,
-					"broadcast_tx_async": 1,
-					"broadcast_tx_sync":  1,
-					"tx":                 1,
+					"abci_info": map[string]any{
+						"cost": 1,
+					},
+					"block": map[string]any{
+						"cost": 1,
+					},
+					"broadcast_tx_async": map[string]any{
+						"cost": 1,
+					},
+					"broadcast_tx_sync": map[string]any{
+						"cost": 1,
+					},
+					"tx": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"nodeRest": map[string]any{
 				"get": map[string]any{
-					"cosmos/auth/v1beta1/account_info/{dydxAddress}": 1,
+					"cosmos/auth/v1beta1/account_info/{dydxAddress}": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"cosmos/tx/v1beta1/encode":   1,
-					"cosmos/tx/v1beta1/simulate": 1,
+					"cosmos/tx/v1beta1/encode": map[string]any{
+						"cost": 1,
+					},
+					"cosmos/tx/v1beta1/simulate": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -226,7 +334,7 @@ func (this *DydxCore) Describe() any {
 			"privateKey": false,
 		},
 		"options": map[string]any{
-			"mnemonic":             nil,
+			"privateKey":           nil,
 			"chainName":            "dydx-mainnet-1",
 			"chainId":              1,
 			"sandboxMode":          false,
@@ -505,6 +613,9 @@ func (this *DydxCore) ParseMarket(market any) any {
 	//
 	var quoteId any = "USDC"
 	var marketId any = this.SafeString(market, "ticker")
+	if IsTrue(IsEqual(marketId, nil)) {
+		panic(ExchangeError(Add(this.Id, " parseMarket() missing marketId")))
+	}
 	var parts any = Split(marketId, "-")
 	var baseName any = this.SafeString(parts, 0)
 	var baseId any = this.SafeString(market, "baseId", baseName) // idk where 'baseId' comes from, but leaving as is
@@ -579,7 +690,7 @@ func (this *DydxCore) ParseMarket(market any) any {
 /**
  * @method
  * @name dydx#fetchMarkets
- * @description retrieves data on all markets for hyperliquid
+ * @description retrieves data on all markets for dydx
  * @see https://docs.dydx.xyz/indexer-client/http#get-perpetual-markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
@@ -649,7 +760,7 @@ func (this *DydxCore) ParseTrade(trade any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp any = this.Parse8601(this.SafeString(trade, "createdAt"))
-	var symbol any = GetValue(market, "symbol")
+	var symbol any = this.SafeString(market, "symbol")
 	var price any = this.SafeString(trade, "price")
 	var amount any = this.SafeString(trade, "size")
 	var side any = this.SafeStringLower(trade, "side")
@@ -675,7 +786,7 @@ func (this *DydxCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @method
  * @name dydx#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
+ * @see https://docs.dydx.xyz/indexer-client/http#get-trades
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -693,15 +804,17 @@ func (this *DydxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6738 := (<-this.LoadMarkets())
-		PanicOnError(retRes6738)
+			retRes67712 := (<-this.LoadMarkets())
+			PanicOnError(retRes67712)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
+			AddElementToObject(request, "limit", mathMin(limit, 1000))
 		}
 
 		response := (<-this.IndexerGetTradesPerpetualMarketMarket(this.Extend(request, params)))
@@ -778,9 +891,11 @@ func (this *DydxCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes7438 := (<-this.LoadMarkets())
-		PanicOnError(retRes7438)
+			retRes74912 := (<-this.LoadMarkets())
+			PanicOnError(retRes74912)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market":     GetValue(market, "id"),
@@ -858,9 +973,11 @@ func (this *DydxCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8028 := (<-this.LoadMarkets())
-		PanicOnError(retRes8028)
+			retRes81012 := (<-this.LoadMarkets())
+			PanicOnError(retRes81012)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market": GetValue(market, "id"),
@@ -925,7 +1042,7 @@ func (this *DydxCore) HandlePublicAddress(methodName any, params any) any {
 	if IsTrue(IsTrue((!IsEqual(this.WalletAddress, nil))) && IsTrue((!IsEqual(this.WalletAddress, "")))) {
 		return []any{this.WalletAddress, params}
 	}
-	panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a user parameter inside \\'params\\' or the walletAddress set")))
+	panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a user parameter inside 'params' or the walletAddress set")))
 }
 func (this *DydxCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
@@ -1033,9 +1150,11 @@ func (this *DydxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9588 := (<-this.LoadMarkets())
-		PanicOnError(retRes9588)
+			retRes96812 := (<-this.LoadMarkets())
+			PanicOnError(retRes96812)
+		}
 		var request any = map[string]any{
 			"orderId": id,
 		}
@@ -1084,9 +1203,11 @@ func (this *DydxCore) FetchOrders(optionalArgs ...any) <-chan any {
 		subAccountNumberparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "subAccountNumber", "0")
 		subAccountNumber = GetValue(subAccountNumberparamsVariable, 0)
 		params = GetValue(subAccountNumberparamsVariable, 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9848 := (<-this.LoadMarkets())
-		PanicOnError(retRes9848)
+			retRes99612 := (<-this.LoadMarkets())
+			PanicOnError(retRes99612)
+		}
 		var request any = map[string]any{
 			"address":          userAddress,
 			"subaccountNumber": subAccountNumber,
@@ -1167,9 +1288,9 @@ func (this *DydxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 			"status": "OPEN",
 		}
 
-		retRes104515 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes104515)
-		ch <- retRes104515
+		retRes105815 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes105815)
+		ch <- retRes105815
 		return nil
 
 	}()
@@ -1206,9 +1327,9 @@ func (this *DydxCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 			"status": "FILLED",
 		}
 
-		retRes106515 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes106515)
-		ch <- retRes106515
+		retRes107815 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes107815)
+		ch <- retRes107815
 		return nil
 
 	}()
@@ -1330,9 +1451,11 @@ func (this *DydxCore) FetchPositions(optionalArgs ...any) <-chan any {
 		subAccountNumberparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "subAccountNumber", "0")
 		subAccountNumber = GetValue(subAccountNumberparamsVariable, 0)
 		params = GetValue(subAccountNumberparamsVariable, 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11578 := (<-this.LoadMarkets())
-		PanicOnError(retRes11578)
+			retRes117112 := (<-this.LoadMarkets())
+			PanicOnError(retRes117112)
+		}
 		var request any = map[string]any{
 			"address":          userAddress,
 			"subaccountNumber": subAccountNumber,
@@ -1425,12 +1548,12 @@ func (this *DydxCore) RetrieveCredentials() any {
 	if IsTrue(!IsEqual(credentials, nil)) {
 		return credentials
 	}
-	var entropy any = this.SafeString(this.Options, "mnemonic")
-	if IsTrue(IsEqual(entropy, nil)) {
+	var privateKey any = this.SafeString(this.Options, "privateKey")
+	if IsTrue(IsEqual(privateKey, nil)) {
 		var signature any = this.SignOnboardingAction()
-		entropy = this.HashMessage(this.Base16ToBinary(Add(GetValue(signature, "r"), GetValue(signature, "s"))))
+		privateKey = this.HashMessage(this.Base16ToBinary(Add(GetValue(signature, "r"), GetValue(signature, "s"))))
 	}
-	credentials = this.RetrieveDydxCredentials(entropy)
+	credentials = this.RetrieveDydxCredentials(privateKey)
 	AddElementToObject(credentials, "privateKey", this.BinaryToBase16(GetValue(credentials, "privateKey")))
 	AddElementToObject(credentials, "publicKey", this.BinaryToBase16(GetValue(credentials, "publicKey")))
 	AddElementToObject(this.Options, "dydxCredentials", credentials)
@@ -1443,8 +1566,8 @@ func (this *DydxCore) FetchDydxAccount() <-chan any {
 		defer ReturnPanicError(ch)
 		// required in js
 
-		retRes12568 := (<-this.LoadDydxProtos())
-		PanicOnError(retRes12568)
+		retRes12718 := (<-this.LoadDydxProtos())
+		PanicOnError(retRes12718)
 		var dydxAccount any = this.SafeDict(this.Options, "dydxAccount")
 		if IsTrue(!IsEqual(dydxAccount, nil)) {
 
@@ -1476,7 +1599,7 @@ func (this *DydxCore) FetchDydxAccount() <-chan any {
 
 		response := (<-this.NodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request))
 		PanicOnError(response)
-		var account any = this.SafeDict(response, "info")
+		var account any = this.SafeDict(response, "info", map[string]any{})
 		AddElementToObject(account, "pub_key", map[string]any{
 			"key": GetValue(GetValue(account, "pub_key"), "key"),
 		})
@@ -1502,9 +1625,18 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
+	if IsTrue(IsEqual(typeVar, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
+	}
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
+	}
 	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
 	var orderType any = ToUpper(typeVar)
 	var market any = this.Market(symbol)
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " createOrderRequest() requires a side argument")))
+	}
 	var orderSide any = ToUpper(side)
 	var subaccountId any = 0
 	subaccountIdparamsVariable := this.HandleOptionAndParams(params, "createOrder", "subAccountId", subaccountId)
@@ -1519,7 +1651,7 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	var postOnly any = this.IsPostOnly(isMarket, nil, params)
 	var amountStr any = this.AmountToPrecision(symbol, amount)
 	var priceStr any = this.PriceToPrecision(symbol, price)
-	var marketInfo any = this.SafeDict(market, "info")
+	var marketInfo any = this.SafeDict(market, "info", map[string]any{})
 	var atomicResolution any = GetValue(marketInfo, "atomicResolution")
 	var quantumScale any = this.Pow("10", Precise.StringNeg(atomicResolution))
 	var quantums any = Precise.StringMul(amountStr, quantumScale)
@@ -1582,6 +1714,9 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	if IsTrue(IsEqual(orderFlag, 0)) {
 		if IsTrue(IsEqual(goodTillBlock, nil)) {
 			// short term order
+			if IsTrue(IsEqual(latestBlockHeight, nil)) {
+				panic(ExchangeError(Add(this.Id, " method() missing latestBlockHeight")))
+			}
 			goodTillBlock = Add(latestBlockHeight, 20)
 		}
 	} else {
@@ -1622,7 +1757,13 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		"value":   orderPayload,
 	}
 	params = this.Omit(params, []any{"reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId"})
-	var orderId any = this.CreateOrderIdFromParts(this.GetWalletAddress(), subaccountId, clientOrderId, orderFlag, GetValue(marketInfo, "clobPairId"))
+	var walletAddress any = this.GetWalletAddress()
+	var clobPairId any = this.SafeInteger(marketInfo, "clobPairId", 0)
+	var subaccountIdValue any = Ternary(IsTrue((IsEqual(subaccountId, nil))), 0, subaccountId)
+	var clientOrderIdValue any = Ternary(IsTrue((IsEqual(clientOrderId, nil))), 0, clientOrderId)
+	var orderFlagValue any = Ternary(IsTrue((IsEqual(orderFlag, nil))), 0, orderFlag)
+	var clobPairIdValue any = Ternary(IsTrue((IsEqual(clobPairId, nil))), 0, clobPairId)
+	var orderId any = this.CreateOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue)
 	return []any{orderId, this.Extend(signingPayload, params)}
 }
 func (this *DydxCore) CreateOrderIdFromParts(address any, subAccountNumber any, clientOrderId any, orderFlags any, clobPairId any) any {
@@ -1658,8 +1799,12 @@ func (this *DydxCore) FetchLatestBlockHeight(optionalArgs ...any) <-chan any {
 		//
 		var result any = this.SafeDict(response, "result")
 		var info any = this.SafeDict(result, "response")
+		var height any = this.SafeInteger(info, "last_block_height")
+		if IsTrue(IsEqual(height, nil)) {
+			panic(ExchangeError(Add(this.Id, " fetchLatestBlockHeight() could not parse last_block_height")))
+		}
 
-		ch <- this.SafeInteger(info, "last_block_height")
+		ch <- height
 		return nil
 
 	}()
@@ -1697,9 +1842,11 @@ func (this *DydxCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes14768 := (<-this.LoadMarkets())
-		PanicOnError(retRes14768)
+			retRes151412 := (<-this.LoadMarkets())
+			PanicOnError(retRes151412)
+		}
 		var credentials any = this.RetrieveCredentials()
 
 		account := (<-this.FetchDydxAccount())
@@ -1779,9 +1926,11 @@ func (this *DydxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		if IsTrue(!IsTrue(isTrigger) && IsTrue((IsEqual(symbol, nil)))) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes15358 := (<-this.LoadMarkets())
-		PanicOnError(retRes15358)
+			retRes157512 := (<-this.LoadMarkets())
+			PanicOnError(retRes157512)
+		}
 		var market any = this.Market(symbol)
 		var clientOrderId any = this.SafeString2(params, "clientOrderId", "clientId", id)
 		if IsTrue(IsEqual(clientOrderId, nil)) {
@@ -1897,9 +2046,11 @@ func (this *DydxCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16288 := (<-this.LoadMarkets())
-		PanicOnError(retRes16288)
+			retRes167012 := (<-this.LoadMarkets())
+			PanicOnError(retRes167012)
+		}
 		var market any = this.Market(symbol)
 		var clientOrderIds any = this.SafeList(params, "clientOrderIds")
 		if !IsTrue(clientOrderIds) {
@@ -1978,7 +2129,7 @@ func (this *DydxCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *DydxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1989,9 +2140,11 @@ func (this *DydxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16978 := (<-this.LoadMarkets())
-		PanicOnError(retRes16978)
+			retRes174112 := (<-this.LoadMarkets())
+			PanicOnError(retRes174112)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market": GetValue(market, "id"),
@@ -2114,9 +2267,11 @@ func (this *DydxCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes18018 := (<-this.LoadMarkets())
-		PanicOnError(retRes18018)
+			retRes184712 := (<-this.LoadMarkets())
+			PanicOnError(retRes184712)
+		}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -2163,7 +2318,7 @@ func (this *DydxCore) EstimateTxFee(message any, memo any, account any) <-chan a
 		}
 		var defaultFeeDenom any = this.SafeString(this.Options, "defaultFeeDenom")
 		var defaultFeeMultiplier any = this.SafeString(this.Options, "defaultFeeMultiplier")
-		var feeDenom any = this.SafeDict(this.Options, "feeDenom")
+		var feeDenom any = this.SafeDict(this.Options, "feeDenom", map[string]any{})
 		var gasPrice any = nil
 		var denom any = nil
 		if IsTrue(IsEqual(defaultFeeDenom, "uusdc")) {
@@ -2175,6 +2330,9 @@ func (this *DydxCore) EstimateTxFee(message any, memo any, account any) <-chan a
 		}
 		var gasLimit any = MathCeil(this.ParseToNumeric(Precise.StringMul(gasUsed, defaultFeeMultiplier)))
 		var feeAmount any = Precise.StringMul(this.NumberToString(gasLimit), gasPrice)
+		if IsTrue(IsEqual(feeAmount, nil)) {
+			panic(ExchangeError(Add(this.Id, " estimateTxFee() missing feeAmount")))
+		}
 		if IsTrue(IsGreaterThanOrEqual(GetIndexOf(feeAmount, "."), 0)) {
 			feeAmount = this.NumberToString(MathCeil(this.ParseToNumeric(feeAmount)))
 		}
@@ -2215,13 +2373,15 @@ func (this *DydxCore) Transfer(code any, amount any, fromAccount any, toAccount 
 		if IsTrue(!IsEqual(code, "USDC")) {
 			panic(NotSupported(Add(this.Id, " transfer() only support USDC")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes18758 := (<-this.LoadMarkets())
-		PanicOnError(retRes18758)
+			retRes192612 := (<-this.LoadMarkets())
+			PanicOnError(retRes192612)
+		}
 		var fromSubaccountId any = this.SafeInteger(params, "fromSubaccountId")
 		var toSubaccountId any = this.SafeInteger(params, "toSubaccountId")
 		if IsTrue(!IsEqual(fromAccount, "main")) {
-			// throw error if from subaccount id is undefind
+			// throw error if from subaccount id is undefined
 			if IsTrue(IsEqual(fromAccount, nil)) {
 				panic(NotSupported(Add(this.Id, " transfer only support main > subaccount and subaccount <> subaccount.")))
 			}
@@ -2377,9 +2537,11 @@ func (this *DydxCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes20118 := (<-this.LoadMarkets())
-		PanicOnError(retRes20118)
+			retRes206412 := (<-this.LoadMarkets())
+			PanicOnError(retRes206412)
+		}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -2478,9 +2640,11 @@ func (this *DydxCore) Withdraw(code any, amount any, address any, optionalArgs .
 		if IsTrue(!IsEqual(code, "USDC")) {
 			panic(NotSupported(Add(this.Id, " withdraw() only support USDC")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes20928 := (<-this.LoadMarkets())
-		PanicOnError(retRes20928)
+			retRes214712 := (<-this.LoadMarkets())
+			PanicOnError(retRes214712)
+		}
 		this.CheckAddress(address)
 		var subaccountId any = this.SafeInteger(params, "subaccountId")
 		if IsTrue(IsEqual(subaccountId, nil)) {
@@ -2566,9 +2730,11 @@ func (this *DydxCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes21558 := (<-this.LoadMarkets())
-		PanicOnError(retRes21558)
+			retRes221212 := (<-this.LoadMarkets())
+			PanicOnError(retRes221212)
+		}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -2613,9 +2779,11 @@ func (this *DydxCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes21798 := (<-this.LoadMarkets())
-		PanicOnError(retRes21798)
+			retRes223812 := (<-this.LoadMarkets())
+			PanicOnError(retRes223812)
+		}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -2660,9 +2828,11 @@ func (this *DydxCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes22038 := (<-this.LoadMarkets())
-		PanicOnError(retRes22038)
+			retRes226412 := (<-this.LoadMarkets())
+			PanicOnError(retRes226412)
+		}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -2849,9 +3019,11 @@ func (this *DydxCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes23388 := (<-this.LoadMarkets())
-		PanicOnError(retRes23388)
+			retRes240112 := (<-this.LoadMarkets())
+			PanicOnError(retRes240112)
+		}
 		var userAddress any = nil
 		userAddressparamsVariable := this.HandlePublicAddress("fetchAccounts", params)
 		userAddress = GetValue(userAddressparamsVariable, 0)
@@ -2973,7 +3145,7 @@ func (this *DydxCore) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var pathWithParams any = this.ImplodeParams(path, params)
-	var url any = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), section))
+	var url any = GetValue(GetValue(this.Urls, "api"), section)
 	params = this.Omit(params, this.ExtractParams(path))
 	params = this.Keysort(params)
 	url = Add(url, Add("/", pathWithParams))

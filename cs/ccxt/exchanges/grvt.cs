@@ -73,7 +73,7 @@ public partial class grvt : Exchange
                 { "4w", "CI_4_W" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/7a2e8108-29f6-45d1-822d-48eb1c8cbbe6" },
+                { "logo", "https://github.com/user-attachments/assets/cff0d37c-e594-40cb-88b3-90650ddadc18" },
                 { "api", new Dictionary<string, object>() {
                     { "privateEdge", "https://edge.grvt.io/" },
                     { "privateTrading", "https://trades.grvt.io/" },
@@ -92,71 +92,171 @@ public partial class grvt : Exchange
             { "api", new Dictionary<string, object>() {
                 { "privateEdge", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "auth/api_key/login", 100 },
-                        { "auth/wallet/login", 100 },
+                        { "auth/api_key/login", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "auth/wallet/login", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
                     } },
                 } },
                 { "publicMarket", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "full/v1/instrument", 4 },
-                        { "full/v1/all_instruments", 4 },
-                        { "full/v1/instruments", 4 },
-                        { "full/v1/currency", 12 },
-                        { "full/v1/margin_rules", 12 },
-                        { "full/v1/mini", 4 },
-                        { "full/v1/ticker", 4 },
-                        { "full/v1/book", 12 },
-                        { "full/v1/trade", 12 },
-                        { "full/v1/trade_history", 12 },
-                        { "full/v1/kline", 12 },
-                        { "full/v1/funding", 12 },
+                        { "full/v1/instrument", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "full/v1/all_instruments", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "full/v1/instruments", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "full/v1/currency", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "full/v1/margin_rules", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "full/v1/mini", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "full/v1/ticker", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "full/v1/book", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "full/v1/trade", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "full/v1/trade_history", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "full/v1/kline", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "full/v1/funding", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
                     } },
                 } },
                 { "privateTrading", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "full/v1/create_order", 5 },
-                        { "full/v1/cancel_order", 5 },
-                        { "full/v1/cancel_on_disconnect", 100 },
-                        { "full/v1/cancel_all_orders", 50 },
-                        { "full/v1/order", rlOrders },
-                        { "full/v1/order_history", rlOrders },
-                        { "full/v1/open_orders", rlOrders },
-                        { "full/v1/fill_history", rlOrders },
-                        { "full/v1/positions", rlOrders },
-                        { "full/v1/funding_payment_history", rlOthers },
-                        { "full/v1/get_sub_accounts", rlOthers },
-                        { "full/v1/account_summary", rlOthers },
-                        { "full/v1/account_history", rlOthers },
-                        { "full/v1/aggregated_account_summary", rlOthers },
-                        { "full/v1/funding_account_summary", rlOthers },
-                        { "full/v1/transfer", 100 },
-                        { "full/v1/deposit_history", 100 },
-                        { "full/v1/transfer_history", 100 },
-                        { "full/v1/withdrawal", 100 },
-                        { "full/v1/withdrawal_history", 100 },
-                        { "full/v1/add_position_margin", rlOthers },
-                        { "full/v1/get_position_margin_limits", rlOthers },
-                        { "full/v1/set_position_config", rlOthers },
-                        { "full/v1/set_initial_leverage", rlOthers },
-                        { "full/v1/get_all_initial_leverage", rlOthers },
-                        { "full/v1/set_derisk_mm_ratio", rlOthers },
-                        { "full/v1/vault_burn_tokens", rlOthers },
-                        { "full/v1/vault_invest", rlOthers },
-                        { "full/v1/vault_investor_summary", rlOthers },
-                        { "full/v1/vault_redeem", rlOthers },
-                        { "full/v1/vault_redeem_cancel", rlOthers },
-                        { "full/v1/vault_view_redemption_queue", rlOthers },
-                        { "full/v1/vault_manager_investor_history", rlOthers },
-                        { "full/v1/authorize_builder", rlOthers },
-                        { "full/v1/get_authorized_builders", rlOthers },
-                        { "full/v1/builder_fill_history", rlOthers },
+                        { "full/v1/create_order", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "full/v1/cancel_order", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "full/v1/cancel_on_disconnect", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "full/v1/cancel_all_orders", new Dictionary<string, object>() {
+                            { "cost", 50 },
+                        } },
+                        { "full/v1/order", new Dictionary<string, object>() {
+                            { "cost", rlOrders },
+                        } },
+                        { "full/v1/order_history", new Dictionary<string, object>() {
+                            { "cost", rlOrders },
+                        } },
+                        { "full/v1/open_orders", new Dictionary<string, object>() {
+                            { "cost", rlOrders },
+                        } },
+                        { "full/v1/fill_history", new Dictionary<string, object>() {
+                            { "cost", rlOrders },
+                        } },
+                        { "full/v1/positions", new Dictionary<string, object>() {
+                            { "cost", rlOrders },
+                        } },
+                        { "full/v1/funding_payment_history", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/get_sub_accounts", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/account_summary", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/account_history", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/aggregated_account_summary", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/funding_account_summary", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/transfer", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "full/v1/deposit_history", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "full/v1/transfer_history", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "full/v1/withdrawal", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "full/v1/withdrawal_history", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "full/v1/add_position_margin", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/get_position_margin_limits", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/set_position_config", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/set_initial_leverage", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/get_all_initial_leverage", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/set_derisk_mm_ratio", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/vault_burn_tokens", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/vault_invest", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/vault_investor_summary", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/vault_redeem", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/vault_redeem_cancel", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/vault_view_redemption_queue", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/vault_manager_investor_history", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/authorize_builder", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/get_authorized_builders", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/builder_fill_history", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
                     } },
                 } },
             } },
             { "options", new Dictionary<string, object>() {
                 { "accountId", null },
                 { "networks", new Dictionary<string, object>() {
-                    { "ARBONE", "42161" },
+                    { "ARBITRUM", "42161" },
                     { "AVAXC", "43114" },
                     { "BASE", "8453" },
                     { "BSC", "56" },
@@ -721,7 +821,7 @@ public partial class grvt : Exchange
      * @name grvt#fetchMarkets
      * @description retrieves data on all markets
      * @see https://api-docs.grvt.io/market_data_api/#get-instrument-prod
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     public async override Task<object> fetchMarkets(object parameters = null)
@@ -946,7 +1046,10 @@ public partial class grvt : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "instrument", this.marketId(symbol) },
@@ -1021,9 +1124,12 @@ public partial class grvt : Exchange
         //        }
         //
         object marketId = this.safeString(ticker, "instrument");
+        object timestamp = this.safeIntegerProduct(ticker, "event_time", 0.000001);
         return this.safeTicker(new Dictionary<string, object>() {
             { "info", ticker },
             { "symbol", this.safeSymbol(marketId, market) },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
             { "open", this.safeString(ticker, "open_price") },
             { "high", this.safeString(ticker, "high_price") },
             { "low", this.safeString(ticker, "low_price") },
@@ -1053,12 +1159,15 @@ public partial class grvt : Exchange
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "instrument", this.marketId(symbol) },
         };
@@ -1108,7 +1217,10 @@ public partial class grvt : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "instrument", getValue(market, "id") },
@@ -1255,7 +1367,10 @@ public partial class grvt : Exchange
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         object maxLimit = 1000;
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -1350,7 +1465,10 @@ public partial class grvt : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -1523,7 +1641,10 @@ public partial class grvt : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
             ((IDictionary<string,object>)account)["free"] = availableBalance; // todo: revise after API team clarification
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1594,9 +1715,9 @@ public partial class grvt : Exchange
 
     /**
      * @method
-     * @name grvrt#fetchWithdrawals
+     * @name grvt#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
+     * @see https://api-docs.grvt.io/trading_api/#withdrawal-history
      * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
      * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
@@ -1780,6 +1901,8 @@ public partial class grvt : Exchange
         object networkCode = null;
         object addressFrom = this.safeString(transaction, "from_account_id");
         object addressTo = this.safeString(transaction, "to_account_id");
+        object currencyId = this.safeString(transaction, "currency");
+        object code = this.safeCurrencyCode(currencyId, currency);
         if (isTrue(inOp(transaction, "transfer_metadata")))
         {
             object metaData = this.omitZero(this.safeString(transaction, "transfer_metadata"));
@@ -1788,7 +1911,7 @@ public partial class grvt : Exchange
                 object parsedMeta = this.parseJson(metaData);
                 direction = this.safeStringLower(parsedMeta, "direction");
                 txId = this.safeString(parsedMeta, "provider_tx_id");
-                networkCode = this.networkIdToCode(this.safeString(parsedMeta, "chainid"));
+                networkCode = this.networkIdToCode(this.safeString(parsedMeta, "chainid"), code);
                 if (isTrue(isEqual(direction, "withdrawal")))
                 {
                     addressTo = this.safeString(parsedMeta, "endpoint");
@@ -1799,8 +1922,6 @@ public partial class grvt : Exchange
             }
         }
         object timestamp = this.safeIntegerProduct2(transaction, "event_time", "initiated_time", 0.000001);
-        object currencyId = this.safeString(transaction, "currency");
-        object code = this.safeCurrencyCode(currencyId, currency);
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", null },
@@ -2050,11 +2171,11 @@ public partial class grvt : Exchange
         };
     }
 
-    public async virtual Task loadAccountInfos()
+    public async virtual Task<object> loadAccountInfos()
     {
         if (isTrue(!isEqual(this.safeString(this.options, "userMainAccountId"), null)))
         {
-            return;
+            return false;
         }
         object promises = new List<object>() {};
         ((IList<object>)promises).Add(this.privateTradingPostFullV1AggregatedAccountSummary());
@@ -2111,6 +2232,7 @@ public partial class grvt : Exchange
             object subAccountId = this.safeString(subAccountIds, 0);
             ((IDictionary<string,object>)this.options)["accountId"] = subAccountId;
         }
+        return true;
     }
 
     /**
@@ -2143,7 +2265,7 @@ public partial class grvt : Exchange
         var networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
         var networkCode = ((IList<object>) networkCodequeryVariable)[0];
         var query = ((IList<object>) networkCodequeryVariable)[1];
-        object networkId = this.networkCodeToId(networkCode);
+        object networkId = this.networkCodeToId(networkCode, code);
         if (isTrue(isEqual(networkId, null)))
         {
             throw new BadRequest ((string)add(this.id, " withdraw() requires a network parameter")) ;
@@ -2215,8 +2337,10 @@ public partial class grvt : Exchange
         }
         parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
         object isMarketOrder = (isEqual(type, "market"));
+        object subAccountId = this.getSubAccountId(parameters);
+        object isReduceOnly = this.safeBool(parameters, "reduceOnly", false);
         object orderRequest = new Dictionary<string, object>() {
-            { "sub_account_id", this.getSubAccountId(parameters) },
+            { "sub_account_id", subAccountId },
             { "time_in_force", null },
             { "legs", new List<object>() {orderLeg} },
             { "signature", this.defaultSignature() },
@@ -2225,7 +2349,7 @@ public partial class grvt : Exchange
             } },
             { "is_market", isMarketOrder },
             { "post_only", false },
-            { "reduce_only", this.safeBool(parameters, "reduceOnly", false) },
+            { "reduce_only", isReduceOnly },
         };
         object timeInForce = this.safeStringUpper(parameters, "timeInForce", "GOOD_TILL_TIME");
         object postOnly = this.isPostOnly(isMarketOrder, null, parameters);
@@ -2434,7 +2558,7 @@ public partial class grvt : Exchange
                 object limitDec = this.safeString(limitParts, 1, "");
                 object limitDecLength = add(((string)limitDec).Length, 0); // php tr
                 object limitDecLengthStr = ((object)limitDecLength).ToString();
-                object powerNum = ((bool) isTrue(isEqual(limitDecLengthStr, "0"))) ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
+                object powerNum = ((bool) isTrue((isEqual(limitDecLengthStr, "0")))) ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
                 object priceInteger = (divide(multiply(this.convertToBigIntCustom(((string)price).Replace((string)".", (string)"")), this.convertToBigIntCustom(priceMultiplier)), (Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(powerNum)))));
                 ((IDictionary<string,object>)legOrder)["limitPrice"] = this.parseToInt(priceInteger);
             } else
@@ -2927,8 +3051,9 @@ public partial class grvt : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
+        object subAccountId = this.getSubAccountId(parameters);
         object request = new Dictionary<string, object>() {
-            { "sub_account_id", this.getSubAccountId(parameters) },
+            { "sub_account_id", subAccountId },
         };
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -3115,8 +3240,9 @@ public partial class grvt : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
+        object subAccountId = this.getSubAccountId(parameters);
         object request = new Dictionary<string, object>() {
-            { "sub_account_id", this.getSubAccountId(parameters) },
+            { "sub_account_id", subAccountId },
         };
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
         if (isTrue(!isEqual(clientOrderId, null)))
@@ -3276,7 +3402,7 @@ public partial class grvt : Exchange
         object price = null;
         object filled = null;
         object avgPrice = null;
-        object legs = this.safeList(order, "legs");
+        object legs = this.safeList(order, "legs", new List<object>() {});
         object metadata = this.safeDict(order, "metadata", new Dictionary<string, object>() {});
         object stateObj = this.safeDict(order, "state", new Dictionary<string, object>() {});
         object filledAmounts = this.safeList(stateObj, "traded_size", new List<object>() {});
@@ -3305,7 +3431,7 @@ public partial class grvt : Exchange
             { "lastTradeTimeStamp", null },
             { "lastUpdateTimestamp", this.safeIntegerProduct(stateObj, "update_time", 0.000001) },
             { "status", this.parseOrderStatus(this.safeString(stateObj, "status")) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "type", orderType },
             { "timeInForce", timeInForce },
             { "postOnly", isPostOnly },
@@ -3365,7 +3491,7 @@ public partial class grvt : Exchange
      * @name grvt#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://api-docs.grvt.io/trading_api/#cancel-all-orders
-     * @param {string} symbol cancel alls open orders
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3393,7 +3519,7 @@ public partial class grvt : Exchange
         //    }
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrders(new List<object>() {result}, null);
+        return this.parseOrders(new List<object>() {result});
     }
 
     /**
@@ -3411,8 +3537,9 @@ public partial class grvt : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
+        object subAccoubntId = this.getSubAccountId(parameters);
         object request = new Dictionary<string, object>() {
-            { "sub_account_id", this.getSubAccountId(parameters) },
+            { "sub_account_id", subAccoubntId },
         };
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
         if (isTrue(!isEqual(clientOrderId, null)))
@@ -3460,6 +3587,10 @@ public partial class grvt : Exchange
         {
             object amountMultiplier = this.convertToBigIntCustom("1000000");
             object amountInt = multiply(getValue(request, "num_tokens"), amountMultiplier);
+            if (isTrue(isEqual(currencyObj, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " createSignedRequest() missing currencyObj")) ;
+            }
             messageData = new Dictionary<string, object>() {
                 { "fromAccount", getValue(request, "from_account_id") },
                 { "fromSubAccount", getValue(request, "from_sub_account_id") },
@@ -3473,6 +3604,10 @@ public partial class grvt : Exchange
         } else if (isTrue(isEqual(structureType, "EIP712_WITHDRAWAL_TYPE")))
         {
             object amountMultiplier = this.convertToBigIntCustom("1000000");
+            if (isTrue(isEqual(currencyObj, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " createSignedRequest() missing currencyObj")) ;
+            }
             messageData = new Dictionary<string, object>() {
                 { "fromAccount", getValue(request, "from_account_id") },
                 { "toEthAddress", getValue(request, "to_eth_address") },
@@ -3580,7 +3715,22 @@ public partial class grvt : Exchange
             }
         } else if (isTrue(isEqual(method, "POST")))
         {
-            body = this.json(parameters);
+            // the venue rejects json POSTs without an explicit content type with 1003 malformed syntax,
+            // the private branch below sets its own headers, this covers the public market-data endpoints
+            headers = new Dictionary<string, object>() {
+                { "Content-Type", "application/json" },
+            };
+            // an empty params dict must serialize as an empty json object, not an empty json array,
+            // php json_encode would produce [] here which the venue rejects with the same 1003 error
+            object paramsKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+            object paramsKeysLength = getArrayLength(paramsKeys);
+            if (isTrue(isEqual(paramsKeysLength, 0)))
+            {
+                body = "{}";
+            } else
+            {
+                body = this.json(parameters);
+            }
         }
         object isPrivate = ((string)api).StartsWith(((string)"private"));
         if (isTrue(isPrivate))

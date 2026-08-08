@@ -12,7 +12,8 @@ public partial class bequant : hitbtc
         // eslint-disable-next-line new-cap
         var restInstance = new ccxt.bequant();
         object restDescribe = restInstance.describe();
-        object extended = this.deepExtend(base.describe(), restDescribe);
+        object parentWsDescribe = base.describeData();
+        object extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new Dictionary<string, object>() {
             { "id", "bequant" },
             { "name", "Bequant" },

@@ -39,8 +39,8 @@
                 "max": null
             },
             "amount": {
-                "min": 0.000061,
-                "max": 1000000000
+                "min": 0.00007596,
+                "max": 15192.69340141
             },
             "price": {
                 "min": null,
@@ -61,16 +61,16 @@
             "status": "trading",
             "base": "BTC",
             "quote": "EUR",
-            "pricePrecision": "0",
-            "minOrderInBaseAsset": "0.00006100",
+            "pricePrecision": null,
+            "minOrderInBaseAsset": "0.00007596",
             "minOrderInQuoteAsset": "5.00",
-            "maxOrderInBaseAsset": "1000000000.00000000",
+            "maxOrderInBaseAsset": "15192.69340141",
             "maxOrderInQuoteAsset": "1000000000.00",
             "quantityDecimals": "8",
             "notionalDecimals": "2",
             "tickSize": "1.00",
-            "maxOpenOrders": "100",
-            "feeCategory": "A",
+            "maxOpenOrders": "200",
+            "feeCategory": "C",
             "orderTypes": [
                 "market",
                 "limit",
@@ -201,8 +201,8 @@
                 "max": null
             },
             "amount": {
-                "min": 0.06,
-                "max": 1000000000
+                "min": 0.10686631,
+                "max": 21373261.57821807
             },
             "price": {
                 "min": null,
@@ -223,16 +223,16 @@
             "status": "trading",
             "base": "LTC",
             "quote": "EUR",
-            "pricePrecision": "0",
-            "minOrderInBaseAsset": "0.06000000",
+            "pricePrecision": null,
+            "minOrderInBaseAsset": "0.10686631",
             "minOrderInQuoteAsset": "5.00",
-            "maxOrderInBaseAsset": "1000000000.00000000",
+            "maxOrderInBaseAsset": "21373261.57821807",
             "maxOrderInQuoteAsset": "1000000000.00",
             "quantityDecimals": "8",
             "notionalDecimals": "2",
             "tickSize": "0.00100",
             "maxOpenOrders": "100",
-            "feeCategory": "A",
+            "feeCategory": "C",
             "orderTypes": [
                 "market",
                 "limit",

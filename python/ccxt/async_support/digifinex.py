@@ -8,7 +8,7 @@ from ccxt.abstract.digifinex import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Any, Balances, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -27,6 +27,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import BadResponse
+from ccxt.base.errors import NullResponse
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -143,114 +144,114 @@ class digifinex(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'spot': {
-                        'get': [
-                            '{market}/symbols',
-                            'kline',
-                            'margin/currencies',
-                            'margin/symbols',
-                            'markets',
-                            'order_book',
-                            'ping',
-                            'spot/symbols',
-                            'time',
-                            'trades',
-                            'trades/symbols',
-                            'ticker',
-                            'currencies',
-                        ],
+                        'get': {
+                            '{market}/symbols': {'cost': 1},
+                            'kline': {'cost': 1},
+                            'margin/currencies': {'cost': 1},
+                            'margin/symbols': {'cost': 1},
+                            'markets': {'cost': 1},
+                            'order_book': {'cost': 1},
+                            'ping': {'cost': 1},
+                            'spot/symbols': {'cost': 1},
+                            'time': {'cost': 1},
+                            'trades': {'cost': 1},
+                            'trades/symbols': {'cost': 1},
+                            'ticker': {'cost': 1},
+                            'currencies': {'cost': 1},
+                        },
                     },
                     'swap': {
-                        'get': [
-                            'public/api_weight',
-                            'public/candles',
-                            'public/candles_history',
-                            'public/depth',
-                            'public/funding_rate',
-                            'public/funding_rate_history',
-                            'public/instrument',
-                            'public/instruments',
-                            'public/ticker',
-                            'public/tickers',
-                            'public/time',
-                            'public/trades',
-                        ],
+                        'get': {
+                            'public/api_weight': {'cost': 1},
+                            'public/candles': {'cost': 1},
+                            'public/candles_history': {'cost': 1},
+                            'public/depth': {'cost': 1},
+                            'public/funding_rate': {'cost': 1},
+                            'public/funding_rate_history': {'cost': 1},
+                            'public/instrument': {'cost': 1},
+                            'public/instruments': {'cost': 1},
+                            'public/ticker': {'cost': 1},
+                            'public/tickers': {'cost': 1},
+                            'public/time': {'cost': 1},
+                            'public/trades': {'cost': 1},
+                        },
                     },
                 },
                 'private': {
                     'spot': {
-                        'get': [
-                            '{market}/financelog',
-                            '{market}/mytrades',
-                            '{market}/order',
-                            '{market}/order/detail',
-                            '{market}/order/current',
-                            '{market}/order/history',
-                            'margin/assets',
-                            'margin/financelog',
-                            'margin/mytrades',
-                            'margin/order',
-                            'margin/order/current',
-                            'margin/order/history',
-                            'margin/positions',
-                            'otc/financelog',
-                            'spot/assets',
-                            'spot/financelog',
-                            'spot/mytrades',
-                            'spot/order',
-                            'spot/order/current',
-                            'spot/order/history',
-                            'deposit/address',
-                            'deposit/history',
-                            'withdraw/history',
-                        ],
-                        'post': [
-                            '{market}/order/cancel',
-                            '{market}/order/new',
-                            '{market}/order/batch_new',
-                            'margin/order/cancel',
-                            'margin/order/new',
-                            'margin/position/close',
-                            'spot/order/cancel',
-                            'spot/order/new',
-                            'transfer',
-                            'withdraw/new',
-                            'withdraw/cancel',
-                        ],
+                        'get': {
+                            '{market}/financelog': {'cost': 1},
+                            '{market}/mytrades': {'cost': 1},
+                            '{market}/order': {'cost': 1},
+                            '{market}/order/detail': {'cost': 1},
+                            '{market}/order/current': {'cost': 1},
+                            '{market}/order/history': {'cost': 1},
+                            'margin/assets': {'cost': 1},
+                            'margin/financelog': {'cost': 1},
+                            'margin/mytrades': {'cost': 1},
+                            'margin/order': {'cost': 1},
+                            'margin/order/current': {'cost': 1},
+                            'margin/order/history': {'cost': 1},
+                            'margin/positions': {'cost': 1},
+                            'otc/financelog': {'cost': 1},
+                            'spot/assets': {'cost': 1},
+                            'spot/financelog': {'cost': 1},
+                            'spot/mytrades': {'cost': 1},
+                            'spot/order': {'cost': 1},
+                            'spot/order/current': {'cost': 1},
+                            'spot/order/history': {'cost': 1},
+                            'deposit/address': {'cost': 1},
+                            'deposit/history': {'cost': 1},
+                            'withdraw/history': {'cost': 1},
+                        },
+                        'post': {
+                            '{market}/order/cancel': {'cost': 1},
+                            '{market}/order/new': {'cost': 1},
+                            '{market}/order/batch_new': {'cost': 1},
+                            'margin/order/cancel': {'cost': 1},
+                            'margin/order/new': {'cost': 1},
+                            'margin/position/close': {'cost': 1},
+                            'spot/order/cancel': {'cost': 1},
+                            'spot/order/new': {'cost': 1},
+                            'transfer': {'cost': 1},
+                            'withdraw/new': {'cost': 1},
+                            'withdraw/cancel': {'cost': 1},
+                        },
                     },
                     'swap': {
-                        'get': [
-                            'account/balance',
-                            'account/positions',
-                            'account/finance_record',
-                            'account/trading_fee_rate',
-                            'account/transfer_record',
-                            'account/funding_fee',
-                            'trade/history_orders',
-                            'trade/history_trades',
-                            'trade/open_orders',
-                            'trade/order_info',
-                        ],
-                        'post': [
-                            'account/transfer',
-                            'account/leverage',
-                            'account/position_mode',
-                            'account/position_margin',
-                            'trade/batch_cancel_order',
-                            'trade/batch_order',
-                            'trade/cancel_order',
-                            'trade/order_place',
-                            'follow/sponsor_order',
-                            'follow/close_order',
-                            'follow/cancel_order',
-                            'follow/user_center_current',
-                            'follow/user_center_history',
-                            'follow/expert_current_open_order',
-                            'follow/add_algo',
-                            'follow/cancel_algo',
-                            'follow/account_available',
-                            'follow/plan_task',
-                            'follow/instrument_list',
-                        ],
+                        'get': {
+                            'account/balance': {'cost': 1},
+                            'account/positions': {'cost': 1},
+                            'account/finance_record': {'cost': 1},
+                            'account/trading_fee_rate': {'cost': 1},
+                            'account/transfer_record': {'cost': 1},
+                            'account/funding_fee': {'cost': 1},
+                            'trade/history_orders': {'cost': 1},
+                            'trade/history_trades': {'cost': 1},
+                            'trade/open_orders': {'cost': 1},
+                            'trade/order_info': {'cost': 1},
+                        },
+                        'post': {
+                            'account/transfer': {'cost': 1},
+                            'account/leverage': {'cost': 1},
+                            'account/position_mode': {'cost': 1},
+                            'account/position_margin': {'cost': 1},
+                            'trade/batch_cancel_order': {'cost': 1},
+                            'trade/batch_order': {'cost': 1},
+                            'trade/cancel_order': {'cost': 1},
+                            'trade/order_place': {'cost': 1},
+                            'follow/sponsor_order': {'cost': 1},
+                            'follow/close_order': {'cost': 1},
+                            'follow/cancel_order': {'cost': 1},
+                            'follow/user_center_current': {'cost': 1},
+                            'follow/user_center_history': {'cost': 1},
+                            'follow/expert_current_open_order': {'cost': 1},
+                            'follow/add_algo': {'cost': 1},
+                            'follow/cancel_algo': {'cost': 1},
+                            'follow/account_available': {'cost': 1},
+                            'follow/plan_task': {'cost': 1},
+                            'follow/instrument_list': {'cost': 1},
+                        },
                     },
                 },
             },
@@ -450,20 +451,19 @@ class digifinex(Exchange, ImplicitAPI):
                     'ETHW': 'ETHW',
                     'IOTA': 'MIOTA',
                     'KLAYTN': 'KLAY',
-                    'MATIC': 'Polygon',
                     'METIS': 'MetisDAO',
                     'MOONBEAM': 'GLMR',
                     'MOONRIVER': 'Moonriver',
                     'OPTIMISM': 'OPETH',
                     'POLYGON': 'Polygon',
+                    'MATIC': 'Polygon',
                     'RIPPLE': 'XRP',
-                    'SOLANA': 'SOL',  # SOL & SPL
-                    'STELLAR': 'Stella',  # XLM
+                    'SOL': 'SOL',  # SOL & SPL
+                    'XLM': 'Stella',  # STELLAR
                     'TERRACLASSIC': 'TerraClassic',
                     'TERRA': 'Terra',
                     'TON': 'Ton',
                     'TRC20': 'TRC20',
-                    'TRON': 'TRC20',
                     'TRX': 'TRC20',
                     'VECHAIN': 'Vechain',  # VET
                 },
@@ -490,6 +490,9 @@ class digifinex(Exchange, ImplicitAPI):
     async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
+
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-currency-deposit-and-withdrawal-information
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -536,17 +539,20 @@ class digifinex(Exchange, ImplicitAPI):
         #
         data = self.safe_list(response, 'data', [])
         groupedById = self.group_by(data, 'currency')
-        keys = list(groupedById.keys())
-        result: dict = {}
-        for i in range(0, len(keys)):
-            id = keys[i]
-            networkEntries = groupedById[id]
-            code = self.safe_currency_code(id)
-            networks = {}
-            for j in range(0, len(networkEntries)):
-                networkEntry = networkEntries[j]
-                networkId = self.safe_string_2(networkEntry, 'chain', 'currency')
-                networkCode = self.network_id_to_code(networkId)
+        values = list(groupedById.values())
+        return self.parse_currencies(values)
+
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+        networkEntries = rawCurrency
+        firstEntry = self.safe_dict(networkEntries, 0, {})  # it must have at least one entry
+        id = self.safe_string(firstEntry, 'currency')
+        code = self.safe_currency_code(id)
+        networks = {}
+        for j in range(0, len(networkEntries)):
+            networkEntry = networkEntries[j]
+            networkId = self.safe_string_2(networkEntry, 'chain', 'currency')
+            networkCode = self.network_id_to_code(networkId, code)
+            if networkCode is not None:
                 networks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
@@ -567,17 +573,22 @@ class digifinex(Exchange, ImplicitAPI):
                     },
                     'info': networkEntry,
                 }
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'info': networkEntries,
-                'networks': networks,
-            })
-        return result
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': networkEntries,
+            'networks': networks,
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for digifinex
+
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#all-the-market-description
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-trading-pair-symbol
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-trading-pair-symbol
+        https://docs.digifinex.com/en-ww/swap/v2/rest.html#instruments
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -587,7 +598,7 @@ class digifinex(Exchange, ImplicitAPI):
             return await self.fetch_markets_v2(params)
         return await self.fetch_markets_v1(params)
 
-    async def fetch_markets_v2(self, params={}):
+    async def fetch_markets_v2(self, params={}) -> List[Market]:
         defaultType = self.safe_string(self.options, 'defaultType')
         marginMode, query = self.handle_margin_mode_and_params('fetchMarketsV2', params)
         promisesRaw = []
@@ -690,6 +701,7 @@ class digifinex(Exchange, ImplicitAPI):
                 isTrading = self.safe_value(market, 'isTrading')
                 if isTrading:
                     isAllowed = 1
+            isActive = True if isAllowed else False
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -705,7 +717,7 @@ class digifinex(Exchange, ImplicitAPI):
                 'swap': swap,
                 'future': False,
                 'option': False,
-                'active': True if isAllowed else False,
+                'active': isActive,
                 'contract': swap,
                 'linear': isLinear,
                 'inverse': isInverse,
@@ -763,6 +775,8 @@ class digifinex(Exchange, ImplicitAPI):
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'market')
+            if id is None:
+                raise ExchangeError(self.id + ' fetchMarketsV1() missing id')
             baseId, quoteId = id.split('_')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
@@ -816,7 +830,7 @@ class digifinex(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         #
         # spot and margin
         #
@@ -841,7 +855,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         "time_stamp": 1661487402396
         #     }
         #
-        result: dict = {'info': response}
+        result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
@@ -852,7 +866,8 @@ class digifinex(Exchange, ImplicitAPI):
             account['free'] = free
             account['used'] = Precise.string_sub(total, free)
             account['total'] = total
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -866,7 +881,8 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         marginMode, query = self.handle_margin_mode_and_params('fetchBalance', params)
@@ -930,12 +946,13 @@ class digifinex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchOrderBook', market, params)
-        request: dict = {}
+        request = {}
         if limit is not None:
             request['limit'] = limit
         response = None
@@ -1004,7 +1021,8 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         first = self.safe_string(symbols, 0)
         market = None
@@ -1012,7 +1030,7 @@ class digifinex(Exchange, ImplicitAPI):
             market = self.market(first)
         type = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
-        request: dict = {}
+        request = {}
         response = None
         if type == 'swap':
             response = await self.publicSwapGetPublicTickers(self.extend(request, params))
@@ -1066,7 +1084,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result: dict = {}
+        result = {}
         tickers = self.safe_value_2(response, 'ticker', 'data', [])
         date = self.safe_integer(response, 'date')
         for i in range(0, len(tickers)):
@@ -1075,7 +1093,8 @@ class digifinex(Exchange, ImplicitAPI):
             }, tickers[i])
             ticker = self.parse_ticker(rawTicker)
             symbol = ticker['symbol']
-            result[symbol] = ticker
+            if symbol is not None:
+                result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -1089,9 +1108,10 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {}
+        request = {}
         response = None
         if market['swap']:
             request['instrument_id'] = market['id']
@@ -1153,6 +1173,8 @@ class digifinex(Exchange, ImplicitAPI):
             result = data
         else:
             result = self.extend({'date': date}, firstTicker)
+        if result is None:
+            raise NullResponse(self.id + ' fetchTicker() returned empty response')
         return self.parse_ticker(result, market)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
@@ -1323,6 +1345,8 @@ class digifinex(Exchange, ImplicitAPI):
                 # side = 'close short'
                 side = 'buy'
         else:
+            if side is None:
+                raise ExchangeError(self.id + ' parseTrade() returned no side')
             parts = side.split('_')
             side = self.safe_string(parts, 0)
             type = self.safe_string(parts, 1)
@@ -1360,6 +1384,9 @@ class digifinex(Exchange, ImplicitAPI):
     async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
+
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#server-timestamp
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -1372,9 +1399,12 @@ class digifinex(Exchange, ImplicitAPI):
         #
         return self.safe_timestamp(response, 'server_time')
 
-    async def fetch_status(self, params={}):
+    async def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
+
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#server-ping
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
         """
@@ -1408,9 +1438,10 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {}
+        request = {}
         if limit is not None:
             request['limit'] = min(limit, 100) if market['swap'] else limit
         response = None
@@ -1464,7 +1495,7 @@ class digifinex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     [
         #         1556712900,
@@ -1475,7 +1506,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         0.029927
         #     ]
         #
-        if market['swap']:
+        if self.safe_bool(market, 'swap'):
             return [
                 self.safe_integer(ohlcv, 0),
                 self.safe_number(ohlcv, 1),  # open
@@ -1509,9 +1540,10 @@ class digifinex(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {}
+        request = {}
         response = None
         if market['swap']:
             request['instrument_id'] = market['id']
@@ -1542,6 +1574,8 @@ class digifinex(Exchange, ImplicitAPI):
                         else:
                             request['end_time'] = endByUntil
                     else:
+                        if limit is None:
+                            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a limit argument')
                         request['end_time'] = self.sum(startTime, limit * duration)
             params = self.omit(params, 'until')
             response = await self.publicSpotGetKline(self.extend(request, params))
@@ -1600,7 +1634,8 @@ class digifinex(Exchange, ImplicitAPI):
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         marginResult = self.handle_margin_mode_and_params('createOrder', params)
         marginMode = marginResult[0]
@@ -1628,6 +1663,8 @@ class digifinex(Exchange, ImplicitAPI):
         #         "data": "1590873693003714560"
         #     }
         #
+        if response is None:
+            raise NullResponse(self.id + ' createOrder() returned empty response')
         order = self.parse_order(response, market)
         order['symbol'] = market['symbol']
         order['type'] = type
@@ -1647,7 +1684,8 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         ordersRequests = []
         symbol = None
         marginMode = None
@@ -1675,7 +1713,7 @@ class digifinex(Exchange, ImplicitAPI):
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
         market = self.market(symbol)
-        request: dict = {}
+        request = {}
         response = None
         if market['swap']:
             response = await self.privateSwapPostTradeBatchOrder(ordersRequests)
@@ -1713,7 +1751,7 @@ class digifinex(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
-            individualOrder: dict = {}
+            individualOrder = {}
             individualOrder['order_id'] = data[i]
             individualOrder['instrument_id'] = market['id']
             individualOrder['amount'] = self.safe_number(rawOrder, 'amount')
@@ -1721,7 +1759,11 @@ class digifinex(Exchange, ImplicitAPI):
             result.append(individualOrder)
         return self.parse_orders(result, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         """
  @ignore
         helper function to build request
@@ -1740,7 +1782,7 @@ class digifinex(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('createOrderRequest', params)
         if marginMode is not None:
             marketType = 'margin'
-        request: dict = {}
+        request = {}
         swap = (marketType == 'swap')
         isMarketOrder = (type == 'market')
         isLimitOrder = (type == 'limit')
@@ -1812,7 +1854,7 @@ class digifinex(Exchange, ImplicitAPI):
         params = self.omit(params, ['postOnly'])
         return self.extend(request, params)
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}):
         """
         create a market buy order by providing the symbol and cost
 
@@ -1823,7 +1865,8 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
@@ -1838,24 +1881,25 @@ class digifinex(Exchange, ImplicitAPI):
         https://docs.digifinex.com/en-ww/swap/v2/rest.html#cancelorder
 
         :param str id: order id
-        :param str symbol: not used by digifinex cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
         id = str(id)
         marketType = None
         marketType, params = self.handle_market_type_and_params('cancelOrder', market, params)
-        request: dict = {
+        request = {
             'order_id': id,
         }
         if marketType == 'swap':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-            request['instrument_id'] = market['id']
+            request['instrument_id'] = self.safe_string(market, 'id')
         else:
             request['market'] = marketType
         marginMode, query = self.handle_margin_mode_and_params('cancelOrder', params)
@@ -1903,9 +1947,9 @@ class digifinex(Exchange, ImplicitAPI):
                 'orderId': self.safe_string(response, 'data'),
             })
 
-    def parse_cancel_orders(self, response):
-        success = self.safe_list(response, 'success')
-        error = self.safe_list(response, 'error')
+    def parse_cancel_orders(self, response: Any):
+        success = self.safe_list(response, 'success', [])
+        error = self.safe_list(response, 'error', [])
         result = []
         for i in range(0, len(success)):
             order = success[i]
@@ -1927,16 +1971,20 @@ class digifinex(Exchange, ImplicitAPI):
     async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
+
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+
         :param str[] ids: order ids
-        :param str symbol: not used by digifinex cancelOrders()
+        :param str symbol: not used by cancelOrders()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         orderType = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
-        request: dict = {
+        request = {
             'market': orderType,
             'order_id': ','.join(ids),
         }
@@ -1956,7 +2004,7 @@ class digifinex(Exchange, ImplicitAPI):
         return self.parse_cancel_orders(response)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             '0': 'open',
             '1': 'open',  # partially filled
             '2': 'closed',
@@ -2110,14 +2158,15 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         marginMode, query = self.handle_margin_mode_and_params('fetchOpenOrders', params)
-        request: dict = {}
+        request = {}
         swap = (marketType == 'swap')
         if swap:
             if since is not None:
@@ -2206,14 +2255,15 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOrders', market, params)
         marginMode, query = self.handle_margin_mode_and_params('fetchOrders', params)
-        request: dict = {}
+        request = {}
         if marketType == 'swap':
             if since is not None:
                 request['start_timestamp'] = since
@@ -2302,14 +2352,15 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOrder', market, params)
         marginMode, query = self.handle_margin_mode_and_params('fetchOrder', params)
-        request: dict = {
+        request = {
             'order_id': id,
         }
         if marketType == 'swap':
@@ -2394,9 +2445,10 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
         marketType = None
@@ -2411,7 +2463,7 @@ class digifinex(Exchange, ImplicitAPI):
                 request['start_time'] = self.parse_to_int(since / 1000)  # default 3 days from now, max 30 days
         marketIdRequest = 'instrument_id' if (marketType == 'swap') else 'symbol'
         if symbol is not None:
-            request[marketIdRequest] = market['id']
+            request[marketIdRequest] = self.safe_string(market, 'id')
         if limit is not None:
             request['limit'] = limit
         response = None
@@ -2473,8 +2525,8 @@ class digifinex(Exchange, ImplicitAPI):
         data = self.safe_list(response, responseRequest, [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_ledger_entry_type(self, type):
-        types: dict = {}
+    def parse_ledger_entry_type(self, type: Any):
+        types = {}
         return self.safe_string(types, type, type)
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
@@ -2538,8 +2590,9 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        await self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        request = {}
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchLedger', None, params)
         marginMode, query = self.handle_margin_mode_and_params('fetchLedger', params)
@@ -2608,7 +2661,7 @@ class digifinex(Exchange, ImplicitAPI):
             ledger = self.safe_value(data, 'finance', [])
         return self.parse_ledger(ledger, currency, since, limit)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "addressTag":"",
@@ -2632,13 +2685,17 @@ class digifinex(Exchange, ImplicitAPI):
     async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
+
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#deposit-address-inquiry
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
         }
         response = await self.privateSpotGetDepositAddress(self.extend(request, params))
@@ -2662,10 +2719,11 @@ class digifinex(Exchange, ImplicitAPI):
             raise InvalidAddress(self.id + ' fetchDepositAddress() did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.')
         return address
 
-    async def fetch_transactions_by_type(self, type, code: Str = None, since: Int = None, limit: Int = None, params={}):
-        await self.load_markets()
+    async def fetch_transactions_by_type(self, type: Any, code: Str = None, since: Int = None, limit: Int = None, params={}):
+        if self.markets is None:
+            await self.load_markets()
         currency = None
-        request: dict = {
+        request = {
             # 'currency': currency['id'],
             # 'from': 'fromId',  # When direct is' prev ', from is 1, returning from old to new ascending, when direct is' next ', from is the ID of the most recent record, returned from the old descending order
             # 'size': 100,  # default 100, max 500
@@ -2707,6 +2765,9 @@ class digifinex(Exchange, ImplicitAPI):
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
+
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#deposit-history
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -2718,6 +2779,9 @@ class digifinex(Exchange, ImplicitAPI):
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
+
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#withdrawal-history
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -2729,7 +2793,7 @@ class digifinex(Exchange, ImplicitAPI):
     def parse_transaction_status(self, status: Str):
         # deposit state includes: 1(in deposit), 2(to be confirmed), 3(successfully deposited), 4(stopped)
         # withdrawal state includes: 1(application in progress), 2(to be confirmed), 3(completed), 4(rejected)
-        statuses: dict = {
+        statuses = {
             '1': 'pending',  # in Progress
             '2': 'pending',  # to be confirmed
             '3': 'ok',  # Completed
@@ -2801,7 +2865,7 @@ class digifinex(Exchange, ImplicitAPI):
         }
 
     def parse_transfer_status(self, status: Str) -> Str:
-        statuses: dict = {
+        statuses = {
             '0': 'ok',
         }
         return self.safe_string(statuses, status, status)
@@ -2872,7 +2936,8 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         currencyId = currency['id']
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
@@ -2911,6 +2976,8 @@ class digifinex(Exchange, ImplicitAPI):
             #     }
             #
             response = await self.privateSpotPostTransfer(self.extend(request, params))
+        if response is None:
+            raise NullResponse(self.id + ' transfer() returned empty response')
         return self.parse_transfer(response, currency)
 
     async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
@@ -2925,9 +2992,10 @@ class digifinex(Exchange, ImplicitAPI):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             # 'chain': 'ERC20', 'OMNI', 'TRC20',  # required for USDT
             'address': address,
             'amount': self.currency_to_precision(code, amount),
@@ -2945,8 +3013,9 @@ class digifinex(Exchange, ImplicitAPI):
         return self.parse_transaction(response, currency)
 
     async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
-        await self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -3020,8 +3089,9 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `borrow rate structure <https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure>`
         """
-        await self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        request = {}
         response = await self.privateSpotGetMarginAssets(self.extend(request, params))
         #
         #     {
@@ -3041,7 +3111,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'list', [])
-        result = []
+        result = None
         for i in range(0, len(data)):
             entry = data[i]
             if self.safe_string(entry, 'currency') == code:
@@ -3058,7 +3128,8 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `borrow rate structures <https://docs.ccxt.com/?id=borrow-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateSpotGetMarginAssets(params)
         #
         #     {
@@ -3080,7 +3151,7 @@ class digifinex(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'list', [])
         return self.parse_borrow_rates(result, 'currency')
 
-    def parse_borrow_rate(self, info, currency: Currency = None):
+    def parse_borrow_rate(self, info: Any, currency: Currency = None):
         #
         #     {
         #         "valuation_rate": 1,
@@ -3100,7 +3171,7 @@ class digifinex(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def parse_borrow_rates(self, info, codeKey):
+    def parse_borrow_rates(self, info: Any, codeKey: Any):
         #
         #     {
         #         "valuation_rate": 1,
@@ -3109,13 +3180,14 @@ class digifinex(Exchange, ImplicitAPI):
         #         "currency": "USDT"
         #     },
         #
-        result: dict = {}
+        result = {}
         for i in range(0, len(info)):
             item = info[i]
             currency = self.safe_string(item, codeKey)
             code = self.safe_currency_code(currency)
             borrowRate = self.parse_borrow_rate(item)
-            result[code] = borrowRate
+            if code is not None:
+                result[code] = borrowRate
         return result
 
     async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
@@ -3128,11 +3200,12 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
-        request: dict = {
+        request = {
             'instrument_id': market['id'],
         }
         response = await self.publicSwapGetPublicFundingRate(self.extend(request, params))
@@ -3163,7 +3236,7 @@ class digifinex(Exchange, ImplicitAPI):
         """
         return await self.fetch_funding_rate(symbol, params)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         #
         #     {
         #         "instrument_id": "BTCUSDTPERP",
@@ -3200,8 +3273,8 @@ class digifinex(Exchange, ImplicitAPI):
             'interval': self.parse_funding_interval(millisecondsInterval),
         }
 
-    def parse_funding_interval(self, interval):
-        intervals: dict = {
+    def parse_funding_interval(self, interval: Any):
+        intervals = {
             '3600000': '1h',
             '14400000': '4h',
             '28800000': '8h',
@@ -3213,6 +3286,9 @@ class digifinex(Exchange, ImplicitAPI):
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
+
+        https://docs.digifinex.com/en-ww/swap/v2/rest.html#fundingratehistory
+
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>` to fetch
@@ -3221,11 +3297,12 @@ class digifinex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingRateHistory() supports swap contracts only')
-        request: dict = {
+        request = {
             'instrument_id': market['id'],
         }
         if since is not None:
@@ -3276,11 +3353,12 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
             raise BadRequest(self.id + ' fetchTradingFee() supports swap markets only')
-        request: dict = {
+        request = {
             'instrument_id': market['id'],
         }
         response = await self.privateSwapGetAccountTradingFeeRate(self.extend(request, params))
@@ -3327,9 +3405,10 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
-        request: dict = {}
+        request = {}
         market = None
         marketType = None
         if symbols is not None:
@@ -3427,9 +3506,10 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {}
+        request = {}
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchPosition', market, params)
         marginMode, query = self.handle_margin_mode_and_params('fetchPosition', params)
@@ -3601,13 +3681,14 @@ class digifinex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if market['type'] != 'swap':
             raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
         if (leverage < 1) or (leverage > 100):
             raise BadRequest(self.id + ' leverage should be between 1 and 100')
-        request: dict = {
+        request = {
             'instrument_id': market['id'],
             'leverage': leverage,
         }
@@ -3649,12 +3730,15 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = None
-        request: dict = {}
+        request = {}
         if code is not None:
-            currency = self.safe_currency_code(code)
-            request['currency'] = currency['id']
+            currency = self.currency(code)
+            if currency is None:
+                raise ExchangeError(self.id + ' fetchTransfers() could not resolve currency')
+            request['currency'] = self.safe_string(currency, 'id')
         if since is not None:
             request['start_timestamp'] = since
         if limit is not None:
@@ -3688,7 +3772,8 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/?id=leverage-tiers-structure>`, indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.publicSwapGetPublicInstruments(params)
         #
         #     {
@@ -3733,11 +3818,12 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage tiers structure <https://docs.ccxt.com/?id=leverage-tiers-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
             raise BadRequest(self.id + ' fetchMarketLeverageTiers() supports swap markets only')
-        request: dict = {
+        request = {
             'instrument_id': market['id'],
         }
         response = await self.publicSwapGetPublicInstrument(self.extend(request, params))
@@ -3771,7 +3857,7 @@ class digifinex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_market_leverage_tiers(data, market)
 
-    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: Any, market: Market = None) -> List[LeverageTier]:
         #
         #     {
         #         "instrument_id": "BTCUSDTPERP",
@@ -3814,7 +3900,7 @@ class digifinex(Exchange, ImplicitAPI):
             })
         return tiers
 
-    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
+    def handle_margin_mode_and_params(self, methodName: str, params={}, defaultValue: Any = None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -3833,7 +3919,7 @@ class digifinex(Exchange, ImplicitAPI):
                 marginMode = 'cross'
         return [marginMode, params]
 
-    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -3843,7 +3929,8 @@ class digifinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.publicSpotGetCurrencies(params)
         #
         #   {
@@ -3877,7 +3964,7 @@ class digifinex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes)
 
-    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+    def parse_deposit_withdraw_fees(self, response: Any, codes: Strings = None, currencyIdKey: Str = None):
         #
         #     [
         #         {
@@ -3904,13 +3991,13 @@ class digifinex(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        depositWithdrawFees: dict = {}
+        depositWithdrawFees = {}
         codes = self.market_codes(codes)
         for i in range(0, len(response)):
             entry = response[i]
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
-            if (codes is None) or (self.in_array(code, codes)):
+            if (code is not None) and ((codes is None) or (self.in_array(code, codes))):
                 depositWithdrawFee = self.safe_value(depositWithdrawFees, code)
                 if depositWithdrawFee is None:
                     depositWithdrawFees[code] = self.deposit_withdraw_fee({})
@@ -3919,20 +4006,21 @@ class digifinex(Exchange, ImplicitAPI):
                 depositWithdrawInfo.append(entry)
                 networkId = self.safe_string(entry, 'chain')
                 withdrawFee = self.safe_value(entry, 'min_withdraw_fee')
-                withdrawResult: dict = {
+                withdrawResult = {
                     'fee': withdrawFee,
                     'percentage': False if (withdrawFee is not None) else None,
                 }
-                depositResult: dict = {
+                depositResult = {
                     'fee': None,
                     'percentage': None,
                 }
                 if networkId is not None:
-                    networkCode = self.network_id_to_code(networkId)
-                    depositWithdrawFees[code]['networks'][networkCode] = {
-                        'withdraw': withdrawResult,
-                        'deposit': depositResult,
-                    }
+                    networkCode = self.network_id_to_code(networkId, code)
+                    if networkCode is not None:
+                        depositWithdrawFees[code]['networks'][networkCode] = {
+                            'withdraw': withdrawResult,
+                            'deposit': depositResult,
+                        }
                 else:
                     depositWithdrawFees[code]['withdraw'] = withdrawResult
                     depositWithdrawFees[code]['deposit'] = depositResult
@@ -3975,11 +4063,12 @@ class digifinex(Exchange, ImplicitAPI):
         self.check_required_argument('reduceMargin', side, 'side', ['long', 'short'])
         return await self.modify_margin_helper(symbol, amount, 2, params)
 
-    async def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
-        await self.load_markets()
+    async def modify_margin_helper(self, symbol: str, amount: Any, type: Any, params={}) -> MarginModification:
+        if self.markets is None:
+            await self.load_markets()
         side = self.safe_string(params, 'side')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instrument_id': market['id'],
             'amount': self.number_to_string(amount),
             'type': type,
@@ -4022,7 +4111,7 @@ class digifinex(Exchange, ImplicitAPI):
             'marginMode': 'isolated',
             'amount': self.safe_number(data, 'amount'),
             'total': None,
-            'code': market['settle'],
+            'code': self.safe_string(market, 'settle'),
             'status': None,
             'timestamp': None,
             'datetime': None,
@@ -4041,8 +4130,9 @@ class digifinex(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest funding payment
         :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
         """
-        await self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        request = {}
         request, params = self.handle_until_option('end_timestamp', request, params)
         market = None
         if symbol is not None:
@@ -4069,7 +4159,7 @@ class digifinex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_incomes(data, market, since, limit)
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: Any, market: Market = None):
         #
         #     {
         #         "instrument_id": "BTCUSDTPERP",
@@ -4104,18 +4194,19 @@ class digifinex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         marginMode = marginMode.lower()
         if marginMode == 'cross':
             marginMode = 'crossed'
-        request: dict = {
+        request = {
             'instrument_id': market['id'],
             'margin_mode': marginMode,
         }
         return await self.privateSwapPostAccountPositionMode(self.extend(request, params))
 
-    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
+    def sign(self, path: Any, api: Any = [], method='GET', params={}, headers: dict = None, body: Str = None):
         signed = api[0] == 'private'
         endpoint = api[1]
         pathPart = '/v3' if (endpoint == 'spot') else '/swap/v2'
@@ -4162,7 +4253,7 @@ class digifinex(Exchange, ImplicitAPI):
                 url += '?' + urlencoded
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody, response, requestHeaders, requestBody):
+    def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody: Any, response: Any, requestHeaders: Any, requestBody: Any):
         if not response:
             return None  # fall back to default error handler
         code = self.safe_string(response, 'code')

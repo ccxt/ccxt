@@ -6,7 +6,7 @@ using System.Reflection;
 using dict = Dictionary<string, object>;
 
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
     // tmp most of these methods are going to be re-implemented in the future to be more generic and efficient
@@ -838,15 +838,50 @@ public partial class Exchange
 
     public async Task<List<object>> promiseAll(object promisesObj) => await PromiseAll(promisesObj);
 
+    // A generated implicit API method declares the shape its api leaf promised,
+    // so it returns Task<Dictionary<string, object>> / Task<List<object>> /
+    // Task<string> rather than Task<object>. Task<T> is invariant, so none of
+    // those IS a Task<object>: an `is Task<object>` test returns false and a
+    // hard cast throws. Every place that filters, casts or awaits an un-awaited
+    // task whose static type has been erased to object has to come through here
+    // instead, or a narrowed endpoint is silently dropped rather than awaited.
+    public static Task<object> AsTaskOfObject(object value)
+    {
+        if (value is Task<object> already)
+        {
+            return already;
+        }
+        if (value is Task task)
+        {
+            return AwaitAsObject(task);
+        }
+        return null;
+    }
+
+    // Await any Task<T> and re-box its result as object. Reflection is the only
+    // way back to the value once T is not statically known, and it only runs
+    // after the task completed, so it costs one property read per call.
+    private static async Task<object> AwaitAsObject(Task task)
+    {
+        await task.ConfigureAwait(false);
+        var resultProperty = task.GetType().GetProperty("Result");
+        if (resultProperty == null)
+        {
+            return null; // a non-generic Task has no result to unwrap
+        }
+        return resultProperty.GetValue(task);
+    }
+
     public static async Task<List<object>> PromiseAll(object promisesObj)
     {
         var promises = (IList<object>)promisesObj;
         var tasks = new List<Task<object>>();
         foreach (var promise in promises)
         {
-            if (promise is Task<object>)
+            var task = AsTaskOfObject(promise);
+            if (task != null)
             {
-                tasks.Add((Task<object>)promise);
+                tasks.Add(task);
             }
         }
         var results = await Task.WhenAll(tasks);
@@ -867,7 +902,7 @@ public partial class Exchange
 
     public void throwDynamicException(object exception, object message)
     {
-        var Exception = NewException((Type)exception, (string)message);
+        throw NewException((Type)exception, (string)message);
     }
 
     // This function is the salient bit here
@@ -893,14 +928,19 @@ public partial class Exchange
         {
             args = new object[] { null };
         }
-        return obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(obj, args);
+        var res = obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(obj, args);
+        // The transpiled callers cast this result to Task<object> (the cast is
+        // emitted by ast-transpiler), which an implicit API method's narrowed
+        // Task<Dictionary<string, object>> would fail. Normalize here so the
+        // reflective path stays shape-agnostic, exactly like PromiseAll.
+        return AsTaskOfObject(res) ?? res;
     }
 
     public static async Task<object> callDynamicallyAsync(object obj, object methodName, object[] args = null)
     {
         args ??= new object[] { };
         var res = obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(obj, args);
-        return await ((Task<object>)res);
+        return await AsTaskOfObject(res);
     }
 
     public bool inOp(object obj, object key) => InOp(obj, key);

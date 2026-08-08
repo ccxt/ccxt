@@ -156,7 +156,7 @@ export declare class Indexed {
  *  A **Parsed JSON Fragment** is a JavaScript Object desribed in the
  *  [Solidity documentation](link-solc-jsonabi).
  */
-export declare type InterfaceAbi = string | ReadonlyArray<Fragment | JsonFragment | string>;
+export type InterfaceAbi = string | ReadonlyArray<Fragment | JsonFragment | string>;
 /**
  *  An Interface abstracts many of the low-level details for
  *  encoding and decoding the data on the blockchain.

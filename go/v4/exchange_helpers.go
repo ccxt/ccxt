@@ -1228,6 +1228,21 @@ func InOp(dict any, key any) bool {
 				return true
 			}
 		}
+	case OrderBookInterface:
+		// WsOrderBook is a typed struct, not a map - without this case every key-presence
+		// check on ws orderbooks is false and shared structure tests fail with
+		// "key is missing from structure", see the java twin
+		// https://github.com/ccxt/ccxt/pull/29596
+		if keyStr, ok := key.(string); ok {
+			switch keyStr {
+			case "asks", "bids", "timestamp", "datetime", "nonce":
+				return true
+			case "outcome", "outcomeId", "market":
+				return v.GetValue("outcome", nil) != nil
+			case "symbol":
+				return v.GetValue("outcome", nil) == nil
+			}
+		}
 	case map[string]map[string]*ArrayCacheByTimestamp:
 		if keyStr, ok2 := key.(string); ok2 {
 			addElementMu.Lock()
@@ -2618,6 +2633,28 @@ func Capitalize(s string) string {
 
 func SetDefaults(p any) {
 	setDefaults(p)
+}
+
+// NewMapArray converts a generated-code result (usually a []any of map[string]any
+// entries) into a typed []map[string]any; used by the typed wrappers
+func NewMapArray(res any) []map[string]any {
+	if res == nil {
+		return nil
+	}
+	if typed, ok := res.([]map[string]any); ok {
+		return typed
+	}
+	list, ok := res.([]any)
+	if !ok {
+		return nil
+	}
+	out := make([]map[string]any, len(list))
+	for i, item := range list {
+		if m, ok := item.(map[string]any); ok {
+			out[i] = m
+		}
+	}
+	return out
 }
 
 func setDefaults(p any) {

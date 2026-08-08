@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\aster as Exchange;
 
 class aster extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'aster',
@@ -19,12 +18,11 @@ class aster extends Exchange {
             // 150 req/s for subscribers => https://aster.markets/data
             // for brokers => https://aster.markets/docs/api-references/broker-api/#authentication-and-rate-limit
             'rateLimit' => 333,
-            'hostname' => 'aster.markets',
             'certified' => false,
             'pro' => true,
             'dex' => true,
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/4982201b-73cd-4d7a-8907-e69e239e9609',
+                'logo' => 'https://github.com/user-attachments/assets/5e5909d6-c4de-4435-992f-4339c80edbd7',
                 'www' => 'https://www.asterdex.com/en',
                 'api' => array(
                     'fapiPublic' => 'https://fapi.asterdex.com/fapi',
@@ -41,9 +39,9 @@ class aster extends Exchange {
             ),
             'has' => array(
                 'CORS' => null,
-                'spot' => false,
+                'spot' => true,
                 'margin' => false,
-                'swap' => false,
+                'swap' => true,
                 'future' => false,
                 'option' => false,
                 'addMargin' => true,
@@ -187,209 +185,209 @@ class aster extends Exchange {
             'api' => array(
                 'fapiPublic' => array(
                     'get' => array(
-                        'v1/ping' => 1,
-                        'v3/ping' => 1,
-                        'v1/time' => 1,
-                        'v3/time' => 1,
-                        'v1/exchangeInfo' => 1,
-                        'v3/exchangeInfo' => 1,
-                        'v1/depth' => 1,
-                        'v3/depth' => 2, // dynamic => 5, 10, 20, 50->2, 100->5, 500->10, 1000->20
-                        'v1/trades' => 1,
-                        'v3/trades' => 1,
-                        'v1/historicalTrades' => 1,
-                        'v3/historicalTrades' => 20,
-                        'v1/aggTrades' => 1,
-                        'v3/aggTrades' => 20,
-                        'v1/klines' => 1,
-                        'v3/klines' => 1, // dynamic [1,100) ->1,  [100, 500)->2, [500, 1000]->5, [1000 -> 10
-                        'v1/indexPriceKlines' => 1,
-                        'v3/indexPriceKlines' => 1, // same
-                        'v1/markPriceKlines' => 1,
-                        'v3/markPriceKlines' => 1, // same
-                        'v1/premiumIndex' => 1,
-                        'v3/premiumIndex' => 1,
-                        'v1/fundingRate' => 1,
-                        'v3/fundingRate' => 1,
-                        'v1/fundingInfo' => 1,
-                        'v3/fundingInfo' => 1,
-                        'v1/ticker/24hr' => 1,
-                        'v3/ticker/24hr' => 1, // 1 single-symbol, otherwise 40
-                        'v1/ticker/price' => 1,
-                        'v3/ticker/price' => 1, // 1 single-symbol, otherwise 2
-                        'v1/ticker/bookTicker' => 1,
-                        'v3/ticker/bookTicker' => 1, // 1 single-symbol, otherwise 2
+                        'v1/ping' => array( 'cost' => 1 ),
+                        'v3/ping' => array( 'cost' => 1 ),
+                        'v1/time' => array( 'cost' => 1 ),
+                        'v3/time' => array( 'cost' => 1 ),
+                        'v1/exchangeInfo' => array( 'cost' => 1 ),
+                        'v3/exchangeInfo' => array( 'cost' => 1 ),
+                        'v1/depth' => array( 'cost' => 1 ),
+                        'v3/depth' => array( 'cost' => 2 ), // dynamic => 5, 10, 20, 50->2, 100->5, 500->10, 1000->20
+                        'v1/trades' => array( 'cost' => 1 ),
+                        'v3/trades' => array( 'cost' => 1 ),
+                        'v1/historicalTrades' => array( 'cost' => 1 ),
+                        'v3/historicalTrades' => array( 'cost' => 20 ),
+                        'v1/aggTrades' => array( 'cost' => 1 ),
+                        'v3/aggTrades' => array( 'cost' => 20 ),
+                        'v1/klines' => array( 'cost' => 1 ),
+                        'v3/klines' => array( 'cost' => 1 ), // dynamic [1,100) ->1,  [100, 500)->2, [500, 1000]->5, [1000 -> 10
+                        'v1/indexPriceKlines' => array( 'cost' => 1 ),
+                        'v3/indexPriceKlines' => array( 'cost' => 1 ), // same
+                        'v1/markPriceKlines' => array( 'cost' => 1 ),
+                        'v3/markPriceKlines' => array( 'cost' => 1 ), // same
+                        'v1/premiumIndex' => array( 'cost' => 1 ),
+                        'v3/premiumIndex' => array( 'cost' => 1 ),
+                        'v1/fundingRate' => array( 'cost' => 1 ),
+                        'v3/fundingRate' => array( 'cost' => 1 ),
+                        'v1/fundingInfo' => array( 'cost' => 1 ),
+                        'v3/fundingInfo' => array( 'cost' => 1 ),
+                        'v1/ticker/24hr' => array( 'cost' => 1 ),
+                        'v3/ticker/24hr' => array( 'cost' => 1 ), // 1 single-symbol, otherwise 40
+                        'v1/ticker/price' => array( 'cost' => 1 ),
+                        'v3/ticker/price' => array( 'cost' => 1 ), // 1 single-symbol, otherwise 2
+                        'v1/ticker/bookTicker' => array( 'cost' => 1 ),
+                        'v3/ticker/bookTicker' => array( 'cost' => 1 ), // 1 single-symbol, otherwise 2
                         // different endpoints
-                        'v1/adlQuantile' => 1,
-                        'v1/forceOrders' => 1,
-                        'v3/indexreferences' => 1,
+                        'v1/adlQuantile' => array( 'cost' => 1 ),
+                        'v1/forceOrders' => array( 'cost' => 1 ),
+                        'v3/indexreferences' => array( 'cost' => 1 ),
                     ),
                 ),
                 'fapiPrivate' => array(
                     'get' => array(
-                        'v1/positionSide/dual' => 1,
-                        'v3/positionSide/dual' => 30,
-                        'v1/multiAssetsMargin' => 1,
-                        'v3/multiAssetsMargin' => 1,
-                        'v1/order' => 1,
-                        'v3/order' => 1,
-                        'v1/openOrder' => 1,
-                        'v3/openOrder' => 1,
-                        'v1/openOrders' => 1,
-                        'v3/openOrders' => 1,
-                        'v1/allOrders' => 1,
-                        'v3/allOrders' => 1,
-                        'v2/balance' => 1,
-                        'v3/balance' => 1,
-                        'v3/account' => 1,
-                        'v1/positionMargin/history' => 1,
-                        'v3/positionMargin/history' => 1,
-                        'v2/positionRisk' => 1,
-                        'v3/positionRisk' => 1,
-                        'v1/userTrades' => 1,
-                        'v3/userTrades' => 5,
-                        'v1/income' => 1,
-                        'v3/income' => 1,
-                        'v1/leverageBracket' => 1,
-                        'v3/leverageBracket' => 1,
-                        'v1/commissionRate' => 1,
-                        'v3/commissionRate' => 1,
+                        'v1/positionSide/dual' => array( 'cost' => 1 ),
+                        'v3/positionSide/dual' => array( 'cost' => 30 ),
+                        'v1/multiAssetsMargin' => array( 'cost' => 1 ),
+                        'v3/multiAssetsMargin' => array( 'cost' => 1 ),
+                        'v1/order' => array( 'cost' => 1 ),
+                        'v3/order' => array( 'cost' => 1 ),
+                        'v1/openOrder' => array( 'cost' => 1 ),
+                        'v3/openOrder' => array( 'cost' => 1 ),
+                        'v1/openOrders' => array( 'cost' => 1 ),
+                        'v3/openOrders' => array( 'cost' => 1 ),
+                        'v1/allOrders' => array( 'cost' => 1 ),
+                        'v3/allOrders' => array( 'cost' => 1 ),
+                        'v2/balance' => array( 'cost' => 1 ),
+                        'v3/balance' => array( 'cost' => 1 ),
+                        'v3/account' => array( 'cost' => 1 ),
+                        'v1/positionMargin/history' => array( 'cost' => 1 ),
+                        'v3/positionMargin/history' => array( 'cost' => 1 ),
+                        'v2/positionRisk' => array( 'cost' => 1 ),
+                        'v3/positionRisk' => array( 'cost' => 1 ),
+                        'v1/userTrades' => array( 'cost' => 1 ),
+                        'v3/userTrades' => array( 'cost' => 5 ),
+                        'v1/income' => array( 'cost' => 1 ),
+                        'v3/income' => array( 'cost' => 1 ),
+                        'v1/leverageBracket' => array( 'cost' => 1 ),
+                        'v3/leverageBracket' => array( 'cost' => 1 ),
+                        'v1/commissionRate' => array( 'cost' => 1 ),
+                        'v3/commissionRate' => array( 'cost' => 1 ),
                         // others
-                        'v3/adlQuantile' => 1,
-                        'v3/forceOrders' => 1,
-                        'v3/mmp' => 1,
-                        'v3/accountWithJoinMargin' => 1,
-                        'v4/account' => 1,
+                        'v3/adlQuantile' => array( 'cost' => 1 ),
+                        'v3/forceOrders' => array( 'cost' => 1 ),
+                        'v3/mmp' => array( 'cost' => 1 ),
+                        'v3/accountWithJoinMargin' => array( 'cost' => 1 ),
+                        'v4/account' => array( 'cost' => 1 ),
                         // builder
-                        'v3/agent' => 1,
-                        'v3/builder' => 1,
+                        'v3/agent' => array( 'cost' => 1 ),
+                        'v3/builder' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'v1/positionSide/dual' => 1,
-                        'v3/positionSide/dual' => 1,
-                        'v1/multiAssetsMargin' => 1,
-                        'v3/multiAssetsMargin' => 1,
-                        'v1/order' => 1,
-                        'v3/order' => 1,
-                        'v1/order/test' => 1,
-                        'v3/order/test' => 1,
-                        'v1/batchOrders' => 1,
-                        'v3/batchOrders' => 1,
-                        'v1/asset/wallet/transfer' => 1,
-                        'v3/asset/wallet/transfer' => 1,
-                        'v1/countdownCancelAll' => 1,
-                        'v3/countdownCancelAll' => 1,
-                        'v1/leverage' => 1,
-                        'v3/leverage' => 1,
-                        'v1/marginType' => 1,
-                        'v3/marginType' => 1,
-                        'v1/positionMargin' => 1,
-                        'v3/positionMargin' => 1,
-                        'v1/listenKey' => 1,
-                        'v3/listenKey' => 1,
+                        'v1/positionSide/dual' => array( 'cost' => 1 ),
+                        'v3/positionSide/dual' => array( 'cost' => 1 ),
+                        'v1/multiAssetsMargin' => array( 'cost' => 1 ),
+                        'v3/multiAssetsMargin' => array( 'cost' => 1 ),
+                        'v1/order' => array( 'cost' => 1 ),
+                        'v3/order' => array( 'cost' => 1 ),
+                        'v1/order/test' => array( 'cost' => 1 ),
+                        'v3/order/test' => array( 'cost' => 1 ),
+                        'v1/batchOrders' => array( 'cost' => 1 ),
+                        'v3/batchOrders' => array( 'cost' => 1 ),
+                        'v1/asset/wallet/transfer' => array( 'cost' => 1 ),
+                        'v3/asset/wallet/transfer' => array( 'cost' => 1 ),
+                        'v1/countdownCancelAll' => array( 'cost' => 1 ),
+                        'v3/countdownCancelAll' => array( 'cost' => 1 ),
+                        'v1/leverage' => array( 'cost' => 1 ),
+                        'v3/leverage' => array( 'cost' => 1 ),
+                        'v1/marginType' => array( 'cost' => 1 ),
+                        'v3/marginType' => array( 'cost' => 1 ),
+                        'v1/positionMargin' => array( 'cost' => 1 ),
+                        'v3/positionMargin' => array( 'cost' => 1 ),
+                        'v1/listenKey' => array( 'cost' => 1 ),
+                        'v3/listenKey' => array( 'cost' => 1 ),
                         // others
-                        'v3/mmp' => 1,
-                        'v3/mmpReset' => 1,
-                        'v3/noop' => 1,
+                        'v3/mmp' => array( 'cost' => 1 ),
+                        'v3/mmpReset' => array( 'cost' => 1 ),
+                        'v3/noop' => array( 'cost' => 1 ),
                         // builder
-                        'v3/approveAgent' => 1,
-                        'v3/updateAgent' => 1,
-                        'v3/approveBuilder' => 1,
-                        'v3/updateBuilder' => 1,
+                        'v3/approveAgent' => array( 'cost' => 1 ),
+                        'v3/updateAgent' => array( 'cost' => 1 ),
+                        'v3/approveBuilder' => array( 'cost' => 1 ),
+                        'v3/updateBuilder' => array( 'cost' => 1 ),
                     ),
                     'put' => array(
-                        'v1/listenKey' => 1,
-                        'v3/listenKey' => 1,
+                        'v1/listenKey' => array( 'cost' => 1 ),
+                        'v3/listenKey' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'v1/order' => 1,
-                        'v3/order' => 1,
-                        'v1/allOpenOrders' => 1,
-                        'v3/allOpenOrders' => 1,
-                        'v1/batchOrders' => 1,
-                        'v3/batchOrders' => 1,
-                        'v3/mmp' => 1,
-                        'v1/listenKey' => 1,
-                        'v3/listenKey' => 1,
+                        'v1/order' => array( 'cost' => 1 ),
+                        'v3/order' => array( 'cost' => 1 ),
+                        'v1/allOpenOrders' => array( 'cost' => 1 ),
+                        'v3/allOpenOrders' => array( 'cost' => 1 ),
+                        'v1/batchOrders' => array( 'cost' => 1 ),
+                        'v3/batchOrders' => array( 'cost' => 1 ),
+                        'v3/mmp' => array( 'cost' => 1 ),
+                        'v1/listenKey' => array( 'cost' => 1 ),
+                        'v3/listenKey' => array( 'cost' => 1 ),
                         // builder
-                        'v3/agent' => 1,
-                        'v3/builder' => 1,
+                        'v3/agent' => array( 'cost' => 1 ),
+                        'v3/builder' => array( 'cost' => 1 ),
                     ),
                 ),
                 'sapiPublic' => array(
                     'get' => array(
                         // v1
-                        'v1/ping' => 1,
-                        'v1/time' => 1,
-                        'v1/exchangeInfo' => 1,
-                        'v1/depth' => 1,
-                        'v1/trades' => 1,
-                        'v1/historicalTrades' => 1,
-                        'v1/aggTrades' => 1,
-                        'v1/klines' => 1,
-                        'v1/ticker/24hr' => 1,
-                        'v1/ticker/price' => 1,
-                        'v1/ticker/bookTicker' => 1,
-                        'v1/aster/withdraw/estimateFee' => 1,
+                        'v1/ping' => array( 'cost' => 1 ),
+                        'v1/time' => array( 'cost' => 1 ),
+                        'v1/exchangeInfo' => array( 'cost' => 1 ),
+                        'v1/depth' => array( 'cost' => 1 ),
+                        'v1/trades' => array( 'cost' => 1 ),
+                        'v1/historicalTrades' => array( 'cost' => 1 ),
+                        'v1/aggTrades' => array( 'cost' => 1 ),
+                        'v1/klines' => array( 'cost' => 1 ),
+                        'v1/ticker/24hr' => array( 'cost' => 1 ),
+                        'v1/ticker/price' => array( 'cost' => 1 ),
+                        'v1/ticker/bookTicker' => array( 'cost' => 1 ),
+                        'v1/aster/withdraw/estimateFee' => array( 'cost' => 1 ),
                         // v3
-                        'v3/ping' => 1,
-                        'v3/time' => 1,
-                        'v3/exchangeInfo' => 1,
+                        'v3/ping' => array( 'cost' => 1 ),
+                        'v3/time' => array( 'cost' => 1 ),
+                        'v3/exchangeInfo' => array( 'cost' => 1 ),
                         'v3/depth' => array( 'cost' => 2, 'byLimit' => array( array( 50, 2 ), array( 100, 5 ), array( 500, 10 ), array( 1000, 20 ) ) ),
-                        'v3/trades' => 1,
-                        'v3/historicalTrades' => 20,
-                        'v3/aggTrades' => 20,
+                        'v3/trades' => array( 'cost' => 1 ),
+                        'v3/historicalTrades' => array( 'cost' => 20 ),
+                        'v3/aggTrades' => array( 'cost' => 20 ),
                         'v3/klines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ), // todo => not specified in docs
                         'v3/ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'v3/ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
                         'v3/ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
-                        'v3/aster/withdraw/estimateFee' => 1,
+                        'v3/aster/withdraw/estimateFee' => array( 'cost' => 1 ),
                     ),
                 ),
                 'sapiPrivate' => array(
                     'get' => array(
                         // v1
-                        'v1/commissionRate' => 1,
-                        'v1/order' => 1,
-                        'v1/openOrders' => 1,
-                        'v1/allOrders' => 1,
-                        'v1/transactionHistory' => 1,
-                        'v1/account' => 1,
-                        'v1/userTrades' => 1,
+                        'v1/commissionRate' => array( 'cost' => 1 ),
+                        'v1/order' => array( 'cost' => 1 ),
+                        'v1/openOrders' => array( 'cost' => 1 ),
+                        'v1/allOrders' => array( 'cost' => 1 ),
+                        'v1/transactionHistory' => array( 'cost' => 1 ),
+                        'v1/account' => array( 'cost' => 1 ),
+                        'v1/userTrades' => array( 'cost' => 1 ),
                         // v3
                         'v3/commissionRate' => array( 'cost' => 1, 'noSymbol' => 2 ),
-                        'v3/order' => 1,
-                        'v3/openOrders' => 1, // with symbol 1, otherwise 40
-                        'v3/allOrders' => 5,
-                        'v3/account' => 5,
-                        'v3/userTrades' => 5,
-                        'v3/openOrder' => 1,
+                        'v3/order' => array( 'cost' => 1 ),
+                        'v3/openOrders' => array( 'cost' => 1 ), // with symbol 1, otherwise 40
+                        'v3/allOrders' => array( 'cost' => 5 ),
+                        'v3/account' => array( 'cost' => 5 ),
+                        'v3/userTrades' => array( 'cost' => 5 ),
+                        'v3/openOrder' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         // v1
-                        'v1/order' => 1,
-                        'v1/asset/wallet/transfer' => 5,
-                        'v1/asset/sendToAddress' => 1, // inexistent in v3
-                        'v1/listenKey' => 1,
+                        'v1/order' => array( 'cost' => 1 ),
+                        'v1/asset/wallet/transfer' => array( 'cost' => 5 ),
+                        'v1/asset/sendToAddress' => array( 'cost' => 1 ), // inexistent in v3
+                        'v1/listenKey' => array( 'cost' => 1 ),
                         // v3
-                        'v3/order' => 1,
-                        'v3/asset/wallet/transfer' => 5,
-                        'v3/aster/user-withdraw' => 1,
-                        'v3/listenKey' => 1,
+                        'v3/order' => array( 'cost' => 1 ),
+                        'v3/asset/wallet/transfer' => array( 'cost' => 5 ),
+                        'v3/aster/user-withdraw' => array( 'cost' => 1 ),
+                        'v3/listenKey' => array( 'cost' => 1 ),
                     ),
                     'put' => array(
-                        'v1/listenKey',
-                        'v3/listenKey',
+                        'v1/listenKey' => array( 'cost' => 1 ),
+                        'v3/listenKey' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
                         // v1
-                        'v1/order' => 1,
-                        'v1/allOpenOrders' => 1,
-                        'v1/listenKey' => 1,
+                        'v1/order' => array( 'cost' => 1 ),
+                        'v1/allOpenOrders' => array( 'cost' => 1 ),
+                        'v1/listenKey' => array( 'cost' => 1 ),
                         // v3
-                        'v3/allOpenOrders' => 1,
-                        'v3/order' => 1,
-                        'v3/listenKey' => 1,
+                        'v3/allOpenOrders' => array( 'cost' => 1 ),
+                        'v3/order' => array( 'cost' => 1 ),
+                        'v3/listenKey' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -424,13 +422,145 @@ class aster extends Exchange {
                     'taker' => $this->parse_number('0.00035'),
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => null,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchClosedOrders' => null,
+                    'fetchOHLCV' => array(
+                        'limit' => 1500,
+                    ),
+                ),
+                'forDerivs' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => false,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => true,
+                        'trailing' => true,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchClosedOrders' => null,
+                    'fetchOHLCV' => array(
+                        'limit' => 1500,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivs',
+                    ),
+                    'inverse' => null,
+                ),
+            ),
             'options' => array(
                 'defaultType' => 'spot',
                 'recvWindow' => 10 * 1000, // 10 sec
-                'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'zeroAddress' => '0x0000000000000000000000000000000000000000',
                 'v3ChainId' => 1666, // Aster chain ID used for EIP-712 v3 signing
-                'quoteOrderQty' => true, // whether market orders support amounts in quote currency
+                'createOrder' => array(
+                    'timeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                    'quoteOrderQty' => true, // whether market orders support amounts in quote currency
+                ),
                 'accountsByType' => array(
                     'spot' => 'SPOT',
                     'swap' => 'FUTURE',
@@ -440,7 +570,7 @@ class aster extends Exchange {
                 'networks' => array(
                     'ERC20' => 'ETH',
                     'BEP20' => 'BSC',
-                    'ARBONE' => 'Arbitrum',
+                    'ARBITRUM' => 'Arbitrum',
                 ),
                 'networksToChainId' => array(
                     'ETH' => 1,
@@ -645,7 +775,7 @@ class aster extends Exchange {
         }
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -655,16 +785,8 @@ class aster extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $promises = array(
-            $this->sapiPublicGetV3ExchangeInfo ($params),
-            $this->fapiPublicGetV3ExchangeInfo ($params),
-        );
-        $results = $promises;
-        $sapiResult = $this->safe_dict($results, 0, array());
+        $sapiResult = $this->sapiPublicGetV3ExchangeInfo($params);
         $sapiRows = $this->safe_list($sapiResult, 'assets', array());
-        $fapiResult = $this->safe_dict($results, 1, array());
-        $fapiRows = $this->safe_list($fapiResult, 'assets', array());
-        $rows = $this->array_concat($sapiRows, $fapiRows);
         //
         //     array(
         //         {
@@ -674,43 +796,43 @@ class aster extends Exchange {
         //         }
         //     )
         //
-        $result = array();
-        for ($i = 0; $i < count($rows); $i++) {
-            $currency = $rows[$i];
-            $currencyId = $this->safe_string($currency, 'asset');
-            $code = $this->safe_currency_code($currencyId);
-            $result[$code] = $this->safe_currency_structure(array(
-                'info' => $currency,
-                'code' => $code,
-                'id' => $currencyId,
-                'name' => $code,
-                'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => null,
-                'precision' => null,
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'networks' => null,
-                'type' => 'crypto', // atm exchange api provides only cryptos
-            ));
-        }
-        return $result;
+        return $this->parse_currencies($sapiRows);
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, 'asset');
+        $code = $this->safe_currency_code($currencyId);
+        return $this->safe_currency_structure(array(
+            'info' => $rawCurrency,
+            'code' => $code,
+            'id' => $currencyId,
+            'name' => $code,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => null,
+            'margin' => $this->safe_bool($rawCurrency, 'marginAvailable'),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => null,
+            'type' => 'crypto', // atm exchange api provides only cryptos
+        ));
+    }
+
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all markets for bigone
          *
@@ -718,11 +840,11 @@ class aster extends Exchange {
          * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#exchange-information
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} an array of objects representing market data
+         * @return {array[]} an array of objects representing $market data
          */
         $promises = array(
-            $this->sapiPublicGetV3ExchangeInfo ($params),
-            $this->fapiPublicGetV3ExchangeInfo ($params),
+            $this->sapiPublicGetV3ExchangeInfo($params),
+            $this->fapiPublicGetV3ExchangeInfo($params),
         );
         $promises[] = $this->sign_in();
         $results = $promises;
@@ -824,7 +946,15 @@ class aster extends Exchange {
         //     )
         //
         //
-        $rows = $this->array_concat($sapiRows, $fapiRows);
+        $fapiRowsFiltered = array();
+        for ($i = 0; $i < count($fapiRows); $i++) {
+            $market = $fapiRows[$i];
+            // tmp skip some markets with base = null
+            if ($this->safe_string($market, 'baseAsset')) {
+                $fapiRowsFiltered[] = $market;
+            }
+        }
+        $rows = $this->array_concat($sapiRows, $fapiRowsFiltered);
         return $this->parse_markets($rows);
     }
 
@@ -931,7 +1061,7 @@ class aster extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()): ?int {
+    public function fetch_time($params = array()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -943,11 +1073,10 @@ class aster extends Exchange {
          */
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchTime', null, $params);
-        $response = null;
         if ($marketType === 'swap') {
-            $response = $this->fapiPublicGetV3Time ($params);
+            $response = $this->fapiPublicGetV3Time($params);
         } else {
-            $response = $this->sapiPublicGetV3Time ($params);
+            $response = $this->sapiPublicGetV3Time($params);
         }
         //
         // both SPOT & PERP has same format
@@ -959,7 +1088,7 @@ class aster extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         // spot:
         //
@@ -988,7 +1117,7 @@ class aster extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
          *
@@ -1006,14 +1135,16 @@ class aster extends Exchange {
          * @param {int} [$params->until] the latest time in ms to fetch orders for
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array();
         if ($since !== null) {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 1500);
+            $request['limit'] = min($limit, 1500);
         }
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -1021,19 +1152,18 @@ class aster extends Exchange {
         $isMark = ($price === 'mark');
         $isIndex = ($price === 'index');
         $params = $this->omit($params, 'price');
-        $response = null;
         if ($isMark) {
             $request['symbol'] = $market['id'];
-            $response = $this->fapiPublicGetV3MarkPriceKlines ($this->extend($request, $params));
+            $response = $this->fapiPublicGetV3MarkPriceKlines($this->extend($request, $params));
         } elseif ($isIndex) {
             $request['pair'] = $market['id'];
-            $response = $this->fapiPublicGetV3IndexPriceKlines ($this->extend($request, $params));
+            $response = $this->fapiPublicGetV3IndexPriceKlines($this->extend($request, $params));
         } else {
             $request['symbol'] = $market['id'];
             if ($market['linear']) {
-                $response = $this->fapiPublicGetV3Klines ($this->extend($request, $params));
+                $response = $this->fapiPublicGetV3Klines($this->extend($request, $params));
             } else {
-                $response = $this->sapiPublicGetV3Klines ($this->extend($request, $params));
+                $response = $this->sapiPublicGetV3Klines($this->extend($request, $params));
             }
             //
             // both SPOT & PERP has same format
@@ -1056,7 +1186,7 @@ class aster extends Exchange {
             //  )
             //
         }
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1111,7 +1241,7 @@ class aster extends Exchange {
         //
         $id = $this->safe_string_2($trade, 'id', 'a');
         $marketId = $this->safe_string($trade, 'symbol');
-        $marketType = (is_array($trade) && array_key_exists('positionSide', $trade)) ? 'swap' : 'spot';
+        $marketType = (is_array($trade) && array_key_exists('positionSide' ?? '', $trade)) ? 'swap' : 'spot';
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $currencyId = $this->safe_string_2($trade, 'commissionAsset', 'marginAsset');
         $currencyCode = $this->safe_currency_code($currencyId);
@@ -1155,7 +1285,7 @@ class aster extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -1170,17 +1300,18 @@ class aster extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 1000);
+            $request['limit'] = min($limit, 1000);
         }
-        $response = null;
         $sinceDefined = $since !== null;
-        $untilDefined = (is_array($params) && array_key_exists('until', $params));
+        $untilDefined = (is_array($params) && array_key_exists('until' ?? '', $params));
         if ($sinceDefined) {
             $request['startTime'] = $since;
         }
@@ -1188,11 +1319,11 @@ class aster extends Exchange {
             $request = $this->handle_until_option('endTime', $request, $params);
         }
         // use historical endpoint for targeted requests
-        if (is_array($request) && array_key_exists('startTime', $request)) {
+        if (is_array($request) && array_key_exists('startTime' ?? '', $request)) {
             if ($market['swap']) {
-                $response = $this->fapiPublicGetV3AggTrades ($this->extend($request, $params));
+                $response = $this->fapiPublicGetV3AggTrades($this->extend($request, $params));
             } else {
-                $response = $this->sapiPublicGetV3AggTrades ($this->extend($request, $params));
+                $response = $this->sapiPublicGetV3AggTrades($this->extend($request, $params));
             }
             //
             // both FAPI and SAPI have same $response format
@@ -1211,9 +1342,9 @@ class aster extends Exchange {
             //
         } else {
             if ($market['swap']) {
-                $response = $this->fapiPublicGetV3Trades ($this->extend($request, $params));
+                $response = $this->fapiPublicGetV3Trades($this->extend($request, $params));
             } else {
-                $response = $this->sapiPublicGetV3Trades ($this->extend($request, $params));
+                $response = $this->sapiPublicGetV3Trades($this->extend($request, $params));
             }
             //
             // SAPI & FAPI have only one field difference
@@ -1233,7 +1364,7 @@ class aster extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all trades made by the user
          *
@@ -1260,14 +1391,13 @@ class aster extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 1000);
+            $request['limit'] = min($limit, 1000);
         }
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-        $response = null;
         if ($marketType === 'swap') {
-            $response = $this->fapiPrivateGetV3UserTrades ($this->extend($request, $params));
+            $response = $this->fapiPrivateGetV3UserTrades($this->extend($request, $params));
         } else {
-            $response = $this->sapiPrivateGetV3UserTrades ($this->extend($request, $params));
+            $response = $this->sapiPrivateGetV3UserTrades($this->extend($request, $params));
         }
         //
         // SPOT & PERP have similar format
@@ -1295,7 +1425,7 @@ class aster extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit, $params);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -1305,21 +1435,22 @@ class aster extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = null;
         if ($limit !== null) {
             $request['limit'] = $this->find_nearest_ceiling(array( 5, 10, 20, 50, 100, 500, 1000 ), $limit);
         }
         if ($market['swap']) {
-            $response = $this->fapiPublicGetV3Depth ($this->extend($request, $params));
+            $response = $this->fapiPublicGetV3Depth($this->extend($request, $params));
         } else {
-            $response = $this->sapiPublicGetV3Depth ($this->extend($request, $params));
+            $response = $this->sapiPublicGetV3Depth($this->extend($request, $params));
         }
         //
         // both SPOT & PERP has same format
@@ -1393,17 +1524,16 @@ class aster extends Exchange {
         $last = $this->safe_string($ticker, 'lastPrice');
         $open = $this->safe_string($ticker, 'openPrice');
         $percentage = $this->safe_string($ticker, 'priceChangePercent');
-        $percentage = Precise::string_mul($percentage, '100');
         $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         $baseVolume = $this->safe_string($ticker, 'volume');
         $high = $this->safe_string($ticker, 'highPrice');
         $low = $this->safe_string($ticker, 'lowPrice');
-        $isTickerResponse = (is_array($ticker) && array_key_exists('priceChange', $ticker));
+        $isTickerResponse = (is_array($ticker) && array_key_exists('priceChange' ?? '', $ticker));
         $marketType = null;
         if ($isTickerResponse) {
-            $marketType = (is_array($ticker) && array_key_exists('baseAsset', $ticker)) ? 'spot' : 'swap';
+            $marketType = (is_array($ticker) && array_key_exists('baseAsset' ?? '', $ticker)) ? 'spot' : 'swap';
         } else {
-            $marketType = (is_array($ticker) && array_key_exists('lastUpdateId', $ticker)) ? 'swap' : 'spot';
+            $marketType = (is_array($ticker) && array_key_exists('lastUpdateId' ?? '', $ticker)) ? 'swap' : 'spot';
         }
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market, null, $marketType);
@@ -1433,7 +1563,7 @@ class aster extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -1444,16 +1574,17 @@ class aster extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = null;
         if ($market['swap']) {
-            $response = $this->fapiPublicGetV3Ticker24hr ($this->extend($request, $params));
+            $response = $this->fapiPublicGetV3Ticker24hr($this->extend($request, $params));
         } else {
-            $response = $this->sapiPublicGetV3Ticker24hr ($this->extend($request, $params));
+            $response = $this->sapiPublicGetV3Ticker24hr($this->extend($request, $params));
         }
         //
         // both SPOT & PERP has same format
@@ -1486,7 +1617,7 @@ class aster extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          *
@@ -1499,16 +1630,18 @@ class aster extends Exchange {
          * @param {string} [$params->type] 'spot', 'option', use $params["subType"] for swap and future markets
          * @return {array} an array of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
         $market = $this->get_market_from_symbols($symbols);
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         $response = null;
         if ($marketType === 'swap') {
-            $response = $this->fapiPublicGetV3Ticker24hr ($params);
+            $response = $this->fapiPublicGetV3Ticker24hr($params);
         } elseif ($marketType === 'spot') {
-            $response = $this->sapiPublicGetV3Ticker24hr ($params);
+            $response = $this->sapiPublicGetV3Ticker24hr($params);
         }
         //
         //     array(
@@ -1541,7 +1674,7 @@ class aster extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function fetch_last_prices(?array $symbols = null, $params = array ()) {
+    public function fetch_last_prices(?array $symbols = null, $params = array()) {
         /**
          * fetches the last price for multiple markets
          *
@@ -1553,16 +1686,18 @@ class aster extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} a dictionary of lastprices structures
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
         $market = $this->get_market_from_symbols($symbols);
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchLastPrices', $market, $params);
         $response = null;
         if ($marketType === 'swap') {
-            $response = $this->fapiPublicGetV3TickerPrice ($params);
+            $response = $this->fapiPublicGetV3TickerPrice($params);
         } elseif ($marketType === 'spot') {
-            $response = $this->sapiPublicGetV3TickerPrice ($params);
+            $response = $this->sapiPublicGetV3TickerPrice($params);
         }
         //
         // both SPOT & SWAP has same format
@@ -1576,18 +1711,22 @@ class aster extends Exchange {
         //         ...
         //     )
         //
+        if ($response === null) {
+            throw new NullResponse($this->id . ' fetchLastPrices() returned empty response');
+        }
+        $rows = $this->to_array($response);
         $results = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $marketId = $this->safe_string($response[$i], 'symbol');
+        for ($i = 0; $i < count($rows); $i++) {
+            $marketId = $this->safe_string($rows[$i], 'symbol');
             $safeMarket = $this->safe_market($marketId, null, null, $marketType);
-            $priceData = $this->extend($this->parse_last_price($response[$i], $safeMarket), $params);
+            $priceData = $this->extend($this->parse_last_price($rows[$i], $safeMarket), $params);
             $results[] = $priceData;
         }
         $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($results, 'symbol', $symbols);
     }
 
-    public function parse_last_price($entry, ?array $market = null) {
+    public function parse_last_price(mixed $entry, ?array $market = null) {
         //
         // spot & swap
         //
@@ -1599,7 +1738,7 @@ class aster extends Exchange {
         //
         $timestamp = $this->safe_integer($entry, 'time');
         return array(
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'price' => $this->safe_number_omit_zero($entry, 'price'),
@@ -1608,7 +1747,7 @@ class aster extends Exchange {
         );
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
         /**
          * fetches the bid and ask price and volume for multiple markets
          *
@@ -1620,16 +1759,18 @@ class aster extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
         $market = $this->get_market_from_symbols($symbols);
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
         $response = null;
         if ($marketType === 'swap') {
-            $response = $this->fapiPublicGetV3TickerBookTicker ($params);
+            $response = $this->fapiPublicGetV3TickerBookTicker($params);
         } elseif ($marketType === 'spot') {
-            $response = $this->sapiPublicGetV3TickerBookTicker ($params);
+            $response = $this->sapiPublicGetV3TickerBookTicker($params);
         }
         //
         // SPOT & PERP have only one field difference
@@ -1648,7 +1789,7 @@ class aster extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         // fundingRate
         //
@@ -1704,7 +1845,7 @@ class aster extends Exchange {
         );
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): array {
+    public function fetch_funding_rate(string $symbol, $params = array()): array {
         /**
          * fetch the current funding rate
          *
@@ -1717,12 +1858,14 @@ class aster extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRate() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->fapiPublicGetV3PremiumIndex ($this->extend($request, $params));
+        $response = $this->fapiPublicGetV3PremiumIndex($this->extend($request, $params));
         //
         //     {
         //         "symbol" => "BTCUSDT",
@@ -1738,7 +1881,7 @@ class aster extends Exchange {
         return $this->parse_funding_rate($response, $market);
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
+    public function fetch_funding_rates(?array $symbols = null, $params = array()): array {
         /**
          * fetch the current funding rate for multiple $symbols
          *
@@ -1748,9 +1891,11 @@ class aster extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
-        $response = $this->fapiPublicGetV3PremiumIndex ($this->extend($params));
+        $response = $this->fapiPublicGetV3PremiumIndex($this->extend($params));
         //
         //     array(
         //         {
@@ -1768,7 +1913,7 @@ class aster extends Exchange {
         return $this->parse_funding_rates($response, $symbols);
     }
 
-    public function fetch_funding_intervals(?array $symbols = null, $params = array ()): array {
+    public function fetch_funding_intervals(?array $symbols = null, $params = array()): array {
         /**
          * fetch the funding rate interval for multiple markets
          *
@@ -1778,11 +1923,13 @@ class aster extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         if ($symbols !== null) {
             $symbols = $this->market_symbols($symbols);
         }
-        $response = $this->fapiPublicGetV3FundingInfo ($params);
+        $response = $this->fapiPublicGetV3FundingInfo($params);
         //
         //     array(
         //         {
@@ -1798,7 +1945,7 @@ class aster extends Exchange {
         return $this->parse_funding_rates($response, $symbols);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical funding rate prices
          *
@@ -1811,7 +1958,9 @@ class aster extends Exchange {
          * @param {int} [$params->until] timestamp in ms of the latest funding rate
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -1822,10 +1971,10 @@ class aster extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 1000);
+            $request['limit'] = min($limit, 1000);
         }
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-        $response = $this->fapiPublicGetV3FundingRate ($this->extend($request, $params));
+        $response = $this->fapiPublicGetV3FundingRate($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -1838,7 +1987,7 @@ class aster extends Exchange {
         return $this->parse_funding_rate_histories($response, $market);
     }
 
-    public function parse_funding_rate_history($contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTCUSDT",
@@ -1856,7 +2005,7 @@ class aster extends Exchange {
         );
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -1874,9 +2023,9 @@ class aster extends Exchange {
         $response = null;
         $data = null;
         if ($marketType === 'swap') {
-            $data = $this->fapiPrivateGetV3Balance ($params);
+            $data = $this->fapiPrivateGetV3Balance($params);
             //
-            //    array(
+            //    [
             //        array(
             //            "accountAlias" => "FzXquXsRFzXqAufW",
             //            "asset" => "CDL",
@@ -1890,10 +2039,10 @@ class aster extends Exchange {
             //        ), ...
             //
         } elseif ($marketType === 'spot') {
-            $response = $this->sapiPrivateGetV3Account ($params);
+            $response = $this->sapiPrivateGetV3Account($params);
             $data = $this->safe_list($response, 'balances', array());
             //
-            //     [
+            //     array(
             //         {
             //             "asset" => "BTC",
             //             "free" => "4723846.89208129",
@@ -1905,7 +2054,7 @@ class aster extends Exchange {
         return $this->parse_balance($data);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -1915,12 +2064,14 @@ class aster extends Exchange {
             $account['free'] = $this->safe_string_2($balance, 'free', 'availableBalance');
             $account['used'] = $this->safe_string($balance, 'locked');
             $account['total'] = $this->safe_string($balance, 'balance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
         /**
          * set margin mode to 'cross' or 'isolated'
          *
@@ -1947,14 +2098,14 @@ class aster extends Exchange {
             'symbol' => $market['id'],
             'marginType' => $marginMode,
         );
-        $response = $this->fapiPrivatePostV3MarginType ($this->extend($request, $params));
+        $response = $this->fapiPrivatePostV3MarginType($this->extend($request, $params));
         //
         //     array( "code" => 200,"msg" => "success" )
         //
         return $response;
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): array {
         /**
          * fetchs the position mode, hedged or one way, hedged for aster is set identically for all linear markets or all inverse markets
          *
@@ -1964,7 +2115,7 @@ class aster extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an object detailing whether the market is in hedged or one-way mode
          */
-        $response = $this->fapiPrivateGetV3PositionSideDual ($params);
+        $response = $this->fapiPrivateGetV3PositionSideDual($params);
         //
         //     {
         //         "dualSidePosition" => true // "true" => Hedge Mode; "false" => One-way Mode
@@ -1976,14 +2127,14 @@ class aster extends Exchange {
         );
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
         /**
          * set $hedged to true or false for a market
          *
          * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-position-modetrade
          *
          * @param {bool} $hedged set to true to use dualSidePosition
-         * @param {string} $symbol not used by bingx setPositionMode ()
+         * @param {string} $symbol not used by setPositionMode ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} response from the exchange
          */
@@ -1997,7 +2148,7 @@ class aster extends Exchange {
         //         "msg" => "success"
         //     }
         //
-        return $this->fapiPrivatePostV3PositionSideDual ($this->extend($request, $params));
+        return $this->fapiPrivatePostV3PositionSideDual($this->extend($request, $params));
     }
 
     public function parse_trading_fee(array $fee, ?array $market = null): array {
@@ -2014,7 +2165,7 @@ class aster extends Exchange {
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): array {
+    public function fetch_trading_fee(string $symbol, $params = array()): array {
         /**
          * fetch the trading fees for a $market
          *
@@ -2030,11 +2181,10 @@ class aster extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = null;
         if ($market['swap']) {
-            $response = $this->fapiPrivateGetV3CommissionRate ($this->extend($request, $params));
+            $response = $this->fapiPrivateGetV3CommissionRate($this->extend($request, $params));
         } else {
-            $response = $this->sapiPrivateGetV3CommissionRate ($this->extend($request, $params));
+            $response = $this->sapiPrivateGetV3CommissionRate($this->extend($request, $params));
         }
         //
         // both SPOT & SWAP has same format
@@ -2127,8 +2277,10 @@ class aster extends Exchange {
         //        }
         //
         $info = $order;
+        $positionSide = $this->safe_string($order, 'positionSide');
+        $defaultType = ($positionSide !== null) ? 'swap' : 'spot';
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, $defaultType);
         $side = $this->safe_string_lower($order, 'side');
         $timestamp = $this->safe_integer($order, 'time');
         $statusId = $this->safe_string_upper($order, 'status');
@@ -2162,7 +2314,7 @@ class aster extends Exchange {
         ), $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an order made by the user
          *
@@ -2190,11 +2342,10 @@ class aster extends Exchange {
         } else {
             $request['orderId'] = $id;
         }
-        $response = null;
         if ($market['swap']) {
-            $response = $this->fapiPrivateGetV3Order ($this->extend($request, $params));
+            $response = $this->fapiPrivateGetV3Order($this->extend($request, $params));
         } else {
-            $response = $this->sapiPrivateGetV3Order ($this->extend($request, $params));
+            $response = $this->sapiPrivateGetV3Order($this->extend($request, $params));
         }
         //
         // SPOT & SWAP has similar formats
@@ -2228,7 +2379,7 @@ class aster extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetch an open order by the $id
          *
@@ -2255,11 +2406,10 @@ class aster extends Exchange {
         } else {
             $request['orderId'] = $id;
         }
-        $response = null;
         if ($market['spot']) {
-            $response = $this->sapiPrivateGetV3OpenOrder ($this->extend($request, $params));
+            $response = $this->sapiPrivateGetV3OpenOrder($this->extend($request, $params));
         } else {
-            $response = $this->fapiPrivateGetV3OpenOrder ($this->extend($request, $params));
+            $response = $this->fapiPrivateGetV3OpenOrder($this->extend($request, $params));
         }
         //
         // SPOT & SWAP has similar formats
@@ -2293,7 +2443,7 @@ class aster extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple orders made by the user
          *
@@ -2316,17 +2466,16 @@ class aster extends Exchange {
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 1000);
+            $request['limit'] = min($limit, 1000);
         }
         if ($since !== null) {
             $request['startTime'] = $since;
         }
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-        $response = null;
         if ($market['swap']) {
-            $response = $this->fapiPrivateGetV3AllOrders ($this->extend($request, $params));
+            $response = $this->fapiPrivateGetV3AllOrders($this->extend($request, $params));
         } else {
-            $response = $this->sapiPrivateGetV3AllOrders ($this->extend($request, $params));
+            $response = $this->sapiPrivateGetV3AllOrders($this->extend($request, $params));
         }
         //
         // SPOT & SWAP has similar responses
@@ -2361,7 +2510,7 @@ class aster extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -2397,9 +2546,9 @@ class aster extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $params);
         $response = null;
         if ($this->is_linear($marketType, $subType)) {
-            $response = $this->fapiPrivateGetV3OpenOrders ($this->extend($request, $params));
+            $response = $this->fapiPrivateGetV3OpenOrders($this->extend($request, $params));
         } elseif ($marketType === 'spot') {
-            $response = $this->sapiPrivateGetV3OpenOrders ($this->extend($request, $params));
+            $response = $this->sapiPrivateGetV3OpenOrders($this->extend($request, $params));
         }
         //
         // SPOT & SWAP has similar responses
@@ -2435,7 +2584,7 @@ class aster extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade order
          *
@@ -2461,11 +2610,10 @@ class aster extends Exchange {
         $this->load_markets_and_sign_in();
         $market = $this->market($symbol);
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-        $response = null;
         if ($market['swap']) {
-            $response = $this->fapiPrivatePostV3Order ($request);
+            $response = $this->fapiPrivatePostV3Order($request);
         } else {
-            $response = $this->sapiPrivatePostV3Order ($request);
+            $response = $this->sapiPrivatePostV3Order($request);
         }
         //
         // SPOT & SWAP has similar responses
@@ -2500,7 +2648,7 @@ class aster extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_orders(array $orders, $params = array ()) {
+    public function create_orders(array $orders, $params = array()) {
         /**
          * create a list of trade $orders
          *
@@ -2537,7 +2685,7 @@ class aster extends Exchange {
         $request = array(
             'batchOrders' => $ordersRequests,
         );
-        $response = $this->fapiPrivatePostV3BatchOrders ($this->extend($request, $params));
+        $response = $this->fapiPrivatePostV3BatchOrders($this->extend($request, $params));
         //
         //    array(
         //        {
@@ -2571,7 +2719,13 @@ class aster extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         /**
          * @ignore
          * helper function to build the $request
@@ -2655,7 +2809,7 @@ class aster extends Exchange {
         $request['type'] = $uppercaseType;
         if ($uppercaseType === 'MARKET') {
             if ($market['spot']) {
-                $quoteOrderQty = $this->safe_bool($this->options, 'quoteOrderQty', true);
+                $quoteOrderQty = $this->handle_option('createOrder', 'quoteOrderQty', true);
                 if ($quoteOrderQty) {
                     $quoteOrderQtyNew = $this->safe_string_2($params, 'quoteOrderQty', 'cost');
                     $precision = $market['precision']['price'];
@@ -2724,7 +2878,9 @@ class aster extends Exchange {
             }
         }
         if ($timeInForceIsRequired && ($this->safe_string($params, 'timeInForce') === null) && ($this->safe_string($request, 'timeInForce') === null)) {
-            $request['timeInForce'] = $this->safe_string($this->options, 'defaultTimeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            $tif = null;
+            list($tif, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce');
+            $request['timeInForce'] = $tif;
         }
         $requestParams = $this->omit($params, array( 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ));
         if ($this->safe_bool($this->options, 'builderFee') && $market['swap']) {
@@ -2734,7 +2890,7 @@ class aster extends Exchange {
         return $this->extend($request, $requestParams);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * cancel all open orders in a $market
          *
@@ -2753,11 +2909,10 @@ class aster extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = null;
         if ($market['swap']) {
-            $response = $this->fapiPrivateDeleteV3AllOpenOrders ($this->extend($request, $params));
+            $response = $this->fapiPrivateDeleteV3AllOpenOrders($this->extend($request, $params));
         } else {
-            $response = $this->sapiPrivateDeleteV3AllOpenOrders ($this->extend($request, $params));
+            $response = $this->sapiPrivateDeleteV3AllOpenOrders($this->extend($request, $params));
         }
         //
         // SPOT & SWAP has same $response
@@ -2774,7 +2929,7 @@ class aster extends Exchange {
         );
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open order
          *
@@ -2794,23 +2949,22 @@ class aster extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $clientOrderId = $this->safe_string_n($params, array( 'origClientOrderId', 'clientOrderId' ));
+        $clientOrderId = $this->safe_string_2($params, 'origClientOrderId', 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['origClientOrderId'] = $clientOrderId;
         } else {
             $request['orderId'] = $id;
         }
         $params = $this->omit($params, array( 'origClientOrderId', 'clientOrderId' ));
-        $response = null;
         if ($market['swap']) {
-            $response = $this->fapiPrivateDeleteV3Order ($this->extend($request, $params));
+            $response = $this->fapiPrivateDeleteV3Order($this->extend($request, $params));
         } else {
-            $response = $this->sapiPrivateDeleteV3Order ($this->extend($request, $params));
+            $response = $this->sapiPrivateDeleteV3Order($this->extend($request, $params));
         }
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
         /**
          * cancel multiple orders
          *
@@ -2840,9 +2994,8 @@ class aster extends Exchange {
         } else {
             $request['orderIdList'] = $ids;
         }
-        $response = null;
         if ($market['swap']) {
-            $response = $this->fapiPrivateDeleteV3BatchOrders ($this->extend($request, $params));
+            $response = $this->fapiPrivateDeleteV3BatchOrders($this->extend($request, $params));
             //
             //    array(
             //        array(
@@ -2876,7 +3029,7 @@ class aster extends Exchange {
             //    )
             //
         } else {
-            $response = $this->sapiPrivateDeleteV3AllOpenOrders ($this->extend($request, $params));
+            $response = $this->sapiPrivateDeleteV3AllOpenOrders($this->extend($request, $params));
             //
             //  array("code" => 200,"msg" => "The operation of cancel all open order is done.")
             //
@@ -2884,7 +3037,7 @@ class aster extends Exchange {
         return $this->parse_orders($response, $market);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -2907,7 +3060,7 @@ class aster extends Exchange {
             'symbol' => $market['id'],
             'leverage' => $leverage,
         );
-        $response = $this->fapiPrivatePostV3Leverage ($this->extend($request, $params));
+        $response = $this->fapiPrivatePostV3Leverage($this->extend($request, $params));
         //
         //     {
         //         "leverage" => 21,
@@ -2918,7 +3071,7 @@ class aster extends Exchange {
         return $response;
     }
 
-    public function fetch_leverages(?array $symbols = null, $params = array ()): array {
+    public function fetch_leverages(?array $symbols = null, $params = array()): array {
         /**
          * fetch the set leverage for all markets
          *
@@ -2929,7 +3082,7 @@ class aster extends Exchange {
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=leverage-structure leverage structures~
          */
         $this->load_markets_and_sign_in();
-        $response = $this->fapiPrivateGetV3PositionRisk ($params);
+        $response = $this->fapiPrivateGetV3PositionRisk($params);
         //
         //     array(
         //         {
@@ -2951,7 +3104,7 @@ class aster extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_leverages($response, $symbols, 'symbol');
+        return $this->parse_leverages($this->to_array($response), $symbols, 'symbol');
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
@@ -2997,7 +3150,7 @@ class aster extends Exchange {
         );
     }
 
-    public function fetch_margin_modes(?array $symbols = null, $params = array ()): array {
+    public function fetch_margin_modes(?array $symbols = null, $params = array()): array {
         /**
          * fetches margin mode of the user
          *
@@ -3008,7 +3161,7 @@ class aster extends Exchange {
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structures~
          */
         $this->load_markets_and_sign_in();
-        $response = $this->fapiPrivateGetV3PositionRisk ($params);
+        $response = $this->fapiPrivateGetV3PositionRisk($params);
         //
         //
         //     array(
@@ -3032,10 +3185,10 @@ class aster extends Exchange {
         //     )
         //
         //
-        return $this->parse_margin_modes($response, $symbols, 'symbol', 'swap');
+        return $this->parse_margin_modes($this->to_array($response), $symbols, 'symbol', 'swap');
     }
 
-    public function parse_margin_mode(array $marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "INJUSDT",
@@ -3056,15 +3209,15 @@ class aster extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($marginMode, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, 'swap');
         return array(
             'info' => $marginMode,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'marginMode' => $this->safe_string_lower($marginMode, 'marginType'),
         );
     }
 
-    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?float $since = null, ?float $limit = null, $params = array ()): array {
+    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?float $since = null, ?float $limit = null, $params = array()): array {
         /**
          * fetches the history of margin added or reduced from contract isolated positions
          *
@@ -3074,7 +3227,7 @@ class aster extends Exchange {
          * @param {string} [$type] "add" or "reduce"
          * @param {int} [$since] timestamp in ms of the earliest change to fetch
          * @param {int} [$limit] the maximum amount of changes to fetch
-         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest change to fetch
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=margin-loan-structure margin structures~
          */
@@ -3092,7 +3245,7 @@ class aster extends Exchange {
             $request['type'] = ($type === 'add') ? 1 : 2;
         }
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 1000);
+            $request['limit'] = min($limit, 1000);
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -3100,20 +3253,20 @@ class aster extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->fapiPrivateGetV3PositionMarginHistory ($this->extend($request, $params));
+        $response = $this->fapiPrivateGetV3PositionMarginHistory($this->extend($request, $params));
         //
         //     array(
         //         {
         //             "amount" => "23.36332311",
         //             "asset" => "USDT",
         //             "symbol" => "BTCUSDT",
-        //             "time" => 1578047897183,
+        //             "time" => 1578047897182,
         //             "type" => 1,
         //             "positionSide" => "BOTH"
         //         }
         //     )
         //
-        $modifications = $this->parse_margin_modifications($response);
+        $modifications = $this->parse_margin_modifications($this->to_array($response));
         return $this->filter_by_symbol_since_limit($modifications, $symbol, $since, $limit);
     }
 
@@ -3156,7 +3309,7 @@ class aster extends Exchange {
         );
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $addOrReduce, $params = array ()) {
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $addOrReduce, $params = array()) {
         $this->load_markets_and_sign_in();
         $market = $this->market($symbol);
         $amount = $this->amount_to_precision($symbol, $amount);
@@ -3166,7 +3319,7 @@ class aster extends Exchange {
             'amount' => $amount,
         );
         $code = $market['quote'];
-        $response = $this->fapiPrivatePostV3PositionMargin ($this->extend($request, $params));
+        $response = $this->fapiPrivatePostV3PositionMargin($this->extend($request, $params));
         //
         //     {
         //         "amount" => 100.0,
@@ -3178,7 +3331,7 @@ class aster extends Exchange {
         return $this->extend($this->parse_margin_modification($response, $market), array( 'code' => $code ));
     }
 
-    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
+    public function reduce_margin(string $symbol, float $amount, $params = array()): array {
         /**
          * remove margin from a position
          *
@@ -3192,7 +3345,7 @@ class aster extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 2, $params);
     }
 
-    public function add_margin(string $symbol, float $amount, $params = array ()): array {
+    public function add_margin(string $symbol, float $amount, $params = array()): array {
         /**
          * add margin
          *
@@ -3206,7 +3359,7 @@ class aster extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         //     {
         //       "symbol" => "ETHUSDT",
@@ -3233,7 +3386,7 @@ class aster extends Exchange {
         );
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch the history of funding payments paid and received on this account
          *
@@ -3262,9 +3415,9 @@ class aster extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 1000); // max 1000
+            $request['limit'] = min($limit, 1000); // max 1000
         }
-        $response = $this->fapiPrivateGetV3Income ($this->extend($request, $params));
+        $response = $this->fapiPrivateGetV3Income($this->extend($request, $params));
         return $this->parse_incomes($response, $market, $since, $limit);
     }
 
@@ -3313,7 +3466,7 @@ class aster extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $ledgerType = array(
             'TRANSFER' => 'transfer',
             'WELCOME_BONUS' => 'cashback',
@@ -3326,7 +3479,7 @@ class aster extends Exchange {
         return $this->safe_string($ledgerType, $type, $type);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
@@ -3349,14 +3502,14 @@ class aster extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 1000); // max 1000
+            $request['limit'] = min($limit, 1000); // max 1000
         }
         $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
             $params = $this->omit($params, 'until');
             $request['endTime'] = $until;
         }
-        $response = $this->fapiPrivateGetV3Income ($this->extend($request, $params));
+        $response = $this->fapiPrivateGetV3Income($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -3374,7 +3527,7 @@ class aster extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function parse_position_risk($position, ?array $market = null) {
+    public function parse_position_risk(mixed $position, ?array $market = null) {
         //
         //     {
         //         "entryPrice" => "6563.66500",
@@ -3431,7 +3584,7 @@ class aster extends Exchange {
         $contractSize = $this->safe_value($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
         // to notionalValue
-        $linear = (is_array($position) && array_key_exists('notional', $position));
+        $linear = (is_array($position) && array_key_exists('notional' ?? '', $position));
         if ($marginMode === 'cross') {
             // calculate $collateral
             $precision = $this->safe_dict($market, 'precision', array());
@@ -3544,7 +3697,7 @@ class aster extends Exchange {
         ));
     }
 
-    public function fetch_positions_risk(?array $symbols = null, $params = array ()) {
+    public function fetch_positions_risk(?array $symbols = null, $params = array()) {
         /**
          * fetch positions risk
          *
@@ -3562,7 +3715,7 @@ class aster extends Exchange {
         $this->load_markets_and_sign_in();
         $this->load_leverage_brackets(false, $params);
         $request = array();
-        $response = $this->fapiPrivateGetV3PositionRisk ($this->extend($request, $params));
+        $response = $this->fapiPrivateGetV3PositionRisk($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -3582,19 +3735,20 @@ class aster extends Exchange {
         //         }
         //     )
         //
+        $rawPositions = $this->to_array($response);
         $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $rawPosition = $response[$i];
+        for ($i = 0; $i < count($rawPositions); $i++) {
+            $rawPosition = $rawPositions[$i];
             $entryPriceString = $this->safe_string($rawPosition, 'entryPrice');
             if (Precise::string_gt($entryPriceString, '0')) {
-                $result[] = $this->parse_position_risk($response[$i]);
+                $result[] = $this->parse_position_risk($rawPosition);
             }
         }
         $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): array {
+    public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
          * fetch all open positions
          *
@@ -3624,8 +3778,8 @@ class aster extends Exchange {
         }
     }
 
-    public function parse_account_positions($account, $filterClosed = false) {
-        $positions = $this->safe_list($account, 'positions');
+    public function parse_account_positions(mixed $account, $filterClosed = false) {
+        $positions = $this->safe_list($account, 'positions', array());
         $assets = $this->safe_list($account, 'assets', array());
         $balances = array();
         for ($i = 0; $i < count($assets); $i++) {
@@ -3634,10 +3788,12 @@ class aster extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $crossWalletBalance = $this->safe_string($entry, 'crossWalletBalance');
             $crossUnPnl = $this->safe_string($entry, 'crossUnPnl');
-            $balances[$code] = array(
-                'crossMargin' => Precise::string_add($crossWalletBalance, $crossUnPnl),
-                'crossWalletBalance' => $crossWalletBalance,
-            );
+            if ($code !== null) {
+                $balances[$code] = array(
+                    'crossMargin' => Precise::string_add($crossWalletBalance, $crossUnPnl),
+                    'crossWalletBalance' => $crossWalletBalance,
+                );
+            }
         }
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
@@ -3650,7 +3806,7 @@ class aster extends Exchange {
             $isPositionOpen = ($maintenanceMargin !== '0') && ($maintenanceMargin !== '0.00000000');
             if (!$filterClosed || $isPositionOpen) {
                 // sometimes not all the codes are correctly returned...
-                if (is_array($balances) && array_key_exists($code, $balances)) {
+                if (is_array($balances) && array_key_exists($code ?? '', $balances)) {
                     $parsed = $this->parse_account_position($this->extend($position, array(
                         'crossMargin' => $balances[$code]['crossMargin'],
                         'crossWalletBalance' => $balances[$code]['crossWalletBalance'],
@@ -3662,7 +3818,7 @@ class aster extends Exchange {
         return $result;
     }
 
-    public function parse_account_position($position, ?array $market = null) {
+    public function parse_account_position(mixed $position, ?array $market = null) {
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market, null, 'contract');
         $symbol = $this->safe_string($market, 'symbol');
@@ -3673,13 +3829,16 @@ class aster extends Exchange {
         $initialMarginPercentageString = null;
         if ($leverageString !== null) {
             $initialMarginPercentageString = Precise::string_div('1', $leverageString, 8);
+            if ($leverage === null) {
+                throw new ExchangeError($this->id . ' parseAccountPosition() missing leverage');
+            }
             $rational = $this->is_round_number(fmod(1000, $leverage));
             if (!$rational) {
                 $initialMarginPercentageString = Precise::string_div(Precise::string_add($initialMarginPercentageString, '1e-8'), '1', 8);
             }
         }
         // to notionalValue
-        $usdm = (is_array($position) && array_key_exists('notional', $position));
+        $usdm = (is_array($position) && array_key_exists('notional' ?? '', $position));
         $maintenanceMarginString = $this->safe_string($position, 'maintMargin');
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
         $entryPriceString = $this->safe_string($position, 'entryPrice');
@@ -3785,10 +3944,13 @@ class aster extends Exchange {
             $pricePrecisionPlusOne = $pricePrecision + 1;
             $pricePrecisionPlusOneString = (string) $pricePrecisionPlusOne;
             // round half up
-            $rounder = new Precise ('5e-' . $pricePrecisionPlusOneString);
+            $rounder = new Precise('5e-' . $pricePrecisionPlusOneString);
             $rounderString = (string) $rounder;
             $liquidationPriceRoundedString = Precise::string_add($rounderString, $liquidationPriceStringRaw);
             $truncatedLiquidationPrice = Precise::string_div($liquidationPriceRoundedString, '1', $pricePrecision);
+            if ($truncatedLiquidationPrice === null) {
+                throw new ExchangeError($this->id . ' method() missing truncatedLiquidationPrice');
+            }
             if ($truncatedLiquidationPrice[0] === '-') {
                 // user cannot be liquidated
                 // since he has more $collateral than the $size of the $position
@@ -3825,7 +3987,7 @@ class aster extends Exchange {
         );
     }
 
-    public function fetch_account_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_account_positions(?array $symbols = null, $params = array()) {
         /**
          * @ignore
          * fetch account positions
@@ -3841,7 +4003,7 @@ class aster extends Exchange {
         }
         $this->load_markets_and_sign_in();
         $this->load_leverage_brackets(false, $params);
-        $response = $this->fapiPrivateGetV4Account ($params);
+        $response = $this->fapiPrivateGetV4Account($params);
         $filterClosed = null;
         list($filterClosed, $params) = $this->handle_option_and_params($params, 'fetchAccountPositions', 'filterClosed', false);
         $result = $this->parse_account_positions($response, $filterClosed);
@@ -3849,13 +4011,13 @@ class aster extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function load_leverage_brackets($reload = false, $params = array ()) {
+    public function load_leverage_brackets($reload = false, $params = array()) {
         $this->load_markets_and_sign_in();
         // by default cache the leverage $bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
         $leverageBrackets = $this->safe_dict($this->options, 'leverageBrackets');
         if (($leverageBrackets === null) || ($reload)) {
-            $response = $this->fapiPrivateGetV3LeverageBracket ($params);
+            $response = $this->fapiPrivateGetV3LeverageBracket($params);
             //
             //    [
             //        {
@@ -3880,8 +4042,9 @@ class aster extends Exchange {
             //                ...
             //
             $this->options['leverageBrackets'] = $this->create_safe_dictionary();
-            for ($i = 0; $i < count($response); $i++) {
-                $entry = $response[$i];
+            $entries = $this->to_array($response);
+            for ($i = 0; $i < count($entries); $i++) {
+                $entry = $entries[$i];
                 $marketId = $this->safe_string($entry, 'symbol');
                 $symbol = $this->safe_symbol($marketId, null, null, 'contract');
                 $brackets = $this->safe_list($entry, 'brackets', array());
@@ -3898,15 +4061,15 @@ class aster extends Exchange {
         return $this->options['leverageBrackets'];
     }
 
-    public function keccak_message($message) {
+    public function keccak_message(mixed $message) {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_message($message, $privateKey) {
+    public function sign_message(mixed $message, mixed $privateKey) {
         return $this->sign_hash($this->keccak_message($message), mb_substr($privateKey, -64));
     }
 
-    public function sign_withdraw_payload($withdrawPayload, $network): string {
+    public function sign_withdraw_payload(mixed $withdrawPayload, mixed $network): string {
         $chainId = $this->safe_integer($withdrawPayload, 'chainId');
         $domain = array(
             'chainId' => $chainId,
@@ -3941,7 +4104,7 @@ class aster extends Exchange {
         return $signature;
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -3987,7 +4150,7 @@ class aster extends Exchange {
         $params = $this->omit($params, array( 'chainId', 'network', 'fee' ));
         $request['amount'] = $this->currency_to_precision($code, $amount, $network);
         $request['userSignature'] = $this->sign_withdraw_payload($request, $network);
-        $response = $this->sapiPrivatePostV3AsterUserWithdraw ($this->extend($request, $params));
+        $response = $this->sapiPrivatePostV3AsterUserWithdraw($this->extend($request, $params));
         //
         //   {
         //       "withdrawId" => "1097219372504338432",
@@ -3997,7 +4160,7 @@ class aster extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(mixed $transaction, ?array $currency = null): array {
         return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'withdrawId'),
@@ -4022,7 +4185,7 @@ class aster extends Exchange {
         );
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
          * transfer $currency internally between wallets on the same account
          *
@@ -4059,12 +4222,11 @@ class aster extends Exchange {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' transfer() requires $fromAccount and $toAccount parameters to be either SPOT or FUTURE');
         }
-        $response = null;
         $defaultClientTranId = $this->number_to_string($this->milliseconds());
         $clientTranId = $this->safe_string($params, 'clientTranId', $defaultClientTranId);
         $request['kindType'] = $type;
         $request['clientTranId'] = $clientTranId;
-        $response = $this->sapiPrivatePostV3AssetWalletTransfer ($this->extend($request, $params));
+        $response = $this->sapiPrivatePostV3AssetWalletTransfer($this->extend($request, $params));
         return $this->parse_transfer($response, $currency);
     }
 
@@ -4090,7 +4252,7 @@ class aster extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function hash_message($binaryMessage) {
+    public function hash_message(mixed $binaryMessage) {
         // $binaryMessage = $this->encode(message);
         $binaryMessageLength = $this->binary_length($binaryMessage);
         $x19 = $this->base16_to_binary('19');
@@ -4099,7 +4261,7 @@ class aster extends Exchange {
         return '0x' . $this->hash($this->binary_concat($prefix, $binaryMessage), 'keccak', 'hex');
     }
 
-    public function sign_hash($hash, $privateKey) {
+    public function sign_hash(mixed $hash, mixed $privateKey) {
         $this->check_required_credentials();
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
@@ -4108,8 +4270,8 @@ class aster extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+        $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'fapiPublic' || $api === 'sapiPublic') {
             if ($params) {
                 $url .= '?' . $this->rawencode($params);
@@ -4120,7 +4282,15 @@ class aster extends Exchange {
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             $zeroAddress = $this->safe_string($this->options, 'zeroAddress', '0x0000000000000000000000000000000000000000');
             $v3ChainId = $this->safe_integer($this->options, 'v3ChainId', 1666);
-            $signerAddress = $this->safe_string($this->options, 'signerAddress');
+            $walletAddress = $this->safe_string($this->options, 'cachedWalletAddress');
+            $privateKeyHash = $this->hash($this->encode($this->privateKey), 'keccak', 'hex');
+            $cachedPrivateKeyHash = $this->safe_string($this->options, 'privateKeyHashForCachedWalletAddress');
+            if (($walletAddress === null) || ($cachedPrivateKeyHash !== $privateKeyHash)) {
+                $walletAddress = $this->eth_get_address_from_private_key($this->privateKey);
+                $this->options['cachedWalletAddress'] = $walletAddress;
+                $this->options['privateKeyHashForCachedWalletAddress'] = $privateKeyHash;
+            }
+            $signerAddress = $this->safe_string($this->options, 'signerAddress', $walletAddress); // default to user's wallet
             if ($signerAddress === null) {
                 throw new ArgumentsRequired($this->id . ' requires $signerAddress in options when use v3 api');
             }
@@ -4135,15 +4305,14 @@ class aster extends Exchange {
                     array( 'name' => 'msg', 'type' => 'string' ),
                 ),
             );
-            // Build v3 $params => original endpoint $params . $nonce (macroseconds) . user . signer
+            // Build v3 $params => original endpoint $params . $nonce (microseconds) . user . signer
             // Note => timestamp and recvWindow are not used for v3; $nonce replaces timestamp
             $finalParams = $this->extend(array(
                 'nonce' => (string) $nonce,
-                'user' => $this->walletAddress,
+                'user' => $walletAddress,
                 'signer' => $signerAddress,
             ), $params);
             $paramString = null;
-            $paramsToEncode = null;
             $isApproveBuilder = (mb_strpos($path, '/approveBuilder') !== false);
             if ($isApproveBuilder) {
                 // $domain['name'] = 'Aster';
@@ -4208,7 +4377,7 @@ class aster extends Exchange {
         array( $this->load_markets(), $this->sign_in() );
     }
 
-    public function sign_in($params = array ()) {
+    public function sign_in($params = array()) {
         /**
          * sign in, must be called prior to using other authenticated methods
          *
@@ -4230,7 +4399,7 @@ class aster extends Exchange {
         return true;
     }
 
-    public function initialize_client($params = array ()) {
+    public function initialize_client($params = array()) {
         $builderFee = $this->safe_bool($params, 'builderFee', $this->safe_bool($this->options, 'builderFee', true)); // we shouldn't omit here
         if (!$builderFee) {
             return false; // skip if builder fee is not enabled
@@ -4239,7 +4408,7 @@ class aster extends Exchange {
         if ($approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
-        $result = $this->fapiPrivateGetV3Builder ();
+        $result = $this->fapiPrivateGetV3Builder();
         //
         //    array(
         //        {
@@ -4271,7 +4440,7 @@ class aster extends Exchange {
                     'signatureChainId' => $this->safe_integer($this->options, 'v3ChainId', 1666),
                     'asterChain' => 'Mainnet',
                 );
-                $authResponse = $this->fapiPrivatePostV3ApproveBuilder ($this->extend($request, $params));
+                $authResponse = $this->fapiPrivatePostV3ApproveBuilder($this->extend($request, $params));
                 //
                 // array("code" => 200,"msg" => "success")
                 //
@@ -4287,7 +4456,7 @@ class aster extends Exchange {
         return null; // just c#
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

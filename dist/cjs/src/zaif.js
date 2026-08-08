@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var zaif$1 = require('./abstract/zaif.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -26,7 +26,7 @@ class zaif extends zaif$1["default"] {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
+                'margin': undefined, // has but unimplemented
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -83,7 +83,7 @@ class zaif extends zaif$1["default"] {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
+                'logo': 'https://github.com/user-attachments/assets/c6c97d18-5bde-46ed-8eb1-85404d36150e',
                 'api': {
                     'rest': 'https://api.zaif.jp',
                 },
@@ -107,56 +107,56 @@ class zaif extends zaif$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'depth/{pair}': 1,
-                        'currencies/{pair}': 1,
-                        'currencies/all': 1,
-                        'currency_pairs/{pair}': 1,
-                        'currency_pairs/all': 1,
-                        'last_price/{pair}': 1,
-                        'ticker/{pair}': 1,
-                        'trades/{pair}': 1,
+                        'depth/{pair}': { 'cost': 1 },
+                        'currencies/{pair}': { 'cost': 1 },
+                        'currencies/all': { 'cost': 1 },
+                        'currency_pairs/{pair}': { 'cost': 1 },
+                        'currency_pairs/all': { 'cost': 1 },
+                        'last_price/{pair}': { 'cost': 1 },
+                        'ticker/{pair}': { 'cost': 1 },
+                        'trades/{pair}': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'post': {
-                        'active_orders': 5,
-                        'cancel_order': 5,
-                        'deposit_history': 5,
-                        'get_id_info': 5,
-                        'get_info': 10,
-                        'get_info2': 5,
-                        'get_personal_info': 5,
-                        'trade': 5,
-                        'trade_history': 50,
-                        'withdraw': 5,
-                        'withdraw_history': 5,
+                        'active_orders': { 'cost': 5 }, // 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
+                        'cancel_order': { 'cost': 5 },
+                        'deposit_history': { 'cost': 5 },
+                        'get_id_info': { 'cost': 5 },
+                        'get_info': { 'cost': 10 }, // 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
+                        'get_info2': { 'cost': 5 }, // 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
+                        'get_personal_info': { 'cost': 5 },
+                        'trade': { 'cost': 5 },
+                        'trade_history': { 'cost': 50 }, // 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
+                        'withdraw': { 'cost': 5 },
+                        'withdraw_history': { 'cost': 5 },
                     },
                 },
                 'ecapi': {
                     'post': {
-                        'createInvoice': 1,
-                        'getInvoice': 1,
-                        'getInvoiceIdsByOrderNumber': 1,
-                        'cancelInvoice': 1,
+                        'createInvoice': { 'cost': 1 }, // unverified
+                        'getInvoice': { 'cost': 1 },
+                        'getInvoiceIdsByOrderNumber': { 'cost': 1 },
+                        'cancelInvoice': { 'cost': 1 },
                     },
                 },
                 'tlapi': {
                     'post': {
-                        'get_positions': 66,
-                        'position_history': 66,
-                        'active_positions': 5,
-                        'create_position': 33,
-                        'change_position': 33,
-                        'cancel_position': 33, // 3 in 10 seconds
+                        'get_positions': { 'cost': 66 }, // 10 in 60 seconds = 0.166 per second => cost = 10 / 0.166 = 66
+                        'position_history': { 'cost': 66 }, // 10 in 60 seconds
+                        'active_positions': { 'cost': 5 }, // 20 in 10 seconds
+                        'create_position': { 'cost': 33 }, // 3 in 10 seconds = 0.3 per second => cost = 10 / 0.3 = 33
+                        'change_position': { 'cost': 33 }, // 3 in 10 seconds
+                        'cancel_position': { 'cost': 33 }, // 3 in 10 seconds
                     },
                 },
                 'fapi': {
                     'get': {
-                        'groups/{group_id}': 1,
-                        'last_price/{group_id}/{pair}': 1,
-                        'ticker/{group_id}/{pair}': 1,
-                        'trades/{group_id}/{pair}': 1,
-                        'depth/{group_id}/{pair}': 1,
+                        'groups/{group_id}': { 'cost': 1 }, // testing
+                        'last_price/{group_id}/{pair}': { 'cost': 1 },
+                        'ticker/{group_id}/{pair}': { 'cost': 1 },
+                        'trades/{group_id}/{pair}': { 'cost': 1 },
+                        'depth/{group_id}/{pair}': { 'cost': 1 },
                     },
                 },
             },
@@ -165,12 +165,12 @@ class zaif extends zaif$1["default"] {
                 'spot': {
                     'sandbox': false,
                     'createOrder': {
-                        'marginMode': true,
-                        'triggerPrice': true,
+                        'marginMode': true, // todo
+                        'triggerPrice': true, // todo implement
                         'triggerDirection': false,
                         'triggerPriceType': undefined,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': false,
@@ -180,29 +180,29 @@ class zaif extends zaif$1["default"] {
                         },
                         'hedged': false,
                         'trailing': false,
-                        'leverage': true,
+                        'leverage': true, // todo implement
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
                         'selfTradePrevention': false,
                         'iceberg': false,
                     },
                     'createOrders': undefined,
-                    'fetchMyTrades': undefined,
+                    'fetchMyTrades': undefined, // todo
                     'fetchOrder': undefined,
                     'fetchOpenOrders': {
-                        'marginMode': true,
+                        'marginMode': true, // todo
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchOrders': undefined,
+                    'fetchOrders': undefined, // todo
                     'fetchClosedOrders': {
-                        'marginMode': true,
+                        'marginMode': true, // todo
                         'limit': 1000,
-                        'daysBack': 100000,
-                        'daysBackCanceled': 1,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'daysBackCanceled': 1, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -263,11 +263,14 @@ class zaif extends zaif$1["default"] {
     parseMarket(market) {
         const id = this.safeString(market, 'currency_pair');
         const name = this.safeString(market, 'name');
+        if (name === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseMarket() missing name');
+        }
         const [baseId, quoteId] = name.split('/');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         const symbol = base + '/' + quote;
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -282,7 +285,7 @@ class zaif extends zaif$1["default"] {
             'swap': false,
             'future': false,
             'option': false,
-            'active': undefined,
+            'active': undefined, // can trade or not
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
@@ -315,7 +318,7 @@ class zaif extends zaif$1["default"] {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     parseBalance(response) {
         const balances = this.safeValue(response, 'return', {});
@@ -339,7 +342,9 @@ class zaif extends zaif$1["default"] {
                     account['total'] = this.safeString(deposit, currencyId);
                 }
             }
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -352,7 +357,9 @@ class zaif extends zaif$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privatePostGetInfo(params);
         return this.parseBalance(response);
     }
@@ -364,10 +371,12 @@ class zaif extends zaif$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -425,7 +434,9 @@ class zaif extends zaif$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -493,12 +504,14 @@ class zaif extends zaif$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
         };
-        let response = await this.publicGetTradesPair(this.extend(request, params));
+        const response = await this.publicGetTradesPair(this.extend(request, params));
         //
         //      [
         //          {
@@ -511,14 +524,15 @@ class zaif extends zaif$1["default"] {
         //          }, ...
         //      ]
         //
-        const numTrades = response.length;
+        let trades = this.toArray(response);
+        const numTrades = trades.length;
         if (numTrades === 1) {
-            const firstTrade = response[0];
+            const firstTrade = this.safeDict(trades, 0, {});
             if (!Object.keys(firstTrade).length) {
-                response = [];
+                trades = [];
             }
         }
-        return this.parseTrades(response, market, since, limit);
+        return this.parseTrades(trades, market, since, limit);
     }
     /**
      * @method
@@ -534,7 +548,9 @@ class zaif extends zaif$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (type !== 'limit') {
             throw new errors.ExchangeError(this.id + ' createOrder() allows limit orders only');
         }
@@ -546,9 +562,10 @@ class zaif extends zaif$1["default"] {
             'price': price,
         };
         const response = await this.privatePostTrade(this.extend(request, params));
+        const data = this.safeDict(response, 'return', {});
         return this.safeOrder({
             'info': response,
-            'id': response['return']['order_id'].toString(),
+            'id': data['order_id'].toString(),
         }, market);
     }
     /**
@@ -557,7 +574,7 @@ class zaif extends zaif$1["default"] {
      * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id37
      * @description cancels an open order
      * @param {string} id order id
-     * @param {string} symbol not used by zaif cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -580,7 +597,7 @@ class zaif extends zaif$1["default"] {
         //        }
         //    }
         //
-        const data = this.safeDict(response, 'return');
+        const data = this.safeDict(response, 'return', {});
         return this.parseOrder(data);
     }
     parseOrder(order, market = undefined) {
@@ -650,7 +667,9 @@ class zaif extends zaif$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {
         // 'is_token': false,
@@ -661,7 +680,8 @@ class zaif extends zaif$1["default"] {
             request['currency_pair'] = market['id'];
         }
         const response = await this.privatePostActiveOrders(this.extend(request, params));
-        return this.parseOrders(response['return'], market, since, limit);
+        const data = this.safeDict(response, 'return', {});
+        return this.parseOrders(data, market, since, limit);
     }
     /**
      * @method
@@ -675,7 +695,9 @@ class zaif extends zaif$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {
         // 'from': 0,
@@ -692,7 +714,8 @@ class zaif extends zaif$1["default"] {
             request['currency_pair'] = market['id'];
         }
         const response = await this.privatePostTradeHistory(this.extend(request, params));
-        return this.parseOrders(response['return'], market, since, limit);
+        const data = this.safeDict(response, 'return', {});
+        return this.parseOrders(data, market, since, limit);
     }
     /**
      * @method
@@ -709,7 +732,9 @@ class zaif extends zaif$1["default"] {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         if (code === 'JPY') {
             throw new errors.ExchangeError(this.id + ' withdraw() does not allow ' + code + ' withdrawals');
@@ -741,7 +766,7 @@ class zaif extends zaif$1["default"] {
         //         }
         //     }
         //
-        const returnData = this.safeDict(result, 'return');
+        const returnData = this.safeDict(result, 'return', {});
         return this.parseTransaction(returnData, currency);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -822,7 +847,7 @@ class zaif extends zaif$1["default"] {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.hmac(this.encode(body), this.encode(this.secret), sha512.sha512),
+                'Sign': this.hmac(this.encode(body), this.encode(this.secret), sha2_js.sha512),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

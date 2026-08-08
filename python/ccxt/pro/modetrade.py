@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -72,21 +72,21 @@ class modetrade(ccxt.async_support.modetrade):
             },
         })
 
-    def request_id(self, url):
+    def request_id(self, url: Any):
         options = self.safe_dict(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
         self.options['requestId'][url] = newValue
         return newValue
 
-    async def watch_public(self, messageHash, message):
+    async def watch_public(self, messageHash: Any, message: Any):
         # the default id
         id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY'
         if self.accountId is not None and self.accountId != '':
             id = self.accountId
         url = self.urls['api']['ws']['public'] + '/' + id
         requestId = self.request_id(url)
-        subscribe: dict = {
+        subscribe = {
             'id': requestId,
         }
         request = self.extend(subscribe, message)
@@ -101,13 +101,14 @@ class modetrade(ccxt.async_support.modetrade):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'orderbook'
         market = self.market(symbol)
         topic = market['id'] + '@' + name
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -115,7 +116,7 @@ class modetrade(ccxt.async_support.modetrade):
         orderbook = await self.watch_public(topic, message)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         #     {
         #         "topic": "PERP_BTC_USDC@orderbook",
@@ -160,19 +161,20 @@ class modetrade(ccxt.async_support.modetrade):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'ticker'
         market = self.market(symbol)
         symbol = market['symbol']
         topic = market['id'] + '@' + name
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
         message = self.extend(request, params)
         return await self.watch_public(topic, message)
 
-    def parse_ws_ticker(self, ticker, market=None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None):
         #
         #     {
         #         "symbol": "PERP_BTC_USDC",
@@ -208,7 +210,7 @@ class modetrade(ccxt.async_support.modetrade):
             'info': ticker,
         }, market)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         #     {
         #         "topic": "PERP_BTC_USDC@ticker",
@@ -247,11 +249,12 @@ class modetrade(ccxt.async_support.modetrade):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         name = 'tickers'
         topic = name
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -259,7 +262,7 @@ class modetrade(ccxt.async_support.modetrade):
         tickers = await self.watch_public(topic, message)
         return self.filter_by_array(tickers, 'symbol', symbols)
 
-    def handle_tickers(self, client: Client, message):
+    def handle_tickers(self, client: Client, message: Any):
         #
         #     {
         #         "topic":"tickers",
@@ -301,11 +304,12 @@ class modetrade(ccxt.async_support.modetrade):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         name = 'bbos'
         topic = name
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -313,7 +317,7 @@ class modetrade(ccxt.async_support.modetrade):
         tickers = await self.watch_public(topic, message)
         return self.filter_by_array(tickers, 'symbol', symbols)
 
-    def handle_bid_ask(self, client: Client, message):
+    def handle_bid_ask(self, client: Client, message: Any):
         #
         #     {
         #       "topic": "bbos",
@@ -335,11 +339,13 @@ class modetrade(ccxt.async_support.modetrade):
         result = []
         for i in range(0, len(data)):
             ticker = self.parse_ws_bid_ask(self.extend(data[i], {'ts': timestamp}))
-            self.tickers[ticker['symbol']] = ticker
+            symbol = ticker['symbol']
+            if symbol is not None:
+                self.tickers[symbol] = ticker
             result.append(ticker)
         client.resolve(result, topic)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker: Any, market: Market = None):
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = self.safe_string(market, 'symbol')
@@ -368,14 +374,15 @@ class modetrade(ccxt.async_support.modetrade):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if (timeframe != '1m') and (timeframe != '5m') and (timeframe != '15m') and (timeframe != '30m') and (timeframe != '1h') and (timeframe != '1d') and (timeframe != '1w') and (timeframe != '1M'):
             raise NotSupported(self.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M')
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'kline'
         topic = market['id'] + '@' + name + '_' + interval
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -385,7 +392,7 @@ class modetrade(ccxt.async_support.modetrade):
             limit = ohlcv.getLimit(market['symbol'], limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         #     {
         #         "topic":"PERP_BTC_USDC@kline_1m",
@@ -411,6 +418,8 @@ class modetrade(ccxt.async_support.modetrade):
         symbol = market['symbol']
         interval = self.safe_string(data, 'type')
         timeframe = self.find_timeframe(interval)
+        if timeframe is None:
+            return
         parsed = [
             self.safe_integer(data, 'startTime'),
             self.safe_number(data, 'open'),
@@ -420,7 +429,7 @@ class modetrade(ccxt.async_support.modetrade):
             self.safe_number(data, 'volume'),
         ]
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+        stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
@@ -441,11 +450,12 @@ class modetrade(ccxt.async_support.modetrade):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         topic = market['id'] + '@trade'
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -455,7 +465,7 @@ class modetrade(ccxt.async_support.modetrade):
             limit = trades.getLimit(market['symbol'], limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_trade(self, client: Client, message):
+    def handle_trade(self, client: Client, message: Any):
         #
         # {
         #     "topic":"PERP_ADA_USDC@trade",
@@ -484,7 +494,7 @@ class modetrade(ccxt.async_support.modetrade):
         self.trades[symbol] = trades
         client.resolve(trades, topic)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade: Any, market: Market = None):
         #
         #     {
         #         "symbol":"PERP_ADA_USDC",
@@ -533,7 +543,7 @@ class modetrade(ccxt.async_support.modetrade):
         maker = self.safe_bool(trade, 'maker')
         if maker is not None:
             takerOrMaker = 'maker' if maker else 'taker'
-        fee = None
+        fee = {}
         feeValue = self.safe_string(trade, 'fee')
         if feeValue is not None:
             fee = {
@@ -556,7 +566,7 @@ class modetrade(ccxt.async_support.modetrade):
             'info': trade,
         }, market)
 
-    def handle_auth(self, client: Client, message):
+    def handle_auth(self, client: Client, message: Any):
         #
         #     {
         #         "event": "auth",
@@ -593,7 +603,7 @@ class modetrade(ccxt.async_support.modetrade):
                 parts = secret.split('ed25519:')
                 secret = parts[1]
             signature = self.eddsa(self.encode(auth), self.base58_to_binary(secret), 'ed25519')
-            request: dict = {
+            request = {
                 'event': event,
                 'params': {
                     'orderly_key': self.apiKey,
@@ -605,21 +615,21 @@ class modetrade(ccxt.async_support.modetrade):
             self.watch(url, messageHash, message, messageHash)
         return await future
 
-    async def watch_private(self, messageHash, message, params={}):
+    async def watch_private(self, messageHash: Any, message: Any, params={}):
         await self.authenticate(params)
         url = self.urls['api']['ws']['private'] + '/' + self.accountId
         requestId = self.request_id(url)
-        subscribe: dict = {
+        subscribe = {
             'id': requestId,
         }
         request = self.extend(subscribe, message)
         return await self.watch(url, messageHash, request, messageHash, subscribe)
 
-    async def watch_private_multiple(self, messageHashes, message, params={}):
+    async def watch_private_multiple(self, messageHashes: Any, message: Any, params={}):
         await self.authenticate(params)
         url = self.urls['api']['ws']['private'] + '/' + self.accountId
         requestId = self.request_id(url)
-        subscribe: dict = {
+        subscribe = {
             'id': requestId,
         }
         request = self.extend(subscribe, message)
@@ -639,7 +649,8 @@ class modetrade(ccxt.async_support.modetrade):
         :param bool [params.trigger]: True if trigger order
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         topic = 'algoexecutionreport' if (trigger) else 'executionreport'
         params = self.omit(params, ['stop', 'trigger'])
@@ -648,7 +659,7 @@ class modetrade(ccxt.async_support.modetrade):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash += ':' + symbol
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -672,7 +683,8 @@ class modetrade(ccxt.async_support.modetrade):
         :param bool [params.trigger]: True if trigger order
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         topic = 'algoexecutionreport' if (trigger) else 'executionreport'
         params = self.omit(params, 'stop')
@@ -681,7 +693,7 @@ class modetrade(ccxt.async_support.modetrade):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash += ':' + symbol
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -691,7 +703,7 @@ class modetrade(ccxt.async_support.modetrade):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order: Any, market: Market = None):
         #
         #     {
         #         "symbol": "PERP_BTC_USDT",
@@ -712,7 +724,7 @@ class modetrade(ccxt.async_support.modetrade):
         #         "orderTag": "default",
         #         "totalFee": 0,
         #         "visible": 0.01,
-        #         "timestamp": 1657515556799,
+        #         "timestamp": 1657515556798,
         #         "reduceOnly": False,
         #         "maker": False
         #     }
@@ -759,7 +771,7 @@ class modetrade(ccxt.async_support.modetrade):
         #
         orderId = self.safe_string(order, 'orderId')
         marketId = self.safe_string(order, 'symbol')
-        market = self.market(marketId)
+        market = self.safe_market(marketId, market)
         symbol = market['symbol']
         timestamp = self.safe_integer(order, 'timestamp')
         fee = {
@@ -809,7 +821,7 @@ class modetrade(ccxt.async_support.modetrade):
             'trades': trades,
         })
 
-    def handle_order_update(self, client: Client, message):
+    def handle_order_update(self, client: Client, message: Any):
         #
         #     {
         #         "topic": "executionreport",
@@ -844,18 +856,20 @@ class modetrade(ccxt.async_support.modetrade):
             # algoexecutionreport
             for i in range(0, len(data)):
                 order = data[i]
-                tradeId = self.omit_zero(self.safe_string(data, 'tradeId'))
+                tradeIdStr = self.safe_string(data, 'tradeId')
+                tradeId = None if (tradeIdStr is None) else self.omit_zero(tradeIdStr)
                 if tradeId is not None:
                     self.handle_my_trade(client, order)
                 self.handle_order(client, order, topic)
         else:
             # executionreport
-            tradeId = self.omit_zero(self.safe_string(data, 'tradeId'))
+            tradeIdStr = self.safe_string(data, 'tradeId')
+            tradeId = None if (tradeIdStr is None) else self.omit_zero(tradeIdStr)
             if tradeId is not None:
                 self.handle_my_trade(client, data)
             self.handle_order(client, data, topic)
 
-    def handle_order(self, client: Client, message, topic):
+    def handle_order(self, client: Client, message: Any, topic: Any):
         parsed = self.parse_ws_order(message)
         symbol = self.safe_string(parsed, 'symbol')
         orderId = self.safe_string(parsed, 'id')
@@ -865,7 +879,7 @@ class modetrade(ccxt.async_support.modetrade):
                 self.orders = ArrayCacheBySymbolById(limit)
             cachedOrders = self.orders
             orders = self.safe_dict(cachedOrders.hashmap, symbol, {})
-            order = self.safe_dict(orders, orderId)
+            order = None if (orderId is None) else self.safe_dict(orders, orderId)
             if order is not None:
                 fee = self.safe_value(order, 'fee')
                 if fee is not None:
@@ -873,7 +887,7 @@ class modetrade(ccxt.async_support.modetrade):
                 fees = self.safe_list(order, 'fees')
                 if fees is not None:
                     parsed['fees'] = fees
-                parsed['trades'] = self.safe_list(order, 'trades')
+                parsed['trades'] = self.safe_list(order, 'trades', [])
                 parsed['timestamp'] = self.safe_integer(order, 'timestamp')
                 parsed['datetime'] = self.safe_string(order, 'datetime')
             cachedOrders.append(parsed)
@@ -881,7 +895,7 @@ class modetrade(ccxt.async_support.modetrade):
             messageHashSymbol = topic + ':' + symbol
             client.resolve(self.orders, messageHashSymbol)
 
-    def handle_my_trade(self, client: Client, message):
+    def handle_my_trade(self, client: Client, message: Any):
         #
         # {
         #     symbol: 'PERP_XRP_USDC',
@@ -932,15 +946,16 @@ class modetrade(ccxt.async_support.modetrade):
 
         watch all open positions
         :param str[] [symbols]: list of unified market symbols
- @param since timestamp in ms of the earliest position to fetch
- @param limit the maximum number of positions to fetch
-        :param dict params: extra parameters specific to the exchange API endpoint
+        :param int [since]: timestamp in ms of the earliest position to fetch
+        :param int [limit]: the maximum number of positions to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHashes = []
         symbols = self.market_symbols(symbols)
-        if not self.is_empty(symbols):
+        if (symbols is not None) and not self.is_empty(symbols):
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 messageHashes.append('positions::' + symbol)
@@ -954,7 +969,7 @@ class modetrade(ccxt.async_support.modetrade):
         if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': 'position',
         }
@@ -963,7 +978,7 @@ class modetrade(ccxt.async_support.modetrade):
             return newPositions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
-    def set_positions_cache(self, client: Client, type, symbols: Strings = None):
+    def set_positions_cache(self, client: Client, type: Any, symbols: Strings = None):
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
         if fetchPositionsSnapshot:
             messageHash = 'fetchPositionsSnapshot'
@@ -973,7 +988,7 @@ class modetrade(ccxt.async_support.modetrade):
         else:
             self.positions = ArrayCacheBySymbolBySide()
 
-    async def load_positions_snapshot(self, client, messageHash):
+    async def load_positions_snapshot(self, client: Client, messageHash: Any):
         positions = await self.fetch_positions()
         self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
@@ -988,7 +1003,7 @@ class modetrade(ccxt.async_support.modetrade):
             future.resolve(cache)
             client.resolve(cache, 'positions')
 
-    def handle_positions(self, client, message):
+    def handle_positions(self, client: Any, message: Any):
         #
         #    {
         #        "topic":"position",
@@ -1038,7 +1053,7 @@ class modetrade(ccxt.async_support.modetrade):
             client.resolve(position, messageHash)
         client.resolve(newPositions, 'positions')
 
-    def parse_ws_position(self, position, market=None):
+    def parse_ws_position(self, position: Any, market: Market = None):
         #
         #     {
         #         "symbol":"PERP_ETH_USDC",
@@ -1066,7 +1081,7 @@ class modetrade(ccxt.async_support.modetrade):
         contract = self.safe_string(position, 'symbol')
         market = self.safe_market(contract, market)
         size = self.safe_string(position, 'positionQty')
-        side: Str = None
+        side = None
         if Precise.string_gt(size, '0'):
             side = 'long'
         else:
@@ -1118,17 +1133,18 @@ class modetrade(ccxt.async_support.modetrade):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         topic = 'balance'
         messageHash = topic
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
         message = self.extend(request, params)
         return await self.watch_private(messageHash, message)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Any, message: Any):
         #
         #     {
         #         "topic":"balance",
@@ -1167,17 +1183,20 @@ class modetrade(ccxt.async_support.modetrade):
             key = keys[i]
             value = balances[key]
             code = self.safe_currency_code(key)
-            account = self.balance[code] if (code in self.balance) else self.account()
+            account = self.account()
+            if (code is not None) and (code in self.balance):
+                account = self.balance[code]
             total = self.safe_string(value, 'holding')
             used = self.safe_string(value, 'frozen')
             account['total'] = total
             account['used'] = used
             account['free'] = Precise.string_sub(total, used)
-            self.balance[code] = account
+            if code is not None:
+                self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         # {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         #
@@ -1202,10 +1221,10 @@ class modetrade(ccxt.async_support.modetrade):
                 client.reject(error)
             return True
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         if self.handle_error_message(client, message):
             return
-        methods: dict = {
+        methods = {
             'ping': self.handle_ping,
             'pong': self.handle_pong,
             'subscribe': self.handle_subscribe,
@@ -1222,7 +1241,7 @@ class modetrade(ccxt.async_support.modetrade):
             'bbos': self.handle_bid_ask,
         }
         event = self.safe_string(message, 'event')
-        method = self.safe_value(methods, event)
+        method = None if (event is None) else self.safe_value(methods, event)
         if method is not None:
             method(client, message)
             return
@@ -1236,6 +1255,8 @@ class modetrade(ccxt.async_support.modetrade):
             splitLength = len(splitTopic)
             if splitLength == 2:
                 name = self.safe_string(splitTopic, 1)
+                if name is None:
+                    return
                 method = self.safe_value(methods, name)
                 if method is not None:
                     method(client, message)
@@ -1243,24 +1264,28 @@ class modetrade(ccxt.async_support.modetrade):
                 splitName = name.split('_')
                 splitNameLength = len(splitTopic)
                 if splitNameLength == 2:
-                    method = self.safe_value(methods, self.safe_string(splitName, 0))
+                    splitNameFirst = self.safe_string(splitName, 0)
+                    method = None if (splitNameFirst is None) else self.safe_value(methods, splitNameFirst)
                     if method is not None:
                         method(client, message)
 
     def ping(self, client: Client):
         return {'event': 'ping'}
 
-    def handle_ping(self, client: Client, message):
-        return {'event': 'pong'}
+    async def pong(self, client: Client, message: Any):
+        await client.send({'event': 'pong'})
 
-    def handle_pong(self, client: Client, message):
+    def handle_ping(self, client: Client, message: Any):
+        self.spawn(self.pong, client, message)
+
+    def handle_pong(self, client: Client, message: Any):
         #
         # {event: "pong", ts: 1614667590000}
         #
         client.lastPong = self.milliseconds()
         return message
 
-    def handle_subscribe(self, client: Client, message):
+    def handle_subscribe(self, client: Client, message: Any):
         #
         #     {
         #         "id": "666888",

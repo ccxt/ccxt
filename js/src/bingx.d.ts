@@ -1,5 +1,5 @@
 import Exchange from './abstract/bingx.js';
-import type { LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory } from './base/types.js';
+import type { LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, NullableDict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, DepositWithdrawFees, PositionModeInfo } from './base/types.js';
 /**
  * @class bingx
  * @augments Exchange
@@ -24,9 +24,10 @@ export default class bingx extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
     fetchSpotMarkets(params: any): Promise<Market[]>;
-    fetchSwapMarkets(params: any): Promise<import("./base/types.js").MarketInterface[]>;
-    fetchInverseSwapMarkets(params: any): Promise<import("./base/types.js").MarketInterface[]>;
+    fetchSwapMarkets(params: any): Promise<Market[]>;
+    fetchInverseSwapMarkets(params: any): Promise<Market[]>;
     parseMarket(market: Dict): Market;
     /**
      * @method
@@ -82,7 +83,7 @@ export default class bingx extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -126,9 +127,9 @@ export default class bingx extends Exchange {
     parseFundingRateHistory(contract: any, market?: Market): {
         info: any;
         symbol: string;
-        fundingRate: number;
-        timestamp: number;
-        datetime: string;
+        fundingRate: Num;
+        timestamp: Int;
+        datetime: string | undefined;
     };
     /**
      * @method
@@ -146,11 +147,11 @@ export default class bingx extends Exchange {
     parseIncome(income: any, market?: Market): {
         info: any;
         symbol: string;
-        code: string;
-        timestamp: number;
-        datetime: string;
-        id: string;
-        amount: number;
+        code: Str;
+        timestamp: Int;
+        datetime: string | undefined;
+        id: Str;
+        amount: Num;
         type: string;
     };
     /**
@@ -235,7 +236,7 @@ export default class bingx extends Exchange {
      * @param {string} symbol unified contract symbol
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum amount of records to fetch
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch positions for
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
@@ -275,7 +276,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createMarketOrderWithCost(symbol: string, side: OrderSide, cost: number, params?: {}): Promise<Order>;
+    createMarketOrderWithCost(symbol: string, side: OrderSide, cost: number, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name bingx#createMarketBuyOrderWithCost
@@ -285,7 +286,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name bingx#createMarketSellOrderWithCost
@@ -295,8 +296,8 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createMarketSellOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    createMarketSellOrderWithCost(symbol: string, cost: number, params?: Dict): Promise<Order>;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
     /**
      * @method
      * @name bingx#createOrder
@@ -328,6 +329,7 @@ export default class bingx extends Exchange {
      * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
      * @param {string} [params.positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
      * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
+     * @param {bool} [params.closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
@@ -344,9 +346,9 @@ export default class bingx extends Exchange {
      */
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     parseOrderSide(side: any): string;
-    parseOrderType(type: Str): string;
+    parseOrderType(type: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): string;
+    parseOrderStatus(status: Str): Str;
     /**
      * @method
      * @name bingx#cancelOrder
@@ -400,7 +402,7 @@ export default class bingx extends Exchange {
      * @param {string} [params.type] spot or swap market
      * @returns {object} the api result
      */
-    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bingx#fetchOrder
@@ -529,7 +531,7 @@ export default class bingx extends Exchange {
      */
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
-    parseTransferStatus(status: Str): string;
+    parseTransferStatus(status: Str): Str;
     /**
      * @method
      * @name bingx#fetchDepositAddressesByNetwork
@@ -577,7 +579,7 @@ export default class bingx extends Exchange {
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: string): string;
+    parseTransactionStatus(status: Str): Str;
     /**
      * @method
      * @name bingx#setMarginMode
@@ -589,7 +591,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     /**
@@ -599,7 +601,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
-     * @param {object} [params] parameters specific to the bingx api endpoint
+     * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     setMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
@@ -628,7 +630,7 @@ export default class bingx extends Exchange {
      * @param {string} [params.side] hedged: ['long' or 'short']. one way: ['both']
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bingx#fetchMyTrades
@@ -656,7 +658,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dict>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<DepositWithdrawFees>;
     /**
      * @method
      * @name bingx#withdraw
@@ -696,7 +698,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by bingx
-     * @param {object} [params] extra parameters specific to the bingx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} [params.positionId] the id of the position you would like to close
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -707,7 +709,7 @@ export default class bingx extends Exchange {
      * @description closes open positions for a market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
-     * @param {object} [params] extra parameters specific to the bingx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.recvWindow] request valid time window value
      * @returns {object[]} [a list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
@@ -721,21 +723,18 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    fetchPositionMode(symbol?: Str, params?: {}): Promise<{
-        info: any;
-        hedged: boolean;
-    }>;
+    fetchPositionMode(symbol?: Str, params?: {}): Promise<PositionModeInfo>;
     /**
      * @method
      * @name bingx#setPositionMode
      * @description set hedged to true or false for a market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by bingx setPositionMode ()
+     * @param {string} symbol not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bingx#editOrder
@@ -779,7 +778,7 @@ export default class bingx extends Exchange {
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
-    parseMarginMode(marginMode: Dict, market?: any): MarginMode;
+    parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     /**
      * @method
      * @name bingx#fetchTradingFee
@@ -793,7 +792,7 @@ export default class bingx extends Exchange {
      */
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
-    customEncode(params: any): any;
+    customEncode(params: any): Str;
     /**
      * @method
      * @name bingx#fetchMarketLeverageTiers
@@ -805,13 +804,13 @@ export default class bingx extends Exchange {
      */
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<LeverageTier[]>;
     parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
-    sign(path: any, section?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, section?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: Str;
+        headers: NullableDict;
     };
     nonce(): number;
     setSandboxMode(enable: boolean): void;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

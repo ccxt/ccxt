@@ -15,10 +15,15 @@ async function testSleep() {
     await exchange.sleep(sleepAmount);
     const end = exchange.milliseconds();
     const elapsed = end - start;
-    // Allow a small margin of error due to execution time
+    // Allow a small margin of error due to execution time and timer jitter
+    // (some runtimes, e.g. .NET Task.Delay, may return a few ms early)
     const marginOfError = 20;
+    const minElapsed = sleepAmount - marginOfError;
     const maxElapsed = sleepAmount + marginOfError;
-    assert(elapsed >= sleepAmount, 'Elapsed time ' + elapsed.toString() + 'ms is less than sleep amount ' + sleepAmount.toString() + 'ms');
-    assert(elapsed <= maxElapsed, 'Elapsed time ' + elapsed.toString() + 'ms exceeds sleep amount ' + maxElapsed.toString() + 'ms');
+    const elapsedBiggerThanSleep = elapsed >= minElapsed;
+    const elapsedLessThanMax = elapsed <= maxElapsed;
+    assert(elapsedBiggerThanSleep, 'Elapsed time ' + elapsed.toString() + 'ms is less than minimum ' + minElapsed.toString() + 'ms (sleep amount ' + sleepAmount.toString() + 'ms)');
+    assert(elapsedLessThanMax, 'Elapsed time ' + elapsed.toString() + 'ms exceeds sleep amount ' + maxElapsed.toString() + 'ms');
+    return true;
 }
 export default testSleep;

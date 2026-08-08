@@ -28,7 +28,8 @@ def tco_debug(exchange, symbol, message):
     debug_create_order = True
     if debug_create_order:
         # for c# fix, extra step to convert them to string
-        print(' >>>>> testCreateOrder [', str((exchange['id'])), ' : ', symbol, '] ', message)
+        msg = ' >>>>> testCreateOrder [' + str((exchange['id'])) + ' : ' + symbol + '] ' + message
+        print(msg)
     return True
 
 
@@ -50,18 +51,18 @@ def test_create_order(exchange, skipped_properties, symbol):
     # **************** [Scenario 1 - START] **************** #
     tco_debug(exchange, symbol, '### SCENARIO 1 ###')
     # create a "limit order" which IS GUARANTEED not to have a fill (i.e. being far from the real price)
-    tco_create_unfillable_order(exchange, market, log_prefix, skipped_properties, best_bid, best_ask, limit_price_safety_multiplier_from_median, 'buy', None)
+    tco_create_unfillable_order(exchange, market, log_prefix, skipped_properties, best_bid, best_ask, limit_price_safety_multiplier_from_median, 'buy')
     if is_swap_future:
         # for swap markets, we test sell orders too
-        tco_create_unfillable_order(exchange, market, log_prefix, skipped_properties, best_bid, best_ask, limit_price_safety_multiplier_from_median, 'sell', None)
+        tco_create_unfillable_order(exchange, market, log_prefix, skipped_properties, best_bid, best_ask, limit_price_safety_multiplier_from_median, 'sell')
     tco_debug(exchange, symbol, '### SCENARIO 1 PASSED ###')
     # **************** [Scenario 2 - START] **************** #
     tco_debug(exchange, symbol, '### SCENARIO 2 ###')
     # create an order which IS GUARANTEED to have a fill (full or partial)
-    tco_create_fillable_order(exchange, market, log_prefix, skipped_properties, best_bid, best_ask, limit_price_safety_multiplier_from_median, 'buy', None)
+    tco_create_fillable_order(exchange, market, log_prefix, skipped_properties, best_bid, best_ask, limit_price_safety_multiplier_from_median, 'buy')
     if is_swap_future:
         # for swap markets, we test sell orders too
-        tco_create_fillable_order(exchange, market, log_prefix, skipped_properties, best_bid, best_ask, limit_price_safety_multiplier_from_median, 'sell', None)
+        tco_create_fillable_order(exchange, market, log_prefix, skipped_properties, best_bid, best_ask, limit_price_safety_multiplier_from_median, 'sell')
     tco_debug(exchange, symbol, '### SCENARIO 2 PASSED ###')
     # **************** [Scenario 3 - START] **************** #
     return True
@@ -239,6 +240,8 @@ def tco_get_minimum_amount_for_limit_price(exchange, market, price, predefined_a
 
 def tco_try_cancel_order(exchange, symbol, order, skipped_properties):
     order_fetched = test_shared_methods.fetch_order(exchange, symbol, order['id'], skipped_properties)
+    if order_fetched is None:
+        return True
     needs_cancel = exchange.in_array(order_fetched['status'], ['open', 'pending', None])
     # if it was not reported as closed/filled, then try to cancel it
     if needs_cancel:

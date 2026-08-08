@@ -30,8 +30,8 @@ func (this *CoinbaseCore) Describe() any {
 			"CORS":                                   true,
 			"spot":                                   true,
 			"margin":                                 false,
-			"swap":                                   false,
-			"future":                                 false,
+			"swap":                                   true,
+			"future":                                 true,
 			"option":                                 false,
 			"addMargin":                              false,
 			"borrowCrossMargin":                      false,
@@ -151,6 +151,7 @@ func (this *CoinbaseCore) Describe() any {
 			"setMargin":                              false,
 			"setMarginMode":                          false,
 			"setPositionMode":                        false,
+			"transfer":                               true,
 			"withdraw":                               true,
 		},
 		"urls": map[string]any{
@@ -159,7 +160,7 @@ func (this *CoinbaseCore) Describe() any {
 				"rest": "https://api.coinbase.com",
 			},
 			"www":      "https://www.coinbase.com",
-			"doc":      []any{"https://developers.coinbase.com/api/v2", "https://docs.cloud.coinbase.com/advanced-trade/docs/welcome"},
+			"doc":      []any{"https://docs.cdp.coinbase.com/coinbase-app/introduction/welcome", "https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/api-reference"},
 			"fees":     []any{"https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees", "https://www.coinbase.com/advanced-fees"},
 			"referral": "https://www.coinbase.com/join/58cbe25a355148797479dbd2",
 		},
@@ -171,123 +172,305 @@ func (this *CoinbaseCore) Describe() any {
 			"v2": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"currencies":           10.6,
-						"currencies/crypto":    10.6,
-						"time":                 10.6,
-						"exchange-rates":       10.6,
-						"users/{user_id}":      10.6,
-						"prices/{symbol}/buy":  10.6,
-						"prices/{symbol}/sell": 10.6,
-						"prices/{symbol}/spot": 10.6,
+						"currencies": map[string]any{
+							"cost": 10.6,
+						},
+						"currencies/crypto": map[string]any{
+							"cost": 10.6,
+						},
+						"time": map[string]any{
+							"cost": 10.6,
+						},
+						"exchange-rates": map[string]any{
+							"cost": 10.6,
+						},
+						"users/{user_id}": map[string]any{
+							"cost": 10.6,
+						},
+						"prices/{symbol}/buy": map[string]any{
+							"cost": 10.6,
+						},
+						"prices/{symbol}/sell": map[string]any{
+							"cost": 10.6,
+						},
+						"prices/{symbol}/spot": map[string]any{
+							"cost": 10.6,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"accounts":                                                  10.6,
-						"accounts/{account_id}":                                     10.6,
-						"accounts/{account_id}/addresses":                           10.6,
-						"accounts/{account_id}/addresses/{address_id}":              10.6,
-						"accounts/{account_id}/addresses/{address_id}/transactions": 10.6,
-						"accounts/{account_id}/transactions":                        10.6,
-						"accounts/{account_id}/transactions/{transaction_id}":       10.6,
-						"accounts/{account_id}/buys":                                10.6,
-						"accounts/{account_id}/buys/{buy_id}":                       10.6,
-						"accounts/{account_id}/sells":                               10.6,
-						"accounts/{account_id}/sells/{sell_id}":                     10.6,
-						"accounts/{account_id}/deposits":                            10.6,
-						"accounts/{account_id}/deposits/{deposit_id}":               10.6,
-						"accounts/{account_id}/withdrawals":                         10.6,
-						"accounts/{account_id}/withdrawals/{withdrawal_id}":         10.6,
-						"payment-methods":                                           10.6,
-						"payment-methods/{payment_method_id}":                       10.6,
-						"user":                                                      10.6,
-						"user/auth":                                                 10.6,
+						"accounts": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/addresses": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/addresses/{address_id}": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/addresses/{address_id}/transactions": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/transactions": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/transactions/{transaction_id}": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/buys": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/buys/{buy_id}": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/sells": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/sells/{sell_id}": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/deposits": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/deposits/{deposit_id}": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/withdrawals": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/withdrawals/{withdrawal_id}": map[string]any{
+							"cost": 10.6,
+						},
+						"payment-methods": map[string]any{
+							"cost": 10.6,
+						},
+						"payment-methods/{payment_method_id}": map[string]any{
+							"cost": 10.6,
+						},
+						"user": map[string]any{
+							"cost": 10.6,
+						},
+						"user/auth": map[string]any{
+							"cost": 10.6,
+						},
 					},
 					"post": map[string]any{
-						"accounts":                           10.6,
-						"accounts/{account_id}/primary":      10.6,
-						"accounts/{account_id}/addresses":    10.6,
-						"accounts/{account_id}/transactions": 10.6,
-						"accounts/{account_id}/transactions/{transaction_id}/complete": 10.6,
-						"accounts/{account_id}/transactions/{transaction_id}/resend":   10.6,
-						"accounts/{account_id}/buys":                                   10.6,
-						"accounts/{account_id}/buys/{buy_id}/commit":                   10.6,
-						"accounts/{account_id}/sells":                                  10.6,
-						"accounts/{account_id}/sells/{sell_id}/commit":                 10.6,
-						"accounts/{account_id}/deposits":                               10.6,
-						"accounts/{account_id}/deposits/{deposit_id}/commit":           10.6,
-						"accounts/{account_id}/withdrawals":                            10.6,
-						"accounts/{account_id}/withdrawals/{withdrawal_id}/commit":     10.6,
+						"accounts": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/primary": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/addresses": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/transactions": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/transactions/{transaction_id}/complete": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/transactions/{transaction_id}/resend": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/buys": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/buys/{buy_id}/commit": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/sells": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/sells/{sell_id}/commit": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/deposits": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/deposits/{deposit_id}/commit": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/withdrawals": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/withdrawals/{withdrawal_id}/commit": map[string]any{
+							"cost": 10.6,
+						},
 					},
 					"put": map[string]any{
-						"accounts/{account_id}": 10.6,
-						"user":                  10.6,
+						"accounts/{account_id}": map[string]any{
+							"cost": 10.6,
+						},
+						"user": map[string]any{
+							"cost": 10.6,
+						},
 					},
 					"delete": map[string]any{
-						"accounts/{id}": 10.6,
-						"accounts/{account_id}/transactions/{transaction_id}": 10.6,
+						"accounts/{id}": map[string]any{
+							"cost": 10.6,
+						},
+						"accounts/{account_id}/transactions/{transaction_id}": map[string]any{
+							"cost": 10.6,
+						},
 					},
 				},
 			},
 			"v3": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"brokerage/time":                                 3,
-						"brokerage/market/product_book":                  3,
-						"brokerage/market/products":                      3,
-						"brokerage/market/products/{product_id}":         3,
-						"brokerage/market/products/{product_id}/candles": 3,
-						"brokerage/market/products/{product_id}/ticker":  3,
+						"brokerage/time": map[string]any{
+							"cost": 3,
+						},
+						"brokerage/market/product_book": map[string]any{
+							"cost": 3,
+						},
+						"brokerage/market/products": map[string]any{
+							"cost": 3,
+						},
+						"brokerage/market/products/{product_id}": map[string]any{
+							"cost": 3,
+						},
+						"brokerage/market/products/{product_id}/candles": map[string]any{
+							"cost": 3,
+						},
+						"brokerage/market/products/{product_id}/ticker": map[string]any{
+							"cost": 3,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"brokerage/accounts":                                 1,
-						"brokerage/accounts/{account_uuid}":                  1,
-						"brokerage/orders/historical/batch":                  1,
-						"brokerage/orders/historical/fills":                  1,
-						"brokerage/orders/historical/{order_id}":             1,
-						"brokerage/products":                                 3,
-						"brokerage/products/{product_id}":                    3,
-						"brokerage/products/{product_id}/candles":            3,
-						"brokerage/products/{product_id}/ticker":             3,
-						"brokerage/best_bid_ask":                             3,
-						"brokerage/product_book":                             3,
-						"brokerage/transaction_summary":                      3,
-						"brokerage/portfolios":                               1,
-						"brokerage/portfolios/{portfolio_uuid}":              1,
-						"brokerage/convert/trade/{trade_id}":                 1,
-						"brokerage/cfm/balance_summary":                      1,
-						"brokerage/cfm/positions":                            1,
-						"brokerage/cfm/positions/{product_id}":               1,
-						"brokerage/cfm/sweeps":                               1,
-						"brokerage/intx/portfolio/{portfolio_uuid}":          1,
-						"brokerage/intx/positions/{portfolio_uuid}":          1,
-						"brokerage/intx/positions/{portfolio_uuid}/{symbol}": 1,
-						"brokerage/payment_methods":                          1,
-						"brokerage/payment_methods/{payment_method_id}":      1,
-						"brokerage/key_permissions":                          1,
+						"brokerage/accounts": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/accounts/{account_uuid}": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/orders/historical/batch": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/orders/historical/fills": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/orders/historical/{order_id}": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/products": map[string]any{
+							"cost": 3,
+						},
+						"brokerage/products/{product_id}": map[string]any{
+							"cost": 3,
+						},
+						"brokerage/products/{product_id}/candles": map[string]any{
+							"cost": 3,
+						},
+						"brokerage/products/{product_id}/ticker": map[string]any{
+							"cost": 3,
+						},
+						"brokerage/best_bid_ask": map[string]any{
+							"cost": 3,
+						},
+						"brokerage/product_book": map[string]any{
+							"cost": 3,
+						},
+						"brokerage/transaction_summary": map[string]any{
+							"cost": 3,
+						},
+						"brokerage/portfolios": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/portfolios/{portfolio_uuid}": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/convert/trade/{trade_id}": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/cfm/balance_summary": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/cfm/positions": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/cfm/positions/{product_id}": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/cfm/sweeps": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/intx/portfolio/{portfolio_uuid}": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/intx/positions/{portfolio_uuid}": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/intx/positions/{portfolio_uuid}/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/payment_methods": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/payment_methods/{payment_method_id}": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/key_permissions": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"brokerage/orders":                   1,
-						"brokerage/orders/batch_cancel":      1,
-						"brokerage/orders/edit":              1,
-						"brokerage/orders/edit_preview":      1,
-						"brokerage/orders/preview":           1,
-						"brokerage/portfolios":               1,
-						"brokerage/portfolios/move_funds":    1,
-						"brokerage/convert/quote":            1,
-						"brokerage/convert/trade/{trade_id}": 1,
-						"brokerage/cfm/sweeps/schedule":      1,
-						"brokerage/intx/allocate":            1,
-						"brokerage/orders/close_position":    1,
+						"brokerage/orders": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/orders/batch_cancel": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/orders/edit": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/orders/edit_preview": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/orders/preview": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/portfolios": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/portfolios/move_funds": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/convert/quote": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/convert/trade/{trade_id}": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/cfm/sweeps/schedule": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/intx/allocate": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/orders/close_position": map[string]any{
+							"cost": 1,
+						},
 					},
 					"put": map[string]any{
-						"brokerage/portfolios/{portfolio_uuid}": 1,
+						"brokerage/portfolios/{portfolio_uuid}": map[string]any{
+							"cost": 1,
+						},
 					},
 					"delete": map[string]any{
-						"brokerage/portfolios/{portfolio_uuid}": 1,
-						"brokerage/cfm/sweeps":                  1,
+						"brokerage/portfolios/{portfolio_uuid}": map[string]any{
+							"cost": 1,
+						},
+						"brokerage/cfm/sweeps": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
@@ -317,6 +500,7 @@ func (this *CoinbaseCore) Describe() any {
 				"jumio_face_match_verification_required":    AuthenticationError,
 				"unverified_email":                          AuthenticationError,
 				"authentication_error":                      AuthenticationError,
+				"unauthorized":                              AuthenticationError,
 				"invalid_authentication_method":             AuthenticationError,
 				"invalid_token":                             AuthenticationError,
 				"revoked_token":                             AuthenticationError,
@@ -324,6 +508,7 @@ func (this *CoinbaseCore) Describe() any {
 				"invalid_scope":                             AuthenticationError,
 				"not_found":                                 ExchangeError,
 				"rate_limit_exceeded":                       RateLimitExceeded,
+				"resource_exhausted":                        RateLimitExceeded,
 				"internal_server_error":                     ExchangeError,
 				"UNSUPPORTED_ORDER_CONFIGURATION":           BadRequest,
 				"INSUFFICIENT_FUND":                         InsufficientFunds,
@@ -352,6 +537,7 @@ func (this *CoinbaseCore) Describe() any {
 			"CGLD": "CELO",
 		},
 		"options": map[string]any{
+			"mica":        true,
 			"usePrivate":  false,
 			"brokerId":    "ccxt",
 			"stablePairs": []any{"BUSD-USD", "CBETH-ETH", "DAI-USD", "GUSD-USD", "GYEN-USD", "PAX-USD", "PAX-USDT", "USDC-EUR", "USDC-GBP", "USDT-EUR", "USDT-GBP", "USDT-USD", "USDT-USDC", "WBTC-BTC"},
@@ -468,7 +654,8 @@ func (this *CoinbaseCore) Describe() any {
  * @method
  * @name coinbase#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-time#http-request
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/time
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-server-time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'v2PublicGetTime' or 'v3PublicGetBrokerageTime' default is 'v2PublicGetTime'
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
@@ -514,8 +701,8 @@ func (this *CoinbaseCore) FetchTime(optionalArgs ...any) <-chan any {
  * @method
  * @name coinbase#fetchAccounts
  * @description fetch all the accounts associated with a profile
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
@@ -530,15 +717,15 @@ func (this *CoinbaseCore) FetchAccounts(optionalArgs ...any) <-chan any {
 		var method any = this.SafeString(this.Options, "fetchAccounts", "fetchAccountsV3")
 		if IsTrue(IsEqual(method, "fetchAccountsV3")) {
 
-			retRes55919 := (<-this.FetchAccountsV3(params))
-			PanicOnError(retRes55919)
-			ch <- retRes55919
+			retRes58119 := (<-this.FetchAccountsV3(params))
+			PanicOnError(retRes58119)
+			ch <- retRes58119
 			return nil
 		}
 
-		retRes56115 := (<-this.FetchAccountsV2(params))
-		PanicOnError(retRes56115)
-		ch <- retRes56115
+		retRes58315 := (<-this.FetchAccountsV2(params))
+		PanicOnError(retRes58315)
+		ch <- retRes58315
 		return nil
 
 	}()
@@ -551,18 +738,20 @@ func (this *CoinbaseCore) FetchAccountsV2(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5658 := (<-this.LoadMarkets())
-		PanicOnError(retRes5658)
+			retRes58812 := (<-this.LoadMarkets())
+			PanicOnError(retRes58812)
+		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchAccounts", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes56919 := (<-this.FetchPaginatedCallCursor("fetchAccounts", nil, nil, nil, params, "next_starting_after", "starting_after", nil, 100))
-			PanicOnError(retRes56919)
-			ch <- retRes56919
+			retRes59319 := (<-this.FetchPaginatedCallCursor("fetchAccounts", nil, nil, nil, params, "next_starting_after", "starting_after", nil, 100))
+			PanicOnError(retRes59319)
+			ch <- retRes59319
 			return nil
 		}
 		var request any = map[string]any{
@@ -621,7 +810,7 @@ func (this *CoinbaseCore) FetchAccountsV2(optionalArgs ...any) <-chan any {
 		var accounts any = this.SafeList(response, "data", []any{})
 		var length any = GetArrayLength(accounts)
 		var lastIndex any = Subtract(length, 1)
-		var last any = this.SafeDict(accounts, lastIndex)
+		var last any = this.SafeDict(accounts, lastIndex, map[string]any{})
 		if IsTrue(IsTrue((!IsEqual(cursor, nil))) && IsTrue((!IsEqual(cursor, "")))) {
 			AddElementToObject(last, "next_starting_after", cursor)
 			AddElementToObject(accounts, lastIndex, last)
@@ -640,18 +829,20 @@ func (this *CoinbaseCore) FetchAccountsV3(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6348 := (<-this.LoadMarkets())
-		PanicOnError(retRes6348)
+			retRes65912 := (<-this.LoadMarkets())
+			PanicOnError(retRes65912)
+		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchAccounts", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes63819 := (<-this.FetchPaginatedCallCursor("fetchAccounts", nil, nil, nil, params, "cursor", "cursor", nil, 250))
-			PanicOnError(retRes63819)
-			ch <- retRes63819
+			retRes66419 := (<-this.FetchPaginatedCallCursor("fetchAccounts", nil, nil, nil, params, "cursor", "cursor", nil, 250))
+			PanicOnError(retRes66419)
+			ch <- retRes66419
 			return nil
 		}
 		var request any = map[string]any{
@@ -695,7 +886,7 @@ func (this *CoinbaseCore) FetchAccountsV3(optionalArgs ...any) <-chan any {
 		var cursor any = this.SafeString(response, "cursor")
 		if IsTrue(IsTrue(IsTrue((IsGreaterThan(accountsLength, 0))) && IsTrue((!IsEqual(cursor, nil)))) && IsTrue((!IsEqual(cursor, "")))) {
 			var lastIndex any = Subtract(accountsLength, 1)
-			var last any = this.SafeDict(accounts, lastIndex)
+			var last any = this.SafeDict(accounts, lastIndex, map[string]any{})
 			AddElementToObject(last, "cursor", cursor)
 			AddElementToObject(accounts, lastIndex, last)
 		}
@@ -711,7 +902,7 @@ func (this *CoinbaseCore) FetchAccountsV3(optionalArgs ...any) <-chan any {
  * @method
  * @name coinbase#fetchPortfolios
  * @description fetch all the portfolios
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/list-portfolios
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
@@ -818,7 +1009,7 @@ func (this *CoinbaseCore) ParseAccount(account any) any {
  * @method
  * @name coinbase#createDepositAddress
  * @description create a currency deposit address
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-addresses#create-address
+ * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/onchain-addresses
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -834,8 +1025,8 @@ func (this *CoinbaseCore) CreateDepositAddress(code any, optionalArgs ...any) <-
 		params = this.Omit(params, "account_id")
 		if IsTrue(IsEqual(accountId, nil)) {
 
-			retRes79412 := (<-this.LoadAccounts())
-			PanicOnError(retRes79412)
+			retRes82012 := (<-this.LoadAccounts())
+			PanicOnError(retRes82012)
 			for i := 0; IsLessThan(i, GetArrayLength(this.Accounts)); i++ {
 				var account any = GetValue(this.Accounts, i)
 				if IsTrue(IsTrue(IsEqual(GetValue(account, "code"), code)) && IsTrue(IsEqual(GetValue(account, "type"), "wallet"))) {
@@ -911,8 +1102,8 @@ func (this *CoinbaseCore) CreateDepositAddress(code any, optionalArgs ...any) <-
  * @name coinbase#fetchMySells
  * @ignore
  * @description fetch sells
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-sells#list-sells
- * @param {string} symbol not used by coinbase fetchMySells ()
+ * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
+ * @param {string} symbol not used by fetchMySells ()
  * @param {int} [since] timestamp in ms of the earliest sell, default is undefined
  * @param {int} [limit] max number of sells to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -933,15 +1124,18 @@ func (this *CoinbaseCore) FetchMySells(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 		var request any = this.PrepareAccountRequest(limit, params)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8738 := (<-this.LoadMarkets())
-		PanicOnError(retRes8738)
+			retRes90012 := (<-this.LoadMarkets())
+			PanicOnError(retRes90012)
+		}
 		var query any = this.Omit(params, []any{"account_id", "accountId"})
 
 		sells := (<-this.V2PrivateGetAccountsAccountIdSells(this.Extend(request, query)))
 		PanicOnError(sells)
+		var sellsData any = this.SafeList(sells, "data", []any{})
 
-		ch <- this.ParseTrades(GetValue(sells, "data"), nil, since, limit)
+		ch <- this.ParseTrades(sellsData, nil, since, limit)
 		return nil
 
 	}()
@@ -953,8 +1147,8 @@ func (this *CoinbaseCore) FetchMySells(optionalArgs ...any) <-chan any {
  * @name coinbase#fetchMyBuys
  * @ignore
  * @description fetch buys
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-buys#list-buys
- * @param {string} symbol not used by coinbase fetchMyBuys ()
+ * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
+ * @param {string} symbol not used by fetchMyBuys ()
  * @param {int} [since] timestamp in ms of the earliest buy, default is undefined
  * @param {int} [limit] max number of buys to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -975,15 +1169,18 @@ func (this *CoinbaseCore) FetchMyBuys(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 		var request any = this.PrepareAccountRequest(limit, params)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8948 := (<-this.LoadMarkets())
-		PanicOnError(retRes8948)
+			retRes92412 := (<-this.LoadMarkets())
+			PanicOnError(retRes92412)
+		}
 		var query any = this.Omit(params, []any{"account_id", "accountId"})
 
 		buys := (<-this.V2PrivateGetAccountsAccountIdBuys(this.Extend(request, query)))
 		PanicOnError(buys)
+		var buysData any = this.SafeList(buys, "data", []any{})
 
-		ch <- this.ParseTrades(GetValue(buys, "data"), nil, since, limit)
+		ch <- this.ParseTrades(buysData, nil, since, limit)
 		return nil
 
 	}()
@@ -1006,9 +1203,11 @@ func (this *CoinbaseCore) FetchTransactionsWithMethod(method any, optionalArgs .
 		requestparamsVariable := (<-this.PrepareAccountRequestWithCurrencyCode(code, limit, params))
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9038 := (<-this.LoadMarkets())
-		PanicOnError(retRes9038)
+			retRes93612 := (<-this.LoadMarkets())
+			PanicOnError(retRes93612)
+		}
 
 		response := (<-this.CallDynamically(method, this.Extend(request, params)))
 		PanicOnError(response)
@@ -1024,7 +1223,8 @@ func (this *CoinbaseCore) FetchTransactionsWithMethod(method any, optionalArgs .
  * @method
  * @name coinbase#fetchWithdrawals
  * @description Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
- * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-withdrawals#list-withdrawals
+ * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/withdraw-fiat
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -1058,9 +1258,9 @@ func (this *CoinbaseCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 			return nil
 		}
 
-		retRes92715 := (<-this.FetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdWithdrawals", code, since, limit, params))
-		PanicOnError(retRes92715)
-		ch <- retRes92715
+		retRes96215 := (<-this.FetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdWithdrawals", code, since, limit, params))
+		PanicOnError(retRes96215)
+		ch <- retRes96215
 		return nil
 
 	}()
@@ -1071,7 +1271,8 @@ func (this *CoinbaseCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
  * @method
  * @name coinbase#fetchDeposits
  * @description Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
- * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-deposits#list-deposits
+ * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/deposit-fiat
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -1105,9 +1306,9 @@ func (this *CoinbaseCore) FetchDeposits(optionalArgs ...any) <-chan any {
 			return nil
 		}
 
-		retRes94915 := (<-this.FetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdDeposits", code, since, limit, params))
-		PanicOnError(retRes94915)
-		ch <- retRes94915
+		retRes98515 := (<-this.FetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdDeposits", code, since, limit, params))
+		PanicOnError(retRes98515)
+		ch <- retRes98515
 		return nil
 
 	}()
@@ -1118,7 +1319,7 @@ func (this *CoinbaseCore) FetchDeposits(optionalArgs ...any) <-chan any {
  * @method
  * @name coinbase#fetchDepositsWithdrawals
  * @description fetch history of deposits and withdrawals
- * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
  * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
  * @param {int} [limit] max number of deposit/withdrawals to return, default = 50, Min: 1, Max: 100
@@ -1138,9 +1339,11 @@ func (this *CoinbaseCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan a
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9648 := (<-this.LoadMarkets())
-		PanicOnError(retRes9648)
+			retRes100112 := (<-this.LoadMarkets())
+			PanicOnError(retRes100112)
+		}
 
 		results := (<-this.FetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, params))
 		PanicOnError(results)
@@ -1352,13 +1555,14 @@ func (this *CoinbaseCore) ParseTransaction(transaction any, optionalArgs ...any)
 	var toObject any = this.SafeDict(transaction, "to")
 	var addressTo any = this.SafeString(toObject, "address")
 	var networkId any = this.SafeString(network, "network_name")
+	var code any = this.SafeCurrencyCode(currencyId, currency)
 	return map[string]any{
 		"info":        transaction,
 		"id":          id,
 		"txid":        this.SafeString(network, "hash", id),
 		"timestamp":   this.Parse8601(datetime),
 		"datetime":    datetime,
-		"network":     this.NetworkIdToCode(networkId),
+		"network":     this.NetworkIdToCode(networkId, code),
 		"address":     addressTo,
 		"addressTo":   addressTo,
 		"addressFrom": nil,
@@ -1367,7 +1571,7 @@ func (this *CoinbaseCore) ParseTransaction(transaction any, optionalArgs ...any)
 		"tagFrom":     nil,
 		"type":        typeVar,
 		"amount":      this.ParseNumber(amountStringAbs),
-		"currency":    this.SafeCurrencyCode(currencyId, currency),
+		"currency":    code,
 		"status":      status,
 		"updated":     this.Parse8601(this.SafeString(transaction, "updated_at")),
 		"fee": map[string]any{
@@ -1513,9 +1717,10 @@ func (this *CoinbaseCore) ParseTrade(trade any, optionalArgs ...any) any {
 /**
  * @method
  * @name coinbase#fetchMarkets
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproducts
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/list-products
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/list-public-products
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/currencies
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates
  * @description retrieves data on all markets for coinbase
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.usePrivate] use private endpoint for fetching markets
@@ -1530,21 +1735,21 @@ func (this *CoinbaseCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes133912 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes133912)
+			retRes137912 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes137912)
 		}
 		var method any = this.SafeString(this.Options, "fetchMarkets", "fetchMarketsV3")
 		if IsTrue(IsEqual(method, "fetchMarketsV3")) {
 
-			retRes134319 := (<-this.FetchMarketsV3(params))
-			PanicOnError(retRes134319)
-			ch <- retRes134319
+			retRes138319 := (<-this.FetchMarketsV3(params))
+			PanicOnError(retRes138319)
+			ch <- retRes138319
 			return nil
 		}
 
-		retRes134515 := (<-this.FetchMarketsV2(params))
-		PanicOnError(retRes134515)
-		ch <- retRes134515
+		retRes138515 := (<-this.FetchMarketsV2(params))
+		PanicOnError(retRes138515)
+		ch <- retRes138515
 		return nil
 
 	}()
@@ -1589,8 +1794,8 @@ func (this *CoinbaseCore) FetchMarketsV2(optionalArgs ...any) <-chan any {
 						"type":           "spot",
 						"spot":           true,
 						"margin":         false,
-						"swap":           false,
-						"future":         false,
+						"swap":           true,
+						"future":         true,
 						"option":         false,
 						"active":         nil,
 						"contract":       false,
@@ -1723,6 +1928,9 @@ func (this *CoinbaseCore) FetchMarketsV3(optionalArgs ...any) <-chan any {
 		//        has_promo_fee: false
 		//    }
 		//
+
+		promises := (<-promiseAll(spotUnresolvedPromises))
+		PanicOnError(promises)
 		var unresolvedContractPromises any = []any{}
 
 		{
@@ -1750,9 +1958,6 @@ func (this *CoinbaseCore) FetchMarketsV3(optionalArgs ...any) <-chan any {
 			}(this)
 
 		}
-
-		promises := (<-promiseAll(spotUnresolvedPromises))
-		PanicOnError(promises)
 		var contractPromises any = nil
 
 		{
@@ -2193,8 +2398,8 @@ func (this *CoinbaseCore) FetchCurrenciesFromCache(optionalArgs ...any) <-chan a
  * @method
  * @name coinbase#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/currencies
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -2252,35 +2457,43 @@ func (this *CoinbaseCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 			var id any = this.SafeString2(currency, "id", "code")
 			var code any = this.SafeCurrencyCode(id)
 			var name any = this.SafeString(currency, "name")
-			AddElementToObject(GetValue(this.Options, "networks"), code, ToLower(name))
-			AddElementToObject(GetValue(this.Options, "networksById"), code, ToLower(name))
+			if IsTrue(!IsEqual(code, nil)) {
+				AddElementToObject(GetValue(this.Options, "networks"), code, ToLower(name))
+			}
+			if IsTrue(!IsEqual(code, nil)) {
+				AddElementToObject(GetValue(this.Options, "networksById"), code, ToLower(name))
+			}
 			var typeVar any = Ternary(IsTrue((!IsEqual(assetId, nil))), "crypto", "fiat")
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"info":      currency,
-				"id":        id,
-				"code":      code,
-				"type":      typeVar,
-				"name":      name,
-				"active":    true,
-				"deposit":   nil,
-				"withdraw":  nil,
-				"fee":       nil,
-				"precision": nil,
-				"networks":  map[string]any{},
-				"limits": map[string]any{
-					"amount": map[string]any{
-						"min": this.SafeNumber(currency, "min_size"),
-						"max": nil,
+			if IsTrue(!IsEqual(code, nil)) {
+				AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
+					"info":      currency,
+					"id":        id,
+					"code":      code,
+					"type":      typeVar,
+					"name":      name,
+					"active":    true,
+					"deposit":   nil,
+					"withdraw":  nil,
+					"fee":       nil,
+					"precision": nil,
+					"networks":  map[string]any{},
+					"limits": map[string]any{
+						"amount": map[string]any{
+							"min": this.SafeNumber(currency, "min_size"),
+							"max": nil,
+						},
+						"withdraw": map[string]any{
+							"min": nil,
+							"max": nil,
+						},
 					},
-					"withdraw": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-				},
-			}))
+				}))
+			}
 			if IsTrue(!IsEqual(assetId, nil)) {
 				var lowerCaseName any = ToLower(name)
-				AddElementToObject(networks, code, lowerCaseName)
+				if IsTrue(!IsEqual(code, nil)) {
+					AddElementToObject(networks, code, lowerCaseName)
+				}
 				AddElementToObject(networksById, lowerCaseName, code)
 			}
 		}
@@ -2288,14 +2501,16 @@ func (this *CoinbaseCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		for i := 0; IsLessThan(i, GetArrayLength(ratesIds)); i++ {
 			var currencyId any = GetValue(ratesIds, i)
 			var code any = this.SafeCurrencyCode(currencyId)
-			if !IsTrue((InOp(result, code))) {
-				AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-					"info":     map[string]any{},
-					"id":       currencyId,
-					"code":     code,
-					"type":     "crypto",
-					"networks": map[string]any{},
-				}))
+			if IsTrue(IsTrue((IsEqual(code, nil))) || !IsTrue((InOp(result, code)))) {
+				if IsTrue(!IsEqual(code, nil)) {
+					AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
+						"info":     map[string]any{},
+						"id":       currencyId,
+						"code":     code,
+						"type":     "crypto",
+						"networks": map[string]any{},
+					}))
+				}
 			}
 		}
 		AddElementToObject(this.Options, "networks", this.Extend(networks, GetValue(this.Options, "networks")))
@@ -2312,8 +2527,9 @@ func (this *CoinbaseCore) FetchCurrencies(optionalArgs ...any) <-chan any {
  * @method
  * @name coinbase#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getproducts
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/list-products
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/list-public-products
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.usePrivate] use private endpoint for fetching tickers
@@ -2331,15 +2547,15 @@ func (this *CoinbaseCore) FetchTickers(optionalArgs ...any) <-chan any {
 		var method any = this.SafeString(this.Options, "fetchTickers", "fetchTickersV3")
 		if IsTrue(IsEqual(method, "fetchTickersV3")) {
 
-			retRes203919 := (<-this.FetchTickersV3(symbols, params))
-			PanicOnError(retRes203919)
-			ch <- retRes203919
+			retRes209019 := (<-this.FetchTickersV3(symbols, params))
+			PanicOnError(retRes209019)
+			ch <- retRes209019
 			return nil
 		}
 
-		retRes204115 := (<-this.FetchTickersV2(symbols, params))
-		PanicOnError(retRes204115)
-		ch <- retRes204115
+		retRes209215 := (<-this.FetchTickersV2(symbols, params))
+		PanicOnError(retRes209215)
+		ch <- retRes209215
 		return nil
 
 	}()
@@ -2354,9 +2570,11 @@ func (this *CoinbaseCore) FetchTickersV2(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes20458 := (<-this.LoadMarkets())
-		PanicOnError(retRes20458)
+			retRes209712 := (<-this.LoadMarkets())
+			PanicOnError(retRes209712)
+		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
 
@@ -2403,9 +2621,11 @@ func (this *CoinbaseCore) FetchTickersV3(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes20808 := (<-this.LoadMarkets())
-		PanicOnError(retRes20808)
+			retRes213412 := (<-this.LoadMarkets())
+			PanicOnError(retRes213412)
+		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -2490,10 +2710,9 @@ func (this *CoinbaseCore) FetchTickersV3(optionalArgs ...any) <-chan any {
  * @method
  * @name coinbase#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getmarkettrades
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-spot-price
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-buy-price
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-sell-price
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-market-trades
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-market-trades
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/prices
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.usePrivate] whether to use the private endpoint for fetching the ticker
@@ -2509,15 +2728,15 @@ func (this *CoinbaseCore) FetchTicker(symbol any, optionalArgs ...any) <-chan an
 		var method any = this.SafeString(this.Options, "fetchTicker", "fetchTickerV3")
 		if IsTrue(IsEqual(method, "fetchTickerV3")) {
 
-			retRes216419 := (<-this.FetchTickerV3(symbol, params))
-			PanicOnError(retRes216419)
-			ch <- retRes216419
+			retRes221819 := (<-this.FetchTickerV3(symbol, params))
+			PanicOnError(retRes221819)
+			ch <- retRes221819
 			return nil
 		}
 
-		retRes216615 := (<-this.FetchTickerV2(symbol, params))
-		PanicOnError(retRes216615)
-		ch <- retRes216615
+		retRes222015 := (<-this.FetchTickerV2(symbol, params))
+		PanicOnError(retRes222015)
+		ch <- retRes222015
 		return nil
 
 	}()
@@ -2530,9 +2749,11 @@ func (this *CoinbaseCore) FetchTickerV2(symbol any, optionalArgs ...any) <-chan 
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes21708 := (<-this.LoadMarkets())
-		PanicOnError(retRes21708)
+			retRes222512 := (<-this.LoadMarkets())
+			PanicOnError(retRes222512)
+		}
 		var market any = this.Market(symbol)
 		var request any = this.Extend(map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -2577,9 +2798,11 @@ func (this *CoinbaseCore) FetchTickerV3(symbol any, optionalArgs ...any) <-chan 
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes21998 := (<-this.LoadMarkets())
-		PanicOnError(retRes21998)
+			retRes225612 := (<-this.LoadMarkets())
+			PanicOnError(retRes225612)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"product_id": GetValue(market, "id"),
@@ -2791,7 +3014,9 @@ func (this *CoinbaseCore) ParseCustomBalance(response any, optionalArgs ...any) 
 					AddElementToObject(account, "free", Precise.StringAdd(GetValue(account, "free"), total))
 					AddElementToObject(account, "total", Precise.StringAdd(GetValue(account, "total"), total))
 				}
-				AddElementToObject(result, code, account)
+				if IsTrue(!IsEqual(code, nil)) {
+					AddElementToObject(result, code, account)
+				}
 			}
 		} else if IsTrue(this.InArray(typeVar, v3Accounts)) {
 			var available any = this.SafeDict(balance, "available_balance")
@@ -2813,7 +3038,9 @@ func (this *CoinbaseCore) ParseCustomBalance(response any, optionalArgs ...any) 
 					AddElementToObject(account, "used", Precise.StringAdd(GetValue(account, "used"), used))
 					AddElementToObject(account, "total", Precise.StringAdd(GetValue(account, "total"), total))
 				}
-				AddElementToObject(result, code, account)
+				if IsTrue(!IsEqual(code, nil)) {
+					AddElementToObject(result, code, account)
+				}
 			}
 		}
 	}
@@ -2824,9 +3051,9 @@ func (this *CoinbaseCore) ParseCustomBalance(response any, optionalArgs ...any) 
  * @method
  * @name coinbase#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmbalancesummary
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-balance-summary
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
  * @param {string} [params.type] "spot" (default) or "swap" or "future"
@@ -2840,9 +3067,11 @@ func (this *CoinbaseCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes24398 := (<-this.LoadMarkets())
-		PanicOnError(retRes24398)
+			retRes250212 := (<-this.LoadMarkets())
+			PanicOnError(retRes250212)
+		}
 		var request any = map[string]any{}
 		var response any = nil
 		var isV3 any = this.SafeBool(params, "v3", false)
@@ -2951,7 +3180,7 @@ func (this *CoinbaseCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @method
  * @name coinbase#fetchLedger
  * @description Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
- * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -2972,18 +3201,20 @@ func (this *CoinbaseCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes25448 := (<-this.LoadMarkets())
-		PanicOnError(retRes25448)
+			retRes260912 := (<-this.LoadMarkets())
+			PanicOnError(retRes260912)
+		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes254819 := (<-this.FetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "next_starting_after", "starting_after", nil, 100))
-			PanicOnError(retRes254819)
-			ch <- retRes254819
+			retRes261419 := (<-this.FetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "next_starting_after", "starting_after", nil, 100))
+			PanicOnError(retRes261419)
+			ch <- retRes261419
 			return nil
 		}
 		var currency any = nil
@@ -3000,7 +3231,8 @@ func (this *CoinbaseCore) FetchLedger(optionalArgs ...any) <-chan any {
 
 		response := (<-this.V2PrivateGetAccountsAccountIdTransactions(this.Extend(request, params)))
 		PanicOnError(response)
-		var ledger any = this.ParseLedger(GetValue(response, "data"), currency, since, limit)
+		var data any = this.SafeList(response, "data", []any{})
+		var ledger any = this.ParseLedger(data, currency, since, limit)
 		var length any = GetArrayLength(ledger)
 		if IsTrue(IsEqual(length, 0)) {
 
@@ -3360,12 +3592,14 @@ func (this *CoinbaseCore) FindAccountId(code any, optionalArgs ...any) <-chan an
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes29098 := (<-this.LoadMarkets())
-		PanicOnError(retRes29098)
+			retRes297712 := (<-this.LoadMarkets())
+			PanicOnError(retRes297712)
+		}
 
-		retRes29108 := (<-this.LoadAccounts(false, params))
-		PanicOnError(retRes29108)
+		retRes29798 := (<-this.LoadAccounts(false, params))
+		PanicOnError(retRes29798)
 		for i := 0; IsLessThan(i, GetArrayLength(this.Accounts)); i++ {
 			var account any = GetValue(this.Accounts, i)
 			if IsTrue(IsEqual(GetValue(account, "code"), code)) {
@@ -3439,7 +3673,7 @@ func (this *CoinbaseCore) PrepareAccountRequestWithCurrencyCode(optionalArgs ...
  * @method
  * @name coinbase#createMarketBuyOrderWithCost
  * @description create a market buy order by providing the symbol and cost
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3452,18 +3686,20 @@ func (this *CoinbaseCore) CreateMarketBuyOrderWithCost(symbol any, cost any, opt
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes29668 := (<-this.LoadMarkets())
-		PanicOnError(retRes29668)
+			retRes303612 := (<-this.LoadMarkets())
+			PanicOnError(retRes303612)
+		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
 		}
 		AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-		retRes297215 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
-		PanicOnError(retRes297215)
-		ch <- retRes297215
+		retRes304315 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
+		PanicOnError(retRes304315)
+		ch <- retRes304315
 		return nil
 
 	}()
@@ -3474,7 +3710,7 @@ func (this *CoinbaseCore) CreateMarketBuyOrderWithCost(symbol any, cost any, opt
  * @method
  * @name coinbase#createOrder
  * @description create a trade order
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -3508,9 +3744,11 @@ func (this *CoinbaseCore) CreateOrder(symbol any, typeVar any, side any, amount 
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes30058 := (<-this.LoadMarkets())
-		PanicOnError(retRes30058)
+			retRes307712 := (<-this.LoadMarkets())
+			PanicOnError(retRes307712)
+		}
 		var market any = this.Market(symbol)
 		var id any = this.SafeString(this.Options, "brokerId", "ccxt")
 		var request any = map[string]any{
@@ -3523,9 +3761,9 @@ func (this *CoinbaseCore) CreateOrder(symbol any, typeVar any, side any, amount 
 			params = this.Omit(params, "reduceOnly")
 			AddElementToObject(params, "amount", amount)
 
-			retRes301719 := (<-this.ClosePosition(symbol, side, params))
-			PanicOnError(retRes301719)
-			ch <- retRes301719
+			retRes309019 := (<-this.ClosePosition(symbol, side, params))
+			PanicOnError(retRes309019)
+			ch <- retRes309019
 			return nil
 		}
 		var triggerPrice any = this.SafeNumberN(params, []any{"stopPrice", "stop_price", "triggerPrice"})
@@ -3916,9 +4154,9 @@ func (this *CoinbaseCore) ParseTimeInForce(timeInForce any) any {
  * @method
  * @name coinbase#cancelOrder
  * @description cancels an open order
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
  * @param {string} id order id
- * @param {string} symbol not used by coinbase cancelOrder()
+ * @param {string} symbol not used by cancelOrder()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -3931,9 +4169,11 @@ func (this *CoinbaseCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes34058 := (<-this.LoadMarkets())
-		PanicOnError(retRes34058)
+			retRes347912 := (<-this.LoadMarkets())
+			PanicOnError(retRes347912)
+		}
 
 		orders := (<-this.CancelOrders([]any{id}, symbol, params))
 		PanicOnError(orders)
@@ -3949,9 +4189,9 @@ func (this *CoinbaseCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @method
  * @name coinbase#cancelOrders
  * @description cancel multiple orders
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
  * @param {string[]} ids order ids
- * @param {string} symbol not used by coinbase cancelOrders()
+ * @param {string} symbol not used by cancelOrders()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -3964,9 +4204,11 @@ func (this *CoinbaseCore) CancelOrders(ids any, optionalArgs ...any) <-chan any 
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes34218 := (<-this.LoadMarkets())
-		PanicOnError(retRes34218)
+			retRes349712 := (<-this.LoadMarkets())
+			PanicOnError(retRes349712)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -4007,7 +4249,7 @@ func (this *CoinbaseCore) CancelOrders(ids any, optionalArgs ...any) <-chan any 
  * @method
  * @name coinbase#editOrder
  * @description edit a trade order
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_editorder
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/edit-order
  * @param {string} id cancel order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -4029,9 +4271,11 @@ func (this *CoinbaseCore) EditOrder(id any, symbol any, typeVar any, side any, o
 		_ = price
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes34678 := (<-this.LoadMarkets())
-		PanicOnError(retRes34678)
+			retRes354512 := (<-this.LoadMarkets())
+			PanicOnError(retRes354512)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"order_id": id,
@@ -4075,7 +4319,7 @@ func (this *CoinbaseCore) EditOrder(id any, symbol any, typeVar any, side any, o
  * @method
  * @name coinbase#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorder
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/get-order
  * @param {string} id the order id
  * @param {string} symbol unified market symbol that the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4090,9 +4334,11 @@ func (this *CoinbaseCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes35098 := (<-this.LoadMarkets())
-		PanicOnError(retRes35098)
+			retRes358912 := (<-this.LoadMarkets())
+			PanicOnError(retRes358912)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -4155,7 +4401,7 @@ func (this *CoinbaseCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @method
  * @name coinbase#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
  * @param {string} symbol unified market symbol that the orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -4177,18 +4423,20 @@ func (this *CoinbaseCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes35758 := (<-this.LoadMarkets())
-		PanicOnError(retRes35758)
+			retRes365712 := (<-this.LoadMarkets())
+			PanicOnError(retRes365712)
+		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes357919 := (<-this.FetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "cursor", "cursor", nil, 1000))
-			PanicOnError(retRes357919)
-			ch <- retRes357919
+			retRes366219 := (<-this.FetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "cursor", "cursor", nil, 1000))
+			PanicOnError(retRes366219)
+			ch <- retRes366219
 			return nil
 		}
 		var market any = nil
@@ -4205,7 +4453,7 @@ func (this *CoinbaseCore) FetchOrders(optionalArgs ...any) <-chan any {
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start_date", this.Iso8601(since))
 		}
-		var until any = this.SafeIntegerN(params, []any{"until"})
+		var until any = this.SafeInteger(params, "until")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, []any{"until"})
 			AddElementToObject(request, "end_date", this.Iso8601(until))
@@ -4256,7 +4504,7 @@ func (this *CoinbaseCore) FetchOrders(optionalArgs ...any) <-chan any {
 		//     }
 		//
 		var orders any = this.SafeList(response, "orders", []any{})
-		var first any = this.SafeDict(orders, 0)
+		var first any = this.SafeDict(orders, 0, map[string]any{})
 		var cursor any = this.SafeString(response, "cursor")
 		if IsTrue(IsTrue((!IsEqual(cursor, nil))) && IsTrue((!IsEqual(cursor, "")))) {
 			AddElementToObject(first, "cursor", cursor)
@@ -4282,9 +4530,11 @@ func (this *CoinbaseCore) FetchOrdersByStatus(status any, optionalArgs ...any) <
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes36548 := (<-this.LoadMarkets())
-		PanicOnError(retRes36548)
+			retRes373812 := (<-this.LoadMarkets())
+			PanicOnError(retRes373812)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -4302,7 +4552,7 @@ func (this *CoinbaseCore) FetchOrdersByStatus(status any, optionalArgs ...any) <
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start_date", this.Iso8601(since))
 		}
-		var until any = this.SafeIntegerN(params, []any{"until"})
+		var until any = this.SafeInteger(params, "until")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, []any{"until"})
 			AddElementToObject(request, "end_date", this.Iso8601(until))
@@ -4323,7 +4573,7 @@ func (this *CoinbaseCore) FetchOrdersByStatus(status any, optionalArgs ...any) <
 		//                     }
 		//                 },
 		//                 "side": "BUY",
-		//                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4317",
+		//                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4314",
 		//                 "status": "FILLED",
 		//                 "time_in_force": "IMMEDIATE_OR_CANCEL",
 		//                 "created_time": "2023-01-18T01:37:37.975552Z",
@@ -4353,7 +4603,7 @@ func (this *CoinbaseCore) FetchOrdersByStatus(status any, optionalArgs ...any) <
 		//     }
 		//
 		var orders any = this.SafeList(response, "orders", []any{})
-		var first any = this.SafeDict(orders, 0)
+		var first any = this.SafeDict(orders, 0, map[string]any{})
 		var cursor any = this.SafeString(response, "cursor")
 		if IsTrue(IsTrue((!IsEqual(cursor, nil))) && IsTrue((!IsEqual(cursor, "")))) {
 			AddElementToObject(first, "cursor", cursor)
@@ -4371,7 +4621,7 @@ func (this *CoinbaseCore) FetchOrdersByStatus(status any, optionalArgs ...any) <
  * @method
  * @name coinbase#fetchOpenOrders
  * @description fetches information on all currently open orders
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
  * @param {string} symbol unified market symbol of the orders
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -4393,24 +4643,26 @@ func (this *CoinbaseCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes37448 := (<-this.LoadMarkets())
-		PanicOnError(retRes37448)
+			retRes383012 := (<-this.LoadMarkets())
+			PanicOnError(retRes383012)
+		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes374819 := (<-this.FetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, params, "cursor", "cursor", nil, 100))
-			PanicOnError(retRes374819)
-			ch <- retRes374819
+			retRes383519 := (<-this.FetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, params, "cursor", "cursor", nil, 100))
+			PanicOnError(retRes383519)
+			ch <- retRes383519
 			return nil
 		}
 
-		retRes375015 := (<-this.FetchOrdersByStatus("OPEN", symbol, since, limit, params))
-		PanicOnError(retRes375015)
-		ch <- retRes375015
+		retRes383715 := (<-this.FetchOrdersByStatus("OPEN", symbol, since, limit, params))
+		PanicOnError(retRes383715)
+		ch <- retRes383715
 		return nil
 
 	}()
@@ -4421,7 +4673,7 @@ func (this *CoinbaseCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name coinbase#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
  * @param {string} symbol unified market symbol of the orders
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] the maximum number of closed order structures to retrieve
@@ -4443,24 +4695,26 @@ func (this *CoinbaseCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes37678 := (<-this.LoadMarkets())
-		PanicOnError(retRes37678)
+			retRes385512 := (<-this.LoadMarkets())
+			PanicOnError(retRes385512)
+		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes377119 := (<-this.FetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, params, "cursor", "cursor", nil, 100))
-			PanicOnError(retRes377119)
-			ch <- retRes377119
+			retRes386019 := (<-this.FetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, params, "cursor", "cursor", nil, 1000))
+			PanicOnError(retRes386019)
+			ch <- retRes386019
 			return nil
 		}
 
-		retRes377315 := (<-this.FetchOrdersByStatus("FILLED", symbol, since, limit, params))
-		PanicOnError(retRes377315)
-		ch <- retRes377315
+		retRes386215 := (<-this.FetchOrdersByStatus("FILLED", symbol, since, limit, params))
+		PanicOnError(retRes386215)
+		ch <- retRes386215
 		return nil
 
 	}()
@@ -4471,7 +4725,7 @@ func (this *CoinbaseCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name coinbase#fetchCanceledOrders
  * @description fetches information on multiple canceled orders made by the user
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
  * @param {string} symbol unified market symbol of the orders
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] the maximum number of canceled order structures to retrieve
@@ -4492,9 +4746,9 @@ func (this *CoinbaseCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes378815 := (<-this.FetchOrdersByStatus("CANCELLED", symbol, since, limit, params))
-		PanicOnError(retRes378815)
-		ch <- retRes378815
+		retRes387715 := (<-this.FetchOrdersByStatus("CANCELLED", symbol, since, limit, params))
+		PanicOnError(retRes387715)
+		ch <- retRes387715
 		return nil
 
 	}()
@@ -4505,7 +4759,8 @@ func (this *CoinbaseCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name coinbase#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpubliccandles
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-product-candles
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-product-candles
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -4529,9 +4784,11 @@ func (this *CoinbaseCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes38078 := (<-this.LoadMarkets())
-		PanicOnError(retRes38078)
+			retRes389812 := (<-this.LoadMarkets())
+			PanicOnError(retRes389812)
+		}
 		var maxLimit any = 300
 		limit = Ternary(IsTrue((IsEqual(limit, nil))), maxLimit, mathMin(limit, maxLimit))
 		var paginate any = false
@@ -4540,9 +4797,9 @@ func (this *CoinbaseCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes381319 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, Subtract(maxLimit, 1)))
-			PanicOnError(retRes381319)
-			ch <- retRes381319
+			retRes390519 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, Subtract(maxLimit, 1)))
+			PanicOnError(retRes390519)
+			ch <- retRes390519
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -4550,7 +4807,7 @@ func (this *CoinbaseCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any
 			"product_id":  GetValue(market, "id"),
 			"granularity": this.SafeString(this.Timeframes, timeframe, timeframe),
 		}
-		var until any = this.SafeIntegerN(params, []any{"until", "end"})
+		var until any = this.SafeInteger2(params, "until", "end")
 		params = this.Omit(params, []any{"until"})
 		var duration any = this.ParseTimeframe(timeframe)
 		var requestedDuration any = Multiply(limit, duration)
@@ -4626,7 +4883,8 @@ func (this *CoinbaseCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @method
  * @name coinbase#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicmarkettrades
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-market-trades
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-market-trades
  * @param {string} symbol unified market symbol of the trades
  * @param {int} [since] not used by coinbase fetchTrades
  * @param {int} [limit] the maximum number of trade structures to fetch
@@ -4645,9 +4903,11 @@ func (this *CoinbaseCore) FetchTrades(symbol any, optionalArgs ...any) <-chan an
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes39008 := (<-this.LoadMarkets())
-		PanicOnError(retRes39008)
+			retRes399412 := (<-this.LoadMarkets())
+			PanicOnError(retRes399412)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"product_id": GetValue(market, "id"),
@@ -4710,7 +4970,7 @@ func (this *CoinbaseCore) FetchTrades(symbol any, optionalArgs ...any) <-chan an
  * @method
  * @name coinbase#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfills
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-fills
  * @param {string} symbol unified market symbol of the trades
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] the maximum number of trade structures to fetch
@@ -4732,18 +4992,20 @@ func (this *CoinbaseCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes39608 := (<-this.LoadMarkets())
-		PanicOnError(retRes39608)
+			retRes405612 := (<-this.LoadMarkets())
+			PanicOnError(retRes405612)
+		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes396419 := (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "cursor", "cursor", nil, 250))
-			PanicOnError(retRes396419)
-			ch <- retRes396419
+			retRes406119 := (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "cursor", "cursor", nil, 250))
+			PanicOnError(retRes406119)
+			ch <- retRes406119
 			return nil
 		}
 		var market any = nil
@@ -4760,7 +5022,7 @@ func (this *CoinbaseCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start_sequence_timestamp", this.Iso8601(since))
 		}
-		var until any = this.SafeIntegerN(params, []any{"until"})
+		var until any = this.SafeInteger(params, "until")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, []any{"until"})
 			AddElementToObject(request, "end_sequence_timestamp", this.Iso8601(until))
@@ -4792,7 +5054,7 @@ func (this *CoinbaseCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		//     }
 		//
 		var trades any = this.SafeList(response, "fills", []any{})
-		var first any = this.SafeDict(trades, 0)
+		var first any = this.SafeDict(trades, 0, map[string]any{})
 		var cursor any = this.SafeString(response, "cursor")
 		if IsTrue(IsTrue((!IsEqual(cursor, nil))) && IsTrue((!IsEqual(cursor, "")))) {
 			AddElementToObject(first, "cursor", cursor)
@@ -4810,12 +5072,13 @@ func (this *CoinbaseCore) FetchMyTrades(optionalArgs ...any) <-chan any {
  * @method
  * @name coinbase#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproductbook
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-product-book
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-product-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the order book
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *CoinbaseCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -4826,9 +5089,11 @@ func (this *CoinbaseCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes40318 := (<-this.LoadMarkets())
-		PanicOnError(retRes40318)
+			retRes413012 := (<-this.LoadMarkets())
+			PanicOnError(retRes413012)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"product_id": GetValue(market, "id"),
@@ -4885,7 +5150,7 @@ func (this *CoinbaseCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
  * @method
  * @name coinbase#fetchBidsAsks
  * @description fetches the bid and ask price and volume for multiple markets
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getbestbidask
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-best-bid-ask
  * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -4899,9 +5164,11 @@ func (this *CoinbaseCore) FetchBidsAsks(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes40838 := (<-this.LoadMarkets())
-		PanicOnError(retRes40838)
+			retRes418412 := (<-this.LoadMarkets())
+			PanicOnError(retRes418412)
+		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -4968,9 +5235,11 @@ func (this *CoinbaseCore) Withdraw(code any, amount any, address any, optionalAr
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes41338 := (<-this.LoadMarkets())
-		PanicOnError(retRes41338)
+			retRes423612 := (<-this.LoadMarkets())
+			PanicOnError(retRes423612)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"type":     "send",
@@ -5065,7 +5334,7 @@ func (this *CoinbaseCore) Withdraw(code any, amount any, address any, optionalAr
  * @method
  * @name coinbase#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
+ * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/onchain-addresses
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -5077,9 +5346,11 @@ func (this *CoinbaseCore) FetchDepositAddressesByNetwork(code any, optionalArgs 
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes42258 := (<-this.LoadMarkets())
-		PanicOnError(retRes42258)
+			retRes433012 := (<-this.LoadMarkets())
+			PanicOnError(retRes433012)
+		}
 		var currency any = this.Currency(code)
 		var request any = nil
 		requestparamsVariable := (<-this.PrepareAccountRequestWithCurrencyCode(GetValue(currency, "code"), nil, params))
@@ -5237,7 +5508,7 @@ func (this *CoinbaseCore) ParseDepositAddress(depositAddress any, optionalArgs .
  * @method
  * @name coinbase#deposit
  * @description make a deposit
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#deposit-funds
+ * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/deposit-fiat
  * @param {string} code unified currency code
  * @param {float} amount the amount to deposit
  * @param {string} id the payment method id to be used for the deposit, can be retrieved from v2PrivateGetPaymentMethods
@@ -5252,9 +5523,11 @@ func (this *CoinbaseCore) Deposit(code any, amount any, id any, optionalArgs ...
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes43828 := (<-this.LoadMarkets())
-		PanicOnError(retRes43828)
+			retRes448912 := (<-this.LoadMarkets())
+			PanicOnError(retRes448912)
+		}
 		var accountId any = this.SafeString2(params, "account_id", "accountId")
 		params = this.Omit(params, []any{"account_id", "accountId"})
 		if IsTrue(IsEqual(accountId, nil)) {
@@ -5328,7 +5601,7 @@ func (this *CoinbaseCore) Deposit(code any, amount any, id any, optionalArgs ...
  * @method
  * @name coinbase#fetchDeposit
  * @description fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#show-deposit
+ * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/deposit-fiat
  * @param {string} id deposit id
  * @param {string} [code] unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5344,9 +5617,11 @@ func (this *CoinbaseCore) FetchDeposit(id any, optionalArgs ...any) <-chan any {
 		_ = code
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes44558 := (<-this.LoadMarkets())
-		PanicOnError(retRes44558)
+			retRes456412 := (<-this.LoadMarkets())
+			PanicOnError(retRes456412)
+		}
 		var accountId any = this.SafeString2(params, "account_id", "accountId")
 		params = this.Omit(params, []any{"account_id", "accountId"})
 		if IsTrue(IsEqual(accountId, nil)) {
@@ -5417,7 +5692,7 @@ func (this *CoinbaseCore) FetchDeposit(id any, optionalArgs ...any) <-chan any {
  * @method
  * @name coinbase#fetchDepositMethodIds
  * @description fetch the deposit id for a fiat currency associated with this account
- * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/payment-methods/list-payment-methods
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/?id=deposit-id-structure}
  */
@@ -5428,9 +5703,11 @@ func (this *CoinbaseCore) FetchDepositMethodIds(optionalArgs ...any) <-chan any 
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes45228 := (<-this.LoadMarkets())
-		PanicOnError(retRes45228)
+			retRes463312 := (<-this.LoadMarkets())
+			PanicOnError(retRes463312)
+		}
 
 		response := (<-this.V3PrivateGetBrokeragePaymentMethods(params))
 		PanicOnError(response)
@@ -5466,7 +5743,7 @@ func (this *CoinbaseCore) FetchDepositMethodIds(optionalArgs ...any) <-chan any 
  * @method
  * @name coinbase#fetchDepositMethodId
  * @description fetch the deposit id for a fiat currency associated with this account
- * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/payment-methods/get-payment-method
  * @param {string} id the deposit payment method id
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/?id=deposit-id-structure}
@@ -5478,9 +5755,11 @@ func (this *CoinbaseCore) FetchDepositMethodId(id any, optionalArgs ...any) <-ch
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes45578 := (<-this.LoadMarkets())
-		PanicOnError(retRes45578)
+			retRes467012 := (<-this.LoadMarkets())
+			PanicOnError(retRes467012)
+		}
 		var request any = map[string]any{
 			"payment_method_id": id,
 		}
@@ -5536,7 +5815,7 @@ func (this *CoinbaseCore) ParseDepositMethodId(depositId any) any {
  * @method
  * @name coinbase#fetchConvertQuote
  * @description fetch a quote for converting from one currency to another
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_createconvertquote
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/create-convert-quote
  * @param {string} fromCode the currency that you want to sell and convert from
  * @param {string} toCode the currency that you want to buy and convert into
  * @param {float} [amount] how much you want to trade in units of the from currency
@@ -5555,9 +5834,11 @@ func (this *CoinbaseCore) FetchConvertQuote(fromCode any, toCode any, optionalAr
 		_ = amount
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes46178 := (<-this.LoadMarkets())
-		PanicOnError(retRes46178)
+			retRes473212 := (<-this.LoadMarkets())
+			PanicOnError(retRes473212)
+		}
 		var request any = map[string]any{
 			"from_account": fromCode,
 			"to_account":   toCode,
@@ -5579,7 +5860,7 @@ func (this *CoinbaseCore) FetchConvertQuote(fromCode any, toCode any, optionalAr
  * @method
  * @name coinbase#createConvertTrade
  * @description convert from one currency to another
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_commitconverttrade
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/commit-convert-trade
  * @param {string} id the id of the trade that you want to make
  * @param {string} fromCode the currency that you want to sell and convert from
  * @param {string} toCode the currency that you want to buy and convert into
@@ -5596,9 +5877,11 @@ func (this *CoinbaseCore) CreateConvertTrade(id any, fromCode any, toCode any, o
 		_ = amount
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes46418 := (<-this.LoadMarkets())
-		PanicOnError(retRes46418)
+			retRes475812 := (<-this.LoadMarkets())
+			PanicOnError(retRes475812)
+		}
 		var request any = map[string]any{
 			"trade_id":     id,
 			"from_account": fromCode,
@@ -5620,7 +5903,7 @@ func (this *CoinbaseCore) CreateConvertTrade(id any, fromCode any, toCode any, o
  * @method
  * @name coinbase#fetchConvertTrade
  * @description fetch the data for a conversion trade
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getconverttrade
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/get-convert-trade
  * @param {string} id the id of the trade that you want to commit
  * @param {string} code the unified currency code that was converted from
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5636,9 +5919,11 @@ func (this *CoinbaseCore) FetchConvertTrade(id any, optionalArgs ...any) <-chan 
 		_ = code
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes46648 := (<-this.LoadMarkets())
-		PanicOnError(retRes46648)
+			retRes478312 := (<-this.LoadMarkets())
+			PanicOnError(retRes478312)
+		}
 		if IsTrue(IsEqual(code, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchConvertTrade() requires a code argument")))
 		}
@@ -5691,12 +5976,85 @@ func (this *CoinbaseCore) ParseConversion(conversion any, optionalArgs ...any) a
 
 /**
  * @method
+ * @name coinbase#transfer
+ * @description transfer currency internally between portfolios of the same account
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/move-portfolios-funds
+ * @param {string} code unified currency code
+ * @param {float} amount amount to transfer
+ * @param {string} fromAccount the portfolio uuid to transfer funds from
+ * @param {string} toAccount the portfolio uuid to transfer funds to
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+ */
+func (this *CoinbaseCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		retRes48388 := (<-this.LoadMarkets())
+		PanicOnError(retRes48388)
+		var currency any = this.Currency(code)
+		var request any = map[string]any{
+			"funds": map[string]any{
+				"value":    this.CurrencyToPrecision(code, amount),
+				"currency": GetValue(currency, "id"),
+			},
+			"source_portfolio_uuid": fromAccount,
+			"target_portfolio_uuid": toAccount,
+		}
+
+		response := (<-this.V3PrivatePostBrokeragePortfoliosMoveFunds(this.Extend(request, params)))
+		PanicOnError(response)
+		//
+		//     {
+		//         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+		//         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+		//     }
+		//
+		var transfer any = this.ParseTransfer(response, currency)
+		AddElementToObject(transfer, "amount", amount)
+		AddElementToObject(transfer, "status", "ok")
+
+		ch <- transfer
+		return nil
+
+	}()
+	return ch
+}
+func (this *CoinbaseCore) ParseTransfer(transfer any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+	//         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+	//     }
+	//
+	currency := GetArg(optionalArgs, 0, nil)
+	_ = currency
+	var currencyCode any = this.SafeCurrencyCode(nil, currency)
+	return map[string]any{
+		"info":        transfer,
+		"id":          nil,
+		"timestamp":   nil,
+		"datetime":    nil,
+		"currency":    currencyCode,
+		"amount":      nil,
+		"fromAccount": this.SafeString(transfer, "source_portfolio_uuid"),
+		"toAccount":   this.SafeString(transfer, "target_portfolio_uuid"),
+		"status":      nil,
+	}
+}
+
+/**
+ * @method
  * @name coinbase#closePosition
  * @description *futures only* closes open positions for a market
- * @see https://docs.cdp.coinbase.com/coinbase-app/trade/reference/retailbrokerageapi_closeposition
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/close-position
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} [side] not used by coinbase
- * @param {object} [params] extra parameters specific to the coinbase api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string}  params.clientOrderId *mandatory* the client order id of the position to close
  * @param {float} [params.size] the size of the position to close, optional
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -5710,9 +6068,11 @@ func (this *CoinbaseCore) ClosePosition(symbol any, optionalArgs ...any) <-chan 
 		_ = side
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes47188 := (<-this.LoadMarkets())
-		PanicOnError(retRes47188)
+			retRes489612 := (<-this.LoadMarkets())
+			PanicOnError(retRes489612)
+		}
 		var market any = this.Market(symbol)
 		var clientOrderId any = this.SafeString2(params, "client_order_id", "clientOrderId")
 		params = this.Omit(params, "clientOrderId")
@@ -5739,8 +6099,8 @@ func (this *CoinbaseCore) ClosePosition(symbol any, optionalArgs ...any) <-chan 
  * @method
  * @name coinbase#fetchPositions
  * @description fetch all open positions
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmpositions
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxpositions
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/list-futures-positions
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/list-perpetuals-positions
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.portfolio] the portfolio UUID to fetch positions for
@@ -5755,9 +6115,11 @@ func (this *CoinbaseCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes47468 := (<-this.LoadMarkets())
-		PanicOnError(retRes47468)
+			retRes492612 := (<-this.LoadMarkets())
+			PanicOnError(retRes492612)
+		}
 		symbols = this.MarketSymbols(symbols)
 		var market any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -5800,8 +6162,8 @@ func (this *CoinbaseCore) FetchPositions(optionalArgs ...any) <-chan any {
  * @method
  * @name coinbase#fetchPosition
  * @description fetch data on a single open contract trade position
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxposition
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmposition
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/get-perpetuals-position
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-position
  * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.product_id] *futures only* the product id of the position to fetch, required for futures markets only
@@ -5815,9 +6177,11 @@ func (this *CoinbaseCore) FetchPosition(symbol any, optionalArgs ...any) <-chan 
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes47858 := (<-this.LoadMarkets())
-		PanicOnError(retRes47858)
+			retRes496712 := (<-this.LoadMarkets())
+			PanicOnError(retRes496712)
+		}
 		var market any = this.Market(symbol)
 		var response any = nil
 		if IsTrue(GetValue(market, "future")) {
@@ -5997,7 +6361,7 @@ func (this *CoinbaseCore) ParsePosition(position any, optionalArgs ...any) any {
 /**
  * @method
  * @name coinbase#fetchTradingFees
- * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_gettransactionsummary/
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/fees/get-transaction-summary
  * @description fetch the trading fees for multiple markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap'
@@ -6010,9 +6374,11 @@ func (this *CoinbaseCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes49608 := (<-this.LoadMarkets())
-		PanicOnError(retRes49608)
+			retRes514412 := (<-this.LoadMarkets())
+			PanicOnError(retRes514412)
+		}
 		var typeVar any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
@@ -6050,7 +6416,7 @@ func (this *CoinbaseCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		//
 		var data any = this.SafeDict(response, "fee_tier", map[string]any{})
 		var taker_fee any = this.SafeNumber(data, "taker_fee_rate")
-		var marker_fee any = this.SafeNumber(data, "maker_fee_rate")
+		var maker_fee any = this.SafeNumber(data, "maker_fee_rate")
 		var result any = map[string]any{}
 		for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
 			var symbol any = GetValue(this.Symbols, i)
@@ -6059,8 +6425,8 @@ func (this *CoinbaseCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 				AddElementToObject(result, symbol, map[string]any{
 					"info":       response,
 					"symbol":     symbol,
-					"maker":      taker_fee,
-					"taker":      marker_fee,
+					"maker":      maker_fee,
+					"taker":      taker_fee,
 					"percentage": true,
 				})
 			}
@@ -6077,7 +6443,7 @@ func (this *CoinbaseCore) FetchTradingFees(optionalArgs ...any) <-chan any {
  * @method
  * @name coinbase#fetchPortfolioDetails
  * @description Fetch details for a specific portfolio by UUID
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/get-portfolio-breakdown
  * @param {string} portfolioUuid The unique identifier of the portfolio to fetch
  * @param {Dict} [params] Extra parameters specific to the exchange API endpoint
  * @returns {any[]} An account structure <https://docs.ccxt.com/?id=account-structure>
@@ -6089,9 +6455,11 @@ func (this *CoinbaseCore) FetchPortfolioDetails(portfolioUuid any, optionalArgs 
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes50228 := (<-this.LoadMarkets())
-		PanicOnError(retRes50228)
+			retRes520812 := (<-this.LoadMarkets())
+			PanicOnError(retRes520812)
+		}
 		var request any = map[string]any{
 			"portfolio_uuid": portfolioUuid,
 		}
@@ -6259,9 +6627,9 @@ func (this *CoinbaseCore) Sign(path any, optionalArgs ...any) any {
 				}
 			}
 			// v3: 'GET' doesn't need payload in the signature. inside url is enough
-			// https://docs.cloud.coinbase.com/advanced-trade/docs/auth#example-request
+			// https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
 			// v2: 'GET' require payload in the signature
-			// https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
+			// https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
 			var isCloudAPiKey any = IsTrue((IsGreaterThanOrEqual(GetIndexOf(this.ApiKey, "organizations/"), 0))) || IsTrue((StartsWith(this.Secret, "-----BEGIN")))
 			// using the size might be fragile, so we add an option to force v2 cloud api key if needed
 			var isV2CloudAPiKey any = IsTrue(IsTrue(IsEqual(GetLength(this.Secret), 88)) || IsTrue(this.SafeBool(this.Options, "v2CloudAPiKey", false))) || IsTrue(EndsWith(this.Secret, "="))
@@ -6401,7 +6769,7 @@ func (this *CoinbaseCore) HandleErrors(code any, reason any, url any, method any
  * @method
  * @name coinbase#fetchDepositAddresses
  * @description fetch deposit addresses for multiple currencies (when available)
- * @see https://coinbase-migration.mintlify.app/coinbase-app/transfer-apis/onchain-addresses
+ * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/onchain-addresses
  * @param {string[]} [codes] list of unified currency codes, default is undefined (all currencies)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.accountId] account ID to fetch deposit addresses for
@@ -6416,9 +6784,11 @@ func (this *CoinbaseCore) FetchDepositAddresses(optionalArgs ...any) <-chan any 
 		_ = codes
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes53088 := (<-this.LoadMarkets())
-		PanicOnError(retRes53088)
+			retRes549612 := (<-this.LoadMarkets())
+			PanicOnError(retRes549612)
+		}
 		var request any = this.PrepareAccountRequest(nil, params)
 
 		response := (<-this.V2PrivateGetAccountsAccountIdAddresses(this.Extend(request, params)))

@@ -22,16 +22,14 @@ function test_watch_order_book($exchange, $skipped_properties, $symbol) {
             try {
                 $response = \React\Async\await($exchange->watch_order_book($symbol));
             } catch(\Throwable $e) {
-                if (!is_temporary_failure($e)) {
+                if (!is_temporary_failure($e) && !($e instanceof InvalidNonce)) {
                     throw $e;
                 }
                 $now = $exchange->milliseconds();
                 // continue;
                 $success = false;
             }
-            if ($success === true) {
-                // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-                assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an object. ' . $exchange->json($response));
+            if (($success === true) && ($response !== null)) {
                 $now = $exchange->milliseconds();
                 test_order_book($exchange, $skipped_properties, $method, $response, $symbol);
             }

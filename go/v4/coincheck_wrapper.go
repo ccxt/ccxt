@@ -28,6 +28,22 @@ func NewCoincheckFromCore(core *CoincheckCore) *Coincheck {
 
 /**
  * @method
+ * @name coincheck#fetchStatus
+ * @description the latest known information on the availability of the exchange API
+ * @see https://coincheck.com/documents/exchange/api#status-retrieval
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+ */
+func (this *Coincheck) FetchStatus(params ...any) (Status, error) {
+	res := <-this.Core.FetchStatus(params...)
+	if IsError(res) {
+		return Status{}, CreateReturnError(res)
+	}
+	return NewStatus(res), nil
+}
+
+/**
+ * @method
  * @name coincheck#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://coincheck.com/documents/exchange/api#order-transactions-pagination
@@ -95,7 +111,7 @@ func (this *Coincheck) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Ord
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Coincheck) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -293,7 +309,7 @@ func (this *Coincheck) CreateOrder(symbol string, typeVar string, side string, a
  * @description cancels an open order
  * @see https://coincheck.com/documents/exchange/api#order-cancel
  * @param {string} id order id
- * @param {string} symbol not used by coincheck cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -575,10 +591,10 @@ func (this *Coincheck) FetchDepositAddressesByNetwork(code string, options ...Fe
 func (this *Coincheck) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Coincheck) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Coincheck) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Coincheck) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Coincheck) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Coincheck) FetchFreeBalance(params ...any) (Balance, error) {
@@ -713,7 +729,7 @@ func (this *Coincheck) FetchPosition(symbol string, options ...FetchPositionOpti
 func (this *Coincheck) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Coincheck) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Coincheck) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Coincheck) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -730,9 +746,6 @@ func (this *Coincheck) FetchPositionsRisk(options ...FetchPositionsRiskOptions) 
 }
 func (this *Coincheck) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
-}
-func (this *Coincheck) FetchStatus(params ...any) (map[string]any, error) {
-	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Coincheck) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
@@ -854,7 +867,7 @@ func (this *Coincheck) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Coincheck) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Coincheck) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Coincheck) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Coincheck) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -899,7 +912,7 @@ func (this *Coincheck) FetchTradesWs(symbol string, options ...FetchTradesWsOpti
 func (this *Coincheck) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Coincheck) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Coincheck) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Coincheck) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

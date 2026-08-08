@@ -11,81 +11,113 @@ public partial class cryptomus : Exchange
 {
     public cryptomus (object args = null): base(args) {}
 
+    /// <summary>Calls the publicGetV2UserApiExchangeMarkets endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetV2UserApiExchangeMarkets (object parameters = null)
     {
         return await this.callAsync ("publicGetV2UserApiExchangeMarkets",parameters);
     }
 
+    /// <summary>Calls the publicGetV2UserApiExchangeMarketPrice endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetV2UserApiExchangeMarketPrice (object parameters = null)
     {
         return await this.callAsync ("publicGetV2UserApiExchangeMarketPrice",parameters);
     }
 
+    /// <summary>Calls the publicGetV1ExchangeMarketAssets endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetV1ExchangeMarketAssets (object parameters = null)
     {
         return await this.callAsync ("publicGetV1ExchangeMarketAssets",parameters);
     }
 
+    /// <summary>Calls the publicGetV1ExchangeMarketOrderBookCurrencyPair endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetV1ExchangeMarketOrderBookCurrencyPair (object parameters = null)
     {
         return await this.callAsync ("publicGetV1ExchangeMarketOrderBookCurrencyPair",parameters);
     }
 
+    /// <summary>Calls the publicGetV1ExchangeMarketTickers endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetV1ExchangeMarketTickers (object parameters = null)
     {
         return await this.callAsync ("publicGetV1ExchangeMarketTickers",parameters);
     }
 
+    /// <summary>Calls the publicGetV1ExchangeMarketTradesCurrencyPair endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> publicGetV1ExchangeMarketTradesCurrencyPair (object parameters = null)
     {
         return await this.callAsync ("publicGetV1ExchangeMarketTradesCurrencyPair",parameters);
     }
 
+    /// <summary>Calls the privateGetV2UserApiExchangeOrders endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetV2UserApiExchangeOrders (object parameters = null)
     {
         return await this.callAsync ("privateGetV2UserApiExchangeOrders",parameters);
     }
 
+    /// <summary>Calls the privateGetV2UserApiExchangeOrdersHistory endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetV2UserApiExchangeOrdersHistory (object parameters = null)
     {
         return await this.callAsync ("privateGetV2UserApiExchangeOrdersHistory",parameters);
     }
 
+    /// <summary>Calls the privateGetV2UserApiExchangeAccountBalance endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetV2UserApiExchangeAccountBalance (object parameters = null)
     {
         return await this.callAsync ("privateGetV2UserApiExchangeAccountBalance",parameters);
     }
 
+    /// <summary>Calls the privateGetV2UserApiExchangeAccountTariffs endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetV2UserApiExchangeAccountTariffs (object parameters = null)
     {
         return await this.callAsync ("privateGetV2UserApiExchangeAccountTariffs",parameters);
     }
 
+    /// <summary>Calls the privateGetV2UserApiPaymentServices endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetV2UserApiPaymentServices (object parameters = null)
     {
         return await this.callAsync ("privateGetV2UserApiPaymentServices",parameters);
     }
 
+    /// <summary>Calls the privateGetV2UserApiPayoutServices endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetV2UserApiPayoutServices (object parameters = null)
     {
         return await this.callAsync ("privateGetV2UserApiPayoutServices",parameters);
     }
 
+    /// <summary>Calls the privateGetV2UserApiTransactionList endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateGetV2UserApiTransactionList (object parameters = null)
     {
         return await this.callAsync ("privateGetV2UserApiTransactionList",parameters);
     }
 
+    /// <summary>Calls the privatePostV2UserApiExchangeOrders endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostV2UserApiExchangeOrders (object parameters = null)
     {
         return await this.callAsync ("privatePostV2UserApiExchangeOrders",parameters);
     }
 
+    /// <summary>Calls the privatePostV2UserApiExchangeOrdersMarket endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privatePostV2UserApiExchangeOrdersMarket (object parameters = null)
     {
         return await this.callAsync ("privatePostV2UserApiExchangeOrdersMarket",parameters);
     }
 
+    /// <summary>Calls the privateDeleteV2UserApiExchangeOrdersOrderId endpoint.</summary>
+    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
     public async Task<object> privateDeleteV2UserApiExchangeOrdersOrderId (object parameters = null)
     {
         return await this.callAsync ("privateDeleteV2UserApiExchangeOrdersOrderId",parameters);

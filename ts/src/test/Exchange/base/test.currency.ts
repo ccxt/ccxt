@@ -1,9 +1,13 @@
 import assert from 'assert';
-import { Currency, Exchange } from "../../../../ccxt";
+import { Currency, Exchange } from "../../../../ccxt.js";
 import testSharedMethods from './test.sharedMethods.js';
+import type { Dict } from '../../../base/types.js';
 
 function testCurrency (exchange: Exchange, skippedProperties: object, method: string, entry: Currency) {
-    const format = {
+    if (entry === undefined) {
+        return;
+    }
+    const format: Dict = {
         'id': 'btc', // string literal for referencing within an exchange
         'code': 'BTC', // uppercase string literal of a pair of currencies
     };
@@ -56,7 +60,7 @@ function testCurrency (exchange: Exchange, skippedProperties: object, method: st
     try {
         testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     } catch (e) {
-        const message = exchange.exceptionMessage (e);
+        const message: string = exchange.exceptionMessage (e);
         // check structure if key is numeric, not string
         if (message.indexOf ('"id" key') >= 0) {
             // @ts-ignore

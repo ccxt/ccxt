@@ -4,7 +4,7 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import { base64 } from '../../scure-base/index.js';
+import { base64 } from '@scure/base';
 /* eslint-disable no-param-reassign */
 export const IS_BROWSER = typeof window !== 'undefined';
 const STRING_ZERO = '0';

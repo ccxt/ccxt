@@ -144,9 +144,8 @@ func (this *P2bCore) Describe() any {
 			"1d": "1d",
 		},
 		"urls": map[string]any{
-			"extension": ".json",
-			"referral":  "https://p2pb2b.com?referral=ee784c53",
-			"logo":      "https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755",
+			"referral": "https://p2pb2b.com?referral=ee784c53",
+			"logo":     "https://github.com/user-attachments/assets/122f0c86-f3a6-4334-910f-4d8edc865696",
 			"api": map[string]any{
 				"public":  "https://api.p2pb2b.com/api/v2/public",
 				"private": "https://api.p2pb2b.com/api/v2",
@@ -158,28 +157,64 @@ func (this *P2bCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"markets":      1,
-					"market":       1,
-					"tickers":      1,
-					"ticker":       1,
-					"book":         1,
-					"history":      1,
-					"depth/result": 1,
-					"market/kline": 1,
+					"markets": map[string]any{
+						"cost": 1,
+					},
+					"market": map[string]any{
+						"cost": 1,
+					},
+					"tickers": map[string]any{
+						"cost": 1,
+					},
+					"ticker": map[string]any{
+						"cost": 1,
+					},
+					"book": map[string]any{
+						"cost": 1,
+					},
+					"history": map[string]any{
+						"cost": 1,
+					},
+					"depth/result": map[string]any{
+						"cost": 1,
+					},
+					"market/kline": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"post": map[string]any{
-					"account/balances":             1,
-					"account/balance":              1,
-					"order/new":                    1,
-					"order/cancel":                 1,
-					"orders":                       1,
-					"account/market_order_history": 1,
-					"account/market_deal_history":  1,
-					"account/order":                1,
-					"account/order_history":        1,
-					"account/executed_history":     1,
+					"account/balances": map[string]any{
+						"cost": 1,
+					},
+					"account/balance": map[string]any{
+						"cost": 1,
+					},
+					"order/new": map[string]any{
+						"cost": 1,
+					},
+					"order/cancel": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"account/market_order_history": map[string]any{
+						"cost": 1,
+					},
+					"account/market_deal_history": map[string]any{
+						"cost": 1,
+					},
+					"account/order": map[string]any{
+						"cost": 1,
+					},
+					"account/order_history": map[string]any{
+						"cost": 1,
+					},
+					"account/executed_history": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -438,9 +473,11 @@ func (this *P2bCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes4478 := (<-this.LoadMarkets())
-		PanicOnError(retRes4478)
+			retRes44712 := (<-this.LoadMarkets())
+			PanicOnError(retRes44712)
+		}
 
 		response := (<-this.PublicGetTickers(params))
 		PanicOnError(response)
@@ -494,9 +531,11 @@ func (this *P2bCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes4888 := (<-this.LoadMarkets())
-		PanicOnError(retRes4888)
+			retRes49012 := (<-this.LoadMarkets())
+			PanicOnError(retRes49012)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market": GetValue(market, "id"),
@@ -610,7 +649,7 @@ func (this *P2bCore) ParseTicker(ticker any, optionalArgs ...any) any {
  *
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *P2bCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -621,9 +660,11 @@ func (this *P2bCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any 
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5978 := (<-this.LoadMarkets())
-		PanicOnError(retRes5978)
+			retRes60112 := (<-this.LoadMarkets())
+			PanicOnError(retRes60112)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market": GetValue(market, "id"),
@@ -692,9 +733,11 @@ func (this *P2bCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6498 := (<-this.LoadMarkets())
-		PanicOnError(retRes6498)
+			retRes65512 := (<-this.LoadMarkets())
+			PanicOnError(retRes65512)
+		}
 		var lastId any = this.SafeInteger(params, "lastId")
 		if IsTrue(IsEqual(lastId, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchTrades () requires an extra parameter params[\"lastId\"]")))
@@ -801,7 +844,7 @@ func (this *P2bCore) ParseTrade(trade any, optionalArgs ...any) any {
 		"amount":       this.SafeString(trade, "amount"),
 		"cost":         this.SafeString(trade, "deal"),
 		"fee": map[string]any{
-			"currency": GetValue(market, "quote"),
+			"currency": this.SafeString(market, "quote"),
 			"cost":     this.SafeString2(trade, "fee", "deal_fee"),
 		},
 	}, market)
@@ -833,9 +876,11 @@ func (this *P2bCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes7688 := (<-this.LoadMarkets())
-		PanicOnError(retRes7688)
+			retRes77612 := (<-this.LoadMarkets())
+			PanicOnError(retRes77612)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market":   GetValue(market, "id"),
@@ -910,9 +955,11 @@ func (this *P2bCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8368 := (<-this.LoadMarkets())
-		PanicOnError(retRes8368)
+			retRes84612 := (<-this.LoadMarkets())
+			PanicOnError(retRes84612)
+		}
 
 		response := (<-this.PrivatePostAccountBalances(params))
 		PanicOnError(response)
@@ -995,9 +1042,11 @@ func (this *P2bCore) CreateOrder(symbol any, typeVar any, side any, amount any, 
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9058 := (<-this.LoadMarkets())
-		PanicOnError(retRes9058)
+			retRes91712 := (<-this.LoadMarkets())
+			PanicOnError(retRes91712)
+		}
 		if IsTrue(IsEqual(typeVar, "market")) {
 			panic(BadRequest(Add(this.Id, " createOrder () can only accept orders with type \"limit\"")))
 		}
@@ -1064,9 +1113,11 @@ func (this *P2bCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9578 := (<-this.LoadMarkets())
-		PanicOnError(retRes9578)
+			retRes97112 := (<-this.LoadMarkets())
+			PanicOnError(retRes97112)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market":  GetValue(market, "id"),
@@ -1136,9 +1187,11 @@ func (this *P2bCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders () requires the symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10088 := (<-this.LoadMarkets())
-		PanicOnError(retRes10088)
+			retRes102412 := (<-this.LoadMarkets())
+			PanicOnError(retRes102412)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market": GetValue(market, "id"),
@@ -1211,9 +1264,11 @@ func (this *P2bCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10628 := (<-this.LoadMarkets())
-		PanicOnError(retRes10628)
+			retRes108012 := (<-this.LoadMarkets())
+			PanicOnError(retRes108012)
+		}
 		var market any = this.SafeMarket(symbol)
 		var request any = map[string]any{
 			"orderId": id,
@@ -1288,9 +1343,11 @@ func (this *P2bCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11188 := (<-this.LoadMarkets())
-		PanicOnError(retRes11188)
+			retRes113812 := (<-this.LoadMarkets())
+			PanicOnError(retRes113812)
+		}
 		var until any = this.SafeInteger(params, "until")
 		params = this.Omit(params, "until")
 		if IsTrue(IsEqual(until, nil)) {
@@ -1307,10 +1364,12 @@ func (this *P2bCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			panic(BadRequest(Add(this.Id, " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")))
 		}
 		var market any = this.Market(symbol)
+		var sinceSec any = this.ParseToInt(Divide(since, 1000))
+		var untilSec any = this.ParseToInt(Divide(until, 1000))
 		var request any = map[string]any{
 			"market":    GetValue(market, "id"),
-			"startTime": this.ParseToInt(Divide(since, 1000)),
-			"endTime":   this.ParseToInt(Divide(until, 1000)),
+			"startTime": sinceSec,
+			"endTime":   untilSec,
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
@@ -1382,9 +1441,11 @@ func (this *P2bCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11918 := (<-this.LoadMarkets())
-		PanicOnError(retRes11918)
+			retRes121512 := (<-this.LoadMarkets())
+			PanicOnError(retRes121512)
+		}
 		var until any = this.SafeInteger(params, "until")
 		params = this.Omit(params, "until")
 		var market any = nil
@@ -1404,9 +1465,11 @@ func (this *P2bCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		if IsTrue(IsGreaterThan((Subtract(until, since)), 86400000)) {
 			panic(BadRequest(Add(this.Id, " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")))
 		}
+		var sinceSec any = this.ParseToInt(Divide(since, 1000))
+		var untilSec any = this.ParseToInt(Divide(until, 1000))
 		var request any = map[string]any{
-			"startTime": this.ParseToInt(Divide(since, 1000)),
-			"endTime":   this.ParseToInt(Divide(until, 1000)),
+			"startTime": sinceSec,
+			"endTime":   untilSec,
 		}
 		if IsTrue(!IsEqual(market, nil)) {
 			AddElementToObject(request, "market", GetValue(market, "id"))

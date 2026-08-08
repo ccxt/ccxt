@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class BaseTest
 {
-        async public Task baseTestsInit()
+        async public Task<object> baseTestsInit()
         {
             await testLanguageSpecific();
             testConstants();
@@ -44,6 +44,7 @@ public partial class BaseTest
             testInArray();
             testFilterBy();
             testHandleMethods();
+            testNetworkMethods();
             testRemoveRepeatedElementsFromArray();
             testIsEmpty();
             testBinaryConcat();
@@ -65,8 +66,10 @@ public partial class BaseTest
             testUnique();
             testUrlencodeNested();
             await testSleep();
+            await testFetchHistory();
             testIo();
             testIsJsonEncodedObject();
             testEncodeDecode();
+            return true;
         }
 }

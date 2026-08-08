@@ -40,10 +40,8 @@ const precisionConstants = {
     NO_PADDING,
     PAD_WITH_ZERO,
 };
-const assert = (x, y) => { if (!x)
+const assert = (x, y = undefined) => { if (!x)
     throw new Error(y || 'assertion failed'); };
-/*  ------------------------------------------------------------------------ */
-// See https://stackoverflow.com/questions/1685680/how-to-avoid-scientific-notation-for-large-numbers-in-javascript for discussion
 function numberToString(x) {
     if (x === undefined)
         return undefined;
@@ -89,6 +87,9 @@ const truncate_to_string = (num, precision = 0) => {
 };
 const truncate = (num, precision = 0) => parseFloat(truncate_to_string(num, precision));
 function precisionFromString(str) {
+    if (str === undefined) {
+        return 0;
+    }
     // support string formats like '1e-4'
     if (str.indexOf('e') > -1 || str.indexOf('E') > -1) {
         const numStr = str.replace(/\d\.?\d*[eE]/, '');
@@ -125,7 +126,7 @@ const _decimalToPrecision = (x, roundingMode, numPrecisionDigits, countingMode =
     if (numPrecisionDigits < 0) {
         const toNearest = Math.pow(10, -numPrecisionDigits);
         if (roundingMode === ROUND) {
-            return (toNearest * _decimalToPrecision(x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString();
+            return (toNearest * parseFloat(_decimalToPrecision(x / toNearest, roundingMode, 0, countingMode, paddingMode))).toString();
         }
         if (roundingMode === TRUNCATE) {
             return (x - (x % toNearest)).toString();
@@ -138,7 +139,7 @@ const _decimalToPrecision = (x, roundingMode, numPrecisionDigits, countingMode =
         if (roundingMode === TRUNCATE) {
             // First, truncate the string to avoid floating-point precision issues
             const xStr = numberToString(x);
-            const truncatedX = truncate_to_string(xStr, Math.max(0, newNumPrecisionDigits));
+            const truncatedX = truncate_to_string((xStr === undefined) ? '' : xStr, Math.max(0, newNumPrecisionDigits));
             const xNum = Number(truncatedX);
             const scale = Math.pow(10, newNumPrecisionDigits);
             const xScaled = Math.round(xNum * scale);

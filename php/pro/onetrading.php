@@ -7,13 +7,15 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class onetrading extends \ccxt\async\onetrading {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -30,7 +32,7 @@ class onetrading extends \ccxt\async\onetrading {
             ),
             'urls' => array(
                 'api' => array(
-                    'ws' => 'wss://streams.onetrading.com/',
+                    'ws' => 'wss://streams.fast.onetrading.com',
                 ),
             ),
             'options' => array(
@@ -81,7 +83,7 @@ class onetrading extends \ccxt\async\onetrading {
         ));
     }
 
-    public function watch_balance($params = array ()): PromiseInterface {
+    public function watch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              *
@@ -107,10 +109,10 @@ class onetrading extends \ccxt\async\onetrading {
             );
             $request = $this->deep_extend($subscribe, $params);
             return Async\await($this->watch($url, $messageHash, $request, $subscribeHash, $request));
-        }) ();
+        })();
     }
 
-    public function handle_balance_snapshot($client, $message) {
+    public function handle_balance_snapshot(Client $client, mixed $message) {
         //
         // snapshot
         //     {
@@ -141,10 +143,10 @@ class onetrading extends \ccxt\async\onetrading {
         //
         $this->balance = $this->parse_balance($message);
         $messageHash = 'balance';
-        $client->resolve ($this->balance, $messageHash);
+        $client->resolve($this->balance, $messageHash);
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -155,7 +157,9 @@ class onetrading extends \ccxt\async\onetrading {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $subscriptionHash = 'MARKET_TICKER';
@@ -170,10 +174,10 @@ class onetrading extends \ccxt\async\onetrading {
                 ),
             );
             return Async\await($this->watch_many($messageHash, $request, $subscriptionHash, array( $symbol ), $params));
-        }) ();
+        })();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
@@ -184,7 +188,9 @@ class onetrading extends \ccxt\async\onetrading {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an array of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             if ($symbols === null) {
                 $symbols = array();
@@ -202,10 +208,10 @@ class onetrading extends \ccxt\async\onetrading {
             );
             $tickers = Async\await($this->watch_many($messageHash, $request, $subscriptionHash, $symbols, $params));
             return $this->filter_by_array($tickers, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //         "ticker_updates" => [array(
@@ -232,12 +238,12 @@ class onetrading extends \ccxt\async\onetrading {
             $timestamp = $this->parse8601($datetime);
             $this->tickers[$symbol]['timestamp'] = $timestamp;
             $this->tickers[$symbol]['datetime'] = $this->iso8601($timestamp);
-            $client->resolve ($this->tickers[$symbol], 'ticker.' . $symbol);
+            $client->resolve($this->tickers[$symbol], 'ticker.' . $symbol);
         }
-        $client->resolve ($this->tickers, 'tickers');
+        $client->resolve($this->tickers, 'tickers');
     }
 
-    public function parse_ws_ticker($ticker, $market = null) {
+    public function parse_ws_ticker(mixed $ticker, ?array $market = null) {
         //
         //     {
         //         "instrument" => "ETH_BTC",
@@ -274,7 +280,7 @@ class onetrading extends \ccxt\async\onetrading {
         ), $market);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -287,7 +293,9 @@ class onetrading extends \ccxt\async\onetrading {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = 'myTrades';
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -310,7 +318,7 @@ class onetrading extends \ccxt\async\onetrading {
             $request = $this->deep_extend($subscribe, $params);
             $trades = Async\await($this->watch($url, $messageHash, $request, $subscribeHash, $request));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit($symbol, $limit);
             }
             $trades = $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
             $numTrades = count($trades);
@@ -318,22 +326,24 @@ class onetrading extends \ccxt\async\onetrading {
                 return Async\await($this->watch_my_trades($symbol, $since, $limit, $params));
             }
             return $trades;
-        }) ();
+        })();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
-             * @see https://developers.bitpanda.com/exchange/#$market-ticker-channel
+             * @see https://docs.onetrading.com/websocket/orderbook/introduction
              *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'book:' . $symbol;
@@ -352,23 +362,23 @@ class onetrading extends \ccxt\async\onetrading {
                 ),
             );
             $orderbook = Async\await($this->watch_many($messageHash, $request, $subscriptionHash, array( $symbol ), $params));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //  $snapshot
         //     {
         //         "instrument_code" => "ETH_BTC",
-        //         "bids" => [
+        //         "bids" => array(
         //             ['0.053595', "4.5352"],
         //             ...
-        //         ],
-        //         "asks" => [
+        //         ),
+        //         "asks" => array(
         //             ['0.055455', "0.2821"],
         //             ...
-        //         ],
+        //         ),
         //         "channel_name" => "ORDER_BOOK",
         //         "type" => "ORDER_BOOK_SNAPSHOT",
         //         "time" => "2022-06-23T15:38:02.196282Z"
@@ -377,9 +387,9 @@ class onetrading extends \ccxt\async\onetrading {
         //  update
         //     {
         //         "instrument_code" => "ETH_BTC",
-        //         "changes" => [
+        //         "changes" => array(
         //             ["BUY", '0.053593', "8.0587"]
-        //         ],
+        //         ),
         //         "channel_name" => "ORDER_BOOK",
         //         "type" => "ORDER_BOOK_UPDATE",
         //         "time" => "2022-06-23T15:38:02.751301Z"
@@ -397,7 +407,7 @@ class onetrading extends \ccxt\async\onetrading {
         }
         if ($type === 'ORDER_BOOK_SNAPSHOT') {
             $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'bids', 'asks');
-            $orderbook->reset ($snapshot);
+            $orderbook->reset($snapshot);
         } elseif ($type === 'ORDER_BOOK_UPDATE') {
             $changes = $this->safe_value($message, 'changes', array());
             $this->handle_deltas($orderbook, $changes);
@@ -408,27 +418,27 @@ class onetrading extends \ccxt\async\onetrading {
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
         $this->orderbooks[$symbol] = $orderbook;
-        $client->resolve ($orderbook, $channel);
+        $client->resolve($orderbook, $channel);
     }
 
-    public function handle_delta($orderbook, $delta) {
+    public function handle_delta(mixed $orderbook, mixed $delta) {
         //
         //   array( 'BUY', "0.053595", "0" )
         //
-        $bidAsk = $this->parse_bid_ask($delta, 1, 2);
+        $bidAsk = $this->parse_order_book_bid_ask($delta, 1, 2);
         $type = $this->safe_string($delta, 0);
         if ($type === 'BUY') {
             $bids = $orderbook['bids'];
-            $bids->storeArray ($bidAsk);
+            $bids->storeArray($bidAsk);
         } elseif ($type === 'SELL') {
             $asks = $orderbook['asks'];
-            $asks->storeArray ($bidAsk);
+            $asks->storeArray($bidAsk);
         } else {
             throw new NotSupported($this->id . ' watchOrderBook () received unknown change $type ' . $this->json($delta));
         }
     }
 
-    public function handle_deltas($orderbook, $deltas) {
+    public function handle_deltas(mixed $orderbook, mixed $deltas) {
         //
         //    array(
         //       array( 'BUY', "0.053593", "0" ),
@@ -440,7 +450,7 @@ class onetrading extends \ccxt\async\onetrading {
         }
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -454,7 +464,9 @@ class onetrading extends \ccxt\async\onetrading {
              * @param {string} [$params->channel] can listen to $orders using ACCOUNT_HISTORY or TRADING
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = 'orders';
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -477,7 +489,7 @@ class onetrading extends \ccxt\async\onetrading {
             $request = $this->deep_extend($subscribe, $params);
             $orders = Async\await($this->watch($url, $messageHash, $request, $subscribeHash, $request));
             if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
+                $limit = $orders->getLimit($symbol, $limit);
             }
             $orders = $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
             $numOrders = count($orders);
@@ -485,10 +497,10 @@ class onetrading extends \ccxt\async\onetrading {
                 return Async\await($this->watch_orders($symbol, $since, $limit, $params));
             }
             return $orders;
-        }) ();
+        })();
     }
 
-    public function handle_trading(Client $client, $message) {
+    public function handle_trading(Client $client, mixed $message) {
         //
         //     {
         //         "order_book_sequence" => 892925263,
@@ -535,16 +547,16 @@ class onetrading extends \ccxt\async\onetrading {
         //
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $order = $this->parse_trading_order($message);
         $orders = $this->orders;
-        $orders->append ($order);
-        $client->resolve ($this->orders, 'orders:' . $order['symbol']);
-        $client->resolve ($this->orders, 'orders');
+        $orders->append($order);
+        $client->resolve($this->orders, 'orders:' . $order['symbol']);
+        $client->resolve($this->orders, 'orders');
     }
 
-    public function parse_trading_order($order, $market = null) {
+    public function parse_trading_order(mixed $order, ?array $market = null) {
         //
         //     {
         //         "order_book_sequence" => 892925263,
@@ -657,7 +669,7 @@ class onetrading extends \ccxt\async\onetrading {
         ), $market);
     }
 
-    public function parse_trading_order_status($status) {
+    public function parse_trading_order_status(mixed $status) {
         $statuses = array(
             'CANCELLED' => 'canceled',
             'SELF_TRADE' => 'rejected',
@@ -670,7 +682,7 @@ class onetrading extends \ccxt\async\onetrading {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function handle_orders(Client $client, $message) {
+    public function handle_orders(Client $client, mixed $message) {
         //
         //  snapshot
         //     {
@@ -728,11 +740,11 @@ class onetrading extends \ccxt\async\onetrading {
         //
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $this->myTrades = new ArrayCacheBySymbolById ($limit);
+            $this->myTrades = new ArrayCacheBySymbolById($limit);
         }
         $rawOrders = $this->safe_value($message, 'orders', array());
         $rawOrdersLength = count($rawOrders);
@@ -743,21 +755,21 @@ class onetrading extends \ccxt\async\onetrading {
         for ($i = 0; $i < count($rawOrders); $i++) {
             $order = $this->parse_order($rawOrders[$i]);
             $symbol = $this->safe_string($order, 'symbol', '');
-            $orders->append ($order);
-            $client->resolve ($this->orders, 'orders:' . $symbol);
+            $orders->append($order);
+            $client->resolve($this->orders, 'orders:' . $symbol);
             $rawTrades = $this->safe_value($rawOrders[$i], 'trades', array());
             for ($ii = 0; $ii < count($rawTrades); $ii++) {
                 $trade = $this->parse_trade($rawTrades[$ii]);
                 $symbol = $this->safe_string($trade, 'symbol', $symbol);
-                $this->myTrades.append ($trade);
-                $client->resolve ($this->myTrades, 'myTrades:' . $symbol);
+                $this->myTrades->append($trade);
+                $client->resolve($this->myTrades, 'myTrades:' . $symbol);
             }
         }
-        $client->resolve ($this->orders, 'orders');
-        $client->resolve ($this->myTrades, 'myTrades');
+        $client->resolve($this->orders, 'orders');
+        $client->resolve($this->myTrades, 'myTrades');
     }
 
-    public function handle_account_update(Client $client, $message) {
+    public function handle_account_update(Client $client, mixed $message) {
         //
         // order created
         //     {
@@ -981,11 +993,11 @@ class onetrading extends \ccxt\async\onetrading {
         //
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $this->myTrades = new ArrayCacheBySymbolById ($limit);
+            $this->myTrades = new ArrayCacheBySymbolById($limit);
         }
         $symbol = null;
         $orders = $this->orders;
@@ -1009,14 +1021,14 @@ class onetrading extends \ccxt\async\onetrading {
                 'timestamp' => $this->parse8601($datetime),
                 'datetime' => $datetime,
             );
-            $orders->append ($orderObject);
+            $orders->append($orderObject);
         } else {
             $parsed = $this->parse_order($update);
             $symbol = $this->safe_string($parsed, 'symbol', '');
-            $orders->append ($parsed);
+            $orders->append($parsed);
         }
-        $client->resolve ($this->orders, 'orders:' . $symbol);
-        $client->resolve ($this->orders, 'orders');
+        $client->resolve($this->orders, 'orders:' . $symbol);
+        $client->resolve($this->orders, 'orders');
         // $update balance
         $balanceKeys = array( 'locked', 'unlocked', 'spent', 'spent_on_fees', 'credited', 'deducted' );
         for ($i = 0; $i < count($balanceKeys); $i++) {
@@ -1025,19 +1037,19 @@ class onetrading extends \ccxt\async\onetrading {
                 $this->update_balance($newBalance);
             }
         }
-        $client->resolve ($this->balance, 'balance');
+        $client->resolve($this->balance, 'balance');
         // $update trades
         if ($updateType === 'TRADE_SETTLED') {
             $parsed = $this->parse_trade($update);
             $symbol = $this->safe_string($parsed, 'symbol', '');
             $myTrades = $this->myTrades;
-            $myTrades->append ($parsed);
-            $client->resolve ($this->myTrades, 'myTrades:' . $symbol);
-            $client->resolve ($this->myTrades, 'myTrades');
+            $myTrades->append($parsed);
+            $client->resolve($this->myTrades, 'myTrades:' . $symbol);
+            $client->resolve($this->myTrades, 'myTrades');
         }
     }
 
-    public function parse_ws_order_status($status) {
+    public function parse_ws_order_status(mixed $status) {
         $statuses = array(
             'ORDER_REJECTED' => 'rejected',
             'ORDER_CLOSED' => 'closed',
@@ -1046,7 +1058,7 @@ class onetrading extends \ccxt\async\onetrading {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function update_balance($balance) {
+    public function update_balance(mixed $balance) {
         //
         //     {
         //         "currency_code" => "EUR",
@@ -1060,11 +1072,13 @@ class onetrading extends \ccxt\async\onetrading {
         $account = $this->account();
         $account['free'] = $this->safe_string($balance, 'new_available');
         $account['used'] = $this->safe_string($balance, 'new_locked');
-        $this->balance[$code] = $account;
+        if ($code !== null) {
+            $this->balance[$code] = $account;
+        }
         $this->balance = $this->safe_balance($this->balance);
     }
 
-    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -1078,7 +1092,9 @@ class onetrading extends \ccxt\async\onetrading {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $marketId = $market['id'];
@@ -1108,9 +1124,13 @@ class onetrading extends \ccxt\async\onetrading {
             }
             $subscriptionMarketId = $this->safe_value($subscription, $marketId);
             if ($subscriptionMarketId === null) {
-                $subscription[$marketId] = array();
+                if ($marketId !== null) {
+                    $subscription[$marketId] = array();
+                }
             }
-            $subscription[$marketId][$timeframe] = true;
+            if (($marketId !== null) && ($timeframe !== null)) {
+                $subscription[$marketId][$timeframe] = true;
+            }
             $properties = array();
             $marketIds = is_array($subscription) ? array_keys($subscription) : array();
             for ($i = 0; $i < count($marketIds); $i++) {
@@ -1135,13 +1155,13 @@ class onetrading extends \ccxt\async\onetrading {
             );
             $ohlcv = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $subscriptionHash, $subscription));
             if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit ($symbol, $limit);
+                $limit = $ohlcv->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        }) ();
+        })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //  snapshot
         //     {
@@ -1192,18 +1212,23 @@ class onetrading extends \ccxt\async\onetrading {
             $this->safe_number($message, 'volume'),
         );
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-            $stored = new ArrayCacheByTimestamp ($limit);
+            $stored = new ArrayCacheByTimestamp($limit);
         }
-        $stored->append ($parsed);
-        $this->ohlcvs[$symbol][$timeframe] = $stored;
-        $client->resolve ($stored, $channel);
+        $stored->append($parsed);
+        if ($symbol !== null && $timeframe !== null) {
+            $this->ohlcvs[$symbol][$timeframe] = $stored;
+        }
+        $client->resolve($stored, $channel);
     }
 
-    public function find_timeframe($timeframe, $timeframes = null) {
+    public function find_timeframe(mixed $timeframe, mixed $timeframes = null) {
         $timeframes = $timeframes || $this->timeframes;
+        if ($timeframes === null) {
+            throw new ArgumentsRequired($this->id . ' findTimeframe() $timeframes is required');
+        }
         $keys = is_array($timeframes) ? array_keys($timeframes) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
@@ -1214,7 +1239,7 @@ class onetrading extends \ccxt\async\onetrading {
         return null;
     }
 
-    public function handle_subscriptions(Client $client, $message) {
+    public function handle_subscriptions(Client $client, mixed $message) {
         //
         //     {
         //         "channels" => [array(
@@ -1229,7 +1254,7 @@ class onetrading extends \ccxt\async\onetrading {
         return $message;
     }
 
-    public function handle_heartbeat(Client $client, $message) {
+    public function handle_heartbeat(Client $client, mixed $message) {
         //
         //     {
         //         "subscription" => "SYSTEM",
@@ -1241,7 +1266,7 @@ class onetrading extends \ccxt\async\onetrading {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //     {
         //         "error" => "MALFORMED_JSON",
@@ -1253,7 +1278,7 @@ class onetrading extends \ccxt\async\onetrading {
         throw new ExchangeError($this->id . ' ' . $this->json($message));
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         $error = $this->safe_value($message, 'error');
         if ($error !== null) {
             $this->handle_error_message($client, $message);
@@ -1292,7 +1317,7 @@ class onetrading extends \ccxt\async\onetrading {
         }
     }
 
-    public function handle_price_point_updates(Client $client, $message) {
+    public function handle_price_point_updates(Client $client, mixed $message) {
         //
         //     {
         //         "channel_name" => "MARKET_TICKER",
@@ -1314,7 +1339,7 @@ class onetrading extends \ccxt\async\onetrading {
         return $message;
     }
 
-    public function handle_authentication_message(Client $client, $message) {
+    public function handle_authentication_message(Client $client, mixed $message) {
         //
         //    {
         //        "channel_name" => "SYSTEM",
@@ -1324,17 +1349,21 @@ class onetrading extends \ccxt\async\onetrading {
         //
         $future = $this->safe_value($client->futures, 'authenticated');
         if ($future !== null) {
-            $future->resolve (true);
+            $future->resolve(true);
         }
         return $message;
     }
 
-    public function watch_many($messageHash, $request, $subscriptionHash, ?array $symbols = [], $params = array ()) {
+    public function watch_many(mixed $messageHash, mixed $request, mixed $subscriptionHash, ?array $symbols = array(), $params = array()) {
         return Async\async(function () use ($messageHash, $request, $subscriptionHash, $symbols, $params) {
             $marketIds = array();
             $numSymbols = count($symbols);
             if ($numSymbols === 0) {
-                $marketIds = is_array($this->markets_by_id) ? array_keys($this->markets_by_id) : array();
+                $marketsById = $this->markets_by_id;
+                if ($marketsById === null) {
+                    return array();
+                }
+                $marketIds = is_array($marketsById) ? array_keys($marketsById) : array();
             } else {
                 $marketIds = $this->market_ids($symbols);
             }
@@ -1364,15 +1393,15 @@ class onetrading extends \ccxt\async\onetrading {
             $request['type'] = $type;
             $request['channels'][0]['instrument_codes'] = is_array($subscription) ? array_keys($subscription) : array();
             return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $subscriptionHash, $subscription));
-        }) ();
+        })();
     }
 
-    public function authenticate($params = array ()) {
+    public function authenticate($params = array()) {
         return Async\async(function () use ($params) {
             $url = $this->urls['api']['ws'];
             $client = $this->client($url);
             $messageHash = 'authenticated';
-            $future = $client->reusableFuture ('authenticated');
+            $future = $client->reusableFuture('authenticated');
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $this->check_required_credentials();
@@ -1383,6 +1412,6 @@ class onetrading extends \ccxt\async\onetrading {
                 $this->watch($url, $messageHash, $this->extend($request, $params), $messageHash);
             }
             return Async\await($future);
-        }) ();
+        })();
     }
 }

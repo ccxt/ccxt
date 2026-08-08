@@ -2,13 +2,13 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha3_js = require('@noble/hashes/sha3.js');
+var secp256k1_js = require('@noble/curves/secp256k1.js');
 var lighter$1 = require('./abstract/lighter.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var crypto = require('./base/functions/crypto.js');
-var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
-var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -23,14 +23,14 @@ class lighter extends lighter$1["default"] {
             'name': 'Lighter',
             'countries': [],
             'version': 'v1',
-            'rateLimit': 1000,
+            'rateLimit': 1000, // 60 requests per minute - normal account
             'certified': false,
             'pro': true,
             'dex': true,
             'quoteJsonNumbers': false,
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': true,
                 'margin': false,
                 'swap': true,
                 'future': false,
@@ -146,7 +146,7 @@ class lighter extends lighter$1["default"] {
             },
             'hostname': 'zklighter.elliot.ai',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/ff1aaf96-bffb-4545-a750-5eba716e75d0',
+                'logo': 'https://github.com/user-attachments/assets/5aa1158d-0734-49fc-9155-501d94b76a0b',
                 'api': {
                     'root': 'https://mainnet.{hostname}',
                     'public': 'https://mainnet.{hostname}',
@@ -161,7 +161,7 @@ class lighter extends lighter$1["default"] {
                 'doc': 'https://apidocs.lighter.xyz/',
                 'fees': 'https://docs.lighter.xyz/perpetual-futures/fees',
                 'referral': {
-                    'url': 'app.lighter.xyz/?referral=715955W9',
+                    'url': 'https://app.lighter.xyz/?referral=715955W9',
                     'discount': 0.1, // user gets 10% of the points
                 },
             },
@@ -169,162 +169,162 @@ class lighter extends lighter$1["default"] {
                 'root': {
                     'get': {
                         // root
-                        '': 1,
-                        'info': 1,
+                        '': { 'cost': 1 }, // status
+                        'info': { 'cost': 1 },
                     },
                 },
                 'public': {
                     'get': {
                         // account
-                        'account': 1,
-                        'accountsByL1Address': 1,
-                        'apikeys': 1,
+                        'account': { 'cost': 1 },
+                        'accountsByL1Address': { 'cost': 1 },
+                        'apikeys': { 'cost': 1 },
                         // order
-                        'exchangeStats': 1,
-                        'assetDetails': 1,
-                        'orderBookDetails': 1,
-                        'orderBookOrders': 1,
-                        'orderBooks': 1,
-                        'recentTrades': 1,
+                        'exchangeStats': { 'cost': 1 },
+                        'assetDetails': { 'cost': 1 },
+                        'orderBookDetails': { 'cost': 1 },
+                        'orderBookOrders': { 'cost': 1 },
+                        'orderBooks': { 'cost': 1 },
+                        'recentTrades': { 'cost': 1 },
                         // transaction
-                        'blockTxs': 1,
-                        'nextNonce': 1,
-                        'tx': 1,
-                        'txFromL1TxHash': 1,
-                        'txs': 1,
+                        'blockTxs': { 'cost': 1 },
+                        'nextNonce': { 'cost': 1 },
+                        'tx': { 'cost': 1 },
+                        'txFromL1TxHash': { 'cost': 1 },
+                        'txs': { 'cost': 1 },
                         // announcement
-                        'announcement': 1,
+                        'announcement': { 'cost': 1 },
                         // block
-                        'block': 1,
-                        'blocks': 1,
-                        'currentHeight': 1,
+                        'block': { 'cost': 1 },
+                        'blocks': { 'cost': 1 },
+                        'currentHeight': { 'cost': 1 },
                         // candlestick
-                        'candles': 1,
-                        'fundings': 1,
+                        'candles': { 'cost': 1 },
+                        'fundings': { 'cost': 1 },
                         // bridge
-                        'fastbridge/info': 1,
+                        'fastbridge/info': { 'cost': 1 },
                         // funding
-                        'funding-rates': 1,
+                        'funding-rates': { 'cost': 1 },
                         // info
-                        'withdrawalDelay': 1,
+                        'withdrawalDelay': { 'cost': 1 },
                     },
                     'post': {
                         // transaction
-                        'sendTx': 1,
-                        'sendTxBatch': 1,
+                        'sendTx': { 'cost': 1 },
+                        'sendTxBatch': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
                         // account
-                        'accountLimits': 1,
-                        'accountMetadata': 1,
-                        'pnl': 1,
-                        'l1Metadata': 1,
-                        'liquidations': 1,
-                        'positionFunding': 1,
-                        'publicPoolsMetadata': 1,
+                        'accountLimits': { 'cost': 1 },
+                        'accountMetadata': { 'cost': 1 },
+                        'pnl': { 'cost': 1 },
+                        'l1Metadata': { 'cost': 1 },
+                        'liquidations': { 'cost': 1 },
+                        'positionFunding': { 'cost': 1 },
+                        'publicPoolsMetadata': { 'cost': 1 },
                         // order
-                        'accountActiveOrders': 1,
-                        'accountInactiveOrders': 1,
-                        'export': 1,
-                        'trades': 1,
+                        'accountActiveOrders': { 'cost': 1 },
+                        'accountInactiveOrders': { 'cost': 1 },
+                        'export': { 'cost': 1 },
+                        'trades': { 'cost': 1 },
                         // transaction
-                        'accountTxs': 1,
-                        'deposit/history': 1,
-                        'transfer/history': 1,
-                        'withdraw/history': 1,
+                        'accountTxs': { 'cost': 1 },
+                        'deposit/history': { 'cost': 1 },
+                        'transfer/history': { 'cost': 1 },
+                        'withdraw/history': { 'cost': 1 },
                         // referral
-                        'referral/points': 1,
+                        'referral/points': { 'cost': 1 },
                         // info
-                        'transferFeeInfo': 1,
+                        'transferFeeInfo': { 'cost': 1 },
                     },
                     'post': {
                         // account
-                        'changeAccountTier': 1,
+                        'changeAccountTier': { 'cost': 1 },
                         // notification
-                        'notification/ack': 1,
+                        'notification/ack': { 'cost': 1 },
                     },
                 },
             },
             'httpExceptions': {},
             'exceptions': {
                 'exact': {
-                    '21146': errors.ExchangeError,
-                    '21500': errors.ExchangeError,
-                    '21501': errors.ExchangeError,
-                    '21502': errors.ExchangeError,
-                    '21503': errors.ExchangeError,
-                    '21504': errors.ExchangeError,
-                    '21505': errors.ExchangeError,
-                    '21506': errors.ExchangeError,
-                    '21507': errors.ExchangeError,
-                    '21508': errors.ExchangeError,
-                    '21511': errors.ExchangeError,
-                    '21512': errors.ExchangeError,
-                    '21600': errors.InvalidOrder,
-                    '21601': errors.InvalidOrder,
-                    '21602': errors.InvalidOrder,
-                    '21603': errors.InvalidOrder,
-                    '21604': errors.InvalidOrder,
-                    '21605': errors.InvalidOrder,
-                    '21606': errors.InvalidOrder,
-                    '21607': errors.InvalidOrder,
-                    '21608': errors.InvalidOrder,
-                    '21611': errors.InvalidOrder,
-                    '21612': errors.InvalidOrder,
-                    '21613': errors.InvalidOrder,
-                    '21614': errors.InvalidOrder,
-                    '21700': errors.InvalidOrder,
-                    '21701': errors.InvalidOrder,
-                    '21702': errors.InvalidOrder,
-                    '21703': errors.InvalidOrder,
-                    '21704': errors.InvalidOrder,
-                    '21705': errors.InvalidOrder,
-                    '21706': errors.InvalidOrder,
-                    '21707': errors.InvalidOrder,
-                    '21708': errors.InvalidOrder,
-                    '21709': errors.InvalidOrder,
-                    '21710': errors.InvalidOrder,
-                    '21711': errors.InvalidOrder,
-                    '21712': errors.InvalidOrder,
-                    '21713': errors.InvalidOrder,
-                    '21714': errors.InvalidOrder,
-                    '21715': errors.InvalidOrder,
-                    '21716': errors.InvalidOrder,
-                    '21717': errors.InvalidOrder,
-                    '21718': errors.InvalidOrder,
-                    '21719': errors.InvalidOrder,
-                    '21720': errors.InvalidOrder,
-                    '21721': errors.InvalidOrder,
-                    '21722': errors.InvalidOrder,
-                    '21723': errors.InvalidOrder,
-                    '21724': errors.InvalidOrder,
-                    '21725': errors.InvalidOrder,
-                    '21726': errors.InvalidOrder,
-                    '21727': errors.InvalidOrder,
-                    '21728': errors.InvalidOrder,
-                    '21729': errors.InvalidOrder,
-                    '21730': errors.InvalidOrder,
-                    '21731': errors.InvalidOrder,
-                    '21732': errors.InvalidOrder,
-                    '21733': errors.InvalidOrder,
-                    '21734': errors.InvalidOrder,
-                    '21735': errors.InvalidOrder,
-                    '21736': errors.InvalidOrder,
-                    '21737': errors.InvalidOrder,
-                    '21738': errors.InvalidOrder,
-                    '21739': errors.InvalidOrder,
-                    '21740': errors.InvalidOrder,
-                    '21901': errors.InvalidOrder,
-                    '21902': errors.InvalidOrder,
-                    '21903': errors.InvalidOrder,
-                    '21904': errors.InvalidOrder,
-                    '21905': errors.InvalidOrder,
-                    '21906': errors.InvalidOrder,
-                    '23000': errors.RateLimitExceeded,
-                    '23001': errors.RateLimitExceeded,
-                    '23002': errors.RateLimitExceeded,
+                    '21146': errors.ExchangeError, // system account cannot be an integrator
+                    '21500': errors.ExchangeError, // transaction not found
+                    '21501': errors.ExchangeError, // invalid tx info
+                    '21502': errors.ExchangeError, // marshal tx failed
+                    '21503': errors.ExchangeError, // marshal event failed
+                    '21504': errors.ExchangeError, // fail to l1 signature
+                    '21505': errors.ExchangeError, // unsupported tx type
+                    '21506': errors.ExchangeError, // too many pending txs. Please try again later
+                    '21507': errors.ExchangeError, // account is below maintenance margin, can't execute transaction
+                    '21508': errors.ExchangeError, // account is below initial margin, can't execute transaction
+                    '21511': errors.ExchangeError, // invalid tx type for account
+                    '21512': errors.ExchangeError, // invalid l1 request id
+                    '21600': errors.InvalidOrder, // given order is not an active limit order
+                    '21601': errors.InvalidOrder, // order book is full
+                    '21602': errors.InvalidOrder, // invalid market index
+                    '21603': errors.InvalidOrder, // invalid min amounts for market
+                    '21604': errors.InvalidOrder, // invalid margin fractions for market
+                    '21605': errors.InvalidOrder, // invalid market status
+                    '21606': errors.InvalidOrder, // market already exist for given index
+                    '21607': errors.InvalidOrder, // invalid market fees
+                    '21608': errors.InvalidOrder, // invalid quote multiplier
+                    '21611': errors.InvalidOrder, // invalid interest rate
+                    '21612': errors.InvalidOrder, // invalid open interest
+                    '21613': errors.InvalidOrder, // invalid margin mode
+                    '21614': errors.InvalidOrder, // no position found
+                    '21700': errors.InvalidOrder, // invalid order index
+                    '21701': errors.InvalidOrder, // invalid base amount
+                    '21702': errors.InvalidOrder, // invalid price
+                    '21703': errors.InvalidOrder, // invalid isAsk
+                    '21704': errors.InvalidOrder, // invalid OrderType
+                    '21705': errors.InvalidOrder, // invalid OrderTimeInForce
+                    '21706': errors.InvalidOrder, // invalid order base or quote amount
+                    '21707': errors.InvalidOrder, // account is not owner of the order
+                    '21708': errors.InvalidOrder, // order is empty
+                    '21709': errors.InvalidOrder, // order is inactive
+                    '21710': errors.InvalidOrder, // unsupported order type
+                    '21711': errors.InvalidOrder, // invalid expiry
+                    '21712': errors.InvalidOrder, // account has a queued cancel all orders request
+                    '21713': errors.InvalidOrder, // invalid cancel all time in force
+                    '21714': errors.InvalidOrder, // invalid cancel all time
+                    '21715': errors.InvalidOrder, // given order is not an active order
+                    '21716': errors.InvalidOrder, // order is not expired
+                    '21717': errors.InvalidOrder, // maximum active limit order count reached
+                    '21718': errors.InvalidOrder, // maximum active limit order count per market reached
+                    '21719': errors.InvalidOrder, // maximum pending order count reached
+                    '21720': errors.InvalidOrder, // maximum pending order count per market reached
+                    '21721': errors.InvalidOrder, // maximum twap order count reached
+                    '21722': errors.InvalidOrder, // maximum conditional order count reached
+                    '21723': errors.InvalidOrder, // invalid account health
+                    '21724': errors.InvalidOrder, // invalid liquidation size
+                    '21725': errors.InvalidOrder, // invalid liquidation price
+                    '21726': errors.InvalidOrder, // insurance fund cannot be partially liquidated
+                    '21727': errors.InvalidOrder, // invalid client order index
+                    '21728': errors.InvalidOrder, // client order index already exists
+                    '21729': errors.InvalidOrder, // invalid order trigger price
+                    '21730': errors.InvalidOrder, // order status is not pending
+                    '21731': errors.InvalidOrder, // order can not be triggered
+                    '21732': errors.InvalidOrder, // reduce only increases position
+                    '21733': errors.InvalidOrder, // order price flagged as an accidental price
+                    '21734': errors.InvalidOrder, // limit order price is too far from the mark price
+                    '21735': errors.InvalidOrder, // SL/TP order price is too far from the trigger price
+                    '21736': errors.InvalidOrder, // invalid order trigger status
+                    '21737': errors.InvalidOrder, // invalid order status
+                    '21738': errors.InvalidOrder, // invalid reduce only direction
+                    '21739': errors.InvalidOrder, // not enough margin to create the order
+                    '21740': errors.InvalidOrder, // invalid reduce only mode
+                    '21901': errors.InvalidOrder, // deleverage against itself
+                    '21902': errors.InvalidOrder, // deleverage does not match liquidation status
+                    '21903': errors.InvalidOrder, // deleverage with open orders
+                    '21904': errors.InvalidOrder, // invalid deleverage size
+                    '21905': errors.InvalidOrder, // invalid deleverage price
+                    '21906': errors.InvalidOrder, // invalid deleverage side
+                    '23000': errors.RateLimitExceeded, // Too Many Requests!
+                    '23001': errors.RateLimitExceeded, // Too Many Subscriptions!
+                    '23002': errors.RateLimitExceeded, // Too Many Different Accounts!
                     '23003': errors.RateLimitExceeded, // Too Many Connections!
                 },
                 'broad': {},
@@ -349,12 +349,12 @@ class lighter extends lighter$1["default"] {
                 'accountIndex': undefined,
                 'apiKeyIndex': undefined,
                 'lighterPrivateKey': undefined,
-                'wasmExecPath': undefined,
-                'libraryPath': undefined,
+                'wasmExecPath': undefined, // [JS Only] users should set the path to wasm_exec.js. It can be downloaded here https://github.com/ccxt/lighter-wasm
+                'libraryPath': undefined, // users should set the path to the lighter signing library. It can be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers, GO users don't need it
                 'integratorAccountIndex': 718718,
                 'integratorMakerFee': 1000,
                 'integratorTakerFee': 1000,
-                'authDeadlineExpiry': 28800,
+                'authDeadlineExpiry': 28800, // 8h validity for auth tokens
                 'authDeadlineMinimumRemaining': 60,
             },
             'features': {
@@ -443,7 +443,7 @@ class lighter extends lighter$1["default"] {
      * @method
      * @name lighter#preLoadLighterLibrary
      * @description if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
-     * @param params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true if the signer was loaded, false otherwise
      */
     async preLoadLighterLibrary(params = {}) {
@@ -563,12 +563,12 @@ class lighter extends lighter$1["default"] {
         const cachedAuth = this.safeDict(accountAuths, apiKeyIndex);
         const cachedDeadline = this.safeInteger(cachedAuth, 'deadline');
         if (cachedDeadline !== undefined) {
-            const minimumDeadline = this.seconds() + this.safeInteger(this.options, 'authDeadlineMinimumRemaining');
+            const minimumDeadline = this.seconds() + this.safeInteger(this.options, 'authDeadlineMinimumRemaining', 60);
             if (cachedDeadline >= minimumDeadline) {
                 return this.safeString(cachedAuth, 'token');
             }
         }
-        const deadline = this.seconds() + this.safeInteger(this.options, 'authDeadlineExpiry');
+        const deadline = this.seconds() + this.safeInteger(this.options, 'authDeadlineExpiry', 28800);
         const request = {
             'deadline': deadline,
             'api_key_index': this.parseToInt(apiKeyIndex),
@@ -602,11 +602,11 @@ class lighter extends lighter$1["default"] {
         const x19 = this.base16ToBinary('19');
         const newline = this.base16ToBinary('0a');
         const prefix = this.binaryConcat(x19, this.encode('Ethereum Signed Message:'), newline, this.encode(this.numberToString(binaryMessageLength)));
-        return '0x' + this.hash(this.binaryConcat(prefix, binaryMessage), sha3.keccak_256, 'hex');
+        return '0x' + this.hash(this.binaryConcat(prefix, binaryMessage), sha3_js.keccak_256, 'hex');
     }
     signHash(hash, privateKey) {
         this.checkRequiredCredentials();
-        const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1.secp256k1, undefined);
+        const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
         const v = this.intToBase16(this.sum(27, signature['v']));
@@ -700,6 +700,12 @@ class lighter extends lighter$1["default"] {
         this.options['chainId'] = enable ? 300 : 304;
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -782,7 +788,7 @@ class lighter extends lighter$1["default"] {
                 }
             }
         }
-        const marketInfo = this.safeDict(market, 'info');
+        const marketInfo = this.safeDict(market, 'info', {});
         let amountStr = undefined;
         const priceStr = this.priceToPrecision(symbol, price);
         const amountScale = this.pow('10', marketInfo['size_decimals']);
@@ -840,12 +846,12 @@ class lighter extends lighter$1["default"] {
             else {
                 triggerOrderSide = 'buy';
             }
-            const stopLossOrderTriggerPrice = this.safeNumberN(stopLoss, ['triggerPrice', 'stopPrice']);
+            const stopLossOrderTriggerPrice = this.safeNumber2(stopLoss, 'triggerPrice', 'stopPrice');
             const stopLossOrderType = this.safeString(stopLoss, 'type', 'limit');
-            const stopLossOrderLimitPrice = this.safeNumberN(stopLoss, ['price', 'stopLossPrice'], stopLossOrderTriggerPrice);
-            const takeProfitOrderTriggerPrice = this.safeNumberN(takeProfit, ['triggerPrice', 'stopPrice']);
+            const stopLossOrderLimitPrice = this.safeNumber2(stopLoss, 'price', 'stopLossPrice', stopLossOrderTriggerPrice);
+            const takeProfitOrderTriggerPrice = this.safeNumber2(takeProfit, 'triggerPrice', 'stopPrice');
             const takeProfitOrderType = this.safeString(takeProfit, 'type', 'limit');
-            const takeProfitOrderLimitPrice = this.safeNumberN(takeProfit, ['price', 'takeProfitPrice'], takeProfitOrderTriggerPrice);
+            const takeProfitOrderLimitPrice = this.safeNumber2(takeProfit, 'price', 'takeProfitPrice', takeProfitOrderTriggerPrice);
             // amount should be 0 for child orders
             if (stopLoss !== undefined) {
                 const orderObj = this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, this.extend(params, {
@@ -907,7 +913,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let accountIndex = undefined;
         [accountIndex, params] = await this.handleAccountIndex(params, 'createOrder', 'accountIndex', 'account_index');
         params['accountIndex'] = accountIndex;
@@ -931,7 +939,7 @@ class lighter extends lighter$1["default"] {
             order['nonce'] = await this.fetchNonce(accountIndex, apiKeyIndex);
         }
         let txType = undefined;
-        let txInfo = undefined;
+        let txInfo;
         if (totalOrderRequests < 2) {
             [txType, txInfo] = this.lighterSignCreateOrder(signer, order);
         }
@@ -981,7 +989,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let apiKeyIndex = undefined;
         [apiKeyIndex, params] = this.handleApiKeyIndex(params, 'editOrder', 'apiKeyIndex', 'api_key_index');
         let accountIndex = undefined;
@@ -990,7 +1000,7 @@ class lighter extends lighter$1["default"] {
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
         const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
         const market = this.market(symbol);
-        const marketInfo = this.safeDict(market, 'info');
+        const marketInfo = this.safeDict(market, 'info', {});
         const amountScale = this.pow('10', marketInfo['size_decimals']);
         const priceScale = this.pow('10', marketInfo['price_decimals']);
         const triggerPrice = this.safeStringN(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
@@ -1015,10 +1025,12 @@ class lighter extends lighter$1["default"] {
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
-            'integrator_account_index': this.options['integratorAccountIndex'],
-            'integrator_taker_fee': this.options['integratorTakerFee'],
-            'integrator_maker_fee': this.options['integratorMakerFee'],
         };
+        if (this.safeBool(this.options, 'builderFee', true)) {
+            signRaw['integrator_account_index'] = this.options['integratorAccountIndex'];
+            signRaw['integrator_taker_fee'] = this.options['integratorTakerFee'];
+            signRaw['integrator_maker_fee'] = this.options['integratorMakerFee'];
+        }
         const [txType, txInfo] = this.lighterSignModifyOrder(signer, this.extend(signRaw, params));
         const request = {
             'tx_type': txType,
@@ -1046,7 +1058,7 @@ class lighter extends lighter$1["default"] {
         //
         const status = this.safeString(response, 'status');
         return {
-            'status': (status === '200') ? 'ok' : 'error',
+            'status': (status === '200') ? 'ok' : 'error', // if there's no Errors, status = 'ok'
             'updated': undefined,
             'eta': undefined,
             'url': undefined,
@@ -1275,44 +1287,42 @@ class lighter extends lighter$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'asset_details', []);
-        const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const id = this.safeString(entry, 'asset_id');
-            const code = this.safeCurrencyCode(this.safeString(entry, 'symbol'));
-            const decimals = this.safeString(entry, 'decimals');
-            const isUSDC = (code === 'USDC');
-            let depositMin = undefined;
-            let withdrawMin = undefined;
-            if (isUSDC) {
-                depositMin = this.safeNumber(entry, 'min_transfer_amount');
-                withdrawMin = this.safeNumber(entry, 'min_withdrawal_amount');
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'name': code,
-                'code': code,
-                'precision': this.parseNumber('1e-' + decimals),
-                'active': true,
-                'fee': undefined,
-                'networks': {},
-                'deposit': isUSDC,
-                'withdraw': isUSDC,
-                'type': 'crypto',
-                'limits': {
-                    'deposit': {
-                        'min': depositMin,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': withdrawMin,
-                        'max': undefined,
-                    },
-                },
-                'info': entry,
-            });
+        return this.parseCurrencies(data);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'asset_id');
+        const code = this.safeCurrencyCode(this.safeString(rawCurrency, 'symbol'));
+        const decimals = this.safeString(rawCurrency, 'decimals');
+        const isUSDC = (code === 'USDC');
+        let depositMin = undefined;
+        let withdrawMin = undefined;
+        if (isUSDC) {
+            depositMin = this.safeNumber(rawCurrency, 'min_transfer_amount');
+            withdrawMin = this.safeNumber(rawCurrency, 'min_withdrawal_amount');
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'name': code,
+            'code': code,
+            'precision': this.parseNumber('1e-' + decimals),
+            'active': true,
+            'fee': undefined,
+            'networks': {},
+            'deposit': isUSDC,
+            'withdraw': isUSDC,
+            'type': 'crypto',
+            'limits': {
+                'deposit': {
+                    'min': depositMin,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': withdrawMin,
+                    'max': undefined,
+                },
+            },
+            'info': rawCurrency,
+        });
     }
     /**
      * @method
@@ -1322,13 +1332,15 @@ class lighter extends lighter$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrderBook() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market_id': market['id'],
@@ -1480,7 +1492,9 @@ class lighter extends lighter$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchTicker() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market_id': market['id'],
@@ -1546,7 +1560,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.publicGetOrderBookDetails(params);
         const spotTickers = this.safeList(response, 'spot_order_book_details', []);
@@ -1597,7 +1613,9 @@ class lighter extends lighter$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOHLCV() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const until = this.safeInteger(params, 'until');
         params = this.omit(params, ['until']);
@@ -1701,7 +1719,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetFundingRates(this.extend(params));
         //
         //     {
@@ -1738,7 +1758,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let accountIndex = undefined;
         [accountIndex, params] = await this.handleAccountIndex(params, 'fetchBalance', 'accountIndex', 'account_index');
         const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
@@ -1805,15 +1827,19 @@ class lighter extends lighter$1["default"] {
                     const balance = this.safeDict(result, code, this.account());
                     balance['total'] = Precise["default"].stringAdd(balance['total'], this.safeString(asset, 'balance'));
                     balance['used'] = Precise["default"].stringAdd(balance['used'], this.safeString(asset, 'locked_balance'));
-                    result[code] = balance;
+                    if (code !== undefined) {
+                        result[code] = balance;
+                    }
                 }
             }
             else {
                 const perpBalance = this.safeDict(result, 'USDC', this.account());
-                const perpUSDCTotal = this.safeString(account, 'collateral');
-                const perpUSDCFree = this.safeString(account, 'available_balance');
-                perpBalance['total'] = Precise["default"].stringAdd(perpBalance['total'], perpUSDCTotal);
-                perpBalance['free'] = Precise["default"].stringAdd(perpBalance['free'], perpUSDCFree);
+                const perpTotal = this.safeString(perpBalance, 'total', '0');
+                const perpFree = this.safeString(perpBalance, 'free', '0');
+                const perpUSDCTotal = this.safeString(account, 'collateral', '0');
+                const perpUSDCFree = this.safeString(account, 'available_balance', '0');
+                perpBalance['total'] = Precise["default"].stringAdd(perpTotal, perpUSDCTotal);
+                perpBalance['free'] = Precise["default"].stringAdd(perpFree, perpUSDCFree);
                 result['USDC'] = perpBalance;
             }
         }
@@ -1846,7 +1872,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let accountIndex = undefined;
         [accountIndex, params] = await this.handleAccountIndex(params, 'fetchPositions', 'accountIndex', 'account_index');
         const request = {
@@ -1991,7 +2019,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=accounts-structure} indexed by the account type
      */
     async fetchAccounts(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let accountIndex = undefined;
         [accountIndex, params] = await this.handleAccountIndex(params, 'fetchAccounts', 'accountIndex', 'account_index');
         const request = {
@@ -2083,7 +2113,9 @@ class lighter extends lighter$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let accountIndex = undefined;
         [accountIndex, params] = await this.handleAccountIndex(params, 'fetchOpenOrders', 'accountIndex', 'account_index');
         let apiKeyIndex = undefined;
@@ -2158,7 +2190,9 @@ class lighter extends lighter$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let accountIndex = undefined;
         [accountIndex, params] = await this.handleAccountIndex(params, 'fetchClosedOrders', 'accountIndex', 'account_index');
         let apiKeyIndex = undefined;
@@ -2419,7 +2453,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let apiKeyIndex = undefined;
         [apiKeyIndex, params] = this.handleApiKeyIndex(params, 'transfer', 'apiKeyIndex', 'api_key_index');
         let accountIndex = undefined;
@@ -2478,7 +2514,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchTransfers', 'paginate');
         if (paginate) {
@@ -2580,7 +2618,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'paginate');
         if (paginate) {
@@ -2653,7 +2693,9 @@ class lighter extends lighter$1["default"] {
         }
         let accountIndex = undefined;
         [accountIndex, params] = await this.handleAccountIndex(params, 'fetchWithdrawals', 'accountIndex', 'account_index');
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'account_index': accountIndex,
         };
@@ -2771,7 +2813,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let apiKeyIndex = undefined;
         [apiKeyIndex, params] = this.handleApiKeyIndex(params, 'withdraw', 'apiKeyIndex', 'api_key_index');
         let accountIndex = undefined;
@@ -2823,7 +2867,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -3004,14 +3050,16 @@ class lighter extends lighter$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires an marginMode parameter');
         }
         let leverage = undefined;
-        [leverage, params] = this.handleOptionAndParams(params, 'setMarginMode', 'leverage', 'leverage');
+        [leverage, params] = this.handleOptionAndParams(params, 'setMarginMode', 'leverage');
         if (leverage === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires an leverage parameter');
         }
         return await this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, params);
     }
     async modifyLeverageAndMarginMode(leverage, marginMode, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new errors.BadRequest(this.id + ' modifyLeverageAndMarginMode() requires a marginMode parameter that must be either cross or isolated');
         }
@@ -3030,7 +3078,7 @@ class lighter extends lighter$1["default"] {
         const signRaw = {
             'market_index': this.parseToInt(market['id']),
             'initial_margin_fraction': this.parseToInt(10000 / leverage),
-            'margin_mode': (marginMode === 'cross') ? 0 : 1,
+            'margin_mode': (marginMode === 'cross') ? 0 : 1, // 0: CROSS, 1: ISOLATED
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
@@ -3054,7 +3102,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let apiKeyIndex = undefined;
         [apiKeyIndex, params] = this.handleApiKeyIndex(params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
         if (symbol === undefined) {
@@ -3103,7 +3153,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let apiKeyIndex = undefined;
         [apiKeyIndex, params] = this.handleApiKeyIndex(params, 'cancelAllOrders', 'apiKeyIndex', 'api_key_index');
         let accountIndex = undefined;
@@ -3113,8 +3165,8 @@ class lighter extends lighter$1["default"] {
         const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
         const nonce = await this.fetchNonce(accountIndex, apiKeyIndex, params);
         const signRaw = {
-            'time_in_force': 0,
-            'time': 0,
+            'time_in_force': 0, // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+            'time': 0, // if time_in_force is not IMMEDIATE, set the timestamp_ms here
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
@@ -3136,7 +3188,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object} the api result
      */
     async cancelAllOrdersAfter(timeout, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if ((timeout < 300000) || (timeout > 1296000000)) {
             throw new errors.BadRequest(this.id + ' timeout should be between 5 minutes and 15 days.');
         }
@@ -3149,8 +3203,8 @@ class lighter extends lighter$1["default"] {
         const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
         const nonce = await this.fetchNonce(accountIndex, apiKeyIndex, params);
         const signRaw = {
-            'time_in_force': 1,
-            'time': this.milliseconds() + timeout,
+            'time_in_force': 1, // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+            'time': this.milliseconds() + timeout, // if time_in_force is not IMMEDIATE, set the timestamp_ms here
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
@@ -3199,13 +3253,15 @@ class lighter extends lighter$1["default"] {
      * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
-     * @param {object} [params] parameters specific to the bingx api endpoint
+     * @param {object} [params] parameters specific to the exchange API endpoint
      * @param {string} [params.accountIndex] account index
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
     async setMargin(symbol, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let apiKeyIndex = undefined;
         [apiKeyIndex, params] = this.handleApiKeyIndex(params, 'setMargin', 'apiKeyIndex', 'api_key_index');
         const direction = this.safeInteger(params, 'direction'); // 1 increase margin 0 decrease margin

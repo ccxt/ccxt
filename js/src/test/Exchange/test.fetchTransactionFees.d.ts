@@ -1,3 +1,3 @@
-import { Exchange } from "../../../ccxt";
-declare function testFetchTransactionFees(exchange: Exchange, skippedProperties: object): Promise<any>;
+import { Exchange } from "../../../ccxt.js";
+declare function testFetchTransactionFees(exchange: Exchange, skippedProperties: object): Promise<undefined>;
 export default testFetchTransactionFees;

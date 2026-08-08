@@ -153,139 +153,369 @@ func (this *PhemexCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"cfg/v2/products":                    5,
-					"cfg/fundingRates":                   5,
-					"products":                           5,
-					"nomics/trades":                      5,
-					"md/kline":                           5,
-					"md/v2/kline/list":                   5,
-					"md/v2/kline":                        5,
-					"md/v2/kline/last":                   5,
-					"md/orderbook":                       5,
-					"md/trade":                           5,
-					"md/spot/ticker/24hr":                5,
-					"exchange/public/cfg/chain-settings": 5,
+					"cfg/v2/products": map[string]any{
+						"cost": 5,
+					},
+					"cfg/fundingRates": map[string]any{
+						"cost": 5,
+					},
+					"products": map[string]any{
+						"cost": 5,
+					},
+					"nomics/trades": map[string]any{
+						"cost": 5,
+					},
+					"md/kline": map[string]any{
+						"cost": 5,
+					},
+					"md/v2/kline/list": map[string]any{
+						"cost": 5,
+					},
+					"md/v2/kline": map[string]any{
+						"cost": 5,
+					},
+					"md/v2/kline/last": map[string]any{
+						"cost": 5,
+					},
+					"md/orderbook": map[string]any{
+						"cost": 5,
+					},
+					"md/trade": map[string]any{
+						"cost": 5,
+					},
+					"md/spot/ticker/24hr": map[string]any{
+						"cost": 5,
+					},
+					"exchange/public/cfg/chain-settings": map[string]any{
+						"cost": 5,
+					},
 				},
 			},
 			"v1": map[string]any{
 				"get": map[string]any{
-					"md/fullbook":                               5,
-					"md/orderbook":                              5,
-					"md/trade":                                  5,
-					"md/ticker/24hr":                            5,
-					"md/ticker/24hr/all":                        5,
-					"md/spot/ticker/24hr":                       5,
-					"md/spot/ticker/24hr/all":                   5,
-					"exchange/public/products":                  5,
-					"api-data/public/data/funding-rate-history": 5,
+					"md/fullbook": map[string]any{
+						"cost": 5,
+					},
+					"md/orderbook": map[string]any{
+						"cost": 5,
+					},
+					"md/trade": map[string]any{
+						"cost": 5,
+					},
+					"md/ticker/24hr": map[string]any{
+						"cost": 5,
+					},
+					"md/ticker/24hr/all": map[string]any{
+						"cost": 5,
+					},
+					"md/spot/ticker/24hr": map[string]any{
+						"cost": 5,
+					},
+					"md/spot/ticker/24hr/all": map[string]any{
+						"cost": 5,
+					},
+					"exchange/public/products": map[string]any{
+						"cost": 5,
+					},
+					"api-data/public/data/funding-rate-history": map[string]any{
+						"cost": 5,
+					},
 				},
 			},
 			"v2": map[string]any{
 				"get": map[string]any{
-					"public/products":                           5,
-					"public/products-plus":                      5,
-					"md/v2/orderbook":                           5,
-					"md/v2/trade":                               5,
-					"md/v2/ticker/24hr":                         5,
-					"md/v2/ticker/24hr/all":                     5,
-					"api-data/public/data/funding-rate-history": 5,
+					"public/products": map[string]any{
+						"cost": 5,
+					},
+					"public/products-plus": map[string]any{
+						"cost": 5,
+					},
+					"md/v2/orderbook": map[string]any{
+						"cost": 5,
+					},
+					"md/v2/trade": map[string]any{
+						"cost": 5,
+					},
+					"md/v2/ticker/24hr": map[string]any{
+						"cost": 5,
+					},
+					"md/v2/ticker/24hr/all": map[string]any{
+						"cost": 5,
+					},
+					"api-data/public/data/funding-rate-history": map[string]any{
+						"cost": 5,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"spot/orders/active":                        1,
-					"spot/orders":                               1,
-					"spot/wallets":                              5,
-					"exchange/spot/order":                       5,
-					"exchange/spot/order/trades":                5,
-					"exchange/order/v2/orderList":               5,
-					"exchange/order/v2/tradingList":             5,
-					"accounts/accountPositions":                 1,
-					"g-accounts/accountPositions":               1,
-					"g-accounts/positions":                      25,
-					"g-accounts/risk-unit":                      1,
-					"api-data/futures/funding-fees":             5,
-					"api-data/g-futures/funding-fees":           5,
-					"api-data/futures/orders":                   5,
-					"api-data/g-futures/orders":                 5,
-					"api-data/futures/orders/by-order-id":       5,
-					"api-data/g-futures/orders/by-order-id":     5,
-					"api-data/futures/trades":                   5,
-					"api-data/g-futures/trades":                 5,
-					"api-data/futures/trading-fees":             5,
-					"api-data/g-futures/trading-fees":           5,
-					"api-data/futures/v2/tradeAccountDetail":    5,
-					"api-data/g-futures/closedPosition":         5,
-					"g-orders/activeList":                       1,
-					"orders/activeList":                         1,
-					"exchange/order/list":                       5,
-					"exchange/order":                            5,
-					"exchange/order/trade":                      5,
-					"phemex-user/users/children":                5,
-					"phemex-user/wallets/v2/depositAddress":     5,
-					"phemex-user/wallets/tradeAccountDetail":    5,
-					"phemex-deposit/wallets/api/depositAddress": 5,
-					"phemex-deposit/wallets/api/depositHist":    5,
-					"phemex-deposit/wallets/api/chainCfg":       5,
-					"phemex-withdraw/wallets/api/withdrawHist":  5,
-					"phemex-withdraw/wallets/api/asset/info":    5,
-					"phemex-user/order/closedPositionList":      5,
-					"exchange/margins/transfer":                 5,
-					"exchange/wallets/confirm/withdraw":         5,
-					"exchange/wallets/withdrawList":             5,
-					"exchange/wallets/depositList":              5,
-					"exchange/wallets/v2/depositAddress":        5,
-					"api-data/spots/funds":                      5,
-					"api-data/spots/orders":                     5,
-					"api-data/spots/orders/by-order-id":         5,
-					"api-data/spots/pnls":                       5,
-					"api-data/spots/trades":                     5,
-					"api-data/spots/trades/by-order-id":         5,
-					"assets/convert":                            5,
-					"assets/transfer":                           5,
-					"assets/spots/sub-accounts/transfer":        5,
-					"assets/futures/sub-accounts/transfer":      5,
-					"assets/quote":                              5,
+					"spot/orders/active": map[string]any{
+						"cost": 1,
+					},
+					"spot/orders": map[string]any{
+						"cost": 1,
+					},
+					"spot/wallets": map[string]any{
+						"cost": 5,
+					},
+					"exchange/spot/order": map[string]any{
+						"cost": 5,
+					},
+					"exchange/spot/order/trades": map[string]any{
+						"cost": 5,
+					},
+					"exchange/order/v2/orderList": map[string]any{
+						"cost": 5,
+					},
+					"exchange/order/v2/tradingList": map[string]any{
+						"cost": 5,
+					},
+					"accounts/accountPositions": map[string]any{
+						"cost": 1,
+					},
+					"g-accounts/accountPositions": map[string]any{
+						"cost": 1,
+					},
+					"g-accounts/positions": map[string]any{
+						"cost": 25,
+					},
+					"g-accounts/risk-unit": map[string]any{
+						"cost": 1,
+					},
+					"api-data/futures/funding-fees": map[string]any{
+						"cost": 5,
+					},
+					"api-data/g-futures/funding-fees": map[string]any{
+						"cost": 5,
+					},
+					"api-data/futures/orders": map[string]any{
+						"cost": 5,
+					},
+					"api-data/g-futures/orders": map[string]any{
+						"cost": 5,
+					},
+					"api-data/futures/orders/by-order-id": map[string]any{
+						"cost": 5,
+					},
+					"api-data/g-futures/orders/by-order-id": map[string]any{
+						"cost": 5,
+					},
+					"api-data/futures/trades": map[string]any{
+						"cost": 5,
+					},
+					"api-data/g-futures/trades": map[string]any{
+						"cost": 5,
+					},
+					"api-data/futures/trading-fees": map[string]any{
+						"cost": 5,
+					},
+					"api-data/g-futures/trading-fees": map[string]any{
+						"cost": 5,
+					},
+					"api-data/futures/v2/tradeAccountDetail": map[string]any{
+						"cost": 5,
+					},
+					"api-data/g-futures/closedPosition": map[string]any{
+						"cost": 5,
+					},
+					"g-orders/activeList": map[string]any{
+						"cost": 1,
+					},
+					"orders/activeList": map[string]any{
+						"cost": 1,
+					},
+					"exchange/order/list": map[string]any{
+						"cost": 5,
+					},
+					"exchange/order": map[string]any{
+						"cost": 5,
+					},
+					"exchange/order/trade": map[string]any{
+						"cost": 5,
+					},
+					"phemex-user/users/children": map[string]any{
+						"cost": 5,
+					},
+					"phemex-user/wallets/v2/depositAddress": map[string]any{
+						"cost": 5,
+					},
+					"phemex-user/wallets/tradeAccountDetail": map[string]any{
+						"cost": 5,
+					},
+					"phemex-deposit/wallets/api/depositAddress": map[string]any{
+						"cost": 5,
+					},
+					"phemex-deposit/wallets/api/depositHist": map[string]any{
+						"cost": 5,
+					},
+					"phemex-deposit/wallets/api/chainCfg": map[string]any{
+						"cost": 5,
+					},
+					"phemex-withdraw/wallets/api/withdrawHist": map[string]any{
+						"cost": 5,
+					},
+					"phemex-withdraw/wallets/api/asset/info": map[string]any{
+						"cost": 5,
+					},
+					"phemex-user/order/closedPositionList": map[string]any{
+						"cost": 5,
+					},
+					"exchange/margins/transfer": map[string]any{
+						"cost": 5,
+					},
+					"exchange/wallets/confirm/withdraw": map[string]any{
+						"cost": 5,
+					},
+					"exchange/wallets/withdrawList": map[string]any{
+						"cost": 5,
+					},
+					"exchange/wallets/depositList": map[string]any{
+						"cost": 5,
+					},
+					"exchange/wallets/v2/depositAddress": map[string]any{
+						"cost": 5,
+					},
+					"api-data/spots/funds": map[string]any{
+						"cost": 5,
+					},
+					"api-data/spots/orders": map[string]any{
+						"cost": 5,
+					},
+					"api-data/spots/orders/by-order-id": map[string]any{
+						"cost": 5,
+					},
+					"api-data/spots/pnls": map[string]any{
+						"cost": 5,
+					},
+					"api-data/spots/trades": map[string]any{
+						"cost": 5,
+					},
+					"api-data/spots/trades/by-order-id": map[string]any{
+						"cost": 5,
+					},
+					"assets/convert": map[string]any{
+						"cost": 5,
+					},
+					"assets/transfer": map[string]any{
+						"cost": 5,
+					},
+					"assets/spots/sub-accounts/transfer": map[string]any{
+						"cost": 5,
+					},
+					"assets/futures/sub-accounts/transfer": map[string]any{
+						"cost": 5,
+					},
+					"assets/quote": map[string]any{
+						"cost": 5,
+					},
 				},
 				"post": map[string]any{
-					"spot/orders":                                1,
-					"orders":                                     1,
-					"g-orders":                                   1,
-					"positions/assign":                           5,
-					"exchange/wallets/transferOut":               5,
-					"exchange/wallets/transferIn":                5,
-					"exchange/margins":                           5,
-					"exchange/wallets/createWithdraw":            5,
-					"exchange/wallets/cancelWithdraw":            5,
-					"exchange/wallets/createWithdrawAddress":     5,
-					"assets/transfer":                            5,
-					"assets/spots/sub-accounts/transfer":         5,
-					"assets/futures/sub-accounts/transfer":       5,
-					"assets/universal-transfer":                  5,
-					"assets/convert":                             5,
-					"phemex-withdraw/wallets/api/createWithdraw": 5,
-					"phemex-withdraw/wallets/api/cancelWithdraw": 5,
+					"spot/orders": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"g-orders": map[string]any{
+						"cost": 1,
+					},
+					"positions/assign": map[string]any{
+						"cost": 5,
+					},
+					"exchange/wallets/transferOut": map[string]any{
+						"cost": 5,
+					},
+					"exchange/wallets/transferIn": map[string]any{
+						"cost": 5,
+					},
+					"exchange/margins": map[string]any{
+						"cost": 5,
+					},
+					"exchange/wallets/createWithdraw": map[string]any{
+						"cost": 5,
+					},
+					"exchange/wallets/cancelWithdraw": map[string]any{
+						"cost": 5,
+					},
+					"exchange/wallets/createWithdrawAddress": map[string]any{
+						"cost": 5,
+					},
+					"assets/transfer": map[string]any{
+						"cost": 5,
+					},
+					"assets/spots/sub-accounts/transfer": map[string]any{
+						"cost": 5,
+					},
+					"assets/futures/sub-accounts/transfer": map[string]any{
+						"cost": 5,
+					},
+					"assets/universal-transfer": map[string]any{
+						"cost": 5,
+					},
+					"assets/convert": map[string]any{
+						"cost": 5,
+					},
+					"phemex-withdraw/wallets/api/createWithdraw": map[string]any{
+						"cost": 5,
+					},
+					"phemex-withdraw/wallets/api/cancelWithdraw": map[string]any{
+						"cost": 5,
+					},
 				},
 				"put": map[string]any{
-					"spot/orders/create":               1,
-					"spot/orders":                      1,
-					"orders/replace":                   1,
-					"g-orders/replace":                 1,
-					"g-orders/create":                  1,
-					"positions/leverage":               5,
-					"g-positions/leverage":             5,
-					"g-positions/switch-pos-mode-sync": 5,
-					"positions/riskLimit":              5,
+					"spot/orders/create": map[string]any{
+						"cost": 1,
+					},
+					"spot/orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/replace": map[string]any{
+						"cost": 1,
+					},
+					"g-orders/replace": map[string]any{
+						"cost": 1,
+					},
+					"g-orders/create": map[string]any{
+						"cost": 1,
+					},
+					"positions/leverage": map[string]any{
+						"cost": 5,
+					},
+					"g-positions/leverage": map[string]any{
+						"cost": 5,
+					},
+					"g-positions/switch-pos-mode-sync": map[string]any{
+						"cost": 5,
+					},
+					"positions/riskLimit": map[string]any{
+						"cost": 5,
+					},
 				},
 				"delete": map[string]any{
-					"spot/orders":     2,
-					"spot/orders/all": 2,
-					"orders/cancel":   1,
-					"orders":          1,
-					"orders/all":      3,
-					"g-orders/cancel": 1,
-					"g-orders":        1,
-					"g-orders/all":    3,
+					"spot/orders": map[string]any{
+						"cost": 2,
+					},
+					"spot/orders/all": map[string]any{
+						"cost": 2,
+					},
+					"orders/cancel": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/all": map[string]any{
+						"cost": 3,
+					},
+					"g-orders/cancel": map[string]any{
+						"cost": 1,
+					},
+					"g-orders": map[string]any{
+						"cost": 1,
+					},
+					"g-orders/all": map[string]any{
+						"cost": 3,
+					},
 				},
 			},
 		},
@@ -701,6 +931,7 @@ func (this *PhemexCore) ParseSwapMarket(market any) any {
 		// "1.0"
 		contractSize = this.ParseNumber(contractSizeString)
 	}
+	var isLinear any = !IsTrue(inverse)
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         Add(Add(Add(Add(base, "/"), quote), ":"), settle),
@@ -718,7 +949,7 @@ func (this *PhemexCore) ParseSwapMarket(market any) any {
 		"option":         false,
 		"active":         IsEqual(status, "Listed"),
 		"contract":       true,
-		"linear":         !IsTrue(inverse),
+		"linear":         isLinear,
 		"inverse":        inverse,
 		"taker":          this.ParseNumber(this.FromEn(takerFeeRateEr, ratioScale)),
 		"maker":          this.ParseNumber(this.FromEn(makerFeeRateEr, ratioScale)),
@@ -1007,7 +1238,7 @@ func (this *PhemexCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		//                     "symbol":"BTCUSDT",
 		//                     "steps":"2000K",
 		//                     "riskLimits":[
-		//                         {"limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"},,
+		//                         {"limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"},
 		//                         {"limit":4000000,"initialMarginRr":"0.015","maintenanceMarginRr":"0.0075"},
 		//                         {"limit":6000000,"initialMarginRr":"0.02","maintenanceMarginRr":"0.01"},
 		//                     ]
@@ -1137,55 +1368,53 @@ func (this *PhemexCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		//     }
 		var data any = this.SafeValue(response, "data", map[string]any{})
 		var currencies any = this.SafeValue(data, "currencies", []any{})
-		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(currencies)); i++ {
-			var currency any = GetValue(currencies, i)
-			var id any = this.SafeString(currency, "currency")
-			var code any = this.SafeCurrencyCode(id)
-			var valueScaleString any = this.SafeString(currency, "valueScale")
-			var valueScale any = ParseInt(valueScaleString)
-			var minValueEv any = this.SafeString(currency, "minValueEv")
-			var maxValueEv any = this.SafeString(currency, "maxValueEv")
-			var minAmount any = nil
-			var maxAmount any = nil
-			var precision any = nil
-			if IsTrue(!IsEqual(valueScale, nil)) {
-				var precisionString any = this.ParsePrecision(valueScaleString)
-				precision = this.ParseNumber(precisionString)
-				minAmount = this.ParseNumber(Precise.StringMul(minValueEv, precisionString))
-				maxAmount = this.ParseNumber(Precise.StringMul(maxValueEv, precisionString))
-			}
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"id":        id,
-				"info":      currency,
-				"code":      code,
-				"name":      this.SafeString(currency, "name"),
-				"active":    IsEqual(this.SafeString(currency, "status"), "Listed"),
-				"deposit":   nil,
-				"withdraw":  nil,
-				"fee":       nil,
-				"precision": precision,
-				"limits": map[string]any{
-					"amount": map[string]any{
-						"min": minAmount,
-						"max": maxAmount,
-					},
-					"withdraw": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-				},
-				"valueScale": valueScale,
-				"networks":   nil,
-				"type":       "crypto",
-			}))
-		}
 
-		ch <- result
+		ch <- this.ParseCurrencies(currencies)
 		return nil
 
 	}()
 	return ch
+}
+func (this *PhemexCore) ParseCurrency(rawCurrency any) any {
+	var id any = this.SafeString(rawCurrency, "currency")
+	var code any = this.SafeCurrencyCode(id)
+	var valueScaleString any = this.SafeString(rawCurrency, "valueScale")
+	var valueScale any = ParseInt(valueScaleString)
+	var minValueEv any = this.SafeString(rawCurrency, "minValueEv")
+	var maxValueEv any = this.SafeString(rawCurrency, "maxValueEv")
+	var minAmount any = nil
+	var maxAmount any = nil
+	var precision any = nil
+	if IsTrue(!IsEqual(valueScale, nil)) {
+		var precisionString any = this.ParsePrecision(valueScaleString)
+		precision = this.ParseNumber(precisionString)
+		minAmount = this.ParseNumber(Precise.StringMul(minValueEv, precisionString))
+		maxAmount = this.ParseNumber(Precise.StringMul(maxValueEv, precisionString))
+	}
+	return this.SafeCurrencyStructure(map[string]any{
+		"id":        id,
+		"info":      rawCurrency,
+		"code":      code,
+		"name":      this.SafeString(rawCurrency, "name"),
+		"active":    IsEqual(this.SafeString(rawCurrency, "status"), "Listed"),
+		"deposit":   nil,
+		"withdraw":  nil,
+		"fee":       nil,
+		"precision": precision,
+		"limits": map[string]any{
+			"amount": map[string]any{
+				"min": minAmount,
+				"max": maxAmount,
+			},
+			"withdraw": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+		"valueScale": valueScale,
+		"networks":   nil,
+		"type":       "crypto",
+	})
 }
 func (this *PhemexCore) CustomParseBidAsk(bidask any, optionalArgs ...any) any {
 	priceKey := GetArg(optionalArgs, 0, 0)
@@ -1245,7 +1474,7 @@ func (this *PhemexCore) CustomParseOrderBook(orderbook any, symbol any, optional
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *PhemexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1256,9 +1485,11 @@ func (this *PhemexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan a
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes12408 := (<-this.LoadMarkets())
-		PanicOnError(retRes12408)
+			retRes124112 := (<-this.LoadMarkets())
+			PanicOnError(retRes124112)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -1339,7 +1570,7 @@ func (this *PhemexCore) ToEp(price any, optionalArgs ...any) any {
 	if IsTrue(IsTrue((IsEqual(price, nil))) || IsTrue((IsEqual(market, nil)))) {
 		return price
 	}
-	return this.ToEn(price, GetValue(market, "priceScale"))
+	return this.ToEn(price, this.SafeValue(market, "priceScale"))
 }
 func (this *PhemexCore) FromEn(en any, scale any) any {
 	if IsTrue(IsTrue(IsEqual(en, nil)) || IsTrue(IsEqual(scale, nil))) {
@@ -1426,9 +1657,11 @@ func (this *PhemexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes13898 := (<-this.LoadMarkets())
-		PanicOnError(retRes13898)
+			retRes139212 := (<-this.LoadMarkets())
+			PanicOnError(retRes139212)
+		}
 		var market any = this.Market(symbol)
 		var userLimit any = limit
 		var request any = map[string]any{
@@ -1456,7 +1689,8 @@ func (this *PhemexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 					AddElementToObject(request, "from", since)
 				} else {
 					// when 'to' is defined since is mandatory
-					since = Subtract((Divide(until, 100)), (Multiply(maxLimit, candleDuration)))
+					since = Subtract(MathRound(Divide(until, 1000)), (Multiply(maxLimit, candleDuration)))
+					AddElementToObject(request, "from", since)
 				}
 				if IsTrue(!IsEqual(until, nil)) {
 					AddElementToObject(request, "to", MathRound(Divide(until, 1000)))
@@ -1619,9 +1853,11 @@ func (this *PhemexCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any 
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes15628 := (<-this.LoadMarkets())
-		PanicOnError(retRes15628)
+			retRes156812 := (<-this.LoadMarkets())
+			PanicOnError(retRes156812)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -1715,9 +1951,11 @@ func (this *PhemexCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16388 := (<-this.LoadMarkets())
-		PanicOnError(retRes16388)
+			retRes164612 := (<-this.LoadMarkets())
+			PanicOnError(retRes164612)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
 			var first any = this.SafeValue(symbols, 0)
@@ -1777,9 +2015,11 @@ func (this *PhemexCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16738 := (<-this.LoadMarkets())
-		PanicOnError(retRes16738)
+			retRes168312 := (<-this.LoadMarkets())
+			PanicOnError(retRes168312)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -2243,9 +2483,11 @@ func (this *PhemexCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes21208 := (<-this.LoadMarkets())
-		PanicOnError(retRes21208)
+			retRes213212 := (<-this.LoadMarkets())
+			PanicOnError(retRes213212)
+		}
 		var typeVar any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
@@ -2814,9 +3056,11 @@ func (this *PhemexCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes26638 := (<-this.LoadMarkets())
-		PanicOnError(retRes26638)
+			retRes267712 := (<-this.LoadMarkets())
+			PanicOnError(retRes267712)
+		}
 		var market any = this.Market(symbol)
 		var requestSide any = this.Capitalize(side)
 		typeVar = this.Capitalize(typeVar)
@@ -2879,10 +3123,10 @@ func (this *PhemexCore) CreateOrder(symbol any, typeVar any, side any, amount an
 					}
 				}
 				cost = Ternary(IsTrue((IsEqual(cost, nil))), amount, cost)
-				var costString any = this.NumberToString(cost)
+				var costString any = this.CostToPrecision(symbol, cost)
 				AddElementToObject(request, "quoteQtyEv", this.ToEv(costString, market))
 			} else {
-				var amountString any = this.NumberToString(amount)
+				var amountString any = this.AmountToPrecision(symbol, amount)
 				AddElementToObject(request, "baseQtyEv", this.ToEv(amountString, market))
 			}
 		} else if IsTrue(GetValue(market, "swap")) {
@@ -2917,7 +3161,7 @@ func (this *PhemexCore) CreateOrder(symbol any, typeVar any, side any, amount an
 				triggerDirection = GetValue(triggerDirectionparamsVariable, 0)
 				params = GetValue(triggerDirectionparamsVariable, 1)
 				if IsTrue(IsEqual(triggerDirection, nil)) {
-					panic(ArgumentsRequired(Add(this.Id, " createOrder() also requires a \\'triggerDirection\\' parameter with either \\'ascending\\' or \\'descending\\' value")))
+					panic(ArgumentsRequired(Add(this.Id, " createOrder() also requires a 'triggerDirection' parameter with either 'ascending' or 'descending' value")))
 				}
 				// the flow defined per https://phemex-docs.github.io/#more-order-type-examples
 				if IsTrue(IsTrue(IsEqual(triggerDirection, "ascending")) || IsTrue(IsEqual(triggerDirection, "up"))) {
@@ -3126,9 +3370,11 @@ func (this *PhemexCore) EditOrder(id any, symbol any, typeVar any, side any, opt
 		_ = price
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes29738 := (<-this.LoadMarkets())
-		PanicOnError(retRes29738)
+			retRes298912 := (<-this.LoadMarkets())
+			PanicOnError(retRes298912)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -3219,9 +3465,11 @@ func (this *PhemexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes30458 := (<-this.LoadMarkets())
-		PanicOnError(retRes30458)
+			retRes306312 := (<-this.LoadMarkets())
+			PanicOnError(retRes306312)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -3281,9 +3529,11 @@ func (this *PhemexCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes30868 := (<-this.LoadMarkets())
-		PanicOnError(retRes30868)
+			retRes310612 := (<-this.LoadMarkets())
+			PanicOnError(retRes310612)
+		}
 		var market any = this.Market(symbol)
 		var trigger any = this.SafeValue2(params, "stop", "trigger", false)
 		params = this.Omit(params, []any{"stop", "trigger"})
@@ -3339,9 +3589,11 @@ func (this *PhemexCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes31508 := (<-this.LoadMarkets())
-		PanicOnError(retRes31508)
+			retRes317212 := (<-this.LoadMarkets())
+			PanicOnError(retRes317212)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -3418,9 +3670,11 @@ func (this *PhemexCore) FetchOrders(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes32048 := (<-this.LoadMarkets())
-		PanicOnError(retRes32048)
+			retRes322812 := (<-this.LoadMarkets())
+			PanicOnError(retRes322812)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -3482,15 +3736,19 @@ func (this *PhemexCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes32438 := (<-this.LoadMarkets())
-		PanicOnError(retRes32438)
+			retRes326912 := (<-this.LoadMarkets())
+			PanicOnError(retRes326912)
+		}
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes32478 := (<-this.LoadMarkets())
-		PanicOnError(retRes32478)
+			retRes327512 := (<-this.LoadMarkets())
+			PanicOnError(retRes327512)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -3578,9 +3836,11 @@ func (this *PhemexCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes32928 := (<-this.LoadMarkets())
-		PanicOnError(retRes32928)
+			retRes332212 := (<-this.LoadMarkets())
+			PanicOnError(retRes332212)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3601,7 +3861,7 @@ func (this *PhemexCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 
 			response = (<-this.PrivateGetExchangeOrderV2OrderList(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if IsTrue(GetValue(market, "swap")) {
+		} else if IsTrue(IsTrue(!IsEqual(market, nil)) && IsTrue(GetValue(market, "swap"))) {
 
 			response = (<-this.PrivateGetExchangeOrderList(this.Extend(request, params)))
 			PanicOnError(response)
@@ -3688,9 +3948,11 @@ func (this *PhemexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes33768 := (<-this.LoadMarkets())
-		PanicOnError(retRes33768)
+			retRes340812 := (<-this.LoadMarkets())
+			PanicOnError(retRes340812)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3711,7 +3973,7 @@ func (this *PhemexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			if IsTrue(IsEqual(limit, nil)) {
 				AddElementToObject(request, "limit", 200)
 			}
-		} else if IsTrue(!IsEqual(symbol, nil)) {
+		} else if IsTrue(IsTrue(!IsEqual(symbol, nil)) && IsTrue(!IsEqual(market, nil))) {
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -3867,9 +4129,11 @@ func (this *PhemexCore) FetchDepositAddress(code any, optionalArgs ...any) <-cha
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes35348 := (<-this.LoadMarkets())
-		PanicOnError(retRes35348)
+			retRes356812 := (<-this.LoadMarkets())
+			PanicOnError(retRes356812)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -3944,9 +4208,11 @@ func (this *PhemexCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes35908 := (<-this.LoadMarkets())
-		PanicOnError(retRes35908)
+			retRes362612 := (<-this.LoadMarkets())
+			PanicOnError(retRes362612)
+		}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -4006,9 +4272,11 @@ func (this *PhemexCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes36318 := (<-this.LoadMarkets())
-		PanicOnError(retRes36318)
+			retRes366912 := (<-this.LoadMarkets())
+			PanicOnError(retRes366912)
+		}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -4144,7 +4412,7 @@ func (this *PhemexCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	var networkId any = this.SafeString(transaction, "chainName")
 	var timestamp any = this.SafeIntegerN(transaction, []any{"createdAt", "submitedAt", "submittedAt"})
 	var typeVar any = this.SafeStringLower(transaction, "type")
-	var feeCost any = this.ParseNumber(this.FromEn(this.SafeString(transaction, "feeEv"), GetValue(currency, "valueScale")))
+	var feeCost any = this.ParseNumber(this.FromEn(this.SafeString(transaction, "feeEv"), this.SafeValue(currency, "valueScale")))
 	if IsTrue(IsEqual(feeCost, nil)) {
 		feeCost = this.SafeNumber(transaction, "feeRv")
 	}
@@ -4157,7 +4425,7 @@ func (this *PhemexCore) ParseTransaction(transaction any, optionalArgs ...any) a
 		}
 	}
 	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
-	var amount any = this.ParseNumber(this.FromEn(this.SafeString(transaction, "amountEv"), GetValue(currency, "valueScale")))
+	var amount any = this.ParseNumber(this.FromEn(this.SafeString(transaction, "amountEv"), this.SafeValue(currency, "valueScale")))
 	if IsTrue(IsEqual(amount, nil)) {
 		amount = this.SafeNumber(transaction, "amountRv")
 	}
@@ -4167,7 +4435,7 @@ func (this *PhemexCore) ParseTransaction(transaction any, optionalArgs ...any) a
 		"txid":        txid,
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-		"network":     this.NetworkIdToCode(networkId),
+		"network":     this.NetworkIdToCode(networkId, code),
 		"address":     address,
 		"addressTo":   address,
 		"addressFrom": nil,
@@ -4207,9 +4475,11 @@ func (this *PhemexCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes38158 := (<-this.LoadMarkets())
-		PanicOnError(retRes38158)
+			retRes385512 := (<-this.LoadMarkets())
+			PanicOnError(retRes385512)
+		}
 		symbols = this.MarketSymbols(symbols)
 		var subType any = nil
 		var code any = this.SafeString2(params, "currency", "code", "USDT")
@@ -4360,7 +4630,7 @@ func (this *PhemexCore) FetchPositions(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified contract symbol
  * @param {int} [since] the earliest time in ms to fetch positions for
  * @param {int} [limit] the maximum amount of records to fetch
- * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch positions for
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
@@ -4375,9 +4645,11 @@ func (this *PhemexCore) FetchPositionHistory(symbol any, optionalArgs ...any) <-
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes39548 := (<-this.LoadMarkets())
-		PanicOnError(retRes39548)
+			retRes399612 := (<-this.LoadMarkets())
+			PanicOnError(retRes399612)
+		}
 		var market any = this.Market(symbol)
 		symbol = GetValue(market, "symbol")
 		var request any = map[string]any{
@@ -4630,9 +4902,11 @@ func (this *PhemexCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingHistory() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes41878 := (<-this.LoadMarkets())
-		PanicOnError(retRes41878)
+			retRes423112 := (<-this.LoadMarkets())
+			PanicOnError(retRes423112)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -4706,7 +4980,7 @@ func (this *PhemexCore) ParseFundingFeeToPrecision(value any, optionalArgs ...an
 	_ = market
 	currencyCode := GetArg(optionalArgs, 1, nil)
 	_ = currencyCode
-	if IsTrue(IsTrue(IsEqual(value, nil)) || IsTrue(IsEqual(currencyCode, nil))) {
+	if IsTrue(IsTrue(IsTrue(IsEqual(value, nil)) || IsTrue(IsEqual(currencyCode, nil))) || IsTrue(IsEqual(market, nil))) {
 		return value
 	}
 	// it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
@@ -4735,9 +5009,11 @@ func (this *PhemexCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes42748 := (<-this.LoadMarkets())
-		PanicOnError(retRes42748)
+			retRes432012 := (<-this.LoadMarkets())
+			PanicOnError(retRes432012)
+		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
@@ -4872,9 +5148,11 @@ func (this *PhemexCore) SetMargin(symbol any, amount any, optionalArgs ...any) <
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes43938 := (<-this.LoadMarkets())
-		PanicOnError(retRes43938)
+			retRes444112 := (<-this.LoadMarkets())
+			PanicOnError(retRes444112)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol":       GetValue(market, "id"),
@@ -4954,9 +5232,11 @@ func (this *PhemexCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes44588 := (<-this.LoadMarkets())
-		PanicOnError(retRes44588)
+			retRes450812 := (<-this.LoadMarkets())
+			PanicOnError(retRes450812)
+		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " setMarginMode() supports swap contracts only")))
@@ -4976,9 +5256,9 @@ func (this *PhemexCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
 			}
 			AddElementToObject(request, "leverageRr", Ternary(IsTrue(isCross), Precise.StringNeg(Precise.StringAbs(currentLeverage)), Precise.StringAbs(currentLeverage)))
 
-			retRes447719 := (<-this.PrivatePutGPositionsLeverage(this.Extend(request, params)))
-			PanicOnError(retRes447719)
-			ch <- retRes447719
+			retRes452819 := (<-this.PrivatePutGPositionsLeverage(this.Extend(request, params)))
+			PanicOnError(retRes452819)
+			ch <- retRes452819
 			return nil
 		}
 		var leverage any = this.SafeInteger(params, "leverage")
@@ -4990,9 +5270,9 @@ func (this *PhemexCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
 		}
 		AddElementToObject(request, "leverage", leverage)
 
-		retRes448715 := (<-this.PrivatePutPositionsLeverage(this.Extend(request, params)))
-		PanicOnError(retRes448715)
-		ch <- retRes448715
+		retRes453815 := (<-this.PrivatePutPositionsLeverage(this.Extend(request, params)))
+		PanicOnError(retRes453815)
+		ch <- retRes453815
 		return nil
 
 	}()
@@ -5005,7 +5285,7 @@ func (this *PhemexCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
  * @description set hedged to true or false for a market
  * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#switch-position-mode-synchronously
  * @param {bool} hedged set to true to use dualSidePosition
- * @param {string} symbol not used by binance setPositionMode ()
+ * @param {string} symbol not used by setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
@@ -5019,9 +5299,11 @@ func (this *PhemexCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan 
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		this.CheckRequiredArgument("setPositionMode", symbol, "symbol")
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes45028 := (<-this.LoadMarkets())
-		PanicOnError(retRes45028)
+			retRes455412 := (<-this.LoadMarkets())
+			PanicOnError(retRes455412)
+		}
 		var market any = this.Market(symbol)
 		if IsTrue(!IsEqual(GetValue(market, "settle"), "USDT")) {
 			panic(BadSymbol(Add(this.Id, " setPositionMode() supports USDT settled markets only")))
@@ -5035,9 +5317,9 @@ func (this *PhemexCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan 
 			AddElementToObject(request, "targetPosMode", "OneWay")
 		}
 
-		retRes451515 := (<-this.PrivatePutGPositionsSwitchPosModeSync(this.Extend(request, params)))
-		PanicOnError(retRes451515)
-		ch <- retRes451515
+		retRes456815 := (<-this.PrivatePutGPositionsSwitchPosModeSync(this.Extend(request, params)))
+		PanicOnError(retRes456815)
+		ch <- retRes456815
 		return nil
 
 	}()
@@ -5061,9 +5343,11 @@ func (this *PhemexCore) FetchLeverageTiers(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes45278 := (<-this.LoadMarkets())
-		PanicOnError(retRes45278)
+			retRes458112 := (<-this.LoadMarkets())
+			PanicOnError(retRes458112)
+		}
 		if IsTrue(!IsEqual(symbols, nil)) {
 			var first any = this.SafeValue(symbols, 0)
 			var market any = this.Market(first)
@@ -5187,13 +5471,14 @@ func (this *PhemexCore) ParseMarketLeverageTiers(info any, optionalArgs ...any) 
 	for i := 0; IsLessThan(i, GetArrayLength(riskLimits)); i++ {
 		var tier any = GetValue(riskLimits, i)
 		var maxNotional any = this.SafeInteger(tier, "limit")
+		var minNotionalResponse any = minNotional // java req
 		AppendToArray(&tiers, map[string]any{
 			"tier":                  this.Sum(i, 1),
 			"symbol":                this.SafeSymbol(marketId, market),
 			"currency":              GetValue(market, "settle"),
-			"minNotional":           minNotional,
+			"minNotional":           minNotionalResponse,
 			"maxNotional":           maxNotional,
-			"maintenanceMarginRate": this.SafeString(tier, "maintenanceMargin"),
+			"maintenanceMarginRate": this.SafeNumber(tier, "maintenanceMargin"),
 			"maxLeverage":           nil,
 			"info":                  tier,
 		})
@@ -5287,9 +5572,11 @@ func (this *PhemexCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
 		if IsTrue(IsTrue((IsLessThan(leverage, OpNeg(100)))) || IsTrue((IsGreaterThan(leverage, 100)))) {
 			panic(BadRequest(Add(this.Id, " setLeverage() leverage should be between -100 and 100")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes47218 := (<-this.LoadMarkets())
-		PanicOnError(retRes47218)
+			retRes477812 := (<-this.LoadMarkets())
+			PanicOnError(retRes477812)
+		}
 		var isHedged any = this.SafeBool(params, "hedged", false)
 		var longLeverageRr any = this.SafeInteger(params, "longLeverageRr")
 		var shortLeverageRr any = this.SafeInteger(params, "shortLeverageRr")
@@ -5345,9 +5632,11 @@ func (this *PhemexCore) Transfer(code any, amount any, fromAccount any, toAccoun
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes47628 := (<-this.LoadMarkets())
-		PanicOnError(retRes47628)
+			retRes482112 := (<-this.LoadMarkets())
+			PanicOnError(retRes482112)
+		}
 		var currency any = this.Currency(code)
 		var accountsByType any = this.SafeValue(this.Options, "accountsByType", map[string]any{})
 		var fromId any = this.SafeString(accountsByType, fromAccount, fromAccount)
@@ -5453,9 +5742,11 @@ func (this *PhemexCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes48478 := (<-this.LoadMarkets())
-		PanicOnError(retRes48478)
+			retRes490812 := (<-this.LoadMarkets())
+			PanicOnError(retRes490812)
+		}
 		if IsTrue(IsEqual(code, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchTransfers() requires a code argument")))
 		}
@@ -5597,9 +5888,11 @@ func (this *PhemexCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any 
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes49708 := (<-this.LoadMarkets())
-		PanicOnError(retRes49708)
+			retRes503312 := (<-this.LoadMarkets())
+			PanicOnError(retRes503312)
+		}
 		var market any = this.Market(symbol)
 		var isUsdtSettled any = IsTrue(IsEqual(GetValue(market, "settle"), "USDT")) || IsTrue(IsEqual(GetValue(market, "settle"), "USDC"))
 		if !IsTrue(GetValue(market, "swap")) {
@@ -5611,9 +5904,9 @@ func (this *PhemexCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any 
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes497919 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
-			PanicOnError(retRes497919)
-			ch <- retRes497919
+			retRes504319 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
+			PanicOnError(retRes504319)
+			ch <- retRes504319
 			return nil
 		}
 		var customSymbol any = nil
@@ -5692,7 +5985,7 @@ func (this *PhemexCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any 
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} tag
- * @param {object} [params] extra parameters specific to the phemex api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] unified network code
  * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
  */
@@ -5708,9 +6001,11 @@ func (this *PhemexCore) Withdraw(code any, amount any, address any, optionalArgs
 		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes50528 := (<-this.LoadMarkets())
-		PanicOnError(retRes50528)
+			retRes511712 := (<-this.LoadMarkets())
+			PanicOnError(retRes511712)
+		}
 		this.CheckAddress(address)
 		var currency any = this.Currency(code)
 		var networkCode any = nil
@@ -5719,7 +6014,7 @@ func (this *PhemexCore) Withdraw(code any, amount any, address any, optionalArgs
 		params = GetValue(networkCodeparamsVariable, 1)
 		var networkId any = nil
 		if IsTrue(!IsEqual(networkCode, nil)) {
-			networkId = this.NetworkCodeToId(networkCode)
+			networkId = this.NetworkCodeToId(networkCode, code)
 		}
 		var stableCoins any = this.SafeValue(this.Options, "stableCoins")
 		if IsTrue(IsEqual(networkId, nil)) {
@@ -5793,9 +6088,11 @@ func (this *PhemexCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-cha
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes51208 := (<-this.LoadMarkets())
-		PanicOnError(retRes51208)
+			retRes518712 := (<-this.LoadMarkets())
+			PanicOnError(retRes518712)
+		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
 			panic(BadRequest(Add(this.Id, " fetchOpenInterest is only supported for contract markets.")))
@@ -5889,9 +6186,11 @@ func (this *PhemexCore) FetchConvertQuote(fromCode any, toCode any, optionalArgs
 		_ = amount
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes51988 := (<-this.LoadMarkets())
-		PanicOnError(retRes51988)
+			retRes526712 := (<-this.LoadMarkets())
+			PanicOnError(retRes526712)
+		}
 		var fromCurrency any = this.Currency(fromCode)
 		var toCurrency any = this.Currency(toCode)
 		var valueScale any = this.SafeInteger(fromCurrency, "valueScale")
@@ -5951,9 +6250,11 @@ func (this *PhemexCore) CreateConvertTrade(id any, fromCode any, toCode any, opt
 		_ = amount
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes52438 := (<-this.LoadMarkets())
-		PanicOnError(retRes52438)
+			retRes531412 := (<-this.LoadMarkets())
+			PanicOnError(retRes531412)
+		}
 		var fromCurrency any = this.Currency(fromCode)
 		var toCurrency any = this.Currency(toCode)
 		var valueScale any = this.SafeInteger(fromCurrency, "valueScale")
@@ -6023,9 +6324,11 @@ func (this *PhemexCore) FetchConvertTradeHistory(optionalArgs ...any) <-chan any
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes52948 := (<-this.LoadMarkets())
-		PanicOnError(retRes52948)
+			retRes536712 := (<-this.LoadMarkets())
+			PanicOnError(retRes536712)
+		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(code, nil)) {
 			AddElementToObject(request, "fromCurrency", code)
@@ -6173,9 +6476,11 @@ func (this *PhemexCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes54228 := (<-this.LoadMarkets())
-		PanicOnError(retRes54228)
+			retRes549712 := (<-this.LoadMarkets())
+			PanicOnError(retRes549712)
+		}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var subType any = nil
 		var code any = this.SafeString2(params, "currency", "code", "USDT")

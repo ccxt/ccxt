@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Exchange } from "../../../ccxt";
+import { Exchange } from "../../../ccxt.js";
 import testOHLCV from './base/test.ohlcv.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 
@@ -38,7 +38,7 @@ function testFetchOHLCVChecker (exchange, skippedProperties, symbol, ohlcvs, tim
     logText = logText + '' + exchange.json (ohlcvs); // trick transpiler
     const now = exchange.milliseconds ();
     for (let i = 0; i < ohlcvs.length; i++) {
-        testOHLCV (exchange, skippedProperties, method, ohlcvs[i], symbol, now);
+        testOHLCV (exchange, skippedProperties, method, ohlcvs[i] as number[], symbol, now);
     }
     const durationMs = exchange.parseTimeframe (timeframe) * 1000;
     const barsLength = ohlcvs.length;

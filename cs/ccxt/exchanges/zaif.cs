@@ -73,7 +73,7 @@ public partial class zaif : Exchange
                 { "withdraw", true },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/c6c97d18-5bde-46ed-8eb1-85404d36150e" },
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://api.zaif.jp" },
                 } },
@@ -91,56 +91,124 @@ public partial class zaif : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "depth/{pair}", 1 },
-                        { "currencies/{pair}", 1 },
-                        { "currencies/all", 1 },
-                        { "currency_pairs/{pair}", 1 },
-                        { "currency_pairs/all", 1 },
-                        { "last_price/{pair}", 1 },
-                        { "ticker/{pair}", 1 },
-                        { "trades/{pair}", 1 },
+                        { "depth/{pair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currencies/{pair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currencies/all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currency_pairs/{pair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currency_pairs/all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "last_price/{pair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker/{pair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades/{pair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "active_orders", 5 },
-                        { "cancel_order", 5 },
-                        { "deposit_history", 5 },
-                        { "get_id_info", 5 },
-                        { "get_info", 10 },
-                        { "get_info2", 5 },
-                        { "get_personal_info", 5 },
-                        { "trade", 5 },
-                        { "trade_history", 50 },
-                        { "withdraw", 5 },
-                        { "withdraw_history", 5 },
+                        { "active_orders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "cancel_order", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deposit_history", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "get_id_info", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "get_info", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "get_info2", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "get_personal_info", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "trade", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "trade_history", new Dictionary<string, object>() {
+                            { "cost", 50 },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "withdraw_history", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                 } },
                 { "ecapi", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "createInvoice", 1 },
-                        { "getInvoice", 1 },
-                        { "getInvoiceIdsByOrderNumber", 1 },
-                        { "cancelInvoice", 1 },
+                        { "createInvoice", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getInvoice", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getInvoiceIdsByOrderNumber", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelInvoice", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "tlapi", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "get_positions", 66 },
-                        { "position_history", 66 },
-                        { "active_positions", 5 },
-                        { "create_position", 33 },
-                        { "change_position", 33 },
-                        { "cancel_position", 33 },
+                        { "get_positions", new Dictionary<string, object>() {
+                            { "cost", 66 },
+                        } },
+                        { "position_history", new Dictionary<string, object>() {
+                            { "cost", 66 },
+                        } },
+                        { "active_positions", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "create_position", new Dictionary<string, object>() {
+                            { "cost", 33 },
+                        } },
+                        { "change_position", new Dictionary<string, object>() {
+                            { "cost", 33 },
+                        } },
+                        { "cancel_position", new Dictionary<string, object>() {
+                            { "cost", 33 },
+                        } },
                     } },
                 } },
                 { "fapi", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "groups/{group_id}", 1 },
-                        { "last_price/{group_id}/{pair}", 1 },
-                        { "ticker/{group_id}/{pair}", 1 },
-                        { "trades/{group_id}/{pair}", 1 },
-                        { "depth/{group_id}/{pair}", 1 },
+                        { "groups/{group_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "last_price/{group_id}/{pair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker/{group_id}/{pair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades/{group_id}/{pair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "depth/{group_id}/{pair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -252,13 +320,17 @@ public partial class zaif : Exchange
     {
         object id = this.safeString(market, "currency_pair");
         object name = this.safeString(market, "name");
+        if (isTrue(isEqual(name, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseMarket() missing name")) ;
+        }
         var baseIdquoteIdVariable = ((string)name).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
         var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
             { "base", bs },
@@ -306,7 +378,7 @@ public partial class zaif : Exchange
             } },
             { "created", null },
             { "info", market },
-        };
+        });
     }
 
     public override object parseBalance(object response)
@@ -335,7 +407,10 @@ public partial class zaif : Exchange
                     ((IDictionary<string,object>)account)["total"] = this.safeString(deposit, currencyId);
                 }
             }
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -351,7 +426,10 @@ public partial class zaif : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privatePostGetInfo(parameters);
         return this.parseBalance(response);
     }
@@ -364,12 +442,15 @@ public partial class zaif : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -432,7 +513,10 @@ public partial class zaif : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -505,7 +589,10 @@ public partial class zaif : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -523,16 +610,17 @@ public partial class zaif : Exchange
         //          }, ...
         //      ]
         //
-        object numTrades = getArrayLength(response);
+        object trades = this.toArray(response);
+        object numTrades = getArrayLength(trades);
         if (isTrue(isEqual(numTrades, 1)))
         {
-            object firstTrade = getValue(response, 0);
+            object firstTrade = this.safeDict(trades, 0, new Dictionary<string, object>() {});
             if (!isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)firstTrade).Keys))))
             {
-                response = new List<object>() {};
+                trades = new List<object>() {};
             }
         }
-        return this.parseTrades(response, market, since, limit);
+        return this.parseTrades(trades, market, since, limit);
     }
 
     /**
@@ -551,7 +639,10 @@ public partial class zaif : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(!isEqual(type, "limit")))
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() allows limit orders only")) ;
@@ -564,9 +655,10 @@ public partial class zaif : Exchange
             { "price", price },
         };
         object response = await this.privatePostTrade(this.extend(request, parameters));
+        object data = this.safeDict(response, "return", new Dictionary<string, object>() {});
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
-            { "id", ((object)getValue(getValue(response, "return"), "order_id")).ToString() },
+            { "id", ((object)getValue(data, "order_id")).ToString() },
         }, market);
     }
 
@@ -576,7 +668,7 @@ public partial class zaif : Exchange
      * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id37
      * @description cancels an open order
      * @param {string} id order id
-     * @param {string} symbol not used by zaif cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -601,7 +693,7 @@ public partial class zaif : Exchange
         //        }
         //    }
         //
-        object data = this.safeDict(response, "return");
+        object data = this.safeDict(response, "return", new Dictionary<string, object>() {});
         return this.parseOrder(data);
     }
 
@@ -676,7 +768,10 @@ public partial class zaif : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
@@ -685,7 +780,8 @@ public partial class zaif : Exchange
             ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id");
         }
         object response = await this.privatePostActiveOrders(this.extend(request, parameters));
-        return this.parseOrders(getValue(response, "return"), market, since, limit);
+        object data = this.safeDict(response, "return", new Dictionary<string, object>() {});
+        return this.parseOrders(data, market, since, limit);
     }
 
     /**
@@ -702,7 +798,10 @@ public partial class zaif : Exchange
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
@@ -711,7 +810,8 @@ public partial class zaif : Exchange
             ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id");
         }
         object response = await this.privatePostTradeHistory(this.extend(request, parameters));
-        return this.parseOrders(getValue(response, "return"), market, since, limit);
+        object data = this.safeDict(response, "return", new Dictionary<string, object>() {});
+        return this.parseOrders(data, market, since, limit);
     }
 
     /**
@@ -733,7 +833,10 @@ public partial class zaif : Exchange
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         if (isTrue(isEqual(code, "JPY")))
         {
@@ -765,7 +868,7 @@ public partial class zaif : Exchange
         //         }
         //     }
         //
-        object returnData = this.safeDict(result, "return");
+        object returnData = this.safeDict(result, "return", new Dictionary<string, object>() {});
         return this.parseTransaction(returnData, currency);
     }
 

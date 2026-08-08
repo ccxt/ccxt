@@ -1,5 +1,5 @@
 import Exchange from './abstract/foxbit.js';
-import type { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict, Status } from './base/types.js';
 /**
  * @class foxbit
  * @augments Exchange
@@ -7,6 +7,7 @@ import type { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market,
 export default class foxbit extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
      * @name foxbit#fetchMarkets
@@ -53,7 +54,7 @@ export default class foxbit extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return, the maximum is 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -160,7 +161,7 @@ export default class foxbit extends Exchange {
      * @name foxbit#cancelAllOrders
      * @description Cancel all open orders or all open orders for a specific market.
      * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel
-     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -258,13 +259,7 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: string;
-        eta: any;
-        url: any;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name foxbit#editOrder
@@ -309,44 +304,44 @@ export default class foxbit extends Exchange {
     parseTradingFee(entry: Dict, market?: Market): TradingFeeInterface;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
-    parseTrade(trade: any, market?: any): Trade;
-    parseOrderStatus(status: Str): string;
-    parseOrder(order: any, market?: any): Order;
+    parseTrade(trade: any, market?: Market): Trade;
+    parseOrderStatus(status: Str): Str;
+    parseOrder(order: Dict, market?: Market): Order;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
-        address: string;
-        tag: string;
-        currency: string;
-        network: string;
+        address: Str;
+        tag: Str;
+        currency: Str;
+        network: Str;
         info: any;
     };
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): Str;
     parseTransaction(transaction: any, currency?: Currency, since?: Int, limit?: Int): Transaction;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: Dict, currency?: Currency): {
-        id: string;
+        id: Str;
         info: Dict;
-        timestamp: number;
-        datetime: string;
+        timestamp: number | undefined;
+        datetime: string | undefined;
         direction: string;
-        account: any;
-        referenceId: any;
-        referenceAccount: any;
+        account: undefined;
+        referenceId: undefined;
+        referenceAccount: undefined;
         type: string;
-        currency: string;
-        amount: number;
+        currency: Str;
+        amount: Num;
         before: number;
         after: number;
         status: string;
         fee: {
-            cost: number;
-            currency: string;
+            cost: Num;
+            currency: Str;
         };
     };
-    sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: Str;
+        headers: Dict;
     };
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

@@ -61,12 +61,88 @@ func (this *PaymiumCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"countries", "currencies", "data/{currency}/ticker", "data/{currency}/trades", "data/{currency}/depth", "bitcoin_charts/{id}/trades", "bitcoin_charts/{id}/depth"},
+				"get": map[string]any{
+					"countries": map[string]any{
+						"cost": 1,
+					},
+					"currencies": map[string]any{
+						"cost": 1,
+					},
+					"data/{currency}/ticker": map[string]any{
+						"cost": 1,
+					},
+					"data/{currency}/trades": map[string]any{
+						"cost": 1,
+					},
+					"data/{currency}/depth": map[string]any{
+						"cost": 1,
+					},
+					"bitcoin_charts/{id}/trades": map[string]any{
+						"cost": 1,
+					},
+					"bitcoin_charts/{id}/depth": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"get":    []any{"user", "user/addresses", "user/addresses/{address}", "user/orders", "user/orders/{uuid}", "user/price_alerts", "merchant/get_payment/{uuid}"},
-				"post":   []any{"user/addresses", "user/orders", "user/withdrawals", "user/email_transfers", "user/payment_requests", "user/price_alerts", "merchant/create_payment"},
-				"delete": []any{"user/orders/{uuid}", "user/orders/{uuid}/cancel", "user/price_alerts/{id}"},
+				"get": map[string]any{
+					"user": map[string]any{
+						"cost": 1,
+					},
+					"user/addresses": map[string]any{
+						"cost": 1,
+					},
+					"user/addresses/{address}": map[string]any{
+						"cost": 1,
+					},
+					"user/orders": map[string]any{
+						"cost": 1,
+					},
+					"user/orders/{uuid}": map[string]any{
+						"cost": 1,
+					},
+					"user/price_alerts": map[string]any{
+						"cost": 1,
+					},
+					"merchant/get_payment/{uuid}": map[string]any{
+						"cost": 1,
+					},
+				},
+				"post": map[string]any{
+					"user/addresses": map[string]any{
+						"cost": 1,
+					},
+					"user/orders": map[string]any{
+						"cost": 1,
+					},
+					"user/withdrawals": map[string]any{
+						"cost": 1,
+					},
+					"user/email_transfers": map[string]any{
+						"cost": 1,
+					},
+					"user/payment_requests": map[string]any{
+						"cost": 1,
+					},
+					"user/price_alerts": map[string]any{
+						"cost": 1,
+					},
+					"merchant/create_payment": map[string]any{
+						"cost": 1,
+					},
+				},
+				"delete": map[string]any{
+					"user/orders/{uuid}": map[string]any{
+						"cost": 1,
+					},
+					"user/orders/{uuid}/cancel": map[string]any{
+						"cost": 1,
+					},
+					"user/price_alerts/{id}": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"markets": map[string]any{
@@ -168,9 +244,11 @@ func (this *PaymiumCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1888 := (<-this.LoadMarkets())
-		PanicOnError(retRes1888)
+			retRes18912 := (<-this.LoadMarkets())
+			PanicOnError(retRes18912)
+		}
 
 		response := (<-this.PrivateGetUser(params))
 		PanicOnError(response)
@@ -190,7 +268,7 @@ func (this *PaymiumCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *PaymiumCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -201,9 +279,11 @@ func (this *PaymiumCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes2048 := (<-this.LoadMarkets())
-		PanicOnError(retRes2048)
+			retRes20712 := (<-this.LoadMarkets())
+			PanicOnError(retRes20712)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"currency": GetValue(market, "id"),
@@ -285,9 +365,11 @@ func (this *PaymiumCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes2728 := (<-this.LoadMarkets())
-		PanicOnError(retRes2728)
+			retRes27712 := (<-this.LoadMarkets())
+			PanicOnError(retRes27712)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"currency": GetValue(market, "id"),
@@ -369,9 +451,11 @@ func (this *PaymiumCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes3368 := (<-this.LoadMarkets())
-		PanicOnError(retRes3368)
+			retRes34312 := (<-this.LoadMarkets())
+			PanicOnError(retRes34312)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"currency": GetValue(market, "id"),
@@ -403,9 +487,11 @@ func (this *PaymiumCore) CreateDepositAddress(code any, optionalArgs ...any) <-c
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes3558 := (<-this.LoadMarkets())
-		PanicOnError(retRes3558)
+			retRes36412 := (<-this.LoadMarkets())
+			PanicOnError(retRes36412)
+		}
 
 		response := (<-this.PrivatePostUserAddresses(params))
 		PanicOnError(response)
@@ -441,9 +527,11 @@ func (this *PaymiumCore) FetchDepositAddress(code any, optionalArgs ...any) <-ch
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes3788 := (<-this.LoadMarkets())
-		PanicOnError(retRes3788)
+			retRes38912 := (<-this.LoadMarkets())
+			PanicOnError(retRes38912)
+		}
 		var request any = map[string]any{
 			"address": code,
 		}
@@ -484,9 +572,11 @@ func (this *PaymiumCore) FetchDepositAddresses(optionalArgs ...any) <-chan any {
 		_ = codes
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes4048 := (<-this.LoadMarkets())
-		PanicOnError(retRes4048)
+			retRes41712 := (<-this.LoadMarkets())
+			PanicOnError(retRes41712)
+		}
 
 		response := (<-this.PrivateGetUserAddresses(params))
 		PanicOnError(response)
@@ -551,9 +641,11 @@ func (this *PaymiumCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes4538 := (<-this.LoadMarkets())
-		PanicOnError(retRes4538)
+			retRes46812 := (<-this.LoadMarkets())
+			PanicOnError(retRes46812)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"type":      Add(this.Capitalize(typeVar), "Order"),
@@ -570,7 +662,7 @@ func (this *PaymiumCore) CreateOrder(symbol any, typeVar any, side any, amount a
 
 		ch <- this.SafeOrder(map[string]any{
 			"info": response,
-			"id":   GetValue(response, "uuid"),
+			"id":   this.SafeString(response, "uuid"),
 		}, market)
 		return nil
 
@@ -584,7 +676,7 @@ func (this *PaymiumCore) CreateOrder(symbol any, typeVar any, side any, amount a
  * @description cancels an open order
  * @see https://paymium.github.io/api-documentation/#tag/Order/operation/cancel-order
  * @param {string} id order id
- * @param {string} symbol not used by paymium cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -632,9 +724,11 @@ func (this *PaymiumCore) Transfer(code any, amount any, fromAccount any, toAccou
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5048 := (<-this.LoadMarkets())
-		PanicOnError(retRes5048)
+			retRes52112 := (<-this.LoadMarkets())
+			PanicOnError(retRes52112)
+		}
 		var currency any = this.Currency(code)
 		if IsTrue(IsLessThan(GetIndexOf(toAccount, "@"), 0)) {
 			panic(ExchangeError(Add(this.Id, " transfer() only allows transfers to an email address")))

@@ -1,17 +1,17 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import coinexRest from '../coinex.js';
 import { AuthenticationError, BadRequest, RateLimitExceeded, NotSupported, RequestTimeout, ExchangeError, ExchangeNotAvailable, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Dict, int } from '../base/types.js';
+import type { Balances, Dict, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, int, NullableList, FeeString } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class coinex extends coinexRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -97,7 +97,7 @@ export default class coinex extends coinexRest {
         return requestId;
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //  spot
         //
@@ -156,7 +156,7 @@ export default class coinex extends coinexRest {
         const defaultType = this.safeString (this.options, 'defaultType');
         const data = this.safeDict (message, 'data', {});
         const rawTickers = this.safeList (data, 'state_list', []);
-        const newTickers = {};
+        const newTickers: Dict = {};
         for (let i = 0; i < rawTickers.length; i++) {
             const entry = rawTickers[i];
             const marketId = this.safeString (entry, 'market');
@@ -182,7 +182,7 @@ export default class coinex extends coinexRest {
         client.resolve (newTickers, 'tickers');
     }
 
-    parseWSTicker (ticker, market = undefined) {
+    parseWSTicker (ticker: any, market: Market = undefined) {
         //
         //  spot
         //
@@ -257,9 +257,11 @@ export default class coinex extends coinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
-        let type = undefined;
+    override async watchBalance (params = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, 'spot');
         await this.authenticate (type);
         const url = this.urls['api']['ws'][type];
@@ -285,7 +287,7 @@ export default class coinex extends coinexRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         // spot
         //
@@ -335,9 +337,9 @@ export default class coinex extends coinexRest {
         const unrealizedPnl = this.safeString (firstEntry, 'unrealized_pnl');
         const isSpot = (updated !== undefined);
         const isSwap = (unrealizedPnl !== undefined);
-        let info = undefined;
-        let account = undefined;
-        let rawBalances = [];
+        let info: any = undefined;
+        let account: Str = undefined;
+        let rawBalances: any[] = [];
         if (isSpot) {
             account = 'spot';
             for (let i = 0; i < balances.length; i++) {
@@ -356,7 +358,7 @@ export default class coinex extends coinexRest {
             const entry = rawBalances[i];
             this.parseWsBalance (entry, account);
         }
-        let messageHash = undefined;
+        let messageHash: Str = undefined;
         if (account !== undefined) {
             if (this.safeValue (this.balance, account) === undefined) {
                 this.balance[account] = {};
@@ -368,7 +370,7 @@ export default class coinex extends coinexRest {
         }
     }
 
-    parseWsBalance (balance, accountType = undefined) {
+    parseWsBalance (balance: any, accountType: Str = undefined) {
         //
         // spot
         //
@@ -401,9 +403,13 @@ export default class coinex extends coinexRest {
             if (this.safeValue (this.balance, accountType) === undefined) {
                 this.balance[accountType] = {};
             }
-            this.balance[accountType][code] = account;
+            if ((accountType !== undefined) && (code !== undefined)) {
+                this.balance[accountType][code] = account;
+            }
         } else {
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
     }
 
@@ -419,18 +425,20 @@ export default class coinex extends coinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
-        let market = undefined;
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params, 'spot');
         await this.authenticate (type);
         const url = this.urls['api']['ws'][type];
-        const subscribedSymbols = [];
+        const subscribedSymbols: any[] = [];
         let messageHash = 'myTrades';
         if (market !== undefined) {
             messageHash += ':' + symbol;
@@ -455,7 +463,7 @@ export default class coinex extends coinexRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: any) {
         //
         //     {
         //         "method": "user_deals.update",
@@ -496,7 +504,7 @@ export default class coinex extends coinexRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         // spot
         //
@@ -559,7 +567,7 @@ export default class coinex extends coinexRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         // spot watchTrades
         //
@@ -638,8 +646,10 @@ export default class coinex extends coinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const tickers = await this.watchTickers ([ symbol ], params);
         return tickers[market['symbol']];
@@ -655,11 +665,13 @@ export default class coinex extends coinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let marketIds = this.marketIds (symbols);
-        let market = undefined;
-        const messageHashes = [];
+        let market: Market = undefined;
+        const messageHashes: string[] = [];
         const symbolsDefined = (symbols !== undefined);
         if (symbolsDefined) {
             for (let i = 0; i < symbols.length; i++) {
@@ -671,7 +683,7 @@ export default class coinex extends coinexRest {
             marketIds = [];
             messageHashes.push ('tickers');
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
         const url = this.urls['api']['ws'][type];
         const subscriptionHashes = [ 'all@ticker' ];
@@ -699,7 +711,7 @@ export default class coinex extends coinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         params['callerMethodName'] = 'watchTrades';
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
@@ -716,12 +728,14 @@ export default class coinex extends coinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
-        const subscribedSymbols = [];
-        const messageHashes = [];
-        let market = undefined;
-        let callerMethodName = undefined;
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const subscribedSymbols: any[] = [];
+        const messageHashes: string[] = [];
+        let market: Market = undefined;
+        let callerMethodName: Str = undefined;
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchTradesForSymbols');
         const symbolsDefined = (symbols !== undefined);
         if (symbolsDefined) {
@@ -734,7 +748,7 @@ export default class coinex extends coinexRest {
         } else {
             messageHashes.push ('trades');
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams (callerMethodName, market, params);
         const url = this.urls['api']['ws'][type];
         // const subscriptionHashes = [ 'trades' ];
@@ -759,15 +773,17 @@ export default class coinex extends coinexRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const watchOrderBookSubscriptions: Dict = {};
-        const messageHashes = [];
-        let market = undefined;
-        let type = undefined;
-        let callerMethodName = undefined;
+        const messageHashes: string[] = [];
+        let market: Market = undefined;
+        let type: Str = undefined;
+        let callerMethodName: Str = undefined;
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchOrderBookForSymbols');
         const options = this.safeDict (this.options, 'watchOrderBook', {});
         const limits = this.safeList (options, 'limits', []);
@@ -819,25 +835,25 @@ export default class coinex extends coinexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         params['callerMethodName'] = 'watchOrderBook';
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
-    handleDelta (bookside, delta) {
-        const bidAsk = this.parseBidAsk (delta, 0, 1);
+    override handleDelta (bookside: any, delta: any) {
+        const bidAsk = this.parseOrderBookBidAsk (delta, 0, 1);
         bookside.storeArray (bidAsk);
     }
 
-    handleDeltas (bookside, deltas) {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         "method": "depth.update",
@@ -912,22 +928,24 @@ export default class coinex extends coinexRest {
      * @param {bool} [params.trigger] if the orders to watch are trigger orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const trigger = this.safeBool2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
         let messageHash = 'orders';
-        let market = undefined;
-        let marketList = undefined;
+        let market: Market = undefined;
+        let marketList: NullableList = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params, 'spot');
         await this.authenticate (type);
         if (symbol !== undefined) {
-            marketList = [ market['id'] ];
+            marketList = [ (market as Dict)['id'] ];
             messageHash += ':' + symbol;
         } else {
             marketList = [];
@@ -937,7 +955,7 @@ export default class coinex extends coinexRest {
                 messageHash += ':swap';
             }
         }
-        let method = undefined;
+        let method: Str = undefined;
         if (trigger) {
             method = 'stop.subscribe';
         } else {
@@ -957,7 +975,7 @@ export default class coinex extends coinexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message) {
+    handleOrders (client: Client, message: any) {
         //
         // spot
         //
@@ -1075,7 +1093,7 @@ export default class coinex extends coinexRest {
         //     }
         //
         const data = this.safeDict (message, 'data', {});
-        const order = this.safeDict2 (data, 'order', 'stop', {});
+        const order = this.extend ({ 'status': this.safeString (data, 'event') }, this.safeDict2 (data, 'order', 'stop', {}));
         const parsedOrder = this.parseWsOrder (order);
         const symbol = parsedOrder['symbol'];
         const market = this.market (symbol);
@@ -1092,7 +1110,7 @@ export default class coinex extends coinexRest {
         client.resolve (this.orders, messageHash);
     }
 
-    parseWsOrder (order, market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         // spot
         //
@@ -1187,7 +1205,7 @@ export default class coinex extends coinexRest {
         const isSpot = ('margin_market' in order);
         const defaultType = isSpot ? 'spot' : 'swap';
         market = this.safeMarket (marketId, market, undefined, defaultType);
-        let fee = undefined;
+        let fee: FeeString = undefined;
         const feeCost = this.omitZero (this.safeString2 (order, 'fee', 'quote_ccy_fee'));
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (order, 'fee_ccy', market['quote']);
@@ -1222,11 +1240,15 @@ export default class coinex extends coinexRest {
         }, market);
     }
 
-    parseWsOrderStatus (status) {
+    parseWsOrderStatus (status: any) {
         const statuses: Dict = {
             'active_success': 'open',
             'active_fail': 'canceled',
             'cancel': 'canceled',
+            'put': 'open',
+            'update': 'open',
+            'modify': 'open',
+            'finish': 'closed',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1241,11 +1263,13 @@ export default class coinex extends coinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+    override async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const marketIds = this.marketIds (symbols);
-        const messageHashes = [];
-        let market = undefined;
+        const messageHashes: string[] = [];
+        let market: Market = undefined;
         const symbolsDefined = (symbols !== undefined);
         if (symbolsDefined) {
             for (let i = 0; i < symbols.length; i++) {
@@ -1256,7 +1280,7 @@ export default class coinex extends coinexRest {
         } else {
             messageHashes.push ('bidsasks');
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', market, params);
         const url = this.urls['api']['ws'][type];
         const subscriptionHashes = [ 'all@bidsasks' ];
@@ -1272,7 +1296,7 @@ export default class coinex extends coinexRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    handleBidAsk (client: Client, message) {
+    handleBidAsk (client: Client, message: any) {
         //
         //     {
         //         "method": "bbo.update",
@@ -1290,12 +1314,12 @@ export default class coinex extends coinexRest {
         const data = this.safeDict (message, 'data', {});
         const parsedTicker = this.parseWsBidAsk (data);
         const symbol = parsedTicker['symbol'];
-        this.bidsasks[symbol] = parsedTicker;
+        this.bidsasks[(symbol as string)] = parsedTicker;
         const messageHash = 'bidsasks:' + symbol;
         client.resolve (parsedTicker, messageHash);
     }
 
-    parseWsBidAsk (ticker, market = undefined) {
+    parseWsBidAsk (ticker: any, market: Market = undefined) {
         //
         //     {
         //         "market": "BTCUSDT",
@@ -1322,11 +1346,11 @@ export default class coinex extends coinexRest {
         }, market);
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         const method = this.safeString (message, 'method');
         const error = this.safeString (message, 'message');
         if (error !== undefined) {
-            this.handleErrors (1, '', client.url, method, {}, this.json (error), message, {}, {});
+            this.handleErrors (1, '', client.url, (method as string), {}, this.json (error), message, {}, {});
         }
         const handlers: Dict = {
             'state.update': this.handleTicker,
@@ -1346,7 +1370,7 @@ export default class coinex extends coinexRest {
         this.handleSubscriptionStatus (client, message);
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }
@@ -1368,7 +1392,7 @@ export default class coinex extends coinexRest {
         return undefined;
     }
 
-    handleAuthenticationMessage (client: Client, message) {
+    handleAuthenticationMessage (client: Client, message: any) {
         //
         // success
         //
@@ -1401,7 +1425,7 @@ export default class coinex extends coinexRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         const id = this.safeInteger (message, 'id');
         const subscription = this.safeValue (client.subscriptions, id);
         if (subscription !== undefined) {
@@ -1410,7 +1434,7 @@ export default class coinex extends coinexRest {
             if (future !== undefined) {
                 future.resolve (true);
             }
-            delete client.subscriptions[id];
+            delete client.subscriptions[(id as number)];
         }
     }
 

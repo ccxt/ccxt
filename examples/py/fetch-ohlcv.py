@@ -12,8 +12,8 @@ sys.path.append(root + '/python')
 # ----------------------------------------------------------------------------
 
 
-# AUTO-TRANSPILE #
 async def example():
+    # eslint-disable-next-line import/no-named-as-default-member
     myex = ccxt.okx({})
     from_timestamp = myex.milliseconds() - 86400 * 1000  # last 24 hrs
     ohlcv = await myex.fetch_ohlcv('BTC/USDT', '1m', from_timestamp, 3, {

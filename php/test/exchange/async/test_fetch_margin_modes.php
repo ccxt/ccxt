@@ -15,7 +15,7 @@ function test_fetch_margin_modes($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchMarginModes';
         $margin_modes = \React\Async\await($exchange->fetch_margin_modes(['symbol']));
-        assert(is_array($margin_modes), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an object. ' . $exchange->json($margin_modes));
+        assert($exchange->is_dictionary($margin_modes), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return a dict. ' . $exchange->json($margin_modes));
         $margin_mode_keys = is_array($margin_modes) ? array_keys($margin_modes) : array();
         assert_non_emtpy_array($exchange, $skipped_properties, $method, $margin_modes, $symbol);
         for ($i = 0; $i < count($margin_mode_keys); $i++) {

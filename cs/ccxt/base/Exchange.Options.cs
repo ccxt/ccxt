@@ -5,7 +5,7 @@ using System.Collections.Concurrent;
 using dict = Dictionary<string, object>;
 using list = List<object>;
 
-public partial class Exchange
+public partial class BaseExchange
 {
     public HttpClient httpClient { get; set; }
     public object fetchResponse = null; // tmp for response tests
@@ -131,6 +131,11 @@ public partial class Exchange
         }
     }
     public object last_request_url { get; set; }
+
+    public readonly System.Collections.Concurrent.ConcurrentQueue<Dictionary<string, object>> fetchHistoryCache = new ();
+
+    public int fetchHistoryCacheSize = 0;
+
     public float MAX_VALUE = float.MaxValue;
 
     public object name { get; set; }
@@ -230,7 +235,7 @@ public partial class Exchange
 
         var extendedProperties = this.deepExtend(properties, userConfig);
 
-        this.version = SafeString(extendedProperties, "version", "");
+        this.version = SafeString(extendedProperties, "version", null);
 
         // credentials initis
         this.requiredCredentials = SafeValue(extendedProperties, "requiredCredentials") as dict;
@@ -282,7 +287,7 @@ public partial class Exchange
         this.exceptions = SafeValue(extendedProperties, "exceptions") as dict;
         this.markets = SafeValue(extendedProperties, "markets") as dict;
         var propCurrencies = SafeValue(extendedProperties, "currencies") as dict;
-        if (propCurrencies.Keys.Count > 0)
+        if (propCurrencies != null && propCurrencies.Keys.Count > 0)
         {
             this.currencies = propCurrencies;
         }
@@ -308,5 +313,6 @@ public partial class Exchange
         this.rollingWindowSize = (int)(SafeInteger(extendedProperties, "rollingWindowSize") ?? 0.0);
         this.rateLimiterAlgorithm = SafeString(extendedProperties, "rateLimiterAlgorithm", "leakyBucket");
         this.returnResponseHeaders = (bool)SafeValue(extendedProperties, "returnResponseHeaders", false);
+        this.fetchHistoryCacheSize = (int)(SafeInteger(extendedProperties, "fetchHistoryCacheSize") ?? 0.0);
     }
 }

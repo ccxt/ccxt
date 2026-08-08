@@ -1,8 +1,5 @@
-- [Bitmex Cancel Orders](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -68,5 +65,5 @@ print(cancelResponse)
 # cancel second and third order at the same time
 ids = [newOrder2['id'], newOrder3['id']]
 cancelboth = exchange.cancel_orders(ids)
-print(cancelboth) 
+print(cancelboth)
 ```

@@ -131,13 +131,123 @@ func (this *BtcmarketsCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"markets", "markets/{marketId}/ticker", "markets/{marketId}/trades", "markets/{marketId}/orderbook", "markets/{marketId}/candles", "markets/tickers", "markets/orderbooks", "time"},
+				"get": map[string]any{
+					"markets": map[string]any{
+						"cost": 1,
+					},
+					"markets/{marketId}/ticker": map[string]any{
+						"cost": 1,
+					},
+					"markets/{marketId}/trades": map[string]any{
+						"cost": 1,
+					},
+					"markets/{marketId}/orderbook": map[string]any{
+						"cost": 1,
+					},
+					"markets/{marketId}/candles": map[string]any{
+						"cost": 1,
+					},
+					"markets/tickers": map[string]any{
+						"cost": 1,
+					},
+					"markets/orderbooks": map[string]any{
+						"cost": 1,
+					},
+					"time": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"get":    []any{"orders", "orders/{id}", "batchorders/{ids}", "trades", "trades/{id}", "withdrawals", "withdrawals/{id}", "deposits", "deposits/{id}", "transfers", "transfers/{id}", "addresses", "withdrawal-fees", "assets", "accounts/me/trading-fees", "accounts/me/withdrawal-limits", "accounts/me/balances", "accounts/me/transactions", "reports/{id}"},
-				"post":   []any{"orders", "batchorders", "withdrawals", "reports"},
-				"delete": []any{"orders", "orders/{id}", "batchorders/{ids}"},
-				"put":    []any{"orders/{id}"},
+				"get": map[string]any{
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/{id}": map[string]any{
+						"cost": 1,
+					},
+					"batchorders/{ids}": map[string]any{
+						"cost": 1,
+					},
+					"trades": map[string]any{
+						"cost": 1,
+					},
+					"trades/{id}": map[string]any{
+						"cost": 1,
+					},
+					"withdrawals": map[string]any{
+						"cost": 1,
+					},
+					"withdrawals/{id}": map[string]any{
+						"cost": 1,
+					},
+					"deposits": map[string]any{
+						"cost": 1,
+					},
+					"deposits/{id}": map[string]any{
+						"cost": 1,
+					},
+					"transfers": map[string]any{
+						"cost": 1,
+					},
+					"transfers/{id}": map[string]any{
+						"cost": 1,
+					},
+					"addresses": map[string]any{
+						"cost": 1,
+					},
+					"withdrawal-fees": map[string]any{
+						"cost": 1,
+					},
+					"assets": map[string]any{
+						"cost": 1,
+					},
+					"accounts/me/trading-fees": map[string]any{
+						"cost": 1,
+					},
+					"accounts/me/withdrawal-limits": map[string]any{
+						"cost": 1,
+					},
+					"accounts/me/balances": map[string]any{
+						"cost": 1,
+					},
+					"accounts/me/transactions": map[string]any{
+						"cost": 1,
+					},
+					"reports/{id}": map[string]any{
+						"cost": 1,
+					},
+				},
+				"post": map[string]any{
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"batchorders": map[string]any{
+						"cost": 1,
+					},
+					"withdrawals": map[string]any{
+						"cost": 1,
+					},
+					"reports": map[string]any{
+						"cost": 1,
+					},
+				},
+				"delete": map[string]any{
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/{id}": map[string]any{
+						"cost": 1,
+					},
+					"batchorders/{ids}": map[string]any{
+						"cost": 1,
+					},
+				},
+				"put": map[string]any{
+					"orders/{id}": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"timeframes": map[string]any{
@@ -266,9 +376,11 @@ func (this *BtcmarketsCore) FetchTransactionsWithMethod(method any, optionalArgs
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes3038 := (<-this.LoadMarkets())
-		PanicOnError(retRes3038)
+			retRes30412 := (<-this.LoadMarkets())
+			PanicOnError(retRes30412)
+		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
@@ -316,9 +428,9 @@ func (this *BtcmarketsCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes33115 := (<-this.FetchTransactionsWithMethod("privateGetTransfers", code, since, limit, params))
-		PanicOnError(retRes33115)
-		ch <- retRes33115
+		retRes33315 := (<-this.FetchTransactionsWithMethod("privateGetTransfers", code, since, limit, params))
+		PanicOnError(retRes33315)
+		ch <- retRes33315
 		return nil
 
 	}()
@@ -350,9 +462,9 @@ func (this *BtcmarketsCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes34615 := (<-this.FetchTransactionsWithMethod("privateGetDeposits", code, since, limit, params))
-		PanicOnError(retRes34615)
-		ch <- retRes34615
+		retRes34815 := (<-this.FetchTransactionsWithMethod("privateGetDeposits", code, since, limit, params))
+		PanicOnError(retRes34815)
+		ch <- retRes34815
 		return nil
 
 	}()
@@ -384,9 +496,9 @@ func (this *BtcmarketsCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes36115 := (<-this.FetchTransactionsWithMethod("privateGetWithdrawals", code, since, limit, params))
-		PanicOnError(retRes36115)
-		ch <- retRes36115
+		retRes36315 := (<-this.FetchTransactionsWithMethod("privateGetWithdrawals", code, since, limit, params))
+		PanicOnError(retRes36315)
+		ch <- retRes36315
 		return nil
 
 	}()
@@ -570,7 +682,7 @@ func (this *BtcmarketsCore) ParseMarket(market any) any {
 	if IsTrue(IsEqual(quote, "AUD")) {
 		minPrice = pricePrecision
 	}
-	return map[string]any{
+	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         symbol,
 		"base":           base,
@@ -620,7 +732,7 @@ func (this *BtcmarketsCore) ParseMarket(market any) any {
 		},
 		"created": nil,
 		"info":    market,
-	}
+	})
 }
 
 /**
@@ -664,7 +776,9 @@ func (this *BtcmarketsCore) ParseBalance(response any) any {
 		var account any = this.Account()
 		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
 		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -684,9 +798,11 @@ func (this *BtcmarketsCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6248 := (<-this.LoadMarkets())
-		PanicOnError(retRes6248)
+			retRes62912 := (<-this.LoadMarkets())
+			PanicOnError(retRes62912)
+		}
 
 		response := (<-this.PrivateGetAccountsMeBalances(params))
 		PanicOnError(response)
@@ -738,9 +854,11 @@ func (this *BtcmarketsCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan a
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6638 := (<-this.LoadMarkets())
-		PanicOnError(retRes6638)
+			retRes67012 := (<-this.LoadMarkets())
+			PanicOnError(retRes67012)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"marketId":   GetValue(market, "id"),
@@ -763,7 +881,7 @@ func (this *BtcmarketsCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan a
 		//         ["2020-09-12T18:03:00.000000Z","14361.37","14361.37","14361.37","14361.37","0.00345221"],
 		//     ]
 		//
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
 		return nil
 
 	}()
@@ -778,7 +896,7 @@ func (this *BtcmarketsCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan a
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BtcmarketsCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -789,9 +907,11 @@ func (this *BtcmarketsCore) FetchOrderBook(symbol any, optionalArgs ...any) <-ch
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes7028 := (<-this.LoadMarkets())
-		PanicOnError(retRes7028)
+			retRes71112 := (<-this.LoadMarkets())
+			PanicOnError(retRes71112)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"marketId": GetValue(market, "id"),
@@ -894,9 +1014,11 @@ func (this *BtcmarketsCore) FetchTicker(symbol any, optionalArgs ...any) <-chan 
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes7918 := (<-this.LoadMarkets())
-		PanicOnError(retRes7918)
+			retRes80212 := (<-this.LoadMarkets())
+			PanicOnError(retRes80212)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"marketId": GetValue(market, "id"),
@@ -933,9 +1055,11 @@ func (this *BtcmarketsCore) FetchTicker2(symbol any, optionalArgs ...any) <-chan
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8168 := (<-this.LoadMarkets())
-		PanicOnError(retRes8168)
+			retRes82912 := (<-this.LoadMarkets())
+			PanicOnError(retRes82912)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"id": GetValue(market, "id"),
@@ -1041,9 +1165,11 @@ func (this *BtcmarketsCore) FetchTrades(symbol any, optionalArgs ...any) <-chan 
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9048 := (<-this.LoadMarkets())
-		PanicOnError(retRes9048)
+			retRes91912 := (<-this.LoadMarkets())
+			PanicOnError(retRes91912)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"marketId": GetValue(market, "id"),
@@ -1089,9 +1215,11 @@ func (this *BtcmarketsCore) CreateOrder(symbol any, typeVar any, side any, amoun
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9368 := (<-this.LoadMarkets())
-		PanicOnError(retRes9368)
+			retRes95312 := (<-this.LoadMarkets())
+			PanicOnError(retRes95312)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"marketId": GetValue(market, "id"),
@@ -1176,7 +1304,7 @@ func (this *BtcmarketsCore) CreateOrder(symbol any, typeVar any, side any, amoun
  * @description cancel multiple orders
  * @see https://docs.btcmarkets.net/v3/#tag/Batch-Order-APIs/paths/~1v3~1batchorders~1{ids}/delete
  * @param {string[]} ids order ids
- * @param {string} symbol not used by btcmarkets cancelOrders ()
+ * @param {string} symbol not used by cancelOrders ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1189,9 +1317,11 @@ func (this *BtcmarketsCore) CancelOrders(ids any, optionalArgs ...any) <-chan an
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10308 := (<-this.LoadMarkets())
-		PanicOnError(retRes10308)
+			retRes104912 := (<-this.LoadMarkets())
+			PanicOnError(retRes104912)
+		}
 		var numericIds any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
 			// numericIds[i] = parseInt (ids[i]);
@@ -1238,7 +1368,7 @@ func (this *BtcmarketsCore) CancelOrders(ids any, optionalArgs ...any) <-chan an
  * @description cancels an open order
  * @see https://docs.btcmarkets.net/v3/#operation/cancelOrder
  * @param {string} id order id
- * @param {string} symbol not used by btcmarket cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1251,9 +1381,11 @@ func (this *BtcmarketsCore) CancelOrder(id any, optionalArgs ...any) <-chan any 
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10758 := (<-this.LoadMarkets())
-		PanicOnError(retRes10758)
+			retRes109612 := (<-this.LoadMarkets())
+			PanicOnError(retRes109612)
+		}
 		var request any = map[string]any{
 			"id": id,
 		}
@@ -1290,7 +1422,7 @@ func (this *BtcmarketsCore) CalculateFee(symbol any, typeVar any, side any, amou
 	_ = takerOrMaker
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market any = GetValue(this.Markets, symbol)
+	var market any = this.Market(symbol)
 	var currency any = nil
 	var cost any = nil
 	if IsTrue(IsEqual(GetValue(market, "quote"), "AUD")) {
@@ -1303,13 +1435,17 @@ func (this *BtcmarketsCore) CalculateFee(symbol any, typeVar any, side any, amou
 		currency = GetValue(market, "base")
 		cost = this.AmountToPrecision(symbol, amount)
 	}
-	var rate any = GetValue(market, takerOrMaker)
+	var rate any = this.SafeValue(market, takerOrMaker)
 	var rateCost any = Precise.StringMul(this.NumberToString(rate), cost)
+	var feeCost any = this.FeeToPrecision(symbol, rateCost)
+	if IsTrue(IsEqual(feeCost, nil)) {
+		feeCost = "0"
+	}
 	return map[string]any{
 		"type":     takerOrMaker,
 		"currency": currency,
 		"rate":     rate,
-		"cost":     ParseFloat(this.FeeToPrecision(symbol, rateCost)),
+		"cost":     ParseFloat(feeCost),
 	}
 }
 func (this *BtcmarketsCore) ParseOrderStatus(status any) any {
@@ -1410,9 +1546,11 @@ func (this *BtcmarketsCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes12148 := (<-this.LoadMarkets())
-		PanicOnError(retRes12148)
+			retRes124112 := (<-this.LoadMarkets())
+			PanicOnError(retRes124112)
+		}
 		var request any = map[string]any{
 			"id": id,
 		}
@@ -1451,9 +1589,11 @@ func (this *BtcmarketsCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes12348 := (<-this.LoadMarkets())
-		PanicOnError(retRes12348)
+			retRes126312 := (<-this.LoadMarkets())
+			PanicOnError(retRes126312)
+		}
 		var request any = map[string]any{
 			"status": "all",
 		}
@@ -1507,9 +1647,9 @@ func (this *BtcmarketsCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 			"status": "open",
 		}
 
-		retRes126615 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes126615)
-		ch <- retRes126615
+		retRes129615 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes129615)
+		ch <- retRes129615
 		return nil
 
 	}()
@@ -1575,9 +1715,11 @@ func (this *BtcmarketsCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes12978 := (<-this.LoadMarkets())
-		PanicOnError(retRes12978)
+			retRes132812 := (<-this.LoadMarkets())
+			PanicOnError(retRes132812)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1652,9 +1794,11 @@ func (this *BtcmarketsCore) Withdraw(code any, amount any, address any, optional
 		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes13558 := (<-this.LoadMarkets())
-		PanicOnError(retRes13558)
+			retRes138812 := (<-this.LoadMarkets())
+			PanicOnError(retRes138812)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"assetName": GetValue(currency, "id"),

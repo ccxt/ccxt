@@ -15,13 +15,15 @@ func TestWatchLiquidationsForSymbols(exchange ccxt.ICoreExchange, skippedPropert
 		// we have to skip some exchanges here due to the frequency of trading
 		var skippedExchanges any = []any{}
 		if IsTrue(exchange.InArray(exchange.GetId(), skippedExchanges)) {
-			fmt.Println(exchange.GetId(), Add(method, "() test skipped"))
+			var m1 any = (Add(Add(Add(exchange.GetId(), " "), method), "() test skipped"))
+			fmt.Println(m1)
 
 			ch <- false
 			return nil
 		}
 		if !IsTrue(GetValue(exchange.GetHas(), method)) {
-			fmt.Println(exchange.GetId(), Add(method, "() is not supported"))
+			var m2 any = (Add(Add(Add(exchange.GetId(), " does not support "), method), "() method"))
+			fmt.Println(m2)
 
 			ch <- false
 			return nil
@@ -50,12 +52,13 @@ func TestWatchLiquidationsForSymbols(exchange ccxt.ICoreExchange, skippedPropert
 					}()
 					// try block:
 
-					response = (<-callDynamically(method, []any{symbol}))
+					response = (UnWrapType(<-exchange.WatchLiquidationsForSymbols([]any{symbol})))
 					PanicOnError(response)
 					now = DateNow()
 					var isArray any = IsArray(response)
 					Assert(isArray, "response must be an array")
-					fmt.Println(exchange.Iso8601(now), exchange.GetId(), symbol, method, GetArrayLength(ObjectValues(response)), "liquidations")
+					var m3 any = (Add(Add(Add(Add(Add(exchange.GetId(), " "), method), "() returned "), GetArrayLength(response)), " liquidations"))
+					fmt.Println(m3)
 					// log.noLocate (asTable (response))
 					for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 						TestLiquidation(exchange, skippedProperties, method, GetValue(response, i), symbol)

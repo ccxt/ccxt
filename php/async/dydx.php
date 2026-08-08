@@ -12,11 +12,12 @@ use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
+
+use const ccxt\TICK_SIZE;
 
 class dydx extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'dydx',
@@ -130,7 +131,7 @@ class dydx extends Exchange {
                 '1d' => '1DAY',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/617ea0c1-f05a-4d26-9fcb-a0d1d4091ae1',
+                'logo' => 'https://github.com/user-attachments/assets/def0a54a-020a-4286-ba95-0f84e50a944d',
                 'api' => array(
                     'indexer' => 'https://indexer.dydx.trade/v4',
                     'nodeRpc' => 'https://dydx-ops-rpc.kingnodes.com',
@@ -148,76 +149,76 @@ class dydx extends Exchange {
                 'fees' => array(
                     'https://docs.dydx.exchange/introduction-trading_fees',
                 ),
-                'referral' => 'dydx.trade?ref=ccxt',
+                'referral' => 'https://dydx.trade?ref=ccxt',
             ),
             'api' => array(
                 'indexer' => array(
                     'get' => array(
-                        'addresses/{address}' => 1,
-                        'addresses/{address}/parentSubaccountNumber/{number}' => 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}' => 1,
-                        'assetPositions' => 1,
-                        'assetPositions/parentSubaccountNumber' => 1,
-                        'candles/perpetualMarkets/{market}' => 1,
-                        'compliance/screen/{address}' => 1,
-                        'fills' => 1,
-                        'fills/parentSubaccountNumber' => 1,
-                        'fundingPayments' => 1,
-                        'fundingPayments/parentSubaccount' => 1,
-                        'height' => 0.1,
-                        'historical-pnl' => 1,
-                        'historical-pnl/parentSubaccountNumber' => 1,
-                        'historicalBlockTradingRewards/{address}' => 1,
-                        'historicalFunding/{market}' => 1,
-                        'historicalTradingRewardAggregations/{address}' => 1,
-                        'orderbooks/perpetualMarket/{market}' => 1,
-                        'orders' => 1,
-                        'orders/parentSubaccountNumber' => 1,
-                        'orders/{orderId}' => 1,
-                        'perpetualMarkets' => 1,
-                        'perpetualPositions' => 1,
-                        'perpetualPositions/parentSubaccountNumber' => 1,
-                        'screen' => 1,
-                        'sparklines' => 1,
-                        'time' => 1,
-                        'trades/perpetualMarket/{market}' => 1,
-                        'transfers' => 1,
-                        'transfers/between' => 1,
-                        'transfers/parentSubaccountNumber' => 1,
-                        'vault/v1/megavault/historicalPnl' => 1,
-                        'vault/v1/megavault/positions' => 1,
-                        'vault/v1/vaults/historicalPnl' => 1,
+                        'addresses/{address}' => array( 'cost' => 1 ),
+                        'addresses/{address}/parentSubaccountNumber/{number}' => array( 'cost' => 1 ),
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}' => array( 'cost' => 1 ),
+                        'assetPositions' => array( 'cost' => 1 ),
+                        'assetPositions/parentSubaccountNumber' => array( 'cost' => 1 ),
+                        'candles/perpetualMarkets/{market}' => array( 'cost' => 1 ),
+                        'compliance/screen/{address}' => array( 'cost' => 1 ),
+                        'fills' => array( 'cost' => 1 ),
+                        'fills/parentSubaccountNumber' => array( 'cost' => 1 ),
+                        'fundingPayments' => array( 'cost' => 1 ),
+                        'fundingPayments/parentSubaccount' => array( 'cost' => 1 ),
+                        'height' => array( 'cost' => 0.1 ),
+                        'historical-pnl' => array( 'cost' => 1 ),
+                        'historical-pnl/parentSubaccountNumber' => array( 'cost' => 1 ),
+                        'historicalBlockTradingRewards/{address}' => array( 'cost' => 1 ),
+                        'historicalFunding/{market}' => array( 'cost' => 1 ),
+                        'historicalTradingRewardAggregations/{address}' => array( 'cost' => 1 ),
+                        'orderbooks/perpetualMarket/{market}' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/parentSubaccountNumber' => array( 'cost' => 1 ),
+                        'orders/{orderId}' => array( 'cost' => 1 ),
+                        'perpetualMarkets' => array( 'cost' => 1 ),
+                        'perpetualPositions' => array( 'cost' => 1 ),
+                        'perpetualPositions/parentSubaccountNumber' => array( 'cost' => 1 ),
+                        'screen' => array( 'cost' => 1 ),
+                        'sparklines' => array( 'cost' => 1 ),
+                        'time' => array( 'cost' => 1 ),
+                        'trades/perpetualMarket/{market}' => array( 'cost' => 1 ),
+                        'transfers' => array( 'cost' => 1 ),
+                        'transfers/between' => array( 'cost' => 1 ),
+                        'transfers/parentSubaccountNumber' => array( 'cost' => 1 ),
+                        'vault/v1/megavault/historicalPnl' => array( 'cost' => 1 ),
+                        'vault/v1/megavault/positions' => array( 'cost' => 1 ),
+                        'vault/v1/vaults/historicalPnl' => array( 'cost' => 1 ),
                         //
-                        'perpetualMarketSparklines' => 1,
-                        'perpetualMarkets/{ticker}' => 1,
-                        'perpetualMarkets/{ticker}/orderbook' => 1,
-                        'trades/perpetualMarket/{ticker}' => 1,
-                        'historicalFunding/{ticker}' => 1,
-                        'candles/{ticker}/{resolution}' => 1,
-                        'addresses/{address}/subaccounts' => 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions' => 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions' => 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/orders' => 1,
-                        'fills/parentSubaccount' => 1,
-                        'historical-pnl/parentSubaccount' => 1,
+                        'perpetualMarketSparklines' => array( 'cost' => 1 ),
+                        'perpetualMarkets/{ticker}' => array( 'cost' => 1 ),
+                        'perpetualMarkets/{ticker}/orderbook' => array( 'cost' => 1 ),
+                        'trades/perpetualMarket/{ticker}' => array( 'cost' => 1 ),
+                        'historicalFunding/{ticker}' => array( 'cost' => 1 ),
+                        'candles/{ticker}/{resolution}' => array( 'cost' => 1 ),
+                        'addresses/{address}/subaccounts' => array( 'cost' => 1 ),
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions' => array( 'cost' => 1 ),
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions' => array( 'cost' => 1 ),
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/orders' => array( 'cost' => 1 ),
+                        'fills/parentSubaccount' => array( 'cost' => 1 ),
+                        'historical-pnl/parentSubaccount' => array( 'cost' => 1 ),
                     ),
                 ),
                 'nodeRpc' => array(
                     'get' => array(
-                        'abci_info' => 1,
-                        'block' => 1,
-                        'broadcast_tx_async' => 1,
-                        'broadcast_tx_sync' => 1,
-                        'tx' => 1,
+                        'abci_info' => array( 'cost' => 1 ),
+                        'block' => array( 'cost' => 1 ),
+                        'broadcast_tx_async' => array( 'cost' => 1 ),
+                        'broadcast_tx_sync' => array( 'cost' => 1 ),
+                        'tx' => array( 'cost' => 1 ),
                     ),
                 ),
                 'nodeRest' => array(
                     'get' => array(
-                        'cosmos/auth/v1beta1/account_info/{dydxAddress}' => 1,
+                        'cosmos/auth/v1beta1/account_info/{dydxAddress}' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'cosmos/tx/v1beta1/encode' => 1,
-                        'cosmos/tx/v1beta1/simulate' => 1,
+                        'cosmos/tx/v1beta1/encode' => array( 'cost' => 1 ),
+                        'cosmos/tx/v1beta1/simulate' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -235,7 +236,7 @@ class dydx extends Exchange {
                 'privateKey' => false,
             ),
             'options' => array(
-                'mnemonic' => null, // specify mnemonic, copy secret phrase from UI
+                'privateKey' => null, // specify a hex-encoded secp256k1 private key
                 'chainName' => 'dydx-mainnet-1',
                 'chainId' => 1,
                 'sandboxMode' => false,
@@ -457,7 +458,7 @@ class dydx extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()): PromiseInterface {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -467,7 +468,7 @@ class dydx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->indexerGetTime ($params));
+            $response = Async\await($this->indexerGetTime($params));
             //
             // {
             //     "iso" => "2025-07-20T15:12:13.466Z",
@@ -475,7 +476,7 @@ class dydx extends Exchange {
             // }
             //
             return $this->safe_integer($response, 'epoch');
-        }) ();
+        })();
     }
 
     public function parse_market(array $market): array {
@@ -507,6 +508,9 @@ class dydx extends Exchange {
         //
         $quoteId = 'USDC';
         $marketId = $this->safe_string($market, 'ticker');
+        if ($marketId === null) {
+            throw new ExchangeError($this->id . ' parseMarket() missing marketId');
+        }
         $parts = explode('-', $marketId);
         $baseName = $this->safe_string($parts, 0);
         $baseId = $this->safe_string($market, 'baseId', $baseName); // idk where 'baseId' comes from, but leaving
@@ -578,10 +582,10 @@ class dydx extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * retrieves $data on all $markets for hyperliquid
+             * retrieves $data on all $markets for dydx
              *
              * @see https://docs.dydx.xyz/indexer-client/http#get-perpetual-$markets
              *
@@ -591,7 +595,7 @@ class dydx extends Exchange {
             $request = array(
                 // 'limit' => 1000,
             );
-            $response = Async\await($this->indexerGetPerpetualMarkets ($this->extend($request, $params)));
+            $response = Async\await($this->indexerGetPerpetualMarkets($this->extend($request, $params)));
             //
             // {
             //     "markets" => {
@@ -625,7 +629,7 @@ class dydx extends Exchange {
             $data = $this->safe_dict($response, 'markets', array());
             $markets = is_array($data) ? array_values($data) : array();
             return $this->parse_markets($markets);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -641,7 +645,7 @@ class dydx extends Exchange {
         // }
         //
         $timestamp = $this->parse8601($this->safe_string($trade, 'createdAt'));
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'size');
         $side = $this->safe_string_lower($trade, 'side');
@@ -663,12 +667,12 @@ class dydx extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
              *
-             * @see https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
+             * @see https://docs.dydx.xyz/indexer-client/http#get-trades
              *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -676,15 +680,17 @@ class dydx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
             );
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min($limit, 1000);
             }
-            $response = Async\await($this->indexerGetTradesPerpetualMarketMarket ($this->extend($request, $params)));
+            $response = Async\await($this->indexerGetTradesPerpetualMarketMarket($this->extend($request, $params)));
             //
             // {
             //     "trades" => array(
@@ -702,10 +708,10 @@ class dydx extends Exchange {
             //
             $rows = $this->safe_list($response, 'trades', array());
             return $this->parse_trades($rows, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         // {
         //     "startedAt" => "2025-07-25T09:47:00.000Z",
@@ -733,7 +739,7 @@ class dydx extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -748,14 +754,16 @@ class dydx extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
                 'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             if ($limit !== null) {
-                $request['limit'] = min ($limit, 1000);
+                $request['limit'] = min($limit, 1000);
             }
             if ($since !== null) {
                 $request['fromIso'] = $this->iso8601($since);
@@ -765,7 +773,7 @@ class dydx extends Exchange {
             if ($until !== null) {
                 $request['toIso'] = $this->iso8601($until);
             }
-            $response = Async\await($this->indexerGetCandlesPerpetualMarketsMarket ($this->extend($request, $params)));
+            $response = Async\await($this->indexerGetCandlesPerpetualMarketsMarket($this->extend($request, $params)));
             //
             // {
             //     "candles" => array(
@@ -789,10 +797,10 @@ class dydx extends Exchange {
             //
             $rows = $this->safe_list($response, 'candles', array());
             return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding rate prices
@@ -809,7 +817,9 @@ class dydx extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
@@ -821,7 +831,7 @@ class dydx extends Exchange {
             if ($until !== null) {
                 $request['effectiveBeforeOrAt'] = $this->iso8601($until);
             }
-            $response = Async\await($this->indexerGetHistoricalFundingMarket ($this->extend($request, $params)));
+            $response = Async\await($this->indexerGetHistoricalFundingMarket($this->extend($request, $params)));
             //
             // {
             //     "historicalFunding" => array(
@@ -851,10 +861,10 @@ class dydx extends Exchange {
             }
             $sorted = $this->sort_by($rates, 'timestamp');
             return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function handle_public_address(string $methodName, array $params) {
+    public function handle_public_address(?string $methodName, array $params): array {
         $userAux = null;
         list($userAux, $params) = $this->handle_option_and_params($params, $methodName, 'user');
         $user = $userAux;
@@ -955,7 +965,7 @@ class dydx extends Exchange {
         return $this->safe_string_upper($types, $type, $type);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
@@ -967,16 +977,18 @@ class dydx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'orderId' => $id,
             );
-            $order = Async\await($this->indexerGetOrdersOrderId ($this->extend($request, $params)));
+            $order = Async\await($this->indexerGetOrdersOrderId($this->extend($request, $params)));
             return $this->parse_order($order);
-        }) ();
+        })();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -995,7 +1007,9 @@ class dydx extends Exchange {
             $subAccountNumber = null;
             list($userAddress, $params) = $this->handle_public_address('fetchOrders', $params);
             list($subAccountNumber, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'subAccountNumber', '0');
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'address' => $userAddress,
                 'subaccountNumber' => $subAccountNumber,
@@ -1008,7 +1022,7 @@ class dydx extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->indexerGetOrders ($this->extend($request, $params)));
+            $response = Async\await($this->indexerGetOrders($this->extend($request, $params)));
             //
             // array(
             //     {
@@ -1037,10 +1051,10 @@ class dydx extends Exchange {
             // )
             //
             return $this->parse_orders($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1059,10 +1073,10 @@ class dydx extends Exchange {
                 'status' => 'OPEN', // ['OPEN', 'FILLED', 'CANCELED', 'BEST_EFFORT_CANCELED', 'UNTRIGGERED', 'BEST_EFFORT_OPENED']
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -1081,7 +1095,7 @@ class dydx extends Exchange {
                 'status' => 'FILLED', // ['OPEN', 'FILLED', 'CANCELED', 'BEST_EFFORT_CANCELED', 'UNTRIGGERED', 'BEST_EFFORT_OPENED']
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -1141,7 +1155,7 @@ class dydx extends Exchange {
         ));
     }
 
-    public function fetch_position(string $symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch data on an open position
@@ -1156,10 +1170,10 @@ class dydx extends Exchange {
              */
             $positions = Async\await($this->fetch_positions(array( $symbol ), $params));
             return $this->safe_dict($positions, 0, array());
-        }) ();
+        })();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -1176,13 +1190,15 @@ class dydx extends Exchange {
             $subAccountNumber = null;
             list($userAddress, $params) = $this->handle_public_address('fetchPositions', $params);
             list($subAccountNumber, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'subAccountNumber', '0');
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'address' => $userAddress,
                 'subaccountNumber' => $subAccountNumber,
                 'status' => 'OPEN', // ['OPEN', 'CLOSED', 'LIQUIDATED']
             );
-            $response = Async\await($this->indexerGetPerpetualPositions ($this->extend($request, $params)));
+            $response = Async\await($this->indexerGetPerpetualPositions($this->extend($request, $params)));
             //
             // {
             //     "positions" => array(
@@ -1209,14 +1225,14 @@ class dydx extends Exchange {
             //
             $rows = $this->safe_list($response, 'positions', array());
             return $this->parse_positions($rows, $symbols);
-        }) ();
+        })();
     }
 
-    public function hash_message($message) {
+    public function hash_message(mixed $message) {
         return $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash($hash, $privateKey) {
+    public function sign_hash(mixed $hash, mixed $privateKey) {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
         $s = $signature['s'];
@@ -1227,7 +1243,7 @@ class dydx extends Exchange {
         );
     }
 
-    public function sign_message($message, $privateKey) {
+    public function sign_message(mixed $message, mixed $privateKey) {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
@@ -1251,7 +1267,7 @@ class dydx extends Exchange {
         return $signature;
     }
 
-    public function sign_dydx_tx(string $privateKey, mixed $message, string $memo, string $chainId, mixed $account, mixed $authenticators, $fee = null): string {
+    public function sign_dydx_tx(?string $privateKey, mixed $message, ?string $memo, ?string $chainId, mixed $account, mixed $authenticators, mixed $fee = null): string {
         list($encodedTx, $signDoc) = $this->encode_dydx_tx_for_signing($message, $memo, $chainId, $account, $authenticators, $fee);
         $signature = $this->sign_hash($encodedTx, $privateKey);
         return $this->encode_dydx_tx_raw($signDoc, $signature['r'] . $signature['s']);
@@ -1262,12 +1278,12 @@ class dydx extends Exchange {
         if ($credentials !== null) {
             return $credentials;
         }
-        $entropy = $this->safe_string($this->options, 'mnemonic');
-        if ($entropy === null) {
+        $privateKey = $this->safe_string($this->options, 'privateKey');
+        if ($privateKey === null) {
             $signature = $this->sign_onboarding_action();
-            $entropy = $this->hash_message($this->base16_to_binary($signature['r'] . $signature['s']));
+            $privateKey = $this->hash_message($this->base16_to_binary($signature['r'] . $signature['s']));
         }
-        $credentials = $this->retrieve_dydx_credentials($entropy);
+        $credentials = $this->retrieve_dydx_credentials($privateKey);
         $credentials['privateKey'] = bin2hex($credentials['privateKey']);
         $credentials['publicKey'] = bin2hex($credentials['publicKey']);
         $this->options['dydxCredentials'] = $credentials;
@@ -1275,7 +1291,7 @@ class dydx extends Exchange {
     }
 
     public function fetch_dydx_account() {
-        return Async\async(function ()  {
+        return Async\async(function () {
             // required in js
             Async\await($this->load_dydx_protos());
             $dydxAccount = $this->safe_dict($this->options, 'dydxAccount');
@@ -1285,7 +1301,7 @@ class dydx extends Exchange {
             if ($this->walletAddress === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg => dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz');
             }
-            if (str_starts_with(!$this->walletAddress, 'dydx')) {
+            if (!str_starts_with($this->walletAddress, 'dydx')) {
                 throw new ArgumentsRequired($this->id . ' fetchDydxAccount() requires a valid dydx chain address, starting with dydx, not the l1 address.');
             }
             $request = array(
@@ -1304,18 +1320,18 @@ class dydx extends Exchange {
             //     }
             // }
             //
-            $response = Async\await($this->nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress ($request));
-            $account = $this->safe_dict($response, 'info');
+            $response = Async\await($this->nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress($request));
+            $account = $this->safe_dict($response, 'info', array());
             $account['pub_key'] = array(
                 // encode with binary key would fail in python
                 'key' => $account['pub_key']['key'],
             );
             $this->options['dydxAccount'] = $account;
             return $account;
-        }) ();
+        })();
     }
 
-    public function pow(string $n, string $m) {
+    public function pow(string $n, ?string $m) {
         $r = Precise::string_mul($n, '1');
         $c = $this->parse_to_int($m);
         // TODO => cap
@@ -1325,10 +1341,19 @@ class dydx extends Exchange {
         return $r;
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only', false);
         $orderType = strtoupper($type);
         $market = $this->market($symbol);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrderRequest() requires a $side argument');
+        }
         $orderSide = strtoupper($side);
         $subaccountId = 0;
         list($subaccountId, $params) = $this->handle_option_and_params($params, 'createOrder', 'subAccountId', $subaccountId);
@@ -1341,7 +1366,7 @@ class dydx extends Exchange {
         $postOnly = $this->is_post_only($isMarket, null, $params);
         $amountStr = $this->amount_to_precision($symbol, $amount);
         $priceStr = $this->price_to_precision($symbol, $price);
-        $marketInfo = $this->safe_dict($market, 'info');
+        $marketInfo = $this->safe_dict($market, 'info', array());
         $atomicResolution = $marketInfo['atomicResolution'];
         $quantumScale = $this->pow('10', Precise::string_neg($atomicResolution));
         $quantums = Precise::string_mul($amountStr, $quantumScale);
@@ -1402,6 +1427,9 @@ class dydx extends Exchange {
         if ($orderFlag === 0) {
             if ($goodTillBlock === null) {
                 // short term order
+                if ($latestBlockHeight === null) {
+                    throw new ExchangeError($this->id . ' method() missing latestBlockHeight');
+                }
                 $goodTillBlock = $latestBlockHeight + 20;
             }
         } else {
@@ -1442,7 +1470,13 @@ class dydx extends Exchange {
             'value' => $orderPayload,
         );
         $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId' ));
-        $orderId = $this->create_order_id_from_parts($this->get_wallet_address(), $subaccountId, $clientOrderId, $orderFlag, $marketInfo['clobPairId']);
+        $walletAddress = $this->get_wallet_address();
+        $clobPairId = $this->safe_integer($marketInfo, 'clobPairId', 0);
+        $subaccountIdValue = ($subaccountId === null) ? 0 : $subaccountId;
+        $clientOrderIdValue = ($clientOrderId === null) ? 0 : $clientOrderId;
+        $orderFlagValue = ($orderFlag === null) ? 0 : $orderFlag;
+        $clobPairIdValue = ($clobPairId === null) ? 0 : $clobPairId;
+        $orderId = $this->create_order_id_from_parts($walletAddress, $subaccountIdValue, $clientOrderIdValue, $orderFlagValue, $clobPairIdValue);
         return array( $orderId, $this->extend($signingPayload, $params) );
     }
 
@@ -1454,9 +1488,9 @@ class dydx extends Exchange {
         return $this->uuid5($nameSp, $orderInfo);
     }
 
-    public function fetch_latest_block_height($params = array ()): PromiseInterface {
+    public function fetch_latest_block_height($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
-            $response = Async\await($this->nodeRpcGetAbciInfo ($params));
+            $response = Async\await($this->nodeRpcGetAbciInfo($params));
             //
             // {
             //     "jsonrpc" => "2.0",
@@ -1473,11 +1507,15 @@ class dydx extends Exchange {
             //
             $result = $this->safe_dict($response, 'result');
             $info = $this->safe_dict($result, 'response');
-            return $this->safe_integer($info, 'last_block_height');
-        }) ();
+            $height = $this->safe_integer($info, 'last_block_height');
+            if ($height === null) {
+                throw new ExchangeError($this->id . ' fetchLatestBlockHeight() could not parse last_block_height');
+            }
+            return $height;
+        })();
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              *
@@ -1501,7 +1539,9 @@ class dydx extends Exchange {
              * @param {float} [$params->goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $credentials = $this->retrieve_credentials();
             $account = Async\await($this->fetch_dydx_account());
             $lastBlockHeight = Async\await($this->fetch_latest_block_height());
@@ -1516,7 +1556,7 @@ class dydx extends Exchange {
                 'tx' => $signedTx,
             );
             // nodeRpcGetBroadcastTxAsync
-            $response = Async\await($this->nodeRpcGetBroadcastTxSync ($request));
+            $response = Async\await($this->nodeRpcGetBroadcastTxSync($request));
             //
             // {
             //     "jsonrpc" => "2.0",
@@ -1536,10 +1576,10 @@ class dydx extends Exchange {
                 'id' => $orderId,
                 'clientOrderId' => $orderRequest['value']['order']['orderId']['clientId'],
             ));
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1562,7 +1602,9 @@ class dydx extends Exchange {
             if (!$isTrigger && ($symbol === null)) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientId', $id);
             if ($clientOrderId === null) {
@@ -1623,7 +1665,7 @@ class dydx extends Exchange {
                 'tx' => $signedTx,
             );
             // nodeRpcGetBroadcastTxAsync
-            $response = Async\await($this->nodeRpcGetBroadcastTxSync ($request));
+            $response = Async\await($this->nodeRpcGetBroadcastTxSync($request));
             //
             // {
             //     "jsonrpc" => "2.0",
@@ -1641,10 +1683,10 @@ class dydx extends Exchange {
             return $this->safe_order(array(
                 'info' => $result,
             ));
-        }) ();
+        })();
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -1655,7 +1697,9 @@ class dydx extends Exchange {
              * @param {int} [$params->subAccountId] sub $account id, default is 0
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $clientOrderIds = $this->safe_list($params, 'clientOrderIds');
             if (!$clientOrderIds) {
@@ -1693,7 +1737,7 @@ class dydx extends Exchange {
                 'tx' => $signedTx,
             );
             // nodeRpcGetBroadcastTxAsync
-            $response = Async\await($this->nodeRpcGetBroadcastTxSync ($request));
+            $response = Async\await($this->nodeRpcGetBroadcastTxSync($request));
             //
             // {
             //     "jsonrpc" => "2.0",
@@ -1711,10 +1755,10 @@ class dydx extends Exchange {
             return array( $this->safe_order(array(
                 'info' => $result,
             )) );
-        }) ();
+        })();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -1724,14 +1768,16 @@ class dydx extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->indexerGetOrderbooksPerpetualMarketMarket ($this->extend($request, $params)));
+            $response = Async\await($this->indexerGetOrderbooksPerpetualMarketMarket($this->extend($request, $params)));
             //
             // {
             //     "bids" => array(
@@ -1749,7 +1795,7 @@ class dydx extends Exchange {
             // }
             //
             return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'size');
-        }) ();
+        })();
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
@@ -1807,7 +1853,7 @@ class dydx extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $ledgerType = array(
             'TRANSFER_IN' => 'transfer',
             'TRANSFER_OUT' => 'transfer',
@@ -1817,7 +1863,7 @@ class dydx extends Exchange {
         return $this->safe_string($ledgerType, $type, $type);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
@@ -1832,23 +1878,25 @@ class dydx extends Exchange {
              * @param {string} [$params->subAccountNumber] sub account number
              * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
             }
             $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $this->extend($params, array( 'methodName' => 'fetchLedger' ))));
             return $this->parse_ledger($response, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function estimate_tx_fee(mixed $message, string $memo, mixed $account): PromiseInterface {
+    public function estimate_tx_fee(mixed $message, ?string $memo, mixed $account): PromiseInterface {
         return Async\async(function () use ($message, $memo, $account) {
             $txBytes = $this->encode_dydx_tx_for_simulation($message, $memo, $account['sequence'], $account['pub_key']);
             $request = array(
                 'txBytes' => $txBytes,
             );
-            $response = Async\await($this->nodeRestPostCosmosTxV1beta1Simulate ($request));
+            $response = Async\await($this->nodeRestPostCosmosTxV1beta1Simulate($request));
             //
             // {
             //     gas_info => array( gas_wanted => '18446744073709551615', gas_used => '86055' ),
@@ -1867,7 +1915,7 @@ class dydx extends Exchange {
             }
             $defaultFeeDenom = $this->safe_string($this->options, 'defaultFeeDenom');
             $defaultFeeMultiplier = $this->safe_string($this->options, 'defaultFeeMultiplier');
-            $feeDenom = $this->safe_dict($this->options, 'feeDenom');
+            $feeDenom = $this->safe_dict($this->options, 'feeDenom', array());
             $gasPrice = null;
             $denom = null;
             if ($defaultFeeDenom === 'uusdc') {
@@ -1879,6 +1927,9 @@ class dydx extends Exchange {
             }
             $gasLimit = (int) ceil($this->parse_to_numeric(Precise::string_mul($gasUsed, $defaultFeeMultiplier)));
             $feeAmount = Precise::string_mul($this->number_to_string($gasLimit), $gasPrice);
+            if ($feeAmount === null) {
+                throw new ExchangeError($this->id . ' estimateTxFee() missing feeAmount');
+            }
             if (mb_strpos($feeAmount, '.') !== false) {
                 $feeAmount = $this->number_to_string((int) ceil($this->parse_to_numeric($feeAmount)));
             }
@@ -1890,10 +1941,10 @@ class dydx extends Exchange {
                 'amount' => array( $feeObj ),
                 'gasLimit' => $gasLimit,
             );
-        }) ();
+        })();
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer currency internally between wallets on the same $account
@@ -1908,11 +1959,13 @@ class dydx extends Exchange {
             if ($code !== 'USDC') {
                 throw new NotSupported($this->id . ' transfer() only support USDC');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $fromSubaccountId = $this->safe_integer($params, 'fromSubaccountId');
             $toSubaccountId = $this->safe_integer($params, 'toSubaccountId');
             if ($fromAccount !== 'main') {
-                // throw error if from subaccount id is undefind
+                // throw error if from subaccount id is null
                 if ($fromAccount === null) {
                     throw new NotSupported($this->id . ' transfer only support main > subaccount and subaccount <> subaccount.');
                 }
@@ -1971,7 +2024,7 @@ class dydx extends Exchange {
                 'tx' => $signedTx,
             );
             // nodeRpcGetBroadcastTxAsync
-            $response = Async\await($this->nodeRpcGetBroadcastTxSync ($request));
+            $response = Async\await($this->nodeRpcGetBroadcastTxSync($request));
             //
             // {
             //     "jsonrpc" => "2.0",
@@ -1986,7 +2039,7 @@ class dydx extends Exchange {
             // }
             //
             return $this->parse_transfer($response);
-        }) ();
+        })();
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -2031,7 +2084,7 @@ class dydx extends Exchange {
         );
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal transfers made on an account
@@ -2046,7 +2099,9 @@ class dydx extends Exchange {
              * @param {string} [$params->subAccountNumber] sub account number
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
@@ -2056,7 +2111,7 @@ class dydx extends Exchange {
             $transferOut = $this->filter_by($response, 'type', 'TRANSFER_OUT');
             $rows = $this->array_concat($transferIn, $transferOut);
             return $this->parse_transfers($rows, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2113,7 +2168,7 @@ class dydx extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2127,7 +2182,9 @@ class dydx extends Exchange {
             if ($code !== 'USDC') {
                 throw new NotSupported($this->id . ' withdraw() only support USDC');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $this->check_address($address);
             $subaccountId = $this->safe_integer($params, 'subaccountId');
             if ($subaccountId === null) {
@@ -2158,7 +2215,7 @@ class dydx extends Exchange {
                 'tx' => $signedTx,
             );
             // nodeRpcGetBroadcastTxAsync
-            $response = Async\await($this->nodeRpcGetBroadcastTxSync ($request));
+            $response = Async\await($this->nodeRpcGetBroadcastTxSync($request));
             //
             // {
             //     "jsonrpc" => "2.0",
@@ -2174,10 +2231,10 @@ class dydx extends Exchange {
             //
             $data = $this->safe_dict($response, 'result', array());
             return $this->parse_transaction($data, $currency);
-        }) ();
+        })();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -2192,7 +2249,9 @@ class dydx extends Exchange {
              * @param {string} [$params->subAccountNumber] sub account number
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
@@ -2200,10 +2259,10 @@ class dydx extends Exchange {
             $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $this->extend($params, array( 'methodName' => 'fetchWithdrawals' ))));
             $rows = $this->filter_by($response, 'type', 'WITHDRAWAL');
             return $this->parse_transactions($rows, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -2218,7 +2277,9 @@ class dydx extends Exchange {
              * @param {string} [$params->subAccountNumber] sub account number
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
@@ -2226,10 +2287,10 @@ class dydx extends Exchange {
             $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $this->extend($params, array( 'methodName' => 'fetchDeposits' ))));
             $rows = $this->filter_by($response, 'type', 'DEPOSIT');
             return $this->parse_transactions($rows, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of $deposits and $withdrawals
@@ -2244,7 +2305,9 @@ class dydx extends Exchange {
              * @param {string} [$params->subAccountNumber] sub account number
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
@@ -2254,10 +2317,10 @@ class dydx extends Exchange {
             $deposits = $this->filter_by($response, 'type', 'DEPOSIT');
             $rows = $this->array_concat($withdrawals, $deposits);
             return $this->parse_transactions($rows, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             $methodName = $this->safe_string($params, 'methodName');
             $params = $this->omit($params, 'methodName');
@@ -2269,7 +2332,7 @@ class dydx extends Exchange {
                 'address' => $userAddress,
                 'subaccountNumber' => $subAccountNumber,
             );
-            $response = Async\await($this->indexerGetTransfers ($this->extend($request, $params)));
+            $response = Async\await($this->indexerGetTransfers($this->extend($request, $params)));
             //
             // {
             //     "transfers" => array(
@@ -2294,10 +2357,10 @@ class dydx extends Exchange {
             // }
             //
             return $this->safe_list($response, 'transfers', array());
-        }) ();
+        })();
     }
 
-    public function fetch_accounts($params = array ()): PromiseInterface {
+    public function fetch_accounts($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the accounts associated with a profile
@@ -2313,7 +2376,7 @@ class dydx extends Exchange {
             $request = array(
                 'address' => $userAddress,
             );
-            $response = Async\await($this->indexerGetAddressesAddress ($this->extend($request, $params)));
+            $response = Async\await($this->indexerGetAddressesAddress($this->extend($request, $params)));
             //
             // {
             //     "subaccounts" => array(
@@ -2372,10 +2435,10 @@ class dydx extends Exchange {
                 );
             }
             return $result;
-        }) ();
+        })();
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -2385,7 +2448,9 @@ class dydx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $userAddress = null;
             list($userAddress, $params) = $this->handle_public_address('fetchAccounts', $params);
             $subaccountNumber = null;
@@ -2394,7 +2459,7 @@ class dydx extends Exchange {
                 'address' => $userAddress,
                 'subaccountNumber' => $subaccountNumber,
             );
-            $response = Async\await($this->indexerGetAddressesAddressSubaccountNumberSubaccountNumber ($this->extend($request, $params)));
+            $response = Async\await($this->indexerGetAddressesAddressSubaccountNumberSubaccountNumber($this->extend($request, $params)));
             //
             // {
             //     "subaccount" => {
@@ -2457,10 +2522,10 @@ class dydx extends Exchange {
             //
             $data = $this->safe_dict($response, 'subaccount');
             return $this->parse_balance($data);
-        }) ();
+        })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $account = $this->account();
         $account['free'] = $this->safe_string($response, 'freeCollateral');
         $result = array(
@@ -2489,9 +2554,9 @@ class dydx extends Exchange {
         throw new ArgumentsRequired($this->id . ' getWalletAddress() requires a $wallet address. Set `walletAddress` or `$dydxAccount` in exchange options.');
     }
 
-    public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign(mixed $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $pathWithParams = $this->implode_params($path, $params);
-        $url = $this->implode_hostname($this->urls['api'][$section]);
+        $url = $this->urls['api'][$section];
         $params = $this->omit($params, $this->extract_params($path));
         $params = $this->keysort($params);
         $url .= '/' . $pathWithParams;
@@ -2508,7 +2573,7 @@ class dydx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             return null; // fallback to default error handler
         }

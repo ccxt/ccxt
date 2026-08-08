@@ -40,7 +40,7 @@ func (this *MyokxCore) Describe() any {
 			"CORS":   nil,
 			"spot":   true,
 			"margin": nil,
-			"swap":   false,
+			"swap":   true,
 			"future": false,
 			"option": false,
 		},
@@ -52,6 +52,12 @@ func (this *MyokxCore) Describe() any {
 			"future": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
+			},
+		},
+		"options": map[string]any{
+			"mica": true,
+			"fetchMarkets": map[string]any{
+				"types": []any{"spot", "swap"},
 			},
 		},
 	})

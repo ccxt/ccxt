@@ -65,6 +65,21 @@
                 ]
             }
         ],
+        "setMarginMode": [
+            {
+                "description": "Set the margin mode",
+                "method": "setMarginMode",
+                "url": "https://api.delta.exchange/v2/users/margin_mode",
+                "input": [
+                    "isolated",
+                    null,
+                    {
+                        "subaccount_user_id": "30084879"
+                    }
+                ],
+                "output": "{\"margin_mode\":\"isolated\",\"subaccount_user_id\":\"30084879\"}"
+            }
+        ],
         "fetchTime": [
             {
                 "description": "fetchTime",

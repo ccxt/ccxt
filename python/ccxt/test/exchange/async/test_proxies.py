@@ -19,6 +19,7 @@ async def test_proxies(exchange, skipped_properties):
     await test_http_proxy(exchange, skipped_properties)
     # 'httpsProxy', 'socksProxy'
     await test_proxy_for_exceptions(exchange, skipped_properties)
+    return True
 
 
 async def test_proxy_url(exchange, skipped_properties):
@@ -46,6 +47,7 @@ async def test_http_proxy(exchange, skipped_properties):
     assert response == proxy_server_ip, exchange.id + ' ' + method + ' test failed. Returned response is ' + response + ' while it should be "' + proxy_server_ip + '"'
     # reset the instance property
     test_shared_methods.set_proxy_options(exchange, skipped_properties, proxy_url, http_proxy, https_proxy, socks_proxy)
+    return True
 
 
 # with the below method we test out all variations of possible proxy options, so at least 2 of them should be set together, and such cases must throw exception
@@ -71,3 +73,4 @@ async def test_proxy_for_exceptions(exchange, skipped_properties):
                 exchange.set_property(exchange, proxy_second, None)
     # reset the instance property
     test_shared_methods.set_proxy_options(exchange, skipped_properties, proxy_url, http_proxy, https_proxy, socks_proxy)
+    return True

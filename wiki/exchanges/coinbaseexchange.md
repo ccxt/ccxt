@@ -31,15 +31,21 @@
 * [fetchDeposits](#fetchdeposits)
 * [fetchWithdrawals](#fetchwithdrawals)
 * [createDepositAddress](#createdepositaddress)
-* [watchTicker](#watchticker)
-* [watchTickers](#watchtickers)
-* [watchTrades](#watchtrades)
-* [watchMyTrades](#watchmytrades)
-* [watchMyTradesForSymbols](#watchmytradesforsymbols)
-* [watchOrdersForSymbols](#watchordersforsymbols)
-* [watchOrders](#watchorders)
-* [watchOrderBookForSymbols](#watchorderbookforsymbols)
-* [watchOrderBook](#watchorderbook)
+
+<a name="coinbaseexchange" id="coinbaseexchange"></a>
+
+### coinbaseexchange{docsify-ignore}
+This is the institutional Coinbase Exchange API class (exchange.coinbase.com), the venue formerly
+served by Coinbase Pro's backend. Credentials for it are issued through Coinbase's Exchange API program and are
+separate from regular coinbase.com keys - retail Coinbase.com / Advanced Trade accounts should use the coinbase
+class instead. For Coinbase International derivatives see coinbaseinternational.
+
+
+
+```javascript
+coinbaseexchange.coinbaseexchange ()
+```
+
 
 <a name="fetchCurrencies" id="fetchcurrencies"></a>
 
@@ -57,7 +63,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-coinbaseexchange.fetchCurrencies ([params])
+coinbaseexchange.fetchCurrencies (params?)
 ```
 
 
@@ -77,7 +83,7 @@ retrieves data on all markets for coinbaseexchange
 
 
 ```javascript
-coinbaseexchange.fetchMarkets ([params])
+coinbaseexchange.fetchMarkets (params?)
 ```
 
 
@@ -97,7 +103,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-coinbaseexchange.fetchAccounts ([params])
+coinbaseexchange.fetchAccounts (params?)
 ```
 
 
@@ -117,7 +123,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-coinbaseexchange.fetchBalance ([params])
+coinbaseexchange.fetchBalance (params?)
 ```
 
 
@@ -127,7 +133,7 @@ coinbaseexchange.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook  
 
@@ -139,7 +145,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-coinbaseexchange.fetchOrderBook (symbol[, limit, params])
+coinbaseexchange.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -160,7 +166,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-coinbaseexchange.fetchTickers (symbols[, params])
+coinbaseexchange.fetchTickers (symbols, params?)
 ```
 
 
@@ -181,7 +187,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-coinbaseexchange.fetchTicker (symbol[, params])
+coinbaseexchange.fetchTicker (symbol, params?)
 ```
 
 
@@ -206,7 +212,7 @@ fetch all trades made by the user
 
 
 ```javascript
-coinbaseexchange.fetchMyTrades (symbol[, since, limit, params])
+coinbaseexchange.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -229,7 +235,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-coinbaseexchange.fetchTrades (symbol[, since, limit, params])
+coinbaseexchange.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -249,7 +255,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-coinbaseexchange.fetchTradingFees ([params])
+coinbaseexchange.fetchTradingFees (params?)
 ```
 
 
@@ -275,7 +281,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-coinbaseexchange.fetchOHLCV (symbol, timeframe[, since, limit, params])
+coinbaseexchange.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -294,7 +300,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-coinbaseexchange.fetchTime ([params])
+coinbaseexchange.fetchTime (params?)
 ```
 
 
@@ -316,7 +322,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-coinbaseexchange.fetchOrder (id, symbol[, params])
+coinbaseexchange.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -339,7 +345,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-coinbaseexchange.fetchOrderTrades (id, symbol[, since, limit, params])
+coinbaseexchange.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -363,7 +369,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-coinbaseexchange.fetchOrders (symbol[, since, limit, params])
+coinbaseexchange.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -388,7 +394,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-coinbaseexchange.fetchOpenOrders (symbol[, since, limit, params])
+coinbaseexchange.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -412,7 +418,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-coinbaseexchange.fetchClosedOrders (symbol[, since, limit, params])
+coinbaseexchange.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -437,7 +443,7 @@ create a trade order
 
 
 ```javascript
-coinbaseexchange.createOrder (symbol, type, side, amount[, price, params])
+coinbaseexchange.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -459,7 +465,7 @@ cancels an open order
 
 
 ```javascript
-coinbaseexchange.cancelOrder (id, symbol[, params])
+coinbaseexchange.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -475,12 +481,12 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-coinbaseexchange.cancelAllOrders (symbol[, params])
+coinbaseexchange.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -508,7 +514,7 @@ make a withdrawal
 
 
 ```javascript
-coinbaseexchange.withdraw (code, amount, address, tag[, params])
+coinbaseexchange.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -532,7 +538,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-coinbaseexchange.fetchLedger (code[, since, limit, params])
+coinbaseexchange.fetchLedger (code, since?, limit?, params?)
 ```
 
 
@@ -560,7 +566,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-coinbaseexchange.fetchDepositsWithdrawals ([code, since, limit, params])
+coinbaseexchange.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -587,7 +593,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-coinbaseexchange.fetchDeposits (code[, since, limit, params])
+coinbaseexchange.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -614,7 +620,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-coinbaseexchange.fetchWithdrawals (code[, since, limit, params])
+coinbaseexchange.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -635,199 +641,6 @@ create a currency deposit address
 
 
 ```javascript
-coinbaseexchange.createDepositAddress (code[, params])
-```
-
-
-<a name="watchTicker" id="watchticker"></a>
-
-### watchTicker{docsify-ignore}
-watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-
-**Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-coinbaseexchange.watchTicker (symbol[, params])
-```
-
-
-<a name="watchTickers" id="watchtickers"></a>
-
-### watchTickers{docsify-ignore}
-watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-
-**Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.channel | <code>string</code> | No | the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers |
-
-
-```javascript
-coinbaseexchange.watchTickers ([symbols, params])
-```
-
-
-<a name="watchTrades" id="watchtrades"></a>
-
-### watchTrades{docsify-ignore}
-get the list of most recent trades for a particular symbol
-
-**Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
-| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum amount of trades to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-coinbaseexchange.watchTrades (symbol[, since, limit, params])
-```
-
-
-<a name="watchMyTrades" id="watchmytrades"></a>
-
-### watchMyTrades{docsify-ignore}
-watches information on multiple trades made by the user
-
-**Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market trades were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
-| limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-coinbaseexchange.watchMyTrades (symbol[, since, limit, params])
-```
-
-
-<a name="watchMyTradesForSymbols" id="watchmytradesforsymbols"></a>
-
-### watchMyTradesForSymbols{docsify-ignore}
-watches information on multiple trades made by the user
-
-**Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch trades for |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
-| limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-coinbaseexchange.watchMyTradesForSymbols (symbols[, since, limit, params])
-```
-
-
-<a name="watchOrdersForSymbols" id="watchordersforsymbols"></a>
-
-### watchOrdersForSymbols{docsify-ignore}
-watches information on multiple orders made by the user
-
-**Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch orders for |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-coinbaseexchange.watchOrdersForSymbols (symbols[, since, limit, params])
-```
-
-
-<a name="watchOrders" id="watchorders"></a>
-
-### watchOrders{docsify-ignore}
-watches information on multiple orders made by the user
-
-**Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-coinbaseexchange.watchOrders (symbol[, since, limit, params])
-```
-
-
-<a name="watchOrderBookForSymbols" id="watchorderbookforsymbols"></a>
-
-### watchOrderBookForSymbols{docsify-ignore}
-watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-
-**Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-coinbaseexchange.watchOrderBookForSymbols (symbols[, limit, params])
-```
-
-
-<a name="watchOrderBook" id="watchorderbook"></a>
-
-### watchOrderBook{docsify-ignore}
-watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-
-**Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-coinbaseexchange.watchOrderBook (symbol[, limit, params])
+coinbaseexchange.createDepositAddress (code, params?)
 ```
 

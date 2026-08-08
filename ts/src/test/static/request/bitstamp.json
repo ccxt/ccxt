@@ -3,6 +3,15 @@
     "skipKeys": [],
     "outputType": "urlencoded",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://www.bitstamp.net/api/v2/markets/",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "default",

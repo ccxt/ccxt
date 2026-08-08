@@ -2,13 +2,13 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha3_js = require('@noble/hashes/sha3.js');
+var secp256k1_js = require('@noble/curves/secp256k1.js');
 var aster$1 = require('./abstract/aster.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var crypto = require('./base/functions/crypto.js');
-var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
-var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------xs
@@ -26,12 +26,11 @@ class aster extends aster$1["default"] {
             // 150 req/s for subscribers: https://aster.markets/data
             // for brokers: https://aster.markets/docs/api-references/broker-api/#authentication-and-rate-limit
             'rateLimit': 333,
-            'hostname': 'aster.markets',
             'certified': false,
             'pro': true,
             'dex': true,
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/4982201b-73cd-4d7a-8907-e69e239e9609',
+                'logo': 'https://github.com/user-attachments/assets/5e5909d6-c4de-4435-992f-4339c80edbd7',
                 'www': 'https://www.asterdex.com/en',
                 'api': {
                     'fapiPublic': 'https://fapi.asterdex.com/fapi',
@@ -48,9 +47,9 @@ class aster extends aster$1["default"] {
             },
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': true,
                 'margin': false,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'addMargin': true,
@@ -194,209 +193,209 @@ class aster extends aster$1["default"] {
             'api': {
                 'fapiPublic': {
                     'get': {
-                        'v1/ping': 1,
-                        'v3/ping': 1,
-                        'v1/time': 1,
-                        'v3/time': 1,
-                        'v1/exchangeInfo': 1,
-                        'v3/exchangeInfo': 1,
-                        'v1/depth': 1,
-                        'v3/depth': 2,
-                        'v1/trades': 1,
-                        'v3/trades': 1,
-                        'v1/historicalTrades': 1,
-                        'v3/historicalTrades': 20,
-                        'v1/aggTrades': 1,
-                        'v3/aggTrades': 20,
-                        'v1/klines': 1,
-                        'v3/klines': 1,
-                        'v1/indexPriceKlines': 1,
-                        'v3/indexPriceKlines': 1,
-                        'v1/markPriceKlines': 1,
-                        'v3/markPriceKlines': 1,
-                        'v1/premiumIndex': 1,
-                        'v3/premiumIndex': 1,
-                        'v1/fundingRate': 1,
-                        'v3/fundingRate': 1,
-                        'v1/fundingInfo': 1,
-                        'v3/fundingInfo': 1,
-                        'v1/ticker/24hr': 1,
-                        'v3/ticker/24hr': 1,
-                        'v1/ticker/price': 1,
-                        'v3/ticker/price': 1,
-                        'v1/ticker/bookTicker': 1,
-                        'v3/ticker/bookTicker': 1,
+                        'v1/ping': { 'cost': 1 },
+                        'v3/ping': { 'cost': 1 },
+                        'v1/time': { 'cost': 1 },
+                        'v3/time': { 'cost': 1 },
+                        'v1/exchangeInfo': { 'cost': 1 },
+                        'v3/exchangeInfo': { 'cost': 1 },
+                        'v1/depth': { 'cost': 1 },
+                        'v3/depth': { 'cost': 2 }, // dynamic: 5, 10, 20, 50->2, 100->5, 500->10, 1000->20
+                        'v1/trades': { 'cost': 1 },
+                        'v3/trades': { 'cost': 1 },
+                        'v1/historicalTrades': { 'cost': 1 },
+                        'v3/historicalTrades': { 'cost': 20 },
+                        'v1/aggTrades': { 'cost': 1 },
+                        'v3/aggTrades': { 'cost': 20 },
+                        'v1/klines': { 'cost': 1 },
+                        'v3/klines': { 'cost': 1 }, // dynamic [1,100) ->1,  [100, 500)->2, [500, 1000]->5, [1000 -> 10
+                        'v1/indexPriceKlines': { 'cost': 1 },
+                        'v3/indexPriceKlines': { 'cost': 1 }, // same as klines
+                        'v1/markPriceKlines': { 'cost': 1 },
+                        'v3/markPriceKlines': { 'cost': 1 }, // same as klines
+                        'v1/premiumIndex': { 'cost': 1 },
+                        'v3/premiumIndex': { 'cost': 1 },
+                        'v1/fundingRate': { 'cost': 1 },
+                        'v3/fundingRate': { 'cost': 1 },
+                        'v1/fundingInfo': { 'cost': 1 },
+                        'v3/fundingInfo': { 'cost': 1 },
+                        'v1/ticker/24hr': { 'cost': 1 },
+                        'v3/ticker/24hr': { 'cost': 1 }, // 1 single-symbol, otherwise 40
+                        'v1/ticker/price': { 'cost': 1 },
+                        'v3/ticker/price': { 'cost': 1 }, // 1 single-symbol, otherwise 2
+                        'v1/ticker/bookTicker': { 'cost': 1 },
+                        'v3/ticker/bookTicker': { 'cost': 1 }, // 1 single-symbol, otherwise 2
                         // different endpoints
-                        'v1/adlQuantile': 1,
-                        'v1/forceOrders': 1,
-                        'v3/indexreferences': 1,
+                        'v1/adlQuantile': { 'cost': 1 },
+                        'v1/forceOrders': { 'cost': 1 },
+                        'v3/indexreferences': { 'cost': 1 },
                     },
                 },
                 'fapiPrivate': {
                     'get': {
-                        'v1/positionSide/dual': 1,
-                        'v3/positionSide/dual': 30,
-                        'v1/multiAssetsMargin': 1,
-                        'v3/multiAssetsMargin': 1,
-                        'v1/order': 1,
-                        'v3/order': 1,
-                        'v1/openOrder': 1,
-                        'v3/openOrder': 1,
-                        'v1/openOrders': 1,
-                        'v3/openOrders': 1,
-                        'v1/allOrders': 1,
-                        'v3/allOrders': 1,
-                        'v2/balance': 1,
-                        'v3/balance': 1,
-                        'v3/account': 1,
-                        'v1/positionMargin/history': 1,
-                        'v3/positionMargin/history': 1,
-                        'v2/positionRisk': 1,
-                        'v3/positionRisk': 1,
-                        'v1/userTrades': 1,
-                        'v3/userTrades': 5,
-                        'v1/income': 1,
-                        'v3/income': 1,
-                        'v1/leverageBracket': 1,
-                        'v3/leverageBracket': 1,
-                        'v1/commissionRate': 1,
-                        'v3/commissionRate': 1,
+                        'v1/positionSide/dual': { 'cost': 1 },
+                        'v3/positionSide/dual': { 'cost': 30 },
+                        'v1/multiAssetsMargin': { 'cost': 1 },
+                        'v3/multiAssetsMargin': { 'cost': 1 },
+                        'v1/order': { 'cost': 1 },
+                        'v3/order': { 'cost': 1 },
+                        'v1/openOrder': { 'cost': 1 },
+                        'v3/openOrder': { 'cost': 1 },
+                        'v1/openOrders': { 'cost': 1 },
+                        'v3/openOrders': { 'cost': 1 },
+                        'v1/allOrders': { 'cost': 1 },
+                        'v3/allOrders': { 'cost': 1 },
+                        'v2/balance': { 'cost': 1 },
+                        'v3/balance': { 'cost': 1 },
+                        'v3/account': { 'cost': 1 },
+                        'v1/positionMargin/history': { 'cost': 1 },
+                        'v3/positionMargin/history': { 'cost': 1 },
+                        'v2/positionRisk': { 'cost': 1 },
+                        'v3/positionRisk': { 'cost': 1 },
+                        'v1/userTrades': { 'cost': 1 },
+                        'v3/userTrades': { 'cost': 5 },
+                        'v1/income': { 'cost': 1 },
+                        'v3/income': { 'cost': 1 },
+                        'v1/leverageBracket': { 'cost': 1 },
+                        'v3/leverageBracket': { 'cost': 1 },
+                        'v1/commissionRate': { 'cost': 1 },
+                        'v3/commissionRate': { 'cost': 1 },
                         // others
-                        'v3/adlQuantile': 1,
-                        'v3/forceOrders': 1,
-                        'v3/mmp': 1,
-                        'v3/accountWithJoinMargin': 1,
-                        'v4/account': 1,
+                        'v3/adlQuantile': { 'cost': 1 },
+                        'v3/forceOrders': { 'cost': 1 },
+                        'v3/mmp': { 'cost': 1 },
+                        'v3/accountWithJoinMargin': { 'cost': 1 },
+                        'v4/account': { 'cost': 1 },
                         // builder
-                        'v3/agent': 1,
-                        'v3/builder': 1,
+                        'v3/agent': { 'cost': 1 },
+                        'v3/builder': { 'cost': 1 },
                     },
                     'post': {
-                        'v1/positionSide/dual': 1,
-                        'v3/positionSide/dual': 1,
-                        'v1/multiAssetsMargin': 1,
-                        'v3/multiAssetsMargin': 1,
-                        'v1/order': 1,
-                        'v3/order': 1,
-                        'v1/order/test': 1,
-                        'v3/order/test': 1,
-                        'v1/batchOrders': 1,
-                        'v3/batchOrders': 1,
-                        'v1/asset/wallet/transfer': 1,
-                        'v3/asset/wallet/transfer': 1,
-                        'v1/countdownCancelAll': 1,
-                        'v3/countdownCancelAll': 1,
-                        'v1/leverage': 1,
-                        'v3/leverage': 1,
-                        'v1/marginType': 1,
-                        'v3/marginType': 1,
-                        'v1/positionMargin': 1,
-                        'v3/positionMargin': 1,
-                        'v1/listenKey': 1,
-                        'v3/listenKey': 1,
+                        'v1/positionSide/dual': { 'cost': 1 },
+                        'v3/positionSide/dual': { 'cost': 1 },
+                        'v1/multiAssetsMargin': { 'cost': 1 },
+                        'v3/multiAssetsMargin': { 'cost': 1 },
+                        'v1/order': { 'cost': 1 },
+                        'v3/order': { 'cost': 1 },
+                        'v1/order/test': { 'cost': 1 },
+                        'v3/order/test': { 'cost': 1 },
+                        'v1/batchOrders': { 'cost': 1 },
+                        'v3/batchOrders': { 'cost': 1 },
+                        'v1/asset/wallet/transfer': { 'cost': 1 },
+                        'v3/asset/wallet/transfer': { 'cost': 1 },
+                        'v1/countdownCancelAll': { 'cost': 1 },
+                        'v3/countdownCancelAll': { 'cost': 1 },
+                        'v1/leverage': { 'cost': 1 },
+                        'v3/leverage': { 'cost': 1 },
+                        'v1/marginType': { 'cost': 1 },
+                        'v3/marginType': { 'cost': 1 },
+                        'v1/positionMargin': { 'cost': 1 },
+                        'v3/positionMargin': { 'cost': 1 },
+                        'v1/listenKey': { 'cost': 1 },
+                        'v3/listenKey': { 'cost': 1 },
                         // others
-                        'v3/mmp': 1,
-                        'v3/mmpReset': 1,
-                        'v3/noop': 1,
+                        'v3/mmp': { 'cost': 1 },
+                        'v3/mmpReset': { 'cost': 1 },
+                        'v3/noop': { 'cost': 1 },
                         // builder
-                        'v3/approveAgent': 1,
-                        'v3/updateAgent': 1,
-                        'v3/approveBuilder': 1,
-                        'v3/updateBuilder': 1,
+                        'v3/approveAgent': { 'cost': 1 },
+                        'v3/updateAgent': { 'cost': 1 },
+                        'v3/approveBuilder': { 'cost': 1 },
+                        'v3/updateBuilder': { 'cost': 1 },
                     },
                     'put': {
-                        'v1/listenKey': 1,
-                        'v3/listenKey': 1,
+                        'v1/listenKey': { 'cost': 1 },
+                        'v3/listenKey': { 'cost': 1 },
                     },
                     'delete': {
-                        'v1/order': 1,
-                        'v3/order': 1,
-                        'v1/allOpenOrders': 1,
-                        'v3/allOpenOrders': 1,
-                        'v1/batchOrders': 1,
-                        'v3/batchOrders': 1,
-                        'v3/mmp': 1,
-                        'v1/listenKey': 1,
-                        'v3/listenKey': 1,
+                        'v1/order': { 'cost': 1 },
+                        'v3/order': { 'cost': 1 },
+                        'v1/allOpenOrders': { 'cost': 1 },
+                        'v3/allOpenOrders': { 'cost': 1 },
+                        'v1/batchOrders': { 'cost': 1 },
+                        'v3/batchOrders': { 'cost': 1 },
+                        'v3/mmp': { 'cost': 1 },
+                        'v1/listenKey': { 'cost': 1 },
+                        'v3/listenKey': { 'cost': 1 },
                         // builder
-                        'v3/agent': 1,
-                        'v3/builder': 1,
+                        'v3/agent': { 'cost': 1 },
+                        'v3/builder': { 'cost': 1 },
                     },
                 },
                 'sapiPublic': {
                     'get': {
                         // v1
-                        'v1/ping': 1,
-                        'v1/time': 1,
-                        'v1/exchangeInfo': 1,
-                        'v1/depth': 1,
-                        'v1/trades': 1,
-                        'v1/historicalTrades': 1,
-                        'v1/aggTrades': 1,
-                        'v1/klines': 1,
-                        'v1/ticker/24hr': 1,
-                        'v1/ticker/price': 1,
-                        'v1/ticker/bookTicker': 1,
-                        'v1/aster/withdraw/estimateFee': 1,
+                        'v1/ping': { 'cost': 1 },
+                        'v1/time': { 'cost': 1 },
+                        'v1/exchangeInfo': { 'cost': 1 },
+                        'v1/depth': { 'cost': 1 },
+                        'v1/trades': { 'cost': 1 },
+                        'v1/historicalTrades': { 'cost': 1 },
+                        'v1/aggTrades': { 'cost': 1 },
+                        'v1/klines': { 'cost': 1 },
+                        'v1/ticker/24hr': { 'cost': 1 },
+                        'v1/ticker/price': { 'cost': 1 },
+                        'v1/ticker/bookTicker': { 'cost': 1 },
+                        'v1/aster/withdraw/estimateFee': { 'cost': 1 },
                         // v3
-                        'v3/ping': 1,
-                        'v3/time': 1,
-                        'v3/exchangeInfo': 1,
+                        'v3/ping': { 'cost': 1 },
+                        'v3/time': { 'cost': 1 },
+                        'v3/exchangeInfo': { 'cost': 1 },
                         'v3/depth': { 'cost': 2, 'byLimit': [[50, 2], [100, 5], [500, 10], [1000, 20]] },
-                        'v3/trades': 1,
-                        'v3/historicalTrades': 20,
-                        'v3/aggTrades': 20,
-                        'v3/klines': { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] },
+                        'v3/trades': { 'cost': 1 },
+                        'v3/historicalTrades': { 'cost': 20 },
+                        'v3/aggTrades': { 'cost': 20 },
+                        'v3/klines': { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] }, // todo: not specified in docs
                         'v3/ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
                         'v3/ticker/price': { 'cost': 1, 'noSymbol': 2 },
                         'v3/ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
-                        'v3/aster/withdraw/estimateFee': 1,
+                        'v3/aster/withdraw/estimateFee': { 'cost': 1 },
                     },
                 },
                 'sapiPrivate': {
                     'get': {
                         // v1
-                        'v1/commissionRate': 1,
-                        'v1/order': 1,
-                        'v1/openOrders': 1,
-                        'v1/allOrders': 1,
-                        'v1/transactionHistory': 1,
-                        'v1/account': 1,
-                        'v1/userTrades': 1,
+                        'v1/commissionRate': { 'cost': 1 },
+                        'v1/order': { 'cost': 1 },
+                        'v1/openOrders': { 'cost': 1 },
+                        'v1/allOrders': { 'cost': 1 },
+                        'v1/transactionHistory': { 'cost': 1 },
+                        'v1/account': { 'cost': 1 },
+                        'v1/userTrades': { 'cost': 1 },
                         // v3
                         'v3/commissionRate': { 'cost': 1, 'noSymbol': 2 },
-                        'v3/order': 1,
-                        'v3/openOrders': 1,
-                        'v3/allOrders': 5,
-                        'v3/account': 5,
-                        'v3/userTrades': 5,
-                        'v3/openOrder': 1,
+                        'v3/order': { 'cost': 1 },
+                        'v3/openOrders': { 'cost': 1 }, // with symbol 1, otherwise 40
+                        'v3/allOrders': { 'cost': 5 },
+                        'v3/account': { 'cost': 5 },
+                        'v3/userTrades': { 'cost': 5 },
+                        'v3/openOrder': { 'cost': 1 },
                     },
                     'post': {
                         // v1
-                        'v1/order': 1,
-                        'v1/asset/wallet/transfer': 5,
-                        'v1/asset/sendToAddress': 1,
-                        'v1/listenKey': 1,
+                        'v1/order': { 'cost': 1 },
+                        'v1/asset/wallet/transfer': { 'cost': 5 },
+                        'v1/asset/sendToAddress': { 'cost': 1 }, // inexistent in v3
+                        'v1/listenKey': { 'cost': 1 },
                         // v3
-                        'v3/order': 1,
-                        'v3/asset/wallet/transfer': 5,
-                        'v3/aster/user-withdraw': 1,
-                        'v3/listenKey': 1,
+                        'v3/order': { 'cost': 1 },
+                        'v3/asset/wallet/transfer': { 'cost': 5 },
+                        'v3/aster/user-withdraw': { 'cost': 1 },
+                        'v3/listenKey': { 'cost': 1 },
                     },
-                    'put': [
-                        'v1/listenKey',
-                        'v3/listenKey',
-                    ],
+                    'put': {
+                        'v1/listenKey': { 'cost': 1 },
+                        'v3/listenKey': { 'cost': 1 },
+                    },
                     'delete': {
                         // v1
-                        'v1/order': 1,
-                        'v1/allOpenOrders': 1,
-                        'v1/listenKey': 1,
+                        'v1/order': { 'cost': 1 },
+                        'v1/allOpenOrders': { 'cost': 1 },
+                        'v1/listenKey': { 'cost': 1 },
                         // v3
-                        'v3/allOpenOrders': 1,
-                        'v3/order': 1,
-                        'v3/listenKey': 1,
+                        'v3/allOpenOrders': { 'cost': 1 },
+                        'v3/order': { 'cost': 1 },
+                        'v3/listenKey': { 'cost': 1 },
                     },
                 },
             },
@@ -431,13 +430,145 @@ class aster extends aster$1["default"] {
                     'taker': this.parseNumber('0.00035'),
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': undefined,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 1500,
+                    },
+                },
+                'forDerivs': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': false,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': true,
+                        'trailing': true,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 1500,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivs',
+                    },
+                    'inverse': undefined,
+                },
+            },
             'options': {
                 'defaultType': 'spot',
-                'recvWindow': 10 * 1000,
-                'defaultTimeInForce': 'GTC',
+                'recvWindow': 10 * 1000, // 10 sec
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
-                'v3ChainId': 1666,
-                'quoteOrderQty': true,
+                'v3ChainId': 1666, // Aster chain ID used for EIP-712 v3 signing
+                'createOrder': {
+                    'timeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                    'quoteOrderQty': true, // whether market orders support amounts in quote currency
+                },
                 'accountsByType': {
                     'spot': 'SPOT',
                     'swap': 'FUTURE',
@@ -447,7 +578,7 @@ class aster extends aster$1["default"] {
                 'networks': {
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
-                    'ARBONE': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                 },
                 'networksToChainId': {
                     'ETH': 1,
@@ -464,169 +595,169 @@ class aster extends aster$1["default"] {
             'exceptions': {
                 'exact': {
                     // 10xx - General Server or Network issues
-                    '-1000': errors.OperationRejected,
-                    '-1001': errors.NetworkError,
-                    '-1002': errors.AuthenticationError,
-                    '-1003': errors.RateLimitExceeded,
-                    '-1004': errors.DuplicateOrderId,
-                    '-1005': errors.BadRequest,
-                    '-1006': errors.BadResponse,
-                    '-1007': errors.RequestTimeout,
-                    '-1010': errors.OperationRejected,
-                    '-1011': errors.PermissionDenied,
-                    '-1013': errors.BadRequest,
-                    '-1014': errors.OrderNotFillable,
-                    '-1015': errors.RateLimitExceeded,
-                    '-1016': errors.ExchangeClosedByUser,
-                    '-1020': errors.NotSupported,
-                    '-1021': errors.InvalidNonce,
-                    '-1022': errors.AuthenticationError,
-                    '-1023': errors.BadRequest,
+                    '-1000': errors.OperationRejected, // UNKNOWN
+                    '-1001': errors.NetworkError, // DISCONNECTED
+                    '-1002': errors.AuthenticationError, // UNAUTHORIZED
+                    '-1003': errors.RateLimitExceeded, // TOO_MANY_REQUESTS
+                    '-1004': errors.DuplicateOrderId, // DUPLICATE_IP
+                    '-1005': errors.BadRequest, // NO_SUCH_IP
+                    '-1006': errors.BadResponse, // UNEXPECTED_RESP
+                    '-1007': errors.RequestTimeout, // TIMEOUT
+                    '-1010': errors.OperationRejected, // ERROR_MSG_RECEIVED
+                    '-1011': errors.PermissionDenied, // NON_WHITE_LIST
+                    '-1013': errors.BadRequest, // INVALID_MESSAGE
+                    '-1014': errors.OrderNotFillable, // UNKNOWN_ORDER_COMPOSITION
+                    '-1015': errors.RateLimitExceeded, // TOO_MANY_ORDERS
+                    '-1016': errors.ExchangeClosedByUser, // SERVICE_SHUTTING_DOWN
+                    '-1020': errors.NotSupported, // UNSUPPORTED_OPERATION
+                    '-1021': errors.InvalidNonce, // INVALID_TIMESTAMP
+                    '-1022': errors.AuthenticationError, // INVALID_SIGNATURE
+                    '-1023': errors.BadRequest, // START_TIME_GREATER_THAN_END_TIME
                     // 11xx - Request issues
-                    '-1100': errors.BadRequest,
-                    '-1101': errors.BadRequest,
-                    '-1102': errors.ArgumentsRequired,
-                    '-1103': errors.BadRequest,
-                    '-1104': errors.BadRequest,
-                    '-1105': errors.ArgumentsRequired,
-                    '-1106': errors.BadRequest,
-                    '-1108': errors.BadRequest,
-                    '-1109': errors.BadRequest,
-                    '-1110': errors.BadSymbol,
-                    '-1111': errors.BadRequest,
-                    '-1112': errors.BadRequest,
-                    '-1113': errors.BadRequest,
-                    '-1114': errors.BadRequest,
-                    '-1115': errors.InvalidOrder,
-                    '-1116': errors.InvalidOrder,
-                    '-1117': errors.InvalidOrder,
-                    '-1118': errors.InvalidOrder,
-                    '-1119': errors.InvalidOrder,
-                    '-1120': errors.BadRequest,
-                    '-1121': errors.BadSymbol,
-                    '-1125': errors.AuthenticationError,
-                    '-1127': errors.BadRequest,
-                    '-1128': errors.BadRequest,
-                    '-1130': errors.BadRequest,
-                    '-1136': errors.InvalidOrder,
+                    '-1100': errors.BadRequest, // ILLEGAL_CHARS
+                    '-1101': errors.BadRequest, // TOO_MANY_PARAMETERS
+                    '-1102': errors.ArgumentsRequired, // MANDATORY_PARAM_EMPTY_OR_MALFORMED
+                    '-1103': errors.BadRequest, // UNKNOWN_PARAM
+                    '-1104': errors.BadRequest, // UNREAD_PARAMETERS
+                    '-1105': errors.ArgumentsRequired, // PARAM_EMPTY
+                    '-1106': errors.BadRequest, // PARAM_NOT_REQUIRED
+                    '-1108': errors.BadRequest, // BAD_ASSET
+                    '-1109': errors.BadRequest, // BAD_ACCOUNT
+                    '-1110': errors.BadSymbol, // BAD_INSTRUMENT_TYPE
+                    '-1111': errors.BadRequest, // BAD_PRECISION
+                    '-1112': errors.BadRequest, // NO_DEPTH
+                    '-1113': errors.BadRequest, // WITHDRAW_NOT_NEGATIVE
+                    '-1114': errors.BadRequest, // TIF_NOT_REQUIRED
+                    '-1115': errors.InvalidOrder, // INVALID_TIF
+                    '-1116': errors.InvalidOrder, // INVALID_ORDER_TYPE
+                    '-1117': errors.InvalidOrder, // INVALID_SIDE
+                    '-1118': errors.InvalidOrder, // EMPTY_NEW_CL_ORD_ID
+                    '-1119': errors.InvalidOrder, // EMPTY_ORG_CL_ORD_ID
+                    '-1120': errors.BadRequest, // BAD_INTERVAL
+                    '-1121': errors.BadSymbol, // BAD_SYMBOL
+                    '-1125': errors.AuthenticationError, // INVALID_LISTEN_KEY
+                    '-1127': errors.BadRequest, // MORE_THAN_XX_HOURS
+                    '-1128': errors.BadRequest, // OPTIONAL_PARAMS_BAD_COMBO
+                    '-1130': errors.BadRequest, // INVALID_PARAMETER
+                    '-1136': errors.InvalidOrder, // INVALID_NEW_ORDER_RESP_TYPE
                     // 20xx - Processing Issues
-                    '-2010': errors.InvalidOrder,
-                    '-2011': errors.OrderNotFound,
-                    '-2013': errors.OrderNotFound,
-                    '-2014': errors.AuthenticationError,
-                    '-2015': errors.AuthenticationError,
-                    '-2016': errors.MarketClosed,
-                    '-2018': errors.InsufficientFunds,
-                    '-2019': errors.InsufficientFunds,
-                    '-2020': errors.OrderNotFillable,
-                    '-2021': errors.OrderImmediatelyFillable,
-                    '-2022': errors.OperationRejected,
-                    '-2023': errors.AccountSuspended,
-                    '-2024': errors.InsufficientFunds,
-                    '-2025': errors.RateLimitExceeded,
-                    '-2026': errors.NotSupported,
-                    '-2027': errors.BadRequest,
-                    '-2028': errors.BadRequest,
+                    '-2010': errors.InvalidOrder, // NEW_ORDER_REJECTED
+                    '-2011': errors.OrderNotFound, // CANCEL_REJECTED
+                    '-2013': errors.OrderNotFound, // NO_SUCH_ORDER
+                    '-2014': errors.AuthenticationError, // BAD_API_KEY_FMT
+                    '-2015': errors.AuthenticationError, // REJECTED_MBX_KEY
+                    '-2016': errors.MarketClosed, // NO_TRADING_WINDOW
+                    '-2018': errors.InsufficientFunds, // BALANCE_NOT_SUFFICIENT
+                    '-2019': errors.InsufficientFunds, // MARGIN_NOT_SUFFICIEN
+                    '-2020': errors.OrderNotFillable, // UNABLE_TO_FILL
+                    '-2021': errors.OrderImmediatelyFillable, // ORDER_WOULD_IMMEDIATELY_TRIGGER
+                    '-2022': errors.OperationRejected, // REDUCE_ONLY_REJECT
+                    '-2023': errors.AccountSuspended, // USER_IN_LIQUIDATION
+                    '-2024': errors.InsufficientFunds, // POSITION_NOT_SUFFICIENT
+                    '-2025': errors.RateLimitExceeded, // MAX_OPEN_ORDER_EXCEEDED
+                    '-2026': errors.NotSupported, // REDUCE_ONLY_ORDER_TYPE_NOT_SUPPORTED
+                    '-2027': errors.BadRequest, // MAX_LEVERAGE_RATIO
+                    '-2028': errors.BadRequest, // MIN_LEVERAGE_RATIO
                     // 40xx - Filters and other Issues
-                    '-4000': errors.InvalidOrder,
-                    '-4001': errors.InvalidOrder,
-                    '-4002': errors.InvalidOrder,
-                    '-4003': errors.InvalidOrder,
-                    '-4004': errors.InvalidOrder,
-                    '-4005': errors.InvalidOrder,
-                    '-4006': errors.InvalidOrder,
-                    '-4007': errors.InvalidOrder,
-                    '-4008': errors.InvalidOrder,
-                    '-4009': errors.InvalidOrder,
-                    '-4010': errors.InvalidOrder,
-                    '-4011': errors.InvalidOrder,
-                    '-4012': errors.RateLimitExceeded,
-                    '-4013': errors.InvalidOrder,
-                    '-4014': errors.InvalidOrder,
-                    '-4015': errors.InvalidOrder,
-                    '-4016': errors.InvalidOrder,
-                    '-4017': errors.InvalidOrder,
-                    '-4018': errors.InvalidOrder,
-                    '-4019': errors.BadRequest,
-                    '-4020': errors.BadRequest,
-                    '-4021': errors.BadRequest,
-                    '-4022': errors.MarketClosed,
-                    '-4023': errors.InvalidOrder,
-                    '-4024': errors.InvalidOrder,
-                    '-4025': errors.BadRequest,
-                    '-4026': errors.BadRequest,
-                    '-4027': errors.BadRequest,
-                    '-4028': errors.BadRequest,
-                    '-4029': errors.BadRequest,
-                    '-4030': errors.BadRequest,
-                    '-4031': errors.BadRequest,
-                    '-4032': errors.RateLimitExceeded,
-                    '-4033': errors.AccountNotEnabled,
-                    '-4044': errors.BadRequest,
-                    '-4045': errors.RateLimitExceeded,
-                    '-4046': errors.NoChange,
-                    '-4047': errors.OperationRejected,
-                    '-4048': errors.OperationRejected,
-                    '-4049': errors.OperationRejected,
-                    '-4050': errors.InsufficientFunds,
-                    '-4051': errors.InsufficientFunds,
-                    '-4052': errors.NoChange,
-                    '-4053': errors.OperationRejected,
-                    '-4054': errors.OperationRejected,
-                    '-4055': errors.ArgumentsRequired,
-                    '-4056': errors.AuthenticationError,
-                    '-4057': errors.AuthenticationError,
-                    '-4058': errors.InvalidOrder,
-                    '-4059': errors.NoChange,
-                    '-4060': errors.InvalidOrder,
-                    '-4061': errors.InvalidOrder,
-                    '-4062': errors.OperationRejected,
-                    '-4063': errors.BadRequest,
-                    '-4064': errors.BadRequest,
-                    '-4065': errors.BadRequest,
-                    '-4066': errors.BadRequest,
-                    '-4067': errors.OperationRejected,
-                    '-4068': errors.OperationRejected,
-                    '-4069': errors.BadRequest,
-                    '-4070': errors.InvalidOrder,
-                    '-4071': errors.InvalidOrder,
-                    '-4072': errors.NoChange,
-                    '-4073': errors.BadRequest,
-                    '-4074': errors.InvalidOrder,
-                    '-4075': errors.OperationRejected,
-                    '-4076': errors.OperationRejected,
-                    '-4077': errors.RateLimitExceeded,
-                    '-4078': errors.BadRequest,
-                    '-4079': errors.BadRequest,
-                    '-4080': errors.BadRequest,
-                    '-4081': errors.BadRequest,
-                    '-4082': errors.RateLimitExceeded,
-                    '-4083': errors.OperationFailed,
-                    '-4084': errors.NotSupported,
-                    '-4085': errors.BadRequest,
-                    '-4086': errors.BadRequest,
-                    '-4087': errors.PermissionDenied,
-                    '-4088': errors.PermissionDenied,
-                    '-4104': errors.BadSymbol,
-                    '-4114': errors.InvalidOrder,
-                    '-4115': errors.DuplicateOrderId,
-                    '-4118': errors.InsufficientFunds,
-                    '-4131': errors.InvalidOrder,
-                    '-4135': errors.InvalidOrder,
-                    '-4137': errors.InvalidOrder,
-                    '-4138': errors.OperationRejected,
-                    '-4139': errors.InvalidOrder,
-                    '-4140': errors.OperationRejected,
-                    '-4141': errors.MarketClosed,
-                    '-4142': errors.InvalidOrder,
-                    '-4144': errors.BadSymbol,
-                    '-4161': errors.OperationRejected,
-                    '-4164': errors.InvalidOrder,
-                    '-4165': errors.BadRequest,
-                    '-4183': errors.InvalidOrder,
-                    '-4184': errors.InvalidOrder,
-                    '-5060': errors.OperationRejected,
-                    '-5076': errors.OperationRejected,
+                    '-4000': errors.InvalidOrder, // INVALID_ORDER_STATUS
+                    '-4001': errors.InvalidOrder, // PRICE_LESS_THAN_ZERO
+                    '-4002': errors.InvalidOrder, // PRICE_GREATER_THAN_MAX_PRICE
+                    '-4003': errors.InvalidOrder, // QTY_LESS_THAN_ZERO
+                    '-4004': errors.InvalidOrder, // QTY_LESS_THAN_MIN_QTY
+                    '-4005': errors.InvalidOrder, // QTY_GREATER_THAN_MAX_QTY
+                    '-4006': errors.InvalidOrder, // STOP_PRICE_LESS_THAN_ZERO
+                    '-4007': errors.InvalidOrder, // STOP_PRICE_GREATER_THAN_MAX_PRICE
+                    '-4008': errors.InvalidOrder, // TICK_SIZE_LESS_THAN_ZERO
+                    '-4009': errors.InvalidOrder, // MAX_PRICE_LESS_THAN_MIN_PRICE
+                    '-4010': errors.InvalidOrder, // MAX_QTY_LESS_THAN_MIN_QTY
+                    '-4011': errors.InvalidOrder, // STEP_SIZE_LESS_THAN_ZERO
+                    '-4012': errors.RateLimitExceeded, // MAX_NUM_ORDERS_LESS_THAN_ZERO
+                    '-4013': errors.InvalidOrder, // PRICE_LESS_THAN_MIN_PRICE
+                    '-4014': errors.InvalidOrder, // PRICE_NOT_INCREASED_BY_TICK_SIZE
+                    '-4015': errors.InvalidOrder, // INVALID_CL_ORD_ID_LEN
+                    '-4016': errors.InvalidOrder, // PRICE_HIGHTER_THAN_MULTIPLIER_UP
+                    '-4017': errors.InvalidOrder, // MULTIPLIER_UP_LESS_THAN_ZERO
+                    '-4018': errors.InvalidOrder, // MULTIPLIER_DOWN_LESS_THAN_ZERO
+                    '-4019': errors.BadRequest, // COMPOSITE_SCALE_OVERFLOW
+                    '-4020': errors.BadRequest, // TARGET_STRATEGY_INVALID
+                    '-4021': errors.BadRequest, // INVALID_DEPTH_LIMIT
+                    '-4022': errors.MarketClosed, // WRONG_MARKET_STATUS
+                    '-4023': errors.InvalidOrder, // QTY_NOT_INCREASED_BY_STEP_SIZE
+                    '-4024': errors.InvalidOrder, // PRICE_LOWER_THAN_MULTIPLIER_DOWN
+                    '-4025': errors.BadRequest, // MULTIPLIER_DECIMAL_LESS_THAN_ZERO
+                    '-4026': errors.BadRequest, // COMMISSION_INVALID
+                    '-4027': errors.BadRequest, // INVALID_ACCOUNT_TYPE
+                    '-4028': errors.BadRequest, // INVALID_LEVERAGE
+                    '-4029': errors.BadRequest, // INVALID_TICK_SIZE_PRECISION
+                    '-4030': errors.BadRequest, // INVALID_STEP_SIZE_PRECISION
+                    '-4031': errors.BadRequest, // INVALID_WORKING_TYPE
+                    '-4032': errors.RateLimitExceeded, // EXCEED_MAX_CANCEL_ORDER_SIZE
+                    '-4033': errors.AccountNotEnabled, // INSURANCE_ACCOUNT_NOT_FOUND
+                    '-4044': errors.BadRequest, // INVALID_BALANCE_TYPE
+                    '-4045': errors.RateLimitExceeded, // MAX_STOP_ORDER_EXCEEDED
+                    '-4046': errors.NoChange, // NO_NEED_TO_CHANGE_MARGIN_TYPE
+                    '-4047': errors.OperationRejected, // THERE_EXISTS_OPEN_ORDERS
+                    '-4048': errors.OperationRejected, // THERE_EXISTS_QUANTITY
+                    '-4049': errors.OperationRejected, // ADD_ISOLATED_MARGIN_REJECT
+                    '-4050': errors.InsufficientFunds, // CROSS_BALANCE_INSUFFICIENT
+                    '-4051': errors.InsufficientFunds, // ISOLATED_BALANCE_INSUFFICIENT
+                    '-4052': errors.NoChange, // NO_NEED_TO_CHANGE_AUTO_ADD_MARGIN
+                    '-4053': errors.OperationRejected, // AUTO_ADD_CROSSED_MARGIN_REJECT
+                    '-4054': errors.OperationRejected, // ADD_ISOLATED_MARGIN_NO_POSITION_REJECT
+                    '-4055': errors.ArgumentsRequired, // AMOUNT_MUST_BE_POSITIVE
+                    '-4056': errors.AuthenticationError, // INVALID_API_KEY_TYPE
+                    '-4057': errors.AuthenticationError, // INVALID_RSA_PUBLIC_KEY
+                    '-4058': errors.InvalidOrder, // MAX_PRICE_TOO_LARGE
+                    '-4059': errors.NoChange, // NO_NEED_TO_CHANGE_POSITION_SIDE
+                    '-4060': errors.InvalidOrder, // INVALID_POSITION_SIDE
+                    '-4061': errors.InvalidOrder, // POSITION_SIDE_NOT_MATCH
+                    '-4062': errors.OperationRejected, // REDUCE_ONLY_CONFLICT
+                    '-4063': errors.BadRequest, // INVALID_OPTIONS_REQUEST_TYPE
+                    '-4064': errors.BadRequest, // INVALID_OPTIONS_TIME_FRAME
+                    '-4065': errors.BadRequest, // INVALID_OPTIONS_AMOUNT
+                    '-4066': errors.BadRequest, // INVALID_OPTIONS_EVENT_TYPE
+                    '-4067': errors.OperationRejected, // POSITION_SIDE_CHANGE_EXISTS_OPEN_ORDERS
+                    '-4068': errors.OperationRejected, // POSITION_SIDE_CHANGE_EXISTS_QUANTITY
+                    '-4069': errors.BadRequest, // INVALID_OPTIONS_PREMIUM_FEE
+                    '-4070': errors.InvalidOrder, // INVALID_CL_OPTIONS_ID_LEN
+                    '-4071': errors.InvalidOrder, // INVALID_OPTIONS_DIRECTION
+                    '-4072': errors.NoChange, // OPTIONS_PREMIUM_NOT_UPDATE
+                    '-4073': errors.BadRequest, // OPTIONS_PREMIUM_INPUT_LESS_THAN_ZERO
+                    '-4074': errors.InvalidOrder, // OPTIONS_AMOUNT_BIGGER_THAN_UPPER
+                    '-4075': errors.OperationRejected, // OPTIONS_PREMIUM_OUTPUT_ZERO
+                    '-4076': errors.OperationRejected, // OPTIONS_PREMIUM_TOO_DIFF
+                    '-4077': errors.RateLimitExceeded, // OPTIONS_PREMIUM_REACH_LIMIT
+                    '-4078': errors.BadRequest, // OPTIONS_COMMON_ERROR
+                    '-4079': errors.BadRequest, // INVALID_OPTIONS_ID
+                    '-4080': errors.BadRequest, // OPTIONS_USER_NOT_FOUND
+                    '-4081': errors.BadRequest, // OPTIONS_NOT_FOUND
+                    '-4082': errors.RateLimitExceeded, // INVALID_BATCH_PLACE_ORDER_SIZE
+                    '-4083': errors.OperationFailed, // PLACE_BATCH_ORDERS_FAIL
+                    '-4084': errors.NotSupported, // UPCOMING_METHOD
+                    '-4085': errors.BadRequest, // INVALID_NOTIONAL_LIMIT_COEF
+                    '-4086': errors.BadRequest, // INVALID_PRICE_SPREAD_THRESHOLD
+                    '-4087': errors.PermissionDenied, // REDUCE_ONLY_ORDER_PERMISSION
+                    '-4088': errors.PermissionDenied, // NO_PLACE_ORDER_PERMISSION
+                    '-4104': errors.BadSymbol, // INVALID_CONTRACT_TYPE
+                    '-4114': errors.InvalidOrder, // INVALID_CLIENT_TRAN_ID_LEN
+                    '-4115': errors.DuplicateOrderId, // DUPLICATED_CLIENT_TRAN_ID
+                    '-4118': errors.InsufficientFunds, // REDUCE_ONLY_MARGIN_CHECK_FAILED
+                    '-4131': errors.InvalidOrder, // MARKET_ORDER_REJECT
+                    '-4135': errors.InvalidOrder, // INVALID_ACTIVATION_PRICE
+                    '-4137': errors.InvalidOrder, // QUANTITY_EXISTS_WITH_CLOSE_POSITION
+                    '-4138': errors.OperationRejected, // REDUCE_ONLY_MUST_BE_TRUE
+                    '-4139': errors.InvalidOrder, // ORDER_TYPE_CANNOT_BE_MKT
+                    '-4140': errors.OperationRejected, // INVALID_OPENING_POSITION_STATUS
+                    '-4141': errors.MarketClosed, // SYMBOL_ALREADY_CLOSED
+                    '-4142': errors.InvalidOrder, // STRATEGY_INVALID_TRIGGER_PRICE
+                    '-4144': errors.BadSymbol, // INVALID_PAIR
+                    '-4161': errors.OperationRejected, // ISOLATED_LEVERAGE_REJECT_WITH_POSITION
+                    '-4164': errors.InvalidOrder, // MIN_NOTIONAL
+                    '-4165': errors.BadRequest, // INVALID_TIME_INTERVAL
+                    '-4183': errors.InvalidOrder, // PRICE_HIGHTER_THAN_STOP_MULTIPLIER_UP
+                    '-4184': errors.InvalidOrder, // PRICE_LOWER_THAN_STOP_MULTIPLIER_DOWN
+                    '-5060': errors.OperationRejected, // {"code":-5060,"msg":"The limit order price does not meet the PERCENT_PRICE filter limit."}
+                    '-5076': errors.OperationRejected, // {"code":-5076,"msg":"Total order value should be more than 5 USDT"}
                     // occured errors:
                     '-4168': errors.OperationRejected, // Unable to adjust to isolated-margin mode under the Multi-Assets mode.
                 },
@@ -660,16 +791,8 @@ class aster extends aster$1["default"] {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
-        const promises = [
-            this.sapiPublicGetV3ExchangeInfo(params),
-            this.fapiPublicGetV3ExchangeInfo(params),
-        ];
-        const results = await Promise.all(promises);
-        const sapiResult = this.safeDict(results, 0, {});
+        const sapiResult = await this.sapiPublicGetV3ExchangeInfo(params);
         const sapiRows = this.safeList(sapiResult, 'assets', []);
-        const fapiResult = this.safeDict(results, 1, {});
-        const fapiRows = this.safeList(fapiResult, 'assets', []);
-        const rows = this.arrayConcat(sapiRows, fapiRows);
         //
         //     [
         //         {
@@ -679,40 +802,39 @@ class aster extends aster$1["default"] {
         //         }
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < rows.length; i++) {
-            const currency = rows[i];
-            const currencyId = this.safeString(currency, 'asset');
-            const code = this.safeCurrencyCode(currencyId);
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'name': code,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+        return this.parseCurrencies(sapiRows);
+    }
+    parseCurrency(rawCurrency) {
+        const currencyId = this.safeString(rawCurrency, 'asset');
+        const code = this.safeCurrencyCode(currencyId);
+        return this.safeCurrencyStructure({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'name': code,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': undefined,
+            'margin': this.safeBool(rawCurrency, 'marginAvailable'),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'networks': undefined,
-                'type': 'crypto', // atm exchange api provides only cryptos
-            });
-        }
-        return result;
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': undefined,
+            'type': 'crypto', // atm exchange api provides only cryptos
+        });
     }
     /**
      * @method
@@ -828,7 +950,15 @@ class aster extends aster$1["default"] {
         //     ]
         //
         //
-        const rows = this.arrayConcat(sapiRows, fapiRows);
+        const fapiRowsFiltered = [];
+        for (let i = 0; i < fapiRows.length; i++) {
+            const market = fapiRows[i];
+            // tmp skip some markets with base = undefined
+            if (this.safeString(market, 'baseAsset')) {
+                fapiRowsFiltered.push(market);
+            }
+        }
+        const rows = this.arrayConcat(sapiRows, fapiRowsFiltered);
         return this.parseMarkets(rows);
     }
     parseMarket(market) {
@@ -946,7 +1076,7 @@ class aster extends aster$1["default"] {
     async fetchTime(params = {}) {
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchTime', undefined, params);
-        let response = undefined;
+        let response;
         if (marketType === 'swap') {
             response = await this.fapiPublicGetV3Time(params);
         }
@@ -1008,7 +1138,9 @@ class aster extends aster$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let request = {};
         if (since !== undefined) {
@@ -1023,7 +1155,7 @@ class aster extends aster$1["default"] {
         const isMark = (price === 'mark');
         const isIndex = (price === 'index');
         params = this.omit(params, 'price');
-        let response = undefined;
+        let response;
         if (isMark) {
             request['symbol'] = market['id'];
             response = await this.fapiPublicGetV3MarkPriceKlines(this.extend(request, params));
@@ -1061,7 +1193,7 @@ class aster extends aster$1["default"] {
             //  ]
             //
         }
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -1173,7 +1305,9 @@ class aster extends aster$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let request = {
             'symbol': market['id'],
@@ -1181,7 +1315,7 @@ class aster extends aster$1["default"] {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        let response = undefined;
+        let response;
         const sinceDefined = since !== undefined;
         const untilDefined = ('until' in params);
         if (sinceDefined) {
@@ -1268,7 +1402,7 @@ class aster extends aster$1["default"] {
             request['limit'] = Math.min(limit, 1000);
         }
         [request, params] = this.handleUntilOption('endTime', request, params);
-        let response = undefined;
+        let response;
         if (marketType === 'swap') {
             response = await this.fapiPrivateGetV3UserTrades(this.extend(request, params));
         }
@@ -1309,15 +1443,17 @@ class aster extends aster$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
-        let response = undefined;
+        let response;
         if (limit !== undefined) {
             request['limit'] = this.findNearestCeiling([5, 10, 20, 50, 100, 500, 1000], limit);
         }
@@ -1397,8 +1533,7 @@ class aster extends aster$1["default"] {
         const timestamp = this.safeInteger(ticker, 'closeTime');
         const last = this.safeString(ticker, 'lastPrice');
         const open = this.safeString(ticker, 'openPrice');
-        let percentage = this.safeString(ticker, 'priceChangePercent');
-        percentage = Precise["default"].stringMul(percentage, '100');
+        const percentage = this.safeString(ticker, 'priceChangePercent');
         const quoteVolume = this.safeString(ticker, 'quoteVolume');
         const baseVolume = this.safeString(ticker, 'volume');
         const high = this.safeString(ticker, 'highPrice');
@@ -1449,12 +1584,14 @@ class aster extends aster$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.fapiPublicGetV3Ticker24hr(this.extend(request, params));
         }
@@ -1504,7 +1641,9 @@ class aster extends aster$1["default"] {
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
@@ -1558,7 +1697,9 @@ class aster extends aster$1["default"] {
      * @returns {object} a dictionary of lastprices structures
      */
     async fetchLastPrices(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
@@ -1582,11 +1723,15 @@ class aster extends aster$1["default"] {
         //         ...
         //     ]
         //
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' fetchLastPrices() returned empty response');
+        }
+        const rows = this.toArray(response);
         const results = [];
-        for (let i = 0; i < response.length; i++) {
-            const marketId = this.safeString(response[i], 'symbol');
+        for (let i = 0; i < rows.length; i++) {
+            const marketId = this.safeString(rows[i], 'symbol');
             const safeMarket = this.safeMarket(marketId, undefined, undefined, marketType);
-            const priceData = this.extend(this.parseLastPrice(response[i], safeMarket), params);
+            const priceData = this.extend(this.parseLastPrice(rows[i], safeMarket), params);
             results.push(priceData);
         }
         symbols = this.marketSymbols(symbols);
@@ -1604,7 +1749,7 @@ class aster extends aster$1["default"] {
         //
         const timestamp = this.safeInteger(entry, 'time');
         return {
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'price': this.safeNumberOmitZero(entry, 'price'),
@@ -1624,7 +1769,9 @@ class aster extends aster$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
@@ -1720,7 +1867,9 @@ class aster extends aster$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRate() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1750,7 +1899,9 @@ class aster extends aster$1["default"] {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.fapiPublicGetV3PremiumIndex(this.extend(params));
         //
@@ -1779,7 +1930,9 @@ class aster extends aster$1["default"] {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingIntervals(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbols !== undefined) {
             symbols = this.marketSymbols(symbols);
         }
@@ -1811,7 +1964,9 @@ class aster extends aster$1["default"] {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -1913,7 +2068,9 @@ class aster extends aster$1["default"] {
             account['free'] = this.safeString2(balance, 'free', 'availableBalance');
             account['used'] = this.safeString(balance, 'locked');
             account['total'] = this.safeString(balance, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1977,7 +2134,7 @@ class aster extends aster$1["default"] {
      * @description set hedged to true or false for a market
      * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-position-modetrade
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by bingx setPositionMode ()
+     * @param {string} symbol not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
@@ -2023,7 +2180,7 @@ class aster extends aster$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.fapiPrivateGetV3CommissionRate(this.extend(request, params));
         }
@@ -2118,8 +2275,10 @@ class aster extends aster$1["default"] {
         //        }
         //
         const info = order;
+        const positionSide = this.safeString(order, 'positionSide');
+        const defaultType = (positionSide !== undefined) ? 'swap' : 'spot';
         const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, undefined, defaultType);
         const side = this.safeStringLower(order, 'side');
         const timestamp = this.safeInteger(order, 'time');
         const statusId = this.safeStringUpper(order, 'status');
@@ -2181,7 +2340,7 @@ class aster extends aster$1["default"] {
         else {
             request['orderId'] = id;
         }
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.fapiPrivateGetV3Order(this.extend(request, params));
         }
@@ -2247,7 +2406,7 @@ class aster extends aster$1["default"] {
         else {
             request['orderId'] = id;
         }
-        let response = undefined;
+        let response;
         if (market['spot']) {
             response = await this.sapiPrivateGetV3OpenOrder(this.extend(request, params));
         }
@@ -2314,7 +2473,7 @@ class aster extends aster$1["default"] {
             request['startTime'] = since;
         }
         [request, params] = this.handleUntilOption('endTime', request, params);
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.fapiPrivateGetV3AllOrders(this.extend(request, params));
         }
@@ -2454,7 +2613,7 @@ class aster extends aster$1["default"] {
         await this.loadMarketsAndSignIn();
         const market = this.market(symbol);
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.fapiPrivatePostV3Order(request);
         }
@@ -2564,6 +2723,12 @@ class aster extends aster$1["default"] {
         return this.parseOrders(response);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -2653,7 +2818,7 @@ class aster extends aster$1["default"] {
         request['type'] = uppercaseType;
         if (uppercaseType === 'MARKET') {
             if (market['spot']) {
-                const quoteOrderQty = this.safeBool(this.options, 'quoteOrderQty', true);
+                const quoteOrderQty = this.handleOption('createOrder', 'quoteOrderQty', true);
                 if (quoteOrderQty) {
                     const quoteOrderQtyNew = this.safeString2(params, 'quoteOrderQty', 'cost');
                     const precision = market['precision']['price'];
@@ -2732,7 +2897,9 @@ class aster extends aster$1["default"] {
             }
         }
         if (timeInForceIsRequired && (this.safeString(params, 'timeInForce') === undefined) && (this.safeString(request, 'timeInForce') === undefined)) {
-            request['timeInForce'] = this.safeString(this.options, 'defaultTimeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            let tif = undefined;
+            [tif, params] = this.handleOptionAndParams(params, 'createOrder', 'timeInForce');
+            request['timeInForce'] = tif;
         }
         const requestParams = this.omit(params, ['newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice']);
         if (this.safeBool(this.options, 'builderFee') && market['swap']) {
@@ -2760,7 +2927,7 @@ class aster extends aster$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.fapiPrivateDeleteV3AllOpenOrders(this.extend(request, params));
         }
@@ -2801,7 +2968,7 @@ class aster extends aster$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        const clientOrderId = this.safeStringN(params, ['origClientOrderId', 'clientOrderId']);
+        const clientOrderId = this.safeString2(params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         }
@@ -2809,7 +2976,7 @@ class aster extends aster$1["default"] {
             request['orderId'] = id;
         }
         params = this.omit(params, ['origClientOrderId', 'clientOrderId']);
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.fapiPrivateDeleteV3Order(this.extend(request, params));
         }
@@ -2849,7 +3016,7 @@ class aster extends aster$1["default"] {
         else {
             request['orderIdList'] = ids;
         }
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.fapiPrivateDeleteV3BatchOrders(this.extend(request, params));
             //
@@ -2959,7 +3126,7 @@ class aster extends aster$1["default"] {
         //         }
         //     ]
         //
-        return this.parseLeverages(response, symbols, 'symbol');
+        return this.parseLeverages(this.toArray(response), symbols, 'symbol');
     }
     parseLeverage(leverage, market = undefined) {
         //
@@ -3040,7 +3207,7 @@ class aster extends aster$1["default"] {
         //     ]
         //
         //
-        return this.parseMarginModes(response, symbols, 'symbol', 'swap');
+        return this.parseMarginModes(this.toArray(response), symbols, 'symbol', 'swap');
     }
     parseMarginMode(marginMode, market = undefined) {
         //
@@ -3063,10 +3230,10 @@ class aster extends aster$1["default"] {
         //     }
         //
         const marketId = this.safeString(marginMode, 'symbol');
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, undefined, 'swap');
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': this.safeStringLower(marginMode, 'marginType'),
         };
     }
@@ -3079,7 +3246,7 @@ class aster extends aster$1["default"] {
      * @param {string} [type] "add" or "reduce"
      * @param {int} [since] timestamp in ms of the earliest change to fetch
      * @param {int} [limit] the maximum amount of changes to fetch
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest change to fetch
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
@@ -3113,13 +3280,13 @@ class aster extends aster$1["default"] {
         //             "amount": "23.36332311",
         //             "asset": "USDT",
         //             "symbol": "BTCUSDT",
-        //             "time": 1578047897183,
+        //             "time": 1578047897182,
         //             "type": 1,
         //             "positionSide": "BOTH"
         //         }
         //     ]
         //
-        const modifications = this.parseMarginModifications(response);
+        const modifications = this.parseMarginModifications(this.toArray(response));
         return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
     }
     parseMarginModification(data, market = undefined) {
@@ -3584,12 +3751,13 @@ class aster extends aster$1["default"] {
         //         }
         //     ]
         //
+        const rawPositions = this.toArray(response);
         const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const rawPosition = response[i];
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
             const entryPriceString = this.safeString(rawPosition, 'entryPrice');
             if (Precise["default"].stringGt(entryPriceString, '0')) {
-                result.push(this.parsePositionRisk(response[i]));
+                result.push(this.parsePositionRisk(rawPosition));
             }
         }
         symbols = this.marketSymbols(symbols);
@@ -3628,7 +3796,7 @@ class aster extends aster$1["default"] {
         }
     }
     parseAccountPositions(account, filterClosed = false) {
-        const positions = this.safeList(account, 'positions');
+        const positions = this.safeList(account, 'positions', []);
         const assets = this.safeList(account, 'assets', []);
         const balances = {};
         for (let i = 0; i < assets.length; i++) {
@@ -3637,10 +3805,12 @@ class aster extends aster$1["default"] {
             const code = this.safeCurrencyCode(currencyId);
             const crossWalletBalance = this.safeString(entry, 'crossWalletBalance');
             const crossUnPnl = this.safeString(entry, 'crossUnPnl');
-            balances[code] = {
-                'crossMargin': Precise["default"].stringAdd(crossWalletBalance, crossUnPnl),
-                'crossWalletBalance': crossWalletBalance,
-            };
+            if (code !== undefined) {
+                balances[code] = {
+                    'crossMargin': Precise["default"].stringAdd(crossWalletBalance, crossUnPnl),
+                    'crossWalletBalance': crossWalletBalance,
+                };
+            }
         }
         const result = [];
         for (let i = 0; i < positions.length; i++) {
@@ -3675,6 +3845,9 @@ class aster extends aster$1["default"] {
         let initialMarginPercentageString = undefined;
         if (leverageString !== undefined) {
             initialMarginPercentageString = Precise["default"].stringDiv('1', leverageString, 8);
+            if (leverage === undefined) {
+                throw new errors.ExchangeError(this.id + ' parseAccountPosition() missing leverage');
+            }
             const rational = this.isRoundNumber(1000 % leverage);
             if (!rational) {
                 initialMarginPercentageString = Precise["default"].stringDiv(Precise["default"].stringAdd(initialMarginPercentageString, '1e-8'), '1', 8);
@@ -3796,6 +3969,9 @@ class aster extends aster$1["default"] {
             const rounderString = rounder.toString();
             const liquidationPriceRoundedString = Precise["default"].stringAdd(rounderString, liquidationPriceStringRaw);
             let truncatedLiquidationPrice = Precise["default"].stringDiv(liquidationPriceRoundedString, '1', pricePrecision);
+            if (truncatedLiquidationPrice === undefined) {
+                throw new errors.ExchangeError(this.id + ' method() missing truncatedLiquidationPrice');
+            }
             if (truncatedLiquidationPrice[0] === '-') {
                 // user cannot be liquidated
                 // since he has more collateral than the size of the position
@@ -3887,8 +4063,9 @@ class aster extends aster$1["default"] {
             //                ...
             //
             this.options['leverageBrackets'] = this.createSafeDictionary();
-            for (let i = 0; i < response.length; i++) {
-                const entry = response[i];
+            const entries = this.toArray(response);
+            for (let i = 0; i < entries.length; i++) {
+                const entry = entries[i];
                 const marketId = this.safeString(entry, 'symbol');
                 const symbol = this.safeSymbol(marketId, undefined, undefined, 'contract');
                 const brackets = this.safeList(entry, 'brackets', []);
@@ -3905,7 +4082,7 @@ class aster extends aster$1["default"] {
         return this.options['leverageBrackets'];
     }
     keccakMessage(message) {
-        return '0x' + this.hash(message, sha3.keccak_256, 'hex');
+        return '0x' + this.hash(message, sha3_js.keccak_256, 'hex');
     }
     signMessage(message, privateKey) {
         return this.signHash(this.keccakMessage(message), privateKey.slice(-64));
@@ -4061,12 +4238,11 @@ class aster extends aster$1["default"] {
         if (type === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE');
         }
-        let response = undefined;
         const defaultClientTranId = this.numberToString(this.milliseconds());
         const clientTranId = this.safeString(params, 'clientTranId', defaultClientTranId);
         request['kindType'] = type;
         request['clientTranId'] = clientTranId;
-        response = await this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, params));
+        const response = await this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, params));
         return this.parseTransfer(response, currency);
     }
     parseTransfer(transfer, currency = undefined) {
@@ -4095,18 +4271,18 @@ class aster extends aster$1["default"] {
         const x19 = this.base16ToBinary('19');
         const newline = this.base16ToBinary('0a');
         const prefix = this.binaryConcat(x19, this.encode('Ethereum Signed Message:'), newline, this.encode(this.numberToString(binaryMessageLength)));
-        return '0x' + this.hash(this.binaryConcat(prefix, binaryMessage), sha3.keccak_256, 'hex');
+        return '0x' + this.hash(this.binaryConcat(prefix, binaryMessage), sha3_js.keccak_256, 'hex');
     }
     signHash(hash, privateKey) {
         this.checkRequiredCredentials();
-        const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1.secp256k1, undefined);
+        const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + s.padStart(64, '0') + v;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.implodeHostname(this.urls['api'][api]) + '/' + path;
+        let url = this.urls['api'][api] + '/' + path;
         if (api === 'fapiPublic' || api === 'sapiPublic') {
             if (Object.keys(params).length) {
                 url += '?' + this.rawencode(params);
@@ -4118,7 +4294,15 @@ class aster extends aster$1["default"] {
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             const zeroAddress = this.safeString(this.options, 'zeroAddress', '0x0000000000000000000000000000000000000000');
             const v3ChainId = this.safeInteger(this.options, 'v3ChainId', 1666);
-            const signerAddress = this.safeString(this.options, 'signerAddress');
+            let walletAddress = this.safeString(this.options, 'cachedWalletAddress');
+            const privateKeyHash = this.hash(this.encode(this.privateKey), sha3_js.keccak_256, 'hex');
+            const cachedPrivateKeyHash = this.safeString(this.options, 'privateKeyHashForCachedWalletAddress');
+            if ((walletAddress === undefined) || (cachedPrivateKeyHash !== privateKeyHash)) {
+                walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+                this.options['cachedWalletAddress'] = walletAddress;
+                this.options['privateKeyHashForCachedWalletAddress'] = privateKeyHash;
+            }
+            const signerAddress = this.safeString(this.options, 'signerAddress', walletAddress); // default to user's wallet
             if (signerAddress === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' requires signerAddress in options when use v3 api');
             }
@@ -4133,15 +4317,15 @@ class aster extends aster$1["default"] {
                     { 'name': 'msg', 'type': 'string' },
                 ],
             };
-            // Build v3 params: original endpoint params + nonce (macroseconds) + user + signer
+            // Build v3 params: original endpoint params + nonce (microseconds) + user + signer
             // Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
             const finalParams = this.extend({
                 'nonce': nonce.toString(),
-                'user': this.walletAddress,
+                'user': walletAddress,
                 'signer': signerAddress,
             }, params);
             let paramString = undefined;
-            let paramsToEncode = undefined;
+            let paramsToEncode;
             const isApproveBuilder = (path.indexOf('/approveBuilder') >= 0);
             if (isApproveBuilder) {
                 // domain['name'] = 'Aster';

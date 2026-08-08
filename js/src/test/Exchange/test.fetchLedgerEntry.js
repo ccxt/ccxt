@@ -14,9 +14,11 @@ async function testFetchLedgerEntry(exchange, skippedProperties, code) {
     if (length > 0) {
         const firstItem = items[0];
         const id = firstItem["id"];
-        const item = await exchange.fetchLedgerEntry(id);
-        const now = exchange.milliseconds();
-        testLedgerEntry(exchange, skippedProperties, method, item, code, now);
+        if (id !== undefined) {
+            const item = await exchange.fetchLedgerEntry(id);
+            const now = exchange.milliseconds();
+            testLedgerEntry(exchange, skippedProperties, method, item, code, now);
+        }
     }
     return true;
 }

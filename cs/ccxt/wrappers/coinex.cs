@@ -32,10 +32,10 @@ public partial class coinex
         var res = await this.fetchSpotMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchContractMarkets(object parameters)
+    public async Task<List<MarketInterface>> FetchContractMarkets(object parameters)
     {
         var res = await this.fetchContractMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -120,7 +120,7 @@ public partial class coinex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64 limit = 20, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrderBook(symbol, limit, parameters);
@@ -1338,10 +1338,10 @@ public partial class coinex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositWithdrawFee(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositWithdrawFee> FetchDepositWithdrawFee(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFee(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositWithdrawFee(res);
     }
     /// <summary>
     /// fetch the fees for deposits and withdrawals
@@ -1358,10 +1358,10 @@ public partial class coinex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<DepositWithdrawFees> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositWithdrawFees(res);
     }
     /// <summary>
     /// fetch the set leverage for a market
@@ -1404,7 +1404,7 @@ public partial class coinex
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the exchange api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>

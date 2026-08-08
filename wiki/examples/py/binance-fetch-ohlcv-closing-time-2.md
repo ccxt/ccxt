@@ -1,8 +1,5 @@
-- [Binance Fetch Ohlcv Closing Time 2](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -44,5 +41,5 @@ timeframe = '1h'
 ohlcvs = exchange.fetch_ohlcv(symbol, timeframe)
 for ohlcv in ohlcvs:
     print([exchange.iso8601(ohlcv[0])] + ohlcv[1:])
- 
+
 ```

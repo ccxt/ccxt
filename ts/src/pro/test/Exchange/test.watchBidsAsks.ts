@@ -3,8 +3,8 @@ import assert from 'assert';
 import testTicker from '../../../test/Exchange/base/test.ticker.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { ArgumentsRequired } from '../../../base/errors.js';
-import { Ticker } from '../../../base/types.js';
-import { Exchange } from "../../../../ccxt";
+import { Tickers, Str, Strings } from '../../../base/types.js';
+import { Exchange } from "../../../../ccxt.js";
 
 async function testWatchBidsAsks (exchange: Exchange, skippedProperties: object, symbol: string) {
     const withoutSymbol = testWatchBidsAsksHelper (exchange, skippedProperties, undefined);
@@ -12,14 +12,14 @@ async function testWatchBidsAsks (exchange: Exchange, skippedProperties: object,
     await Promise.all ([ withSymbol, withoutSymbol ]);
 }
 
-async function testWatchBidsAsksHelper (exchange: Exchange, skippedProperties: object, argSymbols: string[], argParams = {}) {
+async function testWatchBidsAsksHelper (exchange: Exchange, skippedProperties: object, argSymbols: Strings, argParams = {}) {
     const method = 'watchBidsAsks';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
         let success = true;
         let shouldReturn = false;
-        let response = undefined;
+        let response: Tickers = {};
         try {
             response = await exchange.watchBidsAsks (argSymbols, argParams);
         } catch (e) {
@@ -42,15 +42,15 @@ async function testWatchBidsAsksHelper (exchange: Exchange, skippedProperties: o
             return false;
         }
         if (success === true) {
-            assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return an object. ' + exchange.json (response));
+            assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return a dictionary. ' + exchange.json (response));
             const values = Object.values (response);
-            let checkedSymbol = undefined;
+            let checkedSymbol: Str = undefined;
             if (argSymbols !== undefined && argSymbols.length === 1) {
                 checkedSymbol = argSymbols[0];
             }
             testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, values, checkedSymbol);
             for (let i = 0; i < values.length; i++) {
-                const ticker = values[i] as Ticker;
+                const ticker = values[i];
                 testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
             }
             now = exchange.milliseconds ();

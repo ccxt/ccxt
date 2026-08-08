@@ -1,8 +1,5 @@
-- [Kucoin Fetch All Deposit Addresses](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -40,5 +37,5 @@ for code in ['TLOS']:  # exchange.currencies.keys():
                 print(code, 'has no', chainName, 'address')
     else:
         print(code, 'has no addresses')
- 
+
 ```

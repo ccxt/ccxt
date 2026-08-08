@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\bitstamp as Exchange;
 
 class bitstamp extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitstamp',
@@ -24,7 +23,7 @@ class bitstamp extends Exchange {
                 'CORS' => true,
                 'spot' => true,
                 'margin' => false,
-                'swap' => false,
+                'swap' => true,
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
@@ -153,276 +152,276 @@ class bitstamp extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'ohlc/{pair}/' => 1,
-                        'order_book/{pair}/' => 1,
-                        'ticker/' => 1,
-                        'ticker_hour/{pair}/' => 1,
-                        'ticker/{pair}/' => 1,
-                        'transactions/{pair}/' => 1,
-                        'trading-pairs-info/' => 1,
-                        'markets/' => 1,
-                        'currencies/' => 1,
-                        'eur_usd/' => 1,
-                        'travel_rule/vasps/' => 1,
-                        'funding_rate/{market_symbol}/' => 1,
-                        'funding_rate_history/{pair}/' => 1,
+                        'ohlc/{pair}/' => array( 'cost' => 1 ),
+                        'order_book/{pair}/' => array( 'cost' => 1 ),
+                        'ticker/' => array( 'cost' => 1 ),
+                        'ticker_hour/{pair}/' => array( 'cost' => 1 ),
+                        'ticker/{pair}/' => array( 'cost' => 1 ),
+                        'transactions/{pair}/' => array( 'cost' => 1 ),
+                        'trading-pairs-info/' => array( 'cost' => 1 ),
+                        'markets/' => array( 'cost' => 1 ),
+                        'currencies/' => array( 'cost' => 1 ),
+                        'eur_usd/' => array( 'cost' => 1 ),
+                        'travel_rule/vasps/' => array( 'cost' => 1 ),
+                        'funding_rate/{market_symbol}/' => array( 'cost' => 1 ),
+                        'funding_rate_history/{pair}/' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'travel_rule/contacts/' => 1,
-                        'contacts/{contact_uuid}/' => 1,
-                        'earn/subscriptions/' => 1,
-                        'earn/transactions/' => 1,
-                        'trade_history/' => 1,
-                        'trade_history/{pair}' => 1,
+                        'travel_rule/contacts/' => array( 'cost' => 1 ),
+                        'contacts/{contact_uuid}/' => array( 'cost' => 1 ),
+                        'earn/subscriptions/' => array( 'cost' => 1 ),
+                        'earn/transactions/' => array( 'cost' => 1 ),
+                        'trade_history/' => array( 'cost' => 1 ),
+                        'trade_history/{pair}' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'account_balances/' => 1,
-                        'account_balances/{currency}/' => 1,
-                        'balance/' => 1,
-                        'balance/{pair}/' => 1,
-                        'bch_withdrawal/' => 1,
-                        'bch_address/' => 1,
-                        'user_transactions/' => 1,
-                        'user_transactions/{pair}/' => 1,
-                        'crypto-transactions/' => 1,
-                        'open_order' => 1,
-                        'open_orders/all/' => 1,
-                        'open_orders/{pair}/' => 1,
-                        'replace_order/' => 1,
-                        'order_status/' => 1,
-                        'cancel_order/' => 1,
-                        'cancel_all_orders/' => 1,
-                        'cancel_all_orders/{pair}/' => 1,
-                        'buy/{pair}/' => 1,
-                        'buy/market/{pair}/' => 1,
-                        'buy/instant/{pair}/' => 1,
-                        'sell/{pair}/' => 1,
-                        'sell/market/{pair}/' => 1,
-                        'sell/instant/{pair}/' => 1,
-                        'transfer-to-main/' => 1,
-                        'transfer-from-main/' => 1,
-                        'my_trading_pairs/' => 1,
-                        'fees/trading/' => 1,
-                        'fees/trading/{market_symbol}' => 1,
-                        'fees/withdrawal/' => 1,
-                        'fees/withdrawal/{currency}/' => 1,
-                        'withdrawal-requests/' => 1,
-                        'withdrawal/open/' => 1,
-                        'withdrawal/status/' => 1,
-                        'withdrawal/cancel/' => 1,
-                        'liquidation_address/new/' => 1,
-                        'liquidation_address/info/' => 1,
-                        'btc_unconfirmed/' => 1,
-                        'websockets_token/' => 1,
-                        'revoke_all_api_keys/' => 1,
-                        'get_max_order_amount/' => 1,
+                        'account_balances/' => array( 'cost' => 1 ),
+                        'account_balances/{currency}/' => array( 'cost' => 1 ),
+                        'balance/' => array( 'cost' => 1 ),
+                        'balance/{pair}/' => array( 'cost' => 1 ),
+                        'bch_withdrawal/' => array( 'cost' => 1 ),
+                        'bch_address/' => array( 'cost' => 1 ),
+                        'user_transactions/' => array( 'cost' => 1 ),
+                        'user_transactions/{pair}/' => array( 'cost' => 1 ),
+                        'crypto-transactions/' => array( 'cost' => 1 ),
+                        'open_order' => array( 'cost' => 1 ),
+                        'open_orders/all/' => array( 'cost' => 1 ),
+                        'open_orders/{pair}/' => array( 'cost' => 1 ),
+                        'replace_order/' => array( 'cost' => 1 ),
+                        'order_status/' => array( 'cost' => 1 ),
+                        'cancel_order/' => array( 'cost' => 1 ),
+                        'cancel_all_orders/' => array( 'cost' => 1 ),
+                        'cancel_all_orders/{pair}/' => array( 'cost' => 1 ),
+                        'buy/{pair}/' => array( 'cost' => 1 ),
+                        'buy/market/{pair}/' => array( 'cost' => 1 ),
+                        'buy/instant/{pair}/' => array( 'cost' => 1 ),
+                        'sell/{pair}/' => array( 'cost' => 1 ),
+                        'sell/market/{pair}/' => array( 'cost' => 1 ),
+                        'sell/instant/{pair}/' => array( 'cost' => 1 ),
+                        'transfer-to-main/' => array( 'cost' => 1 ),
+                        'transfer-from-main/' => array( 'cost' => 1 ),
+                        'my_trading_pairs/' => array( 'cost' => 1 ),
+                        'fees/trading/' => array( 'cost' => 1 ),
+                        'fees/trading/{market_symbol}' => array( 'cost' => 1 ),
+                        'fees/withdrawal/' => array( 'cost' => 1 ),
+                        'fees/withdrawal/{currency}/' => array( 'cost' => 1 ),
+                        'withdrawal-requests/' => array( 'cost' => 1 ),
+                        'withdrawal/open/' => array( 'cost' => 1 ),
+                        'withdrawal/status/' => array( 'cost' => 1 ),
+                        'withdrawal/cancel/' => array( 'cost' => 1 ),
+                        'liquidation_address/new/' => array( 'cost' => 1 ),
+                        'liquidation_address/info/' => array( 'cost' => 1 ),
+                        'btc_unconfirmed/' => array( 'cost' => 1 ),
+                        'websockets_token/' => array( 'cost' => 1 ),
+                        'revoke_all_api_keys/' => array( 'cost' => 1 ),
+                        'get_max_order_amount/' => array( 'cost' => 1 ),
                         // individual coins
-                        'btc_withdrawal/' => 1,
-                        'btc_address/' => 1,
-                        'ripple_withdrawal/' => 1,
-                        'ripple_address/' => 1,
-                        'ltc_withdrawal/' => 1,
-                        'ltc_address/' => 1,
-                        'eth_withdrawal/' => 1,
-                        'eth_address/' => 1,
-                        'xrp_withdrawal/' => 1,
-                        'xrp_address/' => 1,
-                        'xlm_withdrawal/' => 1,
-                        'xlm_address/' => 1,
-                        'pax_withdrawal/' => 1,
-                        'pax_address/' => 1,
-                        'link_withdrawal/' => 1,
-                        'link_address/' => 1,
-                        'usdc_withdrawal/' => 1,
-                        'usdc_address/' => 1,
-                        'omg_withdrawal/' => 1,
-                        'omg_address/' => 1,
-                        'dai_withdrawal/' => 1,
-                        'dai_address/' => 1,
-                        'knc_withdrawal/' => 1,
-                        'knc_address/' => 1,
-                        'mkr_withdrawal/' => 1,
-                        'mkr_address/' => 1,
-                        'zrx_withdrawal/' => 1,
-                        'zrx_address/' => 1,
-                        'gusd_withdrawal/' => 1,
-                        'gusd_address/' => 1,
-                        'aave_withdrawal/' => 1,
-                        'aave_address/' => 1,
-                        'bat_withdrawal/' => 1,
-                        'bat_address/' => 1,
-                        'uma_withdrawal/' => 1,
-                        'uma_address/' => 1,
-                        'snx_withdrawal/' => 1,
-                        'snx_address/' => 1,
-                        'uni_withdrawal/' => 1,
-                        'uni_address/' => 1,
-                        'yfi_withdrawal/' => 1,
-                        'yfi_address/' => 1,
-                        'audio_withdrawal/' => 1,
-                        'audio_address/' => 1,
-                        'crv_withdrawal/' => 1,
-                        'crv_address/' => 1,
-                        'algo_withdrawal/' => 1,
-                        'algo_address/' => 1,
-                        'comp_withdrawal/' => 1,
-                        'comp_address/' => 1,
-                        'grt_withdrawal/' => 1,
-                        'grt_address/' => 1,
-                        'usdt_withdrawal/' => 1,
-                        'usdt_address/' => 1,
-                        'eurt_withdrawal/' => 1,
-                        'eurt_address/' => 1,
-                        'matic_withdrawal/' => 1,
-                        'matic_address/' => 1,
-                        'sushi_withdrawal/' => 1,
-                        'sushi_address/' => 1,
-                        'chz_withdrawal/' => 1,
-                        'chz_address/' => 1,
-                        'enj_withdrawal/' => 1,
-                        'enj_address/' => 1,
-                        'alpha_withdrawal/' => 1,
-                        'alpha_address/' => 1,
-                        'ftt_withdrawal/' => 1,
-                        'ftt_address/' => 1,
-                        'storj_withdrawal/' => 1,
-                        'storj_address/' => 1,
-                        'axs_withdrawal/' => 1,
-                        'axs_address/' => 1,
-                        'sand_withdrawal/' => 1,
-                        'sand_address/' => 1,
-                        'hbar_withdrawal/' => 1,
-                        'hbar_address/' => 1,
-                        'rgt_withdrawal/' => 1,
-                        'rgt_address/' => 1,
-                        'fet_withdrawal/' => 1,
-                        'fet_address/' => 1,
-                        'skl_withdrawal/' => 1,
-                        'skl_address/' => 1,
-                        'cel_withdrawal/' => 1,
-                        'cel_address/' => 1,
-                        'sxp_withdrawal/' => 1,
-                        'sxp_address/' => 1,
-                        'ada_withdrawal/' => 1,
-                        'ada_address/' => 1,
-                        'slp_withdrawal/' => 1,
-                        'slp_address/' => 1,
-                        'ftm_withdrawal/' => 1,
-                        'ftm_address/' => 1,
-                        'perp_withdrawal/' => 1,
-                        'perp_address/' => 1,
-                        'dydx_withdrawal/' => 1,
-                        'dydx_address/' => 1,
-                        'gala_withdrawal/' => 1,
-                        'gala_address/' => 1,
-                        'shib_withdrawal/' => 1,
-                        'shib_address/' => 1,
-                        'amp_withdrawal/' => 1,
-                        'amp_address/' => 1,
-                        'sgb_withdrawal/' => 1,
-                        'sgb_address/' => 1,
-                        'avax_withdrawal/' => 1,
-                        'avax_address/' => 1,
-                        'wbtc_withdrawal/' => 1,
-                        'wbtc_address/' => 1,
-                        'ctsi_withdrawal/' => 1,
-                        'ctsi_address/' => 1,
-                        'cvx_withdrawal/' => 1,
-                        'cvx_address/' => 1,
-                        'imx_withdrawal/' => 1,
-                        'imx_address/' => 1,
-                        'nexo_withdrawal/' => 1,
-                        'nexo_address/' => 1,
-                        'ust_withdrawal/' => 1,
-                        'ust_address/' => 1,
-                        'ant_withdrawal/' => 1,
-                        'ant_address/' => 1,
-                        'gods_withdrawal/' => 1,
-                        'gods_address/' => 1,
-                        'rad_withdrawal/' => 1,
-                        'rad_address/' => 1,
-                        'band_withdrawal/' => 1,
-                        'band_address/' => 1,
-                        'inj_withdrawal/' => 1,
-                        'inj_address/' => 1,
-                        'rly_withdrawal/' => 1,
-                        'rly_address/' => 1,
-                        'rndr_withdrawal/' => 1,
-                        'rndr_address/' => 1,
-                        'vega_withdrawal/' => 1,
-                        'vega_address/' => 1,
-                        '1inch_withdrawal/' => 1,
-                        '1inch_address/' => 1,
-                        'ens_withdrawal/' => 1,
-                        'ens_address/' => 1,
-                        'mana_withdrawal/' => 1,
-                        'mana_address/' => 1,
-                        'lrc_withdrawal/' => 1,
-                        'lrc_address/' => 1,
-                        'ape_withdrawal/' => 1,
-                        'ape_address/' => 1,
-                        'mpl_withdrawal/' => 1,
-                        'mpl_address/' => 1,
-                        'euroc_withdrawal/' => 1,
-                        'euroc_address/' => 1,
-                        'sol_withdrawal/' => 1,
-                        'sol_address/' => 1,
-                        'dot_withdrawal/' => 1,
-                        'dot_address/' => 1,
-                        'near_withdrawal/' => 1,
-                        'near_address/' => 1,
-                        'doge_withdrawal/' => 1,
-                        'doge_address/' => 1,
-                        'flr_withdrawal/' => 1,
-                        'flr_address/' => 1,
-                        'dgld_withdrawal/' => 1,
-                        'dgld_address/' => 1,
-                        'ldo_withdrawal/' => 1,
-                        'ldo_address/' => 1,
-                        'travel_rule/contacts/' => 1,
-                        'earn/subscribe/' => 1,
-                        'earn/subscriptions/setting/' => 1,
-                        'earn/unsubscribe' => 1,
-                        'wecan_withdrawal/' => 1,
-                        'wecan_address/' => 1,
-                        'trac_withdrawal/' => 1,
-                        'trac_address/' => 1,
-                        'eurcv_withdrawal/' => 1,
-                        'eurcv_address/' => 1,
-                        'pyusd_withdrawal/' => 1,
-                        'pyusd_address/' => 1,
-                        'lmwr_withdrawal/' => 1,
-                        'lmwr_address/' => 1,
-                        'pepe_withdrawal/' => 1,
-                        'pepe_address/' => 1,
-                        'blur_withdrawal/' => 1,
-                        'blur_address/' => 1,
-                        'vext_withdrawal/' => 1,
-                        'vext_address/' => 1,
-                        'cspr_withdrawal/' => 1,
-                        'cspr_address/' => 1,
-                        'vchf_withdrawal/' => 1,
-                        'vchf_address/' => 1,
-                        'veur_withdrawal/' => 1,
-                        'veur_address/' => 1,
-                        'truf_withdrawal/' => 1,
-                        'truf_address/' => 1,
-                        'wif_withdrawal/' => 1,
-                        'wif_address/' => 1,
-                        'smt_withdrawal/' => 1,
-                        'smt_address/' => 1,
-                        'sui_withdrawal/' => 1,
-                        'sui_address/' => 1,
-                        'jup_withdrawal/' => 1,
-                        'jup_address/' => 1,
-                        'ondo_withdrawal/' => 1,
-                        'ondo_address/' => 1,
-                        'boba_withdrawal/' => 1,
-                        'boba_address/' => 1,
-                        'pyth_withdrawal/' => 1,
-                        'pyth_address/' => 1,
+                        'btc_withdrawal/' => array( 'cost' => 1 ),
+                        'btc_address/' => array( 'cost' => 1 ),
+                        'ripple_withdrawal/' => array( 'cost' => 1 ),
+                        'ripple_address/' => array( 'cost' => 1 ),
+                        'ltc_withdrawal/' => array( 'cost' => 1 ),
+                        'ltc_address/' => array( 'cost' => 1 ),
+                        'eth_withdrawal/' => array( 'cost' => 1 ),
+                        'eth_address/' => array( 'cost' => 1 ),
+                        'xrp_withdrawal/' => array( 'cost' => 1 ),
+                        'xrp_address/' => array( 'cost' => 1 ),
+                        'xlm_withdrawal/' => array( 'cost' => 1 ),
+                        'xlm_address/' => array( 'cost' => 1 ),
+                        'pax_withdrawal/' => array( 'cost' => 1 ),
+                        'pax_address/' => array( 'cost' => 1 ),
+                        'link_withdrawal/' => array( 'cost' => 1 ),
+                        'link_address/' => array( 'cost' => 1 ),
+                        'usdc_withdrawal/' => array( 'cost' => 1 ),
+                        'usdc_address/' => array( 'cost' => 1 ),
+                        'omg_withdrawal/' => array( 'cost' => 1 ),
+                        'omg_address/' => array( 'cost' => 1 ),
+                        'dai_withdrawal/' => array( 'cost' => 1 ),
+                        'dai_address/' => array( 'cost' => 1 ),
+                        'knc_withdrawal/' => array( 'cost' => 1 ),
+                        'knc_address/' => array( 'cost' => 1 ),
+                        'mkr_withdrawal/' => array( 'cost' => 1 ),
+                        'mkr_address/' => array( 'cost' => 1 ),
+                        'zrx_withdrawal/' => array( 'cost' => 1 ),
+                        'zrx_address/' => array( 'cost' => 1 ),
+                        'gusd_withdrawal/' => array( 'cost' => 1 ),
+                        'gusd_address/' => array( 'cost' => 1 ),
+                        'aave_withdrawal/' => array( 'cost' => 1 ),
+                        'aave_address/' => array( 'cost' => 1 ),
+                        'bat_withdrawal/' => array( 'cost' => 1 ),
+                        'bat_address/' => array( 'cost' => 1 ),
+                        'uma_withdrawal/' => array( 'cost' => 1 ),
+                        'uma_address/' => array( 'cost' => 1 ),
+                        'snx_withdrawal/' => array( 'cost' => 1 ),
+                        'snx_address/' => array( 'cost' => 1 ),
+                        'uni_withdrawal/' => array( 'cost' => 1 ),
+                        'uni_address/' => array( 'cost' => 1 ),
+                        'yfi_withdrawal/' => array( 'cost' => 1 ),
+                        'yfi_address/' => array( 'cost' => 1 ),
+                        'audio_withdrawal/' => array( 'cost' => 1 ),
+                        'audio_address/' => array( 'cost' => 1 ),
+                        'crv_withdrawal/' => array( 'cost' => 1 ),
+                        'crv_address/' => array( 'cost' => 1 ),
+                        'algo_withdrawal/' => array( 'cost' => 1 ),
+                        'algo_address/' => array( 'cost' => 1 ),
+                        'comp_withdrawal/' => array( 'cost' => 1 ),
+                        'comp_address/' => array( 'cost' => 1 ),
+                        'grt_withdrawal/' => array( 'cost' => 1 ),
+                        'grt_address/' => array( 'cost' => 1 ),
+                        'usdt_withdrawal/' => array( 'cost' => 1 ),
+                        'usdt_address/' => array( 'cost' => 1 ),
+                        'eurt_withdrawal/' => array( 'cost' => 1 ),
+                        'eurt_address/' => array( 'cost' => 1 ),
+                        'matic_withdrawal/' => array( 'cost' => 1 ),
+                        'matic_address/' => array( 'cost' => 1 ),
+                        'sushi_withdrawal/' => array( 'cost' => 1 ),
+                        'sushi_address/' => array( 'cost' => 1 ),
+                        'chz_withdrawal/' => array( 'cost' => 1 ),
+                        'chz_address/' => array( 'cost' => 1 ),
+                        'enj_withdrawal/' => array( 'cost' => 1 ),
+                        'enj_address/' => array( 'cost' => 1 ),
+                        'alpha_withdrawal/' => array( 'cost' => 1 ),
+                        'alpha_address/' => array( 'cost' => 1 ),
+                        'ftt_withdrawal/' => array( 'cost' => 1 ),
+                        'ftt_address/' => array( 'cost' => 1 ),
+                        'storj_withdrawal/' => array( 'cost' => 1 ),
+                        'storj_address/' => array( 'cost' => 1 ),
+                        'axs_withdrawal/' => array( 'cost' => 1 ),
+                        'axs_address/' => array( 'cost' => 1 ),
+                        'sand_withdrawal/' => array( 'cost' => 1 ),
+                        'sand_address/' => array( 'cost' => 1 ),
+                        'hbar_withdrawal/' => array( 'cost' => 1 ),
+                        'hbar_address/' => array( 'cost' => 1 ),
+                        'rgt_withdrawal/' => array( 'cost' => 1 ),
+                        'rgt_address/' => array( 'cost' => 1 ),
+                        'fet_withdrawal/' => array( 'cost' => 1 ),
+                        'fet_address/' => array( 'cost' => 1 ),
+                        'skl_withdrawal/' => array( 'cost' => 1 ),
+                        'skl_address/' => array( 'cost' => 1 ),
+                        'cel_withdrawal/' => array( 'cost' => 1 ),
+                        'cel_address/' => array( 'cost' => 1 ),
+                        'sxp_withdrawal/' => array( 'cost' => 1 ),
+                        'sxp_address/' => array( 'cost' => 1 ),
+                        'ada_withdrawal/' => array( 'cost' => 1 ),
+                        'ada_address/' => array( 'cost' => 1 ),
+                        'slp_withdrawal/' => array( 'cost' => 1 ),
+                        'slp_address/' => array( 'cost' => 1 ),
+                        'ftm_withdrawal/' => array( 'cost' => 1 ),
+                        'ftm_address/' => array( 'cost' => 1 ),
+                        'perp_withdrawal/' => array( 'cost' => 1 ),
+                        'perp_address/' => array( 'cost' => 1 ),
+                        'dydx_withdrawal/' => array( 'cost' => 1 ),
+                        'dydx_address/' => array( 'cost' => 1 ),
+                        'gala_withdrawal/' => array( 'cost' => 1 ),
+                        'gala_address/' => array( 'cost' => 1 ),
+                        'shib_withdrawal/' => array( 'cost' => 1 ),
+                        'shib_address/' => array( 'cost' => 1 ),
+                        'amp_withdrawal/' => array( 'cost' => 1 ),
+                        'amp_address/' => array( 'cost' => 1 ),
+                        'sgb_withdrawal/' => array( 'cost' => 1 ),
+                        'sgb_address/' => array( 'cost' => 1 ),
+                        'avax_withdrawal/' => array( 'cost' => 1 ),
+                        'avax_address/' => array( 'cost' => 1 ),
+                        'wbtc_withdrawal/' => array( 'cost' => 1 ),
+                        'wbtc_address/' => array( 'cost' => 1 ),
+                        'ctsi_withdrawal/' => array( 'cost' => 1 ),
+                        'ctsi_address/' => array( 'cost' => 1 ),
+                        'cvx_withdrawal/' => array( 'cost' => 1 ),
+                        'cvx_address/' => array( 'cost' => 1 ),
+                        'imx_withdrawal/' => array( 'cost' => 1 ),
+                        'imx_address/' => array( 'cost' => 1 ),
+                        'nexo_withdrawal/' => array( 'cost' => 1 ),
+                        'nexo_address/' => array( 'cost' => 1 ),
+                        'ust_withdrawal/' => array( 'cost' => 1 ),
+                        'ust_address/' => array( 'cost' => 1 ),
+                        'ant_withdrawal/' => array( 'cost' => 1 ),
+                        'ant_address/' => array( 'cost' => 1 ),
+                        'gods_withdrawal/' => array( 'cost' => 1 ),
+                        'gods_address/' => array( 'cost' => 1 ),
+                        'rad_withdrawal/' => array( 'cost' => 1 ),
+                        'rad_address/' => array( 'cost' => 1 ),
+                        'band_withdrawal/' => array( 'cost' => 1 ),
+                        'band_address/' => array( 'cost' => 1 ),
+                        'inj_withdrawal/' => array( 'cost' => 1 ),
+                        'inj_address/' => array( 'cost' => 1 ),
+                        'rly_withdrawal/' => array( 'cost' => 1 ),
+                        'rly_address/' => array( 'cost' => 1 ),
+                        'rndr_withdrawal/' => array( 'cost' => 1 ),
+                        'rndr_address/' => array( 'cost' => 1 ),
+                        'vega_withdrawal/' => array( 'cost' => 1 ),
+                        'vega_address/' => array( 'cost' => 1 ),
+                        '1inch_withdrawal/' => array( 'cost' => 1 ),
+                        '1inch_address/' => array( 'cost' => 1 ),
+                        'ens_withdrawal/' => array( 'cost' => 1 ),
+                        'ens_address/' => array( 'cost' => 1 ),
+                        'mana_withdrawal/' => array( 'cost' => 1 ),
+                        'mana_address/' => array( 'cost' => 1 ),
+                        'lrc_withdrawal/' => array( 'cost' => 1 ),
+                        'lrc_address/' => array( 'cost' => 1 ),
+                        'ape_withdrawal/' => array( 'cost' => 1 ),
+                        'ape_address/' => array( 'cost' => 1 ),
+                        'mpl_withdrawal/' => array( 'cost' => 1 ),
+                        'mpl_address/' => array( 'cost' => 1 ),
+                        'euroc_withdrawal/' => array( 'cost' => 1 ),
+                        'euroc_address/' => array( 'cost' => 1 ),
+                        'sol_withdrawal/' => array( 'cost' => 1 ),
+                        'sol_address/' => array( 'cost' => 1 ),
+                        'dot_withdrawal/' => array( 'cost' => 1 ),
+                        'dot_address/' => array( 'cost' => 1 ),
+                        'near_withdrawal/' => array( 'cost' => 1 ),
+                        'near_address/' => array( 'cost' => 1 ),
+                        'doge_withdrawal/' => array( 'cost' => 1 ),
+                        'doge_address/' => array( 'cost' => 1 ),
+                        'flr_withdrawal/' => array( 'cost' => 1 ),
+                        'flr_address/' => array( 'cost' => 1 ),
+                        'dgld_withdrawal/' => array( 'cost' => 1 ),
+                        'dgld_address/' => array( 'cost' => 1 ),
+                        'ldo_withdrawal/' => array( 'cost' => 1 ),
+                        'ldo_address/' => array( 'cost' => 1 ),
+                        'travel_rule/contacts/' => array( 'cost' => 1 ),
+                        'earn/subscribe/' => array( 'cost' => 1 ),
+                        'earn/subscriptions/setting/' => array( 'cost' => 1 ),
+                        'earn/unsubscribe' => array( 'cost' => 1 ),
+                        'wecan_withdrawal/' => array( 'cost' => 1 ),
+                        'wecan_address/' => array( 'cost' => 1 ),
+                        'trac_withdrawal/' => array( 'cost' => 1 ),
+                        'trac_address/' => array( 'cost' => 1 ),
+                        'eurcv_withdrawal/' => array( 'cost' => 1 ),
+                        'eurcv_address/' => array( 'cost' => 1 ),
+                        'pyusd_withdrawal/' => array( 'cost' => 1 ),
+                        'pyusd_address/' => array( 'cost' => 1 ),
+                        'lmwr_withdrawal/' => array( 'cost' => 1 ),
+                        'lmwr_address/' => array( 'cost' => 1 ),
+                        'pepe_withdrawal/' => array( 'cost' => 1 ),
+                        'pepe_address/' => array( 'cost' => 1 ),
+                        'blur_withdrawal/' => array( 'cost' => 1 ),
+                        'blur_address/' => array( 'cost' => 1 ),
+                        'vext_withdrawal/' => array( 'cost' => 1 ),
+                        'vext_address/' => array( 'cost' => 1 ),
+                        'cspr_withdrawal/' => array( 'cost' => 1 ),
+                        'cspr_address/' => array( 'cost' => 1 ),
+                        'vchf_withdrawal/' => array( 'cost' => 1 ),
+                        'vchf_address/' => array( 'cost' => 1 ),
+                        'veur_withdrawal/' => array( 'cost' => 1 ),
+                        'veur_address/' => array( 'cost' => 1 ),
+                        'truf_withdrawal/' => array( 'cost' => 1 ),
+                        'truf_address/' => array( 'cost' => 1 ),
+                        'wif_withdrawal/' => array( 'cost' => 1 ),
+                        'wif_address/' => array( 'cost' => 1 ),
+                        'smt_withdrawal/' => array( 'cost' => 1 ),
+                        'smt_address/' => array( 'cost' => 1 ),
+                        'sui_withdrawal/' => array( 'cost' => 1 ),
+                        'sui_address/' => array( 'cost' => 1 ),
+                        'jup_withdrawal/' => array( 'cost' => 1 ),
+                        'jup_address/' => array( 'cost' => 1 ),
+                        'ondo_withdrawal/' => array( 'cost' => 1 ),
+                        'ondo_address/' => array( 'cost' => 1 ),
+                        'boba_withdrawal/' => array( 'cost' => 1 ),
+                        'boba_address/' => array( 'cost' => 1 ),
+                        'pyth_withdrawal/' => array( 'cost' => 1 ),
+                        'pyth_address/' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -484,6 +483,7 @@ class bitstamp extends Exchange {
             ),
             // exchange-specific options
             'options' => array(
+                'mica' => true,
                 'networksById' => array(
                     'bitcoin-cash' => 'BCH',
                     'bitcoin' => 'BTC',
@@ -596,7 +596,7 @@ class bitstamp extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all markets for bitstamp
          *
@@ -676,12 +676,13 @@ class bitstamp extends Exchange {
                 }
             }
             $isSpot = ($type === 'spot');
+            $settle = $settleId ? $this->safe_currency_code($settleId) : null;
             $result[] = array(
                 'id' => $this->safe_string($market, 'market_symbol'),
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'settle' => $settleId ? $this->safe_currency_code($settleId) : null,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'settleId' => $settleId,
@@ -730,7 +731,7 @@ class bitstamp extends Exchange {
         return $result;
     }
 
-    public function construct_currency_object($id, $code, $name, $precision, $minCost, $originalPayload) {
+    public function construct_currency_object(mixed $id, mixed $code, mixed $name, mixed $precision, mixed $minCost, mixed $originalPayload) {
         $currencyType = 'crypto';
         $description = $this->describe();
         if ($this->is_fiat($code)) {
@@ -770,7 +771,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function fetch_markets_from_cache($params = array ()) {
+    public function fetch_markets_from_cache($params = array()) {
         // this method is $now redundant
         // currencies are $now fetched before markets
         $options = $this->safe_value($this->options, 'fetchMarkets', array());
@@ -778,7 +779,7 @@ class bitstamp extends Exchange {
         $expires = $this->safe_integer($options, 'expires', 1000);
         $now = $this->milliseconds();
         if (($timestamp === null) || (($now - $timestamp) > $expires)) {
-            $response = $this->publicGetMarkets ($params);
+            $response = $this->publicGetMarkets($params);
             //
             //    [
             //        array(
@@ -804,7 +805,7 @@ class bitstamp extends Exchange {
         return $this->safe_value($this->options['fetchMarkets'], 'response');
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -828,30 +829,46 @@ class bitstamp extends Exchange {
         //         ),
         //     )
         //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $market = $response[$i];
-            list($baseId, $quoteId) = array( $this->safe_string($market, 'base_currency'), $this->safe_string($market, 'counter_currency') );
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $description = $this->safe_string($market, 'description');
-            list($baseDescription, $quoteDescription) = explode(' / ', $description);
-            $minimumOrder = $this->safe_string($market, 'minimum_order_value');
-            $parts = explode(' ', $minimumOrder);
-            $cost = $parts[0];
-            if (!(is_array($result) && array_key_exists($base, $result))) {
-                $baseDecimals = $this->safe_integer($market, 'base_decimals');
-                $result[$base] = $this->construct_currency_object($baseId, $base, $baseDescription, $baseDecimals, null, $market);
-            }
-            if (!(is_array($result) && array_key_exists($quote, $result))) {
-                $counterDecimals = $this->safe_integer($market, 'counter_decimals');
-                $result[$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $counterDecimals, $this->parse_number($cost), $market);
-            }
-        }
-        return $result;
+        $this->options['_temp_currencies_result'] = array();
+        $result = $this->parse_currencies($response);
+        $finalResult = $this->deep_extend($result, $this->options['_temp_currencies_result']);
+        unset($this->options['_temp_currencies_result']);
+        return $finalResult;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function parse_currency(array $rawCurrency): array {
+        $market = $rawCurrency;
+        $existing = $this->safe_dict($this->options, '_temp_currencies_result', array());
+        list($baseId, $quoteId) = array( $this->safe_string($market, 'base_currency'), $this->safe_string($market, 'counter_currency') );
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $description = $this->safe_string($market, 'description');
+        if ($description === null) {
+            throw new ExchangeError($this->id . ' parseCurrency() missing description');
+        }
+        list($baseDescription, $quoteDescription) = explode(' / ', $description);
+        $minimumOrder = $this->safe_string($market, 'minimum_order_value');
+        if ($minimumOrder === null) {
+            throw new ExchangeError($this->id . ' parseCurrency() missing minimumOrder');
+        }
+        $parts = explode(' ', $minimumOrder);
+        $cost = $parts[0];
+        if (($base === null) || !(is_array($existing) && array_key_exists($base ?? '', $existing))) {
+            $baseDecimals = $this->safe_integer($market, 'base_decimals');
+            if ($base !== null) {
+                $this->options['_temp_currencies_result'][$base] = $this->construct_currency_object($baseId, $base, $baseDescription, $baseDecimals, null, $market);
+            }
+        }
+        if (($quote === null) || !(is_array($existing) && array_key_exists($quote ?? '', $existing))) {
+            $counterDecimals = $this->safe_integer($market, 'counter_decimals');
+            if ($quote !== null) {
+                $this->options['_temp_currencies_result'][$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $counterDecimals, $this->parse_number($cost), $market);
+            }
+        }
+        return $this->safe_value($this->options['_temp_currencies_result'], $quote);
+    }
+
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -860,14 +877,16 @@ class bitstamp extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetOrderBookPair ($this->extend($request, $params));
+        $response = $this->publicGetOrderBookPair($this->extend($request, $params));
         //
         //     {
         //         "timestamp" => "1583652948",
@@ -885,6 +904,9 @@ class bitstamp extends Exchange {
         //     }
         //
         $microtimestamp = $this->safe_integer($response, 'microtimestamp');
+        if ($microtimestamp === null) {
+            throw new ExchangeError($this->id . ' fetchOrderBook() missing microtimestamp');
+        }
         $timestamp = $this->parse_to_int($microtimestamp / 1000);
         $orderbook = $this->parse_order_book($response, $market['symbol'], $timestamp);
         $orderbook['nonce'] = $microtimestamp;
@@ -909,7 +931,7 @@ class bitstamp extends Exchange {
         // }
         //
         $marketId = $this->safe_string($ticker, 'pair');
-        $symbol = $this->safe_symbol($marketId, $market, null);
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $vwap = $this->safe_string($ticker, 'vwap');
         $baseVolume = $this->safe_string($ticker, 'volume');
@@ -939,7 +961,7 @@ class bitstamp extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -949,12 +971,14 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $ticker = $this->publicGetTickerPair ($this->extend($request, $params));
+        $ticker = $this->publicGetTickerPair($this->extend($request, $params));
         //
         // {
         //     "timestamp" => "1686068944",
@@ -973,7 +997,7 @@ class bitstamp extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          *
@@ -983,8 +1007,10 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
-        $response = $this->publicGetTicker ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->publicGetTicker($params);
         //
         // {
         //     "timestamp" => "1686068944",
@@ -1004,7 +1030,7 @@ class bitstamp extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function get_currency_id_from_transaction($transaction) {
+    public function get_currency_id_from_transaction(mixed $transaction) {
         //
         //     {
         //         "fee" => "0.00000000",
@@ -1043,7 +1069,7 @@ class bitstamp extends Exchange {
         return null;
     }
 
-    public function get_market_from_trade($trade) {
+    public function get_market_from_trade(mixed $trade) {
         $trade = $this->omit($trade, array(
             'fee',
             'price',
@@ -1060,11 +1086,11 @@ class bitstamp extends Exchange {
         }
         if ($numCurrencyIds === 2) {
             $marketId = $currencyIds[0] . $currencyIds[1];
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
                 return $this->safe_market($marketId);
             }
             $marketId = $currencyIds[1] . $currencyIds[0];
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
                 return $this->safe_market($marketId);
             }
         }
@@ -1136,14 +1162,14 @@ class bitstamp extends Exchange {
             $market = $this->get_market_from_trade($trade);
         }
         $feeCostString = $this->safe_string($trade, 'fee');
-        $feeCurrency = $market['quote'];
-        $priceId = ($rawMarketId !== null) ? $rawMarketId : $market['id'];
+        $feeCurrency = $this->safe_string($market, 'quote');
+        $priceId = ($rawMarketId !== null) ? $rawMarketId : $this->safe_string($market, 'id');
         $priceString = $this->safe_string($trade, $priceId, $priceString);
-        $amountString = $this->safe_string($trade, $market['baseId'], $amountString);
-        $costString = $this->safe_string($trade, $market['quoteId'], $costString);
+        $amountString = $this->safe_string($trade, $this->safe_string($market, 'baseId'), $amountString);
+        $costString = $this->safe_string($trade, $this->safe_string($market, 'quoteId'), $costString);
         // this endpoint is not aligned with "markets" endpoint
-        $baseIdLower = strtolower($market['baseId']);
-        $quoteIdLower = strtolower($market['quoteId']);
+        $baseIdLower = $this->safe_string_lower($market, 'baseId');
+        $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
         $dashedIdLower = $baseIdLower . '_' . $quoteIdLower;
         if ($priceString === null) {
             $priceString = $this->safe_string($trade, $dashedIdLower);
@@ -1154,7 +1180,7 @@ class bitstamp extends Exchange {
         if ($costString === null) {
             $costString = $this->safe_string($trade, $quoteIdLower);
         }
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
         $datetimeString = $this->safe_string_2($trade, 'date', 'datetime');
         $timestamp = null;
         if ($datetimeString !== null) {
@@ -1168,7 +1194,7 @@ class bitstamp extends Exchange {
             }
         }
         // if it is a private $trade
-        if (is_array($trade) && array_key_exists('id', $trade)) {
+        if (is_array($trade) && array_key_exists('id' ?? '', $trade)) {
             if ($amountString !== null) {
                 $isAmountNeg = Precise::string_lt($amountString, '0');
                 if ($isAmountNeg) {
@@ -1215,7 +1241,7 @@ class bitstamp extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -1227,13 +1253,15 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
             'time' => 'hour',
         );
-        $response = $this->publicGetTransactionsPair ($this->extend($request, $params));
+        $response = $this->publicGetTransactionsPair($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1255,7 +1283,7 @@ class bitstamp extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "high" => "9064.77",
@@ -1276,7 +1304,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1289,7 +1317,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
@@ -1312,9 +1342,9 @@ class bitstamp extends Exchange {
                 $request['start'] = $start;
                 $request['end'] = $this->sum($start, $duration * ($limit - 1));
             }
-            $request['limit'] = min ($limit, 1000); // min 1, max 1000
+            $request['limit'] = min($limit, 1000); // min 1, max 1000
         }
-        $response = $this->publicGetOhlcPair ($this->extend($request, $params));
+        $response = $this->publicGetOhlcPair($this->extend($request, $params));
         //
         //     {
         //         "data" => {
@@ -1332,9 +1362,10 @@ class bitstamp extends Exchange {
         return $this->parse_ohlcvs($ohlc, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
+        $finalResponse = $response; // java req
         $result = array(
-            'info' => $response,
+            'info' => $finalResponse,
             'timestamp' => null,
             'datetime' => null,
         );
@@ -1349,12 +1380,14 @@ class bitstamp extends Exchange {
             $account['free'] = $this->safe_string($currencyBalance, 'available');
             $account['used'] = $this->safe_string($currencyBalance, 'reserved');
             $account['total'] = $this->safe_string($currencyBalance, 'total');
-            $result[$currencyCode] = $account;
+            if ($currencyCode !== null) {
+                $result[$currencyCode] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -1363,8 +1396,10 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
-        $response = $this->privatePostAccountBalances ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privatePostAccountBalances($params);
         //
         //     array(
         //         array(
@@ -1379,7 +1414,7 @@ class bitstamp extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): array {
+    public function fetch_trading_fee(string $symbol, $params = array()): array {
         /**
          * fetch the trading fees for a $market
          *
@@ -1389,12 +1424,14 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market_symbol' => $market['id'],
         );
-        $response = $this->privatePostFeesTrading ($this->extend($request, $params));
+        $response = $this->privatePostFeesTrading($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -1411,6 +1448,9 @@ class bitstamp extends Exchange {
         //
         $tradingFeesByMarketId = $this->index_by($response, 'currency_pair');
         $tradingFee = $this->safe_dict($tradingFeesByMarketId, $market['id']);
+        if ($tradingFee === null) {
+            $tradingFee = array();
+        }
         return $this->parse_trading_fee($tradingFee, $market);
     }
 
@@ -1427,17 +1467,19 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function parse_trading_fees($fees) {
+    public function parse_trading_fees(mixed $fees) {
         $result = array( 'info' => $fees );
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $this->parse_trading_fee($fees[$i]);
             $symbol = $fee['symbol'];
-            $result[$symbol] = $fee;
+            if ($symbol !== null) {
+                $result[$symbol] = $fee;
+            }
         }
         return $result;
     }
 
-    public function fetch_trading_fees($params = array ()): array {
+    public function fetch_trading_fees($params = array()): array {
         /**
          * fetch the trading fees for multiple markets
          *
@@ -1446,8 +1488,10 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
          */
-        $this->load_markets();
-        $response = $this->privatePostFeesTrading ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privatePostFeesTrading($params);
         //
         //     array(
         //         {
@@ -1465,7 +1509,7 @@ class bitstamp extends Exchange {
         return $this->parse_trading_fees($response);
     }
 
-    public function fetch_transaction_fees(?array $codes = null, $params = array ()) {
+    public function fetch_transaction_fees(?array $codes = null, $params = array()) {
         /**
          * @deprecated
          * please use fetchDepositWithdrawFees instead
@@ -1476,8 +1520,10 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
-        $this->load_markets();
-        $response = $this->privatePostFeesWithdrawal ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privatePostFeesWithdrawal($params);
         //
         //     array(
         //         {
@@ -1491,7 +1537,7 @@ class bitstamp extends Exchange {
         return $this->parse_transaction_fees($response);
     }
 
-    public function parse_transaction_fees($response, $codes = null) {
+    public function parse_transaction_fees(mixed $response, ?array $codes = null) {
         $result = array();
         $currencies = $this->index_by($response, 'currency');
         $ids = is_array($currencies) ? array_keys($currencies) : array();
@@ -1502,16 +1548,18 @@ class bitstamp extends Exchange {
             if (($codes !== null) && !$this->in_array($code, $codes)) {
                 continue;
             }
-            $result[$code] = array(
-                'withdraw_fee' => $this->safe_number($fees, 'fee'),
-                'deposit' => array(),
-                'info' => $this->safe_dict($currencies, $id),
-            );
+            if ($code !== null) {
+                $result[$code] = array(
+                    'withdraw_fee' => $this->safe_number($fees, 'fee'),
+                    'deposit' => array(),
+                    'info' => $this->safe_dict($currencies, $id),
+                );
+            }
         }
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
         /**
          * fetch deposit and withdraw fees
          *
@@ -1521,8 +1569,10 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
-        $this->load_markets();
-        $response = $this->privatePostFeesWithdrawal ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privatePostFeesWithdrawal($params);
         //
         //     array(
         //         {
@@ -1537,32 +1587,35 @@ class bitstamp extends Exchange {
         return $this->parse_deposit_withdraw_fees($responseByCurrencyId, $codes);
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         $result = $this->deposit_withdraw_fee($fee);
+        $code = $this->safe_string($currency, 'code');
         for ($j = 0; $j < count($fee); $j++) {
             $networkEntry = $fee[$j];
             $networkId = $this->safe_string($networkEntry, 'network');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $withdrawFee = $this->safe_number($networkEntry, 'fee');
             $result['withdraw'] = array(
                 'fee' => $withdrawFee,
                 'percentage' => null,
             );
-            $result['networks'][$networkCode] = array(
-                'withdraw' => array(
-                    'fee' => $withdrawFee,
-                    'percentage' => null,
-                ),
-                'deposit' => array(
-                    'fee' => null,
-                    'percentage' => null,
-                ),
-            );
+            if ($networkCode !== null) {
+                $result['networks'][$networkCode] = array(
+                    'withdraw' => array(
+                        'fee' => $withdrawFee,
+                        'percentage' => null,
+                    ),
+                    'deposit' => array(
+                        'fee' => null,
+                        'percentage' => null,
+                    ),
+                );
+            }
         }
         return $result;
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade $order
          *
@@ -1581,7 +1634,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
@@ -1596,30 +1651,31 @@ class bitstamp extends Exchange {
         $capitalizedSide = $this->capitalize($side);
         if ($type === 'market') {
             if ($capitalizedSide === 'Buy') {
-                $response = $this->privatePostBuyMarketPair ($this->extend($request, $params));
+                $response = $this->privatePostBuyMarketPair($this->extend($request, $params));
             } else {
-                $response = $this->privatePostSellMarketPair ($this->extend($request, $params));
+                $response = $this->privatePostSellMarketPair($this->extend($request, $params));
             }
         } elseif ($type === 'instant') {
             if ($capitalizedSide === 'Buy') {
-                $response = $this->privatePostBuyInstantPair ($this->extend($request, $params));
+                $response = $this->privatePostBuyInstantPair($this->extend($request, $params));
             } else {
-                $response = $this->privatePostSellInstantPair ($this->extend($request, $params));
+                $response = $this->privatePostSellInstantPair($this->extend($request, $params));
             }
         } else {
             $request['price'] = $this->price_to_precision($symbol, $price);
             if ($capitalizedSide === 'Buy') {
-                $response = $this->privatePostBuyPair ($this->extend($request, $params));
+                $response = $this->privatePostBuyPair($this->extend($request, $params));
             } else {
-                $response = $this->privatePostSellPair ($this->extend($request, $params));
+                $response = $this->privatePostSellPair($this->extend($request, $params));
             }
         }
-        $order = $this->parse_order($response, $market);
+        $orderResponse = ($response === null) ? array() : $response;
+        $order = $this->parse_order($orderResponse, $market);
         $order['type'] = $type;
         return $order;
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         /**
          * edit a trade $order
          *
@@ -1637,7 +1693,9 @@ class bitstamp extends Exchange {
          * @param {string} [$params->clientOrderId] a unique identifier for the $order, automatically generated if not sent
          * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'amount' => $this->amount_to_precision($symbol, $amount),
@@ -1650,13 +1708,13 @@ class bitstamp extends Exchange {
         } else {
             $request['id'] = $id;
         }
-        $response = $this->privatePostReplaceOrder ($this->extend($request, $params));
+        $response = $this->privatePostReplaceOrder($this->extend($request, $params));
         $order = $this->parse_order($response, $market);
         $order['type'] = $type;
         return $order;
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open order
          *
@@ -1667,11 +1725,13 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'id' => $id,
         );
-        $response = $this->privatePostCancelOrder ($this->extend($request, $params));
+        $response = $this->privatePostCancelOrder($this->extend($request, $params));
         //
         //    {
         //        "id" => 1453282316578816,
@@ -1684,27 +1744,29 @@ class bitstamp extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * cancel all open orders
          *
          * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelAllOrders
          * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrdersForMarket
          *
-         * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         $request = array();
         $response = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['pair'] = $market['id'];
-            $response = $this->privatePostCancelAllOrdersPair ($this->extend($request, $params));
+            $response = $this->privatePostCancelAllOrdersPair($this->extend($request, $params));
         } else {
-            $response = $this->privatePostCancelAllOrders ($this->extend($request, $params));
+            $response = $this->privatePostCancelAllOrders($this->extend($request, $params));
         }
         //
         //    {
@@ -1736,8 +1798,10 @@ class bitstamp extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_order_status(string $id, ?string $symbol = null, $params = array ()) {
-        $this->load_markets();
+    public function fetch_order_status(string $id, ?string $symbol = null, $params = array()) {
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
         $request = array();
         if ($clientOrderId !== null) {
@@ -1746,11 +1810,11 @@ class bitstamp extends Exchange {
         } else {
             $request['id'] = $id;
         }
-        $response = $this->privatePostOrderStatus ($this->extend($request, $params));
+        $response = $this->privatePostOrderStatus($this->extend($request, $params));
         return $this->parse_order_status($this->safe_string($response, 'status'));
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an order made by the user
          *
@@ -1761,7 +1825,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1774,7 +1840,7 @@ class bitstamp extends Exchange {
         } else {
             $request['id'] = $id;
         }
-        $response = $this->privatePostOrderStatus ($this->extend($request, $params));
+        $response = $this->privatePostOrderStatus($this->extend($request, $params));
         //
         //      {
         //          "status" => "Finished",
@@ -1796,7 +1862,7 @@ class bitstamp extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all trades made by the user
          *
@@ -1809,7 +1875,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $method = 'privatePostUserTransactions';
         $market = null;
@@ -1821,12 +1889,12 @@ class bitstamp extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->$method ($this->extend($request, $params));
+        $response = $this->$method($this->extend($request, $params));
         $result = $this->filter_by($response, 'type', '2');
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -1846,7 +1914,9 @@ class bitstamp extends Exchange {
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params);
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -1860,7 +1930,7 @@ class bitstamp extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetFundingRateHistoryPair ($this->extend($request, $params));
+        $response = $this->publicGetFundingRateHistoryPair($this->extend($request, $params));
         //
         //     {
         //         "market" => "BTC/USD-PERP",
@@ -1876,7 +1946,7 @@ class bitstamp extends Exchange {
         return $this->parse_funding_rate_histories($values, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history($contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
         //
         //     {
         //         "funding_rate" => "0.0024",
@@ -1893,7 +1963,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch history of deposits and withdrawals
          *
@@ -1905,12 +1975,14 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privatePostUserTransactions ($this->extend($request, $params));
+        $response = $this->privatePostUserTransactions($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1945,7 +2017,7 @@ class bitstamp extends Exchange {
         return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all withdrawals made from an account
          *
@@ -1957,14 +2029,16 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         if ($since !== null) {
             $request['timedelta'] = $this->milliseconds() - $since;
         } else {
             $request['timedelta'] = 50000000; // use max bitstamp approved value
         }
-        $response = $this->privatePostWithdrawalRequests ($this->extend($request, $params));
+        $response = $this->privatePostWithdrawalRequests($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -2038,7 +2112,7 @@ class bitstamp extends Exchange {
         $feeCost = $this->safe_string($transaction, 'fee');
         $feeCurrency = null;
         $amount = null;
-        if (is_array($transaction) && array_key_exists('amount', $transaction)) {
+        if (is_array($transaction) && array_key_exists('amount' ?? '', $transaction)) {
             $amount = $this->safe_string($transaction, 'amount');
         } elseif ($currency !== null) {
             $amount = $this->safe_string($transaction, $currency['id'], $amount);
@@ -2052,11 +2126,11 @@ class bitstamp extends Exchange {
             $amount = Precise::string_abs($amount);
         }
         $status = 'ok';
-        if (is_array($transaction) && array_key_exists('status', $transaction)) {
+        if (is_array($transaction) && array_key_exists('status' ?? '', $transaction)) {
             $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         }
         $type = null;
-        if (is_array($transaction) && array_key_exists('type', $transaction)) {
+        if (is_array($transaction) && array_key_exists('type' ?? '', $transaction)) {
             // from fetchDepositsWithdrawals
             $rawType = $this->safe_string($transaction, 'type');
             if ($rawType === '0') {
@@ -2219,7 +2293,7 @@ class bitstamp extends Exchange {
         ), $market);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             '0' => 'transaction',
             '1' => 'transaction',
@@ -2283,7 +2357,7 @@ class bitstamp extends Exchange {
                 'referenceId' => $parsedTrade['order'],
                 'referenceAccount' => null,
                 'type' => $type,
-                'currency' => $market['base'],
+                'currency' => $this->safe_string($market, 'base'),
                 'amount' => $parsedTrade['amount'],
                 'before' => null,
                 'after' => null,
@@ -2293,10 +2367,10 @@ class bitstamp extends Exchange {
         } else {
             $parsedTransaction = $this->parse_transaction($item, $currency);
             $direction = null;
-            if (is_array($item) && array_key_exists('amount', $item)) {
+            if (is_array($item) && array_key_exists('amount' ?? '', $item)) {
                 $amount = $this->safe_string($item, 'amount');
                 $direction = Precise::string_gt($amount, '0') ? 'in' : 'out';
-            } elseif ((is_array($parsedTransaction) && array_key_exists('currency', $parsedTransaction)) && $parsedTransaction['currency'] !== null) {
+            } elseif ((is_array($parsedTransaction) && array_key_exists('currency' ?? '', $parsedTransaction)) && $parsedTransaction['currency'] !== null) {
                 $currencyCode = $this->safe_string($parsedTransaction, 'currency');
                 $currency = $this->currency($currencyCode);
                 $amount = $this->safe_string($item, $currency['id']);
@@ -2322,7 +2396,7 @@ class bitstamp extends Exchange {
         }
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
@@ -2334,12 +2408,14 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privatePostUserTransactions ($this->extend($request, $params));
+        $response = $this->privatePostUserTransactions($this->extend($request, $params));
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
@@ -2347,7 +2423,7 @@ class bitstamp extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): array {
+    public function fetch_funding_rate(string $symbol, $params = array()): array {
         /**
          * fetch the current funding rate
          *
@@ -2357,12 +2433,14 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market_symbol' => $market['id'],
         );
-        $response = $this->publicGetFundingRateMarketSymbol ($this->extend($request, $params));
+        $response = $this->publicGetFundingRateMarketSymbol($this->extend($request, $params));
         //
         //     {
         //         "funding_rate" => "0.0024",
@@ -2374,7 +2452,7 @@ class bitstamp extends Exchange {
         return $this->parse_funding_rate($response, $market);
     }
 
-    public function parse_funding_rate($fundingRate, ?array $market = null): array {
+    public function parse_funding_rate(mixed $fundingRate, ?array $market = null): array {
         //
         //     {
         //         "funding_rate" => "0.0024",
@@ -2408,7 +2486,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -2422,11 +2500,13 @@ class bitstamp extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $market = null;
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $response = $this->privatePostOpenOrdersAll ($params);
+        $response = $this->privatePostOpenOrdersAll($params);
         //
         //     array(
         //         {
@@ -2446,7 +2526,7 @@ class bitstamp extends Exchange {
         ));
     }
 
-    public function get_currency_name($code) {
+    public function get_currency_name(mixed $code) {
         /**
          * @ignore
          * @param {string} $code Unified currency $code
@@ -2455,11 +2535,11 @@ class bitstamp extends Exchange {
         return strtolower($code);
     }
 
-    public function is_fiat($code) {
+    public function is_fiat(mixed $code) {
         return $code === 'USD' || $code === 'EUR' || $code === 'GBP';
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): array {
+    public function fetch_deposit_address(string $code, $params = array()): array {
         /**
          * fetch the deposit $address for a currency associated with this account
          *
@@ -2474,7 +2554,7 @@ class bitstamp extends Exchange {
         }
         $name = $this->get_currency_name($code);
         $method = 'privatePost' . $this->capitalize($name) . 'Address';
-        $response = $this->$method ($params);
+        $response = $this->$method($params);
         $address = $this->safe_string($response, 'address');
         $tag = $this->safe_string_2($response, 'memo_id', 'destination_tag');
         $this->check_address($address);
@@ -2487,7 +2567,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -2504,7 +2584,9 @@ class bitstamp extends Exchange {
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->check_address($address);
         $request = array(
             'amount' => $amount,
@@ -2530,11 +2612,11 @@ class bitstamp extends Exchange {
             $request['iban'] = $address;
             $request['account_currency'] = $currency['id'];
         }
-        $response = $this->$method ($this->extend($request, $params));
+        $response = $this->$method($this->extend($request, $params));
         return $this->parse_transaction($response, $currency);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
          * $transfer $currency internally between wallets on the same account
          *
@@ -2548,7 +2630,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$transfer-structure $transfer structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'amount' => $this->parse_to_numeric($this->currency_to_precision($code, $amount)),
@@ -2557,10 +2641,10 @@ class bitstamp extends Exchange {
         $response = null;
         if ($fromAccount === 'main') {
             $request['subAccount'] = $toAccount;
-            $response = $this->privatePostTransferFromMain ($this->extend($request, $params));
+            $response = $this->privatePostTransferFromMain($this->extend($request, $params));
         } elseif ($toAccount === 'main') {
             $request['subAccount'] = $fromAccount;
-            $response = $this->privatePostTransferToMain ($this->extend($request, $params));
+            $response = $this->privatePostTransferToMain($this->extend($request, $params));
         } else {
             throw new BadRequest($this->id . ' $transfer() only supports from or to main');
         }
@@ -2574,12 +2658,15 @@ class bitstamp extends Exchange {
         return $transfer;
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer(mixed $transfer, ?array $currency = null) {
         //
         //    array( $status => 'ok' )
         //
         $status = $this->safe_string($transfer, 'status');
-        return array(
+        if ($currency === null) {
+            throw new ExchangeError($this->id . ' parseTransfer() could not resolve currency');
+        }
+        $result = array(
             'info' => $transfer,
             'id' => null,
             'timestamp' => null,
@@ -2590,6 +2677,7 @@ class bitstamp extends Exchange {
             'toAccount' => null,
             'status' => $this->parse_transfer_status($status),
         );
+        return $result;
     }
 
     public function parse_transfer_status(?string $status): ?string {
@@ -2604,7 +2692,7 @@ class bitstamp extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/';
         $url .= $this->version . '/';
         $url .= $this->implode_params($path, $params);
@@ -2649,7 +2737,7 @@ class bitstamp extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

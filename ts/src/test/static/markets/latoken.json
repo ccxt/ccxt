@@ -250,7 +250,7 @@
         "future": false,
         "option": false,
         "index": null,
-        "active": false,
+        "active": true,
         "contract": false,
         "linear": null,
         "inverse": null,
@@ -291,7 +291,7 @@
         "created": 1572957387676,
         "info": {
             "id": "88dd5643-81d6-48e7-bb0f-7af73c4f5100",
-            "status": "PAIR_STATUS_INACTIVE",
+            "status": "PAIR_STATUS_ACTIVE",
             "baseCurrency": "f5a0d630-7866-4382-aaf8-77b1222f8139",
             "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
             "priceTick": "0.000000100000000000",

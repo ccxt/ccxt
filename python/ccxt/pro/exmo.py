@@ -61,7 +61,7 @@ class exmo(ccxt.async_support.exmo):
         type, query = self.handle_market_type_and_params('watchBalance', None, params)
         messageHash = 'balance:' + type
         url = self.urls['api']['ws'][type]
-        subscribe: dict = {
+        subscribe = {
             'method': 'subscribe',
             'topics': [type + '/wallet'],
             'id': self.request_id(),
@@ -69,7 +69,7 @@ class exmo(ccxt.async_support.exmo):
         request = self.deep_extend(subscribe, query)
         return await self.watch(url, messageHash, request, messageHash, request)
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: Any):
         #
         #  spot
         #     {
@@ -122,6 +122,8 @@ class exmo(ccxt.async_support.exmo):
         #     }
         #
         topic = self.safe_string(message, 'topic')
+        if topic is None:
+            return
         parts = topic.split('/')
         type = self.safe_string(parts, 0)
         if type == 'spot':
@@ -131,7 +133,7 @@ class exmo(ccxt.async_support.exmo):
         messageHash = 'balance:' + type
         client.resolve(self.balance, messageHash)
 
-    def parse_spot_balance(self, message):
+    def parse_spot_balance(self, message: Any):
         #
         #     {
         #         "balances": {
@@ -159,17 +161,19 @@ class exmo(ccxt.async_support.exmo):
                 account = self.account()
                 account['free'] = self.safe_string(balances, currencyId)
                 account['used'] = self.safe_string(reserved, currencyId)
-                self.balance[code] = account
+                if code is not None:
+                    self.balance[code] = account
         elif event == 'update':
             currencyId = self.safe_string(data, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_string(data, 'balance')
             account['used'] = self.safe_string(data, 'reserved')
-            self.balance[code] = account
+            if code is not None:
+                self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
 
-    def parse_margin_balance(self, message):
+    def parse_margin_balance(self, message: Any):
         #
         #     {
         #         "RUB": {
@@ -195,7 +199,8 @@ class exmo(ccxt.async_support.exmo):
             account['free'] = self.safe_string(wallet, 'free')
             account['used'] = self.safe_string(wallet, 'used')
             account['total'] = self.safe_string(wallet, 'balance')
-            self.balance[code] = account
+            if code is not None:
+                self.balance[code] = account
             self.balance = self.safe_balance(self.balance)
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -208,12 +213,13 @@ class exmo(ccxt.async_support.exmo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         url = self.urls['api']['ws']['public']
         messageHash = 'ticker:' + symbol
-        message: dict = {
+        message = {
             'method': 'subscribe',
             'topics': [
                 'spot/ticker:' + market['id'],
@@ -233,7 +239,8 @@ class exmo(ccxt.async_support.exmo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         messageHashes = []
         args = []
@@ -242,7 +249,7 @@ class exmo(ccxt.async_support.exmo):
             messageHashes.append('ticker:' + market['symbol'])
             args.append('spot/ticker:' + market['id'])
         url = self.urls['api']['ws']['public']
-        message: dict = {
+        message = {
             'method': 'subscribe',
             'topics': args,
             'id': self.request_id(),
@@ -251,7 +258,7 @@ class exmo(ccxt.async_support.exmo):
         await self.watch_multiple(url, messageHashes, request, messageHashes, request)
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         #  spot
         #      {
@@ -272,6 +279,8 @@ class exmo(ccxt.async_support.exmo):
         #      }
         #
         topic = self.safe_string(message, 'topic')
+        if topic is None:
+            return
         topicParts = topic.split(':')
         marketId = self.safe_string(topicParts, 1)
         symbol = self.safe_symbol(marketId)
@@ -291,12 +300,13 @@ class exmo(ccxt.async_support.exmo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         url = self.urls['api']['ws']['public']
         messageHash = 'trades:' + symbol
-        message: dict = {
+        message = {
             'method': 'subscribe',
             'topics': [
                 'spot/trades:' + market['id'],
@@ -307,7 +317,7 @@ class exmo(ccxt.async_support.exmo):
         trades = await self.watch(url, messageHash, request, messageHash, request)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         #      {
         #          "ts": 1654206084001,
@@ -324,6 +334,8 @@ class exmo(ccxt.async_support.exmo):
         #      }
         #
         topic = self.safe_string(message, 'topic')
+        if topic is None:
+            return
         parts = topic.split(':')
         marketId = self.safe_string(parts, 1)
         symbol = self.safe_symbol(marketId)
@@ -351,7 +363,8 @@ class exmo(ccxt.async_support.exmo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate(params)
         type, query = self.handle_market_type_and_params('watchMyTrades', None, params)
         url = self.urls['api']['ws'][type]
@@ -362,7 +375,7 @@ class exmo(ccxt.async_support.exmo):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash = 'myTrades:' + market['symbol']
-        message: dict = {
+        message = {
             'method': 'subscribe',
             'topics': [
                 type + '/user_trades',
@@ -373,7 +386,7 @@ class exmo(ccxt.async_support.exmo):
         trades = await self.watch(url, messageHash, request, messageHash, request)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client: Client, message):
+    def handle_my_trades(self, client: Client, message: Any):
         #
         #  spot
         #     {
@@ -432,6 +445,8 @@ class exmo(ccxt.async_support.exmo):
         #     }
         #
         topic = self.safe_string(message, 'topic')
+        if topic is None:
+            return
         parts = topic.split('/')
         type = self.safe_string(parts, 0)
         messageHash = 'myTrades:' + type
@@ -450,11 +465,12 @@ class exmo(ccxt.async_support.exmo):
             rawTrade = self.safe_value(message, 'data', {})
             rawTrades = [rawTrade]
         trades = self.parse_trades(rawTrades)
-        symbols: dict = {}
+        symbols = {}
         for j in range(0, len(trades)):
             trade = trades[j]
             myTrades.append(trade)
-            symbols[trade['symbol']] = True
+            if trade['symbol'] is not None:
+                symbols[trade['symbol']] = True
         symbolKeys = list(symbols.keys())
         for i in range(0, len(symbolKeys)):
             symbol = symbolKeys[i]
@@ -468,15 +484,16 @@ class exmo(ccxt.async_support.exmo):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         url = self.urls['api']['ws']['public']
         messageHash = 'orderbook:' + symbol
         params = self.omit(params, 'aggregation')
-        subscribe: dict = {
+        subscribe = {
             'method': 'subscribe',
             'id': self.request_id(),
             'topics': [
@@ -487,7 +504,7 @@ class exmo(ccxt.async_support.exmo):
         orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         #     {
         #         "ts": 1574427585174,
@@ -522,6 +539,8 @@ class exmo(ccxt.async_support.exmo):
         #     }
         #
         topic = self.safe_string(message, 'topic')
+        if topic is None:
+            return
         parts = topic.split(':')
         marketId = self.safe_string(parts, 1)
         symbol = self.safe_symbol(marketId)
@@ -544,11 +563,11 @@ class exmo(ccxt.async_support.exmo):
             orderbook['datetime'] = self.iso8601(timestamp)
         client.resolve(orderbook, messageHash)
 
-    def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta, 0, 1)
+    def handle_delta(self, bookside: Any, delta: Any):
+        bidAsk = self.parse_order_book_bid_ask(delta, 0, 1)
         bookside.storeArray(bidAsk)
 
-    def handle_deltas(self, bookside, deltas):
+    def handle_deltas(self, bookside: Any, deltas: Any):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -565,7 +584,8 @@ class exmo(ccxt.async_support.exmo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate(params)
         type, query = self.handle_market_type_and_params('watchOrders', None, params)
         url = self.urls['api']['ws'][type]
@@ -576,7 +596,7 @@ class exmo(ccxt.async_support.exmo):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash = 'orders:' + market['symbol']
-        message: dict = {
+        message = {
             'method': 'subscribe',
             'topics': [
                 type + '/orders',
@@ -587,7 +607,7 @@ class exmo(ccxt.async_support.exmo):
         orders = await self.watch(url, messageHash, request, messageHash, request)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client: Client, message):
+    def handle_orders(self, client: Client, message: Any):
         #
         #  spot
         # {
@@ -644,6 +664,8 @@ class exmo(ccxt.async_support.exmo):
         # }
         #
         topic = self.safe_string(message, 'topic')
+        if topic is None:
+            return
         parts = topic.split('/')
         type = self.safe_string(parts, 0)
         messageHash = 'orders:' + type
@@ -658,11 +680,12 @@ class exmo(ccxt.async_support.exmo):
         elif event == 'update':
             rawOrder = self.safe_dict(message, 'data', {})
             rawOrders.append(rawOrder)
-        symbols: dict = {}
+        symbols = {}
         for j in range(0, len(rawOrders)):
             order = self.parse_ws_order(rawOrders[j])
             cachedOrders.append(order)
-            symbols[order['symbol']] = True
+            if order['symbol'] is not None:
+                symbols[order['symbol']] = True
         symbolKeys = list(symbols.keys())
         for i in range(0, len(symbolKeys)):
             symbol = symbolKeys[i]
@@ -754,7 +777,7 @@ class exmo(ccxt.async_support.exmo):
             'fee': None,
         }, market)
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         #
         # {
         #     "ts": 1654206362552,
@@ -771,7 +794,7 @@ class exmo(ccxt.async_support.exmo):
         #     "topic": "spot/ticker:BTC_USDT"
         # }
         event = self.safe_string(message, 'event')
-        events: dict = {
+        events = {
             'logged_in': self.handle_authentication_message,
             'info': self.handle_info,
             'subscribed': self.handle_subscribed,
@@ -785,7 +808,7 @@ class exmo(ccxt.async_support.exmo):
             if topic is not None:
                 parts = topic.split(':')
                 channel = self.safe_string(parts, 0)
-                handlers: dict = {
+                handlers = {
                     'spot/ticker': self.handle_ticker,
                     'spot/wallet': self.handle_balance,
                     'margin/wallet': self.handle_balance,
@@ -804,7 +827,7 @@ class exmo(ccxt.async_support.exmo):
                     return
         raise NotSupported(self.id + ' received an unsupported message: ' + self.json(message))
 
-    def handle_subscribed(self, client: Client, message):
+    def handle_subscribed(self, client: Client, message: Any):
         #
         # {
         #     "method": "subscribe",
@@ -814,7 +837,7 @@ class exmo(ccxt.async_support.exmo):
         #
         return message
 
-    def handle_info(self, client: Client, message):
+    def handle_info(self, client: Client, message: Any):
         #
         # {
         #     "ts": 1654215731659,
@@ -826,7 +849,7 @@ class exmo(ccxt.async_support.exmo):
         #
         return message
 
-    def handle_authentication_message(self, client: Client, message):
+    def handle_authentication_message(self, client: Client, message: Any):
         #
         #     {
         #         "method": "login",
@@ -851,7 +874,7 @@ class exmo(ccxt.async_support.exmo):
             requestId = self.request_id()
             signData = self.apiKey + str(time)
             sign = self.hmac(self.encode(signData), self.encode(self.secret), hashlib.sha512, 'base64')
-            request: dict = {
+            request = {
                 'method': 'login',
                 'id': requestId,
                 'api_key': self.apiKey,

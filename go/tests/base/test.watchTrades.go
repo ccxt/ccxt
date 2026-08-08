@@ -14,7 +14,7 @@ func TestWatchTrades(exchange ccxt.ICoreExchange, skippedProperties any, symbol 
 		var now any = exchange.Milliseconds()
 		var ends any = Add(now, 15000)
 		for IsLessThan(now, ends) {
-			var response any = nil
+			var response any = []any{}
 			var success any = true
 
 			{

@@ -143,7 +143,7 @@ func (this *BackpackCore) Describe() any {
 			"1M":  "1month",
 		},
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/cc04c278-679f-4554-9f72-930dd632b80f",
+			"logo": "https://github.com/user-attachments/assets/7f682234-3eb1-48ab-a5ec-250a3227c985",
 			"api": map[string]any{
 				"public":  "https://api.backpack.exchange",
 				"private": "https://api.backpack.exchange",
@@ -155,72 +155,184 @@ func (this *BackpackCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"api/v1/assets":                     1,
-					"api/v1/collateral":                 1,
-					"api/v1/borrowLend/markets":         1,
-					"api/v1/borrowLend/markets/history": 1,
-					"api/v1/markets":                    1,
-					"api/v1/market":                     1,
-					"api/v1/ticker":                     1,
-					"api/v1/tickers":                    1,
-					"api/v1/depth":                      1,
-					"api/v1/klines":                     1,
-					"api/v1/markPrices":                 1,
-					"api/v1/openInterest":               1,
-					"api/v1/fundingRates":               1,
-					"api/v1/status":                     1,
-					"api/v1/ping":                       1,
-					"api/v1/time":                       1,
-					"api/v1/wallets":                    1,
-					"api/v1/trades":                     1,
-					"api/v1/trades/history":             1,
+					"api/v1/assets": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/collateral": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/borrowLend/markets": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/borrowLend/markets/history": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/markets": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/market": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/ticker": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/tickers": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/depth": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/klines": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/markPrices": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/openInterest": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/fundingRates": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/status": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/ping": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/time": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/wallets": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/trades": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/trades/history": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"api/v1/account":                       1,
-					"api/v1/account/limits/borrow":         1,
-					"api/v1/account/limits/order":          1,
-					"api/v1/account/limits/withdrawal":     1,
-					"api/v1/borrowLend/positions":          1,
-					"api/v1/capital":                       1,
-					"api/v1/capital/collateral":            1,
-					"wapi/v1/capital/deposits":             1,
-					"wapi/v1/capital/deposit/address":      1,
-					"wapi/v1/capital/withdrawals":          1,
-					"api/v1/position":                      1,
-					"wapi/v1/history/borrowLend":           1,
-					"wapi/v1/history/interest":             1,
-					"wapi/v1/history/borrowLend/positions": 1,
-					"wapi/v1/history/dust":                 1,
-					"wapi/v1/history/fills":                1,
-					"wapi/v1/history/funding":              1,
-					"wapi/v1/history/orders":               1,
-					"wapi/v1/history/rfq":                  1,
-					"wapi/v1/history/quote":                1,
-					"wapi/v1/history/settlement":           1,
-					"wapi/v1/history/strategies":           1,
-					"api/v1/order":                         1,
-					"api/v1/orders":                        1,
+					"api/v1/account": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/account/limits/borrow": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/account/limits/order": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/account/limits/withdrawal": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/borrowLend/positions": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/capital": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/capital/collateral": map[string]any{
+						"cost": 1,
+					},
+					"wapi/v1/capital/deposits": map[string]any{
+						"cost": 1,
+					},
+					"wapi/v1/capital/deposit/address": map[string]any{
+						"cost": 1,
+					},
+					"wapi/v1/capital/withdrawals": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/position": map[string]any{
+						"cost": 1,
+					},
+					"wapi/v1/history/borrowLend": map[string]any{
+						"cost": 1,
+					},
+					"wapi/v1/history/interest": map[string]any{
+						"cost": 1,
+					},
+					"wapi/v1/history/borrowLend/positions": map[string]any{
+						"cost": 1,
+					},
+					"wapi/v1/history/dust": map[string]any{
+						"cost": 1,
+					},
+					"wapi/v1/history/fills": map[string]any{
+						"cost": 1,
+					},
+					"wapi/v1/history/funding": map[string]any{
+						"cost": 1,
+					},
+					"wapi/v1/history/orders": map[string]any{
+						"cost": 1,
+					},
+					"wapi/v1/history/rfq": map[string]any{
+						"cost": 1,
+					},
+					"wapi/v1/history/quote": map[string]any{
+						"cost": 1,
+					},
+					"wapi/v1/history/settlement": map[string]any{
+						"cost": 1,
+					},
+					"wapi/v1/history/strategies": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/order": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/orders": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"api/v1/account/convertDust":  1,
-					"api/v1/borrowLend":           1,
-					"wapi/v1/capital/withdrawals": 1,
-					"api/v1/order":                1,
-					"api/v1/orders":               1,
-					"api/v1/rfq":                  1,
-					"api/v1/rfq/accept":           1,
-					"api/v1/rfq/refresh":          1,
-					"api/v1/rfq/cancel":           1,
-					"api/v1/rfq/quote":            1,
+					"api/v1/account/convertDust": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/borrowLend": map[string]any{
+						"cost": 1,
+					},
+					"wapi/v1/capital/withdrawals": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/order": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/orders": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/rfq": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/rfq/accept": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/rfq/refresh": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/rfq/cancel": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/rfq/quote": map[string]any{
+						"cost": 1,
+					},
 				},
 				"delete": map[string]any{
-					"api/v1/order":  1,
-					"api/v1/orders": 1,
+					"api/v1/order": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/orders": map[string]any{
+						"cost": 1,
+					},
 				},
 				"patch": map[string]any{
-					"api/v1/account": 1,
+					"api/v1/account": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -403,7 +515,7 @@ func (this *BackpackCore) Describe() any {
 			"adjustForTimeDifference":       false,
 			"networks": map[string]any{
 				"APT":         "Aptos",
-				"ARB":         "Arbitrum",
+				"ARBITRUM":    "Arbitrum",
 				"AVAX":        "Avalanche",
 				"BASE":        "Base",
 				"BERA":        "Berachain",
@@ -428,7 +540,7 @@ func (this *BackpackCore) Describe() any {
 			},
 			"networksById": map[string]any{
 				"aptos":       "APT",
-				"arbitrum":    "ARB",
+				"arbitrum":    "ARBITRUM",
 				"avalanche":   "AVAX",
 				"base":        "BASE",
 				"berachain":   "BERA",
@@ -512,6 +624,7 @@ func (this *BackpackCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 
 		response := (<-this.PublicGetApiV1Assets(params))
 		PanicOnError(response)
+
 		//
 		//     [
 		//         {
@@ -535,77 +648,76 @@ func (this *BackpackCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		//         ...
 		//     ]
 		//
-		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var currecy any = GetValue(response, i)
-			var currencyId any = this.SafeString(currecy, "symbol")
-			var code any = this.SafeCurrencyCode(currencyId)
-			var networks any = this.SafeList(currecy, "tokens", []any{})
-			var parsedNetworks any = map[string]any{}
-			for j := 0; IsLessThan(j, GetArrayLength(networks)); j++ {
-				var network any = GetValue(networks, j)
-				var networkId any = this.SafeString(network, "blockchain")
-				var networkIdLowerCase any = this.SafeStringLower(network, "blockchain")
-				var networkCode any = this.NetworkIdToCode(networkIdLowerCase)
-				AddElementToObject(parsedNetworks, networkCode, map[string]any{
-					"id":      networkId,
-					"network": networkCode,
-					"limits": map[string]any{
-						"withdraw": map[string]any{
-							"min": this.SafeNumber(network, "minimumWithdrawal"),
-							"max": this.ParseNumber(this.OmitZero(this.SafeString(network, "maximumWithdrawal"))),
-						},
-						"deposit": map[string]any{
-							"min": this.SafeNumber(network, "minimumDeposit"),
-							"max": nil,
-						},
-					},
-					"active":    nil,
-					"deposit":   this.SafeBool(network, "depositEnabled"),
-					"withdraw":  this.SafeBool(network, "withdrawEnabled"),
-					"fee":       this.SafeNumber(network, "withdrawalFee"),
-					"precision": nil,
-					"info":      network,
-				})
-			}
-			var active any = nil
-			var deposit any = nil
-			var withdraw any = nil
-			if IsTrue(this.IsEmpty(parsedNetworks)) {
-				active = false
-				deposit = false
-				withdraw = false
-			}
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"id":        currencyId,
-				"code":      code,
-				"precision": nil,
-				"type":      "crypto",
-				"name":      this.SafeString(currecy, "displayName"),
-				"active":    active,
-				"deposit":   deposit,
-				"withdraw":  withdraw,
-				"fee":       nil,
-				"limits": map[string]any{
-					"deposit": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"withdraw": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-				},
-				"networks": parsedNetworks,
-				"info":     currecy,
-			}))
-		}
-
-		ch <- result
+		ch <- this.ParseCurrencies(response)
 		return nil
 
 	}()
 	return ch
+}
+func (this *BackpackCore) ParseCurrency(rawCurrency any) any {
+	var currencyId any = this.SafeString(rawCurrency, "symbol")
+	var code any = this.SafeCurrencyCode(currencyId)
+	var networks any = this.SafeList(rawCurrency, "tokens", []any{})
+	var parsedNetworks any = map[string]any{}
+	for j := 0; IsLessThan(j, GetArrayLength(networks)); j++ {
+		var network any = GetValue(networks, j)
+		var networkId any = this.SafeString(network, "blockchain")
+		var networkIdLowerCase any = this.SafeStringLower(network, "blockchain")
+		var networkCode any = this.NetworkIdToCode(networkIdLowerCase, code)
+		if IsTrue(!IsEqual(networkCode, nil)) {
+			AddElementToObject(parsedNetworks, networkCode, map[string]any{
+				"id":      networkId,
+				"network": networkCode,
+				"limits": map[string]any{
+					"withdraw": map[string]any{
+						"min": this.SafeNumber(network, "minimumWithdrawal"),
+						"max": this.ParseNumber(this.OmitZero(this.SafeString(network, "maximumWithdrawal"))),
+					},
+					"deposit": map[string]any{
+						"min": this.SafeNumber(network, "minimumDeposit"),
+						"max": nil,
+					},
+				},
+				"active":    nil,
+				"deposit":   this.SafeBool(network, "depositEnabled"),
+				"withdraw":  this.SafeBool(network, "withdrawEnabled"),
+				"fee":       this.SafeNumber(network, "withdrawalFee"),
+				"precision": nil,
+				"info":      network,
+			})
+		}
+	}
+	var active any = nil
+	var deposit any = nil
+	var withdraw any = nil
+	if IsTrue(this.IsEmpty(parsedNetworks)) {
+		active = false
+		deposit = false
+		withdraw = false
+	}
+	return this.SafeCurrencyStructure(map[string]any{
+		"id":        currencyId,
+		"code":      code,
+		"precision": nil,
+		"type":      "crypto",
+		"name":      this.SafeString(rawCurrency, "displayName"),
+		"active":    active,
+		"deposit":   deposit,
+		"withdraw":  withdraw,
+		"fee":       nil,
+		"limits": map[string]any{
+			"deposit": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"withdraw": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+		"networks": parsedNetworks,
+		"info":     rawCurrency,
+	})
 }
 
 /**
@@ -625,8 +737,8 @@ func (this *BackpackCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes61212 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes61212)
+			retRes61312 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes61312)
 		}
 
 		response := (<-this.PublicGetApiV1Markets(params))
@@ -839,9 +951,11 @@ func (this *BackpackCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8178 := (<-this.LoadMarkets())
-		PanicOnError(retRes8178)
+			retRes81912 := (<-this.LoadMarkets())
+			PanicOnError(retRes81912)
+		}
 		var request any = map[string]any{}
 
 		response := (<-this.PublicGetApiV1Tickers(this.Extend(request, params)))
@@ -871,9 +985,11 @@ func (this *BackpackCore) FetchTicker(symbol any, optionalArgs ...any) <-chan an
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8348 := (<-this.LoadMarkets())
-		PanicOnError(retRes8348)
+			retRes83812 := (<-this.LoadMarkets())
+			PanicOnError(retRes83812)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -916,9 +1032,14 @@ func (this *BackpackCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var low any = this.SafeString(ticker, "low")
 	var baseVolume any = this.SafeString(ticker, "volume")
 	var quoteVolume any = this.SafeString(ticker, "quoteVolume")
-	var percentage any = this.SafeString(ticker, "priceChangePercent")
+	var percentage any = nil
+	var percentageNumber any = this.SafeFloat(ticker, "priceChangePercent")
+	// in some cases priceChangePercent is a non-numeric string like "N/A"
+	if IsTrue(!IsEqual(percentageNumber, nil)) {
+		percentage = Precise.StringMul(this.SafeString(ticker, "priceChangePercent"), "100")
+	}
 	var change any = this.SafeString(ticker, "priceChange")
-	return this.SafeTicker(map[string]any{
+	var parsedTicker any = this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     nil,
 		"datetime":      nil,
@@ -942,6 +1063,7 @@ func (this *BackpackCore) ParseTicker(ticker any, optionalArgs ...any) any {
 		"indexPrice":    nil,
 		"info":          ticker,
 	}, market)
+	return parsedTicker
 }
 
 /**
@@ -951,8 +1073,8 @@ func (this *BackpackCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @see https://docs.backpack.exchange/#tag/Markets/operation/get_depth
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BackpackCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -963,9 +1085,11 @@ func (this *BackpackCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9088 := (<-this.LoadMarkets())
-		PanicOnError(retRes9088)
+			retRes92012 := (<-this.LoadMarkets())
+			PanicOnError(retRes92012)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -988,6 +1112,9 @@ func (this *BackpackCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
 		//     }
 		//
 		var microseconds any = this.SafeInteger(response, "timestamp")
+		if IsTrue(IsEqual(microseconds, nil)) {
+			panic(ExchangeError(Add(this.Id, " fetchOrderBook() missing microseconds")))
+		}
 		var timestamp any = this.ParseToInt(Divide(microseconds, 1000))
 		var orderbook any = this.ParseOrderBook(response, symbol, timestamp)
 		AddElementToObject(orderbook, "nonce", this.SafeInteger(response, "lastUpdateId"))
@@ -1008,7 +1135,7 @@ func (this *BackpackCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in seconds of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch (default 100)
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *BackpackCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
@@ -1024,9 +1151,11 @@ func (this *BackpackCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9488 := (<-this.LoadMarkets())
-		PanicOnError(retRes9488)
+			retRes96512 := (<-this.LoadMarkets())
+			PanicOnError(retRes96512)
+		}
 		var market any = this.Market(symbol)
 		var interval any = this.SafeString(this.Timeframes, timeframe, timeframe)
 		var request any = map[string]any{
@@ -1060,8 +1189,9 @@ func (this *BackpackCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any
 
 		response := (<-this.PublicGetApiV1Klines(this.Extend(request, params)))
 		PanicOnError(response)
+		var ohlcvs any = this.ToArray(response)
 
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
 		return nil
 
 	}()
@@ -1105,9 +1235,11 @@ func (this *BackpackCore) FetchFundingRate(symbol any, optionalArgs ...any) <-ch
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10188 := (<-this.LoadMarkets())
-		PanicOnError(retRes10188)
+			retRes103812 := (<-this.LoadMarkets())
+			PanicOnError(retRes103812)
+		}
 		var market any = this.Market(symbol)
 		if IsTrue(GetValue(market, "spot")) {
 			panic(BadRequest(Add(Add(this.Id, " fetchFundingRate() symbol does not support market "), symbol)))
@@ -1180,9 +1312,11 @@ func (this *BackpackCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-c
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10778 := (<-this.LoadMarkets())
-		PanicOnError(retRes10778)
+			retRes109912 := (<-this.LoadMarkets())
+			PanicOnError(retRes109912)
+		}
 		var market any = this.Market(symbol)
 		if IsTrue(GetValue(market, "spot")) {
 			panic(BadRequest(Add(Add(this.Id, " fetchOpenInterest() symbol does not support market "), symbol)))
@@ -1216,7 +1350,7 @@ func (this *BackpackCore) ParseOpenInterest(interest any, optionalArgs ...any) a
 	var timestamp any = this.SafeInteger(interest, "timestamp")
 	var openInterest any = this.SafeNumber(interest, "openInterest")
 	return this.SafeOpenInterest(map[string]any{
-		"symbol":             GetValue(market, "symbol"),
+		"symbol":             this.SafeString(market, "symbol"),
 		"openInterestAmount": nil,
 		"openInterestValue":  openInterest,
 		"timestamp":          timestamp,
@@ -1252,9 +1386,11 @@ func (this *BackpackCore) FetchFundingRateHistory(optionalArgs ...any) <-chan an
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11278 := (<-this.LoadMarkets())
-		PanicOnError(retRes11278)
+			retRes115112 := (<-this.LoadMarkets())
+			PanicOnError(retRes115112)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -1275,8 +1411,9 @@ func (this *BackpackCore) FetchFundingRateHistory(optionalArgs ...any) <-chan an
 		//     ]
 		//
 		var rates any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var rate any = GetValue(response, i)
+		var rawRates any = this.ToArray(response)
+		for i := 0; IsLessThan(i, GetArrayLength(rawRates)); i++ {
+			var rate any = GetValue(rawRates, i)
 			var datetime any = this.SafeString(rate, "intervalEndTimestamp")
 			var timestamp any = this.Parse8601(datetime)
 			AppendToArray(&rates, map[string]any{
@@ -1320,9 +1457,11 @@ func (this *BackpackCore) FetchTrades(symbol any, optionalArgs ...any) <-chan an
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11768 := (<-this.LoadMarkets())
-		PanicOnError(retRes11768)
+			retRes120312 := (<-this.LoadMarkets())
+			PanicOnError(retRes120312)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -1341,8 +1480,9 @@ func (this *BackpackCore) FetchTrades(symbol any, optionalArgs ...any) <-chan an
 			response = (<-this.PublicGetApiV1Trades(this.Extend(request, params)))
 			PanicOnError(response)
 		}
+		var responseList any = this.ToArray(response)
 
-		ch <- this.ParseTrades(response, market, since, limit)
+		ch <- this.ParseTrades(responseList, market, since, limit)
 		return nil
 
 	}()
@@ -1375,9 +1515,11 @@ func (this *BackpackCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes12088 := (<-this.LoadMarkets())
-		PanicOnError(retRes12088)
+			retRes123812 := (<-this.LoadMarkets())
+			PanicOnError(retRes123812)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1402,8 +1544,9 @@ func (this *BackpackCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 
 		response := (<-this.PrivateGetWapiV1HistoryFills(this.Extend(request, params)))
 		PanicOnError(response)
+		var responseList any = this.ToArray(response)
 
-		ch <- this.ParseTrades(response, market, since, limit)
+		ch <- this.ParseTrades(responseList, market, since, limit)
 		return nil
 
 	}()
@@ -1444,10 +1587,17 @@ func (this *BackpackCore) ParseTrade(trade any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var price any = this.SafeString(trade, "price")
 	var amount any = this.SafeString(trade, "quantity")
-	var isMaker any = this.SafeBool(trade, "isMaker")
-	var takerOrMaker any = Ternary(IsTrue(isMaker), "maker", "taker")
-	var orderId any = this.SafeString(trade, "orderId")
+	var isBuyerMaker any = this.SafeBool(trade, "isBuyerMaker")
 	var side any = this.ParseOrderSide(this.SafeString(trade, "side"))
+	var isMaker any = this.SafeBool(trade, "isMaker")
+	var takerOrMaker any = nil
+	if IsTrue(!IsEqual(isMaker, nil)) {
+		takerOrMaker = Ternary(IsTrue(isMaker), "maker", "taker")
+	} else if IsTrue(!IsEqual(isBuyerMaker, nil)) {
+		takerOrMaker = "taker"
+		side = Ternary(IsTrue(isBuyerMaker), "sell", "buy")
+	}
+	var orderId any = this.SafeString(trade, "orderId")
 	var fee any = nil
 	var feeAmount any = this.SafeString(trade, "fee")
 	var timestamp any = this.SafeInteger(trade, "timestamp")
@@ -1506,6 +1656,9 @@ func (this *BackpackCore) FetchStatus(optionalArgs ...any) <-chan any {
 		//     }
 		//
 		var status any = this.SafeString(response, "status")
+		if IsTrue(IsEqual(status, nil)) {
+			panic(ExchangeError(Add(this.Id, " fetchStatus() missing status")))
+		}
 
 		ch <- map[string]any{
 			"status":  ToLower(status),
@@ -1564,9 +1717,11 @@ func (this *BackpackCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes13558 := (<-this.LoadMarkets())
-		PanicOnError(retRes13558)
+			retRes139812 := (<-this.LoadMarkets())
+			PanicOnError(retRes139812)
+		}
 
 		response := (<-this.PrivateGetApiV1Capital(params))
 		PanicOnError(response)
@@ -1599,7 +1754,9 @@ func (this *BackpackCore) ParseBalance(response any) any {
 		var used any = Precise.StringAdd(locked, staked)
 		AddElementToObject(account, "free", this.SafeString(balance, "available"))
 		AddElementToObject(account, "used", used)
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -1629,9 +1786,11 @@ func (this *BackpackCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes14008 := (<-this.LoadMarkets())
-		PanicOnError(retRes14008)
+			retRes144712 := (<-this.LoadMarkets())
+			PanicOnError(retRes144712)
+		}
 		var request any = map[string]any{}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -1686,9 +1845,11 @@ func (this *BackpackCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes14358 := (<-this.LoadMarkets())
-		PanicOnError(retRes14358)
+			retRes148412 := (<-this.LoadMarkets())
+			PanicOnError(retRes148412)
+		}
 		var request any = map[string]any{}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -1740,9 +1901,11 @@ func (this *BackpackCore) Withdraw(code any, amount any, address any, optionalAr
 		_ = tag
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes14708 := (<-this.LoadMarkets())
-		PanicOnError(retRes14708)
+			retRes152112 := (<-this.LoadMarkets())
+			PanicOnError(retRes152112)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"symbol":   GetValue(currency, "id"),
@@ -1755,7 +1918,7 @@ func (this *BackpackCore) Withdraw(code any, amount any, address any, optionalAr
 		networkCodequeryVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode := GetValue(networkCodequeryVariable, 0)
 		query := GetValue(networkCodequeryVariable, 1)
-		var networkId any = this.NetworkCodeToId(networkCode)
+		var networkId any = this.NetworkCodeToId(networkCode, GetValue(currency, "code"))
 		if IsTrue(IsEqual(networkId, nil)) {
 			panic(BadRequest(Add(this.Id, " withdraw() requires a network parameter")))
 		}
@@ -1853,7 +2016,7 @@ func (this *BackpackCore) ParseTransaction(transaction any, optionalArgs ...any)
 	var timestamp any = this.Parse8601(this.SafeString(transaction, "createdAt"))
 	var amount any = this.SafeNumber(transaction, "quantity")
 	var networkId any = this.SafeStringLower2(transaction, "source", "blockchain")
-	var network any = this.NetworkIdToCode(networkId)
+	var network any = this.NetworkIdToCode(networkId, code)
 	var addressTo any = this.SafeString(transaction, "toAddress")
 	var addressFrom any = this.SafeString(transaction, "fromAddress")
 	var tag any = this.SafeString(transaction, "platformMemo")
@@ -1920,9 +2083,11 @@ func (this *BackpackCore) FetchDepositAddress(code any, optionalArgs ...any) <-c
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16338 := (<-this.LoadMarkets())
-		PanicOnError(retRes16338)
+			retRes168612 := (<-this.LoadMarkets())
+			PanicOnError(retRes168612)
+		}
 		var networkCode any = nil
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode = GetValue(networkCodeparamsVariable, 0)
@@ -1932,7 +2097,7 @@ func (this *BackpackCore) FetchDepositAddress(code any, optionalArgs ...any) <-c
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
-			"blockchain": this.NetworkCodeToId(networkCode),
+			"blockchain": this.NetworkCodeToId(networkCode, GetValue(currency, "code")),
 		}
 
 		response := (<-this.PrivateGetWapiV1CapitalDepositAddress(this.Extend(request, params)))
@@ -2003,9 +2168,11 @@ func (this *BackpackCore) CreateOrder(symbol any, typeVar any, side any, amount 
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16968 := (<-this.LoadMarkets())
-		PanicOnError(retRes16968)
+			retRes175112 := (<-this.LoadMarkets())
+			PanicOnError(retRes175112)
+		}
 		var market any = this.Market(symbol)
 		var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 
@@ -2035,9 +2202,11 @@ func (this *BackpackCore) CreateOrders(orders any, optionalArgs ...any) <-chan a
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17138 := (<-this.LoadMarkets())
-		PanicOnError(retRes17138)
+			retRes177012 := (<-this.LoadMarkets())
+			PanicOnError(retRes177012)
+		}
 		var ordersRequests any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 			var rawOrder any = GetValue(orders, i)
@@ -2066,6 +2235,12 @@ func (this *BackpackCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
+	if IsTrue(IsEqual(typeVar, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
+	}
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
+	}
 	var market any = this.Market(symbol)
 	var request any = map[string]any{
 		"symbol":    GetValue(market, "id"),
@@ -2176,9 +2351,11 @@ func (this *BackpackCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes18278 := (<-this.LoadMarkets())
-		PanicOnError(retRes18278)
+			retRes189212 := (<-this.LoadMarkets())
+			PanicOnError(retRes189212)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2202,7 +2379,7 @@ func (this *BackpackCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @description fetch an open order by it's id
  * @see https://docs.backpack.exchange/#tag/Order/operation/get_order
  * @param {string} id order id
- * @param {string} symbol not used by hollaex fetchOpenOrder ()
+ * @param {string} symbol not used by fetchOpenOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -2215,9 +2392,11 @@ func (this *BackpackCore) FetchOpenOrder(id any, optionalArgs ...any) <-chan any
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes18498 := (<-this.LoadMarkets())
-		PanicOnError(retRes18498)
+			retRes191612 := (<-this.LoadMarkets())
+			PanicOnError(retRes191612)
+		}
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrder() requires a symbol argument")))
 		}
@@ -2256,9 +2435,11 @@ func (this *BackpackCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes18738 := (<-this.LoadMarkets())
-		PanicOnError(retRes18738)
+			retRes194212 := (<-this.LoadMarkets())
+			PanicOnError(retRes194212)
+		}
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
@@ -2296,9 +2477,11 @@ func (this *BackpackCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes18968 := (<-this.LoadMarkets())
-		PanicOnError(retRes18968)
+			retRes196712 := (<-this.LoadMarkets())
+			PanicOnError(retRes196712)
+		}
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
@@ -2322,10 +2505,10 @@ func (this *BackpackCore) CancelAllOrders(optionalArgs ...any) <-chan any {
  * @name backpack#fetchOrders
  * @description fetches information on multiple orders made by the user
  * @see https://docs.backpack.exchange/#tag/History/operation/get_order_history
- * @param {string} symbol unified market symbol of the market orders were made in
+ * @param {string} [symbol] unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of  orde structures to retrieve (default 100, max 1000)
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {int} [limit] the maximum number of order structures to retrieve (default 100, max 1000)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
 func (this *BackpackCore) FetchOrders(optionalArgs ...any) <-chan any {
@@ -2341,9 +2524,11 @@ func (this *BackpackCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes19208 := (<-this.LoadMarkets())
-		PanicOnError(retRes19208)
+			retRes199312 := (<-this.LoadMarkets())
+			PanicOnError(retRes199312)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2544,9 +2729,11 @@ func (this *BackpackCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes21078 := (<-this.LoadMarkets())
-		PanicOnError(retRes21078)
+			retRes218212 := (<-this.LoadMarkets())
+			PanicOnError(retRes218212)
+		}
 
 		response := (<-this.PrivateGetApiV1Position(params))
 		PanicOnError(response)
@@ -2677,9 +2864,11 @@ func (this *BackpackCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes22168 := (<-this.LoadMarkets())
-		PanicOnError(retRes22168)
+			retRes229312 := (<-this.LoadMarkets())
+			PanicOnError(retRes229312)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {

@@ -14,9 +14,10 @@ func TestLoadMarkets(exchange ccxt.ICoreExchange, skippedProperties any) <-chan 
 
 		markets := (<-exchange.LoadMarkets())
 		PanicOnError(markets)
-		Assert(IsObject(exchange.GetMarkets()), ".markets is not an object")
+		Assert(exchange.IsDictionary(exchange.GetMarkets()), ".markets is not a dict")
 		Assert(IsArray(exchange.GetSymbols()), ".symbols is not an array")
 		var symbolsLength any = GetArrayLength(exchange.GetSymbols())
+		Assert(!IsEqual(exchange.GetMarkets(), nil), ".markets is undefined")
 		var marketKeys any = ObjectKeys(exchange.GetMarkets())
 		var marketKeysLength any = GetArrayLength(marketKeys)
 		Assert(IsGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)")

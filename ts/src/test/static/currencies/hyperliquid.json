@@ -69,15 +69,20 @@
     },
     "HYPE": {
         "info": {
-            "szDecimals": "2",
             "name": "HYPE",
-            "maxLeverage": "10",
-            "marginTableId": "52"
+            "szDecimals": "2",
+            "weiDecimals": "8",
+            "index": "150",
+            "tokenId": "0x0d01dc56dcaaca66ad901c959b4011ec",
+            "isCanonical": false,
+            "evmContract": null,
+            "fullName": "Hyperliquid",
+            "deployerTradingFeeShare": "0.0"
         },
-        "id": 159,
+        "id": "150",
         "numericId": null,
         "code": "HYPE",
-        "precision": null,
+        "precision": "0.00000001",
         "type": "crypto",
         "name": "HYPE",
         "active": null,
@@ -127,7 +132,44 @@
             }
         }
     },
-    "HPENGU": null,
+    "HPENGU": {
+        "info": {
+            "name": "HPENGU",
+            "szDecimals": "2",
+            "weiDecimals": "8",
+            "index": "292",
+            "tokenId": "0x1765b5a9ec8fc3cdbc209c63cac68e86",
+            "isCanonical": false,
+            "evmContract": {
+                "address": "0xfa44c2634ff17cbe26dc3007d36bd61c79068c14",
+                "evm_extra_wei_decimals": "10"
+            },
+            "fullName": "Pudgy Penguins",
+            "deployerTradingFeeShare": "1.0"
+        },
+        "id": "292",
+        "numericId": null,
+        "code": "HPENGU",
+        "precision": "0.00000001",
+        "type": "crypto",
+        "name": "HPENGU",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
     "USDH": {
         "info": {
             "name": "USDH",

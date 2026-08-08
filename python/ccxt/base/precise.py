@@ -210,12 +210,8 @@ class Precise:
 
     @staticmethod
     def string_add(string1, string2):
-        if string1 is None and string2 is None:
+        if string1 is None or string2 is None:
             return None
-        if string1 is None:
-            return string2
-        elif string2 is None:
-            return string1
         return str(Precise(string1).add(Precise(string2)))
 
     @staticmethod
@@ -251,13 +247,13 @@ class Precise:
     @staticmethod
     def string_equals(string1, string2):
         if string1 is None or string2 is None:
-            return None
+            return False
         return Precise(string1).equals(Precise(string2))
 
     @staticmethod
     def string_eq(string1, string2):
         if string1 is None or string2 is None:
-            return None
+            return False
         return Precise(string1).equals(Precise(string2))
 
     @staticmethod
@@ -275,23 +271,23 @@ class Precise:
     @staticmethod
     def string_gt(string1, string2):
         if string1 is None or string2 is None:
-            return None
+            return False
         return Precise(string1).gt(Precise(string2))
 
     @staticmethod
     def string_ge(string1, string2):
         if string1 is None or string2 is None:
-            return None
+            return False
         return Precise(string1).ge(Precise(string2))
 
     @staticmethod
     def string_lt(string1, string2):
         if string1 is None or string2 is None:
-            return None
+            return False
         return Precise(string1).lt(Precise(string2))
 
     @staticmethod
     def string_le(string1, string2):
         if string1 is None or string2 is None:
-            return None
+            return False
         return Precise(string1).le(Precise(string2))

@@ -1,10 +1,10 @@
-- [Set_markets_from_exchange](./examples/py/)
+```python
+# -*- coding: utf-8 -*-
 
+from importlib import import_module
+from importlib.util import find_spec
 
- ```python
- # -*- coding: utf-8 -*-
-
-import asyncio
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import os
 import sys
 
@@ -41,7 +41,7 @@ async def test():
     print(f"Final memory usage after closing: {get_memory_usage():.2f} MB")
 
 
-asyncio.run(test())
+run(test())
 
- 
+
 ```

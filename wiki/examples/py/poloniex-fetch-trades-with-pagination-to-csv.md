@@ -1,8 +1,5 @@
-- [Poloniex Fetch Trades With Pagination To Csv](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -51,5 +48,5 @@ print('Fetched', len(all_trades), 'trades since', all_trades[0]['datetime'], 'ti
 # path_to_your_csv_file = 'trades.csv'  # change for your path here
 # df = pd.DataFrame(all_trades)
 # df.to_csv(path_to_your_csv_file, index=None, header=True)
- 
+
 ```

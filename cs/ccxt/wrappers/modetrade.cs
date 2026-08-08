@@ -21,10 +21,10 @@ public partial class modetrade
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    public async Task<Status> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
-        return ((Dictionary<string, object>)res);
+        return new Status(res);
     }
     /// <summary>
     /// fetches the current integer timestamp in milliseconds from the exchange server
@@ -292,7 +292,7 @@ public partial class modetrade
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -559,6 +559,12 @@ public partial class modetrade
     /// See <see href="https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders"/>  <br/>
     /// See <see href="https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>

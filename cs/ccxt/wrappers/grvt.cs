@@ -15,7 +15,7 @@ public partial class grvt
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the exchange api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -72,7 +72,7 @@ public partial class grvt
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -277,6 +277,45 @@ public partial class grvt
         var res = await this.fetchDeposits(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
+    /// <summary>
+    /// fetch all withdrawals made from an account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-docs.grvt.io/trading_api/#withdrawal-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code of the currency transferred
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch transfers for (default 24 hours ago)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of transfer structures to retrieve (default 50, max 200)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest item
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -560,7 +599,7 @@ public partial class grvt
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}.</returns>
-    public async Task<MarginModes> FetchMarginModes(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<MarginModes> FetchMarginModes(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarginModes(symbols, parameters);
         return new MarginModes(res);
@@ -730,6 +769,12 @@ public partial class grvt
     /// See <see href="https://api-docs.grvt.io/trading_api/#cancel-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
@@ -775,7 +820,7 @@ public partial class grvt
         var res = await this.cancelOrder(id, symbol, parameters);
         return new Order(res);
     }
-    public Dictionary<string, object> CreateSignedRequest(object request, string structureType, object currencyObj = null, string signerAddress = null)
+    public Dictionary<string, object> CreateSignedRequest(object request, string structureType, Dictionary<string, object> currencyObj = null, string signerAddress = null)
     {
         var res = this.createSignedRequest(request, structureType, currencyObj, signerAddress);
         return ((Dictionary<string, object>)res);

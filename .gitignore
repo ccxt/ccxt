@@ -4,6 +4,11 @@
 #
 .vs
 .vscode
+# Safety net: setuptools intermediate output. Primary fix is build_base=python/build
+# in pyproject.toml / setup.cfg so this path is never written.
+build/lib/
+build/bdist.*/
+build/temp.*/
 build/ccxt.wiki
 node_modules/
 npm-debug.log
@@ -25,8 +30,9 @@ yarn.lock
 keys.local.json
 nbproject/
 vendor/
-python/build
-python/dist
+.php-cs-fixer.cache
+python/build/
+python/dist/
 python/package-lock.json
 python/package.json
 python/keys.json
@@ -43,3 +49,6 @@ obj/
 __debug*
 *.o
 .custom_gitignore
+go/main
+go/tests/main
+go/cli/cli
