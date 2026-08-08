@@ -212,7 +212,7 @@ abstract class bullish extends \ccxt\Exchange {
         return $this->request('v1/trades/client-order-id/{clientOrderId}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function private_get_v1_accounts_asset($params = array()) {
         return $this->request('v1/accounts/asset', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -560,7 +560,7 @@ abstract class bullish extends \ccxt\Exchange {
         return $this->request('v1/trades/client-order-id/{clientOrderId}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function privateGetV1AccountsAsset($params = array()) {
         return $this->request('v1/accounts/asset', 'private', 'GET', $params, null, null, array("cost" => 1));

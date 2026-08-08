@@ -182,7 +182,7 @@ abstract class bitfinex extends \ccxt\Exchange {
         return $this->request('tickers', 'public', 'GET', $params, null, null, array("cost" => 2.7));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function public_get_ticker_symbol($params = array()) {
         return $this->request('ticker/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 2.7));
@@ -998,7 +998,7 @@ abstract class bitfinex extends \ccxt\Exchange {
         return $this->request('tickers', 'public', 'GET', $params, null, null, array("cost" => 2.7));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function publicGetTickerSymbol($params = array()) {
         return $this->request('ticker/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 2.7));

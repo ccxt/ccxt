@@ -8,7 +8,7 @@ namespace ccxt\async\abstract;
 
 abstract class fmfwio extends \ccxt\async\hitbtc {
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function public_get_public_currency($params = array()) {
         return $this->request('public/currency', 'public', 'GET', $params, null, null, array("cost" => 10));
@@ -674,7 +674,7 @@ abstract class fmfwio extends \ccxt\async\hitbtc {
         return $this->request('wallet/crypto/withdraw/{id}', 'private', 'PUT', $params, null, null, array("cost" => 30));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function publicGetPublicCurrency($params = array()) {
         return $this->request('public/currency', 'public', 'GET', $params, null, null, array("cost" => 10));

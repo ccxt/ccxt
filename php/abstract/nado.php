@@ -62,7 +62,7 @@ abstract class nado extends \ccxt\Exchange {
         return $this->request('', 'archive', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>
      */
     public function archivev2_public_get_tickers($params = array()) {
         return $this->request('tickers', array('archiveV2', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -146,7 +146,7 @@ abstract class nado extends \ccxt\Exchange {
         return $this->request('', 'archive', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>
      */
     public function archiveV2PublicGetTickers($params = array()) {
         return $this->request('tickers', array('archiveV2', 'public'), 'GET', $params, null, null, array("cost" => 1));

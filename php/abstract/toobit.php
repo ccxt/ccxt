@@ -248,7 +248,7 @@ abstract class toobit extends \ccxt\Exchange {
         return $this->request('api/v1/futures/historyPositions', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function private_get_api_v1_futures_balance($params = array()) {
         return $this->request('api/v1/futures/balance', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -770,7 +770,7 @@ abstract class toobit extends \ccxt\Exchange {
         return $this->request('api/v1/futures/historyPositions', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function privateGetApiV1FuturesBalance($params = array()) {
         return $this->request('api/v1/futures/balance', 'private', 'GET', $params, null, null, array("cost" => 5));

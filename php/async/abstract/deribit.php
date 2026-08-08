@@ -164,7 +164,7 @@ abstract class deribit extends \ccxt\async\Exchange {
         return $this->request('get_instrument', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function public_get_get_instruments($params = array()) {
         return $this->request('get_instruments', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -896,7 +896,7 @@ abstract class deribit extends \ccxt\async\Exchange {
         return $this->request('get_instrument', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function publicGetGetInstruments($params = array()) {
         return $this->request('get_instruments', 'public', 'GET', $params, null, null, array("cost" => 1));

@@ -68,7 +68,7 @@ abstract class exmo extends \ccxt\Exchange {
         return $this->request('required_amount', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function public_get_payments_providers_crypto_list($params = array()) {
         return $this->request('payments/providers/crypto/list', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -374,7 +374,7 @@ abstract class exmo extends \ccxt\Exchange {
         return $this->request('required_amount', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function publicGetPaymentsProvidersCryptoList($params = array()) {
         return $this->request('payments/providers/crypto/list', 'public', 'GET', $params, null, null, array("cost" => 1));

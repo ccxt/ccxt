@@ -698,7 +698,7 @@ abstract class polymarket extends \ccxt\prediction\PredictionExchange {
         return $this->request('traded', array('data', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function data_public_get_trades($params = array()): \React\Promise\PromiseInterface {
         return $this->request('trades', array('data', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -1466,7 +1466,7 @@ abstract class polymarket extends \ccxt\prediction\PredictionExchange {
         return $this->request('traded', array('data', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function dataPublicGetTrades($params = array()): \React\Promise\PromiseInterface {
         return $this->request('trades', array('data', 'public'), 'GET', $params, null, null, array("cost" => 1));

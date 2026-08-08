@@ -212,7 +212,7 @@ abstract class bullish extends \ccxt\async\Exchange {
         return $this->request('v1/trades/client-order-id/{clientOrderId}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_v1_accounts_asset($params = array()) {
         return $this->request('v1/accounts/asset', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -560,7 +560,7 @@ abstract class bullish extends \ccxt\async\Exchange {
         return $this->request('v1/trades/client-order-id/{clientOrderId}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetV1AccountsAsset($params = array()) {
         return $this->request('v1/accounts/asset', 'private', 'GET', $params, null, null, array("cost" => 1));

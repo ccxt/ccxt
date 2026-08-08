@@ -2906,7 +2906,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('premiumIndexKlines', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[99, 1], [499, 2], [1000, 5], [10000, 10]]));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function dapipublic_get_ticker_24hr($params = array()) {
         return $this->request('ticker/24hr', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
@@ -3338,7 +3338,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('premiumIndex', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function fapipublic_get_ticker_24hr($params = array()) {
         return $this->request('ticker/24hr', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
@@ -3668,7 +3668,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('feeBurn', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function fapiprivate_get_symbolconfig($params = array()) {
         return $this->request('symbolConfig', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
@@ -3854,7 +3854,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('algoOrder', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function fapiprivate_delete_algoopenorders($params = array()) {
         return $this->request('algoOpenOrders', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
@@ -4232,7 +4232,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('uiKlines', 'public', 'GET', $params, null, null, array("cost" => 0.4));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function public_get_ticker_24hr($params = array()) {
         return $this->request('ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
@@ -4328,7 +4328,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('allOrders', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_account($params = array()) {
         return $this->request('account', 'private', 'GET', $params, null, null, array("cost" => 10));
@@ -7970,7 +7970,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('premiumIndexKlines', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[99, 1], [499, 2], [1000, 5], [10000, 10]]));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function dapiPublicGetTicker24hr($params = array()) {
         return $this->request('ticker/24hr', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
@@ -8402,7 +8402,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('premiumIndex', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function fapiPublicGetTicker24hr($params = array()) {
         return $this->request('ticker/24hr', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
@@ -8732,7 +8732,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('feeBurn', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function fapiPrivateGetSymbolConfig($params = array()) {
         return $this->request('symbolConfig', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
@@ -8918,7 +8918,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('algoOrder', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function fapiPrivateDeleteAlgoOpenOrders($params = array()) {
         return $this->request('algoOpenOrders', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
@@ -9296,7 +9296,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('uiKlines', 'public', 'GET', $params, null, null, array("cost" => 0.4));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function publicGetTicker24hr($params = array()) {
         return $this->request('ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
@@ -9392,7 +9392,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('allOrders', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetAccount($params = array()) {
         return $this->request('account', 'private', 'GET', $params, null, null, array("cost" => 10));

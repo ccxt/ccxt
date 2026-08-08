@@ -44,7 +44,7 @@ abstract class weex extends \ccxt\Exchange {
         return $this->request('api/v3/market/ticker/price', 'public', 'GET', $params, null, null, array("cost" => 20));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function public_get_api_v3_market_ticker_24hr($params = array()) {
         return $this->request('api/v3/market/ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 10));
@@ -296,7 +296,7 @@ abstract class weex extends \ccxt\Exchange {
         return $this->request('capi/v3/market/apiTradingSymbols', 'contract', 'GET', $params, null, null, array("cost" => 25));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function contractprivate_get_capi_v3_account_balance($params = array()) {
         return $this->request('capi/v3/account/balance', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));
@@ -500,7 +500,7 @@ abstract class weex extends \ccxt\Exchange {
         return $this->request('api/v3/market/ticker/price', 'public', 'GET', $params, null, null, array("cost" => 20));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function publicGetApiV3MarketTicker24hr($params = array()) {
         return $this->request('api/v3/market/ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 10));
@@ -752,7 +752,7 @@ abstract class weex extends \ccxt\Exchange {
         return $this->request('capi/v3/market/apiTradingSymbols', 'contract', 'GET', $params, null, null, array("cost" => 25));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function contractPrivateGetCapiV3AccountBalance($params = array()) {
         return $this->request('capi/v3/account/balance', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));

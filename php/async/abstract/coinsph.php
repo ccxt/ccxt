@@ -26,7 +26,7 @@ abstract class coinsph extends \ccxt\async\Exchange {
         return $this->request('openapi/v1/user/ip', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function public_get_openapi_quote_v1_ticker_24hr($params = array()) {
         return $this->request('openapi/quote/v1/ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 1, "noSymbolAndNoSymbols" => 40, "byNumberOfSymbols" => [[101, 40], [21, 20], [0, 1]]));
@@ -494,7 +494,7 @@ abstract class coinsph extends \ccxt\async\Exchange {
         return $this->request('openapi/v1/user/ip', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function publicGetOpenapiQuoteV1Ticker24hr($params = array()) {
         return $this->request('openapi/quote/v1/ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 1, "noSymbolAndNoSymbols" => 40, "byNumberOfSymbols" => [[101, 40], [21, 20], [0, 1]]));

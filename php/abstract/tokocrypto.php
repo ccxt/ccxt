@@ -44,7 +44,7 @@ abstract class tokocrypto extends \ccxt\Exchange {
         return $this->request('historicalTrades', 'binance', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function binance_get_klines($params = array()) {
         return $this->request('klines', 'binance', 'GET', $params, null, null, array("cost" => 1));
@@ -242,7 +242,7 @@ abstract class tokocrypto extends \ccxt\Exchange {
         return $this->request('historicalTrades', 'binance', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function binanceGetKlines($params = array()) {
         return $this->request('klines', 'binance', 'GET', $params, null, null, array("cost" => 1));
