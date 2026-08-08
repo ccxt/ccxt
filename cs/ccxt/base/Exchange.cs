@@ -400,31 +400,13 @@ public partial class BaseExchange
     /// shape that endpoint's api leaf declares.
     /// </summary>
     /// <remarks>
-    /// <para>
-    /// The type argument is the shape the endpoint's api leaf declares in the
-    /// TypeScript source (<c>{ 'cost': 1 } as Endpoint&lt;List&gt;</c>), which
-    /// build/generateImplicitAPI.ts writes onto every generated ccxt.api
-    /// method. The narrowing is castable rather than merely descriptive:
-    /// JsonHelper.Deserialize builds exactly Dictionary&lt;string, object&gt;
-    /// for a JSON object and List&lt;object&gt; for a JSON array.
-    /// </para>
-    /// <para>
-    /// The one thing this method must never do is answer default(T) for a body
-    /// it received but could not narrow. A silent null there is invisible at
-    /// the call site — parseBalance/parseTicker simply see nothing and return
-    /// an empty structure, which is how the first attempt at typed returns
-    /// emptied balances and tickers under STATIC_RESPONSE instead of failing.
-    /// So: the runtime shape is coerced when it is a compatible container, and
-    /// a genuine disagreement raises with both shapes named, pointing at the
-    /// api leaf that has to be corrected.
-    /// </para>
-    /// <para>
-    /// default(T) is reserved for the two cases where it is the truth: no body
-    /// at all, and a body that is not a JSON container and cannot be decoded
-    /// into one. A body that arrives still encoded (the static test harness
-    /// replaces fetch wholesale, so handleRestResponse never decodes it) is run
-    /// through the same decoder the transport would have used.
-    /// </para>
+    /// The type argument is the shape the api leaf declares in TypeScript
+    /// (<c>{ 'cost': 1 } as Endpoint&lt;List&gt;</c>). Bodies that reach here are
+    /// either already decoded by JsonHelper (Dictionary / List / string) or still
+    /// a JSON/error string when the static harness bypasses handleRestResponse.
+    /// Never answers default(T) for a useful body that merely fails to match T —
+    /// that silent null emptied balances/tickers under STATIC_RESPONSE; a hard
+    /// shape disagreement throws instead so the leaf can be corrected.
     /// </remarks>
     public async virtual Task<T> callAsync<T>(object implicitEndpoint2, object parameters = null)
     {
@@ -433,92 +415,49 @@ public partial class BaseExchange
     }
 
     /// <summary>
-    /// Narrows one decoded implicit API body to the shape its api leaf declares.
+    /// Narrows one implicit API body to the shape its api leaf declares.
     /// </summary>
     /// <remarks>
-    /// Separate from callAsync&lt;T&gt; so the narrowing is testable without a
-    /// transport, and so any other dynamic path can reuse it.
+    /// <paramref name="res"/> is only ever null, a JSON container already built
+    /// by JsonHelper (Dictionary&lt;string, object&gt; / List&lt;object&gt; / string),
+    /// or a still-encoded string (static harness). Separate from callAsync&lt;T&gt;
+    /// so the narrowing is testable without a transport.
     /// </remarks>
     public static T NarrowResponse<T>(object endpoint, object res)
     {
-        // the common case: the decoder already built exactly the declared type
+        // already the declared shape (includes scalar string endpoints)
         if (res is T typed)
         {
             return typed;
         }
-        // no body at all — nothing was dropped, because nothing arrived
         if (res == null)
         {
             return default(T);
         }
-        var target = typeof(T);
-        // endpoints whose leaf declares a union narrow to object: there is no
-        // single castable shape, so whatever arrived is what the caller gets
-        if (target == typeof(object))
-        {
-            return (T)res;
-        }
-        // Still-encoded body. handleRestResponse decodes on the live transport,
-        // but the static response harness replaces fetch itself and hands the
-        // recorded body straight back, so a fixture recorded as a JSON string
-        // reaches here undecoded. Run the transport's own decoder rather than
-        // calling that a shape disagreement — several exchanges already carry a
-        // `response is string -> parseJson(response)` guard for exactly this.
+        // still-encoded fixture / body: decode once, then match T
         if (res is string encoded)
         {
-            object decoded = null;
             try
             {
-                decoded = JsonHelper.Deserialize(encoded);
+                res = JsonHelper.Deserialize(encoded);
             }
             catch (Exception)
             {
-                decoded = null;
+                // error page or non-JSON — not a container the leaf can represent
+                return default(T);
             }
-            if (decoded is T decodedTyped)
+            if (res is T decodedTyped)
             {
                 return decodedTyped;
             }
-            if (decoded == null)
+            if (res == null)
             {
-                // an error page or an empty body: not a container in any
-                // language, and the declared shape cannot represent it
                 return default(T);
             }
-            res = decoded;
         }
-        // A sibling container: another IDictionary/IList implementation reached
-        // here (a plugged-in decoder, a fixture builder, a ws payload). The
-        // shape agrees, only the concrete type does not, so rebuild it rather
-        // than reporting a disagreement that is not one.
-        if ((target == typeof(Dictionary<string, object>) || target == typeof(IDictionary<string, object>))
-            && res is System.Collections.IDictionary sourceDictionary)
-        {
-            var rebuilt = new Dictionary<string, object>();
-            foreach (System.Collections.DictionaryEntry entry in sourceDictionary)
-            {
-                rebuilt[Convert.ToString(entry.Key)] = entry.Value;
-            }
-            return (T)(object)rebuilt;
-        }
-        if ((target == typeof(List<object>) || target == typeof(IList<object>))
-            && res is System.Collections.IList sourceList)
-        {
-            var rebuilt = new List<object>();
-            foreach (var item in sourceList)
-            {
-                rebuilt.Add(item);
-            }
-            return (T)(object)rebuilt;
-        }
-        // A real disagreement between the declared leaf and the body: the api
-        // tree says one container and the venue answered another. Returning
-        // default(T) here would erase a body the caller's parse* needs, and the
-        // empty balance/ticker that follows says nothing about where it went —
-        // that is precisely the failure mode this method exists to prevent. So
-        // name the endpoint and both shapes, and point at the leaf to correct.
+        // declared leaf and body disagree — name both so the Endpoint<> is fixed
         throw new ExchangeError(
-            "implicit API endpoint " + Convert.ToString(endpoint) + " is declared as " + DescribeShape(target)
+            "implicit API endpoint " + Convert.ToString(endpoint) + " is declared as " + DescribeShape(typeof(T))
             + " but answered with " + DescribeShape(res.GetType())
             + " — correct the Endpoint<...> assertion on its api leaf in ts/src, or call the untyped callAsync overload");
     }
@@ -537,6 +476,10 @@ public partial class BaseExchange
         if (type == typeof(string))
         {
             return "a JSON scalar (string)";
+        }
+        if (type == typeof(object))
+        {
+            return "a JSON value (object)";
         }
         return type.Name;
     }
