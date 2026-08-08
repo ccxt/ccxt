@@ -27,7 +27,7 @@ export default class bullish extends Exchange {
                 'margin': false,
                 'swap': true,
                 'future': false,
-                'option': false,
+                'option': true,
                 'addMargin': false,
                 'borrowMargin': false,
                 'cancelAllOrders': true,
