@@ -626,7 +626,7 @@ export default class hibachi extends Exchange {
         if (trades !== undefined) {
             tradesList = trades;
         }
-        return this.parseTrades (tradesList, market, since, limit);
+        return this.parseTrades (tradesList, market);
     }
 
     /**
