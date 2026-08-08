@@ -2,6 +2,7 @@ import assert from 'assert';
 import { Exchange } from "../../../ccxt.js";
 import testOHLCV from './base/test.ohlcv.js';
 import testSharedMethods from './base/test.sharedMethods.js';
+import type { Num, Str } from '../../base/types.js';
 
 async function testFetchOHLCV (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'fetchOHLCV';
@@ -31,7 +32,7 @@ async function testFetchOHLCV (exchange: Exchange, skippedProperties: object, sy
     }
 }
 
-function testFetchOHLCVChecker (exchange, skippedProperties, symbol, ohlcvs, timeframe, since, limit) {
+function testFetchOHLCVChecker (exchange: Exchange, skippedProperties: object, symbol: string, ohlcvs: any, timeframe: Str, since: Num, limit: Num) {
     const method = 'fetchOHLCV';
     let logText = testSharedMethods.logTemplate (exchange, method, {});
     assert (Array.isArray (ohlcvs), exchange.id + ' ' + method + ' must return an array, returned ' + logText);
