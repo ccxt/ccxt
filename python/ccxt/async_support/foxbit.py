@@ -1939,6 +1939,8 @@ class foxbit(Exchange, ImplicitAPI):
             bodyToSignature = body
         headers = {
             'Content-Type': 'application/json',
+            'X-FB-CLIENT': 'ccxt',
+            'X-FB-CLIENT-VERSION': self.get_ccxt_version(),
         }
         if urlPath == 'private':
             self.check_required_credentials()
