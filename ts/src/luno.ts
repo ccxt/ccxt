@@ -220,10 +220,51 @@ export default class luno extends Exchange {
             },
             'fees': {
                 'trading': {
+                    // Luno prices by PAIR CATEGORY as well as by 30-day volume tier:
+                    // crypto/fiat, stablecoin/fiat and crypto/crypto each have their own
+                    // ladder, and the maker side is a charge in one category and a rebate
+                    // in another at the same tier. A single scalar cannot represent that,
+                    // so per-market 'taker'/'maker' are set in fetchMarkets where the
+                    // published schedule has been verified. The values below are the
+                    // exchange-wide fallback: crypto/fiat at the entry tier, which is the
+                    // dearest cell in the table and therefore the safe direction to quote
+                    // for a caller who cannot reach the authenticated fetchTradingFee.
                     'tierBased': true, // based on volume from your primary currency (not the same for everyone)
                     'percentage': true,
-                    'taker': this.parseNumber ('0.001'),
-                    'maker': this.parseNumber ('0'),
+                    'taker': this.parseNumber ('0.006'),
+                    'maker': this.parseNumber ('0.004'),
+                    'tiers': {
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.006') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.005') ],
+                            [ this.parseNumber ('200000'), this.parseNumber ('0.004') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.003') ],
+                            [ this.parseNumber ('2000000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0015') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('20000000'), this.parseNumber ('0.0009') ],
+                            [ this.parseNumber ('40000000'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('80000000'), this.parseNumber ('0.0007') ],
+                            [ this.parseNumber ('120000000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('160000000'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('300000000'), this.parseNumber ('0.0005') ],
+                        ],
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.004') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.003') ],
+                            [ this.parseNumber ('200000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('2000000'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('20000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('40000000'), this.parseNumber ('-0.0001') ],
+                            [ this.parseNumber ('80000000'), this.parseNumber ('-0.0001') ],
+                            [ this.parseNumber ('120000000'), this.parseNumber ('-0.0002') ],
+                            [ this.parseNumber ('160000000'), this.parseNumber ('-0.0002') ],
+                            [ this.parseNumber ('300000000'), this.parseNumber ('-0.0002') ],
+                        ],
+                    },
                 },
             },
             'exceptions': {
@@ -536,9 +577,37 @@ export default class luno extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const status = this.safeString (market, 'trading_status');
+            // Luno's published schedule is categorical, not a single pair. Entry-tier
+            // rates below are read from Luno's own Help Centre fee article for the ZAR
+            // market; markets quoted in other fiat currencies are left on the
+            // exchange-wide default until their schedules are verified the same way.
+            const fiats = [ 'ZAR' ];
+            // live-but-unverified counters, kept on the exchange-wide default; the market
+            // list is geo-filtered so this is a superset of any one region's view, and
+            // ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
+            const unverifiedQuotes = [ 'MYR', 'NGN', 'IDR', 'KES', 'UGX', 'AUD', 'GBP', 'EUR', 'USD', 'ZARU' ];
+            const stablecoins = [ 'USDT', 'USDC' ];
+            let taker = undefined;
+            let maker = undefined;
+            if (this.inArray (quote, fiats)) {
+                if (this.inArray (base, stablecoins)) {
+                    taker = this.parseNumber ('0.002');
+                    maker = this.parseNumber ('-0.0001'); // a rebate, not a charge
+                } else {
+                    taker = this.parseNumber ('0.006');
+                    maker = this.parseNumber ('0.004');
+                }
+            } else if (!this.inArray (quote, unverifiedQuotes)) {
+                // stablecoin-quoted (BTC/USDT) and crypto-quoted (ETH/BTC, SOL/ADA) books
+                // are both in Luno's crypto/crypto column
+                taker = this.parseNumber ('0.001');
+                maker = this.parseNumber ('0.0008');
+            }
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
+                'taker': taker,
+                'maker': maker,
                 'base': base,
                 'quote': quote,
                 'settle': undefined,
