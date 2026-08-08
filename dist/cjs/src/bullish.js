@@ -28,7 +28,7 @@ class bullish extends bullish$1["default"] {
                 'margin': false,
                 'swap': true,
                 'future': true,
-                'option': false,
+                'option': true,
                 'addMargin': false,
                 'borrowMargin': false,
                 'cancelAllOrders': true,
