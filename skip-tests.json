@@ -579,6 +579,9 @@
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
+            },
+            "fetchTrades": {
+                "sideSequence": "todo check"
             }
         }
     },
@@ -2647,7 +2650,8 @@
                 "timestamp": "not provided"
             },
             "fetchTrades": {
-                "side": "not provided"
+                "side": "not provided",
+                "sideSequence": "todo check"
             },
             "watchTrades": {
                 "side": "not provided"
