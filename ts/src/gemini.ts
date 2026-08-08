@@ -1231,7 +1231,7 @@ export default class gemini extends Exchange {
         //         },
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTradesDirectional (response, market, since, limit);
     }
 
     override parseBalance (response: any): Balances {

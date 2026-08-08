@@ -17,7 +17,8 @@ async function testFetchTradesResponse (exchange: Exchange, skippedProperties: o
     if (!('requireBothSides' in skippedProperties) && trades.length > 50) {
         await testFetchTradesSidesBuySell (exchange, skippedProperties, symbol, method, trades);
     }
-    if (!('side' in skippedProperties) && !('timestamp' in skippedProperties) && !('timestampSort' in skippedProperties)) {
+    const isPrediction = exchange.safeBool (exchange.has, 'prediction', false); // todo: add predictions too, myriad, kalshi, limitless,
+    if (!('side' in skippedProperties) && !('timestamp' in skippedProperties) && !('timestampSort' in skippedProperties) && !isPrediction) {
         await testFetchTradesSideSequence (exchange, skippedProperties, symbol, method, trades);
     }
     if (!('timestampSort' in skippedProperties)) {
