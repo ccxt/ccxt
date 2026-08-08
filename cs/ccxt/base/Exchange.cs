@@ -401,12 +401,11 @@ public partial class BaseExchange
     /// </summary>
     /// <remarks>
     /// The type argument is the shape the api leaf declares in TypeScript
-    /// (<c>{ 'cost': 1 } as Endpoint&lt;List&gt;</c>). Bodies that reach here are
-    /// either already decoded by JsonHelper (Dictionary / List / string) or still
-    /// a JSON/error string when the static harness bypasses handleRestResponse.
-    /// Never answers default(T) for a useful body that merely fails to match T —
-    /// that silent null emptied balances/tickers under STATIC_RESPONSE; a hard
-    /// shape disagreement throws instead so the leaf can be corrected.
+    /// (<c>{ 'cost': 1 } as Endpoint&lt;List&gt;</c>). <c>res</c> is already a
+    /// decoded JSON value (Dictionary / List / string / null). Never answers
+    /// default(T) for a useful body that merely fails to match T — that silent
+    /// null emptied balances/tickers under STATIC_RESPONSE; a hard shape
+    /// disagreement throws instead so the leaf can be corrected.
     /// </remarks>
     public async virtual Task<T> callAsync<T>(object implicitEndpoint2, object parameters = null)
     {
@@ -415,17 +414,10 @@ public partial class BaseExchange
     }
 
     /// <summary>
-    /// Narrows one implicit API body to the shape its api leaf declares.
+    /// Narrows one already-decoded implicit API body to the shape its api leaf declares.
     /// </summary>
-    /// <remarks>
-    /// <paramref name="res"/> is only ever null, a JSON container already built
-    /// by JsonHelper (Dictionary&lt;string, object&gt; / List&lt;object&gt; / string),
-    /// or a still-encoded string (static harness). Separate from callAsync&lt;T&gt;
-    /// so the narrowing is testable without a transport.
-    /// </remarks>
     public static T NarrowResponse<T>(object endpoint, object res)
     {
-        // already the declared shape (includes scalar string endpoints)
         if (res is T typed)
         {
             return typed;
@@ -433,27 +425,6 @@ public partial class BaseExchange
         if (res == null)
         {
             return default(T);
-        }
-        // still-encoded fixture / body: decode once, then match T
-        if (res is string encoded)
-        {
-            try
-            {
-                res = JsonHelper.Deserialize(encoded);
-            }
-            catch (Exception)
-            {
-                // error page or non-JSON — not a container the leaf can represent
-                return default(T);
-            }
-            if (res is T decodedTyped)
-            {
-                return decodedTyped;
-            }
-            if (res == null)
-            {
-                return default(T);
-            }
         }
         // declared leaf and body disagree — name both so the Endpoint<> is fixed
         throw new ExchangeError(
