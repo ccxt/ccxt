@@ -6090,7 +6090,7 @@ export class BaseExchange {
 
     parseTradesDirectional (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, isNewestFirst: Bool = true, params = {}): Trade[] {
         const tradesArray = this.toArray (trades);
-        let result: Trade[] = [];
+        const result: Trade[] = [];
         for (let i = 0; i < tradesArray.length; i++) {
             const index = isNewestFirst ? tradesArray.length - 1 - i : i;
             const item = tradesArray[index];

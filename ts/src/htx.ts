@@ -3118,7 +3118,7 @@ export default class htx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        let rawTrades: List = [];
+        const rawTrades: List = [];
         for (let i = 0; i < data.length; i++) {
             const trades = this.safeValue (data[i], 'data', []);
             for (let j = 0; j < trades.length; j++) {
