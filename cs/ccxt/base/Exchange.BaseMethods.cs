@@ -30,6 +30,7 @@ public partial class BaseExchange
                 { "swap", null },
                 { "future", null },
                 { "option", null },
+                { "index", null },
                 { "addMargin", null },
                 { "borrowCrossMargin", null },
                 { "borrowIsolatedMargin", null },
