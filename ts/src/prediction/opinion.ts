@@ -1012,7 +1012,7 @@ export default class opinion extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price for market sell orders');
             }
         }
-        let marketOrderPrice = '0';
+        let marketOrderPrice: Str = '0';
         if (isMarket && (sideStr === 'SELL')) {
             marketOrderPrice = this.numberToString (price);
         }
