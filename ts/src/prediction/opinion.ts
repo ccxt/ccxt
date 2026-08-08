@@ -60,7 +60,7 @@ export default class opinion extends Exchange {
                 '1d': '1d',
             },
             'urls': {
-                'logo': '', // todo
+                'logo': 'https://github.com/user-attachments/assets/f633496f-8d3d-4bc2-a59c-612dbbf23b11',
                 'api': {
                     'opinion': 'https://openapi.opinion.trade/openapi',
                     'ws': 'wss://ws.opinion.trade',
@@ -331,7 +331,12 @@ export default class opinion extends Exchange {
             });
         }
         const marketResolvedOutcome = resolvedOutcome;
-        const expiryTimestamp = this.safeTimestamp (raw, 'cutoffAt');
+        // the venue sends cutoffAt 0 for markets without a scheduled cutoff - map it to
+        // undefined instead of the epoch, same for the event-level end date
+        let expiryTimestamp = undefined;
+        if (this.safeInteger (raw, 'cutoffAt', 0) !== 0) {
+            expiryTimestamp = this.safeTimestamp (raw, 'cutoffAt');
+        }
         const created = this.safeTimestamp (raw, 'createdAt');
         return {
             'id': marketId,
@@ -608,7 +613,10 @@ export default class opinion extends Exchange {
         const statusEnum = this.safeString (rawEvent, 'statusEnum');
         const active = (statusEnum === 'Activated');
         const resolved = (statusEnum === 'Resolved');
-        const end = this.safeTimestamp (rawEvent, 'cutoffAt');
+        let end = undefined;
+        if (this.safeInteger (rawEvent, 'cutoffAt', 0) !== 0) {
+            end = this.safeTimestamp (rawEvent, 'cutoffAt');
+        }
         const created = this.safeTimestamp (rawEvent, 'createdAt');
         const labels = this.safeList (rawEvent, 'labels', []);
         return this.extend ({
