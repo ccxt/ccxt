@@ -30,6 +30,7 @@ func (this *KucoinfuturesCore) Describe() any {
 			"future":        true,
 			"option":        nil,
 			"fetchBidsAsks": true,
+			"transfer":      true,
 		},
 		"options": map[string]any{
 			"fetchMarkets": map[string]any{
@@ -63,9 +64,9 @@ func (this *KucoinfuturesCore) FetchBidsAsks(optionalArgs ...any) <-chan any {
 			"method": "futuresPublicGetAllTickers",
 		}
 
-		retRes5515 := (<-this.FetchTickers(symbols, this.Extend(request, params)))
-		PanicOnError(retRes5515)
-		ch <- retRes5515
+		retRes5615 := (<-this.FetchTickers(symbols, this.Extend(request, params)))
+		PanicOnError(retRes5615)
+		ch <- retRes5615
 		return nil
 
 	}()
@@ -92,8 +93,8 @@ func (this *KucoinfuturesCore) Transfer(code any, amount any, fromAccount any, t
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes7112 := (<-this.LoadMarkets())
-			PanicOnError(retRes7112)
+			retRes7212 := (<-this.LoadMarkets())
+			PanicOnError(retRes7212)
 		}
 		var currency any = this.Currency(code)
 		var amountToPrecision any = this.CurrencyToPrecision(code, amount)

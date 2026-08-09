@@ -35,7 +35,7 @@ func (this *MexcCore) Describe() any {
 			"borrowMargin":                   false,
 			"cancelAllOrders":                true,
 			"cancelOrder":                    true,
-			"cancelOrders":                   nil,
+			"cancelOrders":                   true,
 			"closeAllPositions":              true,
 			"closePosition":                  false,
 			"createDepositAddress":           true,
@@ -135,7 +135,7 @@ func (this *MexcCore) Describe() any {
 			"setMarginMode":                  true,
 			"setPositionMode":                true,
 			"signIn":                         nil,
-			"transfer":                       nil,
+			"transfer":                       true,
 			"withdraw":                       true,
 		},
 		"urls": map[string]any{

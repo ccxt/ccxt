@@ -131,7 +131,7 @@ func (this *BydfiCore) Describe() any {
 			"fetchOpenInterest":                    false,
 			"fetchOpenInterestHistory":             false,
 			"fetchOpenInterests":                   false,
-			"fetchOpenOrder":                       false,
+			"fetchOpenOrder":                       true,
 			"fetchOpenOrders":                      true,
 			"fetchOption":                          false,
 			"fetchOptionChain":                     false,

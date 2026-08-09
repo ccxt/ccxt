@@ -90,6 +90,7 @@ func (this *HibachiCore) Describe() any {
 			"fetchOrder":                           true,
 			"fetchOrderBook":                       true,
 			"fetchOrders":                          false,
+			"fetchOrdersByStatus":                  true,
 			"fetchOrderTrades":                     false,
 			"fetchPosition":                        false,
 			"fetchPositionMode":                    false,
@@ -690,8 +691,8 @@ func (this *HibachiCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes60412 := (<-this.LoadMarkets())
-			PanicOnError(retRes60412)
+			retRes60512 := (<-this.LoadMarkets())
+			PanicOnError(retRes60512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -744,8 +745,8 @@ func (this *HibachiCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes64312 := (<-this.LoadMarkets())
-			PanicOnError(retRes64312)
+			retRes64412 := (<-this.LoadMarkets())
+			PanicOnError(retRes64412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -893,8 +894,8 @@ func (this *HibachiCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes77812 := (<-this.LoadMarkets())
-			PanicOnError(retRes77812)
+			retRes77912 := (<-this.LoadMarkets())
+			PanicOnError(retRes77912)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -932,8 +933,8 @@ func (this *HibachiCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes80212 := (<-this.LoadMarkets())
-			PanicOnError(retRes80212)
+			retRes80312 := (<-this.LoadMarkets())
+			PanicOnError(retRes80312)
 		}
 		var request any = map[string]any{
 			"accountId": this.GetAccountId(),
@@ -1104,8 +1105,8 @@ func (this *HibachiCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes95312 := (<-this.LoadMarkets())
-			PanicOnError(retRes95312)
+			retRes95412 := (<-this.LoadMarkets())
+			PanicOnError(retRes95412)
 		}
 		var nonce any = this.Nonce()
 		var request any = this.CreateOrderRequest(nonce, symbol, typeVar, side, amount, price, params)
@@ -1147,8 +1148,8 @@ func (this *HibachiCore) CreateOrders(orders any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes98112 := (<-this.LoadMarkets())
-			PanicOnError(retRes98112)
+			retRes98212 := (<-this.LoadMarkets())
+			PanicOnError(retRes98212)
 		}
 		var nonce any = this.Nonce()
 		var requestOrders any = []any{}
@@ -1250,15 +1251,15 @@ func (this *HibachiCore) EditOrder(id any, symbol any, typeVar any, side any, op
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes106012 := (<-this.LoadMarkets())
-			PanicOnError(retRes106012)
+			retRes106112 := (<-this.LoadMarkets())
+			PanicOnError(retRes106112)
 		}
 		var nonce any = this.Nonce()
 		var request any = this.EditOrderRequest(nonce, id, symbol, typeVar, side, amount, price, params)
 		AddElementToObject(request, "accountId", this.GetAccountId())
 
-		retRes10658 := (<-this.PrivatePutTradeOrder(request))
-		PanicOnError(retRes10658)
+		retRes10668 := (<-this.PrivatePutTradeOrder(request))
+		PanicOnError(retRes10668)
 
 		// At this time the response body is empty. A 200 response means the update request is accepted and sent to process
 		//
@@ -1292,8 +1293,8 @@ func (this *HibachiCore) EditOrders(orders any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes108712 := (<-this.LoadMarkets())
-			PanicOnError(retRes108712)
+			retRes108812 := (<-this.LoadMarkets())
+			PanicOnError(retRes108812)
 		}
 		var nonce any = this.Nonce()
 		var requestOrders any = []any{}
@@ -1462,8 +1463,8 @@ func (this *HibachiCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes121112 := (<-this.LoadMarkets())
-			PanicOnError(retRes121112)
+			retRes121212 := (<-this.LoadMarkets())
+			PanicOnError(retRes121212)
 		}
 		var nonce any = this.Nonce()
 		var nonce16 any = this.IntToBase16(nonce)
@@ -1573,8 +1574,8 @@ func (this *HibachiCore) Withdraw(code any, amount any, address any, optionalArg
 			"signature":       signature,
 		}
 
-		retRes13068 := (<-this.PrivatePostCapitalWithdraw(this.Extend(request, params)))
-		PanicOnError(retRes13068)
+		retRes13078 := (<-this.PrivatePostCapitalWithdraw(this.Extend(request, params)))
+		PanicOnError(retRes13078)
 
 		// At this time the response body is empty. A 200 response means the withdraw request is accepted and sent to process
 		//
@@ -1649,8 +1650,8 @@ func (this *HibachiCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes136612 := (<-this.LoadMarkets())
-			PanicOnError(retRes136612)
+			retRes136712 := (<-this.LoadMarkets())
+			PanicOnError(retRes136712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1734,8 +1735,8 @@ func (this *HibachiCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes143012 := (<-this.LoadMarkets())
-			PanicOnError(retRes143012)
+			retRes143112 := (<-this.LoadMarkets())
+			PanicOnError(retRes143112)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1825,8 +1826,8 @@ func (this *HibachiCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes150412 := (<-this.LoadMarkets())
-			PanicOnError(retRes150412)
+			retRes150512 := (<-this.LoadMarkets())
+			PanicOnError(retRes150512)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1904,8 +1905,8 @@ func (this *HibachiCore) FetchOrdersByStatus(status any, optionalArgs ...any) <-
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes156212 := (<-this.LoadMarkets())
-			PanicOnError(retRes156212)
+			retRes156312 := (<-this.LoadMarkets())
+			PanicOnError(retRes156312)
 		}
 		var market any = nil
 		var request any = map[string]any{
@@ -2070,8 +2071,8 @@ func (this *HibachiCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes166712 := (<-this.LoadMarkets())
-			PanicOnError(retRes166712)
+			retRes166812 := (<-this.LoadMarkets())
+			PanicOnError(retRes166812)
 		}
 		var market any = this.Market(symbol)
 		timeframe = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -2134,8 +2135,8 @@ func (this *HibachiCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes171212 := (<-this.LoadMarkets())
-			PanicOnError(retRes171212)
+			retRes171312 := (<-this.LoadMarkets())
+			PanicOnError(retRes171312)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{
@@ -2407,8 +2408,8 @@ func (this *HibachiCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes194612 := (<-this.LoadMarkets())
-			PanicOnError(retRes194612)
+			retRes194712 := (<-this.LoadMarkets())
+			PanicOnError(retRes194712)
 		}
 		var currency any = this.Currency("USDT")
 		var request any = map[string]any{
@@ -2785,8 +2786,8 @@ func (this *HibachiCore) FetchMySettlementHistory(optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes22318 := (<-this.LoadMarkets())
-		PanicOnError(retRes22318)
+		retRes22328 := (<-this.LoadMarkets())
+		PanicOnError(retRes22328)
 		var market any = nil
 		var request any = map[string]any{
 			"accountId": this.GetAccountId(),
@@ -2885,8 +2886,8 @@ func (this *HibachiCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes230112 := (<-this.LoadMarkets())
-			PanicOnError(retRes230112)
+			retRes230212 := (<-this.LoadMarkets())
+			PanicOnError(retRes230212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2932,8 +2933,8 @@ func (this *HibachiCore) FetchFundingRate(symbol any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes233312 := (<-this.LoadMarkets())
-			PanicOnError(retRes233312)
+			retRes233412 := (<-this.LoadMarkets())
+			PanicOnError(retRes233412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -3012,8 +3013,8 @@ func (this *HibachiCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes239212 := (<-this.LoadMarkets())
-			PanicOnError(retRes239212)
+			retRes239312 := (<-this.LoadMarkets())
+			PanicOnError(retRes239312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
