@@ -801,6 +801,8 @@ public partial class whitebit : ccxt.whitebit
      * @see https://docs.whitebit.com/private/websocket/#balance-margin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
+     * @param {bool} [params.fetchBalanceSnapshot] whether to fetch the initial balance snapshot over REST, default is true
+     * @param {bool} [params.awaitBalanceSnapshot] whether to wait for the balance snapshot before providing updates, default is true
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> watchBalance(object parameters = null)
@@ -825,12 +827,63 @@ public partial class whitebit : ccxt.whitebit
             method = "balanceMargin_subscribe";
             messageHash = add(messageHash, "margin");
         }
-        object currencies = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
-        return await this.watchPrivate(messageHash, method, currencies, parameters);
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        var client = this.client(url);
+        this.setBalanceCache(client as WebSocketClient, type, messageHash);
+        object fetchBalanceSnapshot = null;
+        object awaitBalanceSnapshot = null;
+        var fetchBalanceSnapshotparametersVariable = this.handleOptionAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
+        fetchBalanceSnapshot = ((IList<object>)fetchBalanceSnapshotparametersVariable)[0];
+        parameters = ((IList<object>)fetchBalanceSnapshotparametersVariable)[1];
+        var awaitBalanceSnapshotparametersVariable = this.handleOptionAndParams(parameters, "watchBalance", "awaitBalanceSnapshot", true);
+        awaitBalanceSnapshot = ((IList<object>)awaitBalanceSnapshotparametersVariable)[0];
+        parameters = ((IList<object>)awaitBalanceSnapshotparametersVariable)[1];
+        if (isTrue(isTrue(fetchBalanceSnapshot) && isTrue(awaitBalanceSnapshot)))
+        {
+            await client.future(add(type, ":fetchBalanceSnapshot"));
+        }
+        // an empty params array subscribes to updates for all assets,
+        // listing all tickers explicitly is rejected with "invalid argument"
+        return await this.watchPrivate(messageHash, method, new List<object>() {}, parameters);
+    }
+
+    public virtual void setBalanceCache(WebSocketClient client, object type, object subscriptionHash)
+    {
+        if (isTrue(inOp(((WebSocketClient)client).subscriptions, subscriptionHash)))
+        {
+            return;
+        }
+        object fetchBalanceSnapshot = this.handleOption("watchBalance", "fetchBalanceSnapshot", true);
+        if (isTrue(fetchBalanceSnapshot))
+        {
+            object messageHash = add(type, ":fetchBalanceSnapshot");
+            if (!isTrue((inOp(client.futures, messageHash))))
+            {
+                client.future(messageHash);
+                this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type, subscriptionHash});
+            }
+        }
+    }
+
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type, object subscriptionHash)
+    {
+        object response = await this.fetchBalance(new Dictionary<string, object>() {
+            { "type", type },
+        });
+        this.balance = this.extend(response, this.balance);
+        // don't remove the future from the .futures cache
+        if (isTrue(inOp(client.futures, messageHash)))
+        {
+            var future = getValue(client.futures, messageHash);
+            (future as Future).resolve();
+            callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, subscriptionHash});
+        }
     }
 
     public virtual void handleBalance(WebSocketClient client, object message)
     {
+        //
+        // spot
         //
         //   {
         //       "method":"balanceSpot_update",
@@ -839,7 +892,27 @@ public partial class whitebit : ccxt.whitebit
         //             "LTC":{
         //                "available":"0.16587",
         //                "freeze":"0"
+        //             },
+        //             "BTC":{
+        //                "available":"0.005",
+        //                "freeze":"0.001"
         //             }
+        //          }
+        //       ],
+        //       "id":null
+        //   }
+        //
+        // margin
+        //
+        //   {
+        //       "method":"balanceMargin_update",
+        //       "params":[
+        //          {
+        //             "a":"USDT",         // asset
+        //             "B":"0.00538073",   // total balance
+        //             "b":"0",            // borrowed
+        //             "av":"0.00538073",  // available without borrowing
+        //             "ab":"28.43739825"  // available with borrowing
         //          }
         //       ],
         //       "id":null
@@ -850,19 +923,41 @@ public partial class whitebit : ccxt.whitebit
         {
             return;
         }
-        object data = this.safeValue(message, "params");
-        object balanceDict = this.safeValue(data, 0);
-        ((IDictionary<string,object>)this.balance)["info"] = balanceDict;
-        object keys = new List<object>(((IDictionary<string,object>)balanceDict).Keys);
-        object currencyId = this.safeValue(keys, 0);
-        object rawBalance = this.safeValue(balanceDict, currencyId);
-        object code = this.safeCurrencyCode(currencyId);
-        object account = this.account();
-        ((IDictionary<string,object>)account)["free"] = this.safeString(rawBalance, "available");
-        ((IDictionary<string,object>)account)["used"] = this.safeString(rawBalance, "freeze");
-        if (isTrue(!isEqual(code, null)))
+        object isMargin = (isGreaterThanOrEqual(getIndexOf(method, "Margin"), 0));
+        object data = this.safeList(message, "params", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            object balanceDict = this.safeDict(data, i, new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)this.balance)["info"] = balanceDict;
+            if (isTrue(isMargin))
+            {
+                object currencyId = this.safeString(balanceDict, "a");
+                object code = this.safeCurrencyCode(currencyId);
+                object account = this.account();
+                ((IDictionary<string,object>)account)["free"] = this.safeString(balanceDict, "av");
+                ((IDictionary<string,object>)account)["total"] = this.safeString(balanceDict, "B");
+                ((IDictionary<string,object>)account)["debt"] = this.safeString(balanceDict, "b");
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                }
+            } else
+            {
+                object keys = new List<object>(((IDictionary<string,object>)balanceDict).Keys);
+                for (object j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
+                {
+                    object currencyId = getValue(keys, j);
+                    object rawBalance = this.safeDict(balanceDict, currencyId, new Dictionary<string, object>() {});
+                    object code = this.safeCurrencyCode(currencyId);
+                    object account = this.account();
+                    ((IDictionary<string,object>)account)["free"] = this.safeString(rawBalance, "available");
+                    ((IDictionary<string,object>)account)["used"] = this.safeString(rawBalance, "freeze");
+                    if (isTrue(!isEqual(code, null)))
+                    {
+                        ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                    }
+                }
+            }
         }
         this.balance = this.safeBalance(this.balance);
         object messageHash = "wallet:";
