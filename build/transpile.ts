@@ -757,7 +757,9 @@ class Transpiler {
             // the `?? ''` on the key preserves the pre-php-8.5 implicit null-to-'' offset
             // coercion - unified code checks `key in obj` with nullable keys (silent in js),
             // and php 8.5 deprecates a literal null key in array_key_exists
-            [ /\(([^\s\(]+)\sin\s([^\)]+)\)/g, '(is_array($2) && array_key_exists($1 ?? \'\', $2))' ],
+            // [^\)\n] - never cross a line: legit (x in y) expressions are single-line, and a
+            // paren inside a preceding comment must not arm this rule across the boundary
+            [ /\(([^\s\(]+)\sin\s([^\)\n]+)\)/g, '(is_array($2) && array_key_exists($1 ?? \'\', $2))' ],
             [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode($2, $1)' ],
             [ 'new ccxt\\.', 'new \\ccxt\\' ], // a special case for test_exchange_datetime_functions.php (and for other files, maybe)
             [ /Math\.(max|min)\s*\(/g, '$1(' ],
