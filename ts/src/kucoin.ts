@@ -82,7 +82,7 @@ export default class kucoin extends Exchange {
                 'fetchL3OrderBook': true,
                 'fetchLedger': true,
                 'fetchLeverage': true,
-                'fetchLeverageTiers': false,
+                'fetchLeverageTiers': true,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': true,
