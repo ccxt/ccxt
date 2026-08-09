@@ -1991,7 +1991,7 @@ export default class mexc extends mexcRest {
             } else if (messageHash.indexOf ('candles') >= 0) {
                 const splitHashes = messageHash.split (':');
                 let symbol = this.safeString (splitHashes, 2);
-                const splitHashesLength = splitHashes.length; // hoisted - inline .length in conditionals transpiles to strlen() in php, fatal on arrays
+                const splitHashesLength = splitHashes.length; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if (splitHashesLength > 4) {
                     symbol += ':' + this.safeString (splitHashes, 3);
                 }
