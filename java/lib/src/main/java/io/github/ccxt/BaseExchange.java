@@ -42,6 +42,53 @@ import java.lang.reflect.Constructor;
 
 public class BaseExchange {
 
+    private java.util.Map<String, long[]> wsBackoffState = new java.util.HashMap<>();
+
+    // exponential reconnect backoff with rng-free jitter, mirrors ts/src/base/Exchange.ts
+    // calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
+    public int calculateWsBackoffDelay(Object url) {
+        String urlKey = url.toString();
+        long base = 1000L;
+        long factor = 2L;
+        long maxDelay = 60000L;
+        long stableAfter = 30000L;
+        Object wsOptions = Helpers.GetValue(this.options, "ws");
+        Object backoff = (wsOptions == null) ? null : Helpers.GetValue(wsOptions, "backoff");
+        if (backoff != null) {
+            Object value = Helpers.GetValue(backoff, "base");
+            if (value != null) { base = Helpers.toInt64(value); }
+            value = Helpers.GetValue(backoff, "factor");
+            if (value != null) { factor = Helpers.toInt64(value); }
+            value = Helpers.GetValue(backoff, "max");
+            if (value != null) { maxDelay = Helpers.toInt64(value); }
+            value = Helpers.GetValue(backoff, "stableAfter");
+            if (value != null) { stableAfter = Helpers.toInt64(value); }
+        }
+        long now = this.milliseconds();
+        long attempts = 0L;
+        long lastAttempt = 0L;
+        long[] state = this.wsBackoffState.get(urlKey);
+        if (state != null) {
+            attempts = state[0];
+            lastAttempt = state[1];
+        }
+        if ((lastAttempt > 0L) && ((now - lastAttempt) > stableAfter)) {
+            attempts = 0L; // the previous connection was healthy long enough, start fresh
+        }
+        this.wsBackoffState.put(urlKey, new long[] { attempts + 1L, now });
+        if (attempts == 0L) {
+            return 0; // first dial or recovered, connect immediately
+        }
+        long delay = base;
+        long capped = Math.min(attempts, 20L); // overflow guard
+        for (long i = 1L; i < capped; i++) {
+            delay = delay * factor;
+        }
+        long jitterMillis = now % 1000L; // rng-free jitter
+        long jittered = (long) (delay * (0.8 + (jitterMillis / 2500.0))); // 0.8x .. 1.2x
+        return (int) Math.min(jittered, maxDelay); // the ceiling holds regardless of jitter
+    }
+
     // Virtual thread executor for non-blocking async operations.
     // Virtual threads park at zero cost on .join(), enabling hundreds of concurrent
     // requests without exhausting platform threads.
@@ -1159,6 +1206,11 @@ public class BaseExchange {
         return Strings.uuid();
     }
 
+    // returns the version of the ccxt library, e.g. "4.5.71"
+    public String getCcxtVersion() {
+        return Version.VERSION;
+    }
+
     // =======================
     // Time
     // =======================
@@ -1721,7 +1773,12 @@ public class BaseExchange {
         io.github.ccxt.ws.Future future = client.future(messageHash);
 
         if (client.subscriptionsMap().putIfAbsent(subscribeHash, subscription != null ? subscription : true) == null) {
-            client.connect(0).thenAccept(connected -> {
+            int backoffDelay = 0;
+            if (!client.startedConnecting.get()) {
+                // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
+                backoffDelay = this.calculateWsBackoffDelay(url);
+            }
+            client.connect(backoffDelay).thenAccept(connected -> {
                 if (message != null) {
                     try {
                         client.send(message);
@@ -1764,7 +1821,12 @@ public class BaseExchange {
         }
 
         if (subscribeHashes2 == null || !missingSubscriptions.isEmpty()) {
-            client.connect(0).thenAccept(connected -> {
+            int backoffDelay = 0;
+            if (!client.startedConnecting.get()) {
+                // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
+                backoffDelay = this.calculateWsBackoffDelay(url);
+            }
+            client.connect(backoffDelay).thenAccept(connected -> {
                 if (message != null) {
                     try {
                         client.send(message);
@@ -2330,7 +2392,23 @@ public class BaseExchange {
         }
     }
 
-    public CompletableFuture<Object> callAsync(Object implicitEndpoint2, Object... args) {
+    /**
+     * Calls one implicit API endpoint by its generated name.
+     *
+     * <p>The type argument is the shape the endpoint's api leaf declares in the
+     * TypeScript source (`{ 'cost': 1 } as Endpoint&lt;List&gt;`), which
+     * build/generateImplicitAPI.ts writes onto every generated
+     * io.github.ccxt.api method. It is a claim about the decoded JSON body, so
+     * it is unchecked here for the same reason the rest of this class casts
+     * unchecked: erasure means nothing is verified until a caller assigns the
+     * value to a typed local, and the generated callers all widen to Object.
+     *
+     * <p>A response body that fails to parse as JSON is handed back as the raw
+     * String (see handleRestResponse), so a T of Map/List is the documented
+     * happy path rather than a runtime guarantee.
+     */
+    @SuppressWarnings("unchecked")
+    public <T> CompletableFuture<T> callAsync(Object implicitEndpoint2, Object... args) {
         // First optional arg is "parameters"
         Object parameters = (args != null && args.length > 0) ? args[0] : null;
 
@@ -2358,7 +2436,7 @@ public class BaseExchange {
 
             // body = null here, same as in your C# comment
             // try {
-            return this.fetch2(path, api, method, parameters, emptyMap, null, costMap);
+            return (CompletableFuture<T>) this.fetch2(path, api, method, parameters, emptyMap, null, costMap);
                 // return CompletableFuture.completedFuture(res);
             // } catch (Exception e) {
             //     // throw e;
@@ -2366,7 +2444,7 @@ public class BaseExchange {
 
         }
 
-        CompletableFuture<Object> failed = new CompletableFuture<>();
+        CompletableFuture<T> failed = new CompletableFuture<>();
         failed.completeExceptionally(new RuntimeException("Endpoint not found!"));
         return failed;
     }
@@ -3781,6 +3859,7 @@ public Object describe()
                 put( "swap", null );
                 put( "future", null );
                 put( "option", null );
+                put( "index", null );
                 put( "addMargin", null );
                 put( "borrowCrossMargin", null );
                 put( "borrowIsolatedMargin", null );
@@ -5935,6 +6014,11 @@ public Object describe()
                     put( "default", "primary" );
                 }} );
             }} );
+            put( "backwardSupportedNetworkCodes", new java.util.HashMap<String, Object>() {{
+                put( "ARB", "ARBITRUM" );
+                put( "ARBONE", "ARBITRUM" );
+                put( "ARBNOVA", "ARBITRUM_NOVA" );
+            }} );
         }};
     }
 
@@ -7990,6 +8074,12 @@ public Object describe()
                 return this.safeString(Helpers.GetValue(networks, networkCode), "id");
             }
         }
+        // before returning the original input, try to match if it's backward-maintained networkCode
+        Object oldCodes = this.safeDict(this.options, "backwardSupportedNetworkCodes", new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.inOp(oldCodes, networkCode)))
+        {
+            return this.networkCodeToId(Helpers.GetValue(oldCodes, networkCode), currencyCode);
+        }
         return networkCode;
     }
 
@@ -8286,11 +8376,11 @@ public Object describe()
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         symbols = this.marketSymbols(symbols);
-        positions = this.toArray(positions);
+        Object positionsArray = this.toArray(positions);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positionsArray)); i++)
         {
-            Object position = this.extend(this.parsePosition(Helpers.GetValue(positions, i)), parameters);
+            Object position = this.extend(this.parsePosition(Helpers.GetValue(positionsArray, i)), parameters);
             ((java.util.List<Object>)result).add(position);
         }
         return this.filterByArrayPositions(result, "symbol", symbols, false);
@@ -8311,11 +8401,11 @@ public Object describe()
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         symbols = this.marketSymbols(symbols);
-        ranks = this.toArray(ranks);
+        Object ranksArray = this.toArray(ranks);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ranks)); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ranksArray)); i++)
         {
-            Object rank = this.extend(this.parseADLRank(Helpers.GetValue(ranks, i)), parameters);
+            Object rank = this.extend(this.parseADLRank(Helpers.GetValue(ranksArray, i)), parameters);
             ((java.util.List<Object>)result).add(rank);
         }
         return this.filterByArrayPositions(result, "symbol", symbols, false);
@@ -8324,11 +8414,11 @@ public Object describe()
     public Object parseAccounts(Object accounts, Object... optionalArgs)
     {
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        accounts = this.toArray(accounts);
+        Object accountsArray = this.toArray(accounts);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(accounts)); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(accountsArray)); i++)
         {
-            Object account = this.extend(this.parseAccount(Helpers.GetValue(accounts, i)), parameters);
+            Object account = this.extend(this.parseAccount(Helpers.GetValue(accountsArray, i)), parameters);
             ((java.util.List<Object>)result).add(account);
         }
         return result;
@@ -8340,17 +8430,17 @@ public Object describe()
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-        trades = this.toArray(trades);
+        Object tradesArray = this.toArray(trades);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tradesArray)); i++)
         {
             Object parsed = null;
             if (Helpers.isTrue(isWs))
             {
-                parsed = this.parseWsTrade(Helpers.GetValue(trades, i), market);
+                parsed = this.parseWsTrade(Helpers.GetValue(tradesArray, i), market);
             } else
             {
-                parsed = this.parseTrade(Helpers.GetValue(trades, i), market);
+                parsed = this.parseTrade(Helpers.GetValue(tradesArray, i), market);
             }
             Object trade = this.extend(parsed, parameters);
             ((java.util.List<Object>)result).add(trade);
@@ -8384,11 +8474,11 @@ public Object describe()
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-        transactions = this.toArray(transactions);
+        Object transactionsArray = this.toArray(transactions);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transactions)); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transactionsArray)); i++)
         {
-            Object transaction = this.extend(this.parseTransaction(Helpers.GetValue(transactions, i), currency), parameters);
+            Object transaction = this.extend(this.parseTransaction(Helpers.GetValue(transactionsArray, i), currency), parameters);
             ((java.util.List<Object>)result).add(transaction);
         }
         result = this.sortBy(result, "timestamp");
@@ -8402,11 +8492,11 @@ public Object describe()
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-        transfers = this.toArray(transfers);
+        Object transfersArray = this.toArray(transfers);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transfers)); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transfersArray)); i++)
         {
-            Object transfer = this.extend(this.parseTransfer(Helpers.GetValue(transfers, i), currency), parameters);
+            Object transfer = this.extend(this.parseTransfer(Helpers.GetValue(transfersArray, i), currency), parameters);
             ((java.util.List<Object>)result).add(transfer);
         }
         result = this.sortBy(result, "timestamp");
@@ -11807,6 +11897,8 @@ public Object describe()
 
     }
 
+    // the 'symbol' slot is forwarded to `this[method]` untouched and is only compared against
+    // undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
     public java.util.concurrent.CompletableFuture<Object> fetchPaginatedCallCursor(Object method2, Object... optionalArgs)
     {
         final Object method3 = method2;
@@ -11858,7 +11950,7 @@ public Object describe()
                         response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, parameters })).join();
                     } else if (Helpers.isTrue(Helpers.isEqual(method, "fetchOpenInterestHistory")))
                     {
-                        if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+                        if (Helpers.isTrue(!(symbol instanceof String)))
                         {
                             throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPaginatedCallCursor() requires a symbol argument")) ;
                         }
@@ -12276,13 +12368,13 @@ public Object describe()
         Object since = Helpers.getArg(optionalArgs, 3, null);
         Object limit = Helpers.getArg(optionalArgs, 4, null);
         Object parameters = Helpers.getArg(optionalArgs, 5, new java.util.HashMap<String, Object>() {{}});
-        conversions = this.toArray(conversions);
+        Object conversionsArray = this.toArray(conversions);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object fromCurrency = null;
         Object toCurrency = null;
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(conversions)); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(conversionsArray)); i++)
         {
-            Object entry = Helpers.GetValue(conversions, i);
+            Object entry = Helpers.GetValue(conversionsArray, i);
             Object fromId = ((Helpers.isTrue((Helpers.isEqual(fromCurrencyKey, null))))) ? null : this.safeString(entry, fromCurrencyKey);
             Object toId = ((Helpers.isTrue((Helpers.isEqual(toCurrencyKey, null))))) ? null : this.safeString(entry, toCurrencyKey);
             if (Helpers.isTrue(!Helpers.isEqual(fromId, null)))

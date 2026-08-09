@@ -58,6 +58,7 @@ public partial class coinbaseinternational : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDeposits", true },
+                { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", true },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", true },
@@ -103,6 +104,7 @@ public partial class coinbaseinternational : Exchange
                 { "setMargin", true },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
+                { "transfer", true },
                 { "withdraw", true },
             } },
             { "urls", new Dictionary<string, object>() {
@@ -126,13 +128,123 @@ public partial class coinbaseinternational : Exchange
             { "api", new Dictionary<string, object>() {
                 { "v1", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"assets", "assets/{assets}", "assets/{asset}/networks", "instruments", "instruments/{instrument}", "instruments/{instrument}/quote", "instruments/{instrument}/funding", "instruments/{instrument}/candles"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "assets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "assets/{assets}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "assets/{asset}/networks", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "instruments", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "instruments/{instrument}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "instruments/{instrument}/quote", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "instruments/{instrument}/funding", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "instruments/{instrument}/candles", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                     { "private", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"orders", "orders/{id}", "portfolios", "portfolios/{portfolio}", "portfolios/{portfolio}/detail", "portfolios/{portfolio}/summary", "portfolios/{portfolio}/balances", "portfolios/{portfolio}/balances/{asset}", "portfolios/{portfolio}/positions", "portfolios/{portfolio}/positions/{instrument}", "portfolios/fills", "portfolios/{portfolio}/fills", "transfers", "transfers/{transfer_uuid}"} },
-                        { "post", new List<object>() {"orders", "portfolios", "portfolios/margin", "portfolios/transfer", "transfers/withdraw", "transfers/address", "transfers/create-counterparty-id", "transfers/validate-counterparty-id", "transfers/withdraw/counterparty"} },
-                        { "put", new List<object>() {"orders/{id}", "portfolios/{portfolio}"} },
-                        { "delete", new List<object>() {"orders", "orders/{id}"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/summary", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/balances", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/balances/{asset}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/positions/{instrument}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/fills", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/fills", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "transfers", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "transfers/{transfer_uuid}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "post", new Dictionary<string, object>() {
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/margin", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/transfer", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "transfers/withdraw", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "transfers/address", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "transfers/create-counterparty-id", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "transfers/validate-counterparty-id", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "transfers/withdraw/counterparty", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "put", new Dictionary<string, object>() {
+                            { "orders/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "delete", new Dictionary<string, object>() {
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                 } },
             } },
@@ -972,7 +1084,8 @@ public partial class coinbaseinternational : Exchange
             { "portfolio", portfolio },
             { "margin_override", amount },
         };
-        return await this.v1PrivatePostPortfoliosMargin(this.extend(request, parameters));
+        object response = await this.v1PrivatePostPortfoliosMargin(this.extend(request, parameters));
+        return response;
     }
 
     /**
@@ -1641,9 +1754,14 @@ public partial class coinbaseinternational : Exchange
         symbols = this.marketSymbols(symbols);
         object instruments = await this.v1PublicGetInstruments(parameters);
         object tickers = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(instruments)); postFixIncrement(ref i))
+        object rows = new List<object>() {};
+        if (isTrue(((instruments is IList<object>) || (instruments.GetType().IsGenericType && instruments.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            object instrument = getValue(instruments, i);
+            rows = instruments;
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        {
+            object instrument = getValue(rows, i);
             object marketId = this.safeString(instrument, "symbol");
             object symbol = this.safeSymbol(marketId);
             object quote = this.safeDict(instrument, "quote", new Dictionary<string, object>() {});

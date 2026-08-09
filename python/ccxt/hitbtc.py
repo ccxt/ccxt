@@ -48,7 +48,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'closePosition': False,
+                'closePosition': True,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
@@ -150,129 +150,129 @@ class hitbtc(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'public/currency': 10,
-                        'public/currency/{currency}': 10,
-                        'public/symbol': 10,
-                        'public/symbol/{symbol}': 10,
-                        'public/ticker': 10,
-                        'public/ticker/{symbol}': 10,
-                        'public/price/rate': 10,
-                        'public/price/history': 10,
-                        'public/price/ticker': 10,
-                        'public/price/ticker/{symbol}': 10,
-                        'public/trades': 10,
-                        'public/trades/{symbol}': 10,
-                        'public/orderbook': 10,
-                        'public/orderbook/{symbol}': 10,
-                        'public/candles': 10,
-                        'public/candles/{symbol}': 10,
-                        'public/converted/candles': 10,
-                        'public/converted/candles/{symbol}': 10,
-                        'public/futures/info': 10,
-                        'public/futures/info/{symbol}': 10,
-                        'public/futures/history/funding': 10,
-                        'public/futures/history/funding/{symbol}': 10,
-                        'public/futures/candles/index_price': 10,
-                        'public/futures/candles/index_price/{symbol}': 10,
-                        'public/futures/candles/mark_price': 10,
-                        'public/futures/candles/mark_price/{symbol}': 10,
-                        'public/futures/candles/premium_index': 10,
-                        'public/futures/candles/premium_index/{symbol}': 10,
-                        'public/futures/candles/open_interest': 10,
-                        'public/futures/candles/open_interest/{symbol}': 10,
+                        'public/currency': {'cost': 10},
+                        'public/currency/{currency}': {'cost': 10},
+                        'public/symbol': {'cost': 10},
+                        'public/symbol/{symbol}': {'cost': 10},
+                        'public/ticker': {'cost': 10},
+                        'public/ticker/{symbol}': {'cost': 10},
+                        'public/price/rate': {'cost': 10},
+                        'public/price/history': {'cost': 10},
+                        'public/price/ticker': {'cost': 10},
+                        'public/price/ticker/{symbol}': {'cost': 10},
+                        'public/trades': {'cost': 10},
+                        'public/trades/{symbol}': {'cost': 10},
+                        'public/orderbook': {'cost': 10},
+                        'public/orderbook/{symbol}': {'cost': 10},
+                        'public/candles': {'cost': 10},
+                        'public/candles/{symbol}': {'cost': 10},
+                        'public/converted/candles': {'cost': 10},
+                        'public/converted/candles/{symbol}': {'cost': 10},
+                        'public/futures/info': {'cost': 10},
+                        'public/futures/info/{symbol}': {'cost': 10},
+                        'public/futures/history/funding': {'cost': 10},
+                        'public/futures/history/funding/{symbol}': {'cost': 10},
+                        'public/futures/candles/index_price': {'cost': 10},
+                        'public/futures/candles/index_price/{symbol}': {'cost': 10},
+                        'public/futures/candles/mark_price': {'cost': 10},
+                        'public/futures/candles/mark_price/{symbol}': {'cost': 10},
+                        'public/futures/candles/premium_index': {'cost': 10},
+                        'public/futures/candles/premium_index/{symbol}': {'cost': 10},
+                        'public/futures/candles/open_interest': {'cost': 10},
+                        'public/futures/candles/open_interest/{symbol}': {'cost': 10},
                     },
                 },
                 'private': {
                     'get': {
-                        'spot/balance': 15,
-                        'spot/balance/{currency}': 15,
-                        'spot/order': 1,
-                        'spot/order/{client_order_id}': 1,
-                        'spot/fee': 15,
-                        'spot/fee/{symbol}': 15,
-                        'spot/history/order': 15,
-                        'spot/history/trade': 15,
-                        'margin/account': 1,
-                        'margin/account/isolated/{symbol}': 1,
-                        'margin/account/cross/{currency}': 1,
-                        'margin/order': 1,
-                        'margin/order/{client_order_id}': 1,
-                        'margin/config': 15,
-                        'margin/history/order': 15,
-                        'margin/history/trade': 15,
-                        'margin/history/positions': 15,
-                        'margin/history/clearing': 15,
-                        'futures/balance': 15,
-                        'futures/balance/{currency}': 15,
-                        'futures/account': 1,
-                        'futures/account/isolated/{symbol}': 1,
-                        'futures/order': 1,
-                        'futures/order/{client_order_id}': 1,
-                        'futures/config': 15,
-                        'futures/fee': 15,
-                        'futures/fee/{symbol}': 15,
-                        'futures/history/order': 15,
-                        'futures/history/trade': 15,
-                        'futures/history/positions': 15,
-                        'futures/history/clearing': 15,
-                        'wallet/balance': 30,
-                        'wallet/balance/{currency}': 30,
-                        'wallet/crypto/address': 30,
-                        'wallet/crypto/address/recent-deposit': 30,
-                        'wallet/crypto/address/recent-withdraw': 30,
-                        'wallet/crypto/address/check-mine': 30,
-                        'wallet/transactions': 30,
-                        'wallet/transactions/{tx_id}': 30,
-                        'wallet/crypto/fee/estimate': 30,
-                        'wallet/airdrops': 30,
-                        'wallet/amount-locks': 30,
-                        'sub-account': 15,
-                        'sub-account/acl': 15,
-                        'sub-account/balance/{subAccID}': 15,
-                        'sub-account/crypto/address/{subAccID}/{currency}': 15,
+                        'spot/balance': {'cost': 15},
+                        'spot/balance/{currency}': {'cost': 15},
+                        'spot/order': {'cost': 1},
+                        'spot/order/{client_order_id}': {'cost': 1},
+                        'spot/fee': {'cost': 15},
+                        'spot/fee/{symbol}': {'cost': 15},
+                        'spot/history/order': {'cost': 15},
+                        'spot/history/trade': {'cost': 15},
+                        'margin/account': {'cost': 1},
+                        'margin/account/isolated/{symbol}': {'cost': 1},
+                        'margin/account/cross/{currency}': {'cost': 1},
+                        'margin/order': {'cost': 1},
+                        'margin/order/{client_order_id}': {'cost': 1},
+                        'margin/config': {'cost': 15},
+                        'margin/history/order': {'cost': 15},
+                        'margin/history/trade': {'cost': 15},
+                        'margin/history/positions': {'cost': 15},
+                        'margin/history/clearing': {'cost': 15},
+                        'futures/balance': {'cost': 15},
+                        'futures/balance/{currency}': {'cost': 15},
+                        'futures/account': {'cost': 1},
+                        'futures/account/isolated/{symbol}': {'cost': 1},
+                        'futures/order': {'cost': 1},
+                        'futures/order/{client_order_id}': {'cost': 1},
+                        'futures/config': {'cost': 15},
+                        'futures/fee': {'cost': 15},
+                        'futures/fee/{symbol}': {'cost': 15},
+                        'futures/history/order': {'cost': 15},
+                        'futures/history/trade': {'cost': 15},
+                        'futures/history/positions': {'cost': 15},
+                        'futures/history/clearing': {'cost': 15},
+                        'wallet/balance': {'cost': 30},
+                        'wallet/balance/{currency}': {'cost': 30},
+                        'wallet/crypto/address': {'cost': 30},
+                        'wallet/crypto/address/recent-deposit': {'cost': 30},
+                        'wallet/crypto/address/recent-withdraw': {'cost': 30},
+                        'wallet/crypto/address/check-mine': {'cost': 30},
+                        'wallet/transactions': {'cost': 30},
+                        'wallet/transactions/{tx_id}': {'cost': 30},
+                        'wallet/crypto/fee/estimate': {'cost': 30},
+                        'wallet/airdrops': {'cost': 30},
+                        'wallet/amount-locks': {'cost': 30},
+                        'sub-account': {'cost': 15},
+                        'sub-account/acl': {'cost': 15},
+                        'sub-account/balance/{subAccID}': {'cost': 15},
+                        'sub-account/crypto/address/{subAccID}/{currency}': {'cost': 15},
                     },
                     'post': {
-                        'spot/order': 1,
-                        'spot/order/list': 1,
-                        'margin/order': 1,
-                        'margin/order/list': 1,
-                        'futures/order': 1,
-                        'futures/order/list': 1,
-                        'wallet/crypto/address': 30,
-                        'wallet/crypto/withdraw': 30,
-                        'wallet/convert': 30,
-                        'wallet/transfer': 30,
-                        'wallet/internal/withdraw': 30,
-                        'wallet/crypto/check-offchain-available': 30,
-                        'wallet/crypto/fees/estimate': 30,
-                        'wallet/airdrops/{id}/claim': 30,
-                        'sub-account/freeze': 15,
-                        'sub-account/activate': 15,
-                        'sub-account/transfer': 15,
-                        'sub-account/acl': 15,
+                        'spot/order': {'cost': 1},
+                        'spot/order/list': {'cost': 1},
+                        'margin/order': {'cost': 1},
+                        'margin/order/list': {'cost': 1},
+                        'futures/order': {'cost': 1},
+                        'futures/order/list': {'cost': 1},
+                        'wallet/crypto/address': {'cost': 30},
+                        'wallet/crypto/withdraw': {'cost': 30},
+                        'wallet/convert': {'cost': 30},
+                        'wallet/transfer': {'cost': 30},
+                        'wallet/internal/withdraw': {'cost': 30},
+                        'wallet/crypto/check-offchain-available': {'cost': 30},
+                        'wallet/crypto/fees/estimate': {'cost': 30},
+                        'wallet/airdrops/{id}/claim': {'cost': 30},
+                        'sub-account/freeze': {'cost': 15},
+                        'sub-account/activate': {'cost': 15},
+                        'sub-account/transfer': {'cost': 15},
+                        'sub-account/acl': {'cost': 15},
                     },
                     'patch': {
-                        'spot/order/{client_order_id}': 1,
-                        'margin/order/{client_order_id}': 1,
-                        'futures/order/{client_order_id}': 1,
+                        'spot/order/{client_order_id}': {'cost': 1},
+                        'margin/order/{client_order_id}': {'cost': 1},
+                        'futures/order/{client_order_id}': {'cost': 1},
                     },
                     'delete': {
-                        'spot/order': 1,
-                        'spot/order/{client_order_id}': 1,
-                        'margin/position': 1,
-                        'margin/position/isolated/{symbol}': 1,
-                        'margin/order': 1,
-                        'margin/order/{client_order_id}': 1,
-                        'futures/position': 1,
-                        'futures/position/{margin_mode}/{symbol}': 1,
-                        'futures/order': 1,
-                        'futures/order/{client_order_id}': 1,
-                        'wallet/crypto/withdraw/{id}': 30,
+                        'spot/order': {'cost': 1},
+                        'spot/order/{client_order_id}': {'cost': 1},
+                        'margin/position': {'cost': 1},
+                        'margin/position/isolated/{symbol}': {'cost': 1},
+                        'margin/order': {'cost': 1},
+                        'margin/order/{client_order_id}': {'cost': 1},
+                        'futures/position': {'cost': 1},
+                        'futures/position/{margin_mode}/{symbol}': {'cost': 1},
+                        'futures/order': {'cost': 1},
+                        'futures/order/{client_order_id}': {'cost': 1},
+                        'wallet/crypto/withdraw/{id}': {'cost': 30},
                     },
                     'put': {
-                        'margin/account/isolated/{symbol}': 1,
-                        'futures/account/isolated/{symbol}': 1,
-                        'wallet/crypto/withdraw/{id}': 30,
+                        'margin/account/isolated/{symbol}': {'cost': 1},
+                        'futures/account/isolated/{symbol}': {'cost': 1},
+                        'wallet/crypto/withdraw/{id}': {'cost': 30},
                     },
                 },
             },
@@ -1221,7 +1221,7 @@ class hitbtc(Exchange, ImplicitAPI):
             marketId = keys[i]
             market = self.safe_market(marketId)
             symbol = market['symbol']
-            entry = response[marketId]
+            entry = self.safe_dict(response, marketId, {})
             result[symbol] = self.parse_ticker(entry, market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
@@ -1299,7 +1299,7 @@ class hitbtc(Exchange, ImplicitAPI):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             marketInner = self.market(marketId)
-            rawTrades = response[marketId]
+            rawTrades = self.safe_list(response, marketId, [])
             parsed = self.parse_trades(rawTrades, marketInner)
             trades = self.array_concat(trades, parsed)
         return trades
@@ -1451,7 +1451,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_transactions_helper(self, types: Any, code: Any, since: Any, limit: Any, params: Any):
+    def fetch_transactions_helper(self, types: Any, code: Any, since: Any, limit: Any, params: Any) -> List[Transaction]:
         if self.markets is None:
             self.load_markets()
         request = {
@@ -1661,10 +1661,10 @@ class hitbtc(Exchange, ImplicitAPI):
         marketIds = list(response.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            orderbook = response[marketId]
+            orderbook = self.safe_dict(response, marketId, {})
             symbol = self.safe_symbol(marketId)
             timestamp = self.parse8601(self.safe_string(orderbook, 'timestamp'))
-            result[symbol] = self.parse_order_book(response[marketId], symbol, timestamp, 'bid', 'ask')
+            result[symbol] = self.parse_order_book(orderbook, symbol, timestamp, 'bid', 'ask')
         return result
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -1852,7 +1852,8 @@ class hitbtc(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        ohlcvs = self.to_array(response)
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
@@ -2139,7 +2140,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch an open order by it's id
 
@@ -2835,7 +2836,7 @@ class hitbtc(Exchange, ImplicitAPI):
         for i in range(0, len(contracts)):
             marketId = contracts[i]
             marketInner = self.safe_market(marketId)
-            fundingRateData = response[marketId]
+            fundingRateData = self.safe_list(response, marketId, [])
             for j in range(0, len(fundingRateData)):
                 entry = fundingRateData[j]
                 symbolInner = self.safe_symbol(marketInner['symbol'])
@@ -3141,7 +3142,8 @@ class hitbtc(Exchange, ImplicitAPI):
         for i in range(0, len(markets)):
             marketId = markets[i]
             marketInner = self.safe_market(marketId)
-            results.append(self.parse_open_interest(response[marketId], marketInner))
+            openInterest = self.safe_dict(response, marketId, {})
+            results.append(self.parse_open_interest(openInterest, marketInner))
         return self.filter_by_array(results, 'symbol', symbols)
 
     def fetch_open_interest(self, symbol: str, params={}):

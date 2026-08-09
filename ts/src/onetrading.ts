@@ -5,7 +5,7 @@ import Exchange from './abstract/onetrading.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, CurrencyInterface, Dict, NullableDict, FeeString, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int } from './base/types.js';
+import type { Balances, Currencies, CurrencyInterface, Dict, NullableDict, FeeString, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -163,36 +163,36 @@ export default class onetrading extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'currencies',
-                        'candlesticks/{instrument_code}',
-                        'fees',
-                        'instruments',
-                        'order-book/{instrument_code}',
-                        'market-ticker',
-                        'market-ticker/{instrument_code}',
-                        'time',
-                    ],
+                    'get': {
+                        'currencies': { 'cost': 1 } as Endpoint<List>,
+                        'candlesticks/{instrument_code}': { 'cost': 1 } as Endpoint<Dict>,
+                        'fees': { 'cost': 1 } as Endpoint<List>,
+                        'instruments': { 'cost': 1 } as Endpoint<List>,
+                        'order-book/{instrument_code}': { 'cost': 1 } as Endpoint<Dict>,
+                        'market-ticker': { 'cost': 1 } as Endpoint<List>,
+                        'market-ticker/{instrument_code}': { 'cost': 1 } as Endpoint<Dict>,
+                        'time': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'account/balances',
-                        'account/fees',
-                        'account/orders',
-                        'account/orders/{order_id}',
-                        'account/orders/client/{client_id}',
-                        'account/orders/{order_id}/trades',
-                        'account/trades',
-                        'account/trade/{trade_id}',
-                    ],
-                    'post': [
-                        'account/orders',
-                    ],
-                    'delete': [
-                        'account/orders',
-                        'account/orders/{order_id}',
-                        'account/orders/client/{client_id}',
-                    ],
+                    'get': {
+                        'account/balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/fees': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/orders/client/{client_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/orders/{order_id}/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/trade/{trade_id}': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'post': {
+                        'account/orders': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'delete': {
+                        'account/orders': { 'cost': 1 } as Endpoint<List>,
+                        'account/orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/orders/client/{client_id}': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -910,8 +910,9 @@ export default class onetrading extends Exchange {
         //     ]
         //
         const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const ticker = this.parseTicker (response[i]);
+        const rawTickers: List = this.toArray (response);
+        for (let i = 0; i < rawTickers.length; i++) {
+            const ticker = this.parseTicker (rawTickers[i]);
             const symbol = ticker['symbol'];
             if (symbol !== undefined) {
                 result[symbol] = ticker;
@@ -1487,7 +1488,7 @@ export default class onetrading extends Exchange {
         } else {
             request['order_id'] = id;
         }
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         if (method === 'privateDeleteAccountOrdersOrderId') {
             response = await this.privateDeleteAccountOrdersOrderId (this.extend (request, params));
         } else {

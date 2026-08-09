@@ -130,7 +130,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
 | [![weex](https://github.com/user-attachments/assets/bc67b9f2-75d2-4b8d-963a-18f2fcd9d13c)](https://www.weex.com/register?vipCode=qfyh)                                                 | weex                  | [Weex](https://www.weex.com/register?vipCode=qfyh)                                      | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.weex.com/api-doc)                                                       | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![whitebit](https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg)](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963) | whitebit              | [WhiteBit](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)          | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://github.com/whitebit-exchange/api-docs)                                      | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![woo](https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg)](https://woox.io/register?ref=DIJT0CNL)                                  | woo                   | [WOO X](https://woox.io/register?ref=DIJT0CNL)                                          | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.woox.io/)                                                              | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
-| [![woofipro](https://github.com/user-attachments/assets/9ba21b8a-a9c7-4770-b7f1-ce3bcbde68c1)](https://dex.woo.org/en/trade?ref=CCXT)                                                  | woofipro              | [WOOFI PRO](https://dex.woo.org/en/trade?ref=CCXT)                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://orderly.network/docs/build-on-omnichain/building-on-evm)                    | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
+| [![woofipro](https://github.com/user-attachments/assets/9ba21b8a-a9c7-4770-b7f1-ce3bcbde68c1)](https://dex.woo.org/en/trade?ref=CCXT)                                                  | woofipro              | [WOOFI PRO](https://dex.woo.org/en/trade?ref=CCXT)                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://orderly.network/docs/build-on-omnichain/building-on-omnichain)              | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![xt](https://github.com/user-attachments/assets/1f916564-6507-4549-af96-22837bb0a0c7)](https://www.xt.com/en/accounts/register?ref=9PTM9VW)                                          | xt                    | [XT](https://www.xt.com/en/accounts/register?ref=9PTM9VW)                               | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://doc.xt.com/)                                                                | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 <!--- end list -->
 This is the list of exchanges in CCXT Pro with support for WebSockets APIs. This list will be updated with new exchanges on a regular basis.
@@ -1507,6 +1507,40 @@ while (true) {
 }
 ```
 <!-- tabs:end -->
+
+#### Watching Orders Across Multiple Account Types
+
+Some exchanges route order updates through separate user-data streams per account type. On binance, spot, cross margin, isolated margin and portfolio margin each map to their own listenKey and stream — one `watchOrders` subscription per account type, selected via params, run as concurrent tasks:
+
+- **spot** — the default: `watchOrders ()`
+- **cross margin** — `watchOrders (undefined, undefined, undefined, { 'type': 'margin', 'marginMode': 'cross' })`, shares the spot user-data stream
+- **isolated margin** — `watchOrders (symbol, undefined, undefined, { 'marginMode': 'isolated' })`, binance issues a **separate listenKey per symbol**, so a symbol is required and N isolated pairs mean N subscriptions — an exchange design constraint, not a ccxt limit
+- **portfolio margin** — `watchOrders (undefined, undefined, undefined, { 'portfolioMargin': true })`
+
+Each subscription keeps its own stream and resolves into the shared orders cache. A multi-account setup is a set of concurrent per-account loops, see https://github.com/ccxt/ccxt/issues/24737:
+
+```python
+import asyncio
+import ccxt.pro as ccxtpro
+
+async def account_loop(exchange, symbol, params):
+    while True:
+        orders = await exchange.watch_orders(symbol, params=params)
+        print(params, orders[-1]['id'], orders[-1]['status'])
+
+async def main():
+    exchange = ccxtpro.binance({'apiKey': '...', 'secret': '...'})
+    await exchange.load_markets()
+    subscriptions = [
+        (None, {}),                                                # spot
+        (None, {'type': 'margin', 'marginMode': 'cross'}),         # cross margin
+        ('BTC/USDT', {'marginMode': 'isolated'}),                  # one per isolated pair
+        ('ETH/USDT', {'marginMode': 'isolated'}),
+    ]
+    await asyncio.gather(*(account_loop(exchange, s, p) for s, p in subscriptions))
+
+asyncio.run(main())
+```
 
 ### watchMyTrades
 <!-- tabs:start -->

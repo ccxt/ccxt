@@ -6,7 +6,7 @@ import Exchange from './abstract/cex.js';
 import { ExchangeError, ArgumentsRequired, NullResponse, PermissionDenied, InsufficientFunds, BadRequest, AuthenticationError, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currency, CurrencyInterface, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, int, Account, Balances, LedgerEntry, Transaction, TransferEntry, DepositAddress, NullableDict } from './base/types.js';
+import type { Currency, CurrencyInterface, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, int, Account, Balances, LedgerEntry, Transaction, TransferEntry, DepositAddress, NullableDict, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -95,6 +95,7 @@ export default class cex extends Exchange {
                 'fetchOption': false,
                 'fetchOptionChain': false,
                 'fetchOrderBook': true,
+                'fetchOrdersByStatus': true,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
@@ -138,39 +139,39 @@ export default class cex extends Exchange {
                 'public': {
                     'get': {},
                     'post': {
-                        'get_server_time': 1,
-                        'get_pairs_info': 1,
-                        'get_currencies_info': 1,
-                        'get_processing_info': 10,
-                        'get_ticker': 1,
-                        'get_trade_history': 1,
-                        'get_order_book': 1,
-                        'get_candles': 1,
+                        'get_server_time': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_pairs_info': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_currencies_info': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_processing_info': { 'cost': 10 } as Endpoint<Dict>,
+                        'get_ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_trade_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_order_book': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_candles': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {},
                     'post': {
-                        'get_my_current_fee': 5,
-                        'get_fee_strategy': 1,
-                        'get_my_volume': 5,
-                        'do_create_account': 1,
-                        'get_my_account_status_v3': 5,
-                        'get_my_wallet_balance': 5,
-                        'get_my_orders': 5,
-                        'do_my_new_order': 1,
-                        'do_cancel_my_order': 1,
-                        'do_cancel_all_orders': 5,
-                        'get_order_book': 1,
-                        'get_candles': 1,
-                        'get_trade_history': 1,
-                        'get_my_transaction_history': 1,
-                        'get_my_funding_history': 5,
-                        'do_my_internal_transfer': 1,
-                        'get_processing_info': 10,
-                        'get_deposit_address': 5,
-                        'do_deposit_funds_from_wallet': 1,
-                        'do_withdrawal_funds_to_wallet': 1,
+                        'get_my_current_fee': { 'cost': 5 } as Endpoint<Dict>,
+                        'get_fee_strategy': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_my_volume': { 'cost': 5 } as Endpoint<Dict>,
+                        'do_create_account': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_my_account_status_v3': { 'cost': 5 } as Endpoint<Dict>,
+                        'get_my_wallet_balance': { 'cost': 5 } as Endpoint<Dict>,
+                        'get_my_orders': { 'cost': 5 } as Endpoint<Dict>,
+                        'do_my_new_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'do_cancel_my_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'do_cancel_all_orders': { 'cost': 5 } as Endpoint<Dict>,
+                        'get_order_book': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_trade_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_my_transaction_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_my_funding_history': { 'cost': 5 } as Endpoint<Dict>,
+                        'do_my_internal_transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_processing_info': { 'cost': 10 } as Endpoint<Dict>,
+                        'get_deposit_address': { 'cost': 5 } as Endpoint<Dict>,
+                        'do_deposit_funds_from_wallet': { 'cost': 1 } as Endpoint<Dict>,
+                        'do_withdrawal_funds_to_wallet': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -287,7 +288,7 @@ export default class cex extends Exchange {
                     'AVALANCHEC': 'avalanche',
                     'ETHPOW': 'ethereumpow',
                     'NEAR': 'near',
-                    'ARB': 'arbitrum',
+                    'ARBITRUM': 'arbitrum',
                     'DOT': 'polkadot',
                     'OPT': 'optimism',
                     'INJ': 'injective',
@@ -1147,7 +1148,7 @@ export default class cex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1168,7 +1169,7 @@ export default class cex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchClosedOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

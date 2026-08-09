@@ -80,72 +80,188 @@ public class LimitlessCore extends LimitlessApi
                 put( "limitless", new java.util.HashMap<String, Object>() {{
                     put( "public", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "markets/active", 1 );
-                            put( "markets/active/{categoryId}", 1 );
-                            put( "categories", 1 );
-                            put( "markets/{addressOrSlug}", 1 );
-                            put( "markets/categories/count", 1 );
-                            put( "markets/active/slugs", 1 );
-                            put( "markets/search", 1 );
-                            put( "markets/{slug}/orderbook", 1 );
-                            put( "markets/{slug}/historical-price", 1 );
-                            put( "auth/signing-message", 1 );
-                            put( "markets/{addressOrSlug}/oracle-candles", 1 );
-                            put( "markets/{slug}/get-feed-events", 1 );
-                            put( "markets/{slug}/events", 1 );
-                            put( "markets/timeline", 1 );
-                            put( "markets/{slug}/timeline", 1 );
-                            put( "navigation", 1 );
-                            put( "market-pages/by-path", 1 );
-                            put( "market-pages/{id}/markets", 1 );
-                            put( "property-keys", 1 );
-                            put( "property-keys/{id}", 1 );
-                            put( "property-keys/{id}/options", 1 );
-                            put( "portfolio/{account}/traded-volume", 1 );
-                            put( "portfolio/{account}/positions", 1 );
-                            put( "portfolio/{account}/pnl-chart", 1 );
+                            put( "markets/active", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/active/{categoryId}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "categories", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/{addressOrSlug}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/categories/count", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/active/slugs", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/search", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/{slug}/orderbook", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/{slug}/historical-price", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "auth/signing-message", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/{addressOrSlug}/oracle-candles", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/{slug}/get-feed-events", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/{slug}/events", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/timeline", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/{slug}/timeline", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "navigation", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "market-pages/by-path", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "market-pages/{id}/markets", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "property-keys", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "property-keys/{id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "property-keys/{id}/options", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolio/{account}/traded-volume", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolio/{account}/positions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolio/{account}/pnl-chart", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                     put( "private", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "auth/api-keys", 1 );
-                            put( "profiles/partner-accounts", 1 );
-                            put( "markets/{slug}/user-orders", 1 );
-                            put( "portfolio/positions", 1 );
-                            put( "portfolio/trades", 1 );
-                            put( "markets/{slug}/locked-balance", 1 );
-                            put( "profiles/me", 1 );
-                            put( "profiles/{account}", 1 );
-                            put( "portfolio/pnl-chart", 1 );
-                            put( "portfolio/history", 1 );
-                            put( "portfolio/points", 1 );
-                            put( "portfolio/trading/allowance", 1 );
-                            put( "auth/api-tokens/capabilities", 1 );
-                            put( "auth/api-tokens", 1 );
-                            put( "profiles/partner-accounts/{profileId}/allowances", 1 );
+                            put( "auth/api-keys", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "profiles/partner-accounts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/{slug}/user-orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolio/positions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolio/trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/{slug}/locked-balance", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "profiles/me", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "profiles/{account}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolio/pnl-chart", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolio/history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolio/points", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolio/trading/allowance", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "auth/api-tokens/capabilities", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "auth/api-tokens", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "profiles/partner-accounts/{profileId}/allowances", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "auth/logout", 1 );
-                            put( "auth/api-keys", 1 );
-                            put( "auth/login", 1 );
-                            put( "orders", 1 );
-                            put( "orders/cancel", 1 );
-                            put( "orders/cancel-batch", 1 );
-                            put( "orders/batch-cancel", 1 );
-                            put( "orders/status/batch", 1 );
-                            put( "portfolio/redeem", 1 );
-                            put( "portfolio/withdraw", 1 );
-                            put( "portfolio/withdrawal-addresses", 1 );
-                            put( "auth/api-tokens/derive", 1 );
-                            put( "profiles/partner-accounts", 1 );
-                            put( "profiles/partner-accounts/{profileId}/allowances/retry", 1 );
+                            put( "auth/logout", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "auth/api-keys", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "auth/login", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders/cancel", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders/cancel-batch", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders/batch-cancel", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders/status/batch", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolio/redeem", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolio/withdraw", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolio/withdrawal-addresses", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "auth/api-tokens/derive", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "profiles/partner-accounts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "profiles/partner-accounts/{profileId}/allowances/retry", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "delete", new java.util.HashMap<String, Object>() {{
-                            put( "auth/api-keys", 1 );
-                            put( "orders/{order_id}", 1 );
-                            put( "orders/all/{slug}", 1 );
-                            put( "auth/api-tokens/{tokenId}", 1 );
-                            put( "portfolio/withdrawal-addresses/{address}", 1 );
+                            put( "auth/api-keys", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders/all/{slug}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "auth/api-tokens/{tokenId}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolio/withdrawal-addresses/{address}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                 }} );
@@ -282,7 +398,12 @@ public class LimitlessCore extends LimitlessApi
                         page = this.sum(page, 1);
                         Helpers.addElementToObject(request, "page", page);
                         Object response = (this.limitlessPublicGetMarketsActive(this.extend(request, rest))).join();
-                        Object rawPageMarkets = this.safeList(response, "data", response);
+                        Object responseRows = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                        if (Helpers.isTrue(Helpers.isArray(response)))
+                        {
+                            responseRows = response;
+                        }
+                        Object rawPageMarkets = this.safeList(response, "data", responseRows);
                         Object page_markets = ((Helpers.isTrue((!Helpers.isEqual(rawPageMarkets, null))))) ? rawPageMarkets : new java.util.ArrayList<Object>(java.util.Arrays.asList());
                         Object pageMarketsLength = Helpers.getArrayLength(page_markets);
                         if (Helpers.isTrue(!Helpers.isTrue(page_markets) || Helpers.isTrue(Helpers.isEqual(pageMarketsLength, 0))))
@@ -1549,7 +1670,12 @@ public class LimitlessCore extends LimitlessApi
             //         }
             //     ]
             //
-            Object rawHistoryList = this.safeList(response, "data", this.safeList(response, "prices", response));
+            Object responseRows = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(response)))
+            {
+                responseRows = response;
+            }
+            Object rawHistoryList = this.safeList(response, "data", this.safeList(response, "prices", responseRows));
             Object rawHistory = ((Helpers.isTrue((!Helpers.isEqual(rawHistoryList, null))))) ? rawHistoryList : new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object history = rawHistory;
             Object rawHistoryLength = Helpers.getArrayLength(rawHistory);
@@ -1708,7 +1834,7 @@ public class LimitlessCore extends LimitlessApi
             // pass undefined as market: parsePredictionOrder sets outcome to the market outcome while the outcome
             // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
             // endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
-            return this.parsePredictionOrders(response, null, since, limit);
+            return this.parsePredictionOrders(this.toArray(response), null, since, limit);
         });
 
     }
@@ -2940,7 +3066,7 @@ public class LimitlessCore extends LimitlessApi
                     }
                 }
             }
-            Object parsedTrades = this.parsePredictionTrades(trades, null);
+            Object parsedTrades = this.parsePredictionTrades(trades);
             return this.filterByOutcomeSinceLimit(parsedTrades, outcomeSymbol, since, limit);
         });
 
@@ -3559,7 +3685,11 @@ public class LimitlessCore extends LimitlessApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object categoriesResponse = (this.limitlessPublicGetCategories()).join();
-            Object categories = ((Helpers.isTrue((!Helpers.isEqual(categoriesResponse, null))))) ? categoriesResponse : new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object categories = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(categoriesResponse)))
+            {
+                categories = categoriesResponse;
+            }
             Object wanted = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tags)); i++)
             {

@@ -153,77 +153,211 @@ func (this *PacificaCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"info":                                   1,
-					"info/fees":                              1,
-					"info/prices":                            1,
-					"kline":                                  12,
-					"kline/mark":                             12,
-					"book":                                   1,
-					"trades":                                 1,
-					"funding_rate/history":                   1,
-					"loan_pool":                              1,
-					"account":                                1,
-					"account/loan":                           1,
-					"account/settings":                       1,
-					"positions":                              1,
-					"trades/history":                         12,
-					"funding/history":                        1,
-					"portfolio":                              1,
-					"account/balance/history":                12,
-					"account/spot_balance/history":           1,
-					"account/spot_asset/deposit/history":     1,
-					"account/spot_asset/withdraw/history":    1,
-					"account/spot_asset/withdraw/pending":    1,
-					"orders":                                 1,
-					"orders/history":                         12,
-					"orders/history_by_id":                   1,
-					"spot_assets":                            1,
-					"spot_assets/bridge/info":                1,
-					"spot_assets/bridge/parameters/{symbol}": 1,
-					"lake/list":                              1,
-					"account/builder_codes/approvals":        1,
+					"info": map[string]any{
+						"cost": 1,
+					},
+					"info/fees": map[string]any{
+						"cost": 1,
+					},
+					"info/prices": map[string]any{
+						"cost": 1,
+					},
+					"kline": map[string]any{
+						"cost": 12,
+					},
+					"kline/mark": map[string]any{
+						"cost": 12,
+					},
+					"book": map[string]any{
+						"cost": 1,
+					},
+					"trades": map[string]any{
+						"cost": 1,
+					},
+					"funding_rate/history": map[string]any{
+						"cost": 1,
+					},
+					"loan_pool": map[string]any{
+						"cost": 1,
+					},
+					"account": map[string]any{
+						"cost": 1,
+					},
+					"account/loan": map[string]any{
+						"cost": 1,
+					},
+					"account/settings": map[string]any{
+						"cost": 1,
+					},
+					"positions": map[string]any{
+						"cost": 1,
+					},
+					"trades/history": map[string]any{
+						"cost": 12,
+					},
+					"funding/history": map[string]any{
+						"cost": 1,
+					},
+					"portfolio": map[string]any{
+						"cost": 1,
+					},
+					"account/balance/history": map[string]any{
+						"cost": 12,
+					},
+					"account/spot_balance/history": map[string]any{
+						"cost": 1,
+					},
+					"account/spot_asset/deposit/history": map[string]any{
+						"cost": 1,
+					},
+					"account/spot_asset/withdraw/history": map[string]any{
+						"cost": 1,
+					},
+					"account/spot_asset/withdraw/pending": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/history": map[string]any{
+						"cost": 12,
+					},
+					"orders/history_by_id": map[string]any{
+						"cost": 1,
+					},
+					"spot_assets": map[string]any{
+						"cost": 1,
+					},
+					"spot_assets/bridge/info": map[string]any{
+						"cost": 1,
+					},
+					"spot_assets/bridge/parameters/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"lake/list": map[string]any{
+						"cost": 1,
+					},
+					"account/builder_codes/approvals": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"post": map[string]any{
-					"account/leverage":                       1,
-					"account/margin":                         1,
-					"account/withdraw":                       1,
-					"account/settings/auto_lend_disabled":    1,
-					"account/settings/spot":                  1,
-					"account/spot_asset/withdraw":            1,
-					"account/subaccount/create":              1,
-					"account/subaccount/list":                1,
-					"account/subaccount/transfer":            1,
-					"account/subaccount/spot_asset/transfer": 1,
-					"positions/add_isolated_margin":          1,
-					"orders/create":                          1,
-					"orders/create_market":                   1,
-					"orders/stop/create":                     1,
-					"positions/tpsl":                         1,
-					"orders/cancel":                          0.5,
-					"orders/cancel_all":                      0.5,
-					"orders/stop/cancel":                     0.5,
-					"orders/edit":                            1,
-					"orders/batch":                           1,
-					"account/builder_codes/approve":          1,
-					"account/builder_codes/revoke":           1,
-					"agent/bind":                             1,
-					"account/api_keys/create":                1,
-					"account/api_keys/revoke":                1,
-					"account/api_keys":                       1,
-					"lake/add_blacklist":                     1,
-					"lake/add_max_leverage":                  1,
-					"lake/add_whitelist":                     1,
-					"lake/claim_manager":                     1,
-					"lake/claim_referral_code":               1,
-					"lake/create":                            1,
-					"lake/deposit":                           1,
-					"lake/remove_blacklist":                  1,
-					"lake/remove_max_leverage":               1,
-					"lake/remove_whitelist":                  1,
-					"lake/update_deposit_cap":                1,
-					"lake/withdraw":                          1,
+					"account/leverage": map[string]any{
+						"cost": 1,
+					},
+					"account/margin": map[string]any{
+						"cost": 1,
+					},
+					"account/withdraw": map[string]any{
+						"cost": 1,
+					},
+					"account/settings/auto_lend_disabled": map[string]any{
+						"cost": 1,
+					},
+					"account/settings/spot": map[string]any{
+						"cost": 1,
+					},
+					"account/spot_asset/withdraw": map[string]any{
+						"cost": 1,
+					},
+					"account/subaccount/create": map[string]any{
+						"cost": 1,
+					},
+					"account/subaccount/list": map[string]any{
+						"cost": 1,
+					},
+					"account/subaccount/transfer": map[string]any{
+						"cost": 1,
+					},
+					"account/subaccount/spot_asset/transfer": map[string]any{
+						"cost": 1,
+					},
+					"positions/add_isolated_margin": map[string]any{
+						"cost": 1,
+					},
+					"orders/create": map[string]any{
+						"cost": 1,
+					},
+					"orders/create_market": map[string]any{
+						"cost": 1,
+					},
+					"orders/stop/create": map[string]any{
+						"cost": 1,
+					},
+					"positions/tpsl": map[string]any{
+						"cost": 1,
+					},
+					"orders/cancel": map[string]any{
+						"cost": 0.5,
+					},
+					"orders/cancel_all": map[string]any{
+						"cost": 0.5,
+					},
+					"orders/stop/cancel": map[string]any{
+						"cost": 0.5,
+					},
+					"orders/edit": map[string]any{
+						"cost": 1,
+					},
+					"orders/batch": map[string]any{
+						"cost": 1,
+					},
+					"account/builder_codes/approve": map[string]any{
+						"cost": 1,
+					},
+					"account/builder_codes/revoke": map[string]any{
+						"cost": 1,
+					},
+					"agent/bind": map[string]any{
+						"cost": 1,
+					},
+					"account/api_keys/create": map[string]any{
+						"cost": 1,
+					},
+					"account/api_keys/revoke": map[string]any{
+						"cost": 1,
+					},
+					"account/api_keys": map[string]any{
+						"cost": 1,
+					},
+					"lake/add_blacklist": map[string]any{
+						"cost": 1,
+					},
+					"lake/add_max_leverage": map[string]any{
+						"cost": 1,
+					},
+					"lake/add_whitelist": map[string]any{
+						"cost": 1,
+					},
+					"lake/claim_manager": map[string]any{
+						"cost": 1,
+					},
+					"lake/claim_referral_code": map[string]any{
+						"cost": 1,
+					},
+					"lake/create": map[string]any{
+						"cost": 1,
+					},
+					"lake/deposit": map[string]any{
+						"cost": 1,
+					},
+					"lake/remove_blacklist": map[string]any{
+						"cost": 1,
+					},
+					"lake/remove_max_leverage": map[string]any{
+						"cost": 1,
+					},
+					"lake/remove_whitelist": map[string]any{
+						"cost": 1,
+					},
+					"lake/update_deposit_cap": map[string]any{
+						"cost": 1,
+					},
+					"lake/withdraw": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},

@@ -27,6 +27,7 @@ public partial class exmo : Exchange
                 { "createMarketBuyOrder", true },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrderWithCost", true },
+                { "createMarketSellOrderWithCost", true },
                 { "createOrder", true },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
@@ -111,13 +112,169 @@ public partial class exmo : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "web", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"ctrl/feesAndLimits", "en/docs/fees"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "ctrl/feesAndLimits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "en/docs/fees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"currency", "currency/list/extended", "order_book", "pair_settings", "ticker", "trades", "candles_history", "required_amount", "payments/providers/crypto/list"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "currency", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currency/list/extended", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order_book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pair_settings", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "candles_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "required_amount", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "payments/providers/crypto/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "post", new List<object>() {"user_info", "order_create", "order_cancel", "stop_market_order_create", "stop_market_order_cancel", "user_open_orders", "user_trades", "user_cancelled_orders", "order_trades", "deposit_address", "withdraw_crypt", "withdraw_get_txid", "excode_create", "excode_load", "code_check", "wallet_history", "wallet_operations", "margin/user/order/create", "margin/user/order/update", "margin/user/order/cancel", "margin/user/position/close", "margin/user/position/margin_add", "margin/user/position/margin_remove", "margin/currency/list", "margin/pair/list", "margin/settings", "margin/funding/list", "margin/user/info", "margin/user/order/list", "margin/user/order/history", "margin/user/order/trades", "margin/user/order/max_quantity", "margin/user/position/list", "margin/user/position/margin_remove_info", "margin/user/position/margin_add_info", "margin/user/wallet/list", "margin/user/wallet/history", "margin/user/trade/list", "margin/trades", "margin/liquidation/feed"} },
+                    { "post", new Dictionary<string, object>() {
+                        { "user_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order_create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order_cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "stop_market_order_create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "stop_market_order_cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user_open_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user_trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user_cancelled_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order_trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deposit_address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdraw_crypt", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdraw_get_txid", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "excode_create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "excode_load", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "code_check", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallet_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallet_operations", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/order/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/order/update", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/order/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/position/close", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/position/margin_add", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/position/margin_remove", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/currency/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/pair/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/settings", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/funding/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/order/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/order/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/order/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/order/max_quantity", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/position/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/position/margin_remove_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/position/margin_add_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/wallet/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/wallet/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/trade/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/liquidation/feed", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -1210,7 +1367,8 @@ public partial class exmo : Exchange
         {
             object marketId = getValue(marketIds, i);
             object symbol = this.safeSymbol(marketId);
-            ((IDictionary<string,object>)result)[(string)symbol] = this.parseOrderBook(getValue(response, marketId), symbol, null, "bid", "ask");
+            object rawOrderBook = this.safeDict(response, marketId, new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)result)[(string)symbol] = this.parseOrderBook(rawOrderBook, symbol, null, "bid", "ask");
         }
         return result;
     }
@@ -2231,7 +2389,7 @@ public partial class exmo : Exchange
             await this.loadMarkets();
         }
         object marginMode = null;
-        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrders", parameters);
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchCanceledOrders", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         if (isTrue(isEqual(marginMode, "cross")))
@@ -2679,7 +2837,8 @@ public partial class exmo : Exchange
         //       ],
         //     }
         //
-        return this.parseTransactions(getValue(response, "history"), currency, since, limit);
+        object history = this.safeList(response, "history", new List<object>() {});
+        return this.parseTransactions(history, currency, since, limit);
     }
 
     /**

@@ -6,7 +6,7 @@ import Exchange from './abstract/bitvavo.js';
 import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, Fee, FeeString, NullableDict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, DepositAddress, DepositWithdrawFees } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, Fee, FeeString, NullableDict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, DepositAddress, DepositWithdrawFees, Endpoint, List } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -166,57 +166,57 @@ export default class bitvavo extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        '{market}/book': 1,
-                        'report/{market}/book': 1,
-                        '{market}/trades': 5,
-                        'report/{market}/trades': 5,
-                        'ticker/price': 1,
-                        'ticker/book': 1,
-                        '{market}/candles': 1,
-                        'ticker/24h': { 'cost': 1, 'noMarket': 25 },
-                        'time': 1,
-                        'markets': 1,
-                        'assets': 1,
+                        '{market}/book': { 'cost': 1 } as Endpoint<Dict>,
+                        'report/{market}/book': { 'cost': 1 } as Endpoint<Dict>,
+                        '{market}/trades': { 'cost': 5 } as Endpoint<List>,
+                        'report/{market}/trades': { 'cost': 5 } as Endpoint<List>,
+                        'ticker/price': { 'cost': 1 } as Endpoint<List>,
+                        'ticker/book': { 'cost': 1 } as Endpoint<List>,
+                        '{market}/candles': { 'cost': 1 } as Endpoint<List>,
+                        'ticker/24h': { 'cost': 1, 'noMarket': 25 } as Endpoint<Dict | List>,
+                        'time': { 'cost': 1 } as Endpoint<Dict>,
+                        'markets': { 'cost': 1 } as Endpoint<List>,
+                        'assets': { 'cost': 1 } as Endpoint<List>,
                     },
                 },
                 'private': {
                     'get': {
-                        'order': 1,
-                        'ordersOpen': { 'cost': 5, 'noMarket': 100 },
-                        'trades': 5,
-                        'orders': 5,
-                        'deposit': 1,
-                        'depositHistory': 5,
-                        'withdrawalHistory': 5,
-                        'account': 1,
-                        'balance': 5,
-                        'stakingBalance': 1,
-                        'account/fees': 1,
-                        'account/history': 1,
-                        'subaccounts': 5,
-                        'subaccounts/transfers': 5,
-                        'subaccounts/transfers/{transferId}': 5,
-                        'institutional/subaccounts/balance': 5,
-                        'institutional/subaccounts/history': 5,
-                        'institutional/subaccounts/orders/open': { 'cost': 5, 'noMarket': 100 },
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
+                        'ordersOpen': { 'cost': 5, 'noMarket': 100 } as Endpoint<List>,
+                        'trades': { 'cost': 5 } as Endpoint<List>,
+                        'orders': { 'cost': 5 } as Endpoint<List>,
+                        'deposit': { 'cost': 1 } as Endpoint<Dict>,
+                        'depositHistory': { 'cost': 5 } as Endpoint<List>,
+                        'withdrawalHistory': { 'cost': 5 } as Endpoint<List>,
+                        'account': { 'cost': 1 } as Endpoint<List>,
+                        'balance': { 'cost': 5 } as Endpoint<List>,
+                        'stakingBalance': { 'cost': 1 } as Endpoint<List>,
+                        'account/fees': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'subaccounts': { 'cost': 5 } as Endpoint<Dict>,
+                        'subaccounts/transfers': { 'cost': 5 } as Endpoint<Dict>,
+                        'subaccounts/transfers/{transferId}': { 'cost': 5 } as Endpoint<Dict>,
+                        'institutional/subaccounts/balance': { 'cost': 5 } as Endpoint<Dict>,
+                        'institutional/subaccounts/history': { 'cost': 5 } as Endpoint<Dict>,
+                        'institutional/subaccounts/orders/open': { 'cost': 5, 'noMarket': 100 } as Endpoint<List>,
                     },
                     'post': {
-                        'order': 1,
-                        'cancelOrdersAfter': 5,
-                        'withdrawal': 1,
-                        'crypto/withdrawal': 25,
-                        'subaccounts': 5,
-                        'subaccounts/transfers': 5,
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelOrdersAfter': { 'cost': 5 } as Endpoint<Dict>,
+                        'withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'crypto/withdrawal': { 'cost': 25 } as Endpoint<Dict>,
+                        'subaccounts': { 'cost': 5 } as Endpoint<Dict>,
+                        'subaccounts/transfers': { 'cost': 5 } as Endpoint<Dict>,
                     },
                     'put': {
-                        'order': 1,
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'order': 1,
-                        'orders': { 'cost': 25, 'noMarket': 100 },
-                        'atomic/orders': 100,
-                        'institutional/subaccounts/order': 1,
-                        'institutional/subaccounts/orders': { 'cost': 25, 'noMarket': 100 },
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders': { 'cost': 25, 'noMarket': 100 } as Endpoint<List>,
+                        'atomic/orders': { 'cost': 100 } as Endpoint<List>,
+                        'institutional/subaccounts/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'institutional/subaccounts/orders': { 'cost': 25, 'noMarket': 100 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -1172,7 +1172,7 @@ export default class bitvavo extends Exchange {
         //         [1590383520000,"8090.3","8092.7","8090.3","8092.5","0.04001286"],
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
     }
 
     override parseBalance (response: any): Balances {
@@ -1516,7 +1516,7 @@ export default class bitvavo extends Exchange {
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice'); // trigger when price crosses from below to above this value
         params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if (isMarketOrder) {
-            let cost: any = undefined;
+            let cost: Num = undefined;
             if (price !== undefined) {
                 const priceString = this.numberToString (price);
                 const amountString = this.numberToString (amount);

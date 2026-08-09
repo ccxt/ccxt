@@ -23,7 +23,7 @@ public partial class hitbtc : Exchange
                 { "addMargin", true },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
-                { "closePosition", false },
+                { "closePosition", true },
                 { "createDepositAddress", true },
                 { "createOrder", true },
                 { "createPostOnlyOrder", true },
@@ -119,129 +119,351 @@ public partial class hitbtc : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "public/currency", 10 },
-                        { "public/currency/{currency}", 10 },
-                        { "public/symbol", 10 },
-                        { "public/symbol/{symbol}", 10 },
-                        { "public/ticker", 10 },
-                        { "public/ticker/{symbol}", 10 },
-                        { "public/price/rate", 10 },
-                        { "public/price/history", 10 },
-                        { "public/price/ticker", 10 },
-                        { "public/price/ticker/{symbol}", 10 },
-                        { "public/trades", 10 },
-                        { "public/trades/{symbol}", 10 },
-                        { "public/orderbook", 10 },
-                        { "public/orderbook/{symbol}", 10 },
-                        { "public/candles", 10 },
-                        { "public/candles/{symbol}", 10 },
-                        { "public/converted/candles", 10 },
-                        { "public/converted/candles/{symbol}", 10 },
-                        { "public/futures/info", 10 },
-                        { "public/futures/info/{symbol}", 10 },
-                        { "public/futures/history/funding", 10 },
-                        { "public/futures/history/funding/{symbol}", 10 },
-                        { "public/futures/candles/index_price", 10 },
-                        { "public/futures/candles/index_price/{symbol}", 10 },
-                        { "public/futures/candles/mark_price", 10 },
-                        { "public/futures/candles/mark_price/{symbol}", 10 },
-                        { "public/futures/candles/premium_index", 10 },
-                        { "public/futures/candles/premium_index/{symbol}", 10 },
-                        { "public/futures/candles/open_interest", 10 },
-                        { "public/futures/candles/open_interest/{symbol}", 10 },
+                        { "public/currency", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/currency/{currency}", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/symbol", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/symbol/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/ticker", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/ticker/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/price/rate", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/price/history", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/price/ticker", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/price/ticker/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/trades", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/trades/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/orderbook", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/orderbook/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/candles", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/candles/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/converted/candles", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/converted/candles/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/futures/info", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/futures/info/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/futures/history/funding", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/futures/history/funding/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/futures/candles/index_price", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/futures/candles/index_price/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/futures/candles/mark_price", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/futures/candles/mark_price/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/futures/candles/premium_index", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/futures/candles/premium_index/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/futures/candles/open_interest", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "public/futures/candles/open_interest/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "spot/balance", 15 },
-                        { "spot/balance/{currency}", 15 },
-                        { "spot/order", 1 },
-                        { "spot/order/{client_order_id}", 1 },
-                        { "spot/fee", 15 },
-                        { "spot/fee/{symbol}", 15 },
-                        { "spot/history/order", 15 },
-                        { "spot/history/trade", 15 },
-                        { "margin/account", 1 },
-                        { "margin/account/isolated/{symbol}", 1 },
-                        { "margin/account/cross/{currency}", 1 },
-                        { "margin/order", 1 },
-                        { "margin/order/{client_order_id}", 1 },
-                        { "margin/config", 15 },
-                        { "margin/history/order", 15 },
-                        { "margin/history/trade", 15 },
-                        { "margin/history/positions", 15 },
-                        { "margin/history/clearing", 15 },
-                        { "futures/balance", 15 },
-                        { "futures/balance/{currency}", 15 },
-                        { "futures/account", 1 },
-                        { "futures/account/isolated/{symbol}", 1 },
-                        { "futures/order", 1 },
-                        { "futures/order/{client_order_id}", 1 },
-                        { "futures/config", 15 },
-                        { "futures/fee", 15 },
-                        { "futures/fee/{symbol}", 15 },
-                        { "futures/history/order", 15 },
-                        { "futures/history/trade", 15 },
-                        { "futures/history/positions", 15 },
-                        { "futures/history/clearing", 15 },
-                        { "wallet/balance", 30 },
-                        { "wallet/balance/{currency}", 30 },
-                        { "wallet/crypto/address", 30 },
-                        { "wallet/crypto/address/recent-deposit", 30 },
-                        { "wallet/crypto/address/recent-withdraw", 30 },
-                        { "wallet/crypto/address/check-mine", 30 },
-                        { "wallet/transactions", 30 },
-                        { "wallet/transactions/{tx_id}", 30 },
-                        { "wallet/crypto/fee/estimate", 30 },
-                        { "wallet/airdrops", 30 },
-                        { "wallet/amount-locks", 30 },
-                        { "sub-account", 15 },
-                        { "sub-account/acl", 15 },
-                        { "sub-account/balance/{subAccID}", 15 },
-                        { "sub-account/crypto/address/{subAccID}/{currency}", 15 },
+                        { "spot/balance", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "spot/balance/{currency}", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "spot/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot/order/{client_order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot/fee", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "spot/fee/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "spot/history/order", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "spot/history/trade", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "margin/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/account/isolated/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/account/cross/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/order/{client_order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/config", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "margin/history/order", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "margin/history/trade", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "margin/history/positions", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "margin/history/clearing", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "futures/balance", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "futures/balance/{currency}", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "futures/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "futures/account/isolated/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "futures/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "futures/order/{client_order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "futures/config", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "futures/fee", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "futures/fee/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "futures/history/order", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "futures/history/trade", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "futures/history/positions", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "futures/history/clearing", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "wallet/balance", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "wallet/balance/{currency}", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "wallet/crypto/address", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "wallet/crypto/address/recent-deposit", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "wallet/crypto/address/recent-withdraw", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "wallet/crypto/address/check-mine", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "wallet/transactions", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "wallet/transactions/{tx_id}", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "wallet/crypto/fee/estimate", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "wallet/airdrops", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "wallet/amount-locks", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "sub-account", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "sub-account/acl", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "sub-account/balance/{subAccID}", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "sub-account/crypto/address/{subAccID}/{currency}", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "spot/order", 1 },
-                        { "spot/order/list", 1 },
-                        { "margin/order", 1 },
-                        { "margin/order/list", 1 },
-                        { "futures/order", 1 },
-                        { "futures/order/list", 1 },
-                        { "wallet/crypto/address", 30 },
-                        { "wallet/crypto/withdraw", 30 },
-                        { "wallet/convert", 30 },
-                        { "wallet/transfer", 30 },
-                        { "wallet/internal/withdraw", 30 },
-                        { "wallet/crypto/check-offchain-available", 30 },
-                        { "wallet/crypto/fees/estimate", 30 },
-                        { "wallet/airdrops/{id}/claim", 30 },
-                        { "sub-account/freeze", 15 },
-                        { "sub-account/activate", 15 },
-                        { "sub-account/transfer", 15 },
-                        { "sub-account/acl", 15 },
+                        { "spot/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot/order/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/order/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "futures/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "futures/order/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallet/crypto/address", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "wallet/crypto/withdraw", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "wallet/convert", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "wallet/transfer", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "wallet/internal/withdraw", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "wallet/crypto/check-offchain-available", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "wallet/crypto/fees/estimate", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "wallet/airdrops/{id}/claim", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "sub-account/freeze", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "sub-account/activate", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "sub-account/transfer", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "sub-account/acl", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
                     } },
                     { "patch", new Dictionary<string, object>() {
-                        { "spot/order/{client_order_id}", 1 },
-                        { "margin/order/{client_order_id}", 1 },
-                        { "futures/order/{client_order_id}", 1 },
+                        { "spot/order/{client_order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/order/{client_order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "futures/order/{client_order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "spot/order", 1 },
-                        { "spot/order/{client_order_id}", 1 },
-                        { "margin/position", 1 },
-                        { "margin/position/isolated/{symbol}", 1 },
-                        { "margin/order", 1 },
-                        { "margin/order/{client_order_id}", 1 },
-                        { "futures/position", 1 },
-                        { "futures/position/{margin_mode}/{symbol}", 1 },
-                        { "futures/order", 1 },
-                        { "futures/order/{client_order_id}", 1 },
-                        { "wallet/crypto/withdraw/{id}", 30 },
+                        { "spot/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot/order/{client_order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/position", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/position/isolated/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/order/{client_order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "futures/position", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "futures/position/{margin_mode}/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "futures/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "futures/order/{client_order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallet/crypto/withdraw/{id}", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
-                        { "margin/account/isolated/{symbol}", 1 },
-                        { "futures/account/isolated/{symbol}", 1 },
-                        { "wallet/crypto/withdraw/{id}", 30 },
+                        { "margin/account/isolated/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "futures/account/isolated/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallet/crypto/withdraw/{id}", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
                     } },
                 } },
             } },
@@ -1076,7 +1298,7 @@ public partial class hitbtc : Exchange
             object marketId = getValue(keys, i);
             object market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
-            object entry = getValue(response, marketId);
+            object entry = this.safeDict(response, marketId, new Dictionary<string, object>() {});
             ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(entry, market);
         }
         return this.filterByArrayTickers(result, "symbol", symbols);
@@ -1169,7 +1391,7 @@ public partial class hitbtc : Exchange
         {
             object marketId = getValue(marketIds, i);
             object marketInner = this.market(marketId);
-            object rawTrades = getValue(response, marketId);
+            object rawTrades = this.safeList(response, marketId, new List<object>() {});
             object parsed = this.parseTrades(rawTrades, marketInner);
             trades = this.arrayConcat(trades, parsed);
         }
@@ -1601,10 +1823,10 @@ public partial class hitbtc : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
-            object orderbook = getValue(response, marketId);
+            object orderbook = this.safeDict(response, marketId, new Dictionary<string, object>() {});
             object symbol = this.safeSymbol(marketId);
             object timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
-            ((IDictionary<string,object>)result)[(string)symbol] = this.parseOrderBook(getValue(response, marketId), symbol, timestamp, "bid", "ask");
+            ((IDictionary<string,object>)result)[(string)symbol] = this.parseOrderBook(orderbook, symbol, timestamp, "bid", "ask");
         }
         return result;
     }
@@ -1847,7 +2069,8 @@ public partial class hitbtc : Exchange
         //         },
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        object ohlcvs = this.toArray(response);
+        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -3068,7 +3291,7 @@ public partial class hitbtc : Exchange
         {
             object marketId = getValue(contracts, i);
             object marketInner = this.safeMarket(marketId);
-            object fundingRateData = getValue(response, marketId);
+            object fundingRateData = this.safeList(response, marketId, new List<object>() {});
             for (object j = 0; isLessThan(j, getArrayLength(fundingRateData)); postFixIncrement(ref j))
             {
                 object entry = getValue(fundingRateData, j);
@@ -3429,7 +3652,8 @@ public partial class hitbtc : Exchange
         {
             object marketId = getValue(markets, i);
             object marketInner = this.safeMarket(marketId);
-            ((IList<object>)results).Add(this.parseOpenInterest(getValue(response, marketId), marketInner));
+            object openInterest = this.safeDict(response, marketId, new Dictionary<string, object>() {});
+            ((IList<object>)results).Add(this.parseOpenInterest(openInterest, marketInner));
         }
         return this.filterByArray(results, "symbol", symbols);
     }

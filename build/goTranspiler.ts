@@ -546,6 +546,9 @@ class NewTranspiler {
     // bytes last written by writeGeneratedOnce(), keyed by output path — lets the repeated
     // base passes skip re-emitting a file whose content they just produced identically
     private _lastWrittenContent: { [key: string]: string } = {};
+    // true while createTypedInterfaceFile() is running: requireBaseMethodsMetadata() regenerates
+    // the typed interface after a late base re-read, which must not re-enter its own caller
+    creatingTypedInterface = false;
     // lazily created in webworkerTranspile and kept alive for the lifetime of the
     // instance, so every transpile stage reuses the same warm worker threads
     piscina: Piscina | undefined;
@@ -1572,13 +1575,20 @@ class NewTranspiler {
     // Ensures WRAPPER_METHODS['Exchange'] is populated. The base-methods stage registers it as
     // a side effect, but that stage can be skipped by the mtime gate — in which case any
     // consumer (derived wrappers, typed interface) must transpile the base file on demand.
-    // Re-runs at most once per process, and never rewrites a generated file.
+    // Re-runs at most once per process, and that re-run REWRITES exchange_wrappers.go from the
+    // current Exchange.ts. The typed interface is regenerated with it: its own gate may already
+    // have skipped it earlier in this process, which would leave IExchange declaring the previous
+    // ExchangeTyped signatures and every exchange failing to implement it (#29588).
     requireBaseMethodsMetadata () {
         if (WRAPPER_METHODS['Exchange']) {
             return;
         }
         log.bright.cyan ('[go] base methods were up to date but their wrapper metadata is needed, re-reading', TS_BASE_FILE.yellow);
         this.transpileBaseMethods (TS_BASE_FILE, false, true);
+        if (!this.creatingTypedInterface) {
+            // WRAPPER_METHODS is populated now, so the nested call back into this method is a no-op
+            this.createTypedInterfaceFile (true);
+        }
     }
 
     createGoWrappers(exchange: string, path: string, wrappers: any[], ws: boolean | 'prediction' = false) {
@@ -2205,7 +2215,12 @@ ${caseStatements.join('\n')}
         ], [ TYPED_INTERFACE_FILE ])) {
             return;
         }
-        this.requireBaseMethodsMetadata ();
+        this.creatingTypedInterface = true;
+        try {
+            this.requireBaseMethodsMetadata ();
+        } finally {
+            this.creatingTypedInterface = false;
+        }
         if (!WRAPPER_METHODS['Exchange']) {
             throw new Error('Exchange wrapper methods are not defined, please transpile base methods first');
         }

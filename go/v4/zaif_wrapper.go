@@ -659,7 +659,7 @@ func (this *Zaif) FetchPosition(symbol string, options ...FetchPositionOptions) 
 func (this *Zaif) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Zaif) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Zaif) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Zaif) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -677,7 +677,7 @@ func (this *Zaif) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Po
 func (this *Zaif) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Zaif) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Zaif) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Zaif) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
@@ -803,7 +803,7 @@ func (this *Zaif) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Zaif) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Zaif) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Zaif) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Zaif) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -848,7 +848,7 @@ func (this *Zaif) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) 
 func (this *Zaif) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Zaif) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Zaif) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Zaif) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

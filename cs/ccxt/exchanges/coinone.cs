@@ -126,19 +126,213 @@ public partial class coinone : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"orderbook", "ticker", "ticker_utc", "trades"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "orderbook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker_utc", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "v2Public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"range_units", "markets/{quote_currency}", "markets/{quote_currency}/{target_currency}", "orderbook/{quote_currency}/{target_currency}", "trades/{quote_currency}/{target_currency}", "ticker_new/{quote_currency}", "ticker_new/{quote_currency}/{target_currency}", "ticker_utc_new/{quote_currency}", "ticker_utc_new/{quote_currency}/{target_currency}", "currencies", "currencies/{currency}", "chart/{quote_currency}/{target_currency}"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "range_units", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "markets/{quote_currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "markets/{quote_currency}/{target_currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbook/{quote_currency}/{target_currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades/{quote_currency}/{target_currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker_new/{quote_currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker_new/{quote_currency}/{target_currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker_utc_new/{quote_currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker_utc_new/{quote_currency}/{target_currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currencies", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currencies/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "chart/{quote_currency}/{target_currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "post", new List<object>() {"account/deposit_address", "account/btc_deposit_address", "account/balance", "account/daily_balance", "account/user_info", "account/virtual_account", "order/cancel_all", "order/cancel", "order/limit_buy", "order/limit_sell", "order/complete_orders", "order/limit_orders", "order/order_info", "transaction/auth_number", "transaction/history", "transaction/krw/history", "transaction/btc", "transaction/coin"} },
+                    { "post", new Dictionary<string, object>() {
+                        { "account/deposit_address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/btc_deposit_address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/daily_balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/user_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/virtual_account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/cancel_all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/limit_buy", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/limit_sell", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/complete_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/limit_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/order_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/auth_number", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/krw/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/btc", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/coin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "v2Private", new Dictionary<string, object>() {
-                    { "post", new List<object>() {"account/balance", "account/deposit_address", "account/user_info", "account/virtual_account", "order/cancel", "order/limit_buy", "order/limit_sell", "order/limit_orders", "order/complete_orders", "order/query_order", "transaction/auth_number", "transaction/btc", "transaction/history", "transaction/krw/history"} },
+                    { "post", new Dictionary<string, object>() {
+                        { "account/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/deposit_address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/user_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/virtual_account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/limit_buy", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/limit_sell", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/limit_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/complete_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/query_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/auth_number", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/btc", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/krw/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "v2_1Private", new Dictionary<string, object>() {
-                    { "post", new List<object>() {"account/balance/all", "account/balance", "account/trade_fee", "account/trade_fee/{quote_currency}/{target_currency}", "order/limit", "order/cancel", "order/cancel/all", "order/open_orders", "order/open_orders/all", "order/complete_orders", "order/complete_orders/all", "order/info", "transaction/krw/history", "transaction/coin/history", "transaction/coin/withdrawal/limit"} },
+                    { "post", new Dictionary<string, object>() {
+                        { "account/balance/all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/trade_fee", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/trade_fee/{quote_currency}/{target_currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/limit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/cancel/all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/open_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/open_orders/all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/complete_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/complete_orders/all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/krw/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/coin/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/coin/withdrawal/limit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {

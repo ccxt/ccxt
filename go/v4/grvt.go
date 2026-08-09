@@ -99,71 +99,171 @@ func (this *GrvtCore) Describe() any {
 		"api": map[string]any{
 			"privateEdge": map[string]any{
 				"post": map[string]any{
-					"auth/api_key/login": 100,
-					"auth/wallet/login":  100,
+					"auth/api_key/login": map[string]any{
+						"cost": 100,
+					},
+					"auth/wallet/login": map[string]any{
+						"cost": 100,
+					},
 				},
 			},
 			"publicMarket": map[string]any{
 				"post": map[string]any{
-					"full/v1/instrument":      4,
-					"full/v1/all_instruments": 4,
-					"full/v1/instruments":     4,
-					"full/v1/currency":        12,
-					"full/v1/margin_rules":    12,
-					"full/v1/mini":            4,
-					"full/v1/ticker":          4,
-					"full/v1/book":            12,
-					"full/v1/trade":           12,
-					"full/v1/trade_history":   12,
-					"full/v1/kline":           12,
-					"full/v1/funding":         12,
+					"full/v1/instrument": map[string]any{
+						"cost": 4,
+					},
+					"full/v1/all_instruments": map[string]any{
+						"cost": 4,
+					},
+					"full/v1/instruments": map[string]any{
+						"cost": 4,
+					},
+					"full/v1/currency": map[string]any{
+						"cost": 12,
+					},
+					"full/v1/margin_rules": map[string]any{
+						"cost": 12,
+					},
+					"full/v1/mini": map[string]any{
+						"cost": 4,
+					},
+					"full/v1/ticker": map[string]any{
+						"cost": 4,
+					},
+					"full/v1/book": map[string]any{
+						"cost": 12,
+					},
+					"full/v1/trade": map[string]any{
+						"cost": 12,
+					},
+					"full/v1/trade_history": map[string]any{
+						"cost": 12,
+					},
+					"full/v1/kline": map[string]any{
+						"cost": 12,
+					},
+					"full/v1/funding": map[string]any{
+						"cost": 12,
+					},
 				},
 			},
 			"privateTrading": map[string]any{
 				"post": map[string]any{
-					"full/v1/create_order":                   5,
-					"full/v1/cancel_order":                   5,
-					"full/v1/cancel_on_disconnect":           100,
-					"full/v1/cancel_all_orders":              50,
-					"full/v1/order":                          rlOrders,
-					"full/v1/order_history":                  rlOrders,
-					"full/v1/open_orders":                    rlOrders,
-					"full/v1/fill_history":                   rlOrders,
-					"full/v1/positions":                      rlOrders,
-					"full/v1/funding_payment_history":        rlOthers,
-					"full/v1/get_sub_accounts":               rlOthers,
-					"full/v1/account_summary":                rlOthers,
-					"full/v1/account_history":                rlOthers,
-					"full/v1/aggregated_account_summary":     rlOthers,
-					"full/v1/funding_account_summary":        rlOthers,
-					"full/v1/transfer":                       100,
-					"full/v1/deposit_history":                100,
-					"full/v1/transfer_history":               100,
-					"full/v1/withdrawal":                     100,
-					"full/v1/withdrawal_history":             100,
-					"full/v1/add_position_margin":            rlOthers,
-					"full/v1/get_position_margin_limits":     rlOthers,
-					"full/v1/set_position_config":            rlOthers,
-					"full/v1/set_initial_leverage":           rlOthers,
-					"full/v1/get_all_initial_leverage":       rlOthers,
-					"full/v1/set_derisk_mm_ratio":            rlOthers,
-					"full/v1/vault_burn_tokens":              rlOthers,
-					"full/v1/vault_invest":                   rlOthers,
-					"full/v1/vault_investor_summary":         rlOthers,
-					"full/v1/vault_redeem":                   rlOthers,
-					"full/v1/vault_redeem_cancel":            rlOthers,
-					"full/v1/vault_view_redemption_queue":    rlOthers,
-					"full/v1/vault_manager_investor_history": rlOthers,
-					"full/v1/authorize_builder":              rlOthers,
-					"full/v1/get_authorized_builders":        rlOthers,
-					"full/v1/builder_fill_history":           rlOthers,
+					"full/v1/create_order": map[string]any{
+						"cost": 5,
+					},
+					"full/v1/cancel_order": map[string]any{
+						"cost": 5,
+					},
+					"full/v1/cancel_on_disconnect": map[string]any{
+						"cost": 100,
+					},
+					"full/v1/cancel_all_orders": map[string]any{
+						"cost": 50,
+					},
+					"full/v1/order": map[string]any{
+						"cost": rlOrders,
+					},
+					"full/v1/order_history": map[string]any{
+						"cost": rlOrders,
+					},
+					"full/v1/open_orders": map[string]any{
+						"cost": rlOrders,
+					},
+					"full/v1/fill_history": map[string]any{
+						"cost": rlOrders,
+					},
+					"full/v1/positions": map[string]any{
+						"cost": rlOrders,
+					},
+					"full/v1/funding_payment_history": map[string]any{
+						"cost": rlOthers,
+					},
+					"full/v1/get_sub_accounts": map[string]any{
+						"cost": rlOthers,
+					},
+					"full/v1/account_summary": map[string]any{
+						"cost": rlOthers,
+					},
+					"full/v1/account_history": map[string]any{
+						"cost": rlOthers,
+					},
+					"full/v1/aggregated_account_summary": map[string]any{
+						"cost": rlOthers,
+					},
+					"full/v1/funding_account_summary": map[string]any{
+						"cost": rlOthers,
+					},
+					"full/v1/transfer": map[string]any{
+						"cost": 100,
+					},
+					"full/v1/deposit_history": map[string]any{
+						"cost": 100,
+					},
+					"full/v1/transfer_history": map[string]any{
+						"cost": 100,
+					},
+					"full/v1/withdrawal": map[string]any{
+						"cost": 100,
+					},
+					"full/v1/withdrawal_history": map[string]any{
+						"cost": 100,
+					},
+					"full/v1/add_position_margin": map[string]any{
+						"cost": rlOthers,
+					},
+					"full/v1/get_position_margin_limits": map[string]any{
+						"cost": rlOthers,
+					},
+					"full/v1/set_position_config": map[string]any{
+						"cost": rlOthers,
+					},
+					"full/v1/set_initial_leverage": map[string]any{
+						"cost": rlOthers,
+					},
+					"full/v1/get_all_initial_leverage": map[string]any{
+						"cost": rlOthers,
+					},
+					"full/v1/set_derisk_mm_ratio": map[string]any{
+						"cost": rlOthers,
+					},
+					"full/v1/vault_burn_tokens": map[string]any{
+						"cost": rlOthers,
+					},
+					"full/v1/vault_invest": map[string]any{
+						"cost": rlOthers,
+					},
+					"full/v1/vault_investor_summary": map[string]any{
+						"cost": rlOthers,
+					},
+					"full/v1/vault_redeem": map[string]any{
+						"cost": rlOthers,
+					},
+					"full/v1/vault_redeem_cancel": map[string]any{
+						"cost": rlOthers,
+					},
+					"full/v1/vault_view_redemption_queue": map[string]any{
+						"cost": rlOthers,
+					},
+					"full/v1/vault_manager_investor_history": map[string]any{
+						"cost": rlOthers,
+					},
+					"full/v1/authorize_builder": map[string]any{
+						"cost": rlOthers,
+					},
+					"full/v1/get_authorized_builders": map[string]any{
+						"cost": rlOthers,
+					},
+					"full/v1/builder_fill_history": map[string]any{
+						"cost": rlOthers,
+					},
 				},
 			},
 		},
 		"options": map[string]any{
 			"accountId": nil,
 			"networks": map[string]any{
-				"ARBONE":    "42161",
+				"ARBITRUM":  "42161",
 				"AVAXC":     "43114",
 				"BASE":      "8453",
 				"BSC":       "56",

@@ -32,6 +32,34 @@ public class TestLoadMarkets extends BaseTest {
         {
             TestMarket.testMarket(exchange, skippedProperties, method, Helpers.GetValue(marketValues, i));
         }
+        // market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
+        Object marketTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "future", "option", "index"));
+        Object collectedTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object allMarkets = Helpers.objectValues(exchange.markets);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(allMarkets)); i++)
+        {
+            Object market = Helpers.GetValue(allMarkets, i);
+            if (!Helpers.isTrue(exchange.inArray(Helpers.GetValue(market, "type"), collectedTypes)))
+            {
+                ((java.util.List<Object>)collectedTypes).add(Helpers.GetValue(market, "type"));
+            }
+        }
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketTypes)); i++)
+        {
+            Object mType = Helpers.GetValue(marketTypes, i);
+            if (Helpers.isTrue(Helpers.GetValue(exchange.has, mType)))
+            {
+                Object skipMarketTypes = Helpers.isTrue((Helpers.inOp(skippedProperties, "optionsNotLoadedByDefault"))) && Helpers.isTrue(Helpers.isEqual(mType, "option"));
+                Assert(Helpers.isTrue(exchange.inArray(mType, collectedTypes)) || Helpers.isTrue(skipMarketTypes), Helpers.add(Helpers.add(Helpers.add(Helpers.add("exchange.has[", mType), "] is true, but no markets of type "), mType), " were found in exchange.markets"));
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(exchange.has, mType), false)))
+            {
+                // some exchanges might have a couple of markets of a certain type loaded even though 'has[type]' is
+                // marked as false (e.g. a legacy/edge-case market); such known exceptions can be whitelisted per-exchange
+                // in skip-tests.json by adding a key matching the market type (e.g. "swap") under that method's skips
+                Object isKnownException = (Helpers.inOp(skippedProperties, mType));
+                Assert(!Helpers.isTrue(exchange.inArray(mType, collectedTypes)) || Helpers.isTrue(isKnownException), Helpers.add(Helpers.add(Helpers.add(Helpers.add("exchange.has[", mType), "] is false, but markets of type "), mType), " were found in exchange.markets"));
+            }
+        }
         return true;
         });
 

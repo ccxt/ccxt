@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.indodax import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, DepositWithdrawFee, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -70,6 +70,8 @@ class indodax(Exchange, ImplicitAPI):
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': False,
                 'fetchDepositsWithdrawals': True,
+                'fetchDepositWithdrawFee': True,
+                'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': False,
                 'fetchFundingInterval': False,
                 'fetchFundingIntervals': False,
@@ -97,6 +99,7 @@ class indodax(Exchange, ImplicitAPI):
                 'fetchMarkPrices': False,
                 'fetchMyLiquidations': False,
                 'fetchMySettlementHistory': False,
+                'fetchOHLCV': True,
                 'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenInterests': False,
@@ -118,6 +121,7 @@ class indodax(Exchange, ImplicitAPI):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchSettlementHistory': False,
                 'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
@@ -155,32 +159,32 @@ class indodax(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'api/server_time': 5,
-                        'api/pairs': 5,
-                        'api/price_increments': 5,
-                        'api/summaries': 5,
-                        'api/ticker/{pair}': 5,
-                        'api/ticker_all': 5,
-                        'api/trades/{pair}': 5,
-                        'api/depth/{pair}': 5,
-                        'tradingview/history_v2': 5,
+                        'api/server_time': {'cost': 5},
+                        'api/pairs': {'cost': 5},
+                        'api/price_increments': {'cost': 5},
+                        'api/summaries': {'cost': 5},
+                        'api/ticker/{pair}': {'cost': 5},
+                        'api/ticker_all': {'cost': 5},
+                        'api/trades/{pair}': {'cost': 5},
+                        'api/depth/{pair}': {'cost': 5},
+                        'tradingview/history_v2': {'cost': 5},
                     },
                 },
                 'private': {
                     'post': {
-                        'getInfo': 4,
-                        'transHistory': 4,
-                        'trade': 1,
-                        'tradeHistory': 4,  # TODO add fetchMyTrades
-                        'openOrders': 4,
-                        'orderHistory': 4,
-                        'getOrder': 4,
-                        'cancelOrder': 4,
-                        'withdrawFee': 4,
-                        'withdrawCoin': 4,
-                        'listDownline': 4,
-                        'checkDownline': 4,
-                        'createVoucher': 4,  # partner only
+                        'getInfo': {'cost': 4},
+                        'transHistory': {'cost': 4},
+                        'trade': {'cost': 1},
+                        'tradeHistory': {'cost': 4},  # TODO add fetchMyTrades
+                        'openOrders': {'cost': 4},
+                        'orderHistory': {'cost': 4},
+                        'getOrder': {'cost': 4},
+                        'cancelOrder': {'cost': 4},
+                        'withdrawFee': {'cost': 4},
+                        'withdrawCoin': {'cost': 4},
+                        'listDownline': {'cost': 4},
+                        'checkDownline': {'cost': 4},
+                        'createVoucher': {'cost': 4},  # partner only
                     },
                 },
             },
@@ -226,7 +230,7 @@ class indodax(Exchange, ImplicitAPI):
                     'TRC20': 'trc20',
                     'MATIC': 'polygon',
                     # 'BEP2': 'bep2',
-                    # 'ARB': 'arb',
+                    # 'ARBITRUM': 'arb',
                     # 'ERC20': 'erc20',
                     # 'KIP7': 'kip7',
                     # 'MAINNET': 'mainnet',  # TODO: does mainnet just mean the default?
@@ -370,8 +374,9 @@ class indodax(Exchange, ImplicitAPI):
         #     ]
         #
         result = []
-        for i in range(0, len(response)):
-            market = response[i]
+        rawMarkets = self.to_array(response)
+        for i in range(0, len(rawMarkets)):
+            market = rawMarkets[i]
             id = self.safe_string(market, 'id')
             baseId = self.safe_string(market, 'traded_currency')
             quoteId = self.safe_string(market, 'base_currency')
@@ -735,7 +740,7 @@ class indodax(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
 
     def parse_order_status(self, status: Str):
         statuses = {
@@ -861,7 +866,7 @@ class indodax(Exchange, ImplicitAPI):
             'order_id': id,
         }
         response = self.privatePostGetOrder(self.extend(request, params))
-        orders = response['return']
+        orders = self.safe_dict(response, 'return', {})
         order = self.parse_order(self.extend({'id': id}, orders['order']), market)
         order['info'] = response
         return order
@@ -886,7 +891,8 @@ class indodax(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['pair'] = market['id']
         response = self.privatePostOpenOrders(self.extend(request, params))
-        rawOrders = response['return']['orders']
+        openOrdersResult = self.safe_dict(response, 'return', {})
+        rawOrders = openOrdersResult['orders']
         # {success: 1, return: {orders: null}} if no orders
         if not rawOrders:
             return []
@@ -925,7 +931,8 @@ class indodax(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         response = self.privatePostOrderHistory(self.extend(request, params))
-        orders = self.parse_orders(response['return']['orders'], market)
+        historyResult = self.safe_dict(response, 'return', {})
+        orders = self.parse_orders(historyResult['orders'], market)
         orders = self.filter_by(orders, 'status', 'closed')
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
@@ -1070,6 +1077,40 @@ class indodax(Exchange, ImplicitAPI):
             'rate': self.safe_number(data, 'withdraw_fee'),
             'currency': self.safe_currency_code(currencyId, currency),
         }
+
+    def fetch_deposit_withdraw_fee(self, code: str, params={}) -> DepositWithdrawFee:
+        """
+        fetch the withdrawal fee for a currency; indodax charges no crypto deposit fees, see https://github.com/ccxt/ccxt/issues/25800
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
+
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.privatePostWithdrawFee(self.extend(request, params))
+        #
+        #     {
+        #         "success": 1,
+        #         "return": {
+        #             "server_time": 1607923272,
+        #             "withdraw_fee": 0.005,
+        #             "currency": "eth"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'return', {})
+        result = self.deposit_withdraw_fee(response)
+        result['withdraw']['fee'] = self.safe_number(data, 'withdraw_fee')
+        result['withdraw']['percentage'] = False
+        result['deposit']['fee'] = 0
+        result['deposit']['percentage'] = False
+        return self.assign_default_deposit_withdraw_fees(result, currency)
 
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """

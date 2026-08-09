@@ -125,68 +125,68 @@ class delta extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'assets',
-                        'indices',
-                        'products',
-                        'products/{symbol}',
-                        'tickers',
-                        'tickers/{symbol}',
-                        'l2orderbook/{symbol}',
-                        'trades/{symbol}',
-                        'stats',
-                        'history/candles',
-                        'history/sparklines',
-                        'settings',
+                        'assets' => array( 'cost' => 1 ),
+                        'indices' => array( 'cost' => 1 ),
+                        'products' => array( 'cost' => 1 ),
+                        'products/{symbol}' => array( 'cost' => 1 ),
+                        'tickers' => array( 'cost' => 1 ),
+                        'tickers/{symbol}' => array( 'cost' => 1 ),
+                        'l2orderbook/{symbol}' => array( 'cost' => 1 ),
+                        'trades/{symbol}' => array( 'cost' => 1 ),
+                        'stats' => array( 'cost' => 1 ),
+                        'history/candles' => array( 'cost' => 1 ),
+                        'history/sparklines' => array( 'cost' => 1 ),
+                        'settings' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'orders',
-                        'orders/{order_id}',
-                        'orders/client_order_id/{client_oid}',
-                        'products/{product_id}/orders/leverage',
-                        'positions/margined',
-                        'positions',
-                        'orders/history',
-                        'fills',
-                        'fills/history/download/csv',
-                        'wallet/balances',
-                        'wallet/transactions',
-                        'wallet/transactions/download',
-                        'wallets/sub_accounts_transfer_history',
-                        'users/trading_preferences',
-                        'sub_accounts',
-                        'profile',
-                        'rate_limits/quota',
-                        'heartbeat',
-                        'deposits/address',
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/{order_id}' => array( 'cost' => 1 ),
+                        'orders/client_order_id/{client_oid}' => array( 'cost' => 1 ),
+                        'products/{product_id}/orders/leverage' => array( 'cost' => 1 ),
+                        'positions/margined' => array( 'cost' => 1 ),
+                        'positions' => array( 'cost' => 1 ),
+                        'orders/history' => array( 'cost' => 1 ),
+                        'fills' => array( 'cost' => 1 ),
+                        'fills/history/download/csv' => array( 'cost' => 1 ),
+                        'wallet/balances' => array( 'cost' => 1 ),
+                        'wallet/transactions' => array( 'cost' => 1 ),
+                        'wallet/transactions/download' => array( 'cost' => 1 ),
+                        'wallets/sub_accounts_transfer_history' => array( 'cost' => 1 ),
+                        'users/trading_preferences' => array( 'cost' => 1 ),
+                        'sub_accounts' => array( 'cost' => 1 ),
+                        'profile' => array( 'cost' => 1 ),
+                        'rate_limits/quota' => array( 'cost' => 1 ),
+                        'heartbeat' => array( 'cost' => 1 ),
+                        'deposits/address' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'orders',
-                        'orders/bracket',
-                        'orders/batch',
-                        'products/{product_id}/orders/leverage',
-                        'positions/change_margin',
-                        'positions/close_all',
-                        'wallets/sub_account_balance_transfer',
-                        'heartbeat/create',
-                        'heartbeat',
-                        'orders/cancel_after',
-                        'orders/leverage',
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/bracket' => array( 'cost' => 1 ),
+                        'orders/batch' => array( 'cost' => 1 ),
+                        'products/{product_id}/orders/leverage' => array( 'cost' => 1 ),
+                        'positions/change_margin' => array( 'cost' => 1 ),
+                        'positions/close_all' => array( 'cost' => 1 ),
+                        'wallets/sub_account_balance_transfer' => array( 'cost' => 1 ),
+                        'heartbeat/create' => array( 'cost' => 1 ),
+                        'heartbeat' => array( 'cost' => 1 ),
+                        'orders/cancel_after' => array( 'cost' => 1 ),
+                        'orders/leverage' => array( 'cost' => 1 ),
                     ),
                     'put' => array(
-                        'orders',
-                        'orders/bracket',
-                        'orders/batch',
-                        'positions/auto_topup',
-                        'users/update_mmp',
-                        'users/reset_mmp',
-                        'users/margin_mode',
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/bracket' => array( 'cost' => 1 ),
+                        'orders/batch' => array( 'cost' => 1 ),
+                        'positions/auto_topup' => array( 'cost' => 1 ),
+                        'users/update_mmp' => array( 'cost' => 1 ),
+                        'users/reset_mmp' => array( 'cost' => 1 ),
+                        'users/margin_mode' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'orders',
-                        'orders/all',
-                        'orders/batch',
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/all' => array( 'cost' => 1 ),
+                        'orders/batch' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -430,7 +430,7 @@ class delta extends Exchange {
         return $this->safe_integer_product($result, 'server_time', 0.001);
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3177,7 +3177,7 @@ class delta extends Exchange {
         return $this->privatePostProductsProductIdOrdersLeverage($this->extend($request, $params));
     }
 
-    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical settlement records
          *

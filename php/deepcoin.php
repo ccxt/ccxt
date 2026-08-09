@@ -147,65 +147,65 @@ class deepcoin extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'deepcoin/market/books' => 1,
-                        'deepcoin/market/candles' => 1,
-                        'deepcoin/market/instruments' => 1,
-                        'deepcoin/market/tickers' => 1,
-                        'deepcoin/market/index-candles' => 1,
-                        'deepcoin/market/trades' => 1,
-                        'deepcoin/market/mark-price-candles' => 1,
-                        'deepcoin/market/step-margin' => 5,
-                        'deepcoin/trade/funding-rate' => 5,
-                        'deepcoin/trade/fund-rate/current-funding-rate' => 5,
-                        'deepcoin/trade/fund-rate/history' => 5,
+                        'deepcoin/market/books' => array( 'cost' => 1 ),
+                        'deepcoin/market/candles' => array( 'cost' => 1 ),
+                        'deepcoin/market/instruments' => array( 'cost' => 1 ),
+                        'deepcoin/market/tickers' => array( 'cost' => 1 ),
+                        'deepcoin/market/index-candles' => array( 'cost' => 1 ),
+                        'deepcoin/market/trades' => array( 'cost' => 1 ),
+                        'deepcoin/market/mark-price-candles' => array( 'cost' => 1 ),
+                        'deepcoin/market/step-margin' => array( 'cost' => 5 ),
+                        'deepcoin/trade/funding-rate' => array( 'cost' => 5 ),
+                        'deepcoin/trade/fund-rate/current-funding-rate' => array( 'cost' => 5 ),
+                        'deepcoin/trade/fund-rate/history' => array( 'cost' => 5 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'deepcoin/account/balances' => 5,
-                        'deepcoin/account/bills' => 5,
-                        'deepcoin/account/positions' => 5,
-                        'deepcoin/trade/fills' => 5,
-                        'deepcoin/trade/orderByID' => 5,
-                        'deepcoin/trade/finishOrderByID' => 5,
-                        'deepcoin/trade/orders-history' => 5,
-                        'deepcoin/trade/v2/orders-pending' => 5,
-                        'deepcoin/trade/trigger-orders-pending' => 5,
-                        'deepcoin/trade/trigger-orders-history' => 5,
-                        'deepcoin/copytrading/support-contracts' => 5,
-                        'deepcoin/copytrading/leader-position' => 5,
-                        'deepcoin/copytrading/estimate-profit' => 5,
-                        'deepcoin/copytrading/history-profit' => 5,
-                        'deepcoin/copytrading/follower-rank' => 5,
-                        'deepcoin/internal-transfer/support' => 5,
-                        'deepcoin/internal-transfer/history-order' => 5,
-                        'deepcoin/rebate/config' => 5,
-                        'deepcoin/agents/users' => 5,
-                        'deepcoin/agents/users/rebate-list' => 5,
-                        'deepcoin/agents/users/rebates' => 5,
-                        'deepcoin/asset/deposit-list' => 5,
-                        'deepcoin/asset/withdraw-list' => 5,
-                        'deepcoin/asset/recharge-chain-list' => 5,
-                        'deepcoin/listenkey/acquire' => 5,
-                        'deepcoin/listenkey/extend' => 5,
+                        'deepcoin/account/balances' => array( 'cost' => 5 ),
+                        'deepcoin/account/bills' => array( 'cost' => 5 ),
+                        'deepcoin/account/positions' => array( 'cost' => 5 ),
+                        'deepcoin/trade/fills' => array( 'cost' => 5 ),
+                        'deepcoin/trade/orderByID' => array( 'cost' => 5 ),
+                        'deepcoin/trade/finishOrderByID' => array( 'cost' => 5 ),
+                        'deepcoin/trade/orders-history' => array( 'cost' => 5 ),
+                        'deepcoin/trade/v2/orders-pending' => array( 'cost' => 5 ),
+                        'deepcoin/trade/trigger-orders-pending' => array( 'cost' => 5 ),
+                        'deepcoin/trade/trigger-orders-history' => array( 'cost' => 5 ),
+                        'deepcoin/copytrading/support-contracts' => array( 'cost' => 5 ),
+                        'deepcoin/copytrading/leader-position' => array( 'cost' => 5 ),
+                        'deepcoin/copytrading/estimate-profit' => array( 'cost' => 5 ),
+                        'deepcoin/copytrading/history-profit' => array( 'cost' => 5 ),
+                        'deepcoin/copytrading/follower-rank' => array( 'cost' => 5 ),
+                        'deepcoin/internal-transfer/support' => array( 'cost' => 5 ),
+                        'deepcoin/internal-transfer/history-order' => array( 'cost' => 5 ),
+                        'deepcoin/rebate/config' => array( 'cost' => 5 ),
+                        'deepcoin/agents/users' => array( 'cost' => 5 ),
+                        'deepcoin/agents/users/rebate-list' => array( 'cost' => 5 ),
+                        'deepcoin/agents/users/rebates' => array( 'cost' => 5 ),
+                        'deepcoin/asset/deposit-list' => array( 'cost' => 5 ),
+                        'deepcoin/asset/withdraw-list' => array( 'cost' => 5 ),
+                        'deepcoin/asset/recharge-chain-list' => array( 'cost' => 5 ),
+                        'deepcoin/listenkey/acquire' => array( 'cost' => 5 ),
+                        'deepcoin/listenkey/extend' => array( 'cost' => 5 ),
                     ),
                     'post' => array(
-                        'deepcoin/account/set-leverage' => 5,
-                        'deepcoin/trade/order' => 5,
-                        'deepcoin/trade/replace-order' => 5,
-                        'deepcoin/trade/cancel-order' => 5,
-                        'deepcoin/trade/batch-cancel-order' => 5,
-                        'deepcoin/trade/cancel-trigger-order' => 1 / 6,
-                        'deepcoin/trade/swap/cancel-all' => 5,
-                        'deepcoin/trade/trigger-order' => 5,
-                        'deepcoin/trade/batch-close-position' => 5,
-                        'deepcoin/trade/replace-order-sltp' => 5,
-                        'deepcoin/trade/close-position-by-ids' => 5,
-                        'deepcoin/copytrading/leader-settings' => 5,
-                        'deepcoin/copytrading/set-contracts' => 5,
-                        'deepcoin/internal-transfer' => 5,
-                        'deepcoin/rebate/config' => 5,
-                        'deepcoin/asset/transfer' => 5,
+                        'deepcoin/account/set-leverage' => array( 'cost' => 5 ),
+                        'deepcoin/trade/order' => array( 'cost' => 5 ),
+                        'deepcoin/trade/replace-order' => array( 'cost' => 5 ),
+                        'deepcoin/trade/cancel-order' => array( 'cost' => 5 ),
+                        'deepcoin/trade/batch-cancel-order' => array( 'cost' => 5 ),
+                        'deepcoin/trade/cancel-trigger-order' => array( 'cost' => 1 / 6 ),
+                        'deepcoin/trade/swap/cancel-all' => array( 'cost' => 5 ),
+                        'deepcoin/trade/trigger-order' => array( 'cost' => 5 ),
+                        'deepcoin/trade/batch-close-position' => array( 'cost' => 5 ),
+                        'deepcoin/trade/replace-order-sltp' => array( 'cost' => 5 ),
+                        'deepcoin/trade/close-position-by-ids' => array( 'cost' => 5 ),
+                        'deepcoin/copytrading/leader-settings' => array( 'cost' => 5 ),
+                        'deepcoin/copytrading/set-contracts' => array( 'cost' => 5 ),
+                        'deepcoin/internal-transfer' => array( 'cost' => 5 ),
+                        'deepcoin/rebate/config' => array( 'cost' => 5 ),
+                        'deepcoin/asset/transfer' => array( 'cost' => 5 ),
                     ),
                 ),
             ),
@@ -303,7 +303,7 @@ class deepcoin extends Exchange {
                 'networks' => array(
                     'ERC20' => 'ERC20',
                     'TRC20' => 'TRC20',
-                    'ARB' => 'ARBITRUM',
+                    'ARBITRUM' => 'ARBITRUM',
                     'BSC' => 'BSC(BEP20)',
                     'SOL' => 'SOL',
                     'BTC' => 'Bitcoin',
@@ -1044,9 +1044,9 @@ class deepcoin extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchDeposits', $code, $since, $limit, $params, 'code', null, 1, 50);
+            return $this->fetch_paginated_call_cursor('fetchWithdrawals', $code, $since, $limit, $params, 'code', null, 1, 50);
         }
         $request = array();
         $currency = null;
@@ -1895,7 +1895,7 @@ class deepcoin extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $length = count($data);
         if ($length === 0) {
-            return null;
+            throw new OrderNotFound($this->id . ' fetchOpenOrder() could not find order $id ' . $id);
         }
         $entry = $this->safe_dict($data, 0, array());
         return $this->parse_order($entry, $market);

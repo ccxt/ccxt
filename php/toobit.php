@@ -100,105 +100,105 @@ class toobit extends Exchange {
             'api' => array(
                 'common' => array(
                     'get' => array(
-                        'api/v1/time' => 1,
-                        'api/v1/ping' => 1,
-                        'api/v1/exchangeInfo' => 1,
-                        'quote/v1/depth' => 1, // todo => by limit 1-10
-                        'quote/v1/depth/merged' => 1,
-                        'quote/v1/trades' => 1,
-                        'quote/v1/klines' => 1,
-                        'quote/v1/index/klines' => 1,
-                        'quote/v1/indexPriceComponents' => 1,
-                        'quote/v1/markPrice/klines' => 1,
-                        'quote/v1/markPrice' => 10, // 5 requests per second
-                        'quote/v1/index' => 1,
-                        'quote/v1/ticker/24hr' => 40, // todo => 1-40 depending noSymbol
-                        'quote/v1/contract/ticker/24hr' => 40, // todo => 1-40 depending noSymbol
-                        'quote/v1/ticker/price' => 1,
-                        'quote/v1/contract/ticker/price' => 1,
-                        'quote/v1/ticker/bookTicker' => 1,
-                        'quote/v1/contract/ticker/bookTicker' => 1,
-                        'api/v1/futures/fundingRate' => 1,
-                        'api/v1/futures/historyFundingRate' => 1,
-                        'api/v1/futures/riskLimits' => 1,
+                        'api/v1/time' => array( 'cost' => 1 ),
+                        'api/v1/ping' => array( 'cost' => 1 ),
+                        'api/v1/exchangeInfo' => array( 'cost' => 1 ),
+                        'quote/v1/depth' => array( 'cost' => 1 ), // todo => by limit 1-10
+                        'quote/v1/depth/merged' => array( 'cost' => 1 ),
+                        'quote/v1/trades' => array( 'cost' => 1 ),
+                        'quote/v1/klines' => array( 'cost' => 1 ),
+                        'quote/v1/index/klines' => array( 'cost' => 1 ),
+                        'quote/v1/indexPriceComponents' => array( 'cost' => 1 ),
+                        'quote/v1/markPrice/klines' => array( 'cost' => 1 ),
+                        'quote/v1/markPrice' => array( 'cost' => 10 ), // 5 requests per second
+                        'quote/v1/index' => array( 'cost' => 1 ),
+                        'quote/v1/ticker/24hr' => array( 'cost' => 40 ), // todo => 1-40 depending noSymbol
+                        'quote/v1/contract/ticker/24hr' => array( 'cost' => 40 ), // todo => 1-40 depending noSymbol
+                        'quote/v1/ticker/price' => array( 'cost' => 1 ),
+                        'quote/v1/contract/ticker/price' => array( 'cost' => 1 ),
+                        'quote/v1/ticker/bookTicker' => array( 'cost' => 1 ),
+                        'quote/v1/contract/ticker/bookTicker' => array( 'cost' => 1 ),
+                        'api/v1/futures/fundingRate' => array( 'cost' => 1 ),
+                        'api/v1/futures/historyFundingRate' => array( 'cost' => 1 ),
+                        'api/v1/futures/riskLimits' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'api/v1/account' => 5,
-                        'api/v1/account/checkApiKey' => 1,
-                        'api/v1/spot/order' => 1 * 1.67,
-                        'api/v1/spot/openOrders' => 1 * 1.67,
-                        'api/v1/futures/openOrders' => 1 * 1.67,
-                        'api/v1/spot/tradeOrders' => 5 * 1.67,
-                        'api/v1/futures/historyOrders' => 5 * 1.67,
-                        'api/v1/account/trades' => 5 * 1.67,
-                        'api/v1/account/balanceFlow' => 5,
-                        'api/v1/account/depositOrders' => 5,
-                        'api/v1/account/withdrawOrders' => 5,
-                        'api/v1/account/deposit/address' => 1,
+                        'api/v1/account' => array( 'cost' => 5 ),
+                        'api/v1/account/checkApiKey' => array( 'cost' => 1 ),
+                        'api/v1/spot/order' => array( 'cost' => 1 * 1.67 ),
+                        'api/v1/spot/openOrders' => array( 'cost' => 1 * 1.67 ),
+                        'api/v1/futures/openOrders' => array( 'cost' => 1 * 1.67 ),
+                        'api/v1/spot/tradeOrders' => array( 'cost' => 5 * 1.67 ),
+                        'api/v1/futures/historyOrders' => array( 'cost' => 5 * 1.67 ),
+                        'api/v1/account/trades' => array( 'cost' => 5 * 1.67 ),
+                        'api/v1/account/balanceFlow' => array( 'cost' => 5 ),
+                        'api/v1/account/depositOrders' => array( 'cost' => 5 ),
+                        'api/v1/account/withdrawOrders' => array( 'cost' => 5 ),
+                        'api/v1/account/deposit/address' => array( 'cost' => 1 ),
                         // contracts
-                        'api/v1/subAccount' => 5,
-                        'api/v1/account/subAccount' => 5,
-                        'api/v1/subAccount/list' => 5,
-                        'api/v1/futures/accountLeverage' => 1,
-                        'api/v1/futures/order' => 1 * 1.67,
-                        'api/v1/futures/positions' => 5 * 1.67,
-                        'api/v1/futures/historyPositions' => 5,
-                        'api/v1/futures/balance' => 5,
-                        'api/v1/futures/userTrades' => 5 * 1.67,
-                        'api/v1/futures/balanceFlow' => 5,
-                        'api/v1/futures/commissionRate' => 5,
-                        'api/v1/futures/todayPnl' => 5,
-                        'api/v1/account/download/detail' => 10,
-                        'api/v1/agent/inviteUserList' => 1,
-                        'api/v1/agent/commissionDataList' => 1,
-                        'api/v1/agent/commissionDataInfo' => 1,
-                        'api/v1/agent/inviteRelationCheck' => 1,
-                        'api/v1/agent/depositDetailList' => 1,
-                        'api/v1/agent/querySubAgentData' => 1,
-                        'api/v1/agent/spotOrdersList' => 1,
-                        'api/v1/agent/futuresOrdersList' => 1,
-                        'api/v1/agent/futuresPositionsList' => 1,
-                        'api/v1/agent/invite-commission-detail' => 1,
-                        'api/v1/agent/user/export' => 1,
-                        'api/v1/agent/export-list' => 1,
-                        'api/v1/agent/export-url' => 1,
+                        'api/v1/subAccount' => array( 'cost' => 5 ),
+                        'api/v1/account/subAccount' => array( 'cost' => 5 ),
+                        'api/v1/subAccount/list' => array( 'cost' => 5 ),
+                        'api/v1/futures/accountLeverage' => array( 'cost' => 1 ),
+                        'api/v1/futures/order' => array( 'cost' => 1 * 1.67 ),
+                        'api/v1/futures/positions' => array( 'cost' => 5 * 1.67 ),
+                        'api/v1/futures/historyPositions' => array( 'cost' => 5 ),
+                        'api/v1/futures/balance' => array( 'cost' => 5 ),
+                        'api/v1/futures/userTrades' => array( 'cost' => 5 * 1.67 ),
+                        'api/v1/futures/balanceFlow' => array( 'cost' => 5 ),
+                        'api/v1/futures/commissionRate' => array( 'cost' => 5 ),
+                        'api/v1/futures/todayPnl' => array( 'cost' => 5 ),
+                        'api/v1/account/download/detail' => array( 'cost' => 10 ),
+                        'api/v1/agent/inviteUserList' => array( 'cost' => 1 ),
+                        'api/v1/agent/commissionDataList' => array( 'cost' => 1 ),
+                        'api/v1/agent/commissionDataInfo' => array( 'cost' => 1 ),
+                        'api/v1/agent/inviteRelationCheck' => array( 'cost' => 1 ),
+                        'api/v1/agent/depositDetailList' => array( 'cost' => 1 ),
+                        'api/v1/agent/querySubAgentData' => array( 'cost' => 1 ),
+                        'api/v1/agent/spotOrdersList' => array( 'cost' => 1 ),
+                        'api/v1/agent/futuresOrdersList' => array( 'cost' => 1 ),
+                        'api/v1/agent/futuresPositionsList' => array( 'cost' => 1 ),
+                        'api/v1/agent/invite-commission-detail' => array( 'cost' => 1 ),
+                        'api/v1/agent/user/export' => array( 'cost' => 1 ),
+                        'api/v1/agent/export-list' => array( 'cost' => 1 ),
+                        'api/v1/agent/export-url' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'api/v1/spot/orderTest' => 1 * 1.67,
-                        'api/v1/spot/order' => 1 * 1.67,
-                        'api/v1/futures/order' => 1 * 1.67,
-                        'api/v1/spot/batchOrders' => 2 * 1.67,
-                        'api/v1/subAccount/transfer' => 1,
-                        'api/v1/account/withdraw' => 1,
+                        'api/v1/spot/orderTest' => array( 'cost' => 1 * 1.67 ),
+                        'api/v1/spot/order' => array( 'cost' => 1 * 1.67 ),
+                        'api/v1/futures/order' => array( 'cost' => 1 * 1.67 ),
+                        'api/v1/spot/batchOrders' => array( 'cost' => 2 * 1.67 ),
+                        'api/v1/subAccount/transfer' => array( 'cost' => 1 ),
+                        'api/v1/account/withdraw' => array( 'cost' => 1 ),
                         // contracts
-                        'api/v1/futures/marginType' => 1,
-                        'api/v1/futures/leverage' => 1,
-                        'api/v1/futures/batchOrders' => 2 * 1.67,
-                        'api/v1/futures/position/trading-stop' => 3 * 1.67,
-                        'api/v1/futures/positionMargin' => 1,
-                        'api/v1/futures/order/update' => 2 * 1.67,
-                        'api/v1/futures/autoAddMargin' => 1,
-                        'api/v1/futures/flashClose' => 1,
-                        'api/v1/futures/reversePosition' => 5,
-                        'api/v1/account/download/apply' => 1000,
-                        'api/v1/userDataStream' => 1,
-                        'api/v1/listenKey' => 1,
+                        'api/v1/futures/marginType' => array( 'cost' => 1 ),
+                        'api/v1/futures/leverage' => array( 'cost' => 1 ),
+                        'api/v1/futures/batchOrders' => array( 'cost' => 2 * 1.67 ),
+                        'api/v1/futures/position/trading-stop' => array( 'cost' => 3 * 1.67 ),
+                        'api/v1/futures/positionMargin' => array( 'cost' => 1 ),
+                        'api/v1/futures/order/update' => array( 'cost' => 2 * 1.67 ),
+                        'api/v1/futures/autoAddMargin' => array( 'cost' => 1 ),
+                        'api/v1/futures/flashClose' => array( 'cost' => 1 ),
+                        'api/v1/futures/reversePosition' => array( 'cost' => 5 ),
+                        'api/v1/account/download/apply' => array( 'cost' => 1000 ),
+                        'api/v1/userDataStream' => array( 'cost' => 1 ),
+                        'api/v1/listenKey' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'api/v1/spot/order' => 1 * 1.67,
-                        'api/v1/futures/order' => 1 * 1.67,
-                        'api/v1/spot/openOrders' => 5 * 1.67,
-                        'api/v1/futures/batchOrders' => 3 * 1.67,
-                        'api/v1/spot/cancelOrderByIds' => 5 * 1.67,
-                        'api/v1/futures/cancelOrderByIds' => 3 * 1.67,
-                        'api/v1/userDataStream' => 1,
-                        'api/v1/listenKey' => 1,
+                        'api/v1/spot/order' => array( 'cost' => 1 * 1.67 ),
+                        'api/v1/futures/order' => array( 'cost' => 1 * 1.67 ),
+                        'api/v1/spot/openOrders' => array( 'cost' => 5 * 1.67 ),
+                        'api/v1/futures/batchOrders' => array( 'cost' => 3 * 1.67 ),
+                        'api/v1/spot/cancelOrderByIds' => array( 'cost' => 5 * 1.67 ),
+                        'api/v1/futures/cancelOrderByIds' => array( 'cost' => 3 * 1.67 ),
+                        'api/v1/userDataStream' => array( 'cost' => 1 ),
+                        'api/v1/listenKey' => array( 'cost' => 1 ),
                     ),
                     'put' => array(
-                        'api/v1/userDataStream' => 1,
-                        'api/v1/listenKey' => 1,
+                        'api/v1/userDataStream' => array( 'cost' => 1 ),
+                        'api/v1/listenKey' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -440,7 +440,7 @@ class toobit extends Exchange {
                     'TRC20' => 'TRX',
                     'SOL' => 'SOL',
                     'MATIC' => 'MATIC',
-                    'ARBONE' => 'ARBITRUM',
+                    'ARBITRUM' => 'ARBITRUM',
                     'BASE' => 'BASE',
                     'TON' => 'TON',
                     'AVAXC' => 'AVAXC',
@@ -542,7 +542,7 @@ class toobit extends Exchange {
         ));
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -1224,9 +1224,9 @@ class toobit extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API $endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1318,7 +1318,11 @@ class toobit extends Exchange {
             //        ...
             //
         }
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        $candles = array();
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+            $candles = $response;
+        }
+        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -2238,7 +2242,7 @@ class toobit extends Exchange {
             $request['limit'] = $limit;
         }
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
         $response = array();
         if ($marketType === 'spot') {
             $response = $this->privateGetApiV1SpotOpenOrders($this->extend($request, $params));
@@ -2402,8 +2406,12 @@ class toobit extends Exchange {
             //
         }
         $ordersList = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $ordersList[] = array( 'result' => $response[$i] );
+        $responseList = array();
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+            $responseList = $response;
+        }
+        for ($i = 0; $i < count($responseList); $i++) {
+            $ordersList[] = array( 'result' => $responseList[$i] );
         }
         return $this->parse_orders($ordersList, $market, $since, $limit);
     }
@@ -2581,7 +2589,7 @@ class toobit extends Exchange {
             $request['limit'] = $limit;
         }
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', null, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchLedger', null, $params);
         $response = null;
         if ($marketType === 'spot') {
             $response = $this->privateGetApiV1AccountBalanceFlow($this->extend($request, $params));

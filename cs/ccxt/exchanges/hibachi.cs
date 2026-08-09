@@ -83,6 +83,7 @@ public partial class hibachi : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", false },
+                { "fetchOrdersByStatus", true },
                 { "fetchOrderTrades", false },
                 { "fetchPosition", false },
                 { "fetchPositionMode", false },
@@ -129,44 +130,100 @@ public partial class hibachi : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "market/exchange-info", 1 },
-                        { "market/inventory", 1 },
-                        { "market/data/prices", 1 },
-                        { "market/data/stats", 1 },
-                        { "market/data/trades", 1 },
-                        { "market/data/klines", 1 },
-                        { "market/data/open-interest", 1 },
-                        { "market/data/orderbook", 1 },
-                        { "market/data/funding-rates", 1 },
-                        { "exchange/utc-timestamp", 1 },
+                        { "market/exchange-info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/inventory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/data/prices", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/data/stats", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/data/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/data/klines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/data/open-interest", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/data/orderbook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/data/funding-rates", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchange/utc-timestamp", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "capital/balance", 1 },
-                        { "capital/history", 1 },
-                        { "capital/deposit-info", 1 },
-                        { "trade/account/info", 1 },
-                        { "trade/account/trades", 1 },
-                        { "trade/account/trading_history", 1 },
-                        { "trade/account/settlements_history", 1 },
-                        { "trade/orders", 1 },
-                        { "trade/order", 1 },
-                        { "trade/orders/history", 1 },
+                        { "capital/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "capital/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "capital/deposit-info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/account/info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/account/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/account/trading_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/account/settlements_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/orders/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
-                        { "trade/order", 1 },
+                        { "trade/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "trade/order", 1 },
-                        { "trade/orders", 1 },
+                        { "trade/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "trade/order", 1 },
-                        { "trade/orders", 1 },
-                        { "capital/withdraw", 1 },
-                        { "capital/transfer", 1 },
-                        { "trade/account/leverage", 1 },
+                        { "trade/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "capital/withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "capital/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/account/leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },

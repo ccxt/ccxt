@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import hyperliquidRest from '../hyperliquid.js';
-import { NotSupported, ExchangeError } from '../base/errors.js';
+import { NotSupported, ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool, Balances, Position, type NullableDict } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
@@ -32,6 +32,7 @@ export default class hyperliquid extends hyperliquidRest {
                 'watchPositions': true,
                 'unWatchPositions': true,
                 'unWatchOrderBook': true,
+                'unWatchTicker': true,
                 'unWatchTickers': true,
                 'unWatchTrades': true,
                 'unWatchOHLCV': true,
@@ -339,15 +340,56 @@ export default class hyperliquid extends hyperliquidRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
-        // try to infer dex from market
-        const dexName = this.safeString (this.safeDict (market, 'info', {}), 'dex');
-        if (dexName) {
-            params = this.extend (params, { 'dex': dexName });
+        // the single-symbol path subscribes to the per-coin context channel, which hyperliquid
+        // pushes at block cadence with full ticker fields (mark, oracle, funding, volume),
+        // instead of the aggregate allMids broadcast that only carries mids and arrives at the
+        // server's own batch cadence, see https://github.com/ccxt/ccxt/issues/27475
+        const messageHash = 'ticker:' + symbol;
+        const url = this.urls['api']['ws']['public'];
+        const request: Dict = {
+            'method': 'subscribe',
+            'subscription': {
+                // 'activeSpotAssetCtx' is only a response channel; the subscription type is
+                // always 'activeAssetCtx', the server routes spot coins to the spot channel,
+                // see https://github.com/ccxt/ccxt/issues/27475
+                'type': 'activeAssetCtx',
+                'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
+            },
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#unWatchTicker
+     * @description unWatches the price ticker stream of a specific market
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string} symbol unified symbol of the market to stop watching the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchTicker (symbol: string, params = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
         }
-        const tickers = await this.watchTickers ([ symbol ], params);
-        return tickers[symbol];
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const subMessageHash = 'ticker:' + symbol;
+        const messageHash = 'unsubscribe:' + subMessageHash;
+        const url = this.urls['api']['ws']['public'];
+        const request: Dict = {
+            'method': 'unsubscribe',
+            'subscription': {
+                'type': 'activeAssetCtx',
+                'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
+            },
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
     /**
@@ -455,7 +497,11 @@ export default class hyperliquid extends hyperliquidRest {
             },
         };
         const message = this.extend (request, params);
-        const trades = await this.watch (url, messageHash, message, messageHash);
+        if (userAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a user address');
+        }
+        const subscribeHash = 'subscribe:userFills::' + userAddress.toLowerCase ();
+        const trades = await this.watch (url, messageHash, message, subscribeHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -533,6 +579,42 @@ export default class hyperliquid extends hyperliquidRest {
             }
             client.resolve (this.tickers, messageHash);
         }
+        return true;
+    }
+
+    handleActiveAssetCtx (client: Client, message: any) {
+        //
+        //     {
+        //         "channel": "activeAssetCtx",
+        //         "data": {
+        //             "coin": "BTC",
+        //             "ctx": {
+        //                 "dayNtlVlm": "1169046.29406",
+        //                 "prevDayPx": "15.322",
+        //                 "markPx": "14.3161",
+        //                 "midPx": "14.314",
+        //                 "oraclePx": "14.32",
+        //                 "funding": "0.0000125",
+        //                 "openInterest": "688.11",
+        //                 "premium": "0.00031774",
+        //                 "impactPxs": [ "14.3047", "14.3444" ]
+        //             }
+        //         }
+        //     }
+        //
+        // the spot variant arrives on the activeSpotAssetCtx channel and carries
+        // "circulatingSupply" instead of the swap-only fields
+        //
+        const data = this.safeDict (message, 'data', {});
+        const coin = this.safeString (data, 'coin');
+        const marketId = this.coinToMarketId (coin);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const ctx = this.safeDict (data, 'ctx', {});
+        const ticker = this.parseWsTicker (ctx, market);
+        this.tickers[symbol] = ticker;
+        const messageHash = 'ticker:' + symbol;
+        client.resolve (ticker, messageHash);
         return true;
     }
 
@@ -1283,7 +1365,17 @@ export default class hyperliquid extends hyperliquidRest {
             },
         };
         const message = this.extend (request, params);
-        const orders = await this.watch (url, messageHash, message, messageHash);
+        // dedup by (channel, user), not by messageHash: the server subscription is per-user,
+        // so a second user must send its own subscribe (https://github.com/ccxt/ccxt/issues/28369),
+        // and a second symbol-scoped call for the same user must NOT resend - hyperliquid answers
+        // duplicates on the error channel ("Already subscribed"), which rejects every pending
+        // future on the connection. address lowercased because the server is case-insensitive.
+        // note: orderUpdates payloads carry no user, so resolution/data stays shared across users
+        if (userAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders() requires a user address');
+        }
+        const subscribeHash = 'subscribe:orderUpdates::' + userAddress.toLowerCase ();
+        const orders = await this.watch (url, messageHash, message, subscribeHash);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -1406,6 +1498,12 @@ export default class hyperliquid extends hyperliquidRest {
         const channel = this.safeString (message, 'channel', '');
         if (channel === 'error') {
             const ret_msg = this.safeString (message, 'data', '');
+            if (ret_msg.indexOf ('Already subscribed') >= 0) {
+                // a duplicate subscribe is harmless - the server-side subscription is intact
+                // and data keeps flowing; rejecting all pending futures here would poison the
+                // whole connection, see https://github.com/ccxt/ccxt/issues/28369
+                return true;
+            }
             const error = new ExchangeError (this.id + ' ' + ret_msg);
             client.reject (error);
             return true;
@@ -1482,6 +1580,19 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
+    handleTickerUnsubscription (client: Client, subscription: Dict) {
+        //
+        const coin = this.safeString (subscription, 'coin');
+        const marketId = this.coinToMarketId (coin);
+        const symbol = this.safeSymbol (marketId);
+        const subMessageHash = 'ticker:' + symbol;
+        const messageHash = 'unsubscribe:' + subMessageHash;
+        this.cleanUnsubscription (client, subMessageHash, messageHash);
+        if (symbol in this.tickers) {
+            delete this.tickers[symbol];
+        }
+    }
+
     handleOHLCVUnsubscription (client: Client, subscription: Dict) {
         const coin = this.safeString (subscription, 'coin');
         const marketId = this.coinToMarketId (coin);
@@ -1502,6 +1613,15 @@ export default class hyperliquid extends hyperliquidRest {
         const subHash = 'order';
         const unSubHash = 'unsubscribe:' + subHash;
         this.cleanUnsubscription (client, subHash, unSubHash, true);
+        // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
+        // clear it for the user echoed in the ack so a later watch re-subscribes
+        const user = this.safeStringLower (subscription, 'user');
+        if (user !== undefined) {
+            const subscribeHash = 'subscribe:orderUpdates::' + user;
+            if (subscribeHash in client.subscriptions) {
+                delete client.subscriptions[subscribeHash];
+            }
+        }
         const topicStructure = {
             'topic': 'orders',
         };
@@ -1512,6 +1632,15 @@ export default class hyperliquid extends hyperliquidRest {
         const subHash = 'myTrades';
         const unSubHash = 'unsubscribe:' + subHash;
         this.cleanUnsubscription (client, subHash, unSubHash, true);
+        // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
+        // clear it for the user echoed in the ack so a later watch re-subscribes
+        const user = this.safeStringLower (subscription, 'user');
+        if (user !== undefined) {
+            const subscribeHash = 'subscribe:userFills::' + user;
+            if (subscribeHash in client.subscriptions) {
+                delete client.subscriptions[subscribeHash];
+            }
+        }
         const topicStructure = {
             'topic': 'myTrades',
         };
@@ -1585,6 +1714,10 @@ export default class hyperliquid extends hyperliquidRest {
                 this.handlePositionsUnsubscription (client, subscription);
             } else if (type === 'spotState') {
                 this.handleSpotBalanceUnsubscription (client, subscription);
+            } else if ((type === 'activeAssetCtx') || (type === 'activeSpotAssetCtx')) {
+                this.handleTickerUnsubscription (client, subscription);
+            } else if (type === 'allMids') {
+                this.handleTickersUnsubscription (client, subscription);
             }
         }
     }
@@ -1616,6 +1749,8 @@ export default class hyperliquid extends hyperliquidRest {
             'orderUpdates': this.handleOrder,
             'userFills': this.handleMyTrades,
             'allMids': this.handleWsTickers,
+            'activeAssetCtx': this.handleActiveAssetCtx,
+            'activeSpotAssetCtx': this.handleActiveAssetCtx,
             'post': this.handleWsPost,
             'subscriptionResponse': this.handleSubscriptionResponse,
             'clearinghouseState': this.handleBalance,

@@ -90,7 +90,9 @@ public partial class hyperliquid : PredictionExchange
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "exchange", 1 },
+                        { "exchange", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -748,7 +750,12 @@ public partial class hyperliquid : PredictionExchange
         //
         // { "mids": { "#10": "0.45", "#11": "0.55", ... } }
         //
-        object mids = this.safeDict(response, "mids", response);
+        object allMids = new Dictionary<string, object>() {};
+        if (isTrue(isTrue((!(response is string))) && !isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        {
+            allMids = response;
+        }
+        object mids = this.safeDict(allMids, "mids", allMids);
         object tickers = new Dictionary<string, object>() {};
         object outcomesMap = ((bool) isTrue((!isEqual(this.outcomes, null)))) ? this.outcomes : new Dictionary<string, object>() {};
         object outcomeHandles = new List<object>(((IDictionary<string,object>)outcomesMap).Keys);
@@ -971,7 +978,12 @@ public partial class hyperliquid : PredictionExchange
         //         }
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        object candles = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            candles = response;
+        }
+        return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
 
     /**
@@ -1102,7 +1114,12 @@ public partial class hyperliquid : PredictionExchange
         object response = getValue(results, 0);
         object midsResponse = getValue(results, 1);
         object balances = this.safeList(response, "balances", new List<object>() {});
-        object mids = this.safeDict(midsResponse, "mids", midsResponse);
+        object allMids = new Dictionary<string, object>() {};
+        if (isTrue(isTrue((!(midsResponse is string))) && !isTrue(((midsResponse is IList<object>) || (midsResponse.GetType().IsGenericType && midsResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        {
+            allMids = midsResponse;
+        }
+        object mids = this.safeDict(allMids, "mids", allMids);
         object positions = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
@@ -1654,9 +1671,14 @@ public partial class hyperliquid : PredictionExchange
         };
         object response = await this.publicPostInfo(this.extend(request, parameters));
         object ordersWithStatus = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object rawOrders = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            object order = getValue(response, i);
+            rawOrders = response;
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(rawOrders)); postFixIncrement(ref i))
+        {
+            object order = getValue(rawOrders, i);
             ((IList<object>)ordersWithStatus).Add(this.extend(order, new Dictionary<string, object>() {
                 { "ccxtStatus", "open" },
             }));
@@ -1698,9 +1720,14 @@ public partial class hyperliquid : PredictionExchange
         object response = await this.publicPostInfo(this.extend(request, parameters));
         // Deduplicate by oid keeping most recent statusTimestamp
         object deduped = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object historicalOrders = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            object raw = getValue(response, i);
+            historicalOrders = response;
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(historicalOrders)); postFixIncrement(ref i))
+        {
+            object raw = getValue(historicalOrders, i);
             object entry = this.safeDict(raw, "order");
             if (isTrue(isEqual(entry, null)))
             {
@@ -1769,7 +1796,12 @@ public partial class hyperliquid : PredictionExchange
             ((IDictionary<string,object>)request)["oid"] = ((bool) isTrue(isCloid)) ? id : this.parseToNumeric(id);
         }
         object response = await this.publicPostInfo(this.extend(request, parameters));
-        object orderWrapper = this.safeDict(response, "order", response);
+        object orderStatus = new Dictionary<string, object>() {};
+        if (isTrue(isTrue((!(response is string))) && !isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        {
+            orderStatus = response;
+        }
+        object orderWrapper = this.safeDict(orderStatus, "order", orderStatus);
         object parsed = this.parsePredictionOrder(orderWrapper, null);
         if (isTrue(!isEqual(outcome, null)))
         {
@@ -1932,7 +1964,14 @@ public partial class hyperliquid : PredictionExchange
         };
         // recentTrades returns the coin's most recent public trades (newest first)
         object response = await this.publicPostInfo(this.extend(request, parameters));
-        object trades = ((bool) isTrue((response))) ? response : new List<object>() {};
+        object trades = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            trades = response;
+        } else if (isTrue(!(response is string)))
+        {
+            trades = this.toArray(response);
+        }
         return this.parsePredictionTrades(trades, outcomeObj, since, limit);
     }
 
@@ -1985,7 +2024,14 @@ public partial class hyperliquid : PredictionExchange
             ((IDictionary<string,object>)request)["endTime"] = until;
         }
         object response = await this.publicPostInfo(this.extend(request, parameters));
-        object fills = ((bool) isTrue((response))) ? response : new List<object>() {};
+        object fills = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            fills = response;
+        } else if (isTrue(!(response is string)))
+        {
+            fills = this.toArray(response);
+        }
         // parse without an outcome fallback — fills span every market the wallet traded, so a
         // requested-outcome fallback would mislabel fills whose market is no longer listed
         object parsedTrades = this.parsePredictionTrades(fills, null);

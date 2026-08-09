@@ -151,65 +151,171 @@ func (this *DeepcoinCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"deepcoin/market/books":                         1,
-					"deepcoin/market/candles":                       1,
-					"deepcoin/market/instruments":                   1,
-					"deepcoin/market/tickers":                       1,
-					"deepcoin/market/index-candles":                 1,
-					"deepcoin/market/trades":                        1,
-					"deepcoin/market/mark-price-candles":            1,
-					"deepcoin/market/step-margin":                   5,
-					"deepcoin/trade/funding-rate":                   5,
-					"deepcoin/trade/fund-rate/current-funding-rate": 5,
-					"deepcoin/trade/fund-rate/history":              5,
+					"deepcoin/market/books": map[string]any{
+						"cost": 1,
+					},
+					"deepcoin/market/candles": map[string]any{
+						"cost": 1,
+					},
+					"deepcoin/market/instruments": map[string]any{
+						"cost": 1,
+					},
+					"deepcoin/market/tickers": map[string]any{
+						"cost": 1,
+					},
+					"deepcoin/market/index-candles": map[string]any{
+						"cost": 1,
+					},
+					"deepcoin/market/trades": map[string]any{
+						"cost": 1,
+					},
+					"deepcoin/market/mark-price-candles": map[string]any{
+						"cost": 1,
+					},
+					"deepcoin/market/step-margin": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/trade/funding-rate": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/trade/fund-rate/current-funding-rate": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/trade/fund-rate/history": map[string]any{
+						"cost": 5,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"deepcoin/account/balances":                5,
-					"deepcoin/account/bills":                   5,
-					"deepcoin/account/positions":               5,
-					"deepcoin/trade/fills":                     5,
-					"deepcoin/trade/orderByID":                 5,
-					"deepcoin/trade/finishOrderByID":           5,
-					"deepcoin/trade/orders-history":            5,
-					"deepcoin/trade/v2/orders-pending":         5,
-					"deepcoin/trade/trigger-orders-pending":    5,
-					"deepcoin/trade/trigger-orders-history":    5,
-					"deepcoin/copytrading/support-contracts":   5,
-					"deepcoin/copytrading/leader-position":     5,
-					"deepcoin/copytrading/estimate-profit":     5,
-					"deepcoin/copytrading/history-profit":      5,
-					"deepcoin/copytrading/follower-rank":       5,
-					"deepcoin/internal-transfer/support":       5,
-					"deepcoin/internal-transfer/history-order": 5,
-					"deepcoin/rebate/config":                   5,
-					"deepcoin/agents/users":                    5,
-					"deepcoin/agents/users/rebate-list":        5,
-					"deepcoin/agents/users/rebates":            5,
-					"deepcoin/asset/deposit-list":              5,
-					"deepcoin/asset/withdraw-list":             5,
-					"deepcoin/asset/recharge-chain-list":       5,
-					"deepcoin/listenkey/acquire":               5,
-					"deepcoin/listenkey/extend":                5,
+					"deepcoin/account/balances": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/account/bills": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/account/positions": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/trade/fills": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/trade/orderByID": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/trade/finishOrderByID": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/trade/orders-history": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/trade/v2/orders-pending": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/trade/trigger-orders-pending": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/trade/trigger-orders-history": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/copytrading/support-contracts": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/copytrading/leader-position": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/copytrading/estimate-profit": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/copytrading/history-profit": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/copytrading/follower-rank": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/internal-transfer/support": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/internal-transfer/history-order": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/rebate/config": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/agents/users": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/agents/users/rebate-list": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/agents/users/rebates": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/asset/deposit-list": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/asset/withdraw-list": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/asset/recharge-chain-list": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/listenkey/acquire": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/listenkey/extend": map[string]any{
+						"cost": 5,
+					},
 				},
 				"post": map[string]any{
-					"deepcoin/account/set-leverage":        5,
-					"deepcoin/trade/order":                 5,
-					"deepcoin/trade/replace-order":         5,
-					"deepcoin/trade/cancel-order":          5,
-					"deepcoin/trade/batch-cancel-order":    5,
-					"deepcoin/trade/cancel-trigger-order":  Divide(1, 6),
-					"deepcoin/trade/swap/cancel-all":       5,
-					"deepcoin/trade/trigger-order":         5,
-					"deepcoin/trade/batch-close-position":  5,
-					"deepcoin/trade/replace-order-sltp":    5,
-					"deepcoin/trade/close-position-by-ids": 5,
-					"deepcoin/copytrading/leader-settings": 5,
-					"deepcoin/copytrading/set-contracts":   5,
-					"deepcoin/internal-transfer":           5,
-					"deepcoin/rebate/config":               5,
-					"deepcoin/asset/transfer":              5,
+					"deepcoin/account/set-leverage": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/trade/order": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/trade/replace-order": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/trade/cancel-order": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/trade/batch-cancel-order": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/trade/cancel-trigger-order": map[string]any{
+						"cost": Divide(1, 6),
+					},
+					"deepcoin/trade/swap/cancel-all": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/trade/trigger-order": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/trade/batch-close-position": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/trade/replace-order-sltp": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/trade/close-position-by-ids": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/copytrading/leader-settings": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/copytrading/set-contracts": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/internal-transfer": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/rebate/config": map[string]any{
+						"cost": 5,
+					},
+					"deepcoin/asset/transfer": map[string]any{
+						"cost": 5,
+					},
 				},
 			},
 		},
@@ -305,13 +411,13 @@ func (this *DeepcoinCore) Describe() any {
 				"USDC": "ERC20",
 			},
 			"networks": map[string]any{
-				"ERC20": "ERC20",
-				"TRC20": "TRC20",
-				"ARB":   "ARBITRUM",
-				"BSC":   "BSC(BEP20)",
-				"SOL":   "SOL",
-				"BTC":   "Bitcoin",
-				"ADA":   "Cardano",
+				"ERC20":    "ERC20",
+				"TRC20":    "TRC20",
+				"ARBITRUM": "ARBITRUM",
+				"BSC":      "BSC(BEP20)",
+				"SOL":      "SOL",
+				"BTC":      "Bitcoin",
+				"ADA":      "Cardano",
 			},
 			"networksById": map[string]any{},
 			"fetchMarkets": map[string]any{
@@ -1223,12 +1329,12 @@ func (this *DeepcoinCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 			PanicOnError(retRes104912)
 		}
 		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate", false)
+		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate", false)
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes105419 := (<-this.FetchPaginatedCallCursor("fetchDeposits", code, since, limit, params, "code", nil, 1, 50))
+			retRes105419 := (<-this.FetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "code", nil, 1, 50))
 			PanicOnError(retRes105419)
 			ch <- retRes105419
 			return nil
@@ -2267,8 +2373,7 @@ func (this *DeepcoinCore) FetchOpenOrder(id any, optionalArgs ...any) <-chan any
 		var data any = this.SafeList(response, "data", []any{})
 		var length any = GetArrayLength(data)
 		if IsTrue(IsEqual(length, 0)) {
-
-			return nil
+			panic(OrderNotFound(Add(Add(this.Id, " fetchOpenOrder() could not find order id "), id)))
 		}
 		var entry any = this.SafeDict(data, 0, map[string]any{})
 

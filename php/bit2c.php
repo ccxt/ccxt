@@ -124,35 +124,35 @@ class bit2c extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'Exchanges/{pair}/Ticker',
-                        'Exchanges/{pair}/orderbook',
-                        'Exchanges/{pair}/trades',
-                        'Exchanges/{pair}/lasttrades',
+                        'Exchanges/{pair}/Ticker' => array( 'cost' => 1 ),
+                        'Exchanges/{pair}/orderbook' => array( 'cost' => 1 ),
+                        'Exchanges/{pair}/trades' => array( 'cost' => 1 ),
+                        'Exchanges/{pair}/lasttrades' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'Merchant/CreateCheckout',
-                        'Funds/AddCoinFundsRequest',
-                        'Order/AddFund',
-                        'Order/AddOrder',
-                        'Order/GetById',
-                        'Order/AddOrderMarketPriceBuy',
-                        'Order/AddOrderMarketPriceSell',
-                        'Order/CancelOrder',
-                        'Order/AddCoinFundsRequest',
-                        'Order/AddStopOrder',
-                        'Payment/GetMyId',
-                        'Payment/Send',
-                        'Payment/Pay',
+                        'Merchant/CreateCheckout' => array( 'cost' => 1 ),
+                        'Funds/AddCoinFundsRequest' => array( 'cost' => 1 ),
+                        'Order/AddFund' => array( 'cost' => 1 ),
+                        'Order/AddOrder' => array( 'cost' => 1 ),
+                        'Order/GetById' => array( 'cost' => 1 ),
+                        'Order/AddOrderMarketPriceBuy' => array( 'cost' => 1 ),
+                        'Order/AddOrderMarketPriceSell' => array( 'cost' => 1 ),
+                        'Order/CancelOrder' => array( 'cost' => 1 ),
+                        'Order/AddCoinFundsRequest' => array( 'cost' => 1 ),
+                        'Order/AddStopOrder' => array( 'cost' => 1 ),
+                        'Payment/GetMyId' => array( 'cost' => 1 ),
+                        'Payment/Send' => array( 'cost' => 1 ),
+                        'Payment/Pay' => array( 'cost' => 1 ),
                     ),
                     'get' => array(
-                        'Account/Balance',
-                        'Account/Balance/v2',
-                        'Order/MyOrders',
-                        'Order/GetById',
-                        'Order/AccountHistory',
-                        'Order/OrderHistory',
+                        'Account/Balance' => array( 'cost' => 1 ),
+                        'Account/Balance/v2' => array( 'cost' => 1 ),
+                        'Order/MyOrders' => array( 'cost' => 1 ),
+                        'Order/GetById' => array( 'cost' => 1 ),
+                        'Order/AccountHistory' => array( 'cost' => 1 ),
+                        'Order/OrderHistory' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -459,25 +459,26 @@ class bit2c extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // max 100000
         }
-        $response = null;
+        $responseList = array();
         if ($method === 'public_get_exchanges_pair_trades') {
             $response = $this->publicGetExchangesPairTrades($this->extend($request, $params));
+            //
+            //     array(
+            //         array("date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018),
+            //         array("date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020),
+            //         array("date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022),
+            //     )
+            //
+            if (gettype($response) === 'string') {
+                throw new ExchangeError($response);
+            }
+            $responseList = $this->to_array($response);
         } else {
             $response = $this->publicGetExchangesPairLasttrades($this->extend($request, $params));
-        }
-        //
-        //     array(
-        //         array("date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018),
-        //         array("date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020),
-        //         array("date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022),
-        //     )
-        //
-        if (gettype($response) === 'string') {
-            throw new ExchangeError($response);
-        }
-        $responseList = array();
-        if ($response !== null) {
-            $responseList = $response;
+            if (gettype($response) === 'string') {
+                throw new ExchangeError($response);
+            }
+            $responseList = $this->to_array($response);
         }
         return $this->parse_trades($responseList, $market, $since, $limit);
     }
@@ -837,7 +838,7 @@ class bit2c extends Exchange {
         //
         $responseList = array();
         if ($response !== null) {
-            $responseList = $response;
+            $responseList = $this->to_array($response);
         }
         return $this->parse_trades($responseList, $market, $since, $limit);
     }

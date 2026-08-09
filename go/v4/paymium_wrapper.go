@@ -637,7 +637,7 @@ func (this *Paymium) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Paymium) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Paymium) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Paymium) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Paymium) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -655,7 +655,7 @@ func (this *Paymium) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Paymium) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Paymium) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Paymium) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Paymium) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
@@ -781,7 +781,7 @@ func (this *Paymium) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Paymium) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Paymium) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Paymium) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Paymium) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -826,7 +826,7 @@ func (this *Paymium) FetchTradesWs(symbol string, options ...FetchTradesWsOption
 func (this *Paymium) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Paymium) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Paymium) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Paymium) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

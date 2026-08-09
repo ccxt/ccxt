@@ -112,6 +112,7 @@ public class BlofinCore extends BlofinApi
                 put( "fetchPositions", true );
                 put( "fetchPositionsADLRank", true );
                 put( "fetchPositionsForSymbol", false );
+                put( "fetchPositionsHistory", true );
                 put( "fetchPositionsRisk", false );
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchSettlementHistory", false );
@@ -178,91 +179,249 @@ public class BlofinCore extends BlofinApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "market/instruments", 1 );
-                        put( "market/tickers", 1 );
-                        put( "market/books", 1 );
-                        put( "market/trades", 1 );
-                        put( "market/mark-price", 1 );
-                        put( "market/funding-rate", 1 );
-                        put( "market/funding-rate-history", 1 );
-                        put( "market/candles", 1 );
-                        put( "market/index-candles", 1 );
-                        put( "market/mark-price-candles", 1 );
-                        put( "market/position-tiers", 1 );
+                        put( "market/instruments", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "market/tickers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "market/books", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "market/trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "market/mark-price", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "market/funding-rate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "market/funding-rate-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "market/candles", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "market/index-candles", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "market/mark-price-candles", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "market/position-tiers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "asset/balances", 1 );
-                        put( "asset/bills", 1 );
-                        put( "asset/withdrawal-history", 1 );
-                        put( "asset/deposit-history", 1 );
-                        put( "account/config", 1 );
-                        put( "asset/currencies", 1 );
-                        put( "account/balance", 1 );
-                        put( "account/positions", 1 );
-                        put( "account/positions-history", 1 );
-                        put( "account/margin-mode", 1 );
-                        put( "account/position-mode", 1 );
-                        put( "account/leverage-info", 1 );
-                        put( "account/batch-leverage-info", 1 );
-                        put( "trade/orders-pending", 1 );
-                        put( "trade/order-detail", 1 );
-                        put( "trade/orders-tpsl-pending", 1 );
-                        put( "trade/order-tpsl-detail", 1 );
-                        put( "trade/orders-algo-pending", 1 );
-                        put( "trade/orders-history", 1 );
-                        put( "trade/orders-tpsl-history", 1 );
-                        put( "trade/orders-algo-history", 1 );
-                        put( "trade/fills-history", 1 );
-                        put( "trade/order/price-range", 1 );
-                        put( "affiliate/basic", 1 );
-                        put( "affiliate/referral-code", 1 );
-                        put( "affiliate/invitees", 1 );
-                        put( "affiliate/sub-invitees", 1 );
-                        put( "affiliate/sub-affiliates", 1 );
-                        put( "affiliate/invitees/daily/info", 1 );
-                        put( "copytrading/instruments", 1 );
-                        put( "copytrading/config", 1 );
-                        put( "copytrading/account/balance", 1 );
-                        put( "copytrading/account/positions-by-order", 1 );
-                        put( "copytrading/account/positions-details-by-order", 1 );
-                        put( "copytrading/account/positions-by-contract", 1 );
-                        put( "copytrading/account/position-mode", 1 );
-                        put( "copytrading/account/leverage-info", 1 );
-                        put( "copytrading/trade/orders-pending", 1 );
-                        put( "copytrading/trade/pending-tpsl-by-contract", 1 );
-                        put( "copytrading/trade/position-history-by-order", 1 );
-                        put( "copytrading/trade/orders-history", 1 );
-                        put( "copytrading/trade/pending-tpsl-by-order", 1 );
-                        put( "user/query-apikey", 1 );
-                        put( "spot/trade/fills-history", 1 );
+                        put( "asset/balances", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "asset/bills", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "asset/withdrawal-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "asset/deposit-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/config", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "asset/currencies", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/balance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/positions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/positions-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/margin-mode", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/position-mode", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/leverage-info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/batch-leverage-info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/orders-pending", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/order-detail", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/orders-tpsl-pending", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/order-tpsl-detail", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/orders-algo-pending", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/orders-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/orders-tpsl-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/orders-algo-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/fills-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/order/price-range", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "affiliate/basic", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "affiliate/referral-code", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "affiliate/invitees", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "affiliate/sub-invitees", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "affiliate/sub-affiliates", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "affiliate/invitees/daily/info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/instruments", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/config", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/account/balance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/account/positions-by-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/account/positions-details-by-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/account/positions-by-contract", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/account/position-mode", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/account/leverage-info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/trade/orders-pending", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/trade/pending-tpsl-by-contract", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/trade/position-history-by-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/trade/orders-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/trade/pending-tpsl-by-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "user/query-apikey", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "spot/trade/fills-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "asset/transfer", 1 );
-                        put( "asset/demo-apply-money", 1 );
-                        put( "account/set-margin-mode", 1 );
-                        put( "account/set-position-mode", 1 );
-                        put( "account/set-leverage", 1 );
-                        put( "trade/order", 1 );
-                        put( "trade/batch-orders", 1 );
-                        put( "trade/order-tpsl", 1 );
-                        put( "trade/order-algo", 1 );
-                        put( "trade/cancel-order", 1 );
-                        put( "trade/cancel-batch-orders", 1 );
-                        put( "trade/cancel-tpsl", 1 );
-                        put( "trade/cancel-algo", 1 );
-                        put( "trade/close-position", 1 );
-                        put( "copytrading/account/set-position-mode", 1 );
-                        put( "copytrading/account/set-leverage", 1 );
-                        put( "copytrading/trade/place-order", 1 );
-                        put( "copytrading/trade/cancel-order", 1 );
-                        put( "copytrading/trade/place-tpsl-by-contract", 1 );
-                        put( "copytrading/trade/cancel-tpsl-by-contract", 1 );
-                        put( "copytrading/trade/place-tpsl-by-order", 1 );
-                        put( "copytrading/trade/cancel-tpsl-by-order", 1 );
-                        put( "copytrading/trade/close-position-by-order", 1 );
-                        put( "copytrading/trade/close-position-by-contract", 1 );
+                        put( "asset/transfer", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "asset/demo-apply-money", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/set-margin-mode", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/set-position-mode", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/set-leverage", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/batch-orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/order-tpsl", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/order-algo", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/cancel-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/cancel-batch-orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/cancel-tpsl", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/cancel-algo", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/close-position", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/account/set-position-mode", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/account/set-leverage", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/trade/place-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/trade/cancel-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/trade/place-tpsl-by-contract", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/trade/cancel-tpsl-by-contract", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/trade/place-tpsl-by-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/trade/cancel-tpsl-by-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/trade/close-position-by-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "copytrading/trade/close-position-by-contract", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -3294,7 +3453,7 @@ public class BlofinCore extends BlofinApi
             //     }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            return this.parseMarginMode(data, market);  // keep untyped to match the base setMarginMode return ({}) — narrowing it breaks the Go IExchange interface
+            return this.parseMarginMode(data, market);  // Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
         });
 
     }

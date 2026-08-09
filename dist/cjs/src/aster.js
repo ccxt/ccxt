@@ -70,7 +70,7 @@ class aster extends aster$1["default"] {
                 'createMarketSellOrder': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
-                'createOrders': false,
+                'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
@@ -85,7 +85,7 @@ class aster extends aster$1["default"] {
                 'editOrders': false,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
-                'fetchBidsAsks': false,
+                'fetchBidsAsks': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -119,7 +119,7 @@ class aster extends aster$1["default"] {
                 'fetchIsolatedBorrowRate': 'emulated',
                 'fetchIsolatedBorrowRates': false,
                 'fetchL3OrderBook': false,
-                'fetchLastPrices': false,
+                'fetchLastPrices': true,
                 'fetchLedger': true,
                 'fetchLedgerEntry': false,
                 'fetchLeverage': 'emulated',
@@ -193,209 +193,209 @@ class aster extends aster$1["default"] {
             'api': {
                 'fapiPublic': {
                     'get': {
-                        'v1/ping': 1,
-                        'v3/ping': 1,
-                        'v1/time': 1,
-                        'v3/time': 1,
-                        'v1/exchangeInfo': 1,
-                        'v3/exchangeInfo': 1,
-                        'v1/depth': 1,
-                        'v3/depth': 2, // dynamic: 5, 10, 20, 50->2, 100->5, 500->10, 1000->20
-                        'v1/trades': 1,
-                        'v3/trades': 1,
-                        'v1/historicalTrades': 1,
-                        'v3/historicalTrades': 20,
-                        'v1/aggTrades': 1,
-                        'v3/aggTrades': 20,
-                        'v1/klines': 1,
-                        'v3/klines': 1, // dynamic [1,100) ->1,  [100, 500)->2, [500, 1000]->5, [1000 -> 10
-                        'v1/indexPriceKlines': 1,
-                        'v3/indexPriceKlines': 1, // same as klines
-                        'v1/markPriceKlines': 1,
-                        'v3/markPriceKlines': 1, // same as klines
-                        'v1/premiumIndex': 1,
-                        'v3/premiumIndex': 1,
-                        'v1/fundingRate': 1,
-                        'v3/fundingRate': 1,
-                        'v1/fundingInfo': 1,
-                        'v3/fundingInfo': 1,
-                        'v1/ticker/24hr': 1,
-                        'v3/ticker/24hr': 1, // 1 single-symbol, otherwise 40
-                        'v1/ticker/price': 1,
-                        'v3/ticker/price': 1, // 1 single-symbol, otherwise 2
-                        'v1/ticker/bookTicker': 1,
-                        'v3/ticker/bookTicker': 1, // 1 single-symbol, otherwise 2
+                        'v1/ping': { 'cost': 1 },
+                        'v3/ping': { 'cost': 1 },
+                        'v1/time': { 'cost': 1 },
+                        'v3/time': { 'cost': 1 },
+                        'v1/exchangeInfo': { 'cost': 1 },
+                        'v3/exchangeInfo': { 'cost': 1 },
+                        'v1/depth': { 'cost': 1 },
+                        'v3/depth': { 'cost': 2 }, // dynamic: 5, 10, 20, 50->2, 100->5, 500->10, 1000->20
+                        'v1/trades': { 'cost': 1 },
+                        'v3/trades': { 'cost': 1 },
+                        'v1/historicalTrades': { 'cost': 1 },
+                        'v3/historicalTrades': { 'cost': 20 },
+                        'v1/aggTrades': { 'cost': 1 },
+                        'v3/aggTrades': { 'cost': 20 },
+                        'v1/klines': { 'cost': 1 },
+                        'v3/klines': { 'cost': 1 }, // dynamic [1,100) ->1,  [100, 500)->2, [500, 1000]->5, [1000 -> 10
+                        'v1/indexPriceKlines': { 'cost': 1 },
+                        'v3/indexPriceKlines': { 'cost': 1 }, // same as klines
+                        'v1/markPriceKlines': { 'cost': 1 },
+                        'v3/markPriceKlines': { 'cost': 1 }, // same as klines
+                        'v1/premiumIndex': { 'cost': 1 },
+                        'v3/premiumIndex': { 'cost': 1 },
+                        'v1/fundingRate': { 'cost': 1 },
+                        'v3/fundingRate': { 'cost': 1 },
+                        'v1/fundingInfo': { 'cost': 1 },
+                        'v3/fundingInfo': { 'cost': 1 },
+                        'v1/ticker/24hr': { 'cost': 1 },
+                        'v3/ticker/24hr': { 'cost': 1 }, // 1 single-symbol, otherwise 40
+                        'v1/ticker/price': { 'cost': 1 },
+                        'v3/ticker/price': { 'cost': 1 }, // 1 single-symbol, otherwise 2
+                        'v1/ticker/bookTicker': { 'cost': 1 },
+                        'v3/ticker/bookTicker': { 'cost': 1 }, // 1 single-symbol, otherwise 2
                         // different endpoints
-                        'v1/adlQuantile': 1,
-                        'v1/forceOrders': 1,
-                        'v3/indexreferences': 1,
+                        'v1/adlQuantile': { 'cost': 1 },
+                        'v1/forceOrders': { 'cost': 1 },
+                        'v3/indexreferences': { 'cost': 1 },
                     },
                 },
                 'fapiPrivate': {
                     'get': {
-                        'v1/positionSide/dual': 1,
-                        'v3/positionSide/dual': 30,
-                        'v1/multiAssetsMargin': 1,
-                        'v3/multiAssetsMargin': 1,
-                        'v1/order': 1,
-                        'v3/order': 1,
-                        'v1/openOrder': 1,
-                        'v3/openOrder': 1,
-                        'v1/openOrders': 1,
-                        'v3/openOrders': 1,
-                        'v1/allOrders': 1,
-                        'v3/allOrders': 1,
-                        'v2/balance': 1,
-                        'v3/balance': 1,
-                        'v3/account': 1,
-                        'v1/positionMargin/history': 1,
-                        'v3/positionMargin/history': 1,
-                        'v2/positionRisk': 1,
-                        'v3/positionRisk': 1,
-                        'v1/userTrades': 1,
-                        'v3/userTrades': 5,
-                        'v1/income': 1,
-                        'v3/income': 1,
-                        'v1/leverageBracket': 1,
-                        'v3/leverageBracket': 1,
-                        'v1/commissionRate': 1,
-                        'v3/commissionRate': 1,
+                        'v1/positionSide/dual': { 'cost': 1 },
+                        'v3/positionSide/dual': { 'cost': 30 },
+                        'v1/multiAssetsMargin': { 'cost': 1 },
+                        'v3/multiAssetsMargin': { 'cost': 1 },
+                        'v1/order': { 'cost': 1 },
+                        'v3/order': { 'cost': 1 },
+                        'v1/openOrder': { 'cost': 1 },
+                        'v3/openOrder': { 'cost': 1 },
+                        'v1/openOrders': { 'cost': 1 },
+                        'v3/openOrders': { 'cost': 1 },
+                        'v1/allOrders': { 'cost': 1 },
+                        'v3/allOrders': { 'cost': 1 },
+                        'v2/balance': { 'cost': 1 },
+                        'v3/balance': { 'cost': 1 },
+                        'v3/account': { 'cost': 1 },
+                        'v1/positionMargin/history': { 'cost': 1 },
+                        'v3/positionMargin/history': { 'cost': 1 },
+                        'v2/positionRisk': { 'cost': 1 },
+                        'v3/positionRisk': { 'cost': 1 },
+                        'v1/userTrades': { 'cost': 1 },
+                        'v3/userTrades': { 'cost': 5 },
+                        'v1/income': { 'cost': 1 },
+                        'v3/income': { 'cost': 1 },
+                        'v1/leverageBracket': { 'cost': 1 },
+                        'v3/leverageBracket': { 'cost': 1 },
+                        'v1/commissionRate': { 'cost': 1 },
+                        'v3/commissionRate': { 'cost': 1 },
                         // others
-                        'v3/adlQuantile': 1,
-                        'v3/forceOrders': 1,
-                        'v3/mmp': 1,
-                        'v3/accountWithJoinMargin': 1,
-                        'v4/account': 1,
+                        'v3/adlQuantile': { 'cost': 1 },
+                        'v3/forceOrders': { 'cost': 1 },
+                        'v3/mmp': { 'cost': 1 },
+                        'v3/accountWithJoinMargin': { 'cost': 1 },
+                        'v4/account': { 'cost': 1 },
                         // builder
-                        'v3/agent': 1,
-                        'v3/builder': 1,
+                        'v3/agent': { 'cost': 1 },
+                        'v3/builder': { 'cost': 1 },
                     },
                     'post': {
-                        'v1/positionSide/dual': 1,
-                        'v3/positionSide/dual': 1,
-                        'v1/multiAssetsMargin': 1,
-                        'v3/multiAssetsMargin': 1,
-                        'v1/order': 1,
-                        'v3/order': 1,
-                        'v1/order/test': 1,
-                        'v3/order/test': 1,
-                        'v1/batchOrders': 1,
-                        'v3/batchOrders': 1,
-                        'v1/asset/wallet/transfer': 1,
-                        'v3/asset/wallet/transfer': 1,
-                        'v1/countdownCancelAll': 1,
-                        'v3/countdownCancelAll': 1,
-                        'v1/leverage': 1,
-                        'v3/leverage': 1,
-                        'v1/marginType': 1,
-                        'v3/marginType': 1,
-                        'v1/positionMargin': 1,
-                        'v3/positionMargin': 1,
-                        'v1/listenKey': 1,
-                        'v3/listenKey': 1,
+                        'v1/positionSide/dual': { 'cost': 1 },
+                        'v3/positionSide/dual': { 'cost': 1 },
+                        'v1/multiAssetsMargin': { 'cost': 1 },
+                        'v3/multiAssetsMargin': { 'cost': 1 },
+                        'v1/order': { 'cost': 1 },
+                        'v3/order': { 'cost': 1 },
+                        'v1/order/test': { 'cost': 1 },
+                        'v3/order/test': { 'cost': 1 },
+                        'v1/batchOrders': { 'cost': 1 },
+                        'v3/batchOrders': { 'cost': 1 },
+                        'v1/asset/wallet/transfer': { 'cost': 1 },
+                        'v3/asset/wallet/transfer': { 'cost': 1 },
+                        'v1/countdownCancelAll': { 'cost': 1 },
+                        'v3/countdownCancelAll': { 'cost': 1 },
+                        'v1/leverage': { 'cost': 1 },
+                        'v3/leverage': { 'cost': 1 },
+                        'v1/marginType': { 'cost': 1 },
+                        'v3/marginType': { 'cost': 1 },
+                        'v1/positionMargin': { 'cost': 1 },
+                        'v3/positionMargin': { 'cost': 1 },
+                        'v1/listenKey': { 'cost': 1 },
+                        'v3/listenKey': { 'cost': 1 },
                         // others
-                        'v3/mmp': 1,
-                        'v3/mmpReset': 1,
-                        'v3/noop': 1,
+                        'v3/mmp': { 'cost': 1 },
+                        'v3/mmpReset': { 'cost': 1 },
+                        'v3/noop': { 'cost': 1 },
                         // builder
-                        'v3/approveAgent': 1,
-                        'v3/updateAgent': 1,
-                        'v3/approveBuilder': 1,
-                        'v3/updateBuilder': 1,
+                        'v3/approveAgent': { 'cost': 1 },
+                        'v3/updateAgent': { 'cost': 1 },
+                        'v3/approveBuilder': { 'cost': 1 },
+                        'v3/updateBuilder': { 'cost': 1 },
                     },
                     'put': {
-                        'v1/listenKey': 1,
-                        'v3/listenKey': 1,
+                        'v1/listenKey': { 'cost': 1 },
+                        'v3/listenKey': { 'cost': 1 },
                     },
                     'delete': {
-                        'v1/order': 1,
-                        'v3/order': 1,
-                        'v1/allOpenOrders': 1,
-                        'v3/allOpenOrders': 1,
-                        'v1/batchOrders': 1,
-                        'v3/batchOrders': 1,
-                        'v3/mmp': 1,
-                        'v1/listenKey': 1,
-                        'v3/listenKey': 1,
+                        'v1/order': { 'cost': 1 },
+                        'v3/order': { 'cost': 1 },
+                        'v1/allOpenOrders': { 'cost': 1 },
+                        'v3/allOpenOrders': { 'cost': 1 },
+                        'v1/batchOrders': { 'cost': 1 },
+                        'v3/batchOrders': { 'cost': 1 },
+                        'v3/mmp': { 'cost': 1 },
+                        'v1/listenKey': { 'cost': 1 },
+                        'v3/listenKey': { 'cost': 1 },
                         // builder
-                        'v3/agent': 1,
-                        'v3/builder': 1,
+                        'v3/agent': { 'cost': 1 },
+                        'v3/builder': { 'cost': 1 },
                     },
                 },
                 'sapiPublic': {
                     'get': {
                         // v1
-                        'v1/ping': 1,
-                        'v1/time': 1,
-                        'v1/exchangeInfo': 1,
-                        'v1/depth': 1,
-                        'v1/trades': 1,
-                        'v1/historicalTrades': 1,
-                        'v1/aggTrades': 1,
-                        'v1/klines': 1,
-                        'v1/ticker/24hr': 1,
-                        'v1/ticker/price': 1,
-                        'v1/ticker/bookTicker': 1,
-                        'v1/aster/withdraw/estimateFee': 1,
+                        'v1/ping': { 'cost': 1 },
+                        'v1/time': { 'cost': 1 },
+                        'v1/exchangeInfo': { 'cost': 1 },
+                        'v1/depth': { 'cost': 1 },
+                        'v1/trades': { 'cost': 1 },
+                        'v1/historicalTrades': { 'cost': 1 },
+                        'v1/aggTrades': { 'cost': 1 },
+                        'v1/klines': { 'cost': 1 },
+                        'v1/ticker/24hr': { 'cost': 1 },
+                        'v1/ticker/price': { 'cost': 1 },
+                        'v1/ticker/bookTicker': { 'cost': 1 },
+                        'v1/aster/withdraw/estimateFee': { 'cost': 1 },
                         // v3
-                        'v3/ping': 1,
-                        'v3/time': 1,
-                        'v3/exchangeInfo': 1,
+                        'v3/ping': { 'cost': 1 },
+                        'v3/time': { 'cost': 1 },
+                        'v3/exchangeInfo': { 'cost': 1 },
                         'v3/depth': { 'cost': 2, 'byLimit': [[50, 2], [100, 5], [500, 10], [1000, 20]] },
-                        'v3/trades': 1,
-                        'v3/historicalTrades': 20,
-                        'v3/aggTrades': 20,
+                        'v3/trades': { 'cost': 1 },
+                        'v3/historicalTrades': { 'cost': 20 },
+                        'v3/aggTrades': { 'cost': 20 },
                         'v3/klines': { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] }, // todo: not specified in docs
                         'v3/ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
                         'v3/ticker/price': { 'cost': 1, 'noSymbol': 2 },
                         'v3/ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
-                        'v3/aster/withdraw/estimateFee': 1,
+                        'v3/aster/withdraw/estimateFee': { 'cost': 1 },
                     },
                 },
                 'sapiPrivate': {
                     'get': {
                         // v1
-                        'v1/commissionRate': 1,
-                        'v1/order': 1,
-                        'v1/openOrders': 1,
-                        'v1/allOrders': 1,
-                        'v1/transactionHistory': 1,
-                        'v1/account': 1,
-                        'v1/userTrades': 1,
+                        'v1/commissionRate': { 'cost': 1 },
+                        'v1/order': { 'cost': 1 },
+                        'v1/openOrders': { 'cost': 1 },
+                        'v1/allOrders': { 'cost': 1 },
+                        'v1/transactionHistory': { 'cost': 1 },
+                        'v1/account': { 'cost': 1 },
+                        'v1/userTrades': { 'cost': 1 },
                         // v3
                         'v3/commissionRate': { 'cost': 1, 'noSymbol': 2 },
-                        'v3/order': 1,
-                        'v3/openOrders': 1, // with symbol 1, otherwise 40
-                        'v3/allOrders': 5,
-                        'v3/account': 5,
-                        'v3/userTrades': 5,
-                        'v3/openOrder': 1,
+                        'v3/order': { 'cost': 1 },
+                        'v3/openOrders': { 'cost': 1 }, // with symbol 1, otherwise 40
+                        'v3/allOrders': { 'cost': 5 },
+                        'v3/account': { 'cost': 5 },
+                        'v3/userTrades': { 'cost': 5 },
+                        'v3/openOrder': { 'cost': 1 },
                     },
                     'post': {
                         // v1
-                        'v1/order': 1,
-                        'v1/asset/wallet/transfer': 5,
-                        'v1/asset/sendToAddress': 1, // inexistent in v3
-                        'v1/listenKey': 1,
+                        'v1/order': { 'cost': 1 },
+                        'v1/asset/wallet/transfer': { 'cost': 5 },
+                        'v1/asset/sendToAddress': { 'cost': 1 }, // inexistent in v3
+                        'v1/listenKey': { 'cost': 1 },
                         // v3
-                        'v3/order': 1,
-                        'v3/asset/wallet/transfer': 5,
-                        'v3/aster/user-withdraw': 1,
-                        'v3/listenKey': 1,
+                        'v3/order': { 'cost': 1 },
+                        'v3/asset/wallet/transfer': { 'cost': 5 },
+                        'v3/aster/user-withdraw': { 'cost': 1 },
+                        'v3/listenKey': { 'cost': 1 },
                     },
-                    'put': [
-                        'v1/listenKey',
-                        'v3/listenKey',
-                    ],
+                    'put': {
+                        'v1/listenKey': { 'cost': 1 },
+                        'v3/listenKey': { 'cost': 1 },
+                    },
                     'delete': {
                         // v1
-                        'v1/order': 1,
-                        'v1/allOpenOrders': 1,
-                        'v1/listenKey': 1,
+                        'v1/order': { 'cost': 1 },
+                        'v1/allOpenOrders': { 'cost': 1 },
+                        'v1/listenKey': { 'cost': 1 },
                         // v3
-                        'v3/allOpenOrders': 1,
-                        'v3/order': 1,
-                        'v3/listenKey': 1,
+                        'v3/allOpenOrders': { 'cost': 1 },
+                        'v3/order': { 'cost': 1 },
+                        'v3/listenKey': { 'cost': 1 },
                     },
                 },
             },
@@ -578,7 +578,7 @@ class aster extends aster$1["default"] {
                 'networks': {
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
-                    'ARBONE': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                 },
                 'networksToChainId': {
                     'ETH': 1,
@@ -1193,7 +1193,7 @@ class aster extends aster$1["default"] {
             //  ]
             //
         }
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -1394,7 +1394,7 @@ class aster extends aster$1["default"] {
             request['symbol'] = market['id'];
         }
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -1726,11 +1726,12 @@ class aster extends aster$1["default"] {
         if (response === undefined) {
             throw new errors.NullResponse(this.id + ' fetchLastPrices() returned empty response');
         }
+        const rows = this.toArray(response);
         const results = [];
-        for (let i = 0; i < response.length; i++) {
-            const marketId = this.safeString(response[i], 'symbol');
+        for (let i = 0; i < rows.length; i++) {
+            const marketId = this.safeString(rows[i], 'symbol');
             const safeMarket = this.safeMarket(marketId, undefined, undefined, marketType);
-            const priceData = this.extend(this.parseLastPrice(response[i], safeMarket), params);
+            const priceData = this.extend(this.parseLastPrice(rows[i], safeMarket), params);
             results.push(priceData);
         }
         symbols = this.marketSymbols(symbols);
@@ -3125,7 +3126,7 @@ class aster extends aster$1["default"] {
         //         }
         //     ]
         //
-        return this.parseLeverages(response, symbols, 'symbol');
+        return this.parseLeverages(this.toArray(response), symbols, 'symbol');
     }
     parseLeverage(leverage, market = undefined) {
         //
@@ -3206,7 +3207,7 @@ class aster extends aster$1["default"] {
         //     ]
         //
         //
-        return this.parseMarginModes(response, symbols, 'symbol', 'swap');
+        return this.parseMarginModes(this.toArray(response), symbols, 'symbol', 'swap');
     }
     parseMarginMode(marginMode, market = undefined) {
         //
@@ -3285,7 +3286,7 @@ class aster extends aster$1["default"] {
         //         }
         //     ]
         //
-        const modifications = this.parseMarginModifications(response);
+        const modifications = this.parseMarginModifications(this.toArray(response));
         return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
     }
     parseMarginModification(data, market = undefined) {
@@ -3750,12 +3751,13 @@ class aster extends aster$1["default"] {
         //         }
         //     ]
         //
+        const rawPositions = this.toArray(response);
         const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const rawPosition = response[i];
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
             const entryPriceString = this.safeString(rawPosition, 'entryPrice');
             if (Precise["default"].stringGt(entryPriceString, '0')) {
-                result.push(this.parsePositionRisk(response[i]));
+                result.push(this.parsePositionRisk(rawPosition));
             }
         }
         symbols = this.marketSymbols(symbols);
@@ -4061,8 +4063,9 @@ class aster extends aster$1["default"] {
             //                ...
             //
             this.options['leverageBrackets'] = this.createSafeDictionary();
-            for (let i = 0; i < response.length; i++) {
-                const entry = response[i];
+            const entries = this.toArray(response);
+            for (let i = 0; i < entries.length; i++) {
+                const entry = entries[i];
                 const marketId = this.safeString(entry, 'symbol');
                 const symbol = this.safeSymbol(marketId, undefined, undefined, 'contract');
                 const brackets = this.safeList(entry, 'brackets', []);

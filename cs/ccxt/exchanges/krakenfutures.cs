@@ -28,6 +28,7 @@ public partial class krakenfutures : Exchange
                 { "cancelOrders", true },
                 { "createMarketOrder", true },
                 { "createOrder", true },
+                { "createOrders", true },
                 { "createPostOnlyOrder", true },
                 { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },
@@ -98,18 +99,141 @@ public partial class krakenfutures : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"feeschedules", "instruments", "orderbook", "tickers", "history", "historicalfundingrates"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "feeschedules", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "instruments", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "historicalfundingrates", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"feeschedules/volumes", "openpositions", "notifications", "accounts", "openorders", "recentorders", "fills", "transfers", "leveragepreferences", "pnlpreferences", "assignmentprogram/current", "assignmentprogram/history", "orders/status"} },
-                    { "post", new List<object>() {"sendorder", "editorder", "cancelorder", "transfer", "batchorder", "cancelallorders", "cancelallordersafter", "withdrawal", "assignmentprogram/add", "assignmentprogram/delete"} },
-                    { "put", new List<object>() {"leveragepreferences", "pnlpreferences"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "feeschedules/volumes", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openpositions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "notifications", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openorders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "recentorders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fills", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "leveragepreferences", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pnlpreferences", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assignmentprogram/current", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assignmentprogram/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "sendorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "editorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "batchorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelallorders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelallordersafter", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assignmentprogram/add", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assignmentprogram/delete", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "put", new Dictionary<string, object>() {
+                        { "leveragepreferences", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pnlpreferences", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "charts", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"{price_type}/{symbol}/{interval}"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "{price_type}/{symbol}/{interval}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "history", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"orders", "executions", "triggers", "accountlogcsv", "account-log", "market/{symbol}/orders", "market/{symbol}/executions"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "executions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "triggers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accountlogcsv", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account-log", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/{symbol}/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/{symbol}/executions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -527,8 +651,9 @@ public partial class krakenfutures : Exchange
         //        },
         //    }
         //
-        object timestamp = this.parse8601(getValue(response, "serverTime"));
-        return this.parseOrderBook(getValue(response, "orderBook"), symbol, timestamp);
+        object timestamp = this.parse8601(this.safeString(response, "serverTime"));
+        object orderBook = this.safeDict(response, "orderBook", new Dictionary<string, object>() {});
+        return this.parseOrderBook(orderBook, symbol, timestamp);
     }
 
     /**
@@ -1339,9 +1464,10 @@ public partial class krakenfutures : Exchange
             ((IDictionary<string,object>)request)["limitPrice"] = price;
         }
         object response = await this.privatePostEditorder(this.extend(request, parameters));
-        object status = this.safeString(getValue(response, "editStatus"), "status");
+        object editStatus = this.safeDict(response, "editStatus", new Dictionary<string, object>() {});
+        object status = this.safeString(editStatus, "status");
         this.verifyOrderActionSuccess(status, "editOrder", new List<object>() {"filled"});
-        object order = this.parseOrder(getValue(response, "editStatus"));
+        object order = this.parseOrder(editStatus);
         ((IDictionary<string,object>)order)["info"] = response;
         return order;
     }
@@ -2441,7 +2567,8 @@ public partial class krakenfutures : Exchange
         //        ]
         //    }
         //
-        return this.parseTrades(getValue(response, "fills"), market, since, limit);
+        object fills = this.safeList(response, "fills", new List<object>() {});
+        return this.parseTrades(fills, market, since, limit);
     }
 
     /**
@@ -2724,7 +2851,7 @@ public partial class krakenfutures : Exchange
             object parsed = this.parseFundingRate(entry, market);
             ((IList<object>)fundingRates).Add(parsed);
         }
-        return ((object)this.indexBy(fundingRates, "symbol"));
+        return this.indexBy(fundingRates, "symbol");
     }
 
     public override object parseFundingRate(object ticker, object market = null)

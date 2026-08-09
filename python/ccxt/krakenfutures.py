@@ -51,6 +51,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'cancelOrders': True,
                 'createMarketOrder': True,
                 'createOrder': True,
+                'createOrders': True,
                 'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
@@ -123,63 +124,63 @@ class krakenfutures(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'feeschedules',  # deprecated
-                        'instruments',
-                        'orderbook',
-                        'tickers',
-                        'history',
-                        'historicalfundingrates',
-                    ],
+                    'get': {
+                        'feeschedules': {'cost': 1},
+                        'instruments': {'cost': 1},
+                        'orderbook': {'cost': 1},
+                        'tickers': {'cost': 1},
+                        'history': {'cost': 1},
+                        'historicalfundingrates': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'get': [
-                        'feeschedules/volumes',  # deprecated
-                        'openpositions',
-                        'notifications',
-                        'accounts',
-                        'openorders',
-                        'recentorders',
-                        'fills',
-                        'transfers',
-                        'leveragepreferences',
-                        'pnlpreferences',
-                        'assignmentprogram/current',
-                        'assignmentprogram/history',
-                        'orders/status',
-                    ],
-                    'post': [
-                        'sendorder',
-                        'editorder',
-                        'cancelorder',
-                        'transfer',
-                        'batchorder',
-                        'cancelallorders',
-                        'cancelallordersafter',
-                        'withdrawal',                              # for futures wallet -> kraken spot wallet
-                        'assignmentprogram/add',
-                        'assignmentprogram/delete',
-                    ],
-                    'put': [
-                        'leveragepreferences',
-                        'pnlpreferences',
-                    ],
+                    'get': {
+                        'feeschedules/volumes': {'cost': 1},
+                        'openpositions': {'cost': 1},
+                        'notifications': {'cost': 1},
+                        'accounts': {'cost': 1},
+                        'openorders': {'cost': 1},
+                        'recentorders': {'cost': 1},
+                        'fills': {'cost': 1},
+                        'transfers': {'cost': 1},
+                        'leveragepreferences': {'cost': 1},
+                        'pnlpreferences': {'cost': 1},
+                        'assignmentprogram/current': {'cost': 1},
+                        'assignmentprogram/history': {'cost': 1},
+                        'orders/status': {'cost': 1},
+                    },
+                    'post': {
+                        'sendorder': {'cost': 1},
+                        'editorder': {'cost': 1},
+                        'cancelorder': {'cost': 1},
+                        'transfer': {'cost': 1},
+                        'batchorder': {'cost': 1},
+                        'cancelallorders': {'cost': 1},
+                        'cancelallordersafter': {'cost': 1},
+                        'withdrawal': {'cost': 1},
+                        'assignmentprogram/add': {'cost': 1},
+                        'assignmentprogram/delete': {'cost': 1},
+                    },
+                    'put': {
+                        'leveragepreferences': {'cost': 1},
+                        'pnlpreferences': {'cost': 1},
+                    },
                 },
                 'charts': {
-                    'get': [
-                        '{price_type}/{symbol}/{interval}',
-                    ],
+                    'get': {
+                        '{price_type}/{symbol}/{interval}': {'cost': 1},
+                    },
                 },
                 'history': {
-                    'get': [
-                        'orders',
-                        'executions',
-                        'triggers',
-                        'accountlogcsv',
-                        'account-log',
-                        'market/{symbol}/orders',
-                        'market/{symbol}/executions',
-                    ],
+                    'get': {
+                        'orders': {'cost': 1},
+                        'executions': {'cost': 1},
+                        'triggers': {'cost': 1},
+                        'accountlogcsv': {'cost': 1},
+                        'account-log': {'cost': 1},
+                        'market/{symbol}/orders': {'cost': 1},
+                        'market/{symbol}/executions': {'cost': 1},
+                    },
                 },
             },
             'fees': {
@@ -593,8 +594,9 @@ class krakenfutures(Exchange, ImplicitAPI):
         #        },
         #    }
         #
-        timestamp = self.parse8601(response['serverTime'])
-        return self.parse_order_book(response['orderBook'], symbol, timestamp)
+        timestamp = self.parse8601(self.safe_string(response, 'serverTime'))
+        orderBook = self.safe_dict(response, 'orderBook', {})
+        return self.parse_order_book(orderBook, symbol, timestamp)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -1283,9 +1285,10 @@ class krakenfutures(Exchange, ImplicitAPI):
         if price is not None:
             request['limitPrice'] = price
         response = self.privatePostEditorder(self.extend(request, params))
-        status = self.safe_string(response['editStatus'], 'status')
+        editStatus = self.safe_dict(response, 'editStatus', {})
+        status = self.safe_string(editStatus, 'status')
         self.verify_order_action_success(status, 'editOrder', ['filled'])
-        order = self.parse_order(response['editStatus'])
+        order = self.parse_order(editStatus)
         order['info'] = response
         return order
 
@@ -2201,7 +2204,8 @@ class krakenfutures(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        return self.parse_trades(response['fills'], market, since, limit)
+        fills = self.safe_list(response, 'fills', [])
+        return self.parse_trades(fills, market, since, limit)
 
     def fetch_balance(self, params={}) -> Balances:
         """

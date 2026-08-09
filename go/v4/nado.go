@@ -86,48 +86,76 @@ func (this *NadoCore) Describe() any {
 			"gateway": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"symbols":    2,
-						"query":      1,
-						"edge/query": 1,
+						"symbols": map[string]any{
+							"cost": 2,
+						},
+						"query": map[string]any{
+							"cost": 1,
+						},
+						"edge/query": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"query": 1,
+						"query": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"post": map[string]any{
-						"execute": 1,
+						"execute": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
 			"gatewayV2": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"assets":    2,
-						"pairs":     1,
-						"orderbook": 1,
+						"assets": map[string]any{
+							"cost": 2,
+						},
+						"pairs": map[string]any{
+							"cost": 1,
+						},
+						"orderbook": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
 			"archive": map[string]any{
 				"post": map[string]any{
-					"": 1,
+					"": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"archiveV2": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"tickers":   1,
-						"contracts": 1,
-						"trades":    1,
+						"tickers": map[string]any{
+							"cost": 1,
+						},
+						"contracts": map[string]any{
+							"cost": 1,
+						},
+						"trades": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
 			"trigger": map[string]any{
 				"private": map[string]any{
 					"post": map[string]any{
-						"execute": 1,
-						"query":   1,
+						"execute": map[string]any{
+							"cost": 1,
+						},
+						"query": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
@@ -1111,7 +1139,7 @@ func (this *NadoCore) FetchOrders(optionalArgs ...any) <-chan any {
 			AppendToArray(&productIds, this.ParseToInt(GetValue(market, "id")))
 		}
 		var subaccount any = nil
-		subaccountparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "subaccount", "default")
+		subaccountparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "subaccount", "default")
 		subaccount = GetValue(subaccountparamsVariable, 0)
 		params = GetValue(subaccountparamsVariable, 1)
 		var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -2167,8 +2195,9 @@ func (this *NadoCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		response := (<-this.GatewayV2PublicGetAssets(params))
 		PanicOnError(response)
 		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var currency any = GetValue(response, i)
+		var assets any = this.ToArray(response)
+		for i := 0; IsLessThan(i, GetArrayLength(assets)); i++ {
+			var currency any = GetValue(assets, i)
 			var parsed any = this.ParseCurrency(currency)
 			var code any = this.SafeString(parsed, "code")
 			if IsTrue(IsEqual(code, nil)) {
@@ -2214,8 +2243,8 @@ func (this *NadoCore) FetchTickers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes17848 := (<-this.LoadMarkets())
-		PanicOnError(retRes17848)
+		retRes17858 := (<-this.LoadMarkets())
+		PanicOnError(retRes17858)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.ArchiveV2PublicGetTickers(params))
@@ -2260,8 +2289,8 @@ func (this *NadoCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes18158 := (<-this.LoadMarkets())
-		PanicOnError(retRes18158)
+		retRes18168 := (<-this.LoadMarkets())
+		PanicOnError(retRes18168)
 		var market any = this.Market(symbol)
 
 		tickers := (<-this.FetchTickers([]any{symbol}, params))
@@ -2296,8 +2325,8 @@ func (this *NadoCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan a
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes18368 := (<-this.LoadMarkets())
-		PanicOnError(retRes18368)
+		retRes18378 := (<-this.LoadMarkets())
+		PanicOnError(retRes18378)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
@@ -2370,8 +2399,8 @@ func (this *NadoCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingHistory() requires walletAddress")))
 		}
 
-		retRes18898 := (<-this.LoadMarkets())
-		PanicOnError(retRes18898)
+		retRes18908 := (<-this.LoadMarkets())
+		PanicOnError(retRes18908)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " fetchFundingHistory() supports swap contracts only")))
@@ -2441,8 +2470,8 @@ func (this *NadoCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes19438 := (<-this.LoadMarkets())
-		PanicOnError(retRes19438)
+		retRes19448 := (<-this.LoadMarkets())
+		PanicOnError(retRes19448)
 		symbols = this.MarketSymbols(symbols, "swap", true)
 
 		response := (<-this.ArchiveV2PublicGetContracts(params))
@@ -2474,7 +2503,7 @@ func (this *NadoCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		var rates any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
 			var ticker any = GetValue(tickers, i)
-			AppendToArray(&rates, GetValue(response, ticker))
+			AppendToArray(&rates, this.SafeDict(response, ticker, map[string]any{}))
 		}
 
 		ch <- this.ParseFundingRates(rates, symbols)
@@ -2502,8 +2531,8 @@ func (this *NadoCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes19898 := (<-this.LoadMarkets())
-		PanicOnError(retRes19898)
+		retRes19908 := (<-this.LoadMarkets())
+		PanicOnError(retRes19908)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " fetchOpenInterest() supports swap contracts only")))
@@ -2564,8 +2593,8 @@ func (this *NadoCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes20348 := (<-this.LoadMarkets())
-		PanicOnError(retRes20348)
+		retRes20358 := (<-this.LoadMarkets())
+		PanicOnError(retRes20358)
 		symbols = this.MarketSymbols(symbols, "swap", true)
 
 		response := (<-this.ArchiveV2PublicGetContracts(params))
@@ -2597,7 +2626,7 @@ func (this *NadoCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
 		var interests any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
 			var ticker any = GetValue(tickers, i)
-			AppendToArray(&interests, GetValue(response, ticker))
+			AppendToArray(&interests, this.SafeDict(response, ticker, map[string]any{}))
 		}
 
 		ch <- this.ParseOpenInterests(interests, symbols)
@@ -2627,8 +2656,8 @@ func (this *NadoCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes20808 := (<-this.LoadMarkets())
-		PanicOnError(retRes20808)
+		retRes20818 := (<-this.LoadMarkets())
+		PanicOnError(retRes20818)
 		var market any = this.Market(symbol)
 		var tickerId any = this.SafeString(GetValue(market, "info"), "ticker_id")
 		var request any = map[string]any{
@@ -2686,8 +2715,8 @@ func (this *NadoCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes21208 := (<-this.LoadMarkets())
-		PanicOnError(retRes21208)
+		retRes21218 := (<-this.LoadMarkets())
+		PanicOnError(retRes21218)
 		var market any = this.Market(symbol)
 		var tickerId any = this.SafeString(GetValue(market, "info"), "ticker_id")
 		var request any = map[string]any{
@@ -2748,8 +2777,8 @@ func (this *NadoCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes21618 := (<-this.LoadMarkets())
-		PanicOnError(retRes21618)
+		retRes21628 := (<-this.LoadMarkets())
+		PanicOnError(retRes21628)
 		var market any = this.Market(symbol)
 		var until any = this.SafeInteger(params, "until")
 		params = this.Omit(params, "until")

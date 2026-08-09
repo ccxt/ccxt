@@ -7,7 +7,7 @@ import { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, Insuffici
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Balances, Currency, Dict, NullableDict, FeeString, List, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress, OrderBooks, TradingFees } from './base/types.js';
+import type { Balances, Currency, Dict, NullableDict, FeeString, List, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress, OrderBooks, TradingFees, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -109,67 +109,67 @@ export default class upbit extends Exchange {
                 // cost = 1000 / (rateLimit * RPS)
                 'public': {
                     'get': {
-                        'market/all': 2, // RPS: 10
-                        'candles/{timeframe}': 2,
-                        'candles/{timeframe}/{unit}': 2,
-                        'candles/seconds': 2,
-                        'candles/minutes/{unit}': 2,
-                        'candles/minutes/1': 2,
-                        'candles/minutes/3': 2,
-                        'candles/minutes/5': 2,
-                        'candles/minutes/10': 2,
-                        'candles/minutes/15': 2,
-                        'candles/minutes/30': 2,
-                        'candles/minutes/60': 2,
-                        'candles/minutes/240': 2,
-                        'candles/days': 2,
-                        'candles/weeks': 2,
-                        'candles/months': 2,
-                        'candles/years': 2,
-                        'trades/ticks': 2,
-                        'ticker': 2,
-                        'ticker/all': 2,
-                        'orderbook': 2,
-                        'orderbook/instruments': 2,
+                        'market/all': { 'cost': 2 } as Endpoint<List>, // RPS: 10
+                        'candles/{timeframe}': { 'cost': 2 } as Endpoint<List>,
+                        'candles/{timeframe}/{unit}': { 'cost': 2 } as Endpoint<List>,
+                        'candles/seconds': { 'cost': 2 } as Endpoint<List>,
+                        'candles/minutes/{unit}': { 'cost': 2 } as Endpoint<List>,
+                        'candles/minutes/1': { 'cost': 2 } as Endpoint<List>,
+                        'candles/minutes/3': { 'cost': 2 } as Endpoint<List>,
+                        'candles/minutes/5': { 'cost': 2 } as Endpoint<List>,
+                        'candles/minutes/10': { 'cost': 2 } as Endpoint<List>,
+                        'candles/minutes/15': { 'cost': 2 } as Endpoint<List>,
+                        'candles/minutes/30': { 'cost': 2 } as Endpoint<List>,
+                        'candles/minutes/60': { 'cost': 2 } as Endpoint<List>,
+                        'candles/minutes/240': { 'cost': 2 } as Endpoint<List>,
+                        'candles/days': { 'cost': 2 } as Endpoint<List>,
+                        'candles/weeks': { 'cost': 2 } as Endpoint<List>,
+                        'candles/months': { 'cost': 2 } as Endpoint<List>,
+                        'candles/years': { 'cost': 2 } as Endpoint<List>,
+                        'trades/ticks': { 'cost': 2 } as Endpoint<List>,
+                        'ticker': { 'cost': 2 } as Endpoint<List>,
+                        'ticker/all': { 'cost': 2 } as Endpoint<Dict>,
+                        'orderbook': { 'cost': 2 } as Endpoint<List>,
+                        'orderbook/instruments': { 'cost': 2 } as Endpoint<List>,
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts': 0.67, // RPS: 30
-                        'orders/chance': 0.67,
-                        'order': 0.67,
-                        'orders/closed': 0.67,
-                        'orders/open': 0.67,
-                        'orders/uuids': 0.67,
-                        'withdraws': 0.67,
-                        'withdraw': 0.67,
-                        'withdraws/chance': 0.67,
-                        'withdraws/coin_addresses': 0.67,
-                        'deposits': 0.67,
-                        'deposits/chance/coin': 0.67,
-                        'deposit': 0.67,
-                        'deposits/coin_addresses': 0.67,
-                        'deposits/coin_address': 0.67,
-                        'travel_rule/vasps': 0.67,
-                        'status/wallet': 0.67,
-                        'api_keys': 0.67, // Upbit KR only
+                        'accounts': { 'cost': 0.67 } as Endpoint<Dict>, // RPS: 30
+                        'orders/chance': { 'cost': 0.67 } as Endpoint<Dict>,
+                        'order': { 'cost': 0.67 } as Endpoint<Dict>,
+                        'orders/closed': { 'cost': 0.67 } as Endpoint<List>,
+                        'orders/open': { 'cost': 0.67 } as Endpoint<List>,
+                        'orders/uuids': { 'cost': 0.67 } as Endpoint<List>,
+                        'withdraws': { 'cost': 0.67 } as Endpoint<List>,
+                        'withdraw': { 'cost': 0.67 } as Endpoint<Dict>,
+                        'withdraws/chance': { 'cost': 0.67 } as Endpoint<Dict>,
+                        'withdraws/coin_addresses': { 'cost': 0.67 } as Endpoint<List>,
+                        'deposits': { 'cost': 0.67 } as Endpoint<List>,
+                        'deposits/chance/coin': { 'cost': 0.67 } as Endpoint<Dict>,
+                        'deposit': { 'cost': 0.67 } as Endpoint<Dict>,
+                        'deposits/coin_addresses': { 'cost': 0.67 } as Endpoint<List>,
+                        'deposits/coin_address': { 'cost': 0.67 } as Endpoint<Dict>,
+                        'travel_rule/vasps': { 'cost': 0.67 } as Endpoint<List>,
+                        'status/wallet': { 'cost': 0.67 } as Endpoint<List>,
+                        'api_keys': { 'cost': 0.67 } as Endpoint<List>, // Upbit KR only
                     },
                     'post': {
-                        'orders': 2.5, // RPS: 8
-                        'orders/test': 2.5, // RPS: 8
-                        'orders/cancel_and_new': 2.5, // RPS: 8
-                        'withdraws/coin': 0.67,
-                        'withdraws/krw': 0.67, // Upbit KR only.
-                        'deposits/krw': 0.67, // Upbit KR only.
-                        'deposits/generate_coin_address': 0.67,
-                        'travel_rule/deposit/uuid': 0.67, // RPS: 30, but each deposit can only be queried once every 10 minutes
-                        'travel_rule/deposit/txid': 0.67, // RPS: 30, but each deposit can only be queried once every 10 minutes
+                        'orders': { 'cost': 2.5 } as Endpoint<Dict>, // RPS: 8
+                        'orders/test': { 'cost': 2.5 } as Endpoint<Dict>, // RPS: 8
+                        'orders/cancel_and_new': { 'cost': 2.5 } as Endpoint<Dict>, // RPS: 8
+                        'withdraws/coin': { 'cost': 0.67 } as Endpoint<Dict>,
+                        'withdraws/krw': { 'cost': 0.67 } as Endpoint<Dict>, // Upbit KR only.
+                        'deposits/krw': { 'cost': 0.67 } as Endpoint<Dict>, // Upbit KR only.
+                        'deposits/generate_coin_address': { 'cost': 0.67 } as Endpoint<Dict>,
+                        'travel_rule/deposit/uuid': { 'cost': 0.67 } as Endpoint<Dict>, // RPS: 30, but each deposit can only be queried once every 10 minutes
+                        'travel_rule/deposit/txid': { 'cost': 0.67 } as Endpoint<Dict>, // RPS: 30, but each deposit can only be queried once every 10 minutes
                     },
                     'delete': {
-                        'order': 0.67,
-                        'orders/open': 40, // RPS: 0.5
-                        'orders/uuids': 0.67,
-                        'withdraws/coin': 0.67,
+                        'order': { 'cost': 0.67 } as Endpoint<Dict>,
+                        'orders/open': { 'cost': 40 } as Endpoint<Dict>, // RPS: 0.5
+                        'orders/uuids': { 'cost': 0.67 } as Endpoint<Dict>,
+                        'withdraws/coin': { 'cost': 0.67 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -692,8 +692,9 @@ export default class upbit extends Exchange {
         //                               "bid_size": 0.4650305 }    ] }   ]
         //
         const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const orderbook = response[i];
+        const orderbooks = this.toArray (response);
+        for (let i = 0; i < orderbooks.length; i++) {
+            const orderbook = orderbooks[i];
             const marketId = this.safeString (orderbook, 'market');
             const symbol = this.safeSymbol (marketId, undefined, '-');
             const timestamp = this.safeInteger (orderbook, 'timestamp');
@@ -1149,7 +1150,7 @@ export default class upbit extends Exchange {
             'timeframe': timeframeValue,
             'count': limit,
         };
-        let response: List;
+        let response: Dict | List;
         if (since !== undefined) {
             // convert `since` to `to` value
             request['to'] = this.iso8601 (this.sum (since, timeframePeriod * limit * 1000));
@@ -1191,7 +1192,8 @@ export default class upbit extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const ohlcvs = this.toArray (response);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
     calcOrderPrice (symbol: string, amount: Num, price: Num = undefined, params = {}): Str {

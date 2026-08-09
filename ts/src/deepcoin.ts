@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currency, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Bool, Currency, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, Transaction, TransferEntry, Endpoint } from './base/types.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, NullResponse } from './base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -153,65 +153,65 @@ export default class deepcoin extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'deepcoin/market/books': 1,
-                        'deepcoin/market/candles': 1,
-                        'deepcoin/market/instruments': 1,
-                        'deepcoin/market/tickers': 1,
-                        'deepcoin/market/index-candles': 1,
-                        'deepcoin/market/trades': 1,
-                        'deepcoin/market/mark-price-candles': 1,
-                        'deepcoin/market/step-margin': 5,
-                        'deepcoin/trade/funding-rate': 5,
-                        'deepcoin/trade/fund-rate/current-funding-rate': 5,
-                        'deepcoin/trade/fund-rate/history': 5,
+                        'deepcoin/market/books': { 'cost': 1 } as Endpoint<Dict>,
+                        'deepcoin/market/candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'deepcoin/market/instruments': { 'cost': 1 } as Endpoint<Dict>,
+                        'deepcoin/market/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        'deepcoin/market/index-candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'deepcoin/market/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'deepcoin/market/mark-price-candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'deepcoin/market/step-margin': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/funding-rate': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/fund-rate/current-funding-rate': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/fund-rate/history': { 'cost': 5 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'deepcoin/account/balances': 5,
-                        'deepcoin/account/bills': 5,
-                        'deepcoin/account/positions': 5,
-                        'deepcoin/trade/fills': 5,
-                        'deepcoin/trade/orderByID': 5,
-                        'deepcoin/trade/finishOrderByID': 5,
-                        'deepcoin/trade/orders-history': 5,
-                        'deepcoin/trade/v2/orders-pending': 5,
-                        'deepcoin/trade/trigger-orders-pending': 5,
-                        'deepcoin/trade/trigger-orders-history': 5,
-                        'deepcoin/copytrading/support-contracts': 5,
-                        'deepcoin/copytrading/leader-position': 5,
-                        'deepcoin/copytrading/estimate-profit': 5,
-                        'deepcoin/copytrading/history-profit': 5,
-                        'deepcoin/copytrading/follower-rank': 5,
-                        'deepcoin/internal-transfer/support': 5,
-                        'deepcoin/internal-transfer/history-order': 5,
-                        'deepcoin/rebate/config': 5,
-                        'deepcoin/agents/users': 5,
-                        'deepcoin/agents/users/rebate-list': 5,
-                        'deepcoin/agents/users/rebates': 5,
-                        'deepcoin/asset/deposit-list': 5,
-                        'deepcoin/asset/withdraw-list': 5,
-                        'deepcoin/asset/recharge-chain-list': 5,
-                        'deepcoin/listenkey/acquire': 5,
-                        'deepcoin/listenkey/extend': 5,
+                        'deepcoin/account/balances': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/account/bills': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/account/positions': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/fills': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/orderByID': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/finishOrderByID': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/orders-history': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/v2/orders-pending': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/trigger-orders-pending': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/trigger-orders-history': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/copytrading/support-contracts': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/copytrading/leader-position': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/copytrading/estimate-profit': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/copytrading/history-profit': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/copytrading/follower-rank': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/internal-transfer/support': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/internal-transfer/history-order': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/rebate/config': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/agents/users': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/agents/users/rebate-list': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/agents/users/rebates': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/asset/deposit-list': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/asset/withdraw-list': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/asset/recharge-chain-list': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/listenkey/acquire': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/listenkey/extend': { 'cost': 5 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'deepcoin/account/set-leverage': 5,
-                        'deepcoin/trade/order': 5,
-                        'deepcoin/trade/replace-order': 5,
-                        'deepcoin/trade/cancel-order': 5,
-                        'deepcoin/trade/batch-cancel-order': 5,
-                        'deepcoin/trade/cancel-trigger-order': 1 / 6,
-                        'deepcoin/trade/swap/cancel-all': 5,
-                        'deepcoin/trade/trigger-order': 5,
-                        'deepcoin/trade/batch-close-position': 5,
-                        'deepcoin/trade/replace-order-sltp': 5,
-                        'deepcoin/trade/close-position-by-ids': 5,
-                        'deepcoin/copytrading/leader-settings': 5,
-                        'deepcoin/copytrading/set-contracts': 5,
-                        'deepcoin/internal-transfer': 5,
-                        'deepcoin/rebate/config': 5,
-                        'deepcoin/asset/transfer': 5,
+                        'deepcoin/account/set-leverage': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/order': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/replace-order': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/cancel-order': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/batch-cancel-order': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/cancel-trigger-order': { 'cost': 1 / 6 } as Endpoint<Dict>,
+                        'deepcoin/trade/swap/cancel-all': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/trigger-order': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/batch-close-position': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/replace-order-sltp': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/close-position-by-ids': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/copytrading/leader-settings': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/copytrading/set-contracts': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/internal-transfer': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/rebate/config': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/asset/transfer': { 'cost': 5 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -309,7 +309,7 @@ export default class deepcoin extends Exchange {
                 'networks': {
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
-                    'ARB': 'ARBITRUM',
+                    'ARBITRUM': 'ARBITRUM',
                     'BSC': 'BSC(BEP20)',
                     'SOL': 'SOL',
                     'BTC': 'Bitcoin',
@@ -1050,9 +1050,9 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate', false);
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'code', undefined, 1, 50) as Transaction[];
+            return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, params, 'code', undefined, 1, 50) as Transaction[];
         }
         const request: Dict = {};
         let currency: Currency = undefined;
@@ -1260,7 +1260,7 @@ export default class deepcoin extends Exchange {
             'network': this.networkIdToCode (chain, code),
             'address': address,
             'tag': this.safeString (response, 'memo'),
-        } as unknown as DepositAddress;
+        };
     }
 
     /**
@@ -1913,7 +1913,7 @@ export default class deepcoin extends Exchange {
         const data = this.safeList (response, 'data', []) as List;
         const length = data.length;
         if (length === 0) {
-            return undefined as unknown as Order;
+            throw new OrderNotFound (this.id + ' fetchOpenOrder() could not find order id ' + id);
         }
         const entry = this.safeDict (data, 0, {}) as Dict;
         return this.parseOrder (entry, market);
@@ -2743,7 +2743,7 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols, 'swap', true, true, true);
-        let subType: any = 'linear';
+        let subType: SubType = 'linear';
         let firstMarket: Market = undefined;
         if (symbols !== undefined) {
             const firstSymbol = this.safeString (symbols, 0);

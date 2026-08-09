@@ -157,68 +157,140 @@ public partial class bitvavo : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "{market}/book", 1 },
-                        { "report/{market}/book", 1 },
-                        { "{market}/trades", 5 },
-                        { "report/{market}/trades", 5 },
-                        { "ticker/price", 1 },
-                        { "ticker/book", 1 },
-                        { "{market}/candles", 1 },
+                        { "{market}/book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "report/{market}/book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "{market}/trades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "report/{market}/trades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "ticker/price", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker/book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "{market}/candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "ticker/24h", new Dictionary<string, object>() {
                             { "cost", 1 },
                             { "noMarket", 25 },
                         } },
-                        { "time", 1 },
-                        { "markets", 1 },
-                        { "assets", 1 },
+                        { "time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "markets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "order", 1 },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "ordersOpen", new Dictionary<string, object>() {
                             { "cost", 5 },
                             { "noMarket", 100 },
                         } },
-                        { "trades", 5 },
-                        { "orders", 5 },
-                        { "deposit", 1 },
-                        { "depositHistory", 5 },
-                        { "withdrawalHistory", 5 },
-                        { "account", 1 },
-                        { "balance", 5 },
-                        { "stakingBalance", 1 },
-                        { "account/fees", 1 },
-                        { "account/history", 1 },
-                        { "subaccounts", 5 },
-                        { "subaccounts/transfers", 5 },
-                        { "subaccounts/transfers/{transferId}", 5 },
-                        { "institutional/subaccounts/balance", 5 },
-                        { "institutional/subaccounts/history", 5 },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "depositHistory", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "withdrawalHistory", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "balance", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "stakingBalance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/fees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "subaccounts", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "subaccounts/transfers", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "subaccounts/transfers/{transferId}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "institutional/subaccounts/balance", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "institutional/subaccounts/history", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "institutional/subaccounts/orders/open", new Dictionary<string, object>() {
                             { "cost", 5 },
                             { "noMarket", 100 },
                         } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "order", 1 },
-                        { "cancelOrdersAfter", 5 },
-                        { "withdrawal", 1 },
-                        { "crypto/withdrawal", 25 },
-                        { "subaccounts", 5 },
-                        { "subaccounts/transfers", 5 },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelOrdersAfter", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "crypto/withdrawal", new Dictionary<string, object>() {
+                            { "cost", 25 },
+                        } },
+                        { "subaccounts", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "subaccounts/transfers", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
-                        { "order", 1 },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "order", 1 },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "orders", new Dictionary<string, object>() {
                             { "cost", 25 },
                             { "noMarket", 100 },
                         } },
-                        { "atomic/orders", 100 },
-                        { "institutional/subaccounts/order", 1 },
+                        { "atomic/orders", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "institutional/subaccounts/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "institutional/subaccounts/orders", new Dictionary<string, object>() {
                             { "cost", 25 },
                             { "noMarket", 100 },
@@ -1203,7 +1275,7 @@ public partial class bitvavo : Exchange
         //         [1590383520000,"8090.3","8092.7","8090.3","8092.5","0.04001286"],
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
 
     public override object parseBalance(object response)

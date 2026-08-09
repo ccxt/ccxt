@@ -39,6 +39,7 @@
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchFundingInterval](#fetchfundinginterval)
 * [fetchFundingRate](#fetchfundingrate)
+* [fetchOpenInterest](#fetchopeninterest)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
@@ -224,11 +225,15 @@ fetches the bid and ask price and volume for multiple markets
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/en/latest/manual.html#ticker-structure)
 
-**See**: https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker  
+**See**
+
+- https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
+- https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>string</code> | No | unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned |
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 
 
@@ -897,6 +902,27 @@ fetch the current funding rate
 
 ```javascript
 xt.fetchFundingRate (symbol, params)
+```
+
+
+<a name="fetchOpenInterest" id="fetchopeninterest"></a>
+
+### fetchOpenInterest{docsify-ignore}
+retrieves the open interest of a contract trading pair
+
+**Kind**: instance method of [<code>xt</code>](#xt)  
+**Returns**: <code>object</code> - an [open interest structure](https://docs.ccxt.com/?id=open-interest-structure)
+
+**See**: https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+xt.fetchOpenInterest (symbol, params?)
 ```
 
 

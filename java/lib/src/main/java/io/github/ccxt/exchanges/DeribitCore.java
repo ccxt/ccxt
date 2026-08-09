@@ -138,132 +138,376 @@ public class DeribitCore extends DeribitApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "auth", 1 );
-                        put( "exchange_token", 1 );
-                        put( "fork_token", 1 );
-                        put( "set_heartbeat", 1 );
-                        put( "disable_heartbeat", 1 );
-                        put( "get_time", 1 );
-                        put( "hello", 1 );
-                        put( "status", 1 );
-                        put( "test", 1 );
-                        put( "subscribe", 1 );
-                        put( "unsubscribe", 1 );
-                        put( "unsubscribe_all", 1 );
-                        put( "get_announcements", 1 );
-                        put( "get_book_summary_by_currency", 1 );
-                        put( "get_book_summary_by_instrument", 1 );
-                        put( "get_contract_size", 1 );
-                        put( "get_currencies", 1 );
-                        put( "get_delivery_prices", 1 );
-                        put( "get_funding_chart_data", 1 );
-                        put( "get_funding_rate_history", 1 );
-                        put( "get_funding_rate_value", 1 );
-                        put( "get_historical_volatility", 1 );
-                        put( "get_index", 1 );
-                        put( "get_index_price", 1 );
-                        put( "get_index_price_names", 1 );
-                        put( "get_instrument", 1 );
-                        put( "get_instruments", 1 );
-                        put( "get_last_settlements_by_currency", 1 );
-                        put( "get_last_settlements_by_instrument", 1 );
-                        put( "get_last_trades_by_currency", 1 );
-                        put( "get_last_trades_by_currency_and_time", 1 );
-                        put( "get_last_trades_by_instrument", 1 );
-                        put( "get_last_trades_by_instrument_and_time", 1 );
-                        put( "get_mark_price_history", 1 );
-                        put( "get_order_book", 1 );
-                        put( "get_trade_volumes", 1 );
-                        put( "get_tradingview_chart_data", 1 );
-                        put( "get_volatility_index_data", 1 );
-                        put( "ticker", 1 );
+                        put( "auth", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "exchange_token", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "fork_token", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "set_heartbeat", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "disable_heartbeat", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_time", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "hello", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "status", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "test", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "subscribe", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "unsubscribe", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "unsubscribe_all", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_announcements", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_book_summary_by_currency", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_book_summary_by_instrument", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_contract_size", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_currencies", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_delivery_prices", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_funding_chart_data", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_funding_rate_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_funding_rate_value", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_historical_volatility", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_index", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_index_price", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_index_price_names", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_instrument", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_instruments", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_last_settlements_by_currency", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_last_settlements_by_instrument", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_last_trades_by_currency", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_last_trades_by_currency_and_time", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_last_trades_by_instrument", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_last_trades_by_instrument_and_time", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_mark_price_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_order_book", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_trade_volumes", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_tradingview_chart_data", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_volatility_index_data", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "ticker", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "logout", 1 );
-                        put( "enable_cancel_on_disconnect", 1 );
-                        put( "disable_cancel_on_disconnect", 1 );
-                        put( "get_cancel_on_disconnect", 1 );
-                        put( "subscribe", 1 );
-                        put( "unsubscribe", 1 );
-                        put( "unsubscribe_all", 1 );
-                        put( "change_api_key_name", 1 );
-                        put( "change_scope_in_api_key", 1 );
-                        put( "change_subaccount_name", 1 );
-                        put( "create_api_key", 1 );
-                        put( "create_subaccount", 1 );
-                        put( "disable_api_key", 1 );
-                        put( "disable_tfa_for_subaccount", 1 );
-                        put( "enable_affiliate_program", 1 );
-                        put( "enable_api_key", 1 );
-                        put( "get_access_log", 1 );
-                        put( "get_account_summary", 1 );
-                        put( "get_account_summaries", 1 );
-                        put( "get_affiliate_program_info", 1 );
-                        put( "get_email_language", 1 );
-                        put( "get_new_announcements", 1 );
-                        put( "get_portfolio_margins", 1 );
-                        put( "get_position", 1 );
-                        put( "get_positions", 1 );
-                        put( "get_subaccounts", 1 );
-                        put( "get_subaccounts_details", 1 );
-                        put( "get_transaction_log", 1 );
-                        put( "list_api_keys", 1 );
-                        put( "remove_api_key", 1 );
-                        put( "remove_subaccount", 1 );
-                        put( "reset_api_key", 1 );
-                        put( "set_announcement_as_read", 1 );
-                        put( "set_api_key_as_default", 1 );
-                        put( "set_email_for_subaccount", 1 );
-                        put( "set_email_language", 1 );
-                        put( "set_password_for_subaccount", 1 );
-                        put( "toggle_notifications_from_subaccount", 1 );
-                        put( "toggle_subaccount_login", 1 );
-                        put( "execute_block_trade", 4 );
-                        put( "get_block_trade", 1 );
-                        put( "get_last_block_trades_by_currency", 1 );
-                        put( "invalidate_block_trade_signature", 1 );
-                        put( "verify_block_trade", 4 );
-                        put( "buy", 4 );
-                        put( "sell", 4 );
-                        put( "edit", 4 );
-                        put( "edit_by_label", 4 );
-                        put( "cancel", 4 );
-                        put( "cancel_all", 4 );
-                        put( "cancel_all_by_currency", 4 );
-                        put( "cancel_all_by_instrument", 4 );
-                        put( "cancel_by_label", 4 );
-                        put( "close_position", 4 );
-                        put( "get_margins", 1 );
-                        put( "get_mmp_config", 1 );
-                        put( "get_open_orders_by_currency", 1 );
-                        put( "get_open_orders_by_instrument", 1 );
-                        put( "get_order_history_by_currency", 1 );
-                        put( "get_order_history_by_instrument", 1 );
-                        put( "get_order_margin_by_ids", 1 );
-                        put( "get_order_state", 1 );
-                        put( "get_stop_order_history", 1 );
-                        put( "get_trigger_order_history", 1 );
-                        put( "get_user_trades_by_currency", 1 );
-                        put( "get_user_trades_by_currency_and_time", 1 );
-                        put( "get_user_trades_by_instrument", 1 );
-                        put( "get_user_trades_by_instrument_and_time", 1 );
-                        put( "get_user_trades_by_order", 1 );
-                        put( "reset_mmp", 1 );
-                        put( "set_mmp_config", 1 );
-                        put( "get_settlement_history_by_instrument", 1 );
-                        put( "get_settlement_history_by_currency", 1 );
-                        put( "cancel_transfer_by_id", 1 );
-                        put( "cancel_withdrawal", 1 );
-                        put( "create_deposit_address", 1 );
-                        put( "get_current_deposit_address", 1 );
-                        put( "get_deposits", 1 );
-                        put( "get_transfers", 1 );
-                        put( "get_withdrawals", 1 );
-                        put( "submit_transfer_to_subaccount", 1 );
-                        put( "submit_transfer_to_user", 1 );
-                        put( "withdraw", 1 );
+                        put( "logout", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "enable_cancel_on_disconnect", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "disable_cancel_on_disconnect", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_cancel_on_disconnect", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "subscribe", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "unsubscribe", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "unsubscribe_all", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "change_api_key_name", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "change_scope_in_api_key", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "change_subaccount_name", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "create_api_key", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "create_subaccount", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "disable_api_key", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "disable_tfa_for_subaccount", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "enable_affiliate_program", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "enable_api_key", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_access_log", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_account_summary", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_account_summaries", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_affiliate_program_info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_email_language", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_new_announcements", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_portfolio_margins", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_position", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_positions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_subaccounts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_subaccounts_details", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_transaction_log", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "list_api_keys", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "remove_api_key", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "remove_subaccount", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "reset_api_key", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "set_announcement_as_read", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "set_api_key_as_default", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "set_email_for_subaccount", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "set_email_language", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "set_password_for_subaccount", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "toggle_notifications_from_subaccount", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "toggle_subaccount_login", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "execute_block_trade", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "get_block_trade", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_last_block_trades_by_currency", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "invalidate_block_trade_signature", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "verify_block_trade", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "buy", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "sell", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "edit", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "edit_by_label", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "cancel", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "cancel_all", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "cancel_all_by_currency", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "cancel_all_by_instrument", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "cancel_by_label", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "close_position", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "get_margins", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_mmp_config", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_open_orders_by_currency", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_open_orders_by_instrument", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_order_history_by_currency", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_order_history_by_instrument", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_order_margin_by_ids", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_order_state", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_stop_order_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_trigger_order_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_user_trades_by_currency", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_user_trades_by_currency_and_time", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_user_trades_by_instrument", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_user_trades_by_instrument_and_time", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_user_trades_by_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "reset_mmp", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "set_mmp_config", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_settlement_history_by_instrument", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_settlement_history_by_currency", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancel_transfer_by_id", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancel_withdrawal", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "create_deposit_address", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_current_deposit_address", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_deposits", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_transfers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_withdrawals", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "submit_transfer_to_subaccount", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "submit_transfer_to_user", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "withdraw", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -3915,7 +4159,7 @@ public class DeribitCore extends DeribitApi
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, parameters, "continuation", "continuation", null)).join();
+                return (this.fetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, parameters, "continuation", "continuation")).join();
             }
             Object market = this.market(symbol);
             if (Helpers.isTrue(Helpers.GetValue(market, "spot")))

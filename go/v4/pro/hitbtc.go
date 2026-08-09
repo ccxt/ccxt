@@ -826,10 +826,10 @@ func (this *HitbtcCore) ParseWsTrades(trades any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	trades = this.ToArray(trades)
+	var tradesArray any = this.ToArray(trades)
 	var result any = []any{}
-	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(trades)); i++ {
-		var trade any = this.Extend(this.ParseWsTrade(ccxt.GetValue(trades, i), market), params)
+	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(tradesArray)); i++ {
+		var trade any = this.Extend(this.ParseWsTrade(ccxt.GetValue(tradesArray, i), market), params)
 		ccxt.AppendToArray(&result, trade)
 	}
 	result = this.SortBy2(result, "timestamp", "id")

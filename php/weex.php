@@ -172,7 +172,7 @@ class weex extends Exchange {
                 'reduceMargin' => true,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
-                'sandbox' => false,
+                'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => false,
                 'setMarginMode' => true,
@@ -189,6 +189,13 @@ class weex extends Exchange {
                     'contract' => 'https://api-contract.weex.com',
                     'contractPrivate' => 'https://api-contract.weex.com',
                 ),
+                'test' => array(
+                    // demo trading lives on the live host, the private contract endpoints are swapped to their capi/v3/sim/ variants when sandbox mode is enabled
+                    'public' => 'https://api-spot.weex.com',
+                    'private' => 'https://api-spot.weex.com',
+                    'contract' => 'https://api-contract.weex.com',
+                    'contractPrivate' => 'https://api-contract.weex.com',
+                ),
                 'www' => 'https://www.weex.com',
                 'doc' => array(
                     'https://www.weex.com/api-doc',
@@ -199,103 +206,107 @@ class weex extends Exchange {
                 'public' => array(
                     // multiply public endpoints weight by 5
                     'get' => array(
-                        'api/v3/time' => 5, // done
-                        'api/v3/coins' => 25, // done
-                        'api/v3/exchangeInfo' => 100, // done
-                        'api/v3/ping' => 5, // done
-                        'api/v3/apiTradingSymbols' => 25, // not unified
-                        'api/v3/market/ticker/price' => 20, // not unified
-                        'api/v3/market/ticker/24hr' => 10, // done
-                        'api/v3/market/trades' => 125, // done
-                        'api/v3/market/klines' => 10, // done
-                        'api/v3/market/depth' => 25, // done
-                        'api/v3/market/ticker/bookTicker' => 20, // done
+                        'api/v3/time' => array( 'cost' => 5 ), // done
+                        'api/v3/coins' => array( 'cost' => 25 ), // done
+                        'api/v3/exchangeInfo' => array( 'cost' => 100 ), // done
+                        'api/v3/ping' => array( 'cost' => 5 ), // done
+                        'api/v3/apiTradingSymbols' => array( 'cost' => 25 ), // not unified
+                        'api/v3/market/ticker/price' => array( 'cost' => 20 ), // not unified
+                        'api/v3/market/ticker/24hr' => array( 'cost' => 10 ), // done
+                        'api/v3/market/trades' => array( 'cost' => 125 ), // done
+                        'api/v3/market/klines' => array( 'cost' => 10 ), // done
+                        'api/v3/market/depth' => array( 'cost' => 25 ), // done
+                        'api/v3/market/ticker/bookTicker' => array( 'cost' => 20 ), // done
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'api/v3/account/' => 5, // done
-                        'api/v3/account/transferRecords' => 3, // done
-                        'api/v3/order' => 2, // done
-                        'api/v3/openOrders' => 3, // done
-                        'api/v3/allOrders' => 10, // done
-                        'api/v3/myTrades' => 5, // done
-                        'api/v3/rebate/affiliate/getAffiliateUIDs' => 20, // not unified
-                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset' => 20, // not unified
-                        'api/v3/rebate/affiliate/getAffiliateCommission' => 20, // not unified
-                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus' => 100, // not unified
-                        'api/v3/rebate/affiliate/querySubChannelTransactions' => 10, // not unified
-                        'api/v3/agency/verifyReferrals' => 20, // not unified
-                        'api/v3/agency/getAssert' => 20, // not unified
-                        'api/v3/agency/getDealData' => 20, // not unified
+                        'api/v3/account/' => array( 'cost' => 5 ), // done
+                        'api/v3/account/transferRecords' => array( 'cost' => 3 ), // done
+                        'api/v3/order' => array( 'cost' => 2 ), // done
+                        'api/v3/openOrders' => array( 'cost' => 3 ), // done
+                        'api/v3/allOrders' => array( 'cost' => 10 ), // done
+                        'api/v3/myTrades' => array( 'cost' => 5 ), // done
+                        'api/v3/rebate/affiliate/getAffiliateUIDs' => array( 'cost' => 20 ), // not unified
+                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset' => array( 'cost' => 20 ), // not unified
+                        'api/v3/rebate/affiliate/getAffiliateCommission' => array( 'cost' => 20 ), // not unified
+                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus' => array( 'cost' => 100 ), // not unified
+                        'api/v3/rebate/affiliate/querySubChannelTransactions' => array( 'cost' => 10 ), // not unified
+                        'api/v3/agency/verifyReferrals' => array( 'cost' => 20 ), // not unified
+                        'api/v3/agency/getAssert' => array( 'cost' => 20 ), // not unified
+                        'api/v3/agency/getDealData' => array( 'cost' => 20 ), // not unified
                     ),
                     'post' => array(
-                        'api/v3/account/bills' => 5, // done
-                        'api/v3/account/fundingBills' => 5, // done
-                        'api/v3/order' => 5, // done
-                        'api/v3/order/batch' => 50, // not supported, returns array("code":-1150,"msg":"Request method 'POST' not supported")
-                        'api/v3/rebate/affiliate/internalWithdrawal' => 100, // not unified
+                        'api/v3/account/bills' => array( 'cost' => 5 ), // done
+                        'api/v3/account/fundingBills' => array( 'cost' => 5 ), // done
+                        'api/v3/order' => array( 'cost' => 5 ), // done
+                        'api/v3/order/batch' => array( 'cost' => 50 ), // not supported, returns array("code":-1150,"msg":"Request method 'POST' not supported")
+                        'api/v3/rebate/affiliate/internalWithdrawal' => array( 'cost' => 100 ), // not unified
                     ),
                     'delete' => array(
-                        'api/v3/order' => 1, // done
-                        'api/v3/openOrders' => 1, // done
-                        'api/v3/order/batch' => 10, // done
+                        'api/v3/order' => array( 'cost' => 1 ), // done
+                        'api/v3/openOrders' => array( 'cost' => 1 ), // done
+                        'api/v3/order/batch' => array( 'cost' => 10 ), // done
                     ),
                 ),
                 'contract' => array(
                     // multiply public endpoints weight by 5
                     'get' => array(
-                        'capi/v3/market/time' => 5, // done
-                        'capi/v3/market/exchangeInfo' => 5, // done
-                        'capi/v3/market/depth' => 5, // done
-                        'capi/v3/market/ticker/24hr' => 200, // done
-                        'capi/v3/market/ticker/bookTicker' => 5, // done
-                        'capi/v3/market/trades' => 25, // done
-                        'capi/v3/market/klines' => 5, // done
-                        'capi/v3/market/indexPriceKlines' => 5, // done
-                        'capi/v3/market/markPriceKlines' => 5, // done
-                        'capi/v3/market/historyKlines' => 25, // done
-                        'capi/v3/market/symbolPrice' => 5, // not unified
-                        'capi/v3/market/openInterest' => 10, // done
-                        'capi/v3/market/premiumIndex' => 5, // done
-                        'capi/v3/market/fundingRate' => 25, // done
-                        'capi/v3/market/apiTradingSymbols' => 25, // not unified
+                        'capi/v3/market/time' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/exchangeInfo' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/depth' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/ticker/24hr' => array( 'cost' => 200 ), // done
+                        'capi/v3/market/ticker/bookTicker' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/trades' => array( 'cost' => 25 ), // done
+                        'capi/v3/market/klines' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/indexPriceKlines' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/markPriceKlines' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/historyKlines' => array( 'cost' => 25 ), // done
+                        'capi/v3/market/symbolPrice' => array( 'cost' => 5 ), // not unified
+                        'capi/v3/market/openInterest' => array( 'cost' => 10 ), // done
+                        'capi/v3/market/premiumIndex' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/fundingRate' => array( 'cost' => 25 ), // done
+                        'capi/v3/market/apiTradingSymbols' => array( 'cost' => 25 ), // not unified
                     ),
                 ),
                 'contractPrivate' => array(
                     'get' => array(
-                        'capi/v3/account/balance' => 10, // done
-                        'capi/v3/account/commissionRate' => 10, // done
-                        'capi/v3/account/accountConfig' => 10, // not unified
-                        'capi/v3/account/symbolConfig' => 10, // done
-                        'capi/v3/account/position/allPosition' => 15, // done
-                        'capi/v3/account/position/singlePosition' => 3, // done
-                        'capi/v3/order' => 3, // done
-                        'capi/v3/openOrders' => 5, // done
-                        'capi/v3/order/history' => 10, // done
-                        'capi/v3/userTrades' => 5, // done
-                        'capi/v3/openAlgoOrders' => 3, // done
-                        'capi/v3/allAlgoOrders' => 10, // not unified - capi/v3/order/history returns both regular and algo orders
+                        'capi/v3/account/balance' => array( 'cost' => 10 ), // done
+                        'capi/v3/account/commissionRate' => array( 'cost' => 10 ), // done
+                        'capi/v3/account/accountConfig' => array( 'cost' => 10 ), // not unified
+                        'capi/v3/account/symbolConfig' => array( 'cost' => 10 ), // done
+                        'capi/v3/account/position/allPosition' => array( 'cost' => 15 ), // done
+                        'capi/v3/account/position/singlePosition' => array( 'cost' => 3 ), // done
+                        'capi/v3/order' => array( 'cost' => 3 ), // done
+                        'capi/v3/openOrders' => array( 'cost' => 5 ), // done
+                        'capi/v3/order/history' => array( 'cost' => 10 ), // done
+                        'capi/v3/userTrades' => array( 'cost' => 5 ), // done
+                        'capi/v3/openAlgoOrders' => array( 'cost' => 3 ), // done
+                        'capi/v3/allAlgoOrders' => array( 'cost' => 10 ), // not unified - capi/v3/order/history returns both regular and algo orders
+                        'capi/v3/sim/balance' => array( 'cost' => 10 ), // done - demo trading variant of capi/v3/account/balance
+                        'capi/v3/sim/position/allPosition' => array( 'cost' => 15 ), // done - demo trading variant of capi/v3/account/position/allPosition
+                        'capi/v3/sim/order/history' => array( 'cost' => 10 ), // done - demo trading variant of capi/v3/order/history
                     ),
                     'post' => array(
-                        'capi/v3/account/income' => 5, // done
-                        'capi/v3/account/marginType' => 50, // done
-                        'capi/v3/account/leverage' => 20, // done
-                        'capi/v3/account/positionMargin' => 30, // done
-                        'capi/v3/account/modifyAutoAppendMargin' => 30, // not unified
-                        'capi/v3/order' => 5, // done
-                        'capi/v3/batchOrders' => 10, // not supported, returns array("code":-1150,"msg":"Request method 'POST' not supported")
-                        'capi/v3/closePositions' => 50, // done
-                        'capi/v3/algoOrder' => 5, // done
-                        'capi/v3/placeTpSlOrder' => 5, // not unified
-                        'capi/v3/modifyTpSlOrder' => 5, // not unified
+                        'capi/v3/account/income' => array( 'cost' => 5 ), // done
+                        'capi/v3/account/marginType' => array( 'cost' => 50 ), // done
+                        'capi/v3/account/leverage' => array( 'cost' => 20 ), // done
+                        'capi/v3/account/positionMargin' => array( 'cost' => 30 ), // done
+                        'capi/v3/account/modifyAutoAppendMargin' => array( 'cost' => 30 ), // not unified
+                        'capi/v3/order' => array( 'cost' => 5 ), // done
+                        'capi/v3/batchOrders' => array( 'cost' => 10 ), // not supported, returns array("code":-1150,"msg":"Request method 'POST' not supported")
+                        'capi/v3/closePositions' => array( 'cost' => 50 ), // done
+                        'capi/v3/algoOrder' => array( 'cost' => 5 ), // done
+                        'capi/v3/placeTpSlOrder' => array( 'cost' => 5 ), // not unified
+                        'capi/v3/modifyTpSlOrder' => array( 'cost' => 5 ), // not unified
+                        'capi/v3/sim/order' => array( 'cost' => 5 ), // done - demo trading variant of capi/v3/order
                     ),
                     'delete' => array(
-                        'capi/v3/order' => 3, // done
-                        'capi/v3/batchOrders' => 10, // done
-                        'capi/v3/allOpenOrders' => 10, // done
-                        'capi/v3/algoOrder' => 3, // done
-                        'capi/v3/algoOpenOrders' => 10, // done
+                        'capi/v3/order' => array( 'cost' => 3 ), // done
+                        'capi/v3/batchOrders' => array( 'cost' => 10 ), // done
+                        'capi/v3/allOpenOrders' => array( 'cost' => 10 ), // done
+                        'capi/v3/algoOrder' => array( 'cost' => 3 ), // done
+                        'capi/v3/algoOpenOrders' => array( 'cost' => 10 ), // done
                     ),
                 ),
             ),
@@ -490,7 +501,7 @@ class weex extends Exchange {
                     'ETH' => 'ERC20',
                     'POLYGON' => 'POLYGON(MATIC)',
                     'MATIC' => 'POLYGON(MATIC)',
-                    'ARBONE' => 'ARBITRUM(ARB)',
+                    'ARBITRUM' => 'ARBITRUM(ARB)',
                     'SOL' => 'SOLANA(SOL)',
                     'OP' => 'OPTIMISM(OP)',
                     'OPTIMISM' => 'OPTIMISM(OP)',
@@ -500,7 +511,7 @@ class weex extends Exchange {
                     'BEP20(BSC)' => 'BEP20',
                     'ERC20' => 'ERC20',
                     'POLYGON(MATIC)' => 'MATIC',
-                    'ARBITRUM(ARB)' => 'ARBONE',
+                    'ARBITRUM(ARB)' => 'ARBITRUM',
                     'SOLANA(SOL)' => 'SOL',
                     'OPTIMISM(OP)' => 'OP',
                     'AVALANCHE_C(AVAX_C)' => 'AVAXC',
@@ -598,7 +609,7 @@ class weex extends Exchange {
                     ),
                 ),
                 'forDerivs' => array(
-                    'sandbox' => false,
+                    'sandbox' => true,
                     'createOrder' => array(
                         'marginMode' => true,
                         'triggerPrice' => false,
@@ -680,7 +691,7 @@ class weex extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -1189,7 +1200,7 @@ class weex extends Exchange {
         $symbols = $this->market_symbols($symbols, null, true, true);
         $market = $this->get_market_from_symbols($symbols);
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
         $response = null;
         if ($marketType === 'spot') {
             $response = $this->publicGetApiV3MarketTickerBookTicker($params);
@@ -1378,7 +1389,7 @@ class weex extends Exchange {
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $response = $this->publicGetApiV3MarketKlines($this->extend($request, $params));
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
     public function fetch_contract_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1465,7 +1476,7 @@ class weex extends Exchange {
                 $response = $this->contractGetCapiV3MarketKlines($this->extend($request, $params));
             }
         }
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -1523,7 +1534,7 @@ class weex extends Exchange {
         //
         $responseList = array();
         if ($response !== null) {
-            $responseList = $response;
+            $responseList = $this->to_array($response);
         }
         return $this->parse_trades($responseList, $market, $since, $limit);
     }
@@ -1810,16 +1821,25 @@ class weex extends Exchange {
          *
          * @see https://www.weex.com/api-doc/spot/AccountAPI/GetAccountBalance // spot
          * @see https://www.weex.com/api-doc/contract/Account_API/GetAccountBalance // contract
+         * @see https://www.weex.com/api-doc/contract/demo/GetAccountBalance // contract in sandbox mode
          *
-         * query for balance and get the amount of funds available for trading or funds locked in positions
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->type] 'spot' or 'swap' (default is 'spot')
+         * query for balance and get $the amount of funds available for trading or funds locked in positions
+         * @param {array} [$params] extra parameters specific to $the exchange API endpoint
+         * @param {string} [$params->type] 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default)
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
+        $requestedType = $this->safe_string($params, 'type');
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        if ($sandboxMode && ($requestedType === null)) {
+            $type = 'swap'; // $the demo trading API only provides $the swap account, don't $the default spot $type break a bare fetchBalance() call
+        }
         $response = null;
         if ($type === 'spot') {
+            if ($sandboxMode) {
+                throw new NotSupported($this->id . ' fetchBalance() only supports $the swap account in sandbox mode, use $params["type"] = "swap"');
+            }
             //
             //     {
             //         "makerCommission" => 0,
@@ -1851,7 +1871,7 @@ class weex extends Exchange {
             //
             //     array(
             //         {
-            //             "asset" => "USDT",
+            //             "asset" => "USDT", // SUSDT in sandbox mode
             //             "balance" => "20.00000000",
             //             "availableBalance" => "20.00000000",
             //             "frozen" => "0",
@@ -1859,7 +1879,11 @@ class weex extends Exchange {
             //         }
             //     )
             //
-            $response = $this->contractPrivateGetCapiV3AccountBalance($params);
+            if ($sandboxMode) {
+                $response = $this->contractPrivateGetCapiV3SimBalance($params);
+            } else {
+                $response = $this->contractPrivateGetCapiV3AccountBalance($params);
+            }
         }
         return $this->parse_balance($response);
     }
@@ -1868,11 +1892,15 @@ class weex extends Exchange {
         $result = array(
             'info' => $response,
         );
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $balances = $this->safe_list($response, 'balances', $response);
         for ($i = 0; $i < count($balances); $i++) {
             $entry = $this->safe_dict($balances, $i);
-            $id = $this->safe_string($entry, 'asset');
-            $code = $this->safe_currency_code($id);
+            $currencyId = $this->safe_string($entry, 'asset');
+            if ($sandboxMode && ($currencyId === 'SUSDT')) {
+                $currencyId = 'USDT'; // demo trading $balances are denominated in the demo asset SUSDT
+            }
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $account['free'] = $this->safe_string_2($entry, 'availableBalance', 'free');
             $account['used'] = $this->safe_string_2($entry, 'frozen', 'locked');
@@ -1969,6 +1997,7 @@ class weex extends Exchange {
          * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder // contract
          * @see https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder // contract trigger
          * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceTpSlOrder // contract take profit / stop loss
+         * @see https://www.weex.com/api-doc/contract/demo/PlaceOrder // contract in sandbox mode
          *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} $type 'limit' or 'market'
@@ -1986,6 +2015,10 @@ class weex extends Exchange {
         if ($market['contract']) {
             return $this->create_contract_order($symbol, $type, $side, $amount, $price, $params);
         } else {
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+            if ($sandboxMode) {
+                throw new NotSupported($this->id . ' createOrder() only supports swap markets in sandbox mode');
+            }
             return $this->create_spot_order($symbol, $type, $side, $amount, $price, $params);
         }
     }
@@ -2063,6 +2096,7 @@ class weex extends Exchange {
          *
          * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder
          * @see https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder
+         * @see https://www.weex.com/api-doc/contract/demo/PlaceOrder // sandbox mode
          *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} $type 'limit' or 'market'
@@ -2091,9 +2125,15 @@ class weex extends Exchange {
         $market = $this->market($symbol);
         $request = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
         $triggerPrice = $this->safe_string($request, 'triggerPrice');
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $response = null;
         if ($triggerPrice !== null) {
+            if ($sandboxMode) {
+                throw new NotSupported($this->id . ' createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode');
+            }
             $response = $this->contractPrivatePostCapiV3AlgoOrder($request);
+        } elseif ($sandboxMode) {
+            $response = $this->contractPrivatePostCapiV3SimOrder($request);
         } else {
             $response = $this->contractPrivatePostCapiV3Order($request);
         }
@@ -2115,7 +2155,7 @@ class weex extends Exchange {
             throw new ArgumentsRequired($this->id . ' createContractOrderRequest() requires a $side argument');
         }
         $request = array(
-            'symbol' => $market['id'],
+            'symbol' => $this->to_sandbox_market_id($market),
             'side' => strtoupper($side),
             'quantity' => $this->amount_to_precision($symbol, $amount),
             'type' => strtoupper($type),
@@ -2605,6 +2645,7 @@ class weex extends Exchange {
          *
          * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
          * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+         * @see https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -2641,6 +2682,7 @@ class weex extends Exchange {
          *
          * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
          * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+         * @see https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -2740,6 +2782,7 @@ class weex extends Exchange {
          * fetches information on multiple closed and canceled orders made by the user
          *
          * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+         * @see https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
          *
          * @param {string} [$symbol] unified $market $symbol of the $market orders were made in (required for spot orders)
          * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -2758,19 +2801,19 @@ class weex extends Exchange {
             $market = $this->market($symbol);
         }
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchCanceledAndClosedOrders', $market, $params);
         if ($marketType === 'spot') {
             throw new NotSupported($this->id . ' fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status "canceled" or "closed"');
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'paginate', false);
         $maxLimit = 1000;
         if ($paginate) {
-            return $this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $params, $maxLimit);
+            return $this->fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $params, $maxLimit);
         }
         $request = array();
         if ($symbol !== null) {
-            $request['symbol'] = $this->safe_string($market, 'id');
+            $request['symbol'] = $this->to_sandbox_market_id($market);
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -2779,7 +2822,13 @@ class weex extends Exchange {
             $request['limit'] = $limit;
         }
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-        $response = $this->contractPrivateGetCapiV3OrderHistory($this->extend($request, $params));
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        $response = null;
+        if ($sandboxMode) {
+            $response = $this->contractPrivateGetCapiV3SimOrderHistory($this->extend($request, $params));
+        } else {
+            $response = $this->contractPrivateGetCapiV3OrderHistory($this->extend($request, $params));
+        }
         //
         //     array(
         //         {
@@ -2914,7 +2963,7 @@ class weex extends Exchange {
             $this->handle_order_or_position_error($errorCode, $errorMessage, $order);
         }
         if ($market === null) {
-            $marketId = $this->safe_string($order, 'symbol');
+            $marketId = $this->from_sandbox_market_id($this->safe_string($order, 'symbol'));
             $positionSide = $this->safe_string($order, 'positionSide');
             $marketType = ($positionSide === null) ? 'spot' : 'swap';
             $market = $this->safe_market($marketId, null, null, $marketType);
@@ -3116,7 +3165,7 @@ class weex extends Exchange {
         }
         $responseList = array();
         if ($response !== null) {
-            $responseList = $response;
+            $responseList = $this->to_array($response);
         }
         return $this->parse_trades($responseList, $market, $since, $limit);
     }
@@ -3191,7 +3240,8 @@ class weex extends Exchange {
                 $request['limit'] = $limit;
             }
             list($request, $params) = $this->handle_until_option('before', $request, $params);
-            $items = $this->privatePostApiV3AccountBills($this->extend($request, $params));
+            $billsResponse = $this->privatePostApiV3AccountBills($this->extend($request, $params));
+            $items = $this->to_array($billsResponse);
         }
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
@@ -3305,6 +3355,7 @@ class weex extends Exchange {
          * fetch all open positions
          *
          * @see https://www.weex.com/api-doc/contract/Account_API/GetAllPositions
+         * @see https://www.weex.com/api-doc/contract/demo/GetAllPositions // sandbox mode
          *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3314,7 +3365,13 @@ class weex extends Exchange {
             $this->load_markets();
         }
         $symbols = $this->market_symbols($symbols);
-        $response = $this->contractPrivateGetCapiV3AccountPositionAllPosition($params);
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        $response = null;
+        if ($sandboxMode) {
+            $response = $this->contractPrivateGetCapiV3SimPositionAllPosition($params);
+        } else {
+            $response = $this->contractPrivateGetCapiV3AccountPositionAllPosition($params);
+        }
         return $this->parse_positions($response, $symbols);
     }
 
@@ -3347,6 +3404,11 @@ class weex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        if ($sandboxMode) {
+            // the demo trading API does not provide a single-position endpoint
+            return $this->fetch_positions(array( $market['symbol'] ), $params);
+        }
         $request = array(
             'symbol' => $market['id'],
         );
@@ -3423,7 +3485,7 @@ class weex extends Exchange {
         if ($errorMessage !== null) {
             $this->handle_order_or_position_error($errorCode, $errorMessage, $position);
         }
-        $marketId = $this->safe_string_2($position, 'symbol', 'coinId'); // coinId might be used in testnet => https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
+        $marketId = $this->from_sandbox_market_id($this->safe_string_2($position, 'symbol', 'coinId')); // coinId might be used in testnet => https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
         $market = $this->safe_market($marketId, $market, null, 'contract');
         $timestamp = $this->safe_integer($position, 'createdTime');
         $marginType = $this->safe_string_2($position, 'marginType', 'marginMode');
@@ -3623,7 +3685,7 @@ class weex extends Exchange {
         }
         $symbols = $this->market_symbols($symbols);
         $response = $this->contractPrivateGetCapiV3AccountSymbolConfig($params);
-        return $this->parse_margin_modes($response, $symbols, 'symbol', 'swap');
+        return $this->parse_margin_modes($this->to_array($response), $symbols, 'symbol', 'swap');
     }
 
     public function parse_margin_mode(array $marginMode, ?array $market = null): array {
@@ -3718,7 +3780,7 @@ class weex extends Exchange {
         }
         $symbols = $this->market_symbols($symbols);
         $response = $this->contractPrivateGetCapiV3AccountSymbolConfig($params);
-        return $this->parse_leverages($response, $symbols, 'symbol', 'swap');
+        return $this->parse_leverages($this->to_array($response), $symbols, 'symbol', 'swap');
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
@@ -3790,7 +3852,7 @@ class weex extends Exchange {
         return $this->contractPrivatePostCapiV3AccountLeverage($this->extend($request, $params));
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): array {
         /**
          * fetchs the position mode, hedged or one way
          *
@@ -3927,6 +3989,48 @@ class weex extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
 
+    public function to_sandbox_market_id(array $market): ?string {
+        /**
+         * @ignore
+         * get the $market id to send in a request, converting to the demo-trading $market id (e.g. BTCSUSDT) when sandbox mode is enabled, only valid for USDT-margined linear markets which is all the demo environment provides
+         * @param {array} $market a unified $market structure
+         * @return {string} the $market id for the request
+         */
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        $baseId = $this->safe_string($market, 'baseId');
+        if ($sandboxMode && ($baseId !== null)) {
+            // demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
+            return $baseId . 'SUSDT';
+        }
+        return $this->safe_string($market, 'id');
+    }
+
+    public function from_sandbox_market_id(?string $marketId): ?string {
+        /**
+         * @ignore
+         * convert a demo-trading market id (e.g. BTCSUSDT) from a response back into the live market id (e.g. BTCUSDT) when sandbox mode is enabled
+         * @param {string} [$marketId] a market id from an exchange response
+         * @return {string} the live market id
+         */
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        if (!$sandboxMode || ($marketId === null)) {
+            return $marketId;
+        }
+        if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
+            return $marketId; // a live market id, not a demo one
+        }
+        if (str_ends_with($marketId, 'SUSDT')) {
+            $baseLength = strlen($marketId) - 5;
+            return mb_substr($marketId, 0, $baseLength - 0) . 'USDT';
+        }
+        return $marketId;
+    }
+
+    public function set_sandbox_mode(bool $enable) {
+        parent::set_sandbox_mode($enable);
+        $this->options['sandboxMode'] = $enable;
+    }
+
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
@@ -3937,6 +4041,11 @@ class weex extends Exchange {
             }
         }
         if (($api === 'private') || ($api === 'contractPrivate')) {
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+            if ($sandboxMode && (mb_strpos($path, 'capi/v3/sim/') !== 0)) {
+                // guard against accidental live private calls with sandbox mode enabled, the demo trading API only provides the capi/v3/sim/ endpoints
+                throw new NotSupported($this->id . ' ' . $path . ' is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets');
+            }
             $this->check_required_credentials();
             $timestamp = $this->number_to_string($this->nonce());
             $payload = $timestamp . $method . '/' . $endpoint;

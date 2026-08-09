@@ -5,7 +5,7 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/mercado.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, NullableDict, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, NullableDict, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int, Endpoint, List } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -143,41 +143,41 @@ export default class mercado extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'coins',
-                        '{coin}/orderbook/', // last slash critical
-                        '{coin}/ticker/',
-                        '{coin}/trades/',
-                        '{coin}/trades/{from}/',
-                        '{coin}/trades/{from}/{to}',
-                        '{coin}/day-summary/{year}/{month}/{day}/',
-                    ],
+                    'get': {
+                        'coins': { 'cost': 1 } as Endpoint<List>,
+                        '{coin}/orderbook/': { 'cost': 1 } as Endpoint<Dict>,
+                        '{coin}/ticker/': { 'cost': 1 } as Endpoint<Dict>,
+                        '{coin}/trades/': { 'cost': 1 } as Endpoint<List>,
+                        '{coin}/trades/{from}/': { 'cost': 1 } as Endpoint<List>,
+                        '{coin}/trades/{from}/{to}': { 'cost': 1 } as Endpoint<List>,
+                        '{coin}/day-summary/{year}/{month}/{day}/': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'cancel_order',
-                        'get_account_info',
-                        'get_order',
-                        'get_withdrawal',
-                        'list_system_messages',
-                        'list_orders',
-                        'list_orderbook',
-                        'place_buy_order',
-                        'place_sell_order',
-                        'place_market_buy_order',
-                        'place_market_sell_order',
-                        'withdraw_coin',
-                    ],
+                    'post': {
+                        'cancel_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_account_info': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'list_system_messages': { 'cost': 1 } as Endpoint<Dict>,
+                        'list_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'list_orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                        'place_buy_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'place_sell_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'place_market_buy_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'place_market_sell_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdraw_coin': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'v4Public': {
-                    'get': [
-                        '{coin}/candle/',
-                    ],
+                    'get': {
+                        '{coin}/candle/': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'v4PublicNet': {
-                    'get': [
-                        'candles',
-                    ],
+                    'get': {
+                        'candles': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -298,10 +298,11 @@ export default class mercado extends Exchange {
         //         "LINK"
         //     ]
         //
-        const result: any[] = [];
+        const result: Market[] = [];
         const amountLimits = this.safeValue (this.options, 'limits', {});
-        for (let i = 0; i < response.length; i++) {
-            const coin = response[i];
+        const coins = this.toArray (response);
+        for (let i = 0; i < coins.length; i++) {
+            const coin = coins[i];
             const baseId = coin;
             const quoteId = 'BRL';
             const base = this.safeCurrencyCode (baseId);
@@ -914,8 +915,9 @@ export default class mercado extends Exchange {
             request['from'] = request['to'] - (limit * this.parseTimeframe (timeframe));
         }
         const response = await this.v4PublicNetGetCandles (this.extend (request, params));
-        const candles = this.convertTradingViewToOHLCV (response, 't', 'o', 'h', 'l', 'c', 'v');
-        return this.parseOHLCVs (candles, market, timeframe, since, limit);
+        // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
+        // then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix
+        return this.parseTradingViewOHLCV (response, market, timeframe, since, limit);
     }
 
     /**

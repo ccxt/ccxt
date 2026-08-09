@@ -21,10 +21,10 @@ public partial class woo
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    public async Task<Status> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
-        return ((Dictionary<string, object>)res);
+        return new Status(res);
     }
     /// <summary>
     /// fetches the current integer timestamp in milliseconds from the exchange server
@@ -342,10 +342,8 @@ public partial class woo
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#edit-order"/>  <br/>
-    /// See <see href="https://docs.woox.io/#edit-order-by-client_order_id"/>  <br/>
-    /// See <see href="https://docs.woox.io/#edit-algo-order"/>  <br/>
-    /// See <see href="https://docs.woox.io/#edit-algo-order-by-client_order_id"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/edit_order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/edit_algo_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -357,6 +355,18 @@ public partial class woo
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : client order id of the order to edit, used instead of the id argument
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : whether the order is a trigger/algo order, set to true to edit an algo order without passing trigger parameters
     /// </description>
     /// </item>
     /// <item>

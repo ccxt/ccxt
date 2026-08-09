@@ -35,7 +35,7 @@ class kraken extends Exchange {
                 'cancelOrders' => true,
                 'createDepositAddress' => true,
                 'createMarketBuyOrderWithCost' => true,
-                'createMarketOrderWithCost' => false,
+                'createMarketOrderWithCost' => true,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => true,
@@ -149,83 +149,81 @@ class kraken extends Exchange {
             'api' => array(
                 'zendesk' => array(
                     'get' => array(
-                        // we should really refrain from putting fixed fee numbers and stop hardcoding
-                        // we will be using their web APIs to scrape all numbers from these articles
-                        '360000292886', // -What-are-the-deposit-fees-
-                        '201893608', // -What-are-the-withdrawal-fees-
+                        '360000292886' => array( 'cost' => 1 ),
+                        '201893608' => array( 'cost' => 1 ),
                     ),
                 ),
                 'public' => array(
                     'get' => array(
                         // rate-limits explained in comment in the top of this file
-                        'Time' => 1,
-                        'SystemStatus' => 1,
-                        'Assets' => 1,
-                        'AssetPairs' => 1,
-                        'Ticker' => 1,
-                        'OHLC' => 1.2, // 1.2 because 1 triggers too many requests immediately
-                        'Depth' => 1.2,
-                        'GroupedBook' => 1.2,
-                        'Trades' => 1.2,
-                        'Spread' => 1,
-                        'PreTrade' => 1,
-                        'PostTrade' => 1,
+                        'Time' => array( 'cost' => 1 ),
+                        'SystemStatus' => array( 'cost' => 1 ),
+                        'Assets' => array( 'cost' => 1 ),
+                        'AssetPairs' => array( 'cost' => 1 ),
+                        'Ticker' => array( 'cost' => 1 ),
+                        'OHLC' => array( 'cost' => 1.2 ), // 1.2 because 1 triggers too many requests immediately
+                        'Depth' => array( 'cost' => 1.2 ),
+                        'GroupedBook' => array( 'cost' => 1.2 ),
+                        'Trades' => array( 'cost' => 1.2 ),
+                        'Spread' => array( 'cost' => 1 ),
+                        'PreTrade' => array( 'cost' => 1 ),
+                        'PostTrade' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'Level3' => 1.2,
+                        'Level3' => array( 'cost' => 1.2 ),
                         // account
-                        'Balance' => 3,
-                        'BalanceEx' => 3,
-                        'CreditLines' => 3,
-                        'TradeBalance' => 3,
-                        'OpenOrders' => 3,
-                        'ClosedOrders' => 3,
-                        'QueryOrders' => 3,
-                        'OrderAmends' => 3,
-                        'TradesHistory' => 6,
-                        'QueryTrades' => 3,
-                        'OpenPositions' => 3,
-                        'Ledgers' => 6,
-                        'QueryLedgers' => 3,
-                        'TradeVolume' => 3,
-                        'AddExport' => 3,
-                        'ExportStatus' => 3,
-                        'RetrieveExport' => 3,
-                        'RemoveExport' => 3,
-                        'GetApiKeyInfo' => 3,
+                        'Balance' => array( 'cost' => 3 ),
+                        'BalanceEx' => array( 'cost' => 3 ),
+                        'CreditLines' => array( 'cost' => 3 ),
+                        'TradeBalance' => array( 'cost' => 3 ),
+                        'OpenOrders' => array( 'cost' => 3 ),
+                        'ClosedOrders' => array( 'cost' => 3 ),
+                        'QueryOrders' => array( 'cost' => 3 ),
+                        'OrderAmends' => array( 'cost' => 3 ),
+                        'TradesHistory' => array( 'cost' => 6 ),
+                        'QueryTrades' => array( 'cost' => 3 ),
+                        'OpenPositions' => array( 'cost' => 3 ),
+                        'Ledgers' => array( 'cost' => 6 ),
+                        'QueryLedgers' => array( 'cost' => 3 ),
+                        'TradeVolume' => array( 'cost' => 3 ),
+                        'AddExport' => array( 'cost' => 3 ),
+                        'ExportStatus' => array( 'cost' => 3 ),
+                        'RetrieveExport' => array( 'cost' => 3 ),
+                        'RemoveExport' => array( 'cost' => 3 ),
+                        'GetApiKeyInfo' => array( 'cost' => 3 ),
                         // trading
-                        'AddOrder' => 0,
-                        'AmendOrder' => 0,
-                        'CancelOrder' => 0,
-                        'CancelAll' => 3,
-                        'CancelAllOrdersAfter' => 3,
-                        'GetWebSocketsToken' => 3,
-                        'AddOrderBatch' => 0,
-                        'CancelOrderBatch' => 0,
-                        'EditOrder' => 0,
+                        'AddOrder' => array( 'cost' => 0 ),
+                        'AmendOrder' => array( 'cost' => 0 ),
+                        'CancelOrder' => array( 'cost' => 0 ),
+                        'CancelAll' => array( 'cost' => 3 ),
+                        'CancelAllOrdersAfter' => array( 'cost' => 3 ),
+                        'GetWebSocketsToken' => array( 'cost' => 3 ),
+                        'AddOrderBatch' => array( 'cost' => 0 ),
+                        'CancelOrderBatch' => array( 'cost' => 0 ),
+                        'EditOrder' => array( 'cost' => 0 ),
                         // funding
-                        'DepositMethods' => 3,
-                        'DepositAddresses' => 3,
-                        'DepositStatus' => 3,
-                        'WithdrawMethods' => 3,
-                        'WithdrawAddresses' => 3,
-                        'WithdrawInfo' => 3,
-                        'Withdraw' => 3,
-                        'WithdrawStatus' => 3,
-                        'WithdrawCancel' => 3,
-                        'WalletTransfer' => 3,
+                        'DepositMethods' => array( 'cost' => 3 ),
+                        'DepositAddresses' => array( 'cost' => 3 ),
+                        'DepositStatus' => array( 'cost' => 3 ),
+                        'WithdrawMethods' => array( 'cost' => 3 ),
+                        'WithdrawAddresses' => array( 'cost' => 3 ),
+                        'WithdrawInfo' => array( 'cost' => 3 ),
+                        'Withdraw' => array( 'cost' => 3 ),
+                        'WithdrawStatus' => array( 'cost' => 3 ),
+                        'WithdrawCancel' => array( 'cost' => 3 ),
+                        'WalletTransfer' => array( 'cost' => 3 ),
                         // sub accounts
-                        'CreateSubaccount' => 3,
-                        'AccountTransfer' => 3,
+                        'CreateSubaccount' => array( 'cost' => 3 ),
+                        'AccountTransfer' => array( 'cost' => 3 ),
                         // earn
-                        'Earn/Allocate' => 3,
-                        'Earn/Deallocate' => 3,
-                        'Earn/AllocateStatus' => 3,
-                        'Earn/DeallocateStatus' => 3,
-                        'Earn/Strategies' => 3,
-                        'Earn/Allocations' => 3,
+                        'Earn/Allocate' => array( 'cost' => 3 ),
+                        'Earn/Deallocate' => array( 'cost' => 3 ),
+                        'Earn/AllocateStatus' => array( 'cost' => 3 ),
+                        'Earn/DeallocateStatus' => array( 'cost' => 3 ),
+                        'Earn/Strategies' => array( 'cost' => 3 ),
+                        'Earn/Allocations' => array( 'cost' => 3 ),
                     ),
                 ),
             ),
@@ -750,7 +748,7 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -1131,7 +1129,7 @@ class kraken extends Exchange {
             $request['pair'] = implode(',', $marketIds);
         }
         $response = $this->publicGetTicker($this->extend($request, $params));
-        $tickers = $response['result'];
+        $tickers = $this->safe_dict($response, 'result', array());
         $ids = is_array($tickers) ? array_keys($tickers) : array();
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -1162,7 +1160,8 @@ class kraken extends Exchange {
             'pair' => $market['id'],
         );
         $response = $this->publicGetTicker($this->extend($request, $params));
-        $ticker = $this->safe_value($response['result'], $market['id']);
+        $tickerResult = $this->safe_dict($response, 'result', array());
+        $ticker = $this->safe_value($tickerResult, $market['id']);
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -1389,7 +1388,7 @@ class kraken extends Exchange {
         //                                       "amount" => "-0.2805800000",
         //                                          "fee" => "0.0050000000",
         //                                      "balance" => "0.0000051000"           } } }
-        $result = $response['result'];
+        $result = $this->safe_dict($response, 'result', array());
         $keys = is_array($result) ? array_keys($result) : array();
         $items = array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -1597,7 +1596,7 @@ class kraken extends Exchange {
         //         }
         //     }
         //
-        $result = $response['result'];
+        $result = $this->safe_dict($response, 'result', array());
         $trades = $this->safe_value($result, $id);
         // $trades is a sorted array => last (most recent trade) goes last
         $length = count($trades);
@@ -2519,7 +2518,7 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_orders_by_ids(mixed $ids, ?string $symbol = null, $params = array()) {
+    public function fetch_orders_by_ids(mixed $ids, ?string $symbol = null, $params = array()): array {
         /**
          * fetch $orders by the list of $order $id
          *
@@ -2611,7 +2610,8 @@ class kraken extends Exchange {
         //         ),
         //     }
         //
-        $trades = $response['result']['trades'];
+        $tradesResult = $this->safe_dict($response, 'result', array());
+        $trades = $this->safe_dict($tradesResult, 'trades', array());
         $ids = is_array($trades) ? array_keys($trades) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $trades[$ids[$i]]['id'] = $ids[$i];
@@ -2620,7 +2620,8 @@ class kraken extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        return $this->parse_trades($trades, $market, $since, $limit);
+        $tradesList = $this->to_array($trades);
+        return $this->parse_trades($tradesList, $market, $since, $limit);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
@@ -3131,7 +3132,8 @@ class kraken extends Exchange {
         //                       "time" =>  1529223212,
         //                     "status" => "Success"                                                       } ) }
         //
-        return $this->parse_transactions_by_type('deposit', $response['result'], $code, $since, $limit);
+        $depositResult = $this->safe_list($response, 'result', array());
+        return $this->parse_transactions_by_type('deposit', $depositResult, $code, $since, $limit);
     }
 
     public function fetch_time($params = array()): ?int {

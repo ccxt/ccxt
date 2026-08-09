@@ -42,6 +42,8 @@ public class FoxbitCore extends FoxbitApi
                 put( "createMarketBuyOrder", true );
                 put( "createMarketSellOrder", true );
                 put( "createOrder", true );
+                put( "createOrders", true );
+                put( "editOrder", true );
                 put( "fecthOrderBook", true );
                 put( "fetchBalance", true );
                 put( "fetchCanceledOrders", true );
@@ -56,7 +58,10 @@ public class FoxbitCore extends FoxbitApi
                 put( "fetchOHLCV", true );
                 put( "fetchOpenOrders", true );
                 put( "fetchOrder", true );
+                put( "fetchOrderBook", true );
                 put( "fetchOrders", true );
+                put( "fetchOrdersByStatus", true );
+                put( "fetchStatus", true );
                 put( "fetchTicker", true );
                 put( "fetchTickers", true );
                 put( "fetchTrades", true );
@@ -136,42 +141,86 @@ public class FoxbitCore extends FoxbitApi
                 put( "v3", new java.util.HashMap<String, Object>() {{
                     put( "public", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "currencies", 5 );
-                            put( "markets", 5 );
-                            put( "markets/ticker/24hr", 60 );
-                            put( "markets/{market}/orderbook", 6 );
-                            put( "markets/{market}/candlesticks", 12 );
-                            put( "markets/{market}/trades/history", 12 );
-                            put( "markets/{market}/ticker/24hr", 15 );
+                            put( "currencies", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 5 );
+                            }} );
+                            put( "markets", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 5 );
+                            }} );
+                            put( "markets/ticker/24hr", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 60 );
+                            }} );
+                            put( "markets/{market}/orderbook", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 6 );
+                            }} );
+                            put( "markets/{market}/candlesticks", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 12 );
+                            }} );
+                            put( "markets/{market}/trades/history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 12 );
+                            }} );
+                            put( "markets/{market}/ticker/24hr", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 15 );
+                            }} );
                         }} );
                     }} );
                     put( "private", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "accounts", 2 );
-                            put( "accounts/{symbol}/transactions", 60 );
-                            put( "orders", 2 );
-                            put( "orders/by-order-id/{id}", 2 );
-                            put( "trades", 6 );
-                            put( "deposits/address", 10 );
-                            put( "deposits", 10 );
-                            put( "withdrawals", 10 );
-                            put( "me/fees/trading", 60 );
+                            put( "accounts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "accounts/{symbol}/transactions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 60 );
+                            }} );
+                            put( "orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "orders/by-order-id/{id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 6 );
+                            }} );
+                            put( "deposits/address", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "deposits", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "withdrawals", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "me/fees/trading", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 60 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "orders", 2 );
-                            put( "orders/batch", 7.5 );
-                            put( "orders/cancel-replace", 3 );
-                            put( "withdrawals", 10 );
+                            put( "orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "orders/batch", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 7.5 );
+                            }} );
+                            put( "orders/cancel-replace", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 3 );
+                            }} );
+                            put( "withdrawals", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
                         }} );
                         put( "put", new java.util.HashMap<String, Object>() {{
-                            put( "orders/cancel", 2 );
+                            put( "orders/cancel", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
                         }} );
                     }} );
                 }} );
                 put( "status", new java.util.HashMap<String, Object>() {{
                     put( "public", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "status", 30 );
+                            put( "status", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 30 );
+                            }} );
                         }} );
                     }} );
                 }} );
@@ -889,7 +938,7 @@ public class FoxbitCore extends FoxbitApi
             //         "15466.34096391" // taker buy quote volume
             //     ]
             // ]
-            return this.parseOHLCVs(response, market, interval, since, limit);
+            return this.parseOHLCVs(this.toArray(response), market, interval, since, limit);
         });
 
     }
@@ -1799,7 +1848,7 @@ public class FoxbitCore extends FoxbitApi
             }};
             return new java.util.HashMap<String, Object>() {{
                 put( "status", FoxbitCore.this.safeString(statusMap, statusRaw, statusRaw) );
-                put( "updated", FoxbitCore.this.safeString(attributes, "updatedAt") );
+                put( "updated", FoxbitCore.this.parse8601(FoxbitCore.this.safeString(attributes, "updatedAt")) );
                 put( "eta", null );
                 put( "url", null );
                 put( "info", response );
@@ -1893,7 +1942,8 @@ public class FoxbitCore extends FoxbitApi
             //         "client_order_id": "451637946501"
             //     }
             // }
-            return this.parseOrder(Helpers.GetValue(response, "create"), market);
+            Object created = this.safeDict(response, "create", new java.util.HashMap<String, Object>() {{}});
+            return this.parseOrder(created, market);
         });
 
     }
@@ -2478,6 +2528,8 @@ public class FoxbitCore extends FoxbitApi
         }
         headers = new java.util.HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );
+            put( "X-FB-CLIENT", "ccxt" );
+            put( "X-FB-CLIENT-VERSION", FoxbitCore.this.getCcxtVersion() );
         }};
         if (Helpers.isTrue(Helpers.isEqual(urlPath, "private")))
         {

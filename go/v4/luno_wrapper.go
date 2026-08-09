@@ -758,6 +758,35 @@ func (this *Luno) FetchDepositAddress(code string, options ...FetchDepositAddres
 	return NewDepositAddress(res), nil
 }
 
+/**
+ * @method
+ * @name luno#fetchDepositWithdrawFee
+ * @description fetch the fee for sending (withdrawing) a currency to a specific address; luno quotes the network fee per destination, so an address is required, see https://github.com/ccxt/ccxt/issues/25830
+ * @see https://www.luno.com/en/developers/api#tag/Send/operation/SendFee
+ * @param {string} code unified currency code
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} params.address the destination address luno should quote the send fee for (required by the exchange)
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+ */
+func (this *Luno) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
+
+	opts := FetchDepositWithdrawFeeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchDepositWithdrawFee(code, params)
+	if IsError(res) {
+		return DepositWithdrawFee{}, CreateReturnError(res)
+	}
+	return NewDepositWithdrawFee(res), nil
+}
+
 // missing typed methods from base
 // nolint
 func (this *Luno) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
@@ -910,9 +939,6 @@ func (this *Luno) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction,
 func (this *Luno) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Luno) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
-}
 func (this *Luno) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
@@ -1033,7 +1059,7 @@ func (this *Luno) FetchPosition(symbol string, options ...FetchPositionOptions) 
 func (this *Luno) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Luno) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Luno) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Luno) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1051,7 +1077,7 @@ func (this *Luno) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Po
 func (this *Luno) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Luno) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Luno) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Luno) FetchTime(params ...any) (int64, error) {
@@ -1174,7 +1200,7 @@ func (this *Luno) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Luno) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Luno) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Luno) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Luno) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1219,7 +1245,7 @@ func (this *Luno) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) 
 func (this *Luno) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Luno) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Luno) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Luno) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

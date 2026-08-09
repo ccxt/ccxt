@@ -146,167 +146,425 @@ public partial class cryptocom : Exchange
                 { "base", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "v1/public/get-announcements", 1 },
+                            { "v1/public/get-announcements", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
                 { "v1", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "public/auth", divide(10, 3) },
-                            { "public/get-instruments", divide(10, 3) },
-                            { "public/get-book", 1 },
-                            { "public/get-candlestick", 1 },
-                            { "public/get-trades", 1 },
-                            { "public/get-tickers", 1 },
-                            { "public/get-valuations", 1 },
-                            { "public/get-expired-settlement-price", divide(10, 3) },
-                            { "public/get-insurance", 1 },
-                            { "public/get-announcements", 1 },
-                            { "public/get-risk-parameters", 1 },
+                            { "public/auth", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "public/get-instruments", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "public/get-book", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-candlestick", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-tickers", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-valuations", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-expired-settlement-price", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "public/get-insurance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-announcements", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-risk-parameters", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "public/staking/get-conversion-rate", 2 },
+                            { "public/staking/get-conversion-rate", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
-                            { "private/set-cancel-on-disconnect", divide(10, 3) },
-                            { "private/get-cancel-on-disconnect", divide(10, 3) },
-                            { "private/user-balance", divide(10, 3) },
-                            { "private/user-balance-history", divide(10, 3) },
-                            { "private/get-positions", divide(10, 3) },
-                            { "private/create-order", divide(2, 3) },
-                            { "private/amend-order", divide(4, 3) },
-                            { "private/create-order-list", divide(10, 3) },
-                            { "private/cancel-order", divide(2, 3) },
-                            { "private/cancel-order-list", divide(10, 3) },
-                            { "private/cancel-all-orders", divide(2, 3) },
-                            { "private/close-position", divide(10, 3) },
-                            { "private/get-order-history", 100 },
-                            { "private/get-open-orders", divide(10, 3) },
-                            { "private/get-order-detail", divide(1, 3) },
-                            { "private/get-trades", 100 },
-                            { "private/change-account-leverage", divide(10, 3) },
-                            { "private/get-transactions", divide(10, 3) },
-                            { "private/create-subaccount-transfer", divide(10, 3) },
-                            { "private/get-subaccount-balances", divide(10, 3) },
-                            { "private/get-order-list", divide(10, 3) },
-                            { "private/create-withdrawal", divide(10, 3) },
-                            { "private/get-currency-networks", divide(10, 3) },
-                            { "private/get-deposit-address", divide(10, 3) },
-                            { "private/get-accounts", divide(10, 3) },
-                            { "private/get-withdrawal-history", divide(10, 3) },
-                            { "private/get-deposit-history", divide(10, 3) },
-                            { "private/get-fee-rate", 2 },
-                            { "private/get-instrument-fee-rate", 2 },
-                            { "private/fiat/fiat-deposit-info", divide(10, 3) },
-                            { "private/fiat/fiat-deposit-history", divide(10, 3) },
-                            { "private/fiat/fiat-withdraw-history", divide(10, 3) },
-                            { "private/fiat/fiat-create-withdraw", divide(10, 3) },
-                            { "private/fiat/fiat-transaction-quota", divide(10, 3) },
-                            { "private/fiat/fiat-transaction-limit", divide(10, 3) },
-                            { "private/fiat/fiat-get-bank-accounts", divide(10, 3) },
-                            { "private/staking/stake", 2 },
-                            { "private/staking/unstake", 2 },
-                            { "private/staking/get-staking-position", 2 },
-                            { "private/staking/get-staking-instruments", 2 },
-                            { "private/staking/get-open-stake", 2 },
-                            { "private/staking/get-stake-history", 2 },
-                            { "private/staking/get-reward-history", 2 },
-                            { "private/staking/convert", 2 },
-                            { "private/staking/get-open-convert", 2 },
-                            { "private/staking/get-convert-history", 2 },
-                            { "private/create-isolated-margin-transfer", divide(10, 3) },
-                            { "private/change-isolated-margin-leverage", divide(10, 3) },
+                            { "private/set-cancel-on-disconnect", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-cancel-on-disconnect", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/user-balance", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/user-balance-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-positions", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/create-order", new Dictionary<string, object>() {
+                                { "cost", divide(2, 3) },
+                            } },
+                            { "private/amend-order", new Dictionary<string, object>() {
+                                { "cost", divide(4, 3) },
+                            } },
+                            { "private/create-order-list", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/cancel-order", new Dictionary<string, object>() {
+                                { "cost", divide(2, 3) },
+                            } },
+                            { "private/cancel-order-list", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/cancel-all-orders", new Dictionary<string, object>() {
+                                { "cost", divide(2, 3) },
+                            } },
+                            { "private/close-position", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-order-history", new Dictionary<string, object>() {
+                                { "cost", 100 },
+                            } },
+                            { "private/get-open-orders", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-order-detail", new Dictionary<string, object>() {
+                                { "cost", divide(1, 3) },
+                            } },
+                            { "private/get-trades", new Dictionary<string, object>() {
+                                { "cost", 100 },
+                            } },
+                            { "private/change-account-leverage", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-transactions", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/create-subaccount-transfer", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-subaccount-balances", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-order-list", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/create-withdrawal", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-currency-networks", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-deposit-address", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-accounts", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-withdrawal-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-deposit-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-fee-rate", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/get-instrument-fee-rate", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/fiat/fiat-deposit-info", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/fiat/fiat-deposit-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/fiat/fiat-withdraw-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/fiat/fiat-create-withdraw", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/fiat/fiat-transaction-quota", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/fiat/fiat-transaction-limit", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/fiat/fiat-get-bank-accounts", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/staking/stake", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/staking/unstake", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/staking/get-staking-position", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/staking/get-staking-instruments", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/staking/get-open-stake", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/staking/get-stake-history", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/staking/get-reward-history", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/staking/convert", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/staking/get-open-convert", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/staking/get-convert-history", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/create-isolated-margin-transfer", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/change-isolated-margin-leverage", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
                         } },
                     } },
                 } },
                 { "v2", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "public/auth", 1 },
-                            { "public/get-instruments", 1 },
-                            { "public/get-book", 1 },
-                            { "public/get-candlestick", 1 },
-                            { "public/get-ticker", 1 },
-                            { "public/get-trades", 1 },
-                            { "public/margin/get-transfer-currencies", 1 },
-                            { "public/margin/get-load-currenices", 1 },
-                            { "public/respond-heartbeat", 1 },
+                            { "public/auth", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-instruments", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-book", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-candlestick", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-ticker", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/margin/get-transfer-currencies", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/margin/get-load-currenices", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/respond-heartbeat", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
-                            { "private/set-cancel-on-disconnect", divide(10, 3) },
-                            { "private/get-cancel-on-disconnect", divide(10, 3) },
-                            { "private/create-withdrawal", divide(10, 3) },
-                            { "private/get-withdrawal-history", divide(10, 3) },
-                            { "private/get-currency-networks", divide(10, 3) },
-                            { "private/get-deposit-history", divide(10, 3) },
-                            { "private/get-deposit-address", divide(10, 3) },
-                            { "private/export/create-export-request", divide(10, 3) },
-                            { "private/export/get-export-requests", divide(10, 3) },
-                            { "private/export/download-export-output", divide(10, 3) },
-                            { "private/get-account-summary", divide(10, 3) },
-                            { "private/create-order", divide(2, 3) },
-                            { "private/cancel-order", divide(2, 3) },
-                            { "private/cancel-all-orders", divide(2, 3) },
-                            { "private/create-order-list", divide(10, 3) },
-                            { "private/get-order-history", divide(10, 3) },
-                            { "private/get-open-orders", divide(10, 3) },
-                            { "private/get-order-detail", divide(1, 3) },
-                            { "private/get-trades", 100 },
-                            { "private/get-accounts", divide(10, 3) },
-                            { "private/get-subaccount-balances", divide(10, 3) },
-                            { "private/create-subaccount-transfer", divide(10, 3) },
-                            { "private/otc/get-otc-user", divide(10, 3) },
-                            { "private/otc/get-instruments", divide(10, 3) },
-                            { "private/otc/request-quote", 100 },
-                            { "private/otc/accept-quote", 100 },
-                            { "private/otc/get-quote-history", divide(10, 3) },
-                            { "private/otc/get-trade-history", divide(10, 3) },
-                            { "private/otc/create-order", divide(10, 3) },
+                            { "private/set-cancel-on-disconnect", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-cancel-on-disconnect", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/create-withdrawal", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-withdrawal-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-currency-networks", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-deposit-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-deposit-address", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/export/create-export-request", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/export/get-export-requests", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/export/download-export-output", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-account-summary", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/create-order", new Dictionary<string, object>() {
+                                { "cost", divide(2, 3) },
+                            } },
+                            { "private/cancel-order", new Dictionary<string, object>() {
+                                { "cost", divide(2, 3) },
+                            } },
+                            { "private/cancel-all-orders", new Dictionary<string, object>() {
+                                { "cost", divide(2, 3) },
+                            } },
+                            { "private/create-order-list", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-order-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-open-orders", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-order-detail", new Dictionary<string, object>() {
+                                { "cost", divide(1, 3) },
+                            } },
+                            { "private/get-trades", new Dictionary<string, object>() {
+                                { "cost", 100 },
+                            } },
+                            { "private/get-accounts", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-subaccount-balances", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/create-subaccount-transfer", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/otc/get-otc-user", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/otc/get-instruments", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/otc/request-quote", new Dictionary<string, object>() {
+                                { "cost", 100 },
+                            } },
+                            { "private/otc/accept-quote", new Dictionary<string, object>() {
+                                { "cost", 100 },
+                            } },
+                            { "private/otc/get-quote-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/otc/get-trade-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/otc/create-order", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
                         } },
                     } },
                 } },
                 { "derivatives", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "public/auth", divide(10, 3) },
-                            { "public/get-instruments", divide(10, 3) },
-                            { "public/get-book", 1 },
-                            { "public/get-candlestick", 1 },
-                            { "public/get-trades", 1 },
-                            { "public/get-tickers", 1 },
-                            { "public/get-valuations", 1 },
-                            { "public/get-expired-settlement-price", divide(10, 3) },
-                            { "public/get-insurance", 1 },
+                            { "public/auth", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "public/get-instruments", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "public/get-book", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-candlestick", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-tickers", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-valuations", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-expired-settlement-price", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "public/get-insurance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
-                            { "private/set-cancel-on-disconnect", divide(10, 3) },
-                            { "private/get-cancel-on-disconnect", divide(10, 3) },
-                            { "private/user-balance", divide(10, 3) },
-                            { "private/user-balance-history", divide(10, 3) },
-                            { "private/get-positions", divide(10, 3) },
-                            { "private/create-order", divide(2, 3) },
-                            { "private/create-order-list", divide(10, 3) },
-                            { "private/cancel-order", divide(2, 3) },
-                            { "private/cancel-order-list", divide(10, 3) },
-                            { "private/cancel-all-orders", divide(2, 3) },
-                            { "private/close-position", divide(10, 3) },
-                            { "private/convert-collateral", divide(10, 3) },
-                            { "private/get-order-history", 100 },
-                            { "private/get-open-orders", divide(10, 3) },
-                            { "private/get-order-detail", divide(1, 3) },
-                            { "private/get-trades", 100 },
-                            { "private/change-account-leverage", divide(10, 3) },
-                            { "private/get-transactions", divide(10, 3) },
-                            { "private/create-subaccount-transfer", divide(10, 3) },
-                            { "private/get-subaccount-balances", divide(10, 3) },
-                            { "private/get-order-list", divide(10, 3) },
+                            { "private/set-cancel-on-disconnect", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-cancel-on-disconnect", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/user-balance", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/user-balance-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-positions", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/create-order", new Dictionary<string, object>() {
+                                { "cost", divide(2, 3) },
+                            } },
+                            { "private/create-order-list", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/cancel-order", new Dictionary<string, object>() {
+                                { "cost", divide(2, 3) },
+                            } },
+                            { "private/cancel-order-list", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/cancel-all-orders", new Dictionary<string, object>() {
+                                { "cost", divide(2, 3) },
+                            } },
+                            { "private/close-position", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/convert-collateral", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-order-history", new Dictionary<string, object>() {
+                                { "cost", 100 },
+                            } },
+                            { "private/get-open-orders", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-order-detail", new Dictionary<string, object>() {
+                                { "cost", divide(1, 3) },
+                            } },
+                            { "private/get-trades", new Dictionary<string, object>() {
+                                { "cost", 100 },
+                            } },
+                            { "private/change-account-leverage", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-transactions", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/create-subaccount-transfer", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-subaccount-balances", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-order-list", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
                         } },
                     } },
                 } },
@@ -335,6 +593,7 @@ public partial class cryptocom : Exchange
                     { "BEP20", "BSC" },
                     { "ERC20", "ETH" },
                     { "TRC20", "TRON" },
+                    { "ARBITRUM", "ARB" },
                 } },
                 { "broker", "CCXT" },
             } },
@@ -2351,7 +2610,7 @@ public partial class cryptocom : Exchange
         object network = this.safeStringUpper(parameters, "network");
         parameters = this.omit(parameters, new List<object>() {"network"});
         object depositAddressesRaw = await this.fetchDepositAddressesByNetwork(code, parameters);
-        object depositAddresses = ((object)depositAddressesRaw);
+        object depositAddresses = depositAddressesRaw;
         if (isTrue(inOp(depositAddresses, ((string)network))))
         {
             return getValue(depositAddresses, ((string)network));

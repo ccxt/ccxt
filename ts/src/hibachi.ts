@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Balances, Currencies, Dict, Fee, FeeString, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest, NullableDict } from './base/types.js';
+import type{ Balances, Currencies, Dict, Fee, FeeString, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest, NullableDict, Endpoint, List } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { Precise } from './base/Precise.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, OrderNotFound } from './base/errors.js';
@@ -94,6 +94,7 @@ export default class hibachi extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
+                'fetchOrdersByStatus': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
@@ -140,44 +141,44 @@ export default class hibachi extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'market/exchange-info': 1,
-                        'market/inventory': 1,
-                        'market/data/prices': 1,
-                        'market/data/stats': 1,
-                        'market/data/trades': 1,
-                        'market/data/klines': 1,
-                        'market/data/open-interest': 1,
-                        'market/data/orderbook': 1,
-                        'market/data/funding-rates': 1,
-                        'exchange/utc-timestamp': 1,
+                        'market/exchange-info': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/inventory': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/data/prices': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/data/stats': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/data/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/data/klines': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/data/open-interest': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/data/orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/data/funding-rates': { 'cost': 1 } as Endpoint<Dict>,
+                        'exchange/utc-timestamp': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'capital/balance': 1,
-                        'capital/history': 1,
-                        'capital/deposit-info': 1,
-                        'trade/account/info': 1,
-                        'trade/account/trades': 1,
-                        'trade/account/trading_history': 1, // not in current docs, used by fetchLedger
-                        'trade/account/settlements_history': 1,
-                        'trade/orders': 1,
-                        'trade/order': 1,
-                        'trade/orders/history': 1,
+                        'capital/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'capital/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'capital/deposit-info': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/account/info': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/account/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/account/trading_history': { 'cost': 1 } as Endpoint<Dict>, // not in current docs, used by fetchLedger
+                        'trade/account/settlements_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/orders': { 'cost': 1 } as Endpoint<List>,
+                        'trade/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/orders/history': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'put': {
-                        'trade/order': 1,
+                        'trade/order': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'trade/order': 1,
-                        'trade/orders': 1,
+                        'trade/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/orders': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'trade/order': 1,
-                        'trade/orders': 1,
-                        'capital/withdraw': 1,
-                        'capital/transfer': 1,
-                        'trade/account/leverage': 1,
+                        'trade/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'capital/withdraw': { 'cost': 1 } as Endpoint<Dict>,
+                        'capital/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/account/leverage': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -622,7 +623,7 @@ export default class hibachi extends Exchange {
         // }
         //
         const trades = this.safeList (response, 'trades', []);
-        let tradesList: any[] = [];
+        let tradesList: Dict[] = [];
         if (trades !== undefined) {
             tradesList = trades;
         }
@@ -1458,7 +1459,7 @@ export default class hibachi extends Exchange {
         // }
         //
         const trades = this.safeList (response, 'trades');
-        let tradesList: any[] = [];
+        let tradesList: Dict[] = [];
         if (trades !== undefined) {
             tradesList = trades;
         }
@@ -1558,7 +1559,7 @@ export default class hibachi extends Exchange {
      * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

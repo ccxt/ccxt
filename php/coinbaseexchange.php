@@ -157,98 +157,98 @@ class coinbaseexchange extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'currencies',
-                        'products',
-                        'products/{id}',
-                        'products/{id}/book',
-                        'products/{id}/candles',
-                        'products/{id}/stats',
-                        'products/{id}/ticker',
-                        'products/{id}/trades',
-                        'time',
-                        'products/spark-lines', // experimental,
-                        'products/volume-summary',
+                        'currencies' => array( 'cost' => 1 ),
+                        'products' => array( 'cost' => 1 ),
+                        'products/{id}' => array( 'cost' => 1 ),
+                        'products/{id}/book' => array( 'cost' => 1 ),
+                        'products/{id}/candles' => array( 'cost' => 1 ),
+                        'products/{id}/stats' => array( 'cost' => 1 ),
+                        'products/{id}/ticker' => array( 'cost' => 1 ),
+                        'products/{id}/trades' => array( 'cost' => 1 ),
+                        'time' => array( 'cost' => 1 ),
+                        'products/spark-lines' => array( 'cost' => 1 ),
+                        'products/volume-summary' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'address-book',
-                        'accounts',
-                        'accounts/{id}',
-                        'accounts/{id}/holds',
-                        'accounts/{id}/ledger',
-                        'accounts/{id}/transfers',
-                        'coinbase-accounts',
-                        'fills',
-                        'funding',
-                        'fees',
-                        'margin/profile_information',
-                        'margin/buying_power',
-                        'margin/withdrawal_power',
-                        'margin/withdrawal_power_all',
-                        'margin/exit_plan',
-                        'margin/liquidation_history',
-                        'margin/position_refresh_amounts',
-                        'margin/status',
-                        'oracle',
-                        'orders',
-                        'orders/{id}',
-                        'orders/client:{client_oid}',
-                        'otc/orders',
-                        'payment-methods',
-                        'position',
-                        'profiles',
-                        'profiles/{id}',
-                        'reports/{report_id}',
-                        'transfers',
-                        'transfers/{transfer_id}',
-                        'users/self/exchange-limits',
-                        'users/self/hold-balances',
-                        'users/self/trailing-volume',
-                        'withdrawals/fee-estimate',
-                        'conversions/{conversion_id}',
-                        'conversions',
-                        'conversions/fees',
-                        'loans/lending-overview',
-                        'loans/lending-overview-xm',
-                        'loans/loan-preview',
-                        'loans/loan-preview-xm',
-                        'loans/repayment-preview',
-                        'loans/repayment-preview-xm',
-                        'loans/interest/{loan_id}',
-                        'loans/interest/history/{loan_id}',
-                        'loans/interest',
-                        'loans/assets',
-                        'loans',
+                        'address-book' => array( 'cost' => 1 ),
+                        'accounts' => array( 'cost' => 1 ),
+                        'accounts/{id}' => array( 'cost' => 1 ),
+                        'accounts/{id}/holds' => array( 'cost' => 1 ),
+                        'accounts/{id}/ledger' => array( 'cost' => 1 ),
+                        'accounts/{id}/transfers' => array( 'cost' => 1 ),
+                        'coinbase-accounts' => array( 'cost' => 1 ),
+                        'fills' => array( 'cost' => 1 ),
+                        'funding' => array( 'cost' => 1 ),
+                        'fees' => array( 'cost' => 1 ),
+                        'margin/profile_information' => array( 'cost' => 1 ),
+                        'margin/buying_power' => array( 'cost' => 1 ),
+                        'margin/withdrawal_power' => array( 'cost' => 1 ),
+                        'margin/withdrawal_power_all' => array( 'cost' => 1 ),
+                        'margin/exit_plan' => array( 'cost' => 1 ),
+                        'margin/liquidation_history' => array( 'cost' => 1 ),
+                        'margin/position_refresh_amounts' => array( 'cost' => 1 ),
+                        'margin/status' => array( 'cost' => 1 ),
+                        'oracle' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/{id}' => array( 'cost' => 1 ),
+                        'orders/client:{client_oid}' => array( 'cost' => 1 ),
+                        'otc/orders' => array( 'cost' => 1 ),
+                        'payment-methods' => array( 'cost' => 1 ),
+                        'position' => array( 'cost' => 1 ),
+                        'profiles' => array( 'cost' => 1 ),
+                        'profiles/{id}' => array( 'cost' => 1 ),
+                        'reports/{report_id}' => array( 'cost' => 1 ),
+                        'transfers' => array( 'cost' => 1 ),
+                        'transfers/{transfer_id}' => array( 'cost' => 1 ),
+                        'users/self/exchange-limits' => array( 'cost' => 1 ),
+                        'users/self/hold-balances' => array( 'cost' => 1 ),
+                        'users/self/trailing-volume' => array( 'cost' => 1 ),
+                        'withdrawals/fee-estimate' => array( 'cost' => 1 ),
+                        'conversions/{conversion_id}' => array( 'cost' => 1 ),
+                        'conversions' => array( 'cost' => 1 ),
+                        'conversions/fees' => array( 'cost' => 1 ),
+                        'loans/lending-overview' => array( 'cost' => 1 ),
+                        'loans/lending-overview-xm' => array( 'cost' => 1 ),
+                        'loans/loan-preview' => array( 'cost' => 1 ),
+                        'loans/loan-preview-xm' => array( 'cost' => 1 ),
+                        'loans/repayment-preview' => array( 'cost' => 1 ),
+                        'loans/repayment-preview-xm' => array( 'cost' => 1 ),
+                        'loans/interest/{loan_id}' => array( 'cost' => 1 ),
+                        'loans/interest/history/{loan_id}' => array( 'cost' => 1 ),
+                        'loans/interest' => array( 'cost' => 1 ),
+                        'loans/assets' => array( 'cost' => 1 ),
+                        'loans' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'conversions',
-                        'deposits/coinbase-account',
-                        'deposits/payment-method',
-                        'coinbase-accounts/{id}/addresses',
-                        'funding/repay',
-                        'orders',
-                        'position/close',
-                        'profiles',
-                        'profiles/margin-transfer',
-                        'profiles/transfer',
-                        'reports',
-                        'withdrawals/coinbase',
-                        'withdrawals/coinbase-account',
-                        'withdrawals/crypto',
-                        'withdrawals/payment-method',
-                        'loans/open',
-                        'loans/repay-interest',
-                        'loans/repay-principal',
+                        'conversions' => array( 'cost' => 1 ),
+                        'deposits/coinbase-account' => array( 'cost' => 1 ),
+                        'deposits/payment-method' => array( 'cost' => 1 ),
+                        'coinbase-accounts/{id}/addresses' => array( 'cost' => 1 ),
+                        'funding/repay' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'position/close' => array( 'cost' => 1 ),
+                        'profiles' => array( 'cost' => 1 ),
+                        'profiles/margin-transfer' => array( 'cost' => 1 ),
+                        'profiles/transfer' => array( 'cost' => 1 ),
+                        'reports' => array( 'cost' => 1 ),
+                        'withdrawals/coinbase' => array( 'cost' => 1 ),
+                        'withdrawals/coinbase-account' => array( 'cost' => 1 ),
+                        'withdrawals/crypto' => array( 'cost' => 1 ),
+                        'withdrawals/payment-method' => array( 'cost' => 1 ),
+                        'loans/open' => array( 'cost' => 1 ),
+                        'loans/repay-interest' => array( 'cost' => 1 ),
+                        'loans/repay-principal' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'orders',
-                        'orders/client:{client_oid}',
-                        'orders/{id}',
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/client:{client_oid}' => array( 'cost' => 1 ),
+                        'orders/{id}' => array( 'cost' => 1 ),
                     ),
                     'put' => array(
-                        'profiles/{id}/deactivate',
-                        'profiles/{id}',
+                        'profiles/{id}/deactivate' => array( 'cost' => 1 ),
+                        'profiles/{id}' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -373,7 +373,7 @@ class coinbaseexchange extends Exchange {
                     // TRON unsupported
                     'SOL' => 'solana',
                     // BSC unsupported
-                    'ARBONE' => 'arbitrum',
+                    'ARBITRUM' => 'arbitrum',
                     'AVAXC' => 'avacchain',
                     'MATIC' => 'polygon',
                     'BASE' => 'base',
@@ -632,8 +632,9 @@ class coinbaseexchange extends Exchange {
         //     )
         //
         $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $market = $response[$i];
+        $rawMarkets = $this->to_array($response);
+        for ($i = 0; $i < count($rawMarkets); $i++) {
+            $market = $rawMarkets[$i];
             $id = $this->safe_string($market, 'id');
             list($baseId, $quoteId) = explode('-', $id);
             // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
@@ -697,7 +698,7 @@ class coinbaseexchange extends Exchange {
 
     public function fetch_accounts($params = array()): array {
         /**
-         * fetch all the accounts associated with a profile
+         * fetch all the $accounts associated with a profile
          *
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
          *
@@ -728,7 +729,8 @@ class coinbaseexchange extends Exchange {
         //         ),
         //     )
         //
-        return $this->parse_accounts($response, $params);
+        $accounts = $this->to_array($response);
+        return $this->parse_accounts($accounts, $params);
     }
 
     public function parse_account(mixed $account) {
@@ -1277,7 +1279,7 @@ class coinbaseexchange extends Exchange {
         //         [1591514040,0.02505,0.02507,0.02505,0.02507,0.19918178]
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
     public function fetch_time($params = array()): ?int {
@@ -1672,7 +1674,7 @@ class coinbaseexchange extends Exchange {
         return array( $this->safe_order(array( 'info' => $response )) );
     }
 
-    public function fetch_payment_methods($params = array()) {
+    public function fetch_payment_methods($params = array()): array {
         return $this->privateGetPaymentMethods($params);
     }
 
@@ -1811,7 +1813,7 @@ class coinbaseexchange extends Exchange {
          *
          * @param {string} $code unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-         * @param {int} [$limit] max number of ledger entries to return, default is null
+         * @param {int} [$limit] max number of ledger $entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch trades for
          * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
@@ -1851,10 +1853,11 @@ class coinbaseexchange extends Exchange {
             $request['end_date'] = $this->iso8601($until);
         }
         $response = $this->privateGetAccountsIdLedger($this->extend($request, $params));
-        for ($i = 0; $i < count($response); $i++) {
-            $response[$i]['currency'] = $code;
+        $entries = $this->to_array($response);
+        for ($i = 0; $i < count($entries); $i++) {
+            $entries[$i]['currency'] = $code;
         }
-        return $this->parse_ledger($response, $currency, $since, $limit);
+        return $this->parse_ledger($entries, $currency, $since, $limit);
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1896,7 +1899,7 @@ class coinbaseexchange extends Exchange {
             $request['limit'] = $limit;
         }
         if ($id === null) {
-            $response = $this->privateGetTransfers($this->extend($request, $params));
+            $transfers = $this->privateGetTransfers($this->extend($request, $params));
             //
             //    array(
             //        {
@@ -1925,6 +1928,7 @@ class coinbaseexchange extends Exchange {
             //        }
             //    )
             //
+            $response = $this->to_array($transfers);
             for ($i = 0; $i < count($response); $i++) {
                 $account_id = $this->safe_string($response[$i], 'account_id');
                 $account = $this->safe_value($this->accountsById, $account_id);
@@ -1932,7 +1936,7 @@ class coinbaseexchange extends Exchange {
                 $response[$i]['currency'] = $codeInner;
             }
         } else {
-            $response = $this->privateGetAccountsIdTransfers($this->extend($request, $params));
+            $accountTransfers = $this->privateGetAccountsIdTransfers($this->extend($request, $params));
             //
             //    array(
             //        {
@@ -1959,6 +1963,7 @@ class coinbaseexchange extends Exchange {
             //        }
             //    )
             //
+            $response = $this->to_array($accountTransfers);
             for ($i = 0; $i < count($response); $i++) {
                 $response[$i]['currency'] = $code;
             }

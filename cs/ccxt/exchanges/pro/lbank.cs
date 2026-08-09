@@ -62,6 +62,16 @@ public partial class lbank : ccxt.lbank
         return newValue;
     }
 
+    public virtual void checkContractMarket(object market, object methodName)
+    {
+        // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
+        // see https://github.com/ccxt/ccxt/issues/26864
+        if (isTrue(isTrue((!isEqual(market, null))) && isTrue(getValue(market, "contract"))))
+        {
+            throw new NotSupported ((string)add(add(add(add(add(this.id, " "), methodName), "() does not support "), getValue(market, "type")), " markets yet")) ;
+        }
+    }
+
     /**
      * @method
      * @name lbank#fetchOHLCVWs
@@ -83,6 +93,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "fetchOHLCVWs");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new Dictionary<string, object>() {});
         object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
@@ -128,6 +139,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "watchOHLCV");
         object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new Dictionary<string, object>() {});
         object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
         object timeframeId = this.safeString(timeframes, timeframe, timeframe);
@@ -261,6 +273,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "fetchTickerWs");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = add("fetchTicker:", getValue(market, "symbol"));
         object message = new Dictionary<string, object>() {
@@ -290,6 +303,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "watchTicker");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = add("ticker:", getValue(market, "symbol"));
         object message = new Dictionary<string, object>() {
@@ -405,6 +419,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "fetchTradesWs");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = add("fetchTrades:", getValue(market, "symbol"));
         if (isTrue(isEqual(limit, null)))
@@ -441,6 +456,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "watchTrades");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = add("trades:", getValue(market, "symbol"));
         object message = new Dictionary<string, object>() {
@@ -818,6 +834,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "fetchOrderBookWs");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = add("fetchOrderbook:", getValue(market, "symbol"));
         if (isTrue(isEqual(limit, null)))
@@ -853,6 +870,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "watchOrderBook");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = add("orderbook:", getValue(market, "symbol"));
         parameters = this.omit(parameters, "aggregation");

@@ -1102,7 +1102,7 @@ func (this *Blofin) SetMarginMode(marginMode string, options ...SetMarginModeOpt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Blofin) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Blofin) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 
 	opts := FetchPositionModeOptionsStruct{}
 
@@ -1121,9 +1121,9 @@ func (this *Blofin) FetchPositionMode(options ...FetchPositionModeOptions) (map[
 	}
 	res := <-this.Core.FetchPositionMode(symbol, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return PositionModeInfo{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewPositionModeInfo(res), nil
 }
 
 /**
@@ -1465,7 +1465,7 @@ func (this *Blofin) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Blofin) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Blofin) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Blofin) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Blofin) FetchTime(params ...any) (int64, error) {
@@ -1579,7 +1579,7 @@ func (this *Blofin) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Blofin) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Blofin) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Blofin) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Blofin) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1624,7 +1624,7 @@ func (this *Blofin) FetchTradesWs(symbol string, options ...FetchTradesWsOptions
 func (this *Blofin) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Blofin) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Blofin) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Blofin) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

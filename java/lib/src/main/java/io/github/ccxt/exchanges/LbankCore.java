@@ -54,10 +54,11 @@ public class LbankCore extends LbankApi
                 put( "fetchDepositAddress", true );
                 put( "fetchDepositAddresses", false );
                 put( "fetchDepositAddressesByNetwork", false );
+                put( "fetchDeposits", true );
                 put( "fetchDepositWithdrawFee", "emulated" );
                 put( "fetchDepositWithdrawFees", true );
                 put( "fetchFundingHistory", false );
-                put( "fetchFundingRate", false );
+                put( "fetchFundingRate", true );
                 put( "fetchFundingRateHistory", false );
                 put( "fetchFundingRates", true );
                 put( "fetchIndexOHLCV", false );
@@ -84,8 +85,10 @@ public class LbankCore extends LbankApi
                 put( "fetchTickers", true );
                 put( "fetchTime", true );
                 put( "fetchTrades", true );
+                put( "fetchTradingFee", true );
                 put( "fetchTradingFees", true );
                 put( "fetchTransactionFees", true );
+                put( "fetchWithdrawals", true );
                 put( "reduceMargin", false );
                 put( "setLeverage", false );
                 put( "setMarginMode", false );
@@ -122,76 +125,192 @@ public class LbankCore extends LbankApi
                 put( "spot", new java.util.HashMap<String, Object>() {{
                     put( "public", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "currencyPairs", 2.5 );
-                            put( "accuracy", 2.5 );
-                            put( "usdToCny", 2.5 );
-                            put( "assetConfigs", 2.5 );
-                            put( "withdrawConfigs", Helpers.multiply(2.5, 1.5) );
-                            put( "timestamp", 2.5 );
-                            put( "ticker/24hr", 2.5 );
-                            put( "ticker", 2.5 );
-                            put( "depth", 2.5 );
-                            put( "incrDepth", 2.5 );
-                            put( "trades", 2.5 );
-                            put( "kline", 2.5 );
-                            put( "supplement/system_ping", 2.5 );
-                            put( "supplement/incrDepth", 2.5 );
-                            put( "supplement/trades", 2.5 );
-                            put( "supplement/ticker/price", 2.5 );
-                            put( "supplement/ticker/bookTicker", 2.5 );
+                            put( "currencyPairs", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "accuracy", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "usdToCny", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "assetConfigs", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "withdrawConfigs", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.multiply(2.5, 1.5) );
+                            }} );
+                            put( "timestamp", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "ticker/24hr", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "ticker", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "depth", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "incrDepth", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "kline", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "supplement/system_ping", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "supplement/incrDepth", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "supplement/trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "supplement/ticker/price", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "supplement/ticker/bookTicker", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "supplement/system_status", 2.5 );
+                            put( "supplement/system_status", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
                         }} );
                     }} );
                     put( "private", new java.util.HashMap<String, Object>() {{
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "user_info", 2.5 );
-                            put( "subscribe/get_key", 2.5 );
-                            put( "subscribe/refresh_key", 2.5 );
-                            put( "subscribe/destroy_key", 2.5 );
-                            put( "get_deposit_address", 2.5 );
-                            put( "deposit_history", 2.5 );
-                            put( "create_order", 1 );
-                            put( "batch_create_order", 1 );
-                            put( "cancel_order", 1 );
-                            put( "cancel_clientOrders", 1 );
-                            put( "orders_info", 2.5 );
-                            put( "orders_info_history", 2.5 );
-                            put( "order_transaction_detail", 2.5 );
-                            put( "transaction_history", 2.5 );
-                            put( "orders_info_no_deal", 2.5 );
-                            put( "withdraw", 2.5 );
-                            put( "withdrawCancel", 2.5 );
-                            put( "withdraws", 2.5 );
-                            put( "supplement/user_info", 2.5 );
-                            put( "supplement/withdraw", 2.5 );
-                            put( "supplement/deposit_history", 2.5 );
-                            put( "supplement/withdraws", 2.5 );
-                            put( "supplement/get_deposit_address", 2.5 );
-                            put( "supplement/asset_detail", 2.5 );
-                            put( "supplement/customer_trade_fee", 2.5 );
-                            put( "supplement/api_Restrictions", 2.5 );
-                            put( "supplement/system_ping", 2.5 );
-                            put( "supplement/create_order_test", 1 );
-                            put( "supplement/create_order", 1 );
-                            put( "supplement/cancel_order", 1 );
-                            put( "supplement/cancel_order_by_symbol", 1 );
-                            put( "supplement/orders_info", 2.5 );
-                            put( "supplement/orders_info_no_deal", 2.5 );
-                            put( "supplement/orders_info_history", 2.5 );
-                            put( "supplement/user_info_account", 2.5 );
-                            put( "supplement/transaction_history", 2.5 );
+                            put( "user_info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "subscribe/get_key", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "subscribe/refresh_key", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "subscribe/destroy_key", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "get_deposit_address", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "deposit_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "create_order", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "batch_create_order", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "cancel_order", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "cancel_clientOrders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders_info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "orders_info_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "order_transaction_detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "transaction_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "orders_info_no_deal", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "withdraw", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "withdrawCancel", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "withdraws", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "supplement/user_info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "supplement/withdraw", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "supplement/deposit_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "supplement/withdraws", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "supplement/get_deposit_address", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "supplement/asset_detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "supplement/customer_trade_fee", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "supplement/api_Restrictions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "supplement/system_ping", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "supplement/create_order_test", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "supplement/create_order", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "supplement/cancel_order", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "supplement/cancel_order_by_symbol", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "supplement/orders_info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "supplement/orders_info_no_deal", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "supplement/orders_info_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "supplement/user_info_account", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "supplement/transaction_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
                         }} );
                     }} );
                 }} );
                 put( "contract", new java.util.HashMap<String, Object>() {{
                     put( "public", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "cfd/openApi/v1/pub/getTime", 2.5 );
-                            put( "cfd/openApi/v1/pub/instrument", 2.5 );
-                            put( "cfd/openApi/v1/pub/marketData", 2.5 );
-                            put( "cfd/openApi/v1/pub/marketOrder", 2.5 );
+                            put( "cfd/openApi/v1/pub/getTime", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "cfd/openApi/v1/pub/instrument", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "cfd/openApi/v1/pub/marketData", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "cfd/openApi/v1/pub/marketOrder", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
                         }} );
                     }} );
                 }} );
@@ -1496,7 +1615,7 @@ public class LbankCore extends LbankApi
             }
             return this.safeBalance(result);
         }
-        return null;
+        return this.safeBalance(result);
     }
 
     public Object parseFundingRate(Object ticker, Object... optionalArgs)

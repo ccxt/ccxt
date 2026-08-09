@@ -64,6 +64,8 @@ public class IndodaxCore extends IndodaxApi
                 put( "fetchDepositAddressesByNetwork", false );
                 put( "fetchDeposits", false );
                 put( "fetchDepositsWithdrawals", true );
+                put( "fetchDepositWithdrawFee", true );
+                put( "fetchDepositWithdrawFees", false );
                 put( "fetchFundingHistory", false );
                 put( "fetchFundingInterval", false );
                 put( "fetchFundingIntervals", false );
@@ -91,6 +93,7 @@ public class IndodaxCore extends IndodaxApi
                 put( "fetchMarkPrices", false );
                 put( "fetchMyLiquidations", false );
                 put( "fetchMySettlementHistory", false );
+                put( "fetchOHLCV", true );
                 put( "fetchOpenInterest", false );
                 put( "fetchOpenInterestHistory", false );
                 put( "fetchOpenInterests", false );
@@ -112,6 +115,7 @@ public class IndodaxCore extends IndodaxApi
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchSettlementHistory", false );
                 put( "fetchTicker", true );
+                put( "fetchTickers", true );
                 put( "fetchTime", true );
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", false );
@@ -149,32 +153,76 @@ public class IndodaxCore extends IndodaxApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "api/server_time", 5 );
-                        put( "api/pairs", 5 );
-                        put( "api/price_increments", 5 );
-                        put( "api/summaries", 5 );
-                        put( "api/ticker/{pair}", 5 );
-                        put( "api/ticker_all", 5 );
-                        put( "api/trades/{pair}", 5 );
-                        put( "api/depth/{pair}", 5 );
-                        put( "tradingview/history_v2", 5 );
+                        put( "api/server_time", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/pairs", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/price_increments", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/summaries", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/ticker/{pair}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/ticker_all", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/trades/{pair}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/depth/{pair}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "tradingview/history_v2", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "getInfo", 4 );
-                        put( "transHistory", 4 );
-                        put( "trade", 1 );
-                        put( "tradeHistory", 4 );
-                        put( "openOrders", 4 );
-                        put( "orderHistory", 4 );
-                        put( "getOrder", 4 );
-                        put( "cancelOrder", 4 );
-                        put( "withdrawFee", 4 );
-                        put( "withdrawCoin", 4 );
-                        put( "listDownline", 4 );
-                        put( "checkDownline", 4 );
-                        put( "createVoucher", 4 );
+                        put( "getInfo", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "transHistory", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "trade", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "tradeHistory", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "openOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "orderHistory", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "getOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "cancelOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "withdrawFee", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "withdrawCoin", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "listDownline", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "checkDownline", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "createVoucher", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -368,9 +416,10 @@ public class IndodaxCore extends IndodaxApi
             //     ]
             //
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+            Object rawMarkets = this.toArray(response);
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawMarkets)); i++)
             {
-                Object market = Helpers.GetValue(response, i);
+                Object market = Helpers.GetValue(rawMarkets, i);
                 Object id = this.safeString(market, "id");
                 Object baseId = this.safeString(market, "traded_currency");
                 Object quoteId = this.safeString(market, "base_currency");
@@ -820,7 +869,7 @@ public class IndodaxCore extends IndodaxApi
             //         }
             //     ]
             //
-            return this.parseOHLCVs(response, market, timeframe, since, limit);
+            return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
         });
 
     }
@@ -978,7 +1027,7 @@ public class IndodaxCore extends IndodaxApi
                 put( "order_id", id );
             }};
             Object response = (this.privatePostGetOrder(this.extend(request, parameters))).join();
-            Object orders = Helpers.GetValue(response, "return");
+            Object orders = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             Object order = this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }}, Helpers.GetValue(orders, "order")), market);
@@ -1020,7 +1069,8 @@ public class IndodaxCore extends IndodaxApi
                 Helpers.addElementToObject(request, "pair", Helpers.GetValue(market, "id"));
             }
             Object response = (this.privatePostOpenOrders(this.extend(request, parameters))).join();
-            Object rawOrders = Helpers.GetValue(Helpers.GetValue(response, "return"), "orders");
+            Object openOrdersResult = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            Object rawOrders = Helpers.GetValue(openOrdersResult, "orders");
             // { success: 1, return: { orders: null }} if no orders
             if (!Helpers.isTrue(rawOrders))
             {
@@ -1080,7 +1130,8 @@ public class IndodaxCore extends IndodaxApi
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.privatePostOrderHistory(this.extend(request, parameters))).join();
-            Object orders = this.parseOrders(Helpers.GetValue(Helpers.GetValue(response, "return"), "orders"), market);
+            Object historyResult = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            Object orders = this.parseOrders(Helpers.GetValue(historyResult, "orders"), market);
             orders = this.filterBy(orders, "status", "closed");
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
         });
@@ -1285,6 +1336,48 @@ public class IndodaxCore extends IndodaxApi
                 put( "rate", IndodaxCore.this.safeNumber(data, "withdraw_fee") );
                 put( "currency", IndodaxCore.this.safeCurrencyCode(currencyId, currency) );
             }};
+        });
+
+    }
+
+    /**
+     * @method
+     * @name indodax#fetchDepositWithdrawFee
+     * @description fetch the withdrawal fee for a currency; indodax charges no crypto deposit fees, see https://github.com/ccxt/ccxt/issues/25800
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFee(Object code, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            Object currency = this.currency(code);
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "currency", Helpers.GetValue(currency, "id") );
+            }};
+            Object response = (this.privatePostWithdrawFee(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "success": 1,
+            //         "return": {
+            //             "server_time": 1607923272,
+            //             "withdraw_fee": 0.005,
+            //             "currency": "eth"
+            //         }
+            //     }
+            //
+            Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            Object result = this.depositWithdrawFee(response);
+            Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", this.safeNumber(data, "withdraw_fee"));
+            Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "percentage", false);
+            Helpers.addElementToObject(Helpers.GetValue(result, "deposit"), "fee", 0);
+            Helpers.addElementToObject(Helpers.GetValue(result, "deposit"), "percentage", false);
+            return this.assignDefaultDepositWithdrawFees(result, currency);
         });
 
     }

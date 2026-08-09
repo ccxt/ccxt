@@ -181,7 +181,7 @@ func (this *P2bCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
 		}
 		var watchTickerOptions any = this.SafeDict(this.Options, "watchTicker")
 		var name any = this.SafeString(watchTickerOptions, "name", "state") // or price
-		nameparamsVariable := this.HandleOptionAndParams(params, "method", "name", name)
+		nameparamsVariable := this.HandleOptionAndParams(params, "watchTicker", "name", name)
 		name = ccxt.GetValue(nameparamsVariable, 0)
 		params = ccxt.GetValue(nameparamsVariable, 1)
 		var market any = this.Market(symbol)
@@ -228,7 +228,7 @@ func (this *P2bCore) WatchTickers(optionalArgs ...any) <-chan any {
 		symbols = this.MarketSymbols(symbols, nil, false)
 		var watchTickerOptions any = this.SafeDict(this.Options, "watchTicker")
 		var name any = this.SafeString(watchTickerOptions, "name", "state") // or price
-		nameparamsVariable := this.HandleOptionAndParams(params, "method", "name", name)
+		nameparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "name", name)
 		name = ccxt.GetValue(nameparamsVariable, 0)
 		params = ccxt.GetValue(nameparamsVariable, 1)
 		var messageHashes any = []any{}

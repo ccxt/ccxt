@@ -159,12 +159,76 @@ func (this *OnetradingCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"currencies", "candlesticks/{instrument_code}", "fees", "instruments", "order-book/{instrument_code}", "market-ticker", "market-ticker/{instrument_code}", "time"},
+				"get": map[string]any{
+					"currencies": map[string]any{
+						"cost": 1,
+					},
+					"candlesticks/{instrument_code}": map[string]any{
+						"cost": 1,
+					},
+					"fees": map[string]any{
+						"cost": 1,
+					},
+					"instruments": map[string]any{
+						"cost": 1,
+					},
+					"order-book/{instrument_code}": map[string]any{
+						"cost": 1,
+					},
+					"market-ticker": map[string]any{
+						"cost": 1,
+					},
+					"market-ticker/{instrument_code}": map[string]any{
+						"cost": 1,
+					},
+					"time": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"get":    []any{"account/balances", "account/fees", "account/orders", "account/orders/{order_id}", "account/orders/client/{client_id}", "account/orders/{order_id}/trades", "account/trades", "account/trade/{trade_id}"},
-				"post":   []any{"account/orders"},
-				"delete": []any{"account/orders", "account/orders/{order_id}", "account/orders/client/{client_id}"},
+				"get": map[string]any{
+					"account/balances": map[string]any{
+						"cost": 1,
+					},
+					"account/fees": map[string]any{
+						"cost": 1,
+					},
+					"account/orders": map[string]any{
+						"cost": 1,
+					},
+					"account/orders/{order_id}": map[string]any{
+						"cost": 1,
+					},
+					"account/orders/client/{client_id}": map[string]any{
+						"cost": 1,
+					},
+					"account/orders/{order_id}/trades": map[string]any{
+						"cost": 1,
+					},
+					"account/trades": map[string]any{
+						"cost": 1,
+					},
+					"account/trade/{trade_id}": map[string]any{
+						"cost": 1,
+					},
+				},
+				"post": map[string]any{
+					"account/orders": map[string]any{
+						"cost": 1,
+					},
+				},
+				"delete": map[string]any{
+					"account/orders": map[string]any{
+						"cost": 1,
+					},
+					"account/orders/{order_id}": map[string]any{
+						"cost": 1,
+					},
+					"account/orders/client/{client_id}": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"fees": map[string]any{
@@ -979,8 +1043,9 @@ func (this *OnetradingCore) FetchTickers(optionalArgs ...any) <-chan any {
 		//     ]
 		//
 		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var ticker any = this.ParseTicker(GetValue(response, i))
+		var rawTickers any = this.ToArray(response)
+		for i := 0; IsLessThan(i, GetArrayLength(rawTickers)); i++ {
+			var ticker any = this.ParseTicker(GetValue(rawTickers, i))
 			var symbol any = GetValue(ticker, "symbol")
 			if IsTrue(!IsEqual(symbol, nil)) {
 				AddElementToObject(result, symbol, ticker)
@@ -1015,8 +1080,8 @@ func (this *OnetradingCore) FetchOrderBook(symbol any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes93412 := (<-this.LoadMarkets())
-			PanicOnError(retRes93412)
+			retRes93512 := (<-this.LoadMarkets())
+			PanicOnError(retRes93512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1162,8 +1227,8 @@ func (this *OnetradingCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes107212 := (<-this.LoadMarkets())
-			PanicOnError(retRes107212)
+			retRes107312 := (<-this.LoadMarkets())
+			PanicOnError(retRes107312)
 		}
 		var market any = this.Market(symbol)
 		var periodUnit any = this.SafeString(this.Timeframes, timeframe)
@@ -1328,8 +1393,8 @@ func (this *OnetradingCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes122112 := (<-this.LoadMarkets())
-			PanicOnError(retRes122112)
+			retRes122212 := (<-this.LoadMarkets())
+			PanicOnError(retRes122212)
 		}
 
 		response := (<-this.PrivateGetAccountBalances(params))
@@ -1521,8 +1586,8 @@ func (this *OnetradingCore) CreateOrder(symbol any, typeVar any, side any, amoun
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes140012 := (<-this.LoadMarkets())
-			PanicOnError(retRes140012)
+			retRes140112 := (<-this.LoadMarkets())
+			PanicOnError(retRes140112)
 		}
 		var market any = this.Market(symbol)
 		var uppercaseType any = ToUpper(typeVar)
@@ -1609,8 +1674,8 @@ func (this *OnetradingCore) CancelOrder(id any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes147712 := (<-this.LoadMarkets())
-			PanicOnError(retRes147712)
+			retRes147812 := (<-this.LoadMarkets())
+			PanicOnError(retRes147812)
 		}
 		var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_id")
 		params = this.Omit(params, []any{"clientOrderId", "client_id"})
@@ -1663,8 +1728,8 @@ func (this *OnetradingCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes151212 := (<-this.LoadMarkets())
-			PanicOnError(retRes151212)
+			retRes151312 := (<-this.LoadMarkets())
+			PanicOnError(retRes151312)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1710,8 +1775,8 @@ func (this *OnetradingCore) CancelOrders(ids any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes154012 := (<-this.LoadMarkets())
-			PanicOnError(retRes154012)
+			retRes154112 := (<-this.LoadMarkets())
+			PanicOnError(retRes154112)
 		}
 		var request any = map[string]any{
 			"ids": Join(ids, ","),
@@ -1756,8 +1821,8 @@ func (this *OnetradingCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes156712 := (<-this.LoadMarkets())
-			PanicOnError(retRes156712)
+			retRes156812 := (<-this.LoadMarkets())
+			PanicOnError(retRes156812)
 		}
 		var request any = map[string]any{
 			"order_id": id,
@@ -1840,8 +1905,8 @@ func (this *OnetradingCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes163012 := (<-this.LoadMarkets())
-			PanicOnError(retRes163012)
+			retRes163112 := (<-this.LoadMarkets())
+			PanicOnError(retRes163112)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -1978,9 +2043,9 @@ func (this *OnetradingCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 			"with_cancelled_and_rejected": true,
 		}
 
-		retRes175615 := (<-this.FetchOpenOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes175615)
-		ch <- retRes175615
+		retRes175715 := (<-this.FetchOpenOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes175715)
+		ch <- retRes175715
 		return nil
 
 	}()
@@ -2014,8 +2079,8 @@ func (this *OnetradingCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes177312 := (<-this.LoadMarkets())
-			PanicOnError(retRes177312)
+			retRes177412 := (<-this.LoadMarkets())
+			PanicOnError(retRes177412)
 		}
 		var request any = map[string]any{
 			"order_id": id,
@@ -2095,8 +2160,8 @@ func (this *OnetradingCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes183512 := (<-this.LoadMarkets())
-			PanicOnError(retRes183512)
+			retRes183612 := (<-this.LoadMarkets())
+			PanicOnError(retRes183612)
 		}
 		var request any = map[string]any{}
 		var market any = nil

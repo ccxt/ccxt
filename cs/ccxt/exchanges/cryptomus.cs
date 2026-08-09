@@ -161,30 +161,62 @@ public partial class cryptomus : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "v2/user-api/exchange/markets", 1 },
-                        { "v2/user-api/exchange/market/price", 1 },
-                        { "v1/exchange/market/assets", 1 },
-                        { "v1/exchange/market/order-book/{currencyPair}", 1 },
-                        { "v1/exchange/market/tickers", 1 },
-                        { "v1/exchange/market/trades/{currencyPair}", 1 },
+                        { "v2/user-api/exchange/markets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/user-api/exchange/market/price", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/exchange/market/assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/exchange/market/order-book/{currencyPair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/exchange/market/tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/exchange/market/trades/{currencyPair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "v2/user-api/exchange/orders", 1 },
-                        { "v2/user-api/exchange/orders/history", 1 },
-                        { "v2/user-api/exchange/account/balance", 1 },
-                        { "v2/user-api/exchange/account/tariffs", 1 },
-                        { "v2/user-api/payment/services", 1 },
-                        { "v2/user-api/payout/services", 1 },
-                        { "v2/user-api/transaction/list", 1 },
+                        { "v2/user-api/exchange/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/user-api/exchange/orders/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/user-api/exchange/account/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/user-api/exchange/account/tariffs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/user-api/payment/services", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/user-api/payout/services", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/user-api/transaction/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "v2/user-api/exchange/orders", 1 },
-                        { "v2/user-api/exchange/orders/market", 1 },
+                        { "v2/user-api/exchange/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/user-api/exchange/orders/market", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "v2/user-api/exchange/orders/{orderId}", 1 },
+                        { "v2/user-api/exchange/orders/{orderId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -202,7 +234,7 @@ public partial class cryptomus : Exchange
                     { "BEP20", "bsc" },
                     { "DASH", "dash" },
                     { "POLYGON", "polygon" },
-                    { "ARB", "arbitrum" },
+                    { "ARBITRUM", "arbitrum" },
                     { "SOL", "sol" },
                     { "TON", "ton" },
                     { "ERC20", "eth" },
@@ -219,7 +251,7 @@ public partial class cryptomus : Exchange
                     { "bsc", "BEP20" },
                     { "dash", "DASH" },
                     { "polygon", "POLYGON" },
-                    { "arbitrum", "ARB" },
+                    { "arbitrum", "ARBITRUM" },
                     { "sol", "SOL" },
                     { "ton", "TON" },
                     { "eth", "ERC20" },

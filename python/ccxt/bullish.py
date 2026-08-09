@@ -44,7 +44,7 @@ class bullish(Exchange, ImplicitAPI):
                 'margin': False,
                 'swap': True,
                 'future': True,
-                'option': False,
+                'option': True,
                 'addMargin': False,
                 'borrowMargin': False,
                 'cancelAllOrders': True,
@@ -171,70 +171,70 @@ class bullish(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'v1/nonce': 1,
-                        'v1/time': 1,
-                        'v1/assets': 1,
-                        'v1/assets/{symbol}': 1,
-                        'v1/markets': 1,
-                        'v1/markets/{symbol}': 1,
-                        'v1/history/markets/{symbol}': 1,
-                        'v1/markets/{symbol}/orderbook/hybrid': 1,
-                        'v1/markets/{symbol}/trades': 1,
-                        'v1/markets/{symbol}/tick': 1,
-                        'v1/markets/{symbol}/candle': 1,
-                        'v1/history/markets/{symbol}/trades': 1,
-                        'v1/history/markets/{symbol}/funding-rate': 1,
-                        'v1/index-prices': 1,
-                        'v1/index-prices/{assetSymbol}': 1,
-                        'v1/expiry-prices/{symbol}': 1,
-                        'v1/option-ladder': 1,
-                        'v1/option-ladder/{symbol}': 1,
+                        'v1/nonce': {'cost': 1},
+                        'v1/time': {'cost': 1},
+                        'v1/assets': {'cost': 1},
+                        'v1/assets/{symbol}': {'cost': 1},
+                        'v1/markets': {'cost': 1},
+                        'v1/markets/{symbol}': {'cost': 1},
+                        'v1/history/markets/{symbol}': {'cost': 1},
+                        'v1/markets/{symbol}/orderbook/hybrid': {'cost': 1},
+                        'v1/markets/{symbol}/trades': {'cost': 1},
+                        'v1/markets/{symbol}/tick': {'cost': 1},
+                        'v1/markets/{symbol}/candle': {'cost': 1},
+                        'v1/history/markets/{symbol}/trades': {'cost': 1},
+                        'v1/history/markets/{symbol}/funding-rate': {'cost': 1},
+                        'v1/index-prices': {'cost': 1},
+                        'v1/index-prices/{assetSymbol}': {'cost': 1},
+                        'v1/expiry-prices/{symbol}': {'cost': 1},
+                        'v1/option-ladder': {'cost': 1},
+                        'v1/option-ladder/{symbol}': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
-                        'v2/orders': 1,
-                        'v2/history/orders': 1,
-                        'v2/orders/{orderId}': 1,
-                        'v2/amm-instructions': 1,
-                        'v2/amm-instructions/{instructionId}': 1,
-                        'v1/wallets/transactions': 1,
-                        'v1/wallets/limits/{symbol}': 1,
-                        'v1/wallets/deposit-instructions/crypto/{symbol}': 1,
-                        'v1/wallets/withdrawal-instructions/crypto/{symbol}': 1,
-                        'v1/wallets/deposit-instructions/fiat/{symbol}': 1,
-                        'v1/wallets/withdrawal-instructions/fiat/{symbol}': 1,
-                        'v1/wallets/self-hosted/verification-attempts': 1,
-                        'v1/trades': 5,
-                        'v1/history/trades': 5,
-                        'v1/trades/{tradeId}': 5,
-                        'v1/trades/client-order-id/{clientOrderId}': 1,
-                        'v1/accounts/asset': 1,
-                        'v1/accounts/asset/{symbol}': 1,
-                        'v1/users/logout': 1,
-                        'v1/users/hmac/login': 1,
-                        'v1/accounts/trading-accounts': 1,
-                        'v1/accounts/trading-accounts/{tradingAccountId}': 1,
-                        'v1/derivatives-positions': 1,
-                        'v1/history/derivatives-settlement': 1,
-                        'v1/history/transfer': 1,
-                        'v1/history/borrow-interest': 1,
-                        'v2/mmp-configuration': 1,
-                        'v2/otc-trades': 1,
-                        'v2/otc-trades/{otcTradeId}': 1,
-                        'v2/otc-trades/unconfirmed-trade': 1,
+                        'v2/orders': {'cost': 1},
+                        'v2/history/orders': {'cost': 1},
+                        'v2/orders/{orderId}': {'cost': 1},
+                        'v2/amm-instructions': {'cost': 1},
+                        'v2/amm-instructions/{instructionId}': {'cost': 1},
+                        'v1/wallets/transactions': {'cost': 1},
+                        'v1/wallets/limits/{symbol}': {'cost': 1},
+                        'v1/wallets/deposit-instructions/crypto/{symbol}': {'cost': 1},
+                        'v1/wallets/withdrawal-instructions/crypto/{symbol}': {'cost': 1},
+                        'v1/wallets/deposit-instructions/fiat/{symbol}': {'cost': 1},
+                        'v1/wallets/withdrawal-instructions/fiat/{symbol}': {'cost': 1},
+                        'v1/wallets/self-hosted/verification-attempts': {'cost': 1},
+                        'v1/trades': {'cost': 5},
+                        'v1/history/trades': {'cost': 5},
+                        'v1/trades/{tradeId}': {'cost': 5},
+                        'v1/trades/client-order-id/{clientOrderId}': {'cost': 1},
+                        'v1/accounts/asset': {'cost': 1},
+                        'v1/accounts/asset/{symbol}': {'cost': 1},
+                        'v1/users/logout': {'cost': 1},
+                        'v1/users/hmac/login': {'cost': 1},
+                        'v1/accounts/trading-accounts': {'cost': 1},
+                        'v1/accounts/trading-accounts/{tradingAccountId}': {'cost': 1},
+                        'v1/derivatives-positions': {'cost': 1},
+                        'v1/history/derivatives-settlement': {'cost': 1},
+                        'v1/history/transfer': {'cost': 1},
+                        'v1/history/borrow-interest': {'cost': 1},
+                        'v2/mmp-configuration': {'cost': 1},
+                        'v2/otc-trades': {'cost': 1},
+                        'v2/otc-trades/{otcTradeId}': {'cost': 1},
+                        'v2/otc-trades/unconfirmed-trade': {'cost': 1},
                     },
                     'post': {
-                        'v2/orders': 5,
-                        'v2/command': 5,
-                        'v2/amm-instructions': 1,
-                        'v1/wallets/withdrawal': 1,
-                        'v2/users/login': 1,
-                        'v1/simulate-portfolio-margin': 1,
-                        'v1/wallets/self-hosted/initiate': 1,
-                        'v2/mmp-configuration': 1,
-                        'v2/otc-trades': 1,
-                        'v2/otc-command': 1,
+                        'v2/orders': {'cost': 5},
+                        'v2/command': {'cost': 5},
+                        'v2/amm-instructions': {'cost': 1},
+                        'v1/wallets/withdrawal': {'cost': 1},
+                        'v2/users/login': {'cost': 1},
+                        'v1/simulate-portfolio-margin': {'cost': 1},
+                        'v1/wallets/self-hosted/initiate': {'cost': 1},
+                        'v2/mmp-configuration': {'cost': 1},
+                        'v2/otc-trades': {'cost': 1},
+                        'v2/otc-command': {'cost': 1},
                     },
                 },
             },
@@ -963,7 +963,7 @@ class bullish(Exchange, ImplicitAPI):
             self.load_markets()
         maxLimit = 100
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
         if paginate:
             params = self.handle_pagination_params('fetchTrades', since, params)
             return self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params, maxLimit)
@@ -1362,7 +1362,8 @@ class bullish(Exchange, ImplicitAPI):
         #         }, ...
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        ohlcvs = self.to_array(response)
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         return [
@@ -2159,11 +2160,12 @@ class bullish(Exchange, ImplicitAPI):
 
     def load_account(self, params={}):
         tradingAccountId = None
-        tradingAccountId, params = self.handle_option_and_params(params, 'fetchMyTrades', 'tradingAccountId')
+        tradingAccountId, params = self.handle_option_and_params(params, 'loadAccount', 'tradingAccountId')
         if tradingAccountId is None:
             response = self.privateGetV1AccountsTradingAccounts(params)
-            for i in range(0, len(response)):
-                account = response[i]
+            accounts = self.to_array(response)
+            for i in range(0, len(accounts)):
+                account = accounts[i]
                 name = self.safe_string(account, 'tradingAccountName')
                 if name == 'Primary Account':
                     tradingAccountId = self.safe_string(account, 'tradingAccountId')

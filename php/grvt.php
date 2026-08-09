@@ -98,64 +98,64 @@ class grvt extends Exchange {
                 // RL : https://help.grvt.io/en/articles/9636566-what-are-the-rate-limitations-on-grvt
                 'privateEdge' => array(
                     'post' => array(
-                        'auth/api_key/login' => 100,
-                        'auth/wallet/login' => 100,
+                        'auth/api_key/login' => array( 'cost' => 100 ),
+                        'auth/wallet/login' => array( 'cost' => 100 ),
                     ),
                 ),
                 'publicMarket' => array(
                     'post' => array(
-                        'full/v1/instrument' => 4,
-                        'full/v1/all_instruments' => 4,
-                        'full/v1/instruments' => 4,
-                        'full/v1/currency' => 12,
-                        'full/v1/margin_rules' => 12,
-                        'full/v1/mini' => 4,
-                        'full/v1/ticker' => 4,
-                        'full/v1/book' => 12,
-                        'full/v1/trade' => 12,
-                        'full/v1/trade_history' => 12,
-                        'full/v1/kline' => 12,
-                        'full/v1/funding' => 12,
+                        'full/v1/instrument' => array( 'cost' => 4 ),
+                        'full/v1/all_instruments' => array( 'cost' => 4 ),
+                        'full/v1/instruments' => array( 'cost' => 4 ),
+                        'full/v1/currency' => array( 'cost' => 12 ),
+                        'full/v1/margin_rules' => array( 'cost' => 12 ),
+                        'full/v1/mini' => array( 'cost' => 4 ),
+                        'full/v1/ticker' => array( 'cost' => 4 ),
+                        'full/v1/book' => array( 'cost' => 12 ),
+                        'full/v1/trade' => array( 'cost' => 12 ),
+                        'full/v1/trade_history' => array( 'cost' => 12 ),
+                        'full/v1/kline' => array( 'cost' => 12 ),
+                        'full/v1/funding' => array( 'cost' => 12 ),
                     ),
                 ),
                 'privateTrading' => array(
                     'post' => array(
-                        'full/v1/create_order' => 5,
-                        'full/v1/cancel_order' => 5,
-                        'full/v1/cancel_on_disconnect' => 100,
-                        'full/v1/cancel_all_orders' => 50,
-                        'full/v1/order' => $rlOrders,
-                        'full/v1/order_history' => $rlOrders,
-                        'full/v1/open_orders' => $rlOrders,
-                        'full/v1/fill_history' => $rlOrders,
-                        'full/v1/positions' => $rlOrders,
-                        'full/v1/funding_payment_history' => $rlOthers,
-                        'full/v1/get_sub_accounts' => $rlOthers,
-                        'full/v1/account_summary' => $rlOthers,
-                        'full/v1/account_history' => $rlOthers,
-                        'full/v1/aggregated_account_summary' => $rlOthers,
-                        'full/v1/funding_account_summary' => $rlOthers,
-                        'full/v1/transfer' => 100,
-                        'full/v1/deposit_history' => 100,
-                        'full/v1/transfer_history' => 100,
-                        'full/v1/withdrawal' => 100,
-                        'full/v1/withdrawal_history' => 100,
-                        'full/v1/add_position_margin' => $rlOthers, // addMargin
-                        'full/v1/get_position_margin_limits' => $rlOthers,
-                        'full/v1/set_position_config' => $rlOthers,  // setPositionMode/setMarginMode
-                        'full/v1/set_initial_leverage' => $rlOthers,
-                        'full/v1/get_all_initial_leverage' => $rlOthers,
-                        'full/v1/set_derisk_mm_ratio' => $rlOthers,
-                        'full/v1/vault_burn_tokens' => $rlOthers,
-                        'full/v1/vault_invest' => $rlOthers,
-                        'full/v1/vault_investor_summary' => $rlOthers,
-                        'full/v1/vault_redeem' => $rlOthers,
-                        'full/v1/vault_redeem_cancel' => $rlOthers,
-                        'full/v1/vault_view_redemption_queue' => $rlOthers,
-                        'full/v1/vault_manager_investor_history' => $rlOthers,
-                        'full/v1/authorize_builder' => $rlOthers, // https://pastebin(dot)com/0Mb8cFhN
-                        'full/v1/get_authorized_builders' => $rlOthers,
-                        'full/v1/builder_fill_history' => $rlOthers,
+                        'full/v1/create_order' => array( 'cost' => 5 ),
+                        'full/v1/cancel_order' => array( 'cost' => 5 ),
+                        'full/v1/cancel_on_disconnect' => array( 'cost' => 100 ),
+                        'full/v1/cancel_all_orders' => array( 'cost' => 50 ),
+                        'full/v1/order' => array( 'cost' => $rlOrders ),
+                        'full/v1/order_history' => array( 'cost' => $rlOrders ),
+                        'full/v1/open_orders' => array( 'cost' => $rlOrders ),
+                        'full/v1/fill_history' => array( 'cost' => $rlOrders ),
+                        'full/v1/positions' => array( 'cost' => $rlOrders ),
+                        'full/v1/funding_payment_history' => array( 'cost' => $rlOthers ),
+                        'full/v1/get_sub_accounts' => array( 'cost' => $rlOthers ),
+                        'full/v1/account_summary' => array( 'cost' => $rlOthers ),
+                        'full/v1/account_history' => array( 'cost' => $rlOthers ),
+                        'full/v1/aggregated_account_summary' => array( 'cost' => $rlOthers ),
+                        'full/v1/funding_account_summary' => array( 'cost' => $rlOthers ),
+                        'full/v1/transfer' => array( 'cost' => 100 ),
+                        'full/v1/deposit_history' => array( 'cost' => 100 ),
+                        'full/v1/transfer_history' => array( 'cost' => 100 ),
+                        'full/v1/withdrawal' => array( 'cost' => 100 ),
+                        'full/v1/withdrawal_history' => array( 'cost' => 100 ),
+                        'full/v1/add_position_margin' => array( 'cost' => $rlOthers ), // addMargin
+                        'full/v1/get_position_margin_limits' => array( 'cost' => $rlOthers ),
+                        'full/v1/set_position_config' => array( 'cost' => $rlOthers ),  // setPositionMode/setMarginMode
+                        'full/v1/set_initial_leverage' => array( 'cost' => $rlOthers ),
+                        'full/v1/get_all_initial_leverage' => array( 'cost' => $rlOthers ),
+                        'full/v1/set_derisk_mm_ratio' => array( 'cost' => $rlOthers ),
+                        'full/v1/vault_burn_tokens' => array( 'cost' => $rlOthers ),
+                        'full/v1/vault_invest' => array( 'cost' => $rlOthers ),
+                        'full/v1/vault_investor_summary' => array( 'cost' => $rlOthers ),
+                        'full/v1/vault_redeem' => array( 'cost' => $rlOthers ),
+                        'full/v1/vault_redeem_cancel' => array( 'cost' => $rlOthers ),
+                        'full/v1/vault_view_redemption_queue' => array( 'cost' => $rlOthers ),
+                        'full/v1/vault_manager_investor_history' => array( 'cost' => $rlOthers ),
+                        'full/v1/authorize_builder' => array( 'cost' => $rlOthers ), // https://pastebin(dot)com/0Mb8cFhN
+                        'full/v1/get_authorized_builders' => array( 'cost' => $rlOthers ),
+                        'full/v1/builder_fill_history' => array( 'cost' => $rlOthers ),
                     ),
                 ),
             ),
@@ -164,7 +164,7 @@ class grvt extends Exchange {
                 'accountId' => null, // needs to be set manually by user
                 // https://api.rhino.fi/bridge/configs
                 'networks' => array(
-                    'ARBONE' => '42161',
+                    'ARBITRUM' => '42161',
                     'AVAXC' => '43114',
                     'BASE' => '8453',
                     'BSC' => '56',
@@ -2447,7 +2447,7 @@ class grvt extends Exchange {
         return $this->parse_leverages($results, $symbols);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): array {
         /**
          * set the level of $leverage for a $market
          *

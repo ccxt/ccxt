@@ -6,7 +6,7 @@ import Exchange from './abstract/bingx.js';
 import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired, NotSupported, OperationFailed, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, NullableDict, Leverage, MarginMode, Num, List, NullableList, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, Bool, DepositWithdrawFees } from './base/types.js';
+import type{ LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, NullableDict, Leverage, MarginMode, Num, List, NullableList, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, Bool, DepositWithdrawFees, PositionModeInfo, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -63,6 +63,7 @@ export default class bingx extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchCanceledAndClosedOrders': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
@@ -101,7 +102,7 @@ export default class bingx extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': true,
-                'fetchPositionHistory': false,
+                'fetchPositionHistory': true,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsHistory': true,
@@ -122,6 +123,7 @@ export default class bingx extends Exchange {
                 'setMarginMode': true,
                 'setPositionMode': true,
                 'transfer': true,
+                'withdraw': true,
             },
             'hostname': 'bingx.com',
             'urls': {
@@ -178,7 +180,7 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'account/balance': 1,
+                                'account/balance': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -187,60 +189,60 @@ export default class bingx extends Exchange {
                     'v1': {
                         'public': {
                             'get': {
-                                'server/time': 1,
-                                'common/symbols': 1,
-                                'market/trades': 1,
-                                'market/depth': 1,
-                                'market/kline': 1,
-                                'ticker/24hr': 1,
-                                'ticker/price': 1, // deprecated, still can be used
-                                'ticker/bookTicker': 1,
+                                'server/time': { 'cost': 1 } as Endpoint<Dict>,
+                                'common/symbols': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/trades': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/kline': { 'cost': 1 } as Endpoint<Dict>,
+                                'ticker/24hr': { 'cost': 1 } as Endpoint<Dict>,
+                                'ticker/price': { 'cost': 1 } as Endpoint<Dict>, // deprecated, still can be used
+                                'ticker/bookTicker': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                         'private': {
                             'get': {
-                                'trade/query': 1,
-                                'trade/openOrders': 1,
-                                'trade/historyOrders': 1,
-                                'trade/myTrades': 2,
-                                'user/commissionRate': 5,
-                                'account/balance': 2,
-                                'oco/orderList': 5,
-                                'oco/openOrderList': 5,
-                                'oco/historyOrderList': 5,
+                                'trade/query': { 'cost': 1 } as Endpoint<Dict>,
+                                'trade/openOrders': { 'cost': 1 } as Endpoint<Dict>,
+                                'trade/historyOrders': { 'cost': 1 } as Endpoint<Dict>,
+                                'trade/myTrades': { 'cost': 2 } as Endpoint<Dict>,
+                                'user/commissionRate': { 'cost': 5 } as Endpoint<Dict>,
+                                'account/balance': { 'cost': 2 } as Endpoint<Dict>,
+                                'oco/orderList': { 'cost': 5 } as Endpoint<Dict>,
+                                'oco/openOrderList': { 'cost': 5 } as Endpoint<Dict>,
+                                'oco/historyOrderList': { 'cost': 5 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'trade/order': 2,
-                                'trade/cancel': 2,
-                                'trade/batchOrders': 5,
-                                'trade/order/cancelReplace': 5,
-                                'trade/cancelOrders': 5,
-                                'trade/cancelOpenOrders': 5,
-                                'trade/cancelAllAfter': 5,
-                                'oco/order': 5,
-                                'oco/cancel': 5,
+                                'trade/order': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/cancel': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/batchOrders': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/order/cancelReplace': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/cancelOrders': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/cancelOpenOrders': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/cancelAllAfter': { 'cost': 5 } as Endpoint<Dict>,
+                                'oco/order': { 'cost': 5 } as Endpoint<Dict>,
+                                'oco/cancel': { 'cost': 5 } as Endpoint<Dict>,
                             },
                         },
                     },
                     'v2': {
                         'public': {
                             'get': {
-                                'market/depth': 1,
-                                'market/kline': 1,
-                                'ticker/price': 1,
+                                'market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/kline': { 'cost': 1 } as Endpoint<Dict>,
+                                'ticker/price': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                     },
                     'v3': {
                         'private': {
                             'get': {
-                                'get/asset/transfer': 1,
-                                'asset/transfer': 1,
-                                'capital/deposit/hisrec': 1,
-                                'capital/withdraw/history': 1,
+                                'get/asset/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                                'asset/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                                'capital/deposit/hisrec': { 'cost': 1 } as Endpoint<List>,
+                                'capital/withdraw/history': { 'cost': 1 } as Endpoint<List>,
                             },
                             'post': {
-                                'post/asset/transfer': 5,
+                                'post/asset/transfer': { 'cost': 5 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -249,103 +251,103 @@ export default class bingx extends Exchange {
                     'v1': {
                         'public': {
                             'get': {
-                                'ticker/price': 1,
-                                'market/historicalTrades': 1,
-                                'market/markPriceKlines': 1,
-                                'trade/multiAssetsRules': 1,
-                                'tradingRules': 1,
+                                'ticker/price': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/historicalTrades': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/markPriceKlines': { 'cost': 1 } as Endpoint<Dict>,
+                                'trade/multiAssetsRules': { 'cost': 1 } as Endpoint<Dict>,
+                                'tradingRules': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                         'private': {
                             'get': {
-                                'positionSide/dual': 5,
-                                'trade/batchCancelReplace': 5,
-                                'trade/fullOrder': 2,
-                                'maintMarginRatio': 2,
-                                'trade/positionHistory': 2,
-                                'positionMargin/history': 2,
-                                'twap/openOrders': 5,
-                                'twap/historyOrders': 5,
-                                'twap/orderDetail': 5,
-                                'trade/assetMode': 5,
-                                'user/marginAssets': 5,
+                                'positionSide/dual': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/batchCancelReplace': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/fullOrder': { 'cost': 2 } as Endpoint<Dict>,
+                                'maintMarginRatio': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/positionHistory': { 'cost': 2 } as Endpoint<Dict>,
+                                'positionMargin/history': { 'cost': 2 } as Endpoint<Dict>,
+                                'twap/openOrders': { 'cost': 5 } as Endpoint<Dict>,
+                                'twap/historyOrders': { 'cost': 5 } as Endpoint<Dict>,
+                                'twap/orderDetail': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/assetMode': { 'cost': 5 } as Endpoint<Dict>,
+                                'user/marginAssets': { 'cost': 5 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'trade/amend': 2,
-                                'trade/cancelReplace': 2,
-                                'positionSide/dual': 5,
-                                'trade/batchCancelReplace': 5,
-                                'trade/closePosition': 2,
-                                'trade/getVst': 5, // deprecated
-                                'twap/order': 5,
-                                'twap/cancelOrder': 5,
-                                'trade/assetMode': 5,
-                                'trade/reverse': 5,
-                                'trade/autoAddMargin': 5,
+                                'trade/amend': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/cancelReplace': { 'cost': 2 } as Endpoint<Dict>,
+                                'positionSide/dual': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/batchCancelReplace': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/closePosition': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/getVst': { 'cost': 5 } as Endpoint<Dict>, // deprecated
+                                'twap/order': { 'cost': 5 } as Endpoint<Dict>,
+                                'twap/cancelOrder': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/assetMode': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/reverse': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/autoAddMargin': { 'cost': 5 } as Endpoint<Dict>,
                             },
                         },
                     },
                     'v2': {
                         'public': {
                             'get': {
-                                'server/time': 1,
-                                'quote/contracts': 1,
-                                'quote/price': 1,
-                                'quote/depth': 1,
-                                'quote/trades': 1,
-                                'quote/premiumIndex': 1,
-                                'quote/fundingRate': 1,
-                                'quote/klines': 1,
-                                'quote/openInterest': 1,
-                                'quote/ticker': 1,
-                                'quote/bookTicker': 1,
+                                'server/time': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/contracts': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/price': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/depth': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/trades': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/premiumIndex': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/fundingRate': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/klines': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/openInterest': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/bookTicker': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                         'private': {
                             'get': {
-                                'user/balance': 2,
-                                'user/positions': 2,
-                                'user/income': 2,
-                                'trade/openOrders': 2,
-                                'trade/openOrder': 2,
-                                'trade/order': 2,
-                                'trade/marginType': 5,
-                                'trade/leverage': 2,
-                                'trade/forceOrders': 1,
-                                'trade/allOrders': 2,
-                                'trade/allFillOrders': 2,
-                                'trade/fillHistory': 2,
-                                'user/income/export': 2,
-                                'user/commissionRate': 2,
-                                'quote/bookTicker': 1,
+                                'user/balance': { 'cost': 2 } as Endpoint<Dict>,
+                                'user/positions': { 'cost': 2 } as Endpoint<Dict>,
+                                'user/income': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/openOrders': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/openOrder': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/order': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/marginType': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/leverage': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/forceOrders': { 'cost': 1 } as Endpoint<Dict>,
+                                'trade/allOrders': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/allFillOrders': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/fillHistory': { 'cost': 2 } as Endpoint<Dict>,
+                                'user/income/export': { 'cost': 2 } as Endpoint<Dict>,
+                                'user/commissionRate': { 'cost': 2 } as Endpoint<Dict>,
+                                'quote/bookTicker': { 'cost': 1 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'trade/getVst': 5,
-                                'trade/order': 2,
-                                'trade/batchOrders': 2,
-                                'trade/closeAllPositions': 2,
-                                'trade/cancelAllAfter': 5,
-                                'trade/marginType': 5,
-                                'trade/leverage': 5,
-                                'trade/positionMargin': 5,
-                                'trade/order/test': 2,
+                                'trade/getVst': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/order': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/batchOrders': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/closeAllPositions': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/cancelAllAfter': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/marginType': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/leverage': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/positionMargin': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/order/test': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'delete': {
-                                'trade/order': 2,
-                                'trade/batchOrders': 2,
-                                'trade/allOpenOrders': 2,
+                                'trade/order': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/batchOrders': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/allOpenOrders': { 'cost': 2 } as Endpoint<Dict>,
                             },
                         },
                     },
                     'v3': {
                         'public': {
                             'get': {
-                                'quote/klines': 1,
+                                'quote/klines': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                         'private': {
                             'get': {
-                                'user/balance': 2,
+                                'user/balance': { 'cost': 2 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -354,38 +356,38 @@ export default class bingx extends Exchange {
                     'v1': {
                         'public': {
                             'get': {
-                                'market/contracts': 1,
-                                'market/premiumIndex': 1,
-                                'market/openInterest': 1,
-                                'market/klines': 1,
-                                'market/depth': 1,
-                                'market/ticker': 1,
+                                'market/contracts': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/premiumIndex': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/openInterest': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/klines': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/ticker': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                         'private': {
                             'get': {
-                                'trade/leverage': 2,
-                                'trade/forceOrders': 2,
-                                'trade/allFillOrders': 2,
-                                'trade/openOrders': 2,
-                                'trade/orderDetail': 2,
-                                'trade/orderHistory': 2,
-                                'trade/marginType': 2,
-                                'user/commissionRate': 2,
-                                'user/positions': 2,
-                                'user/balance': 2,
+                                'trade/leverage': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/forceOrders': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/allFillOrders': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/openOrders': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/orderDetail': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/orderHistory': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/marginType': { 'cost': 2 } as Endpoint<Dict>,
+                                'user/commissionRate': { 'cost': 2 } as Endpoint<Dict>,
+                                'user/positions': { 'cost': 2 } as Endpoint<Dict>,
+                                'user/balance': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'trade/order': 2,
-                                'trade/leverage': 2,
-                                'trade/allOpenOrders': 2,
-                                'trade/closeAllPositions': 2,
-                                'trade/marginType': 2,
-                                'trade/positionMargin': 2,
+                                'trade/order': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/leverage': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/allOpenOrders': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/closeAllPositions': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/marginType': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/positionMargin': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'delete': {
-                                'trade/allOpenOrders': 2, // post method in doc
-                                'trade/cancelOrder': 2,
+                                'trade/allOpenOrders': { 'cost': 2 } as Endpoint<Dict>, // post method in doc
+                                'trade/cancelOrder': { 'cost': 2 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -394,9 +396,9 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'allPosition': 2,
-                                'allOrders': 2,
-                                'balance': 2,
+                                'allPosition': { 'cost': 2 } as Endpoint<Dict>,
+                                'allOrders': { 'cost': 2 } as Endpoint<Dict>,
+                                'balance': { 'cost': 2 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -405,19 +407,19 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'capital/config/getall': 5,
-                                'capital/deposit/address': 5,
-                                'capital/innerTransfer/records': 1,
-                                'capital/subAccount/deposit/address': 5,
-                                'capital/deposit/subHisrec': 2,
-                                'capital/subAccount/innerTransfer/records': 1,
-                                'capital/deposit/riskRecords': 5,
+                                'capital/config/getall': { 'cost': 5 } as Endpoint<Dict>,
+                                'capital/deposit/address': { 'cost': 5 } as Endpoint<Dict>,
+                                'capital/innerTransfer/records': { 'cost': 1 } as Endpoint<Dict>,
+                                'capital/subAccount/deposit/address': { 'cost': 5 } as Endpoint<Dict>,
+                                'capital/deposit/subHisrec': { 'cost': 2 } as Endpoint<Dict>,
+                                'capital/subAccount/innerTransfer/records': { 'cost': 1 } as Endpoint<Dict>,
+                                'capital/deposit/riskRecords': { 'cost': 5 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'capital/withdraw/apply': 5,
-                                'capital/innerTransfer/apply': 5,
-                                'capital/subAccountInnerTransfer/apply': 2,
-                                'capital/deposit/createSubAddress': 2,
+                                'capital/withdraw/apply': { 'cost': 5 } as Endpoint<Dict>,
+                                'capital/innerTransfer/apply': { 'cost': 5 } as Endpoint<Dict>,
+                                'capital/subAccountInnerTransfer/apply': { 'cost': 2 } as Endpoint<Dict>,
+                                'capital/deposit/createSubAddress': { 'cost': 2 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -426,16 +428,16 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'list': 10,
-                                'assets': 2,
-                                'allAccountBalance': 2,
+                                'list': { 'cost': 10 } as Endpoint<Dict>,
+                                'assets': { 'cost': 2 } as Endpoint<Dict>,
+                                'allAccountBalance': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'create': 10,
-                                'apiKey/create': 2,
-                                'apiKey/edit': 2,
-                                'apiKey/del': 2,
-                                'updateStatus': 10,
+                                'create': { 'cost': 10 } as Endpoint<Dict>,
+                                'apiKey/create': { 'cost': 2 } as Endpoint<Dict>,
+                                'apiKey/edit': { 'cost': 2 } as Endpoint<Dict>,
+                                'apiKey/del': { 'cost': 2 } as Endpoint<Dict>,
+                                'updateStatus': { 'cost': 10 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -444,13 +446,13 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'uid': 1,
-                                'apiKey/query': 2,
-                                'account/apiPermissions': 5,
-                                'allAccountBalance': 2,
+                                'uid': { 'cost': 1 } as Endpoint<Dict>,
+                                'apiKey/query': { 'cost': 2 } as Endpoint<Dict>,
+                                'account/apiPermissions': { 'cost': 5 } as Endpoint<Dict>,
+                                'allAccountBalance': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'innerTransfer/authorizeSubAccount': 1,
+                                'innerTransfer/authorizeSubAccount': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -458,11 +460,11 @@ export default class bingx extends Exchange {
                         'v1': {
                             'private': {
                                 'get': {
-                                    'subAccount/asset/transferHistory': 1,
+                                    'subAccount/asset/transferHistory': { 'cost': 1 } as Endpoint<Dict>,
                                 },
                                 'post': {
-                                    'subAccount/transferAsset/supportCoins': 1,
-                                    'subAccount/transferAsset': 1,
+                                    'subAccount/transferAsset/supportCoins': { 'cost': 1 } as Endpoint<Dict>,
+                                    'subAccount/transferAsset': { 'cost': 1 } as Endpoint<Dict>,
                                 },
                             },
                         },
@@ -472,13 +474,13 @@ export default class bingx extends Exchange {
                     'auth': {
                         'private': {
                             'post': {
-                                'userDataStream': 2,
+                                'userDataStream': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'put': {
-                                'userDataStream': 2,
+                                'userDataStream': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'delete': {
-                                'userDataStream': 2,
+                                'userDataStream': { 'cost': 2 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -487,21 +489,21 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'swap/trace/currentTrack': 2,
-                                'PFutures/traderDetail': 2,
-                                'PFutures/profitHistorySummarys': 2,
-                                'PFutures/profitDetail': 2,
-                                'PFutures/tradingPairs': 2,
-                                'spot/traderDetail': 2,
-                                'spot/profitHistorySummarys': 2,
-                                'spot/profitDetail': 2,
-                                'spot/historyOrder': 2,
+                                'swap/trace/currentTrack': { 'cost': 2 } as Endpoint<Dict>,
+                                'PFutures/traderDetail': { 'cost': 2 } as Endpoint<Dict>,
+                                'PFutures/profitHistorySummarys': { 'cost': 2 } as Endpoint<Dict>,
+                                'PFutures/profitDetail': { 'cost': 2 } as Endpoint<Dict>,
+                                'PFutures/tradingPairs': { 'cost': 2 } as Endpoint<Dict>,
+                                'spot/traderDetail': { 'cost': 2 } as Endpoint<Dict>,
+                                'spot/profitHistorySummarys': { 'cost': 2 } as Endpoint<Dict>,
+                                'spot/profitDetail': { 'cost': 2 } as Endpoint<Dict>,
+                                'spot/historyOrder': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'swap/trace/closeTrackOrder': 2,
-                                'swap/trace/setTPSL': 2,
-                                'PFutures/setCommission': 2,
-                                'spot/trader/sellOrder': 10,
+                                'swap/trace/closeTrackOrder': { 'cost': 2 } as Endpoint<Dict>,
+                                'swap/trace/setTPSL': { 'cost': 2 } as Endpoint<Dict>,
+                                'PFutures/setCommission': { 'cost': 2 } as Endpoint<Dict>,
+                                'spot/trader/sellOrder': { 'cost': 10 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -510,13 +512,13 @@ export default class bingx extends Exchange {
                     'v3': {
                         'private': {
                             'get': {
-                                'asset/transfer': 1,
-                                'asset/transferRecord': 5,
-                                'capital/deposit/hisrec': 1,
-                                'capital/withdraw/history': 1,
+                                'asset/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                                'asset/transferRecord': { 'cost': 5 } as Endpoint<Dict>,
+                                'capital/deposit/hisrec': { 'cost': 1 } as Endpoint<Dict>,
+                                'capital/withdraw/history': { 'cost': 1 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'post/asset/transfer': 1,
+                                'post/asset/transfer': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -524,12 +526,12 @@ export default class bingx extends Exchange {
                         'v1': {
                             'private': {
                                 'post': {
-                                    'transfer': 5,
+                                    'transfer': { 'cost': 5 } as Endpoint<Dict>,
                                 },
                             },
                             'public': {
                                 'get': {
-                                    'transfer/supportCoins': 5,
+                                    'transfer/supportCoins': { 'cost': 5 } as Endpoint<Dict>,
                                 },
                             },
                         },
@@ -539,14 +541,14 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'account/inviteAccountList': 5,
-                                'reward/commissionDataList': 5,
-                                'account/inviteRelationCheck': 5,
-                                'asset/depositDetailList': 5,
-                                'reward/third/commissionDataList': 5,
-                                'asset/partnerData': 5,
-                                'commissionDataList/referralCode': 5,
-                                'account/superiorCheck': 5,
+                                'account/inviteAccountList': { 'cost': 5 } as Endpoint<Dict>,
+                                'reward/commissionDataList': { 'cost': 5 } as Endpoint<Dict>,
+                                'account/inviteRelationCheck': { 'cost': 5 } as Endpoint<Dict>,
+                                'asset/depositDetailList': { 'cost': 5 } as Endpoint<Dict>,
+                                'reward/third/commissionDataList': { 'cost': 5 } as Endpoint<Dict>,
+                                'asset/partnerData': { 'cost': 5 } as Endpoint<Dict>,
+                                'commissionDataList/referralCode': { 'cost': 5 } as Endpoint<Dict>,
+                                'account/superiorCheck': { 'cost': 5 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -962,7 +964,7 @@ export default class bingx extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    async fetchSwapMarkets (params: any) {
+    async fetchSwapMarkets (params: any): Promise<Market[]> {
         const response = await this.swapV2PublicGetQuoteContracts (params);
         //
         //    {
@@ -1199,7 +1201,7 @@ export default class bingx extends Exchange {
         if (market['spot']) {
             // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
             // the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
-            let timeZone: any = undefined;
+            let timeZone: Int = undefined;
             [ timeZone, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'timeZone', 0);
             if (timeZone !== undefined) {
                 request['timeZone'] = timeZone;
@@ -3142,7 +3144,7 @@ export default class bingx extends Exchange {
                 request['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
             }
             if (triggerPrice !== undefined) {
-                if (isMarketOrder && this.safeString (request, 'quoteOrderQty') === undefined) {
+                if (isMarketOrder && (side === 'buy') && this.safeString (request, 'quoteOrderQty') === undefined) {
                     throw new ArgumentsRequired (this.id + ' createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders');
                 }
                 request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
@@ -3345,7 +3347,7 @@ export default class bingx extends Exchange {
         const test = this.safeBool (params, 'test', false);
         params = this.omit (params, 'test');
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
-        let response: any = undefined;
+        let response: Dict | string;
         if (market['swap']) {
             if (test) {
                 response = await this.swapV2PrivatePostTradeOrderTest (request);
@@ -3428,7 +3430,8 @@ export default class bingx extends Exchange {
             // and JSON.parse can not handle them in JS, so we have to use .parseJson
             // however, when order has an attached SL/TP, their value types need extra parsing
             response = this.fixStringifiedJsonMembers (response);
-            response = this.parseJson (response);
+            const parsedResponse: Dict = this.parseJson (response);
+            response = parsedResponse;
         }
         const data = this.safeDict (response, 'data', {});
         let result: Dict = {};
@@ -3489,7 +3492,7 @@ export default class bingx extends Exchange {
         const symbolsLength = symbols.length;
         const market = this.market (symbols[0]);
         const request: Dict = {};
-        let response: any = undefined;
+        let response: Dict | string;
         if (market['swap']) {
             if (symbolsLength > 5) {
                 throw new InvalidOrder (this.id + ' createOrders() can not create more than 5 orders at once for swap markets');
@@ -3554,7 +3557,8 @@ export default class bingx extends Exchange {
             // and JSON.parse can not handle them in JS, so we have to use .parseJson
             // however, when order has an attached SL/TP, their value types need extra parsing
             response = this.fixStringifiedJsonMembers (response);
-            response = this.parseJson (response);
+            const parsedResponse: Dict = this.parseJson (response);
+            response = parsedResponse;
         }
         const data = this.safeDict (response, 'data', {});
         const result = this.safeList (data, 'orders', []) as List;
@@ -4485,7 +4489,7 @@ export default class bingx extends Exchange {
         }
         const isTwapOrder = this.safeBool (params, 'twap', false);
         params = this.omit (params, 'twap');
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         let market: Market = undefined;
         if (isTwapOrder) {
             const twapRequest: Dict = {
@@ -5005,9 +5009,9 @@ export default class bingx extends Exchange {
         let subType: Str = undefined;
         let standard: Bool = undefined;
         let response: Dict;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchClosedOrders', market, params);
-        [ standard, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'standard', false);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchCanceledAndClosedOrders', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchCanceledAndClosedOrders', market, params);
+        [ standard, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'standard', false);
         if (standard) {
             response = await this.contractV1PrivateGetAllOrders (this.extend (request, params));
         } else if (type === 'spot') {
@@ -6529,7 +6533,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    override async fetchPositionMode (symbol: Str = undefined, params = {}) {
+    override async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<PositionModeInfo> {
         const response = await this.swapV1PrivateGetPositionSideDual (params);
         //
         //     {
@@ -6800,7 +6804,7 @@ export default class bingx extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         let commission: Dict = {};
         if (market['spot']) {
             response = await this.spotV1PrivateGetUserCommissionRate (this.extend (request, params));

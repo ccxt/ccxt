@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.foxbit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -52,6 +52,8 @@ class foxbit(Exchange, ImplicitAPI):
                 'createMarketBuyOrder': True,
                 'createMarketSellOrder': True,
                 'createOrder': True,
+                'createOrders': True,
+                'editOrder': True,
                 'fecthOrderBook': True,
                 'fetchBalance': True,
                 'fetchCanceledOrders': True,
@@ -66,7 +68,10 @@ class foxbit(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchOrdersByStatus': True,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -151,42 +156,42 @@ class foxbit(Exchange, ImplicitAPI):
                 'v3': {
                     'public': {
                         'get': {
-                            'currencies': 5,  # 6 requests per second
-                            'markets': 5,  # 6 requests per second
-                            'markets/ticker/24hr': 60,  # 1 request per 2 seconds
-                            'markets/{market}/orderbook': 6,  # 10 requests per 2 seconds
-                            'markets/{market}/candlesticks': 12,  # 5 requests per 2 seconds
-                            'markets/{market}/trades/history': 12,  # 5 requests per 2 seconds
-                            'markets/{market}/ticker/24hr': 15,  # 4 requests per 2 seconds
+                            'currencies': {'cost': 5},  # 6 requests per second
+                            'markets': {'cost': 5},  # 6 requests per second
+                            'markets/ticker/24hr': {'cost': 60},  # 1 request per 2 seconds
+                            'markets/{market}/orderbook': {'cost': 6},  # 10 requests per 2 seconds
+                            'markets/{market}/candlesticks': {'cost': 12},  # 5 requests per 2 seconds
+                            'markets/{market}/trades/history': {'cost': 12},  # 5 requests per 2 seconds
+                            'markets/{market}/ticker/24hr': {'cost': 15},  # 4 requests per 2 seconds
                         },
                     },
                     'private': {
                         'get': {
-                            'accounts': 2,  # 15 requests per second
-                            'accounts/{symbol}/transactions': 60,  # 1 requests per 2 seconds
-                            'orders': 2,  # 30 requests per 2 seconds
-                            'orders/by-order-id/{id}': 2,  # 30 requests per 2 seconds
-                            'trades': 6,  # 5 orders per second
-                            'deposits/address': 10,  # 3 requests per second
-                            'deposits': 10,  # 3 requests per second
-                            'withdrawals': 10,  # 3 requests per second
-                            'me/fees/trading': 60,  # 1 requests per 2 seconds
+                            'accounts': {'cost': 2},  # 15 requests per second
+                            'accounts/{symbol}/transactions': {'cost': 60},  # 1 requests per 2 seconds
+                            'orders': {'cost': 2},  # 30 requests per 2 seconds
+                            'orders/by-order-id/{id}': {'cost': 2},  # 30 requests per 2 seconds
+                            'trades': {'cost': 6},  # 5 orders per second
+                            'deposits/address': {'cost': 10},  # 3 requests per second
+                            'deposits': {'cost': 10},  # 3 requests per second
+                            'withdrawals': {'cost': 10},  # 3 requests per second
+                            'me/fees/trading': {'cost': 60},  # 1 requests per 2 seconds
                         },
                         'post': {
-                            'orders': 2,  # 30 requests per 2 seconds
-                            'orders/batch': 7.5,  # 8 requests per 2 seconds
-                            'orders/cancel-replace': 3,  # 20 requests per 2 seconds
-                            'withdrawals': 10,  # 3 requests per second
+                            'orders': {'cost': 2},  # 30 requests per 2 seconds
+                            'orders/batch': {'cost': 7.5},  # 8 requests per 2 seconds
+                            'orders/cancel-replace': {'cost': 3},  # 20 requests per 2 seconds
+                            'withdrawals': {'cost': 10},  # 3 requests per second
                         },
                         'put': {
-                            'orders/cancel': 2,  # 30 requests per 2 seconds
+                            'orders/cancel': {'cost': 2},  # 30 requests per 2 seconds
                         },
                     },
                 },
                 'status': {
                     'public': {
                         'get': {
-                            'status': 30,  # 1 request per second
+                            'status': {'cost': 30},  # 1 request per second
                         },
                     },
                 },
@@ -803,7 +808,7 @@ class foxbit(Exchange, ImplicitAPI):
         #         "15466.34096391"  # taker buy quote volume
         #     ]
         # ]
-        return self.parse_ohlcvs(response, market, interval, since, limit)
+        return self.parse_ohlcvs(self.to_array(response), market, interval, since, limit)
 
     async def fetch_balance(self, params={}) -> Balances:
         """
@@ -1386,7 +1391,7 @@ class foxbit(Exchange, ImplicitAPI):
         result = self.sort_by(allTransactions, 'timestamp')
         return result
 
-    async def fetch_status(self, params={}):
+    async def fetch_status(self, params={}) -> Status:
         """
         The latest known information on the availability of the exchange API.
 
@@ -1419,7 +1424,7 @@ class foxbit(Exchange, ImplicitAPI):
         }
         return {
             'status': self.safe_string(statusMap, statusRaw, statusRaw),
-            'updated': self.safe_string(attributes, 'updatedAt'),
+            'updated': self.parse8601(self.safe_string(attributes, 'updatedAt')),
             'eta': None,
             'url': None,
             'info': response,
@@ -1481,7 +1486,8 @@ class foxbit(Exchange, ImplicitAPI):
         #         "client_order_id": "451637946501"
         #     }
         # }
-        return self.parse_order(response['create'], market)
+        created = self.safe_dict(response, 'create', {})
+        return self.parse_order(created, market)
 
     async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
@@ -1938,6 +1944,8 @@ class foxbit(Exchange, ImplicitAPI):
             bodyToSignature = body
         headers = {
             'Content-Type': 'application/json',
+            'X-FB-CLIENT': 'ccxt',
+            'X-FB-CLIENT-VERSION': self.get_ccxt_version(),
         }
         if urlPath == 'private':
             self.check_required_credentials()

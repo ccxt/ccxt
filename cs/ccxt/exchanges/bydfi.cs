@@ -124,7 +124,7 @@ public partial class bydfi : Exchange
                 { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenInterests", false },
-                { "fetchOpenOrder", false },
+                { "fetchOpenOrder", true },
                 { "fetchOpenOrders", true },
                 { "fetchOption", false },
                 { "fetchOptionChain", false },
@@ -190,57 +190,147 @@ public partial class bydfi : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "v1/public/api_limits", 1 },
-                        { "v1/fapi/market/exchange_info", 1 },
-                        { "v1/fapi/market/depth", 1 },
-                        { "v1/fapi/market/trades", 1 },
-                        { "v1/fapi/market/klines", 1 },
-                        { "v1/fapi/market/ticker/24hr", 1 },
-                        { "v1/fapi/market/ticker/price", 1 },
-                        { "v1/fapi/market/mark_price", 1 },
-                        { "v1/fapi/market/funding_rate", 1 },
-                        { "v1/fapi/market/funding_rate_history", 1 },
-                        { "v1/fapi/market/risk_limit", 1 },
+                        { "v1/public/api_limits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/market/exchange_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/market/depth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/market/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/market/klines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/market/ticker/24hr", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/market/ticker/price", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/market/mark_price", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/market/funding_rate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/market/funding_rate_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/market/risk_limit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "v1/account/assets", 1 },
-                        { "v1/account/transfer_records", 1 },
-                        { "v1/spot/deposit_records", 1 },
-                        { "v1/spot/withdraw_records", 1 },
-                        { "v1/fapi/trade/open_order", 1 },
-                        { "v1/fapi/trade/plan_order", 1 },
-                        { "v1/fapi/trade/leverage", 1 },
-                        { "v1/fapi/trade/history_order", 1 },
-                        { "v1/fapi/trade/history_trade", 1 },
-                        { "v1/fapi/trade/position_history", 1 },
-                        { "v1/fapi/trade/positions", 1 },
-                        { "v1/fapi/account/balance", 1 },
-                        { "v1/fapi/user_data/assets_margin", 1 },
-                        { "v1/fapi/user_data/position_side/dual", 1 },
-                        { "v1/agent/teams", 1 },
-                        { "v1/agent/agent_links", 1 },
-                        { "v1/agent/regular_overview", 1 },
-                        { "v1/agent/agent_sub_overview", 1 },
-                        { "v1/agent/partener_user_deposit", 1 },
-                        { "v1/agent/partener_users_data", 1 },
-                        { "v1/agent/affiliate_uids", 1 },
-                        { "v1/agent/affiliate_commission", 1 },
-                        { "v1/agent/internal_withdrawal_status", 1 },
+                        { "v1/account/assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/account/transfer_records", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/spot/deposit_records", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/spot/withdraw_records", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/trade/open_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/trade/plan_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/trade/leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/trade/history_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/trade/history_trade", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/trade/position_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/trade/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/account/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/user_data/assets_margin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/user_data/position_side/dual", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/agent/teams", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/agent/agent_links", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/agent/regular_overview", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/agent/agent_sub_overview", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/agent/partener_user_deposit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/agent/partener_users_data", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/agent/affiliate_uids", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/agent/affiliate_commission", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/agent/internal_withdrawal_status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "v1/account/transfer", 1 },
-                        { "v1/fapi/trade/place_order", 1 },
-                        { "v1/fapi/trade/batch_place_order", 1 },
-                        { "v1/fapi/trade/edit_order", 1 },
-                        { "v1/fapi/trade/batch_edit_order", 1 },
-                        { "v1/fapi/trade/cancel_all_order", 1 },
-                        { "v1/fapi/trade/leverage", 1 },
-                        { "v1/fapi/trade/batch_leverage_margin", 1 },
-                        { "v1/fapi/user_data/margin_type", 1 },
-                        { "v1/fapi/user_data/position_side/dual", 1 },
-                        { "v1/agent/internal_withdrawal", 1 },
+                        { "v1/account/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/trade/place_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/trade/batch_place_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/trade/edit_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/trade/batch_edit_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/trade/cancel_all_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/trade/leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/trade/batch_leverage_margin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/user_data/margin_type", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fapi/user_data/position_side/dual", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/agent/internal_withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -2422,7 +2512,7 @@ public partial class bydfi : Exchange
         }
         object market = this.market(symbol);
         object contractType = "FUTURE";
-        var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsHistory", "contractType", contractType);
+        var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionHistory", "contractType", contractType);
         contractType = ((IList<object>)contractTypeparametersVariable)[0];
         parameters = ((IList<object>)contractTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {
@@ -2612,11 +2702,11 @@ public partial class bydfi : Exchange
         }
         object market = this.market(symbol);
         object contractType = "FUTURE";
-        var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchMarginMode", "contractType", contractType);
+        var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "contractType", contractType);
         contractType = ((IList<object>)contractTypeparametersVariable)[0];
         parameters = ((IList<object>)contractTypeparametersVariable)[1];
         object wallet = "W001";
-        var walletparametersVariable = this.handleOptionAndParams(parameters, "fetchMarginMode", "wallet", wallet);
+        var walletparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "wallet", wallet);
         wallet = ((IList<object>)walletparametersVariable)[0];
         parameters = ((IList<object>)walletparametersVariable)[1];
         object request = new Dictionary<string, object>() {

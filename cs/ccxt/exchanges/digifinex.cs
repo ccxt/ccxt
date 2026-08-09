@@ -114,20 +114,290 @@ public partial class digifinex : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "spot", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"{market}/symbols", "kline", "margin/currencies", "margin/symbols", "markets", "order_book", "ping", "spot/symbols", "time", "trades", "trades/symbols", "ticker", "currencies"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "{market}/symbols", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "kline", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "margin/currencies", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "margin/symbols", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order_book", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ping", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "spot/symbols", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "time", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trades/symbols", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ticker", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "currencies", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                     { "swap", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"public/api_weight", "public/candles", "public/candles_history", "public/depth", "public/funding_rate", "public/funding_rate_history", "public/instrument", "public/instruments", "public/ticker", "public/tickers", "public/time", "public/trades"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "public/api_weight", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/candles", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/candles_history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/depth", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/funding_rate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/funding_rate_history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/instrument", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/instruments", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/ticker", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/tickers", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/time", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "spot", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"{market}/financelog", "{market}/mytrades", "{market}/order", "{market}/order/detail", "{market}/order/current", "{market}/order/history", "margin/assets", "margin/financelog", "margin/mytrades", "margin/order", "margin/order/current", "margin/order/history", "margin/positions", "otc/financelog", "spot/assets", "spot/financelog", "spot/mytrades", "spot/order", "spot/order/current", "spot/order/history", "deposit/address", "deposit/history", "withdraw/history"} },
-                        { "post", new List<object>() {"{market}/order/cancel", "{market}/order/new", "{market}/order/batch_new", "margin/order/cancel", "margin/order/new", "margin/position/close", "spot/order/cancel", "spot/order/new", "transfer", "withdraw/new", "withdraw/cancel"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "{market}/financelog", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "{market}/mytrades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "{market}/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "{market}/order/detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "{market}/order/current", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "{market}/order/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "margin/assets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "margin/financelog", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "margin/mytrades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "margin/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "margin/order/current", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "margin/order/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "margin/positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "otc/financelog", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "spot/assets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "spot/financelog", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "spot/mytrades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "spot/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "spot/order/current", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "spot/order/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "deposit/address", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "deposit/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "withdraw/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "post", new Dictionary<string, object>() {
+                            { "{market}/order/cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "{market}/order/new", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "{market}/order/batch_new", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "margin/order/cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "margin/order/new", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "margin/position/close", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "spot/order/cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "spot/order/new", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "transfer", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "withdraw/new", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "withdraw/cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                     { "swap", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"account/balance", "account/positions", "account/finance_record", "account/trading_fee_rate", "account/transfer_record", "account/funding_fee", "trade/history_orders", "trade/history_trades", "trade/open_orders", "trade/order_info"} },
-                        { "post", new List<object>() {"account/transfer", "account/leverage", "account/position_mode", "account/position_margin", "trade/batch_cancel_order", "trade/batch_order", "trade/cancel_order", "trade/order_place", "follow/sponsor_order", "follow/close_order", "follow/cancel_order", "follow/user_center_current", "follow/user_center_history", "follow/expert_current_open_order", "follow/add_algo", "follow/cancel_algo", "follow/account_available", "follow/plan_task", "follow/instrument_list"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "account/balance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "account/positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "account/finance_record", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "account/trading_fee_rate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "account/transfer_record", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "account/funding_fee", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trade/history_orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trade/history_trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trade/open_orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trade/order_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "post", new Dictionary<string, object>() {
+                            { "account/transfer", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "account/leverage", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "account/position_mode", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "account/position_margin", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trade/batch_cancel_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trade/batch_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trade/cancel_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trade/order_place", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "follow/sponsor_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "follow/close_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "follow/cancel_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "follow/user_center_current", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "follow/user_center_history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "follow/expert_current_open_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "follow/add_algo", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "follow/cancel_algo", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "follow/account_available", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "follow/plan_task", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "follow/instrument_list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                 } },
             } },
@@ -309,7 +579,7 @@ public partial class digifinex : Exchange
                     { "OTC", "3" },
                 } },
                 { "networks", new Dictionary<string, object>() {
-                    { "ARBONE", "Arbitrum" },
+                    { "ARBITRUM", "Arbitrum" },
                     { "AVALANCEC", "AVAX-CCHAIN" },
                     { "AVALANCEX", "AVAX-XCHAIN" },
                     { "BEP20", "BEP20" },
@@ -3624,7 +3894,7 @@ public partial class digifinex : Exchange
                 ((IDictionary<string,object>)result)[(string)code] = borrowRate;
             }
         }
-        return ((object)result);
+        return result;
     }
 
     /**
@@ -3665,7 +3935,7 @@ public partial class digifinex : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ((object)this.parseFundingRate(data, market));
+        return this.parseFundingRate(data, market);
     }
 
     /**
@@ -4274,12 +4544,12 @@ public partial class digifinex : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
         {
-            currency = this.safeCurrencyCode(code);
+            currency = this.currency(code);
             if (isTrue(isEqual(currency, null)))
             {
                 throw new ExchangeError ((string)add(this.id, " fetchTransfers() could not resolve currency")) ;
             }
-            ((IDictionary<string,object>)request)["currency"] = getValue(((object)currency), "id");
+            ((IDictionary<string,object>)request)["currency"] = this.safeString(currency, "id");
         }
         if (isTrue(!isEqual(since, null)))
         {
@@ -4306,7 +4576,7 @@ public partial class digifinex : Exchange
         //     }
         //
         object transfers = this.safeList(response, "data", new List<object>() {});
-        return this.parseTransfers(transfers, ((object)currency), since, limit);
+        return this.parseTransfers(transfers, currency, since, limit);
     }
 
     /**

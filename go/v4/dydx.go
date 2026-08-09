@@ -145,70 +145,178 @@ func (this *DydxCore) Describe() any {
 		"api": map[string]any{
 			"indexer": map[string]any{
 				"get": map[string]any{
-					"addresses/{address}": 1,
-					"addresses/{address}/parentSubaccountNumber/{number}":     1,
-					"addresses/{address}/subaccountNumber/{subaccountNumber}": 1,
-					"assetPositions":                                1,
-					"assetPositions/parentSubaccountNumber":         1,
-					"candles/perpetualMarkets/{market}":             1,
-					"compliance/screen/{address}":                   1,
-					"fills":                                         1,
-					"fills/parentSubaccountNumber":                  1,
-					"fundingPayments":                               1,
-					"fundingPayments/parentSubaccount":              1,
-					"height":                                        0.1,
-					"historical-pnl":                                1,
-					"historical-pnl/parentSubaccountNumber":         1,
-					"historicalBlockTradingRewards/{address}":       1,
-					"historicalFunding/{market}":                    1,
-					"historicalTradingRewardAggregations/{address}": 1,
-					"orderbooks/perpetualMarket/{market}":           1,
-					"orders":                                        1,
-					"orders/parentSubaccountNumber":                 1,
-					"orders/{orderId}":                              1,
-					"perpetualMarkets":                              1,
-					"perpetualPositions":                            1,
-					"perpetualPositions/parentSubaccountNumber":     1,
-					"screen":                              1,
-					"sparklines":                          1,
-					"time":                                1,
-					"trades/perpetualMarket/{market}":     1,
-					"transfers":                           1,
-					"transfers/between":                   1,
-					"transfers/parentSubaccountNumber":    1,
-					"vault/v1/megavault/historicalPnl":    1,
-					"vault/v1/megavault/positions":        1,
-					"vault/v1/vaults/historicalPnl":       1,
-					"perpetualMarketSparklines":           1,
-					"perpetualMarkets/{ticker}":           1,
-					"perpetualMarkets/{ticker}/orderbook": 1,
-					"trades/perpetualMarket/{ticker}":     1,
-					"historicalFunding/{ticker}":          1,
-					"candles/{ticker}/{resolution}":       1,
-					"addresses/{address}/subaccounts":     1,
-					"addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions":     1,
-					"addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions": 1,
-					"addresses/{address}/subaccountNumber/{subaccountNumber}/orders":             1,
-					"fills/parentSubaccount":          1,
-					"historical-pnl/parentSubaccount": 1,
+					"addresses/{address}": map[string]any{
+						"cost": 1,
+					},
+					"addresses/{address}/parentSubaccountNumber/{number}": map[string]any{
+						"cost": 1,
+					},
+					"addresses/{address}/subaccountNumber/{subaccountNumber}": map[string]any{
+						"cost": 1,
+					},
+					"assetPositions": map[string]any{
+						"cost": 1,
+					},
+					"assetPositions/parentSubaccountNumber": map[string]any{
+						"cost": 1,
+					},
+					"candles/perpetualMarkets/{market}": map[string]any{
+						"cost": 1,
+					},
+					"compliance/screen/{address}": map[string]any{
+						"cost": 1,
+					},
+					"fills": map[string]any{
+						"cost": 1,
+					},
+					"fills/parentSubaccountNumber": map[string]any{
+						"cost": 1,
+					},
+					"fundingPayments": map[string]any{
+						"cost": 1,
+					},
+					"fundingPayments/parentSubaccount": map[string]any{
+						"cost": 1,
+					},
+					"height": map[string]any{
+						"cost": 0.1,
+					},
+					"historical-pnl": map[string]any{
+						"cost": 1,
+					},
+					"historical-pnl/parentSubaccountNumber": map[string]any{
+						"cost": 1,
+					},
+					"historicalBlockTradingRewards/{address}": map[string]any{
+						"cost": 1,
+					},
+					"historicalFunding/{market}": map[string]any{
+						"cost": 1,
+					},
+					"historicalTradingRewardAggregations/{address}": map[string]any{
+						"cost": 1,
+					},
+					"orderbooks/perpetualMarket/{market}": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/parentSubaccountNumber": map[string]any{
+						"cost": 1,
+					},
+					"orders/{orderId}": map[string]any{
+						"cost": 1,
+					},
+					"perpetualMarkets": map[string]any{
+						"cost": 1,
+					},
+					"perpetualPositions": map[string]any{
+						"cost": 1,
+					},
+					"perpetualPositions/parentSubaccountNumber": map[string]any{
+						"cost": 1,
+					},
+					"screen": map[string]any{
+						"cost": 1,
+					},
+					"sparklines": map[string]any{
+						"cost": 1,
+					},
+					"time": map[string]any{
+						"cost": 1,
+					},
+					"trades/perpetualMarket/{market}": map[string]any{
+						"cost": 1,
+					},
+					"transfers": map[string]any{
+						"cost": 1,
+					},
+					"transfers/between": map[string]any{
+						"cost": 1,
+					},
+					"transfers/parentSubaccountNumber": map[string]any{
+						"cost": 1,
+					},
+					"vault/v1/megavault/historicalPnl": map[string]any{
+						"cost": 1,
+					},
+					"vault/v1/megavault/positions": map[string]any{
+						"cost": 1,
+					},
+					"vault/v1/vaults/historicalPnl": map[string]any{
+						"cost": 1,
+					},
+					"perpetualMarketSparklines": map[string]any{
+						"cost": 1,
+					},
+					"perpetualMarkets/{ticker}": map[string]any{
+						"cost": 1,
+					},
+					"perpetualMarkets/{ticker}/orderbook": map[string]any{
+						"cost": 1,
+					},
+					"trades/perpetualMarket/{ticker}": map[string]any{
+						"cost": 1,
+					},
+					"historicalFunding/{ticker}": map[string]any{
+						"cost": 1,
+					},
+					"candles/{ticker}/{resolution}": map[string]any{
+						"cost": 1,
+					},
+					"addresses/{address}/subaccounts": map[string]any{
+						"cost": 1,
+					},
+					"addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions": map[string]any{
+						"cost": 1,
+					},
+					"addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions": map[string]any{
+						"cost": 1,
+					},
+					"addresses/{address}/subaccountNumber/{subaccountNumber}/orders": map[string]any{
+						"cost": 1,
+					},
+					"fills/parentSubaccount": map[string]any{
+						"cost": 1,
+					},
+					"historical-pnl/parentSubaccount": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"nodeRpc": map[string]any{
 				"get": map[string]any{
-					"abci_info":          1,
-					"block":              1,
-					"broadcast_tx_async": 1,
-					"broadcast_tx_sync":  1,
-					"tx":                 1,
+					"abci_info": map[string]any{
+						"cost": 1,
+					},
+					"block": map[string]any{
+						"cost": 1,
+					},
+					"broadcast_tx_async": map[string]any{
+						"cost": 1,
+					},
+					"broadcast_tx_sync": map[string]any{
+						"cost": 1,
+					},
+					"tx": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"nodeRest": map[string]any{
 				"get": map[string]any{
-					"cosmos/auth/v1beta1/account_info/{dydxAddress}": 1,
+					"cosmos/auth/v1beta1/account_info/{dydxAddress}": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"cosmos/tx/v1beta1/encode":   1,
-					"cosmos/tx/v1beta1/simulate": 1,
+					"cosmos/tx/v1beta1/encode": map[string]any{
+						"cost": 1,
+					},
+					"cosmos/tx/v1beta1/simulate": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -1340,7 +1448,7 @@ func (this *DydxCore) FetchPositions(optionalArgs ...any) <-chan any {
 		userAddressparamsVariable := this.HandlePublicAddress("fetchPositions", params)
 		userAddress = GetValue(userAddressparamsVariable, 0)
 		params = GetValue(userAddressparamsVariable, 1)
-		subAccountNumberparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "subAccountNumber", "0")
+		subAccountNumberparamsVariable := this.HandleOptionAndParams(params, "fetchPositions", "subAccountNumber", "0")
 		subAccountNumber = GetValue(subAccountNumberparamsVariable, 0)
 		params = GetValue(subAccountNumberparamsVariable, 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
@@ -2917,11 +3025,11 @@ func (this *DydxCore) FetchBalance(optionalArgs ...any) <-chan any {
 			PanicOnError(retRes240112)
 		}
 		var userAddress any = nil
-		userAddressparamsVariable := this.HandlePublicAddress("fetchAccounts", params)
+		userAddressparamsVariable := this.HandlePublicAddress("fetchBalance", params)
 		userAddress = GetValue(userAddressparamsVariable, 0)
 		params = GetValue(userAddressparamsVariable, 1)
 		var subaccountNumber any = nil
-		subaccountNumberparamsVariable := this.HandleOptionAndParams(params, "fetchAccounts", "subaccountNumber", 0)
+		subaccountNumberparamsVariable := this.HandleOptionAndParams(params, "fetchBalance", "subaccountNumber", 0)
 		subaccountNumber = GetValue(subaccountNumberparamsVariable, 0)
 		params = GetValue(subaccountNumberparamsVariable, 1)
 		var request any = map[string]any{

@@ -31,6 +31,7 @@ public partial class bitfinex : Exchange
                 { "createLimitOrder", true },
                 { "createMarketOrder", true },
                 { "createOrder", true },
+                { "createOrders", true },
                 { "createPostOnlyOrder", true },
                 { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },
@@ -71,6 +72,7 @@ public partial class bitfinex : Exchange
                 { "fetchLiquidations", true },
                 { "fetchMarginMode", false },
                 { "fetchMarketLeverageTiers", false },
+                { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
@@ -90,8 +92,10 @@ public partial class bitfinex : Exchange
                 { "fetchPositions", true },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", true },
+                { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", false },
+                { "fetchTrades", true },
                 { "fetchTradingFee", false },
                 { "fetchTradingFees", true },
                 { "fetchTransactionFees", null },
@@ -138,148 +142,420 @@ public partial class bitfinex : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "conf/{config}", 2.7 },
-                        { "conf/pub:{action}:{object}", 2.7 },
-                        { "conf/pub:{action}:{object}:{detail}", 2.7 },
-                        { "conf/pub:map:{object}", 2.7 },
-                        { "conf/pub:map:{object}:{detail}", 2.7 },
-                        { "conf/pub:map:currency:{detail}", 2.7 },
-                        { "conf/pub:map:currency:sym", 2.7 },
-                        { "conf/pub:map:currency:label", 2.7 },
-                        { "conf/pub:map:currency:unit", 2.7 },
-                        { "conf/pub:map:currency:undl", 2.7 },
-                        { "conf/pub:map:currency:pool", 2.7 },
-                        { "conf/pub:map:currency:explorer", 2.7 },
-                        { "conf/pub:map:currency:tx:fee", 2.7 },
-                        { "conf/pub:map:tx:method", 2.7 },
-                        { "conf/pub:list:{object}", 2.7 },
-                        { "conf/pub:list:{object}:{detail}", 2.7 },
-                        { "conf/pub:list:currency", 2.7 },
-                        { "conf/pub:list:pair:exchange", 2.7 },
-                        { "conf/pub:list:pair:margin", 2.7 },
-                        { "conf/pub:list:pair:futures", 2.7 },
-                        { "conf/pub:list:competitions", 2.7 },
-                        { "conf/pub:info:{object}", 2.7 },
-                        { "conf/pub:info:{object}:{detail}", 2.7 },
-                        { "conf/pub:info:pair", 2.7 },
-                        { "conf/pub:info:pair:futures", 2.7 },
-                        { "conf/pub:info:tx:status", 2.7 },
-                        { "conf/pub:fees", 2.7 },
-                        { "platform/status", 8 },
-                        { "tickers", 2.7 },
-                        { "ticker/{symbol}", 2.7 },
-                        { "tickers/hist", 2.7 },
-                        { "trades/{symbol}/hist", 2.7 },
-                        { "book/{symbol}/{precision}", 1 },
-                        { "book/{symbol}/P0", 1 },
-                        { "book/{symbol}/P1", 1 },
-                        { "book/{symbol}/P2", 1 },
-                        { "book/{symbol}/P3", 1 },
-                        { "book/{symbol}/R0", 1 },
-                        { "stats1/{key}:{size}:{symbol}:{side}/{section}", 2.7 },
-                        { "stats1/{key}:{size}:{symbol}:{side}/last", 2.7 },
-                        { "stats1/{key}:{size}:{symbol}:{side}/hist", 2.7 },
-                        { "stats1/{key}:{size}:{symbol}/{section}", 2.7 },
-                        { "stats1/{key}:{size}:{symbol}/last", 2.7 },
-                        { "stats1/{key}:{size}:{symbol}/hist", 2.7 },
-                        { "stats1/{key}:{size}:{symbol}:long/last", 2.7 },
-                        { "stats1/{key}:{size}:{symbol}:long/hist", 2.7 },
-                        { "stats1/{key}:{size}:{symbol}:short/last", 2.7 },
-                        { "stats1/{key}:{size}:{symbol}:short/hist", 2.7 },
-                        { "candles/trade:{timeframe}:{symbol}:{period}/{section}", 2.7 },
-                        { "candles/trade:{timeframe}:{symbol}/{section}", 2.7 },
-                        { "candles/trade:{timeframe}:{symbol}/last", 2.7 },
-                        { "candles/trade:{timeframe}:{symbol}/hist", 2.7 },
-                        { "status/{type}", 2.7 },
-                        { "status/deriv", 2.7 },
-                        { "status/deriv/{symbol}/hist", 2.7 },
-                        { "liquidations/hist", 80 },
-                        { "rankings/{key}:{timeframe}:{symbol}/{section}", 2.7 },
-                        { "rankings/{key}:{timeframe}:{symbol}/hist", 2.7 },
-                        { "pulse/hist", 2.7 },
-                        { "pulse/profile/{nickname}", 2.7 },
-                        { "funding/stats/{symbol}/hist", 10 },
-                        { "ext/vasps", 1 },
+                        { "conf/{config}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:{action}:{object}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:{action}:{object}:{detail}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:map:{object}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:map:{object}:{detail}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:map:currency:{detail}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:map:currency:sym", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:map:currency:label", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:map:currency:unit", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:map:currency:undl", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:map:currency:pool", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:map:currency:explorer", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:map:currency:tx:fee", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:map:tx:method", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:list:{object}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:list:{object}:{detail}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:list:currency", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:list:pair:exchange", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:list:pair:margin", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:list:pair:futures", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:list:competitions", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:info:{object}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:info:{object}:{detail}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:info:pair", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:info:pair:futures", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:info:tx:status", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "conf/pub:fees", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "platform/status", new Dictionary<string, object>() {
+                            { "cost", 8 },
+                        } },
+                        { "tickers", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "ticker/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "tickers/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "trades/{symbol}/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "book/{symbol}/{precision}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "book/{symbol}/P0", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "book/{symbol}/P1", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "book/{symbol}/P2", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "book/{symbol}/P3", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "book/{symbol}/R0", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "stats1/{key}:{size}:{symbol}:{side}/{section}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "stats1/{key}:{size}:{symbol}:{side}/last", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "stats1/{key}:{size}:{symbol}:{side}/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "stats1/{key}:{size}:{symbol}/{section}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "stats1/{key}:{size}:{symbol}/last", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "stats1/{key}:{size}:{symbol}/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "stats1/{key}:{size}:{symbol}:long/last", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "stats1/{key}:{size}:{symbol}:long/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "stats1/{key}:{size}:{symbol}:short/last", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "stats1/{key}:{size}:{symbol}:short/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "candles/trade:{timeframe}:{symbol}:{period}/{section}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "candles/trade:{timeframe}:{symbol}/{section}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "candles/trade:{timeframe}:{symbol}/last", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "candles/trade:{timeframe}:{symbol}/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "status/{type}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "status/deriv", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "status/deriv/{symbol}/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "liquidations/hist", new Dictionary<string, object>() {
+                            { "cost", 80 },
+                        } },
+                        { "rankings/{key}:{timeframe}:{symbol}/{section}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "rankings/{key}:{timeframe}:{symbol}/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "pulse/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "pulse/profile/{nickname}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "funding/stats/{symbol}/hist", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "ext/vasps", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "calc/trade/avg", 2.7 },
-                        { "calc/fx", 2.7 },
+                        { "calc/trade/avg", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "calc/fx", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "auth/r/wallets", 2.7 },
-                        { "auth/r/wallets/hist", 2.7 },
-                        { "auth/r/orders", 2.7 },
-                        { "auth/r/orders/{symbol}", 2.7 },
-                        { "auth/w/order/submit", 2.7 },
-                        { "auth/w/order/update", 2.7 },
-                        { "auth/w/order/cancel", 2.7 },
-                        { "auth/w/order/multi", 2.7 },
-                        { "auth/w/order/cancel/multi", 2.7 },
-                        { "auth/r/orders/{symbol}/hist", 2.7 },
-                        { "auth/r/orders/hist", 2.7 },
-                        { "auth/r/order/{symbol}:{id}/trades", 2.7 },
-                        { "auth/r/trades/{symbol}/hist", 2.7 },
-                        { "auth/r/trades/hist", 2.7 },
-                        { "auth/r/ledgers/{currency}/hist", 2.7 },
-                        { "auth/r/ledgers/hist", 2.7 },
-                        { "auth/r/info/margin/{key}", 2.7 },
-                        { "auth/r/info/margin/base", 2.7 },
-                        { "auth/r/info/margin/sym_all", 2.7 },
-                        { "auth/r/positions", 2.7 },
-                        { "auth/w/position/claim", 2.7 },
-                        { "auth/w/position/increase:", 2.7 },
-                        { "auth/r/position/increase/info", 2.7 },
-                        { "auth/r/positions/hist", 2.7 },
-                        { "auth/r/positions/audit", 2.7 },
-                        { "auth/r/positions/snap", 2.7 },
-                        { "auth/w/deriv/collateral/set", 2.7 },
-                        { "auth/w/deriv/collateral/limits", 2.7 },
-                        { "auth/r/funding/offers", 2.7 },
-                        { "auth/r/funding/offers/{symbol}", 2.7 },
-                        { "auth/w/funding/offer/submit", 2.7 },
-                        { "auth/w/funding/offer/cancel", 2.7 },
-                        { "auth/w/funding/offer/cancel/all", 2.7 },
-                        { "auth/w/funding/close", 2.7 },
-                        { "auth/w/funding/auto", 2.7 },
-                        { "auth/w/funding/keep", 2.7 },
-                        { "auth/r/funding/offers/{symbol}/hist", 2.7 },
-                        { "auth/r/funding/offers/hist", 2.7 },
-                        { "auth/r/funding/loans", 2.7 },
-                        { "auth/r/funding/loans/hist", 2.7 },
-                        { "auth/r/funding/loans/{symbol}", 2.7 },
-                        { "auth/r/funding/loans/{symbol}/hist", 2.7 },
-                        { "auth/r/funding/credits", 2.7 },
-                        { "auth/r/funding/credits/hist", 2.7 },
-                        { "auth/r/funding/credits/{symbol}", 2.7 },
-                        { "auth/r/funding/credits/{symbol}/hist", 2.7 },
-                        { "auth/r/funding/trades/{symbol}/hist", 2.7 },
-                        { "auth/r/funding/trades/hist", 2.7 },
-                        { "auth/r/info/funding/{key}", 2.7 },
-                        { "auth/r/info/user", 2.7 },
-                        { "auth/r/summary", 2.7 },
-                        { "auth/r/logins/hist", 2.7 },
-                        { "auth/r/permissions", 2.7 },
-                        { "auth/w/token", 2.7 },
-                        { "auth/r/audit/hist", 2.7 },
-                        { "auth/w/transfer", 2.7 },
-                        { "auth/w/deposit/address", 24 },
-                        { "auth/w/deposit/invoice", 24 },
-                        { "auth/w/withdraw", 24 },
-                        { "auth/r/movements/{currency}/hist", 2.7 },
-                        { "auth/r/movements/hist", 2.7 },
-                        { "auth/r/alerts", 5.34 },
-                        { "auth/w/alert/set", 2.7 },
-                        { "auth/w/alert/price:{symbol}:{price}/del", 2.7 },
-                        { "auth/w/alert/{type}:{symbol}:{price}/del", 2.7 },
-                        { "auth/calc/order/avail", 2.7 },
-                        { "auth/w/settings/set", 2.7 },
-                        { "auth/r/settings", 2.7 },
-                        { "auth/w/settings/del", 2.7 },
-                        { "auth/r/pulse/hist", 2.7 },
-                        { "auth/w/pulse/add", 16 },
-                        { "auth/w/pulse/del", 2.7 },
+                        { "auth/r/wallets", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/wallets/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/orders", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/orders/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/order/submit", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/order/update", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/order/cancel", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/order/multi", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/order/cancel/multi", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/orders/{symbol}/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/orders/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/order/{symbol}:{id}/trades", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/trades/{symbol}/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/trades/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/ledgers/{currency}/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/ledgers/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/info/margin/{key}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/info/margin/base", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/info/margin/sym_all", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/positions", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/position/claim", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/position/increase:", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/position/increase/info", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/positions/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/positions/audit", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/positions/snap", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/deriv/collateral/set", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/deriv/collateral/limits", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/funding/offers", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/funding/offers/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/funding/offer/submit", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/funding/offer/cancel", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/funding/offer/cancel/all", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/funding/close", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/funding/auto", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/funding/keep", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/funding/offers/{symbol}/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/funding/offers/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/funding/loans", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/funding/loans/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/funding/loans/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/funding/loans/{symbol}/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/funding/credits", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/funding/credits/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/funding/credits/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/funding/credits/{symbol}/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/funding/trades/{symbol}/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/funding/trades/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/info/funding/{key}", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/info/user", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/summary", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/logins/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/permissions", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/token", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/audit/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/transfer", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/deposit/address", new Dictionary<string, object>() {
+                            { "cost", 24 },
+                        } },
+                        { "auth/w/deposit/invoice", new Dictionary<string, object>() {
+                            { "cost", 24 },
+                        } },
+                        { "auth/w/withdraw", new Dictionary<string, object>() {
+                            { "cost", 24 },
+                        } },
+                        { "auth/r/movements/{currency}/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/movements/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/alerts", new Dictionary<string, object>() {
+                            { "cost", 5.34 },
+                        } },
+                        { "auth/w/alert/set", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/alert/price:{symbol}:{price}/del", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/alert/{type}:{symbol}:{price}/del", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/calc/order/avail", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/settings/set", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/settings", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/settings/del", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/pulse/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/pulse/add", new Dictionary<string, object>() {
+                            { "cost", 16 },
+                        } },
+                        { "auth/w/pulse/del", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
                     } },
                 } },
             } },
@@ -578,11 +854,11 @@ public partial class bitfinex : Exchange
         object request = new Dictionary<string, object>() {
             { "config", config },
         };
-        var spotMarketsInfofuturesMarketsInfosecuritiesMarketsIdsmarginIdsVariable = await this.publicGetConfConfig(this.extend(request, parameters));
-        var spotMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfosecuritiesMarketsIdsmarginIdsVariable)[0];
-        var futuresMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfosecuritiesMarketsIdsmarginIdsVariable)[1];
-        var securitiesMarketsIds = ((IList<object>) spotMarketsInfofuturesMarketsInfosecuritiesMarketsIdsmarginIdsVariable)[2];
-        var marginIds = ((IList<object>) spotMarketsInfofuturesMarketsInfosecuritiesMarketsIdsmarginIdsVariable)[3];
+        object response = await this.publicGetConfConfig(this.extend(request, parameters));
+        object spotMarketsInfo = this.safeList(response, 0, new List<object>() {});
+        object futuresMarketsInfo = this.safeList(response, 1, new List<object>() {});
+        object securitiesMarketsIds = this.safeList(response, 2, new List<object>() {});
+        object marginIds = this.safeList(response, 3, new List<object>() {});
         object markets = this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
@@ -943,12 +1219,13 @@ public partial class bitfinex : Exchange
         object isDerivative = isEqual(requestedType, "derivatives");
         object query = this.omit(parameters, "type");
         object response = await this.privatePostAuthRWallets(query);
+        object balances = this.toArray(response);
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
-            object balance = getValue(response, i);
+            object balance = getValue(balances, i);
             object account = this.account();
             object interest = this.safeString(balance, 3);
             if (isTrue(!isEqual(interest, "0")))
@@ -1180,9 +1457,10 @@ public partial class bitfinex : Exchange
             { "nonce", null },
         };
         object priceIndex = ((bool) isTrue((isEqual(getValue(fullRequest, "precision"), "R0")))) ? 1 : 0;
-        for (object i = 0; isLessThan(i, getArrayLength(orderbook)); postFixIncrement(ref i))
+        object orders = this.toArray(orderbook);
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object order = getValue(orderbook, i);
+            object order = getValue(orders, i);
             object price = this.safeNumber(order, priceIndex);
             object signedAmount = this.safeString(order, 2);
             object amount = Precise.stringAbs(signedAmount);
@@ -1545,7 +1823,8 @@ public partial class bitfinex : Exchange
         //         ]
         //     ]
         //
-        object trades = this.sortBy(response, 1);
+        object rawTrades = this.toArray(response);
+        object trades = this.sortBy(rawTrades, 1);
         object tradesList = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
         {
@@ -1616,7 +1895,7 @@ public partial class bitfinex : Exchange
         //         [1591504620000,0.025062,0.025062,0.025062,0.025062,0.5],
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1953,9 +2232,9 @@ public partial class bitfinex : Exchange
         object status = this.safeString(response, 6);
         if (isTrue(!isEqual(status, "SUCCESS")))
         {
-            object errorCode = getValue(response, 5);
-            object errorText = getValue(response, 7);
-            throw new ExchangeError ((string)add(add(add(add(add(add(add(this.id, " "), getValue(response, 6)), ": "), errorText), " (#"), errorCode), ")")) ;
+            object errorCode = this.safeString(response, 5);
+            object errorText = this.safeString(response, 7);
+            throw new ExchangeError ((string)add(add(add(add(add(add(add(this.id, " "), status), ": "), errorText), " (#"), errorCode), ")")) ;
         }
         object orders = this.safeList(response, 4, new List<object>() {});
         object order = this.safeList(orders, 0);
@@ -2473,11 +2752,12 @@ public partial class bitfinex : Exchange
         };
         // valid for trades up to 10 days old
         object response = await this.privatePostAuthROrderSymbolIdTrades(this.extend(request, parameters));
+        object rawTrades = this.toArray(response);
         object tradesList = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
         {
             ((IList<object>)tradesList).Add(new Dictionary<string, object>() {
-                { "result", getValue(response, i) },
+                { "result", getValue(rawTrades, i) },
             }); // convert to array of dicts to match parseOrder signature
         }
         return this.parseTrades(tradesList, market, since, limit);
@@ -2948,10 +3228,12 @@ public partial class bitfinex : Exchange
         {
             currency = this.currency(code);
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
-            response = await this.privatePostAuthRMovementsCurrencyHist(this.extend(request, parameters));
+            object currencyMovements = await this.privatePostAuthRMovementsCurrencyHist(this.extend(request, parameters));
+            response = this.toArray(currencyMovements);
         } else
         {
-            response = await this.privatePostAuthRMovementsHist(this.extend(request, parameters));
+            object movements = await this.privatePostAuthRMovementsHist(this.extend(request, parameters));
+            response = this.toArray(movements);
         }
         //
         //     [
@@ -3134,11 +3416,12 @@ public partial class bitfinex : Exchange
         //         ]
         //     ]
         //
+        object rawPositions = this.toArray(response);
         object positionsList = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
             ((IList<object>)positionsList).Add(new Dictionary<string, object>() {
-                { "result", getValue(response, i) },
+                { "result", getValue(rawPositions, i) },
             });
         }
         return this.parsePositions(positionsList, symbols);
@@ -3590,10 +3873,11 @@ public partial class bitfinex : Exchange
         //       ]
         //   ]
         //
+        object rawRatesData = this.toArray(response);
         object rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(rawRatesData)); postFixIncrement(ref i))
         {
-            object fr = getValue(response, i);
+            object fr = getValue(rawRatesData, i);
             object rate = this.parseFundingRateHistory(fr, market);
             ((IList<object>)rates).Add(rate);
         }
@@ -4044,7 +4328,7 @@ public partial class bitfinex : Exchange
         //         ],
         //     ]
         //
-        return this.parseLiquidations(response, market, since, limit);
+        return this.parseLiquidations(this.toArray(response), market, since, limit);
     }
 
     public override object parseLiquidation(object liquidation, object market = null)
@@ -4366,9 +4650,9 @@ public partial class bitfinex : Exchange
         object status = this.safeString(response, 6);
         if (isTrue(!isEqual(status, "SUCCESS")))
         {
-            object errorCode = getValue(response, 5);
-            object errorText = getValue(response, 7);
-            throw new ExchangeError ((string)add(add(add(add(add(add(add(this.id, " "), getValue(response, 6)), ": "), errorText), " (#"), errorCode), ")")) ;
+            object errorCode = this.safeString(response, 5);
+            object errorText = this.safeString(response, 7);
+            throw new ExchangeError ((string)add(add(add(add(add(add(add(this.id, " "), status), ": "), errorText), " (#"), errorCode), ")")) ;
         }
         object order = this.safeList(response, 4, new List<object>() {});
         object newOrder = new Dictionary<string, object>() {

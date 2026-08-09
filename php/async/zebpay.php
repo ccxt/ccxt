@@ -65,10 +65,13 @@ class zebpay extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
                 'fetchPositions' => true,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
+                'fetchTradingFees' => true,
                 'reduceMargin' => true,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
@@ -104,72 +107,72 @@ class zebpay extends Exchange {
                 'public' => array(
                     'spot' => array(
                         'get' => array(
-                            'v2/system/time' => 10,
-                            'v2/system/status' => 10,
-                            'v2/market/orderbook' => 10,
-                            'v2/market/trades' => 10,
-                            'v2/market/ticker' => 10,
-                            'v2/market/allTickers' => 10,
-                            'v2/ex/exchangeInfo' => 10,
-                            'v2/ex/currencies' => 10,
-                            'v2/market/klines' => 10,
-                            'v2/ex/tradefees' => 10,
+                            'v2/system/time' => array( 'cost' => 10 ),
+                            'v2/system/status' => array( 'cost' => 10 ),
+                            'v2/market/orderbook' => array( 'cost' => 10 ),
+                            'v2/market/trades' => array( 'cost' => 10 ),
+                            'v2/market/ticker' => array( 'cost' => 10 ),
+                            'v2/market/allTickers' => array( 'cost' => 10 ),
+                            'v2/ex/exchangeInfo' => array( 'cost' => 10 ),
+                            'v2/ex/currencies' => array( 'cost' => 10 ),
+                            'v2/market/klines' => array( 'cost' => 10 ),
+                            'v2/ex/tradefees' => array( 'cost' => 10 ),
                         ),
                     ),
                     'swap' => array(
                         'get' => array(
-                            'v1/system/time' => 10,
-                            'v1/system/status' => 10,
-                            'v1/exchange/tradefee' => 10,
-                            'v1/exchange/tradefees' => 10,
-                            'v1/market/orderBook' => 10,
-                            'v1/market/ticker24Hr' => 10,
-                            'v1/market/markets' => 10,
-                            'v1/market/aggTrade' => 10,
+                            'v1/system/time' => array( 'cost' => 10 ),
+                            'v1/system/status' => array( 'cost' => 10 ),
+                            'v1/exchange/tradefee' => array( 'cost' => 10 ),
+                            'v1/exchange/tradefees' => array( 'cost' => 10 ),
+                            'v1/market/orderBook' => array( 'cost' => 10 ),
+                            'v1/market/ticker24Hr' => array( 'cost' => 10 ),
+                            'v1/market/markets' => array( 'cost' => 10 ),
+                            'v1/market/aggTrade' => array( 'cost' => 10 ),
                         ),
                         'post' => array(
-                            'v1/market/klines' => 10,
+                            'v1/market/klines' => array( 'cost' => 10 ),
                         ),
                     ),
                 ),
                 'private' => array(
                     'spot' => array(
                         'post' => array(
-                            'v2/ex/orders' => 10,
+                            'v2/ex/orders' => array( 'cost' => 10 ),
                         ),
                         'get' => array(
-                            'v2/ex/orders' => 10,
-                            'v2/account/balance' => 10,
-                            'v2/ex/tradefee' => 10,
-                            'v2/ex/order' => 10,
-                            'v2/ex/order/fills' => 10,
+                            'v2/ex/orders' => array( 'cost' => 10 ),
+                            'v2/account/balance' => array( 'cost' => 10 ),
+                            'v2/ex/tradefee' => array( 'cost' => 10 ),
+                            'v2/ex/order' => array( 'cost' => 10 ),
+                            'v2/ex/order/fills' => array( 'cost' => 10 ),
                         ),
                         'delete' => array(
-                            'v2/ex/order' => 10,
-                            'v2/ex/orders' => 10,
-                            'v2/ex/orders/cancelAll' => 10,
+                            'v2/ex/order' => array( 'cost' => 10 ),
+                            'v2/ex/orders' => array( 'cost' => 10 ),
+                            'v2/ex/orders/cancelAll' => array( 'cost' => 10 ),
                         ),
                     ),
                     'swap' => array(
                         'get' => array(
-                            'v1/wallet/balance' => 10,
-                            'v1/trade/order' => 10,
-                            'v1/trade/order/open-orders' => 10,
-                            'v1/trade/userLeverages' => 10,
-                            'v1/trade/userLeverage' => 10,
-                            'v1/trade/positions' => 10,
-                            'v1/trade/history' => 10,
+                            'v1/wallet/balance' => array( 'cost' => 10 ),
+                            'v1/trade/order' => array( 'cost' => 10 ),
+                            'v1/trade/order/open-orders' => array( 'cost' => 10 ),
+                            'v1/trade/userLeverages' => array( 'cost' => 10 ),
+                            'v1/trade/userLeverage' => array( 'cost' => 10 ),
+                            'v1/trade/positions' => array( 'cost' => 10 ),
+                            'v1/trade/history' => array( 'cost' => 10 ),
                         ),
                         'post' => array(
-                            'v1/trade/order' => 10,
-                            'v1/trade/order/addTPSL' => 10,
-                            'v1/trade/addMargin' => 10,
-                            'v1/trade/reduceMargin' => 10,
-                            'v1/trade/position/close' => 10,
-                            'v1/trade/update/userLeverage' => 10,
+                            'v1/trade/order' => array( 'cost' => 10 ),
+                            'v1/trade/order/addTPSL' => array( 'cost' => 10 ),
+                            'v1/trade/addMargin' => array( 'cost' => 10 ),
+                            'v1/trade/reduceMargin' => array( 'cost' => 10 ),
+                            'v1/trade/position/close' => array( 'cost' => 10 ),
+                            'v1/trade/update/userLeverage' => array( 'cost' => 10 ),
                         ),
                         'delete' => array(
-                            'v1/trade/order' => 10,
+                            'v1/trade/order' => array( 'cost' => 10 ),
                         ),
                     ),
                 ),
@@ -220,167 +223,175 @@ class zebpay extends Exchange {
         ));
     }
 
-    public function fetch_status($params = array()) {
-        return Async\async(function () use ($params) {
-            /**
-             * the latest known information on the availability of the exchange API
-             *
-             * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#system-$status
-             * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-$status
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
-             */
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('fetchStatus', null, $params);
-            $isSpot = ($type === 'spot');
-            $response = null;
-            $data = array();
-            if ($isSpot) {
-                $response = Async\await($this->publicSpotGetV2SystemStatus($params));
-                $data = $response;
-            } else {
-                $response = Async\await($this->publicSwapGetV1SystemStatus($params));
-                $data = $this->safe_dict($response, 'data', array());
-            }
-            //
-            // {
-            //     "statusDescription" => "OK",
-            //     "data":
-            //      {
-            //        "systemStatus" => "ok"
-            //       }
-            //     "statusCode" => 200,
-            //     "customMessage" => ["OK"]
-            // }
-            //
-            $status = $this->safe_string_2($data, 'systemStatus', 'status');
-            return array(
-                'status' => $status,
-                'updated' => null,
-                'eta' => null,
-                'url' => null,
-                'info' => $response,
-            );
-        })();
+    public function fetch_status($params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_status(...))($params);
+    }
+
+    private function do_fetch_status($params = array()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         *
+         * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#system-$status
+         * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-$status
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
+         */
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchStatus', null, $params);
+        $isSpot = ($type === 'spot');
+        $response = null;
+        $data = array();
+        if ($isSpot) {
+            $response = Async\await($this->publicSpotGetV2SystemStatus($params));
+            $data = $response;
+        } else {
+            $response = Async\await($this->publicSwapGetV1SystemStatus($params));
+            $data = $this->safe_dict($response, 'data', array());
+        }
+        //
+        // {
+        //     "statusDescription" => "OK",
+        //     "data":
+        //      {
+        //        "systemStatus" => "ok"
+        //       }
+        //     "statusCode" => 200,
+        //     "customMessage" => ["OK"]
+        // }
+        //
+        $status = $this->safe_string_2($data, 'systemStatus', 'status');
+        return array(
+            'status' => $status,
+            'updated' => null,
+            'eta' => null,
+            'url' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_time($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches the current integer timestamp in milliseconds from the poloniexfutures server
-             *
-             * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-server-$time
-             * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-$time
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int} the current integer timestamp in milliseconds from the poloniexfutures server
-             */
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('fetchTime', null, $params);
-            $isSpot = ($type === 'spot');
-            $response = null;
-            $data = array();
-            if ($isSpot) {
-                $response = Async\await($this->publicSpotGetV2SystemTime($params));
-                $data = $response;
-            } else {
-                $response = Async\await($this->publicSwapGetV1SystemTime($params));
-                $data = $this->safe_dict($response, 'data', array());
-            }
-            //
-            // {
-            //     "statusDescription" => "OK",
-            //     "data":
-            //      {
-            //        "timestamp" => 1546837113087
-            //      }
-            //     "statusCode" => 200,
-            //     "customMessage" => ["OK"]
-            // }
-            //
-            $time = $this->safe_integer($data, 'timestamp');
-            return $time;
-        })();
+        return Async\async(self::do_fetch_time(...))($params);
+    }
+
+    private function do_fetch_time($params = array()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the poloniexfutures server
+         *
+         * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-server-$time
+         * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-$time
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int} the current integer timestamp in milliseconds from the poloniexfutures server
+         */
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchTime', null, $params);
+        $isSpot = ($type === 'spot');
+        $response = null;
+        $data = array();
+        if ($isSpot) {
+            $response = Async\await($this->publicSpotGetV2SystemTime($params));
+            $data = $response;
+        } else {
+            $response = Async\await($this->publicSwapGetV1SystemTime($params));
+            $data = $this->safe_dict($response, 'data', array());
+        }
+        //
+        // {
+        //     "statusDescription" => "OK",
+        //     "data":
+        //      {
+        //        "timestamp" => 1546837113087
+        //      }
+        //     "statusCode" => 200,
+        //     "customMessage" => ["OK"]
+        // }
+        //
+        $time = $this->safe_integer($data, 'timestamp');
+        return $time;
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * retrieves data on all markets for zebpay
-             *
-             * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
-             * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} an array of objects representing market data
-             */
-            $promisesUnresolved = array();
-            $fetchMarketsOptions = $this->safe_dict($this->options, 'fetchMarkets');
-            $defaultMarkets = array( 'spot', 'swap' );
-            $types = $this->safe_list($fetchMarketsOptions, 'types', $defaultMarkets);
-            for ($i = 0; $i < count($types); $i++) {
-                $type = $types[$i];
-                if ($type === 'spot') {
-                    $promisesUnresolved[] = $this->fetch_spot_markets($params);
-                } elseif ($type === 'swap') {
-                    $promisesUnresolved[] = $this->fetch_swap_markets($params);
-                } else {
-                    throw new ExchangeError($this->id . ' fetchMarkets() $this->options fetchMarkets "' . $type . '" is not a supported market type');
-                }
+        return Async\async(self::do_fetch_markets(...))($params);
+    }
+
+    private function do_fetch_markets($params = array()) {
+        /**
+         * retrieves data on all markets for zebpay
+         *
+         * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
+         * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing market data
+         */
+        $promisesUnresolved = array();
+        $fetchMarketsOptions = $this->safe_dict($this->options, 'fetchMarkets');
+        $defaultMarkets = array( 'spot', 'swap' );
+        $types = $this->safe_list($fetchMarketsOptions, 'types', $defaultMarkets);
+        for ($i = 0; $i < count($types); $i++) {
+            $type = $types[$i];
+            if ($type === 'spot') {
+                $promisesUnresolved[] = $this->fetch_spot_markets($params);
+            } elseif ($type === 'swap') {
+                $promisesUnresolved[] = $this->fetch_swap_markets($params);
+            } else {
+                throw new ExchangeError($this->id . ' fetchMarkets() $this->options fetchMarkets "' . $type . '" is not a supported market type');
             }
-            $promises = Async\await(Promise\all($promisesUnresolved));
-            $spotMarkets = $this->safe_list($promises, 0, array());
-            $futureMarkets = $this->safe_list($promises, 1, array());
-            return $this->array_concat($spotMarkets, $futureMarkets);
-        })();
+        }
+        $promises = Async\await(Promise\all($promisesUnresolved));
+        $spotMarkets = $this->safe_list($promises, 0, array());
+        $futureMarkets = $this->safe_list($promises, 1, array());
+        return $this->array_concat($spotMarkets, $futureMarkets);
     }
 
     public function fetch_currencies($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches all available currencies on an exchange
-             *
-             * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-coin-settings
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an associative dictionary of currencies
-             */
-            $response = Async\await($this->publicSpotGetV2ExCurrencies($params));
-            //
-            //     {
-            //             "data" => array(
-            //                 {
-            //                     "currency" => "BTC",
-            //                     "name" => "BTC",
-            //                     "fullName" => "150",
-            //                     "precision" => "0.2",
-            //                     "type" => "fiat",
-            //                     "isDebitEnabled" => false,
-            //                     "chains" => array(
-            //                         {
-            //                             "chainName" => "Bitcoin",
-            //                             "withdrawalMinSize" => "0.000482",
-            //                             "depositMinSize" => "0.00000001",
-            //                             "withdrawalFee" => "0.00040000",
-            //                             "isWithdrawEnabled" => "true",
-            //                             "isDepositEnabled" => "true",
-            //                             "contractAddress" => "0x095418A82BC2439703b69fbE1210824F2247D77c",
-            //                             "withdrawPrecision" => "8",
-            //                             "maxWithdraw" => "2.43090487000000",
-            //                             "maxDeposit" => "100.00000000",
-            //                             "needTag" => "false",
-            //                             "chainId" => "bitcoin",
-            //                             "AddressRegex" => "^tb1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]array(39,59)|m[a-zA-Z0-9]array(25,34)|n[a-zA-Z0-9]array(25,34)|^2[a-zA-Z0-9]array(25,34)$"
-            //                          }
-            //                     )
-            //                 }
-            //             )
-            //     }
-            //
-            $rows = $this->safe_list($response, 'data', array());
-            return $this->parse_currencies($rows);
-        })();
+        return Async\async(self::do_fetch_currencies(...))($params);
+    }
+
+    private function do_fetch_currencies($params = array()) {
+        /**
+         * fetches all available currencies on an exchange
+         *
+         * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-coin-settings
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an associative dictionary of currencies
+         */
+        $response = Async\await($this->publicSpotGetV2ExCurrencies($params));
+        //
+        //     {
+        //             "data" => array(
+        //                 {
+        //                     "currency" => "BTC",
+        //                     "name" => "BTC",
+        //                     "fullName" => "150",
+        //                     "precision" => "0.2",
+        //                     "type" => "fiat",
+        //                     "isDebitEnabled" => false,
+        //                     "chains" => array(
+        //                         {
+        //                             "chainName" => "Bitcoin",
+        //                             "withdrawalMinSize" => "0.000482",
+        //                             "depositMinSize" => "0.00000001",
+        //                             "withdrawalFee" => "0.00040000",
+        //                             "isWithdrawEnabled" => "true",
+        //                             "isDepositEnabled" => "true",
+        //                             "contractAddress" => "0x095418A82BC2439703b69fbE1210824F2247D77c",
+        //                             "withdrawPrecision" => "8",
+        //                             "maxWithdraw" => "2.43090487000000",
+        //                             "maxDeposit" => "100.00000000",
+        //                             "needTag" => "false",
+        //                             "chainId" => "bitcoin",
+        //                             "AddressRegex" => "^tb1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]array(39,59)|m[a-zA-Z0-9]array(25,34)|n[a-zA-Z0-9]array(25,34)|^2[a-zA-Z0-9]array(25,34)$"
+        //                          }
+        //                     )
+        //                 }
+        //             )
+        //     }
+        //
+        $rows = $this->safe_list($response, 'data', array());
+        return $this->parse_currencies($rows);
     }
 
     public function parse_currency(array $rawCurrency): array {
@@ -467,228 +478,190 @@ class zebpay extends Exchange {
     }
 
     public function fetch_trading_fee(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetch the trading fees for a $market
-             *
-             * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-exchange-fee
-             * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fee-single-$symbol
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {array} [$params->side] side to fetch trading fee
-             * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $response = null;
-            $data;
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            if ($market['spot']) {
-                $response = Async\await($this->privateSpotGetV2ExTradefee($this->extend($request, $params)));
-                //
-                // {
-                //     "statusDescription" => "Success",
-                //     "data":
-                //       {
-                //         "symbol" => "BTCINR",
-                //         "takerFeeRate" => "0.01",
-                //         "makerFeeRate" => "0.05",
-                //         "percentage" => true
-                //       } ,
-                //     "statusCode" => 200,
-                // }
-                $data = $this->safe_dict($response, 'data', array());
-            } else {
-                $response = Async\await($this->publicSwapGetV1ExchangeTradefee($this->extend($request, $params)));
-                //
-                // {
-                //     "statusDescription" => "OK",
-                //     "data":
-                //     array(
-                //       {
-                //         "symbol" => "BTCINR",
-                //         "takerFee" => "0.01",
-                //         "makerFee" => "0.05"
-                //       }
-                //     ) ,
-                //     "statusCode" => 200,
-                //     "customMessage" => ["OK"]
-                // }
-                //
-                $responseData = $this->safe_list($response, 'data', array());
-                $data = $this->safe_dict($responseData, 0, array());
-            }
-            return $this->parse_trading_fee($data, $market);
-        })();
+        return Async\async(self::do_fetch_trading_fee(...))($symbol, $params);
     }
 
-    public function fetch_trading_fees($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetch the trading $fees for multiple markets
-             *
-             * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-$fees-all-symbols
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
-             */
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
-            $response = null;
-            if ($type === 'spot') {
-                $response = Async\await($this->publicSpotGetV2ExTradefees($params));
-            } else {
-                $response = Async\await($this->publicSwapGetV1ExchangeTradefees($params));
-            }
+    private function do_fetch_trading_fee(string $symbol, $params = array()) {
+        /**
+         * fetch the trading fees for a $market
+         *
+         * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-exchange-fee
+         * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fee-single-$symbol
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {array} [$params->side] side to fetch trading fee
+         * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $response = null;
+        $data;
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($market['spot']) {
+            $response = Async\await($this->privateSpotGetV2ExTradefee($this->extend($request, $params)));
+            //
+            // {
+            //     "statusDescription" => "Success",
+            //     "data":
+            //       {
+            //         "symbol" => "BTCINR",
+            //         "takerFeeRate" => "0.01",
+            //         "makerFeeRate" => "0.05",
+            //         "percentage" => true
+            //       } ,
+            //     "statusCode" => 200,
+            // }
+            $data = $this->safe_dict($response, 'data', array());
+        } else {
+            $response = Async\await($this->publicSwapGetV1ExchangeTradefee($this->extend($request, $params)));
             //
             // {
             //     "statusDescription" => "OK",
-            //     "data" => array(
-            //         {
-            //             "symbol" => "BTCINR",
-            //             "takerFee" => "0.01",
-            //             "makerFee" => "0.05"
-            //         }
-            //     ),
+            //     "data":
+            //     array(
+            //       {
+            //         "symbol" => "BTCINR",
+            //         "takerFee" => "0.01",
+            //         "makerFee" => "0.05"
+            //       }
+            //     ) ,
             //     "statusCode" => 200,
             //     "customMessage" => ["OK"]
             // }
             //
-            $fees = $this->safe_list($response, 'data', array());
-            $result = array();
-            for ($i = 0; $i < count($fees); $i++) {
-                $fee = $this->parse_trading_fee($fees[$i]);
-                $symbol = $fee['symbol'];
-                if ($symbol !== null) {
-                    $result[$symbol] = $fee;
-                }
+            $responseData = $this->safe_list($response, 'data', array());
+            $data = $this->safe_dict($responseData, 0, array());
+        }
+        return $this->parse_trading_fee($data, $market);
+    }
+
+    public function fetch_trading_fees($params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_trading_fees(...))($params);
+    }
+
+    private function do_fetch_trading_fees($params = array()) {
+        /**
+         * fetch the trading $fees for multiple markets
+         *
+         * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-$fees-all-symbols
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
+         */
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
+        $response = null;
+        if ($type === 'spot') {
+            $response = Async\await($this->publicSpotGetV2ExTradefees($params));
+        } else {
+            $response = Async\await($this->publicSwapGetV1ExchangeTradefees($params));
+        }
+        //
+        // {
+        //     "statusDescription" => "OK",
+        //     "data" => array(
+        //         {
+        //             "symbol" => "BTCINR",
+        //             "takerFee" => "0.01",
+        //             "makerFee" => "0.05"
+        //         }
+        //     ),
+        //     "statusCode" => 200,
+        //     "customMessage" => ["OK"]
+        // }
+        //
+        $fees = $this->safe_list($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($fees); $i++) {
+            $fee = $this->parse_trading_fee($fees[$i]);
+            $symbol = $fee['symbol'];
+            if ($symbol !== null) {
+                $result[$symbol] = $fee;
             }
-            return $result;
-        })();
+        }
+        return $result;
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-order-book
-             * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market->md#get-order-book
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_fetch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_fetch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-order-book
+         * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market->md#get-order-book
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = null;
+        if ($market['spot']) {
+            if ($limit !== null) {
+                $request['limit'] = $limit;
             }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = null;
-            if ($market['spot']) {
-                if ($limit !== null) {
-                    $request['limit'] = $limit;
-                }
-                //
-                //       {
-                //         "asks" => array(
-                //                 [5000, 1000],           //Price, quantity
-                //                 [6000, 1983]            //Price, quantity
-                //         ),
-                //         "bids" => array(
-                //                 [3200, 800],            //Price, quantity
-                //                 [3100, 100]             //Price, quantity
-                //         ),
-                //       }
-                // }
-                $response = Async\await($this->publicSpotGetV2MarketOrderbook($this->extend($request, $params)));
-            } else {
-                $response = Async\await($this->publicSwapGetV1MarketOrderBook($this->extend($request, $params)));
-            }
-            $bookData = $this->safe_dict($response, 'data', array());
-            $orderbook = $this->parse_order_book($bookData, $market['symbol'], null, 'bids', 'asks', 0, 1);
-            $orderbook['nonce'] = $this->safe_integer($bookData, 'nonce');
-            return $orderbook;
-        })();
+            //
+            //       {
+            //         "asks" => array(
+            //                 [5000, 1000],           //Price, quantity
+            //                 [6000, 1983]            //Price, quantity
+            //         ),
+            //         "bids" => array(
+            //                 [3200, 800],            //Price, quantity
+            //                 [3100, 100]             //Price, quantity
+            //         ),
+            //       }
+            // }
+            $response = Async\await($this->publicSpotGetV2MarketOrderbook($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->publicSwapGetV1MarketOrderBook($this->extend($request, $params)));
+        }
+        $bookData = $this->safe_dict($response, 'data', array());
+        $orderbook = $this->parse_order_book($bookData, $market['symbol'], null, 'bids', 'asks', 0, 1);
+        $orderbook['nonce'] = $this->safe_integer($bookData, 'nonce');
+        return $orderbook;
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             *
-             * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-ticker
-             * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market->md#get-24hr-ticker
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = null;
-            if ($market['spot']) {
-                $response = Async\await($this->publicSpotGetV2MarketTicker($this->extend($request, $params)));
-                //
-                //     array(
-                //        {
-                //            "symbol" => "BTC-INR",
-                //            "bestBid" => "4900000",
-                //            "bestBidQty" => "0.00014938",
-                //            "bestAsk" => "",
-                //            "bestAskQty" => "0",
-                //            "priceChange" => "-98134.56",
-                //            "priceChangePercent" => "-1.84",
-                //            "high" => "5433400",
-                //            "low" => "5333400",
-                //            "vol" => "0.0002",
-                //            "volValue" => "1066.68",
-                //            "last" => "5333400"
-                //        }
-                //     )
-                //
-            } else {
-                $response = Async\await($this->publicSwapGetV1MarketTicker24Hr($this->extend($request, $params)));
-            }
-            $data = $this->safe_dict($response, 'data', array());
-            return $this->parse_ticker($data, $market);
-        })();
+        return Async\async(self::do_fetch_ticker(...))($symbol, $params);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-             *
-             * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-all-tickers
-             *
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
-             */
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
-            if ($type !== 'spot') {
-                throw new NotSupported($this->id . ' fetchTickers() does not support ' . $type . ' markets');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->publicSpotGetV2MarketAllTickers($params));
+    private function do_fetch_ticker(string $symbol, $params = array()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-ticker
+         * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market->md#get-24hr-ticker
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = null;
+        if ($market['spot']) {
+            $response = Async\await($this->publicSpotGetV2MarketTicker($this->extend($request, $params)));
             //
             //     array(
             //        {
@@ -707,230 +680,286 @@ class zebpay extends Exchange {
             //        }
             //     )
             //
-            $tickerList = $this->safe_list($response, 'data', array());
-            return $this->parse_tickers($tickerList, $symbols);
-        })();
+        } else {
+            $response = Async\await($this->publicSwapGetV1MarketTicker24Hr($this->extend($request, $params)));
+        }
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_ticker($data, $market);
+    }
+
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_tickers(...))($symbols, $params);
+    }
+
+    private function do_fetch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         *
+         * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-all-tickers
+         *
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         */
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+        if ($type !== 'spot') {
+            throw new NotSupported($this->id . ' fetchTickers() does not support ' . $type . ' markets');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $response = Async\await($this->publicSpotGetV2MarketAllTickers($params));
+        //
+        //     array(
+        //        {
+        //            "symbol" => "BTC-INR",
+        //            "bestBid" => "4900000",
+        //            "bestBidQty" => "0.00014938",
+        //            "bestAsk" => "",
+        //            "bestAskQty" => "0",
+        //            "priceChange" => "-98134.56",
+        //            "priceChangePercent" => "-1.84",
+        //            "high" => "5433400",
+        //            "low" => "5333400",
+        //            "vol" => "0.0002",
+        //            "volValue" => "1066.68",
+        //            "last" => "5333400"
+        //        }
+        //     )
+        //
+        $tickerList = $this->safe_list($response, 'data', array());
+        return $this->parse_tickers($tickerList, $symbols);
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-klinescandlesticks
-             * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market->md#-get-k-lines-ohlcv-$data
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->endtime] the latest time in ms to fetch orders for
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            if ($limit === null) {
-                $limit = 100; // default is 200
-            }
-            $request = array(
-                'symbol' => $market['id'],
-            );
+        return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-klinescandlesticks
+         * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market->md#-get-k-lines-ohlcv-$data
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->endtime] the latest time in ms to fetch orders for
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        if ($limit === null) {
+            $limit = 100; // default is 200
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($market['spot']) {
+            $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        } else {
+            $request['interval'] = $timeframe;
+        }
+        if ($market['contract'] && ($limit !== null)) {
+            $request['limit'] = $limit;
+        }
+        if ($since !== null) {
             if ($market['spot']) {
-                $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+                $request['startTime'] = $since;
             } else {
-                $request['interval'] = $timeframe;
+                $request['since'] = $since;
             }
-            if ($market['contract'] && ($limit !== null)) {
-                $request['limit'] = $limit;
+        }
+        $until = $this->safe_integer_2($params, 'until', 'endtime');
+        if ($until !== null) {
+            $request['endTime'] = $until;
+            $params = $this->omit($params, array( 'endtime', 'until' ));
+        }
+        $response = null;
+        if ($market['spot']) {
+            if ($until === null || $since === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a both a $since and until/endtime parameter for spot markets');
             }
-            if ($since !== null) {
-                if ($market['spot']) {
-                    $request['startTime'] = $since;
-                } else {
-                    $request['since'] = $since;
-                }
-            }
-            $until = $this->safe_integer_2($params, 'until', 'endtime');
-            if ($until !== null) {
-                $request['endTime'] = $until;
-                $params = $this->omit($params, array( 'endtime', 'until' ));
-            }
-            $response = null;
-            if ($market['spot']) {
-                if ($until === null || $since === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a both a $since and until/endtime parameter for spot markets');
-                }
-                $response = Async\await($this->publicSpotGetV2MarketKlines($this->extend($request, $params)));
-            } else {
-                $response = Async\await($this->publicSwapPostV1MarketKlines($this->extend($request, $params)));
-            }
-            //
-            //             array(
-            //                 array(
-            //                     "1670608800000",
-            //                     "17071",
-            //                     "17073",
-            //                     "17027",
-            //                     "17055.5",
-            //                     "268611",
-            //                     "15.74462667"
-            //                 ),
-            //                 array(
-            //                     "1670605200000",
-            //                     "17071.5",
-            //                     "17071.5",
-            //                     "17061",
-            //                     "17071",
-            //                     "4177",
-            //                     "0.24469757"
-            //                 ),
-            //                 array(
-            //                     "1670601600000",
-            //                     "17086.5",
-            //                     "17088",
-            //                     "16978",
-            //                     "17071.5",
-            //                     "6356",
-            //                     "0.37288112"
-            //                 )
-            //             )
-            //
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-        })();
+            $response = Async\await($this->publicSpotGetV2MarketKlines($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->publicSwapPostV1MarketKlines($this->extend($request, $params)));
+        }
+        //
+        //             array(
+        //                 array(
+        //                     "1670608800000",
+        //                     "17071",
+        //                     "17073",
+        //                     "17027",
+        //                     "17055.5",
+        //                     "268611",
+        //                     "15.74462667"
+        //                 ),
+        //                 array(
+        //                     "1670605200000",
+        //                     "17071.5",
+        //                     "17071.5",
+        //                     "17061",
+        //                     "17071",
+        //                     "4177",
+        //                     "0.24469757"
+        //                 ),
+        //                 array(
+        //                     "1670601600000",
+        //                     "17086.5",
+        //                     "17088",
+        //                     "16978",
+        //                     "17071.5",
+        //                     "6356",
+        //                     "0.37288112"
+        //                 )
+        //             )
+        //
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent trades for a particular $symbol
-             *
-             * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-recent-trades
-             * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market->md#get-aggregate-trades
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            if ($market['spot'] && $limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = null;
-            if ($market['spot']) {
-                $response = Async\await($this->publicSpotGetV2MarketTrades($this->extend($request, $params)));
-            } else {
-                $response = Async\await($this->publicSwapGetV1MarketAggTrade($this->extend($request, $params)));
-            }
-            //
-            //     array(
-            //         {
-            //             "id" : "60014521",
-            //             "price" : "23162.94",
-            //             "qty" : "0.00009",
-            //             "side" : "SELL",
-            //             "time" : 1659684602042,
-            //             "isBuyerMaker" : 1659684602036
-            //         }
-            //     )
-            //
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_trades($data, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         *
+         * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-recent-trades
+         * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market->md#get-aggregate-trades
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($market['spot'] && $limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = null;
+        if ($market['spot']) {
+            $response = Async\await($this->publicSpotGetV2MarketTrades($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->publicSwapGetV1MarketAggTrade($this->extend($request, $params)));
+        }
+        //
+        //     array(
+        //         {
+        //             "id" : "60014521",
+        //             "price" : "23162.94",
+        //             "qty" : "0.00009",
+        //             "side" : "SELL",
+        //             "time" : 1659684602042,
+        //             "isBuyerMaker" : 1659684602036
+        //         }
+        //     )
+        //
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent trades for a particular $symbol
-             *
-             * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-trade-history
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
-            $response = null;
-            if ($type === 'spot') {
-                throw new NotSupported($this->id . ' fetchMyTrades() does not support spot markets');
-            } else {
-                $response = Async\await($this->privateSwapGetV1TradeHistory($params));
-            }
-            $data = $this->safe_dict($response, 'data', array());
-            $items = $this->safe_list($data, 'items', array());
-            return $this->parse_trades($items, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         *
+         * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-trade-history
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+        $response = null;
+        if ($type === 'spot') {
+            throw new NotSupported($this->id . ' fetchMyTrades() does not support spot markets');
+        } else {
+            $response = Async\await($this->privateSwapGetV1TradeHistory($params));
+        }
+        $data = $this->safe_dict($response, 'data', array());
+        $items = $this->safe_list($data, 'items', array());
+        return $this->parse_trades($items, $market, $since, $limit);
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
-            /**
-             * fetch all the $trades made from a single order
-             *
-             * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-fills
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch $trades for
-             * @param {int} [$limit] the maximum number of $trades to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
-             */
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('fetchOrderTrades', null, $params);
-            if ($type !== 'spot') {
-                throw new NotSupported($this->id . ' fetchOrderTrades() does not support ' . $type . ' markets');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array(
-                'orderId' => $id,
-            );
-            $response = Async\await($this->privateSpotGetV2ExOrderFills($this->extend($request, $params)));
-            //
-            //         {
-            //             "orderId" => "456789",
-            //             "symbol" => "LINK_USDT",
-            //             "origQty" => "1.5",
-            //             "orderId" => "30249408733945856",
-            //             "side" => "BUY",
-            //             "type" => "LIMIT",
-            //             "matchRole" => "MAKER",
-            //             "createTime" => 1648200366864,
-            //             "price" => "3.1",
-            //             "avgExecutedPrice" => "2.3456"
-            //             "openQty" => "1",
-            //             "filledQty" => "0",
-            //             "fees" => "0.00145",
-            //         }
-            //
-            $data = $this->safe_dict($response, 'data', array());
-            $trades = array( $data );
-            return $this->parse_trades($trades);
-        })();
+        return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all the $trades made from a single order
+         *
+         * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-fills
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of $trades to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
+         */
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchOrderTrades', null, $params);
+        if ($type !== 'spot') {
+            throw new NotSupported($this->id . ' fetchOrderTrades() does not support ' . $type . ' markets');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array(
+            'orderId' => $id,
+        );
+        $response = Async\await($this->privateSpotGetV2ExOrderFills($this->extend($request, $params)));
+        //
+        //         {
+        //             "orderId" => "456789",
+        //             "symbol" => "LINK_USDT",
+        //             "origQty" => "1.5",
+        //             "orderId" => "30249408733945856",
+        //             "side" => "BUY",
+        //             "type" => "LIMIT",
+        //             "matchRole" => "MAKER",
+        //             "createTime" => 1648200366864,
+        //             "price" => "3.1",
+        //             "avgExecutedPrice" => "2.3456"
+        //             "openQty" => "1",
+        //             "filledQty" => "0",
+        //             "fees" => "0.00145",
+        //         }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $trades = array( $data );
+        return $this->parse_trades($trades);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -993,127 +1022,131 @@ class zebpay extends Exchange {
     }
 
     public function fetch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-account-balance
-             * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/wallet.md#get-wallet-balance
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-            $isSpot = ($type === 'spot');
-            $response = null;
-            if ($isSpot) {
-                $response = Async\await($this->privateSpotGetV2AccountBalance($params));
-            } else {
-                $response = Async\await($this->privateSwapGetV1WalletBalance($params));
-            }
-            //
-            //     {
-            //         "data" => array(
-            //              array(
-            //                 "free" => 200,
-            //                 "used" => 100,
-            //                 "total" => 300,
-            //                 "currency" => "INR"
-            //              ),
-            //              {
-            //                 "free" => 0,
-            //                 "used" => 0,
-            //                 "total" => 0,
-            //                 "currency" => "USDT"
-            //              }
-            //         )
-            //     }
-            //
-            return $this->parse_balance($response);
-        })();
+        return Async\async(self::do_fetch_balance(...))($params);
+    }
+
+    private function do_fetch_balance($params = array()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-account-balance
+         * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/wallet.md#get-wallet-balance
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $isSpot = ($type === 'spot');
+        $response = null;
+        if ($isSpot) {
+            $response = Async\await($this->privateSpotGetV2AccountBalance($params));
+        } else {
+            $response = Async\await($this->privateSwapGetV1WalletBalance($params));
+        }
+        //
+        //     {
+        //         "data" => array(
+        //              array(
+        //                 "free" => 200,
+        //                 "used" => 100,
+        //                 "total" => 300,
+        //                 "currency" => "INR"
+        //              ),
+        //              {
+        //                 "free" => 0,
+        //                 "used" => 0,
+        //                 "total" => 0,
+        //                 "currency" => "USDT"
+        //              }
+        //         )
+        //     }
+        //
+        return $this->parse_balance($response);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * Create an order on the exchange
-             *
-             * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#place-new-order
-             * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#--create-order
-             *
-             * @param {string} $symbol Unified CCXT $market $symbol
-             * @param {string} $type 'limit' or 'market'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount the $amount of currency to trade
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params]  extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->formType] The $price at which a trigger order is triggered at
-             * @param {string} [$params->marginAsset] The asset the order creates, default is INR.
-             * @param {boolean} [$params->takeProfit] Takeprofit flag for the order.
-             * @param {boolean} [$params->stopLoss] Stop loss flag for the order.
-             * @param {string} [$params->positionId] PositionId of the order.
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $upperCaseType = strtoupper($type);
-            $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
-            $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
-            $params = $this->omit($params, array( 'marginAsset', 'takeProfitPrice', 'takeProfitPrice' ));
-            if ($side === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-            }
-            $request = array(
-                'symbol' => $market['id'],
-                'side' => strtoupper($side),
-            );
-            $response = null;
-            if ($market['spot']) {
-                list($request, $params) = $this->order_request($symbol, $type, $amount, $request, $price, $params);
-                $response = Async\await($this->privateSpotPostV2ExOrders($this->extend($request, $params)));
-            } else {
-                $marginAsset = $this->safe_string($params, 'marginAsset', 'INR');
-                $formType = $this->safe_string_upper($params, 'formType', 'ORDER_FORM');
-                $request['formType'] = $formType;
-                $request['amount'] = $this->parse_to_numeric($this->amount_to_precision($market['id'], $amount));
-                $request['marginAsset'] = $marginAsset;
-                $hasTP = $takeProfitPrice !== null;
-                $hasSL = $stopLossPrice !== null;
-                if ($hasTP || $hasSL) {
-                    if ($hasTP) {
-                        $request['takeProfitPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $takeProfitPrice));
-                    }
-                    if ($hasSL) {
-                        $request['stopLossPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $stopLossPrice));
-                    }
-                    $response = Async\await($this->privateSwapPostV1TradeOrderAddTPSL($this->extend($request, $params)));
-                } else {
-                    $request['type'] = $upperCaseType;
-                    if ($type === 'limit') {
-                        if ($price === null) {
-                            throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for limit orders');
-                        }
-                        $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
-                    }
-                    $response = Async\await($this->privateSwapPostV1TradeOrder($this->extend($request, $params)));
+        return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * Create an order on the exchange
+         *
+         * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#place-new-order
+         * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#--create-order
+         *
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {string} $type 'limit' or 'market'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount the $amount of currency to trade
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params]  extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->formType] The $price at which a trigger order is triggered at
+         * @param {string} [$params->marginAsset] The asset the order creates, default is INR.
+         * @param {boolean} [$params->takeProfit] Takeprofit flag for the order.
+         * @param {boolean} [$params->stopLoss] Stop loss flag for the order.
+         * @param {string} [$params->positionId] PositionId of the order.
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $upperCaseType = strtoupper($type);
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $params = $this->omit($params, array( 'marginAsset', 'takeProfitPrice', 'takeProfitPrice' ));
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'side' => strtoupper($side),
+        );
+        $response = null;
+        if ($market['spot']) {
+            list($request, $params) = $this->order_request($symbol, $type, $amount, $request, $price, $params);
+            $response = Async\await($this->privateSpotPostV2ExOrders($this->extend($request, $params)));
+        } else {
+            $marginAsset = $this->safe_string($params, 'marginAsset', 'INR');
+            $formType = $this->safe_string_upper($params, 'formType', 'ORDER_FORM');
+            $request['formType'] = $formType;
+            $request['amount'] = $this->parse_to_numeric($this->amount_to_precision($market['id'], $amount));
+            $request['marginAsset'] = $marginAsset;
+            $hasTP = $takeProfitPrice !== null;
+            $hasSL = $stopLossPrice !== null;
+            if ($hasTP || $hasSL) {
+                if ($hasTP) {
+                    $request['takeProfitPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $takeProfitPrice));
                 }
+                if ($hasSL) {
+                    $request['stopLossPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $stopLossPrice));
+                }
+                $response = Async\await($this->privateSwapPostV1TradeOrderAddTPSL($this->extend($request, $params)));
+            } else {
+                $request['type'] = $upperCaseType;
+                if ($type === 'limit') {
+                    if ($price === null) {
+                        throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for limit orders');
+                    }
+                    $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
+                }
+                $response = Async\await($this->privateSwapPostV1TradeOrder($this->extend($request, $params)));
             }
-            //
-            //    {
-            //        "data" => array(
-            //            "clientOrderId" => "619717484f1d010001510cde",
-            //        ),
-            //    }
-            //
-            $data = $this->safe_dict($response, 'data', array());
-            return $this->parse_order($data, $market);
-        })();
+        }
+        //
+        //    {
+        //        "data" => array(
+        //            "clientOrderId" => "619717484f1d010001510cde",
+        //        ),
+        //    }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_order($data, $market);
     }
 
     public function order_request(mixed $symbol, mixed $type, mixed $amount, mixed $request, ?float $price = null, $params = array()) {
@@ -1142,211 +1175,219 @@ class zebpay extends Exchange {
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * cancels an open order
-             *
-             * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-order
-             * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-cancel-order
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {array} [$params->timestamp] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
+    }
+
+    private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * cancels an open order
+         *
+         * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-order
+         * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-cancel-order
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {array} [$params->timestamp] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $response = null;
+        $request = array();
+        if ($market['spot']) {
+            $request['orderId'] = $id;
+            $response = Async\await($this->privateSpotDeleteV2ExOrder($this->extend($request, $params)));
+        } else {
+            $clientOrderId = $this->safe_string($params, 'clientOrderId');
+            if ($clientOrderId === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $clientOrderId parameter for swap orders');
             }
-            $market = $this->market($symbol);
-            $response = null;
-            $request = array();
-            if ($market['spot']) {
-                $request['orderId'] = $id;
-                $response = Async\await($this->privateSpotDeleteV2ExOrder($this->extend($request, $params)));
-            } else {
-                $clientOrderId = $this->safe_string($params, 'clientOrderId');
-                if ($clientOrderId === null) {
-                    throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $clientOrderId parameter for swap orders');
-                }
-                $request['clientOrderId'] = $clientOrderId;
-                $request['symbol'] = $market['id'];
-                $response = Async\await($this->privateSwapDeleteV1TradeOrder($this->extend($request, $params)));
-            }
-            //
-            //    {
-            //        "data" => array(
-            //            "clientOrderId" => "619714b8b6353000014c505a",
-            //            "status" => "canceled"
-            //        ),
-            //    }
-            //
-            return $this->parse_order($this->safe_dict($response, 'data', array()));
-        })();
+            $request['clientOrderId'] = $clientOrderId;
+            $request['symbol'] = $market['id'];
+            $response = Async\await($this->privateSwapDeleteV1TradeOrder($this->extend($request, $params)));
+        }
+        //
+        //    {
+        //        "data" => array(
+        //            "clientOrderId" => "619714b8b6353000014c505a",
+        //            "status" => "canceled"
+        //        ),
+        //    }
+        //
+        return $this->parse_order($this->safe_dict($response, 'data', array()));
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * cancels all open orders
-             *
-             * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders
-             *
-             * @param {string} [$symbol] unified $symbol of the market the orders were made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->timestamp] the timestamp of the request in ms
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('cancelAllOrders', null, $params);
-            if ($type !== 'spot') {
-                throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $type . ' markets');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $response = Async\await($this->privateSpotDeleteV2ExOrdersCancelAll($params));
-            //
-            //    {
-            //        "data" => array(
-            //            "orderId" => "12345",
-            //            "symbol" => 'BTC-INR
-            //        ),
-            //    }
-            //
-            $data = $this->safe_dict($response, 'data', array());
-            $parsedOrder = $this->parse_order($data);
-            return array( $parsedOrder );
-        })();
+        return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
+    }
+
+    private function do_cancel_all_orders(?string $symbol = null, $params = array()) {
+        /**
+         * cancels all open orders
+         *
+         * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders
+         *
+         * @param {string} [$symbol] unified $symbol of the market the orders were made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->timestamp] the timestamp of the request in ms
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('cancelAllOrders', null, $params);
+        if ($type !== 'spot') {
+            throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $type . ' markets');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $response = Async\await($this->privateSpotDeleteV2ExOrdersCancelAll($params));
+        //
+        //    {
+        //        "data" => array(
+        //            "orderId" => "12345",
+        //            "symbol" => 'BTC-INR
+        //        ),
+        //    }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $parsedOrder = $this->parse_order($data);
+        return array( $parsedOrder );
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple open $orders made by the user
-             *
-             * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-$orders
-             * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-open-$orders
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_fetch_open_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple open $orders made by the user
+         *
+         * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-$orders
+         * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-open-$orders
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = null;
+        $orders = array();
+        if ($market['spot']) {
+            $request['currentPage'] = 1;
+            if ($limit !== null) {
+                $request['pageSize'] = $limit;
             }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = null;
-            $orders = array();
-            if ($market['spot']) {
-                $request['currentPage'] = 1;
-                if ($limit !== null) {
-                    $request['pageSize'] = $limit;
-                }
-                $response = Async\await($this->privateSpotGetV2ExOrders($this->extend($request, $params)));
-                $responseData = $this->safe_dict($response, 'data', array());
-                $orders = $this->safe_list($responseData, 'items', array());
-            } else {
-                if ($since !== null) {
-                    $request['since'] = $since;
-                }
-                if ($limit !== null) {
-                    $request['limit'] = $limit;
-                }
-                $response = Async\await($this->privateSwapGetV1TradeOrderOpenOrders($this->extend($request, $params)));
-                $responseData = $this->safe_dict($response, 'data', array());
-                $orders = $this->safe_list($responseData, 'data', array());
+            $response = Async\await($this->privateSpotGetV2ExOrders($this->extend($request, $params)));
+            $responseData = $this->safe_dict($response, 'data', array());
+            $orders = $this->safe_list($responseData, 'items', array());
+        } else {
+            if ($since !== null) {
+                $request['since'] = $since;
             }
-            //
-            //     {
-            //         "data" => {
-            //             "nextTimeStamp" => null,
-            //             "totalCount" => 100,
-            //             "data" => array(
-            //                 {
-            //                     "clientOrderId" => "64507d02921f1c0001ff6892-123-zeb",
-            //                     "datetime" => "2025-03-14T14:34:34.4567",
-            //                     "timestamp" => 1741962557553,
-            //                     "status" => "open",
-            //                     "symbol" => "BTCINR",
-            //                     "type" => "market",
-            //                     "timeInForce" => "GTC",
-            //                     "side" => "buy",
-            //                     "price" => 700000,
-            //                     "amount" => 0.002,
-            //                     "filled" => null,
-            //                     "remaining" => 0.002,
-            //                     "trades" => array()
-            //                 }
-            //             )
-            //         }
-            //     }
-            //
-            return $this->parse_orders($orders, $market, null, $limit);
-        })();
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->privateSwapGetV1TradeOrderOpenOrders($this->extend($request, $params)));
+            $responseData = $this->safe_dict($response, 'data', array());
+            $orders = $this->safe_list($responseData, 'data', array());
+        }
+        //
+        //     {
+        //         "data" => {
+        //             "nextTimeStamp" => null,
+        //             "totalCount" => 100,
+        //             "data" => array(
+        //                 {
+        //                     "clientOrderId" => "64507d02921f1c0001ff6892-123-zeb",
+        //                     "datetime" => "2025-03-14T14:34:34.4567",
+        //                     "timestamp" => 1741962557553,
+        //                     "status" => "open",
+        //                     "symbol" => "BTCINR",
+        //                     "type" => "market",
+        //                     "timeInForce" => "GTC",
+        //                     "side" => "buy",
+        //                     "price" => 700000,
+        //                     "amount" => 0.002,
+        //                     "filled" => null,
+        //                     "remaining" => 0.002,
+        //                     "trades" => array()
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        return $this->parse_orders($orders, $market, null, $limit);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * fetches information on an order made by the user
-             *
-             * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-details
-             * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-order-details
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->clientOrderId] cancel order by client order $id
-             * @param {string} [$params->timestamp] cancel order by client order $id
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array();
-            $response = null;
-            if ($market['spot']) {
-                $request['orderId'] = $id;
-                $response = Async\await($this->privateSpotGetV2ExOrder($this->extend($request, $params)));
-            } else {
-                $request['id'] = $id;
-                $response = Async\await($this->privateSwapGetV1TradeOrder($this->extend($request, $params)));
-            }
-            //
-            //     {
-            //         "data" => {
-            //             "nextTimeStamp" => null,
-            //             "totalCount" => 100,
-            //             "data" => array(
-            //                 {
-            //                     "clientOrderId" => "64507d02921f1c0001ff6892-123-zeb",
-            //                     "datetime" => "2025-03-14T14:34:34.4567",
-            //                     "timestamp" => 1741962557553,
-            //                     "status" => "open",
-            //                     "symbol" => "BTCINR",
-            //                     "type" => "market",
-            //                     "timeInForce" => "GTC",
-            //                     "side" => "buy",
-            //                     "price" => 700000,
-            //                     "amount" => 0.002,
-            //                     "filled" => null,
-            //                     "remaining" => 0.002,
-            //                     "trades" => array()
-            //                 }
-            //             )
-            //         }
-            //     }
-            //
-            $responseData = $this->safe_dict($response, 'data', array());
-            return $this->parse_order($responseData, $market);
-        })();
+        return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
+    }
+
+    private function do_fetch_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * fetches information on an order made by the user
+         *
+         * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-details
+         * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-order-details
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] cancel order by client order $id
+         * @param {string} [$params->timestamp] cancel order by client order $id
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array();
+        $response = null;
+        if ($market['spot']) {
+            $request['orderId'] = $id;
+            $response = Async\await($this->privateSpotGetV2ExOrder($this->extend($request, $params)));
+        } else {
+            $request['id'] = $id;
+            $response = Async\await($this->privateSwapGetV1TradeOrder($this->extend($request, $params)));
+        }
+        //
+        //     {
+        //         "data" => {
+        //             "nextTimeStamp" => null,
+        //             "totalCount" => 100,
+        //             "data" => array(
+        //                 {
+        //                     "clientOrderId" => "64507d02921f1c0001ff6892-123-zeb",
+        //                     "datetime" => "2025-03-14T14:34:34.4567",
+        //                     "timestamp" => 1741962557553,
+        //                     "status" => "open",
+        //                     "symbol" => "BTCINR",
+        //                     "type" => "market",
+        //                     "timeInForce" => "GTC",
+        //                     "side" => "buy",
+        //                     "price" => 700000,
+        //                     "amount" => 0.002,
+        //                     "filled" => null,
+        //                     "remaining" => 0.002,
+        //                     "trades" => array()
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $responseData = $this->safe_dict($response, 'data', array());
+        return $this->parse_order($responseData, $market);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1409,402 +1450,420 @@ class zebpay extends Exchange {
     }
 
     public function close_position(string $symbol, ?string $side = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $side, $params) {
-            /**
-             * closes open positions for a $market
-             *
-             * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-close-position
-             *
-             * @param {string} $symbol Unified CCXT $market $symbol
-             * @param {string} $side not used by kucoinfutures closePositions
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->positionId] client order id of the order
-             * @return {array[]} ~@link https://docs.ccxt.com/?id=position-structure A list of position structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->privateSwapPostV1TradePositionClose($this->extend($request, $params)));
-            $data = $this->safe_dict($response, 'data', array());
-            return $this->parse_order($data, $market);
-        })();
+        return Async\async(self::do_close_position(...))($symbol, $side, $params);
+    }
+
+    private function do_close_position(string $symbol, ?string $side = null, $params = array()) {
+        /**
+         * closes open positions for a $market
+         *
+         * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-close-position
+         *
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {string} $side not used by kucoinfutures closePositions
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->positionId] client order id of the order
+         * @return {array[]} ~@link https://docs.ccxt.com/?id=position-structure A list of position structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->privateSwapPostV1TradePositionClose($this->extend($request, $params)));
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_order($data, $market);
     }
 
     public function fetch_leverages(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetch the set leverage for all contract and margin markets
-             *
-             * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-all-user-leverages
-             *
-             * @param {string[]} [$symbols] a list of unified market $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a list of ~@link https://docs.ccxt.com/?id=leverage-structure leverage structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $response = Async\await($this->privateSwapGetV1TradeUserLeverages($params));
-            //
-            //     {
-            //         "leveragePreferences" => array(
-            //             array(
-            //                 "symbol" => "ETHINR",
-            //                 "shortLeverage" => 1,
-            //                 "longLeverage" => 10,
-            //                 "marginMode" => "isolated"
-            //             ),
-            //         )
-            //     }
-            //
-            $leveragePreferences = $this->safe_list($response, 'data', array());
-            return $this->parse_leverages($leveragePreferences, $symbols, 'symbol');
-        })();
+        return Async\async(self::do_fetch_leverages(...))($symbols, $params);
+    }
+
+    private function do_fetch_leverages(?array $symbols = null, $params = array()) {
+        /**
+         * fetch the set leverage for all contract and margin markets
+         *
+         * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-all-user-leverages
+         *
+         * @param {string[]} [$symbols] a list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=leverage-structure leverage structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $response = Async\await($this->privateSwapGetV1TradeUserLeverages($params));
+        //
+        //     {
+        //         "leveragePreferences" => array(
+        //             array(
+        //                 "symbol" => "ETHINR",
+        //                 "shortLeverage" => 1,
+        //                 "longLeverage" => 10,
+        //                 "marginMode" => "isolated"
+        //             ),
+        //         )
+        //     }
+        //
+        $leveragePreferences = $this->safe_list($response, 'data', array());
+        return $this->parse_leverages($leveragePreferences, $symbols, 'symbol');
     }
 
     public function fetch_leverage(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetch the set leverage for a $market
-             *
-             * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#get-user-leverage-single-$symbol
-             *
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $this->safe_string_upper($market, 'id'),
-            );
-            $response = Async\await($this->privateSwapGetV1TradeUserLeverage($this->extend($request, $params)));
-            //
-            //     {
-            //         "data" => array( $symbol => "ETHINR", longLeverage => 1, shortLeverage => 1, marginMode => "isolated" )
-            //     }
-            //
-            $data = $this->safe_dict($response, 'data', array());
-            return $this->parse_leverage($data, $market);
-        })();
+        return Async\async(self::do_fetch_leverage(...))($symbol, $params);
+    }
+
+    private function do_fetch_leverage(string $symbol, $params = array()) {
+        /**
+         * fetch the set leverage for a $market
+         *
+         * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#get-user-leverage-single-$symbol
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $this->safe_string_upper($market, 'id'),
+        );
+        $response = Async\await($this->privateSwapGetV1TradeUserLeverage($this->extend($request, $params)));
+        //
+        //     {
+        //         "data" => array( $symbol => "ETHINR", longLeverage => 1, shortLeverage => 1, marginMode => "isolated" )
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_leverage($data, $market);
     }
 
     public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($leverage, $symbol, $params) {
-            /**
-             * set the level of $leverage for a $market
-             *
-             * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-update-user-$leverage
-             *
-             * @param {float} $leverage the rate of $leverage
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} $response from the exchange
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'leverage' => $leverage,
-                'symbol' => $market['id'],
-            );
-            //
-            // array( data => { "symbol", "longLeverage" => 10, "shortLeverage" => 1, "marginMode" => "isolated" )
-            //
-            $response = Async\await($this->privateSwapPostV1TradeUpdateUserLeverage($this->extend($request, $params)));
-            return $response;
-        })();
+        return Async\async(self::do_set_leverage(...))($leverage, $symbol, $params);
+    }
+
+    private function do_set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+        /**
+         * set the level of $leverage for a $market
+         *
+         * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-update-user-$leverage
+         *
+         * @param {float} $leverage the rate of $leverage
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} $response from the exchange
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'leverage' => $leverage,
+            'symbol' => $market['id'],
+        );
+        //
+        // array( data => { "symbol", "longLeverage" => 10, "shortLeverage" => 1, "marginMode" => "isolated" )
+        //
+        $response = Async\await($this->privateSwapPostV1TradeUpdateUserLeverage($this->extend($request, $params)));
+        return $response;
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()) {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             *
-             * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#--get-$positions
-             *
-             * Fetches current contract trading $positions
-             * @param {string[]} $symbols List of unified $symbols
-             * @param {array} [$params] Not used by krakenfutures
-             * @return Parsed exchange $response for $positions
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            if ($symbols !== null) {
-                $request['symbols'] = $this->market_ids($symbols);
-            }
-            $response = Async\await($this->privateSwapGetV1TradePositions($this->extend($request, $params)));
-            //
-            //    {
-            //        "data" => array(
-            //            {
-            //                "id" => "31998678-6056-413f-9d0d-fc3678641650",
-            //                "symbol" => "ETHINR",
-            //                "entryPrice" => "0.7533",
-            //                "datetime" => "2022-03-03T22:51:16.566Z",
-            //                "contractSize" => "230"
-            //            }
-            //        ),
-            //    }
-            //
-            $positions = $this->safe_list($response, 'data', array());
-            $result = $this->parse_positions($positions);
-            return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
-        })();
+        return Async\async(self::do_fetch_positions(...))($symbols, $params);
+    }
+
+    private function do_fetch_positions(?array $symbols = null, $params = array()) {
+        /**
+         *
+         * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#--get-$positions
+         *
+         * Fetches current contract trading $positions
+         * @param {string[]} $symbols List of unified $symbols
+         * @param {array} [$params] Not used by krakenfutures
+         * @return Parsed exchange $response for $positions
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        if ($symbols !== null) {
+            $request['symbols'] = $this->market_ids($symbols);
+        }
+        $response = Async\await($this->privateSwapGetV1TradePositions($this->extend($request, $params)));
+        //
+        //    {
+        //        "data" => array(
+        //            {
+        //                "id" => "31998678-6056-413f-9d0d-fc3678641650",
+        //                "symbol" => "ETHINR",
+        //                "entryPrice" => "0.7533",
+        //                "datetime" => "2022-03-03T22:51:16.566Z",
+        //                "contractSize" => "230"
+        //            }
+        //        ),
+        //    }
+        //
+        $positions = $this->safe_list($response, 'data', array());
+        $result = $this->parse_positions($positions);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
     public function add_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $amount, $params) {
-            /**
-             * add margin
-             *
-             * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-add-margin-to-position
-             *
-             * @param {string} $symbol unified $market $symbol
-             * @param {float} $amount amount of margin to add
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint.
-             * @param {string} [$params->positionId] PositionId of the order to add margin.
-             * @param {string} [$params->timestamp] Tiemstamp.
-             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-                'amount' => $amount,
-            );
-            $response = Async\await($this->privateSwapPostV1TradeAddMargin($this->extend($request, $params)));
-            //
-            //    {
-            //        "code" => "200000",
-            //        "data" => {
-            //            "symbol" => "BTCINR",
-            //            "type" => "add",
-            //            "amount" => 1000,
-            //            "code" => "INR",
-            //            "status" => "ok"
-            //        }
-            //    }
-            //
-            //
-            //    {
-            //        "code":"200000",
-            //        "msg":"Position does not exist"
-            //    }
-            //
-            $data = $this->safe_dict($response, 'data', array());
-            return $this->extend($this->parse_margin_modification($data, $market), array(
-                'amount' => $amount,
-                'direction' => 'in',
-            ));
-        })();
+        return Async\async(self::do_add_margin(...))($symbol, $amount, $params);
+    }
+
+    private function do_add_margin(string $symbol, float $amount, $params = array()) {
+        /**
+         * add margin
+         *
+         * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-add-margin-to-position
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {float} $amount amount of margin to add
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint.
+         * @param {string} [$params->positionId] PositionId of the order to add margin.
+         * @param {string} [$params->timestamp] Tiemstamp.
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'amount' => $amount,
+        );
+        $response = Async\await($this->privateSwapPostV1TradeAddMargin($this->extend($request, $params)));
+        //
+        //    {
+        //        "code" => "200000",
+        //        "data" => {
+        //            "symbol" => "BTCINR",
+        //            "type" => "add",
+        //            "amount" => 1000,
+        //            "code" => "INR",
+        //            "status" => "ok"
+        //        }
+        //    }
+        //
+        //
+        //    {
+        //        "code":"200000",
+        //        "msg":"Position does not exist"
+        //    }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->extend($this->parse_margin_modification($data, $market), array(
+            'amount' => $amount,
+            'direction' => 'in',
+        ));
     }
 
     public function reduce_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $amount, $params) {
-            /**
-             * add margin
-             *
-             * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-reduce-margin-from-position
-             *
-             * @param {string} $symbol unified $market $symbol->
-             * @param {float} $amount amount of margin to add.
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint.
-             * @param {string} [$params->positionId] PositionId of the order to add margin.
-             * @param {string} [$params->timestamp] Tiemstamp.
-             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-                'amount' => $amount,
-            );
-            $response = Async\await($this->privateSwapPostV1TradeReduceMargin($this->extend($request, $params)));
-            //
-            //    {
-            //        "code" => "200000",
-            //        "data" => {
-            //            "symbol" => "BTCINR",
-            //            "type" => "reduce",
-            //            "amount" => 1000,
-            //            "code" => "INR",
-            //            "status" => "ok"
-            //        }
-            //    }
-            //
-            $data = $this->safe_dict($response, 'data', array());
-            return $this->extend($this->parse_margin_modification($data, $market), array(
-                'amount' => $amount,
-                'direction' => 'out',
-            ));
-        })();
+        return Async\async(self::do_reduce_margin(...))($symbol, $amount, $params);
+    }
+
+    private function do_reduce_margin(string $symbol, float $amount, $params = array()) {
+        /**
+         * add margin
+         *
+         * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-reduce-margin-from-position
+         *
+         * @param {string} $symbol unified $market $symbol->
+         * @param {float} $amount amount of margin to add.
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint.
+         * @param {string} [$params->positionId] PositionId of the order to add margin.
+         * @param {string} [$params->timestamp] Tiemstamp.
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'amount' => $amount,
+        );
+        $response = Async\await($this->privateSwapPostV1TradeReduceMargin($this->extend($request, $params)));
+        //
+        //    {
+        //        "code" => "200000",
+        //        "data" => {
+        //            "symbol" => "BTCINR",
+        //            "type" => "reduce",
+        //            "amount" => 1000,
+        //            "code" => "INR",
+        //            "status" => "ok"
+        //        }
+        //    }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->extend($this->parse_margin_modification($data, $market), array(
+            'amount' => $amount,
+            'direction' => 'out',
+        ));
     }
 
     public function fetch_spot_markets($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            $response = Async\await($this->publicSpotGetV2ExExchangeInfo($params));
-            //
-            //    {
-            //        "data" => {
-            //            "symbol" => "ETH-INR",
-            //            "name" => "ETH-INR",
-            //            "baseCurrency" => "ETH",
-            //            "quoteCurrency" => "INR",
-            //            "feeCurrency" => "INR",
-            //            "baseMinSize" => "",
-            //            "quoteMinSize" => "100",
-            //            "baseMaxSize" => "",
-            //            "quoteMaxSize" => "2000",
-            //            "baseIncrement" => "0.00001"
-            //            "quoteIncrement" => "0.00001",
-            //            "enableTrading" => true
-            //        }
-            //    }
-            //
-            $result = array();
-            $data = $this->safe_dict($response, 'data', array());
-            $markets = $this->safe_list($data, 'symbols', array());
-            for ($i = 0; $i < count($markets); $i++) {
-                $market = $markets[$i];
-                $id = $this->safe_string($market, 'symbol');
-                $baseId = $this->safe_string($market, 'baseAsset');
-                $quoteId = $this->safe_string($market, 'quoteAsset');
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-                $result[] = array(
-                    'id' => $id,
-                    'symbol' => $symbol,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'type' => 'spot',
-                    'spot' => true,
-                    'swap' => false,
-                    'margin' => false,
-                    'future' => false,
-                    'option' => false,
-                    'active' => null,
-                    'contract' => null,
-                    'taker' => $this->safe_number($market, 'takerFee'),
-                    'maker' => $this->safe_number($market, 'makerFee'),
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => $this->safe_number($market, 'lotSz'),
-                        'price' => $this->safe_number($market, 'tickSz'),
+        return Async\async(self::do_fetch_spot_markets(...))($params);
+    }
+
+    private function do_fetch_spot_markets($params = array()) {
+        $response = Async\await($this->publicSpotGetV2ExExchangeInfo($params));
+        //
+        //    {
+        //        "data" => {
+        //            "symbol" => "ETH-INR",
+        //            "name" => "ETH-INR",
+        //            "baseCurrency" => "ETH",
+        //            "quoteCurrency" => "INR",
+        //            "feeCurrency" => "INR",
+        //            "baseMinSize" => "",
+        //            "quoteMinSize" => "100",
+        //            "baseMaxSize" => "",
+        //            "quoteMaxSize" => "2000",
+        //            "baseIncrement" => "0.00001"
+        //            "quoteIncrement" => "0.00001",
+        //            "enableTrading" => true
+        //        }
+        //    }
+        //
+        $result = array();
+        $data = $this->safe_dict($response, 'data', array());
+        $markets = $this->safe_list($data, 'symbols', array());
+        for ($i = 0; $i < count($markets); $i++) {
+            $market = $markets[$i];
+            $id = $this->safe_string($market, 'symbol');
+            $baseId = $this->safe_string($market, 'baseAsset');
+            $quoteId = $this->safe_string($market, 'quoteAsset');
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
+            $result[] = array(
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
+                'swap' => false,
+                'margin' => false,
+                'future' => false,
+                'option' => false,
+                'active' => null,
+                'contract' => null,
+                'taker' => $this->safe_number($market, 'takerFee'),
+                'maker' => $this->safe_number($market, 'makerFee'),
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_number($market, 'lotSz'),
+                    'price' => $this->safe_number($market, 'tickSz'),
+                ),
+                'limits' => array(
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
                     ),
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'price' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'cost' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
                     ),
-                    'info' => $market,
-                );
-            }
-            return $result;
-        })();
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'info' => $market,
+            );
+        }
+        return $result;
     }
 
     public function fetch_swap_markets($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            $response = Async\await($this->publicSwapGetV1MarketMarkets($params));
-            //
-            //    {
-            //        "data" => {
-            //            "symbol" => "ETHUSDT",
-            //            "status" => "TRADING",
-            //            "mainMarginPercent" => "10",
-            //            "baseAsset" => "ETH",
-            //            "quoteAsset" => "USDT",
-            //            "pricePrecision" => 1,
-            //            "quantityPrecision" => 0.05,
-            //            "baseAssetPrecision" => 0,
-            //            "quotePrecision" => 0,
-            //            "orderType" => ["LIMIT", "MARKET" ]
-            //            "timeInForce" => ["GTC"],
-            //            "makerFee" => "0.01",
-            //            "takerFee" => "0.01",
-            //            "minLeverage" => "1",
-            //            "maxLeverage" => "20"
-            //            "tickSz" => "0.1",
-            //            "lotSz" => "0.1"
-            //        }
-            //    }
-            //
-            $result = array();
-            $data = $this->safe_dict($response, 'data', array());
-            $markets = $this->safe_list($data, 'symbols', array());
-            for ($i = 0; $i < count($markets); $i++) {
-                $market = $markets[$i];
-                $id = $this->safe_string($market, 'symbol');
-                $baseId = $this->safe_string($market, 'baseAsset');
-                $quoteId = $this->safe_string($market, 'quoteAsset');
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $settle = $this->safe_currency_code($quoteId);
-                $status = $this->safe_string($market, 'status');
-                $symbol = $base . '/' . $quote;
-                $result[] = $this->safe_market_structure(array(
-                    'id' => $id,
-                    'symbol' => $symbol . ':' . $settle,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'spot' => false,
-                    'margin' => false,
-                    'swap' => true,
-                    'future' => false,
-                    'type' => 'swap',
-                    'option' => false,
-                    'active' => ($status === 'Open'),
-                    'contract' => true,
-                    'taker' => $this->safe_number($market, 'takerFee'),
-                    'maker' => $this->safe_number($market, 'makerFee'),
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => $this->safe_number($market, 'lotSz'),
-                        'price' => $this->safe_number($market, 'tickSz'),
+        return Async\async(self::do_fetch_swap_markets(...))($params);
+    }
+
+    private function do_fetch_swap_markets($params = array()) {
+        $response = Async\await($this->publicSwapGetV1MarketMarkets($params));
+        //
+        //    {
+        //        "data" => {
+        //            "symbol" => "ETHUSDT",
+        //            "status" => "TRADING",
+        //            "mainMarginPercent" => "10",
+        //            "baseAsset" => "ETH",
+        //            "quoteAsset" => "USDT",
+        //            "pricePrecision" => 1,
+        //            "quantityPrecision" => 0.05,
+        //            "baseAssetPrecision" => 0,
+        //            "quotePrecision" => 0,
+        //            "orderType" => ["LIMIT", "MARKET" ]
+        //            "timeInForce" => ["GTC"],
+        //            "makerFee" => "0.01",
+        //            "takerFee" => "0.01",
+        //            "minLeverage" => "1",
+        //            "maxLeverage" => "20"
+        //            "tickSz" => "0.1",
+        //            "lotSz" => "0.1"
+        //        }
+        //    }
+        //
+        $result = array();
+        $data = $this->safe_dict($response, 'data', array());
+        $markets = $this->safe_list($data, 'symbols', array());
+        for ($i = 0; $i < count($markets); $i++) {
+            $market = $markets[$i];
+            $id = $this->safe_string($market, 'symbol');
+            $baseId = $this->safe_string($market, 'baseAsset');
+            $quoteId = $this->safe_string($market, 'quoteAsset');
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $settle = $this->safe_currency_code($quoteId);
+            $status = $this->safe_string($market, 'status');
+            $symbol = $base . '/' . $quote;
+            $result[] = $this->safe_market_structure(array(
+                'id' => $id,
+                'symbol' => $symbol . ':' . $settle,
+                'base' => $base,
+                'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'spot' => false,
+                'margin' => false,
+                'swap' => true,
+                'future' => false,
+                'type' => 'swap',
+                'option' => false,
+                'active' => ($status === 'Open'),
+                'contract' => true,
+                'taker' => $this->safe_number($market, 'takerFee'),
+                'maker' => $this->safe_number($market, 'makerFee'),
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_number($market, 'lotSz'),
+                    'price' => $this->safe_number($market, 'tickSz'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => $this->safe_number($market, 'minLeverage'),
+                        'max' => $this->safe_number($market, 'maxLeverage'),
                     ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => $this->safe_number($market, 'minLeverage'),
-                            'max' => $this->safe_number($market, 'maxLeverage'),
-                        ),
-                    ),
-                    'info' => $market,
-                ));
-            }
-            return $result;
-        })();
+                ),
+                'info' => $market,
+            ));
+        }
+        return $result;
     }
 
     public function parse_balance(mixed $response): array {

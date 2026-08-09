@@ -103,67 +103,173 @@ func (this *UpbitCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"market/all":                 2,
-					"candles/{timeframe}":        2,
-					"candles/{timeframe}/{unit}": 2,
-					"candles/seconds":            2,
-					"candles/minutes/{unit}":     2,
-					"candles/minutes/1":          2,
-					"candles/minutes/3":          2,
-					"candles/minutes/5":          2,
-					"candles/minutes/10":         2,
-					"candles/minutes/15":         2,
-					"candles/minutes/30":         2,
-					"candles/minutes/60":         2,
-					"candles/minutes/240":        2,
-					"candles/days":               2,
-					"candles/weeks":              2,
-					"candles/months":             2,
-					"candles/years":              2,
-					"trades/ticks":               2,
-					"ticker":                     2,
-					"ticker/all":                 2,
-					"orderbook":                  2,
-					"orderbook/instruments":      2,
+					"market/all": map[string]any{
+						"cost": 2,
+					},
+					"candles/{timeframe}": map[string]any{
+						"cost": 2,
+					},
+					"candles/{timeframe}/{unit}": map[string]any{
+						"cost": 2,
+					},
+					"candles/seconds": map[string]any{
+						"cost": 2,
+					},
+					"candles/minutes/{unit}": map[string]any{
+						"cost": 2,
+					},
+					"candles/minutes/1": map[string]any{
+						"cost": 2,
+					},
+					"candles/minutes/3": map[string]any{
+						"cost": 2,
+					},
+					"candles/minutes/5": map[string]any{
+						"cost": 2,
+					},
+					"candles/minutes/10": map[string]any{
+						"cost": 2,
+					},
+					"candles/minutes/15": map[string]any{
+						"cost": 2,
+					},
+					"candles/minutes/30": map[string]any{
+						"cost": 2,
+					},
+					"candles/minutes/60": map[string]any{
+						"cost": 2,
+					},
+					"candles/minutes/240": map[string]any{
+						"cost": 2,
+					},
+					"candles/days": map[string]any{
+						"cost": 2,
+					},
+					"candles/weeks": map[string]any{
+						"cost": 2,
+					},
+					"candles/months": map[string]any{
+						"cost": 2,
+					},
+					"candles/years": map[string]any{
+						"cost": 2,
+					},
+					"trades/ticks": map[string]any{
+						"cost": 2,
+					},
+					"ticker": map[string]any{
+						"cost": 2,
+					},
+					"ticker/all": map[string]any{
+						"cost": 2,
+					},
+					"orderbook": map[string]any{
+						"cost": 2,
+					},
+					"orderbook/instruments": map[string]any{
+						"cost": 2,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"accounts":                 0.67,
-					"orders/chance":            0.67,
-					"order":                    0.67,
-					"orders/closed":            0.67,
-					"orders/open":              0.67,
-					"orders/uuids":             0.67,
-					"withdraws":                0.67,
-					"withdraw":                 0.67,
-					"withdraws/chance":         0.67,
-					"withdraws/coin_addresses": 0.67,
-					"deposits":                 0.67,
-					"deposits/chance/coin":     0.67,
-					"deposit":                  0.67,
-					"deposits/coin_addresses":  0.67,
-					"deposits/coin_address":    0.67,
-					"travel_rule/vasps":        0.67,
-					"status/wallet":            0.67,
-					"api_keys":                 0.67,
+					"accounts": map[string]any{
+						"cost": 0.67,
+					},
+					"orders/chance": map[string]any{
+						"cost": 0.67,
+					},
+					"order": map[string]any{
+						"cost": 0.67,
+					},
+					"orders/closed": map[string]any{
+						"cost": 0.67,
+					},
+					"orders/open": map[string]any{
+						"cost": 0.67,
+					},
+					"orders/uuids": map[string]any{
+						"cost": 0.67,
+					},
+					"withdraws": map[string]any{
+						"cost": 0.67,
+					},
+					"withdraw": map[string]any{
+						"cost": 0.67,
+					},
+					"withdraws/chance": map[string]any{
+						"cost": 0.67,
+					},
+					"withdraws/coin_addresses": map[string]any{
+						"cost": 0.67,
+					},
+					"deposits": map[string]any{
+						"cost": 0.67,
+					},
+					"deposits/chance/coin": map[string]any{
+						"cost": 0.67,
+					},
+					"deposit": map[string]any{
+						"cost": 0.67,
+					},
+					"deposits/coin_addresses": map[string]any{
+						"cost": 0.67,
+					},
+					"deposits/coin_address": map[string]any{
+						"cost": 0.67,
+					},
+					"travel_rule/vasps": map[string]any{
+						"cost": 0.67,
+					},
+					"status/wallet": map[string]any{
+						"cost": 0.67,
+					},
+					"api_keys": map[string]any{
+						"cost": 0.67,
+					},
 				},
 				"post": map[string]any{
-					"orders":                         2.5,
-					"orders/test":                    2.5,
-					"orders/cancel_and_new":          2.5,
-					"withdraws/coin":                 0.67,
-					"withdraws/krw":                  0.67,
-					"deposits/krw":                   0.67,
-					"deposits/generate_coin_address": 0.67,
-					"travel_rule/deposit/uuid":       0.67,
-					"travel_rule/deposit/txid":       0.67,
+					"orders": map[string]any{
+						"cost": 2.5,
+					},
+					"orders/test": map[string]any{
+						"cost": 2.5,
+					},
+					"orders/cancel_and_new": map[string]any{
+						"cost": 2.5,
+					},
+					"withdraws/coin": map[string]any{
+						"cost": 0.67,
+					},
+					"withdraws/krw": map[string]any{
+						"cost": 0.67,
+					},
+					"deposits/krw": map[string]any{
+						"cost": 0.67,
+					},
+					"deposits/generate_coin_address": map[string]any{
+						"cost": 0.67,
+					},
+					"travel_rule/deposit/uuid": map[string]any{
+						"cost": 0.67,
+					},
+					"travel_rule/deposit/txid": map[string]any{
+						"cost": 0.67,
+					},
 				},
 				"delete": map[string]any{
-					"order":          0.67,
-					"orders/open":    40,
-					"orders/uuids":   0.67,
-					"withdraws/coin": 0.67,
+					"order": map[string]any{
+						"cost": 0.67,
+					},
+					"orders/open": map[string]any{
+						"cost": 40,
+					},
+					"orders/uuids": map[string]any{
+						"cost": 0.67,
+					},
+					"withdraws/coin": map[string]any{
+						"cost": 0.67,
+					},
 				},
 			},
 		},
@@ -779,8 +885,9 @@ func (this *UpbitCore) FetchOrderBooks(optionalArgs ...any) <-chan any {
 		//                               "bid_size": 0.4650305 }    ] }   ]
 		//
 		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var orderbook any = GetValue(response, i)
+		var orderbooks any = this.ToArray(response)
+		for i := 0; IsLessThan(i, GetArrayLength(orderbooks)); i++ {
+			var orderbook any = GetValue(orderbooks, i)
 			var marketId any = this.SafeString(orderbook, "market")
 			var symbol any = this.SafeSymbol(marketId, nil, "-")
 			var timestamp any = this.SafeInteger(orderbook, "timestamp")
@@ -911,8 +1018,8 @@ func (this *UpbitCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes79612 := (<-this.LoadMarkets())
-			PanicOnError(retRes79612)
+			retRes79712 := (<-this.LoadMarkets())
+			PanicOnError(retRes79712)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var ids any = Ternary(IsTrue((!IsEqual(symbols, nil))), this.MarketIds(symbols), this.Ids)
@@ -1112,8 +1219,8 @@ func (this *UpbitCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes96312 := (<-this.LoadMarkets())
-			PanicOnError(retRes96312)
+			retRes96412 := (<-this.LoadMarkets())
+			PanicOnError(retRes96412)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(IsEqual(limit, nil)) {
@@ -1175,8 +1282,8 @@ func (this *UpbitCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes101112 := (<-this.LoadMarkets())
-			PanicOnError(retRes101112)
+			retRes101212 := (<-this.LoadMarkets())
+			PanicOnError(retRes101212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1256,8 +1363,8 @@ func (this *UpbitCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes107712 := (<-this.LoadMarkets())
-			PanicOnError(retRes107712)
+			retRes107812 := (<-this.LoadMarkets())
+			PanicOnError(retRes107812)
 		}
 
 		fetchMarketResponse := (<-this.FetchMarkets(params))
@@ -1332,8 +1439,8 @@ func (this *UpbitCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes113812 := (<-this.LoadMarkets())
-			PanicOnError(retRes113812)
+			retRes113912 := (<-this.LoadMarkets())
+			PanicOnError(retRes113912)
 		}
 		var market any = this.Market(symbol)
 		var timeframePeriod any = this.ParseTimeframe(timeframe)
@@ -1362,7 +1469,6 @@ func (this *UpbitCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 			response = (<-this.PublicGetCandlesTimeframe(this.Extend(request, params)))
 			PanicOnError(response)
 		}
-
 		//
 		//     [
 		//         {
@@ -1393,7 +1499,9 @@ func (this *UpbitCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		//         }
 		//     ]
 		//
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		var ohlcvs any = this.ToArray(response)
+
+		ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
 		return nil
 
 	}()
@@ -1461,8 +1569,8 @@ func (this *UpbitCore) CreateOrder(symbol any, typeVar any, side any, amount any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes124512 := (<-this.LoadMarkets())
-			PanicOnError(retRes124512)
+			retRes124712 := (<-this.LoadMarkets())
+			PanicOnError(retRes124712)
 		}
 		var market any = this.Market(symbol)
 		var clientOrderId any = this.SafeString(params, "clientOrderId")
@@ -1599,8 +1707,8 @@ func (this *UpbitCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes136512 := (<-this.LoadMarkets())
-			PanicOnError(retRes136512)
+			retRes136712 := (<-this.LoadMarkets())
+			PanicOnError(retRes136712)
 		}
 		var request any = map[string]any{
 			"uuid": id,
@@ -1669,8 +1777,8 @@ func (this *UpbitCore) EditOrder(id any, symbol any, typeVar any, side any, opti
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes141612 := (<-this.LoadMarkets())
-			PanicOnError(retRes141612)
+			retRes141812 := (<-this.LoadMarkets())
+			PanicOnError(retRes141812)
 		}
 		var request any = map[string]any{}
 		var prevClientOrderId any = this.SafeString(params, "clientOrderId")
@@ -1810,8 +1918,8 @@ func (this *UpbitCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes153612 := (<-this.LoadMarkets())
-			PanicOnError(retRes153612)
+			retRes153812 := (<-this.LoadMarkets())
+			PanicOnError(retRes153812)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -1872,8 +1980,8 @@ func (this *UpbitCore) FetchDeposit(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes158412 := (<-this.LoadMarkets())
-			PanicOnError(retRes158412)
+			retRes158612 := (<-this.LoadMarkets())
+			PanicOnError(retRes158612)
 		}
 		var request any = map[string]any{
 			"uuid": id,
@@ -1936,8 +2044,8 @@ func (this *UpbitCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes162712 := (<-this.LoadMarkets())
-			PanicOnError(retRes162712)
+			retRes162912 := (<-this.LoadMarkets())
+			PanicOnError(retRes162912)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -1999,8 +2107,8 @@ func (this *UpbitCore) FetchWithdrawal(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes167512 := (<-this.LoadMarkets())
-			PanicOnError(retRes167512)
+			retRes167712 := (<-this.LoadMarkets())
+			PanicOnError(retRes167712)
 		}
 		var request any = map[string]any{
 			"uuid": id,
@@ -2315,8 +2423,8 @@ func (this *UpbitCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes197012 := (<-this.LoadMarkets())
-			PanicOnError(retRes197012)
+			retRes197212 := (<-this.LoadMarkets())
+			PanicOnError(retRes197212)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2388,8 +2496,8 @@ func (this *UpbitCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes202212 := (<-this.LoadMarkets())
-			PanicOnError(retRes202212)
+			retRes202412 := (<-this.LoadMarkets())
+			PanicOnError(retRes202412)
 		}
 		var request any = map[string]any{
 			"state": "done",
@@ -2470,8 +2578,8 @@ func (this *UpbitCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes208112 := (<-this.LoadMarkets())
-			PanicOnError(retRes208112)
+			retRes208312 := (<-this.LoadMarkets())
+			PanicOnError(retRes208312)
 		}
 		var request any = map[string]any{
 			"state": "cancel",
@@ -2546,8 +2654,8 @@ func (this *UpbitCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes213812 := (<-this.LoadMarkets())
-			PanicOnError(retRes213812)
+			retRes214012 := (<-this.LoadMarkets())
+			PanicOnError(retRes214012)
 		}
 		var request any = map[string]any{
 			"uuid": id,
@@ -2627,8 +2735,8 @@ func (this *UpbitCore) FetchDepositAddresses(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes220212 := (<-this.LoadMarkets())
-			PanicOnError(retRes220212)
+			retRes220412 := (<-this.LoadMarkets())
+			PanicOnError(retRes220412)
 		}
 
 		response := (<-this.PrivateGetDepositsCoinAddresses(params))
@@ -2705,8 +2813,8 @@ func (this *UpbitCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes226412 := (<-this.LoadMarkets())
-			PanicOnError(retRes226412)
+			retRes226612 := (<-this.LoadMarkets())
+			PanicOnError(retRes226612)
 		}
 		var currency any = this.Currency(code)
 		var networkCode any = nil
@@ -2757,8 +2865,8 @@ func (this *UpbitCore) CreateDepositAddress(code any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes229912 := (<-this.LoadMarkets())
-			PanicOnError(retRes229912)
+			retRes230112 := (<-this.LoadMarkets())
+			PanicOnError(retRes230112)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -2822,8 +2930,8 @@ func (this *UpbitCore) Withdraw(code any, amount any, address any, optionalArgs 
 		params = GetValue(tagparamsVariable, 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes234512 := (<-this.LoadMarkets())
-			PanicOnError(retRes234512)
+			retRes234712 := (<-this.LoadMarkets())
+			PanicOnError(retRes234712)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{

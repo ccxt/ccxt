@@ -67,6 +67,7 @@ class btcbox extends Exchange {
                 'fetchMarginMode' => false,
                 'fetchMarginModes' => false,
                 'fetchMarketLeverageTiers' => false,
+                'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMarkPrices' => false,
                 'fetchMyLiquidations' => false,
@@ -121,25 +122,25 @@ class btcbox extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'depth',
-                        'orders',
-                        'ticker',
-                        'tickers',
+                        'depth' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'ticker' => array( 'cost' => 1 ),
+                        'tickers' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'balance',
-                        'trade_add',
-                        'trade_cancel',
-                        'trade_list',
-                        'trade_view',
-                        'wallet',
+                        'balance' => array( 'cost' => 1 ),
+                        'trade_add' => array( 'cost' => 1 ),
+                        'trade_cancel' => array( 'cost' => 1 ),
+                        'trade_list' => array( 'cost' => 1 ),
+                        'trade_view' => array( 'cost' => 1 ),
+                        'wallet' => array( 'cost' => 1 ),
                     ),
                 ),
                 'webApi' => array(
                     'get' => array(
-                        'ajax/coin/coinInfo',
+                        'ajax/coin/coinInfo' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -246,7 +247,7 @@ class btcbox extends Exchange {
             $quote = $this->safe_string($symbolParts, 1, '');
             $quoteId = strtolower($quote);
             $id = strtolower($baseCurr);
-            $res = $response1[$marketId];
+            $res = $this->safe_dict($response1, $marketId, array());
             $symbol = $baseCurr . '/' . $quote;
             $fee = ($id === 'BTC') ? $this->parse_number('0.0005') : $this->parse_number('0.0010');
             $details = $this->safe_dict($result2Data, $id, array());

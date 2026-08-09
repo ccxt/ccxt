@@ -53,10 +53,13 @@ public partial class zebpay : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrderTrades", true },
                 { "fetchPositions", true },
+                { "fetchStatus", true },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
+                { "fetchTime", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
+                { "fetchTradingFees", true },
                 { "reduceMargin", true },
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
@@ -92,72 +95,156 @@ public partial class zebpay : Exchange
                 { "public", new Dictionary<string, object>() {
                     { "spot", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "v2/system/time", 10 },
-                            { "v2/system/status", 10 },
-                            { "v2/market/orderbook", 10 },
-                            { "v2/market/trades", 10 },
-                            { "v2/market/ticker", 10 },
-                            { "v2/market/allTickers", 10 },
-                            { "v2/ex/exchangeInfo", 10 },
-                            { "v2/ex/currencies", 10 },
-                            { "v2/market/klines", 10 },
-                            { "v2/ex/tradefees", 10 },
+                            { "v2/system/time", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/system/status", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/market/orderbook", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/market/trades", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/market/ticker", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/market/allTickers", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/ex/exchangeInfo", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/ex/currencies", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/market/klines", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/ex/tradefees", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                     } },
                     { "swap", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "v1/system/time", 10 },
-                            { "v1/system/status", 10 },
-                            { "v1/exchange/tradefee", 10 },
-                            { "v1/exchange/tradefees", 10 },
-                            { "v1/market/orderBook", 10 },
-                            { "v1/market/ticker24Hr", 10 },
-                            { "v1/market/markets", 10 },
-                            { "v1/market/aggTrade", 10 },
+                            { "v1/system/time", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/system/status", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/exchange/tradefee", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/exchange/tradefees", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/market/orderBook", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/market/ticker24Hr", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/market/markets", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/market/aggTrade", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "v1/market/klines", 10 },
+                            { "v1/market/klines", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "spot", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
-                            { "v2/ex/orders", 10 },
+                            { "v2/ex/orders", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                         { "get", new Dictionary<string, object>() {
-                            { "v2/ex/orders", 10 },
-                            { "v2/account/balance", 10 },
-                            { "v2/ex/tradefee", 10 },
-                            { "v2/ex/order", 10 },
-                            { "v2/ex/order/fills", 10 },
+                            { "v2/ex/orders", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/account/balance", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/ex/tradefee", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/ex/order", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/ex/order/fills", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                         { "delete", new Dictionary<string, object>() {
-                            { "v2/ex/order", 10 },
-                            { "v2/ex/orders", 10 },
-                            { "v2/ex/orders/cancelAll", 10 },
+                            { "v2/ex/order", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/ex/orders", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/ex/orders/cancelAll", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                     } },
                     { "swap", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "v1/wallet/balance", 10 },
-                            { "v1/trade/order", 10 },
-                            { "v1/trade/order/open-orders", 10 },
-                            { "v1/trade/userLeverages", 10 },
-                            { "v1/trade/userLeverage", 10 },
-                            { "v1/trade/positions", 10 },
-                            { "v1/trade/history", 10 },
+                            { "v1/wallet/balance", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/order", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/order/open-orders", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/userLeverages", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/userLeverage", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/positions", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/history", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "v1/trade/order", 10 },
-                            { "v1/trade/order/addTPSL", 10 },
-                            { "v1/trade/addMargin", 10 },
-                            { "v1/trade/reduceMargin", 10 },
-                            { "v1/trade/position/close", 10 },
-                            { "v1/trade/update/userLeverage", 10 },
+                            { "v1/trade/order", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/order/addTPSL", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/addMargin", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/reduceMargin", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/position/close", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/update/userLeverage", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                         { "delete", new Dictionary<string, object>() {
-                            { "v1/trade/order", 10 },
+                            { "v1/trade/order", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                     } },
                 } },

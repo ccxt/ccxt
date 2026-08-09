@@ -31,7 +31,7 @@ class mexc extends Exchange {
                 'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'cancelOrders' => null,
+                'cancelOrders' => true,
                 'closeAllPositions' => true,
                 'closePosition' => false,
                 'createDepositAddress' => true,
@@ -131,7 +131,7 @@ class mexc extends Exchange {
                 'setMarginMode' => true,
                 'setPositionMode' => true,
                 'signIn' => null,
-                'transfer' => null,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -167,289 +167,290 @@ class mexc extends Exchange {
                 'spot' => array(
                     'public' => array(
                         'get' => array(
-                            'ping' => 1,
-                            'time' => 1,
-                            'defaultSymbols' => 1,
-                            'symbol/offline' => 10,
-                            'exchangeInfo' => 25,
-                            'depth' => 3,
-                            'trades' => 5,
-                            'historicalTrades' => 1,
-                            'aggTrades' => 1,
-                            'klines' => 1,
-                            'avgPrice' => 1,
-                            'ticker/24hr' => 25,
-                            'ticker/price' => 10,
-                            'ticker/bookTicker' => 10,
-                            'etf/info' => 1,
+                            'announcements' => array( 'cost' => 8 ),
+                            'ping' => array( 'cost' => 1 ),
+                            'time' => array( 'cost' => 1 ),
+                            'defaultSymbols' => array( 'cost' => 1 ),
+                            'symbol/offline' => array( 'cost' => 10 ),
+                            'exchangeInfo' => array( 'cost' => 25 ),
+                            'depth' => array( 'cost' => 3 ),
+                            'trades' => array( 'cost' => 5 ),
+                            'historicalTrades' => array( 'cost' => 1 ),
+                            'aggTrades' => array( 'cost' => 1 ),
+                            'klines' => array( 'cost' => 1 ),
+                            'avgPrice' => array( 'cost' => 1 ),
+                            'ticker/24hr' => array( 'cost' => 25 ),
+                            'ticker/price' => array( 'cost' => 10 ),
+                            'ticker/bookTicker' => array( 'cost' => 10 ),
+                            'etf/info' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'kyc/status' => 1,
-                            'uid' => 1,
-                            'order' => 2,
-                            'openOrders' => 3,
-                            'allOrders' => 10,
-                            'account' => 10,
-                            'myTrades' => 10,
-                            'strategy/group' => 20,
-                            'strategy/group/uid' => 20,
-                            'tradeFee' => 20,
-                            'sub-account/list' => 1,
-                            'sub-account/apiKey' => 1,
-                            'sub-account/asset' => 1,
-                            'capital/config/getall' => 10,
-                            'capital/deposit/hisrec' => 10,
-                            'capital/withdraw/history' => 1,
-                            'capital/withdraw/address' => 10,
-                            'capital/deposit/address' => 10,
-                            'capital/transfer' => 1,
-                            'capital/transfer/tranId' => 1,
-                            'capital/transfer/internal' => 1,
-                            'capital/sub-account/universalTransfer' => 1,
-                            'capital/convert' => 1,
-                            'capital/convert/list' => 1,
-                            'margin/loan' => 1,
-                            'margin/allOrders' => 1,
-                            'margin/myTrades' => 1,
-                            'margin/openOrders' => 1,
-                            'margin/maxTransferable' => 1,
-                            'margin/priceIndex' => 1,
-                            'margin/order' => 1,
-                            'margin/isolated/account' => 1,
-                            'margin/maxBorrowable' => 1,
-                            'margin/repay' => 1,
-                            'margin/isolated/pair' => 1,
-                            'margin/forceLiquidationRec' => 1,
-                            'margin/isolatedMarginData' => 1,
-                            'margin/isolatedMarginTier' => 1,
-                            'rebate/taxQuery' => 1,
-                            'rebate/detail' => 1,
-                            'rebate/detail/kickback' => 1,
-                            'rebate/referCode' => 1,
-                            'rebate/affiliate/commission' => 1,
-                            'rebate/affiliate/withdraw' => 1,
-                            'rebate/affiliate/commission/detail' => 1,
-                            'rebate/affiliate/campaign' => 1,
-                            'rebate/affiliate/referral' => 1,
-                            'rebate/affiliate/subaffiliates' => 1,
-                            'rebate/affiliate/list' => 1,
-                            'mxDeduct/enable' => 1,
-                            'userDataStream' => 1,
-                            'selfSymbols' => 1,
-                            'asset/internal/transfer/record' => 10,
+                            'kyc/status' => array( 'cost' => 1 ),
+                            'uid' => array( 'cost' => 1 ),
+                            'order' => array( 'cost' => 2 ),
+                            'openOrders' => array( 'cost' => 3 ),
+                            'allOrders' => array( 'cost' => 10 ),
+                            'account' => array( 'cost' => 10 ),
+                            'myTrades' => array( 'cost' => 10 ),
+                            'strategy/group' => array( 'cost' => 20 ),
+                            'strategy/group/uid' => array( 'cost' => 20 ),
+                            'tradeFee' => array( 'cost' => 20 ),
+                            'sub-account/list' => array( 'cost' => 1 ),
+                            'sub-account/apiKey' => array( 'cost' => 1 ),
+                            'sub-account/asset' => array( 'cost' => 1 ),
+                            'capital/config/getall' => array( 'cost' => 10 ),
+                            'capital/deposit/hisrec' => array( 'cost' => 10 ),
+                            'capital/withdraw/history' => array( 'cost' => 1 ),
+                            'capital/withdraw/address' => array( 'cost' => 10 ),
+                            'capital/deposit/address' => array( 'cost' => 10 ),
+                            'capital/transfer' => array( 'cost' => 1 ),
+                            'capital/transfer/tranId' => array( 'cost' => 1 ),
+                            'capital/transfer/internal' => array( 'cost' => 1 ),
+                            'capital/sub-account/universalTransfer' => array( 'cost' => 1 ),
+                            'capital/convert' => array( 'cost' => 1 ),
+                            'capital/convert/list' => array( 'cost' => 1 ),
+                            'margin/loan' => array( 'cost' => 1 ),
+                            'margin/allOrders' => array( 'cost' => 1 ),
+                            'margin/myTrades' => array( 'cost' => 1 ),
+                            'margin/openOrders' => array( 'cost' => 1 ),
+                            'margin/maxTransferable' => array( 'cost' => 1 ),
+                            'margin/priceIndex' => array( 'cost' => 1 ),
+                            'margin/order' => array( 'cost' => 1 ),
+                            'margin/isolated/account' => array( 'cost' => 1 ),
+                            'margin/maxBorrowable' => array( 'cost' => 1 ),
+                            'margin/repay' => array( 'cost' => 1 ),
+                            'margin/isolated/pair' => array( 'cost' => 1 ),
+                            'margin/forceLiquidationRec' => array( 'cost' => 1 ),
+                            'margin/isolatedMarginData' => array( 'cost' => 1 ),
+                            'margin/isolatedMarginTier' => array( 'cost' => 1 ),
+                            'rebate/taxQuery' => array( 'cost' => 1 ),
+                            'rebate/detail' => array( 'cost' => 1 ),
+                            'rebate/detail/kickback' => array( 'cost' => 1 ),
+                            'rebate/referCode' => array( 'cost' => 1 ),
+                            'rebate/affiliate/commission' => array( 'cost' => 1 ),
+                            'rebate/affiliate/withdraw' => array( 'cost' => 1 ),
+                            'rebate/affiliate/commission/detail' => array( 'cost' => 1 ),
+                            'rebate/affiliate/campaign' => array( 'cost' => 1 ),
+                            'rebate/affiliate/referral' => array( 'cost' => 1 ),
+                            'rebate/affiliate/subaffiliates' => array( 'cost' => 1 ),
+                            'rebate/affiliate/list' => array( 'cost' => 1 ),
+                            'mxDeduct/enable' => array( 'cost' => 1 ),
+                            'userDataStream' => array( 'cost' => 1 ),
+                            'selfSymbols' => array( 'cost' => 1 ),
+                            'asset/internal/transfer/record' => array( 'cost' => 10 ),
                         ),
                         'post' => array(
-                            'order' => 1,
-                            'order/test' => 1,
-                            'apiKeyInfo' => 1,
-                            'sub-account/virtualSubAccount' => 1,
-                            'sub-account/apiKey' => 1,
-                            'sub-account/futures' => 1,
-                            'sub-account/margin' => 1,
-                            'batchOrders' => 10,
-                            'strategy/group' => 20,
-                            'capital/withdraw/apply' => 1,
-                            'capital/withdraw' => 1,
-                            'capital/transfer' => 50,
-                            'capital/transfer/internal' => 1,
-                            'capital/deposit/address' => 1,
-                            'capital/sub-account/universalTransfer' => 1,
-                            'capital/convert' => 10,
-                            'mxDeduct/enable' => 1,
-                            'userDataStream' => 1,
+                            'order' => array( 'cost' => 1 ),
+                            'order/test' => array( 'cost' => 1 ),
+                            'apiKeyInfo' => array( 'cost' => 1 ),
+                            'sub-account/virtualSubAccount' => array( 'cost' => 1 ),
+                            'sub-account/apiKey' => array( 'cost' => 1 ),
+                            'sub-account/futures' => array( 'cost' => 1 ),
+                            'sub-account/margin' => array( 'cost' => 1 ),
+                            'batchOrders' => array( 'cost' => 10 ),
+                            'strategy/group' => array( 'cost' => 20 ),
+                            'capital/withdraw/apply' => array( 'cost' => 1 ),
+                            'capital/withdraw' => array( 'cost' => 1 ),
+                            'capital/transfer' => array( 'cost' => 50 ),
+                            'capital/transfer/internal' => array( 'cost' => 1 ),
+                            'capital/deposit/address' => array( 'cost' => 1 ),
+                            'capital/sub-account/universalTransfer' => array( 'cost' => 1 ),
+                            'capital/convert' => array( 'cost' => 10 ),
+                            'mxDeduct/enable' => array( 'cost' => 1 ),
+                            'userDataStream' => array( 'cost' => 1 ),
                         ),
                         'put' => array(
-                            'userDataStream' => 1,
+                            'userDataStream' => array( 'cost' => 1 ),
                         ),
                         'delete' => array(
-                            'order' => 1,
-                            'openOrders' => 1,
-                            'order/all' => 1,
-                            'sub-account/apiKey' => 1,
-                            'strategy/group' => 1,
-                            'strategy/group/uid' => 1,
-                            'margin/order' => 1,
-                            'margin/openOrders' => 1, // deprecated
-                            'userDataStream' => 1,
-                            'capital/withdraw' => 1,
+                            'order' => array( 'cost' => 1 ),
+                            'openOrders' => array( 'cost' => 1 ),
+                            'order/all' => array( 'cost' => 1 ),
+                            'sub-account/apiKey' => array( 'cost' => 1 ),
+                            'strategy/group' => array( 'cost' => 1 ),
+                            'strategy/group/uid' => array( 'cost' => 1 ),
+                            'margin/order' => array( 'cost' => 1 ),
+                            'margin/openOrders' => array( 'cost' => 1 ), // deprecated
+                            'userDataStream' => array( 'cost' => 1 ),
+                            'capital/withdraw' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
                 'contract' => array(
                     'public' => array(
                         'get' => array(
-                            'ping' => 2,
-                            'detail' => 100,
-                            'support_currencies' => 2,
-                            'depth/{symbol}' => 2,
-                            'depth_commits/{symbol}/{limit}' => 2,
-                            'index_price/{symbol}' => 2,
-                            'fair_price/{symbol}' => 2,
-                            'funding_rate/{symbol}' => 2,
-                            'kline/{symbol}' => 2,
-                            'kline/index_price/{symbol}' => 2,
-                            'kline/fair_price/{symbol}' => 2,
-                            'deals/{symbol}' => 2,
-                            'ticker' => 2,
-                            'risk_reverse' => 2,
-                            'risk_reverse/history' => 2,
-                            'funding_rate/history' => 2,
+                            'ping' => array( 'cost' => 2 ),
+                            'detail' => array( 'cost' => 100 ),
+                            'support_currencies' => array( 'cost' => 2 ),
+                            'depth/{symbol}' => array( 'cost' => 2 ),
+                            'depth_commits/{symbol}/{limit}' => array( 'cost' => 2 ),
+                            'index_price/{symbol}' => array( 'cost' => 2 ),
+                            'fair_price/{symbol}' => array( 'cost' => 2 ),
+                            'funding_rate/{symbol}' => array( 'cost' => 2 ),
+                            'kline/{symbol}' => array( 'cost' => 2 ),
+                            'kline/index_price/{symbol}' => array( 'cost' => 2 ),
+                            'kline/fair_price/{symbol}' => array( 'cost' => 2 ),
+                            'deals/{symbol}' => array( 'cost' => 2 ),
+                            'ticker' => array( 'cost' => 2 ),
+                            'risk_reverse' => array( 'cost' => 2 ),
+                            'risk_reverse/history' => array( 'cost' => 2 ),
+                            'funding_rate/history' => array( 'cost' => 2 ),
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'account/assets' => 2,
-                            'account/asset/{currency}' => 2,
-                            'account/transfer_record' => 2,
-                            'account/profit_rate/{type}' => 2,
-                            'account/asset/analysis/{type}' => 2,
-                            'account/feeDeductConfigs' => 2,
-                            'account/asset/analysis/yesterday_pnl' => 2,
-                            'account/asset/analysis/today_pnl' => 2,
-                            'account/config/contractFeeDiscountConfig' => 2,
-                            'order/fee_details' => 2,
-                            'account/discountType' => 2,
-                            'account/asset/analysis/export' => 2,
-                            'account/asset_book/order_deal_fee/total' => 2,
-                            'account/contract/fee_rate' => 2,
-                            'account/contract/zero_fee_rate' => 2, // documentation removed 2026-05-22
-                            'position/list/history_positions' => 2,
-                            'position/open_positions' => 2,
-                            'position/funding_records' => 2,
-                            'position/position_mode' => 2,
-                            'order/list/open_orders/{symbol}' => 2,
-                            'order/list/open_orders' => 2,
-                            'order/list/history_orders' => 2,
-                            'order/list/order_deals/v3' => 2,
-                            'order/external/{symbol}/{external_oid}' => 2,
-                            'order/get/{order_id}' => 2,
-                            'order/batch_query' => 8,
-                            'order/deal_details/{order_id}' => 2,
-                            'order/list/order_deals' => 2,
-                            'order/list/close_orders' => 2,
-                            'planorder/list/orders' => 2,
-                            'stoporder/list/orders' => 2,
-                            'stoporder/open_orders' => 2,
-                            'stoporder/order_details/{stop_order_id}' => 2,
-                            'account/risk_limit' => 2, // TO_DO => gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
-                            'account/tiered_fee_rate' => 2, // TO_DO => taker/maker fees for account
-                            'position/leverage' => 2,
-                            'account/tiered_fee_rate/v2' => 2,
-                            'trackorder/list/orders' => 2,
-                            'market_maker/self_trade/blacklist' => 2,
-                            'market_maker/self_trade/blacklist/search' => 2,
+                            'account/assets' => array( 'cost' => 2 ),
+                            'account/asset/{currency}' => array( 'cost' => 2 ),
+                            'account/transfer_record' => array( 'cost' => 2 ),
+                            'account/profit_rate/{type}' => array( 'cost' => 2 ),
+                            'account/asset/analysis/{type}' => array( 'cost' => 2 ),
+                            'account/feeDeductConfigs' => array( 'cost' => 2 ),
+                            'account/asset/analysis/yesterday_pnl' => array( 'cost' => 2 ),
+                            'account/asset/analysis/today_pnl' => array( 'cost' => 2 ),
+                            'account/config/contractFeeDiscountConfig' => array( 'cost' => 2 ),
+                            'order/fee_details' => array( 'cost' => 2 ),
+                            'account/discountType' => array( 'cost' => 2 ),
+                            'account/asset/analysis/export' => array( 'cost' => 2 ),
+                            'account/asset_book/order_deal_fee/total' => array( 'cost' => 2 ),
+                            'account/contract/fee_rate' => array( 'cost' => 2 ),
+                            'account/contract/zero_fee_rate' => array( 'cost' => 2 ), // documentation removed 2026-05-22
+                            'position/list/history_positions' => array( 'cost' => 2 ),
+                            'position/open_positions' => array( 'cost' => 2 ),
+                            'position/funding_records' => array( 'cost' => 2 ),
+                            'position/position_mode' => array( 'cost' => 2 ),
+                            'order/list/open_orders/{symbol}' => array( 'cost' => 2 ),
+                            'order/list/open_orders' => array( 'cost' => 2 ),
+                            'order/list/history_orders' => array( 'cost' => 2 ),
+                            'order/list/order_deals/v3' => array( 'cost' => 2 ),
+                            'order/external/{symbol}/{external_oid}' => array( 'cost' => 2 ),
+                            'order/get/{order_id}' => array( 'cost' => 2 ),
+                            'order/batch_query' => array( 'cost' => 8 ),
+                            'order/deal_details/{order_id}' => array( 'cost' => 2 ),
+                            'order/list/order_deals' => array( 'cost' => 2 ),
+                            'order/list/close_orders' => array( 'cost' => 2 ),
+                            'planorder/list/orders' => array( 'cost' => 2 ),
+                            'stoporder/list/orders' => array( 'cost' => 2 ),
+                            'stoporder/open_orders' => array( 'cost' => 2 ),
+                            'stoporder/order_details/{stop_order_id}' => array( 'cost' => 2 ),
+                            'account/risk_limit' => array( 'cost' => 2 ), // TO_DO => gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
+                            'account/tiered_fee_rate' => array( 'cost' => 2 ), // TO_DO => taker/maker fees for account
+                            'position/leverage' => array( 'cost' => 2 ),
+                            'account/tiered_fee_rate/v2' => array( 'cost' => 2 ),
+                            'trackorder/list/orders' => array( 'cost' => 2 ),
+                            'market_maker/self_trade/blacklist' => array( 'cost' => 2 ),
+                            'market_maker/self_trade/blacklist/search' => array( 'cost' => 2 ),
                         ),
                         'post' => array(
-                            'account/asset/analysis/v3' => 2,
-                            'account/asset/analysis/calendar/daily/v3' => 2,
-                            'account/asset/analysis/calendar/monthly/v3' => 2,
-                            'account/asset/analysis/recent/v3' => 2,
-                            'position/change_margin' => 2,
-                            'position/change_auto_add_im' => 2,
-                            'position/change_leverage' => 2,
-                            'position/change_position_mode' => 2,
-                            'position/reverse' => 2,
-                            'position/close_all' => 10,
-                            'order/create' => 2,
-                            'order/submit' => 2,
-                            'order/submit_batch' => 40,
-                            'order/chase_limit_order' => 40,
-                            'order/change_limit_order' => 40,
-                            'order/cancel' => 2,
-                            'order/batch_cancel_with_external' => 2,
-                            'order/cancel_with_external' => 2,
-                            'order/cancel_all' => 2,
-                            'order/open_order_total_count' => 2,
-                            'order/batch_query_with_external' => 2,
-                            'account/change_risk_level' => 2,
-                            'planorder/place' => 2,
-                            'planorder/place/v2' => 2,
-                            'planorder/cancel' => 2,
-                            'planorder/cancel_all' => 2,
-                            'planorder/change_stop_order' => 2,
-                            'stoporder/place' => 2,
-                            'stoporder/cancel' => 2,
-                            'stoporder/cancel_all' => 2,
-                            'stoporder/change_price' => 2,
-                            'stoporder/change_plan_price' => 2,
-                            'trackorder/place' => 2,
-                            'trackorder/cancel' => 2,
-                            'trackorder/change_order' => 2,
-                            'market_maker/self_trade/blacklist/create' => 2,
-                            'market_maker/self_trade/blacklist/update' => 2,
-                            'market_maker/self_trade/blacklist/delete' => 2,
+                            'account/asset/analysis/v3' => array( 'cost' => 2 ),
+                            'account/asset/analysis/calendar/daily/v3' => array( 'cost' => 2 ),
+                            'account/asset/analysis/calendar/monthly/v3' => array( 'cost' => 2 ),
+                            'account/asset/analysis/recent/v3' => array( 'cost' => 2 ),
+                            'position/change_margin' => array( 'cost' => 2 ),
+                            'position/change_auto_add_im' => array( 'cost' => 2 ),
+                            'position/change_leverage' => array( 'cost' => 2 ),
+                            'position/change_position_mode' => array( 'cost' => 2 ),
+                            'position/reverse' => array( 'cost' => 2 ),
+                            'position/close_all' => array( 'cost' => 10 ),
+                            'order/create' => array( 'cost' => 2 ),
+                            'order/submit' => array( 'cost' => 2 ),
+                            'order/submit_batch' => array( 'cost' => 40 ),
+                            'order/chase_limit_order' => array( 'cost' => 40 ),
+                            'order/change_limit_order' => array( 'cost' => 40 ),
+                            'order/cancel' => array( 'cost' => 2 ),
+                            'order/batch_cancel_with_external' => array( 'cost' => 2 ),
+                            'order/cancel_with_external' => array( 'cost' => 2 ),
+                            'order/cancel_all' => array( 'cost' => 2 ),
+                            'order/open_order_total_count' => array( 'cost' => 2 ),
+                            'order/batch_query_with_external' => array( 'cost' => 2 ),
+                            'account/change_risk_level' => array( 'cost' => 2 ),
+                            'planorder/place' => array( 'cost' => 2 ),
+                            'planorder/place/v2' => array( 'cost' => 2 ),
+                            'planorder/cancel' => array( 'cost' => 2 ),
+                            'planorder/cancel_all' => array( 'cost' => 2 ),
+                            'planorder/change_stop_order' => array( 'cost' => 2 ),
+                            'stoporder/place' => array( 'cost' => 2 ),
+                            'stoporder/cancel' => array( 'cost' => 2 ),
+                            'stoporder/cancel_all' => array( 'cost' => 2 ),
+                            'stoporder/change_price' => array( 'cost' => 2 ),
+                            'stoporder/change_plan_price' => array( 'cost' => 2 ),
+                            'trackorder/place' => array( 'cost' => 2 ),
+                            'trackorder/cancel' => array( 'cost' => 2 ),
+                            'trackorder/change_order' => array( 'cost' => 2 ),
+                            'market_maker/self_trade/blacklist/create' => array( 'cost' => 2 ),
+                            'market_maker/self_trade/blacklist/update' => array( 'cost' => 2 ),
+                            'market_maker/self_trade/blacklist/delete' => array( 'cost' => 2 ),
                         ),
                     ),
                 ),
                 'spot2' => array(
                     'public' => array(
                         'get' => array(
-                            'market/symbols' => 1,
-                            'market/coin/list' => 2,
-                            'common/timestamp' => 1,
-                            'common/ping' => 2,
-                            'market/ticker' => 1,
-                            'market/depth' => 1,
-                            'market/deals' => 1,
-                            'market/kline' => 1,
-                            'market/api_default_symbols' => 2,
+                            'market/symbols' => array( 'cost' => 1 ),
+                            'market/coin/list' => array( 'cost' => 2 ),
+                            'common/timestamp' => array( 'cost' => 1 ),
+                            'common/ping' => array( 'cost' => 2 ),
+                            'market/ticker' => array( 'cost' => 1 ),
+                            'market/depth' => array( 'cost' => 1 ),
+                            'market/deals' => array( 'cost' => 1 ),
+                            'market/kline' => array( 'cost' => 1 ),
+                            'market/api_default_symbols' => array( 'cost' => 2 ),
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'account/info' => 1,
-                            'order/open_orders' => 1,
-                            'order/list' => 1,
-                            'order/query' => 1,
-                            'order/deals' => 1,
-                            'order/deal_detail' => 1,
-                            'asset/deposit/address/list' => 2,
-                            'asset/deposit/list' => 2,
-                            'asset/address/list' => 2,
-                            'asset/withdraw/list' => 2,
-                            'asset/internal/transfer/record' => 10,
-                            'account/balance' => 10,
-                            'asset/internal/transfer/info' => 10,
-                            'market/api_symbols' => 2,
+                            'account/info' => array( 'cost' => 1 ),
+                            'order/open_orders' => array( 'cost' => 1 ),
+                            'order/list' => array( 'cost' => 1 ),
+                            'order/query' => array( 'cost' => 1 ),
+                            'order/deals' => array( 'cost' => 1 ),
+                            'order/deal_detail' => array( 'cost' => 1 ),
+                            'asset/deposit/address/list' => array( 'cost' => 2 ),
+                            'asset/deposit/list' => array( 'cost' => 2 ),
+                            'asset/address/list' => array( 'cost' => 2 ),
+                            'asset/withdraw/list' => array( 'cost' => 2 ),
+                            'asset/internal/transfer/record' => array( 'cost' => 10 ),
+                            'account/balance' => array( 'cost' => 10 ),
+                            'asset/internal/transfer/info' => array( 'cost' => 10 ),
+                            'market/api_symbols' => array( 'cost' => 2 ),
                         ),
                         'post' => array(
-                            'order/place' => 1,
-                            'order/place_batch' => 1,
-                            'order/advanced/place_batch' => 1,
-                            'asset/withdraw' => 2,
-                            'asset/internal/transfer' => 10,
+                            'order/place' => array( 'cost' => 1 ),
+                            'order/place_batch' => array( 'cost' => 1 ),
+                            'order/advanced/place_batch' => array( 'cost' => 1 ),
+                            'asset/withdraw' => array( 'cost' => 2 ),
+                            'asset/internal/transfer' => array( 'cost' => 10 ),
                         ),
                         'delete' => array(
-                            'order/cancel' => 1,
-                            'order/cancel_by_symbol' => 1,
-                            'asset/withdraw' => 2,
+                            'order/cancel' => array( 'cost' => 1 ),
+                            'order/cancel_by_symbol' => array( 'cost' => 1 ),
+                            'asset/withdraw' => array( 'cost' => 2 ),
                         ),
                     ),
                 ),
                 'broker' => array(
                     'private' => array(
                         'get' => array(
-                            'sub-account/universalTransfer' => 1,
-                            'sub-account/list' => 1,
-                            'sub-account/status' => 1,
-                            'sub-account/apiKey' => 1,
-                            'capital/deposit/subAddress' => 1,
-                            'capital/deposit/subHisrec' => 1,
-                            'capital/deposit/subHisrec/getall' => 1,
-                            'rebate/taxQuery' => 1,
+                            'sub-account/universalTransfer' => array( 'cost' => 1 ),
+                            'sub-account/list' => array( 'cost' => 1 ),
+                            'sub-account/status' => array( 'cost' => 1 ),
+                            'sub-account/apiKey' => array( 'cost' => 1 ),
+                            'capital/deposit/subAddress' => array( 'cost' => 1 ),
+                            'capital/deposit/subHisrec' => array( 'cost' => 1 ),
+                            'capital/deposit/subHisrec/getall' => array( 'cost' => 1 ),
+                            'rebate/taxQuery' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'sub-account/virtualSubAccount' => 1,
-                            'sub-account/apiKey' => 1,
-                            'capital/deposit/subAddress' => 1,
-                            'capital/withdraw/apply' => 1,
-                            'sub-account/universalTransfer' => 1,
-                            'sub-account/futures' => 1,
+                            'sub-account/virtualSubAccount' => array( 'cost' => 1 ),
+                            'sub-account/apiKey' => array( 'cost' => 1 ),
+                            'capital/deposit/subAddress' => array( 'cost' => 1 ),
+                            'capital/withdraw/apply' => array( 'cost' => 1 ),
+                            'sub-account/universalTransfer' => array( 'cost' => 1 ),
+                            'sub-account/futures' => array( 'cost' => 1 ),
                         ),
                         'delete' => array(
-                            'sub-account/apiKey' => 1,
+                            'sub-account/apiKey' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
@@ -542,7 +543,7 @@ class mexc extends Exchange {
                     // 'ALGO' => 'Algorand(ALGO)',
                     // 'ALPH' => 'Alephium(ALPH)',
                     // 'ARB' => 'Arbitrum One(ARB)',
-                    // 'ARBONE' => 'ArbitrumOne(ARB)',
+                    // 'ARBITRUM' => 'ArbitrumOne(ARB)',
                     'ASTR' => 'ASTAR', // ASTAREVM is different
                     // 'ATOM' => 'Cosmos(ATOM)',
                     // 'AVAXC' => 'Avalanche C Chain(AVAX CCHAIN)',
@@ -1051,7 +1052,7 @@ class mexc extends Exchange {
         ));
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -1244,7 +1245,7 @@ class mexc extends Exchange {
         return $this->array_concat($spotMarket, $swapMarket);
     }
 
-    public function fetch_spot_markets($params = array()) {
+    public function fetch_spot_markets($params = array()): array {
         /**
          * @ignore
          * retrieves $data on all spot markets for mexc
@@ -1371,7 +1372,7 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function fetch_swap_markets($params = array()) {
+    public function fetch_swap_markets($params = array()): array {
         /**
          * @ignore
          * retrieves $data on all swap markets for mexc
@@ -1677,7 +1678,7 @@ class mexc extends Exchange {
             //         )
             //     }
             //
-            $trades = $this->safe_value($response, 'data');
+            $trades = $this->safe_list($response, 'data', array());
         }
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -1903,7 +1904,7 @@ class mexc extends Exchange {
             //       ),
             //     )
             //
-            $candles = $response;
+            $candles = $this->to_array($response);
         } elseif ($market['swap']) {
             if ($since !== null) {
                 $request['start'] = $this->parse_to_int($since / 1000);
@@ -3027,7 +3028,7 @@ class mexc extends Exchange {
         }
     }
 
-    public function fetch_orders_by_ids(mixed $ids, ?string $symbol = null, $params = array()) {
+    public function fetch_orders_by_ids(mixed $ids, ?string $symbol = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -3944,7 +3945,6 @@ class mexc extends Exchange {
         //         "tradeEnabled" => true
         //     }
         //
-        $wallet = null;
         if ($marketType === 'margin') {
             $wallet = $this->safe_value($response, 'assets', array());
         } elseif ($marketType === 'swap') {
@@ -4173,6 +4173,7 @@ class mexc extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
+        $trades = array();
         if ($marketType === 'spot') {
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -4242,7 +4243,7 @@ class mexc extends Exchange {
             //         )
             //     }
             //
-            $trades = $this->safe_value($response, 'data');
+            $trades = $this->safe_list($response, 'data', array());
         }
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -4270,6 +4271,7 @@ class mexc extends Exchange {
             $market = $this->market($symbol);
         }
         list($marketType, $query) = $this->handle_market_type_and_params('fetchOrderTrades', $market, $params);
+        $trades = array();
         if ($marketType === 'spot') {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
@@ -4324,7 +4326,7 @@ class mexc extends Exchange {
             //         )
             //     }
             //
-            $trades = $this->safe_value($response, 'data');
+            $trades = $this->safe_list($response, 'data', array());
         }
         return $this->parse_trades($trades, $market, $since, $limit, $query);
     }
@@ -5834,7 +5836,7 @@ class mexc extends Exchange {
         return $response;
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): array {
         /**
          * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
          *
@@ -6222,8 +6224,8 @@ class mexc extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_list($response, 'data');
-        $positions = $this->parse_positions(($data), $symbols, $params);
+        $data = $this->safe_list($response, 'data', array());
+        $positions = $this->parse_positions($data, $symbols, $params);
         return $this->filter_by_since_limit($positions, $since, $limit);
     }
 
@@ -6271,7 +6273,7 @@ class mexc extends Exchange {
         //
         // array( success => true, code => '0' )
         //
-        return $this->parse_leverage($response, $market); // tmp revert type
+        return $this->parse_leverage($response, $market); // widened to Dict to match the base setMarginMode return (array()) — narrowing it to Leverage breaks the Go IExchange interface
     }
 
     public function nonce() {

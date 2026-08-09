@@ -134,130 +134,130 @@ export default class poloniex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'markets': 20,
-                        'markets/{symbol}': 1,
-                        'currencies': 20,
-                        'currencies/{currency}': 20,
-                        'v2/currencies': 20,
-                        'v2/currencies/{currency}': 20,
-                        'timestamp': 1,
-                        'markets/price': 1,
-                        'markets/{symbol}/price': 1,
-                        'markets/markPrice': 1,
-                        'markets/{symbol}/markPrice': 1,
-                        'markets/{symbol}/markPriceComponents': 1,
-                        'markets/{symbol}/orderBook': 1,
-                        'markets/{symbol}/candles': 1,
-                        'markets/{symbol}/trades': 20,
-                        'markets/ticker24h': 20,
-                        'markets/{symbol}/ticker24h': 20,
-                        'markets/collateralInfo': 1,
-                        'markets/{currency}/collateralInfo': 1,
-                        'markets/borrowRatesInfo': 1,
+                        'markets': { 'cost': 20 },
+                        'markets/{symbol}': { 'cost': 1 },
+                        'currencies': { 'cost': 20 },
+                        'currencies/{currency}': { 'cost': 20 },
+                        'v2/currencies': { 'cost': 20 },
+                        'v2/currencies/{currency}': { 'cost': 20 },
+                        'timestamp': { 'cost': 1 },
+                        'markets/price': { 'cost': 1 },
+                        'markets/{symbol}/price': { 'cost': 1 },
+                        'markets/markPrice': { 'cost': 1 },
+                        'markets/{symbol}/markPrice': { 'cost': 1 },
+                        'markets/{symbol}/markPriceComponents': { 'cost': 1 },
+                        'markets/{symbol}/orderBook': { 'cost': 1 },
+                        'markets/{symbol}/candles': { 'cost': 1 },
+                        'markets/{symbol}/trades': { 'cost': 20 },
+                        'markets/ticker24h': { 'cost': 20 },
+                        'markets/{symbol}/ticker24h': { 'cost': 20 },
+                        'markets/collateralInfo': { 'cost': 1 },
+                        'markets/{currency}/collateralInfo': { 'cost': 1 },
+                        'markets/borrowRatesInfo': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts': 4,
-                        'accounts/balances': 4,
-                        'accounts/{id}/balances': 4,
-                        'accounts/activity': 20,
-                        'accounts/transfer': 20,
-                        'accounts/transfer/{id}': 4,
-                        'feeinfo': 20,
-                        'accounts/interest/history': 1,
-                        'subaccounts': 4,
-                        'subaccounts/balances': 20,
-                        'subaccounts/{id}/balances': 4,
-                        'subaccounts/transfer': 20,
-                        'subaccounts/transfer/{id}': 4,
-                        'wallets/addresses': 20,
-                        'wallets/addresses/{currency}': 20,
-                        'wallets/activity': 20,
-                        'margin/accountMargin': 4,
-                        'margin/borrowStatus': 4,
-                        'margin/maxSize': 4,
-                        'orders': 20,
-                        'orders/{id}': 4,
-                        'orders/killSwitchStatus': 4,
-                        'smartorders': 20,
-                        'smartorders/{id}': 4,
-                        'orders/history': 20,
-                        'smartorders/history': 20,
-                        'trades': 20,
-                        'orders/{id}/trades': 4,
+                        'accounts': { 'cost': 4 },
+                        'accounts/balances': { 'cost': 4 },
+                        'accounts/{id}/balances': { 'cost': 4 },
+                        'accounts/activity': { 'cost': 20 },
+                        'accounts/transfer': { 'cost': 20 },
+                        'accounts/transfer/{id}': { 'cost': 4 },
+                        'feeinfo': { 'cost': 20 },
+                        'accounts/interest/history': { 'cost': 1 },
+                        'subaccounts': { 'cost': 4 },
+                        'subaccounts/balances': { 'cost': 20 },
+                        'subaccounts/{id}/balances': { 'cost': 4 },
+                        'subaccounts/transfer': { 'cost': 20 },
+                        'subaccounts/transfer/{id}': { 'cost': 4 },
+                        'wallets/addresses': { 'cost': 20 },
+                        'wallets/addresses/{currency}': { 'cost': 20 },
+                        'wallets/activity': { 'cost': 20 },
+                        'margin/accountMargin': { 'cost': 4 },
+                        'margin/borrowStatus': { 'cost': 4 },
+                        'margin/maxSize': { 'cost': 4 },
+                        'orders': { 'cost': 20 },
+                        'orders/{id}': { 'cost': 4 },
+                        'orders/killSwitchStatus': { 'cost': 4 },
+                        'smartorders': { 'cost': 20 },
+                        'smartorders/{id}': { 'cost': 4 },
+                        'orders/history': { 'cost': 20 },
+                        'smartorders/history': { 'cost': 20 },
+                        'trades': { 'cost': 20 },
+                        'orders/{id}/trades': { 'cost': 4 },
                     },
                     'post': {
-                        'accounts/transfer': 4,
-                        'subaccounts/transfer': 20,
-                        'wallets/address': 20,
-                        'wallets/withdraw': 20,
-                        'v2/wallets/withdraw': 20,
-                        'orders': 4,
-                        'orders/batch': 20,
-                        'orders/killSwitch': 4,
-                        'smartorders': 4,
+                        'accounts/transfer': { 'cost': 4 },
+                        'subaccounts/transfer': { 'cost': 20 },
+                        'wallets/address': { 'cost': 20 },
+                        'wallets/withdraw': { 'cost': 20 },
+                        'v2/wallets/withdraw': { 'cost': 20 },
+                        'orders': { 'cost': 4 },
+                        'orders/batch': { 'cost': 20 },
+                        'orders/killSwitch': { 'cost': 4 },
+                        'smartorders': { 'cost': 4 },
                     },
                     'delete': {
-                        'orders/{id}': 4,
-                        'orders/cancelByIds': 20,
-                        'orders': 20,
-                        'smartorders/{id}': 4,
-                        'smartorders/cancelByIds': 20,
-                        'smartorders': 20,
+                        'orders/{id}': { 'cost': 4 },
+                        'orders/cancelByIds': { 'cost': 20 },
+                        'orders': { 'cost': 20 },
+                        'smartorders/{id}': { 'cost': 4 },
+                        'smartorders/cancelByIds': { 'cost': 20 },
+                        'smartorders': { 'cost': 20 },
                     },
                     'put': {
-                        'orders/{id}': 20,
-                        'smartorders/{id}': 20,
+                        'orders/{id}': { 'cost': 20 },
+                        'smartorders/{id}': { 'cost': 20 },
                     },
                 },
                 'swapPublic': {
                     'get': {
                         // 300 calls / second
-                        'v3/market/allInstruments': 2 / 3,
-                        'v3/market/instruments': 2 / 3,
-                        'v3/market/orderBook': 2 / 3,
-                        'v3/market/candles': 10, // candles have different RL
-                        'v3/market/indexPriceCandlesticks': 10,
-                        'v3/market/premiumIndexCandlesticks': 10,
-                        'v3/market/markPriceCandlesticks': 10,
-                        'v3/market/trades': 2 / 3,
-                        'v3/market/liquidationOrder': 2 / 3,
-                        'v3/market/tickers': 2 / 3,
-                        'v3/market/markPrice': 2 / 3,
-                        'v3/market/indexPrice': 2 / 3,
-                        'v3/market/indexPriceComponents': 2 / 3,
-                        'v3/market/fundingRate': 2 / 3,
-                        'v3/market/openInterest': 2 / 3,
-                        'v3/market/insurance': 2 / 3,
-                        'v3/market/riskLimit': 2 / 3,
+                        'v3/market/allInstruments': { 'cost': 2 / 3 },
+                        'v3/market/instruments': { 'cost': 2 / 3 },
+                        'v3/market/orderBook': { 'cost': 2 / 3 },
+                        'v3/market/candles': { 'cost': 10 }, // candles have different RL
+                        'v3/market/indexPriceCandlesticks': { 'cost': 10 },
+                        'v3/market/premiumIndexCandlesticks': { 'cost': 10 },
+                        'v3/market/markPriceCandlesticks': { 'cost': 10 },
+                        'v3/market/trades': { 'cost': 2 / 3 },
+                        'v3/market/liquidationOrder': { 'cost': 2 / 3 },
+                        'v3/market/tickers': { 'cost': 2 / 3 },
+                        'v3/market/markPrice': { 'cost': 2 / 3 },
+                        'v3/market/indexPrice': { 'cost': 2 / 3 },
+                        'v3/market/indexPriceComponents': { 'cost': 2 / 3 },
+                        'v3/market/fundingRate': { 'cost': 2 / 3 },
+                        'v3/market/openInterest': { 'cost': 2 / 3 },
+                        'v3/market/insurance': { 'cost': 2 / 3 },
+                        'v3/market/riskLimit': { 'cost': 2 / 3 },
                     },
                 },
                 'swapPrivate': {
                     'get': {
-                        'v3/account/balance': 4,
-                        'v3/account/bills': 20,
-                        'v3/trade/order/opens': 20,
-                        'v3/trade/order/trades': 20,
-                        'v3/trade/order/history': 20,
-                        'v3/trade/position/opens': 20,
-                        'v3/trade/position/history': 20, // todo: method for this
-                        'v3/position/leverages': 20,
-                        'v3/position/mode': 20,
+                        'v3/account/balance': { 'cost': 4 },
+                        'v3/account/bills': { 'cost': 20 },
+                        'v3/trade/order/opens': { 'cost': 20 },
+                        'v3/trade/order/trades': { 'cost': 20 },
+                        'v3/trade/order/history': { 'cost': 20 },
+                        'v3/trade/position/opens': { 'cost': 20 },
+                        'v3/trade/position/history': { 'cost': 20 }, // todo: method for this
+                        'v3/position/leverages': { 'cost': 20 },
+                        'v3/position/mode': { 'cost': 20 },
                     },
                     'post': {
-                        'v3/trade/order': 4,
-                        'v3/trade/orders': 40,
-                        'v3/trade/position': 20,
-                        'v3/trade/positionAll': 100,
-                        'v3/position/leverage': 20,
-                        'v3/position/mode': 20,
-                        'v3/trade/position/margin': 20,
+                        'v3/trade/order': { 'cost': 4 },
+                        'v3/trade/orders': { 'cost': 40 },
+                        'v3/trade/position': { 'cost': 20 },
+                        'v3/trade/positionAll': { 'cost': 100 },
+                        'v3/position/leverage': { 'cost': 20 },
+                        'v3/position/mode': { 'cost': 20 },
+                        'v3/trade/position/margin': { 'cost': 20 },
                     },
                     'delete': {
-                        'v3/trade/order': 2,
-                        'v3/trade/batchOrders': 20,
-                        'v3/trade/allOrders': 20,
+                        'v3/trade/order': { 'cost': 2 },
+                        'v3/trade/batchOrders': { 'cost': 20 },
+                        'v3/trade/allOrders': { 'cost': 20 },
                     },
                 },
             },
@@ -706,7 +706,11 @@ export default class poloniex extends Exchange {
         //         ]
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        let candles = [];
+        if (Array.isArray(response)) {
+            candles = response;
+        }
+        return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     async loadMarkets(reload = false, params = {}) {
         const markets = await super.loadMarkets(reload, params);
@@ -1457,7 +1461,7 @@ export default class poloniex extends Exchange {
             //             cT: "1740777074704",
             //         },
             //
-            const tradesList = this.safeList(response, 'data');
+            const tradesList = this.safeList(response, 'data', []);
             return this.parseTrades(tradesList, market, since, limit);
         }
         const trades = await this.publicGetMarketsSymbolTrades(this.extend(request, params));
@@ -1553,7 +1557,7 @@ export default class poloniex extends Exchange {
             //                "actType": "TRADING"
             //            },
             //
-            const data = this.safeList(raw, 'data');
+            const data = this.safeList(raw, 'data', []);
             return this.parseTrades(data, market, since, limit);
         }
         const response = await this.privateGetTrades(this.extend(request, params));
@@ -2977,8 +2981,12 @@ export default class poloniex extends Exchange {
         //     ]
         //
         const data = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
+        let entries = [];
+        if (Array.isArray(response)) {
+            entries = response;
+        }
+        for (let i = 0; i < entries.length; i++) {
+            const entry = entries[i];
             const currencies = Object.keys(entry);
             const currencyId = this.safeString(currencies, 0);
             data[currencyId] = entry[currencyId];

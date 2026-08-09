@@ -82,48 +82,48 @@ class nado extends Exchange {
                 'gateway' => array(
                     'public' => array(
                         'get' => array(
-                            'symbols' => 2,
-                            'query' => 1,
-                            'edge/query' => 1,
+                            'symbols' => array( 'cost' => 2 ),
+                            'query' => array( 'cost' => 1 ),
+                            'edge/query' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'query' => 1,
+                            'query' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'post' => array(
-                            'execute' => 1,
+                            'execute' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
                 'gatewayV2' => array(
                     'public' => array(
                         'get' => array(
-                            'assets' => 2,
-                            'pairs' => 1,
-                            'orderbook' => 1,
+                            'assets' => array( 'cost' => 2 ),
+                            'pairs' => array( 'cost' => 1 ),
+                            'orderbook' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
                 'archive' => array(
                     'post' => array(
-                        '' => 1,
+                        '' => array( 'cost' => 1 ),
                     ),
                 ),
                 'archiveV2' => array(
                     'public' => array(
                         'get' => array(
-                            'tickers' => 1,
-                            'contracts' => 1,
-                            'trades' => 1,
+                            'tickers' => array( 'cost' => 1 ),
+                            'contracts' => array( 'cost' => 1 ),
+                            'trades' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
                 'trigger' => array(
                     'private' => array(
                         'post' => array(
-                            'execute' => 1,
-                            'query' => 1,
+                            'execute' => array( 'cost' => 1 ),
+                            'query' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
@@ -943,7 +943,7 @@ class nado extends Exchange {
             $productIds[] = $this->parse_to_int($market['id']);
         }
         $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'subaccount', 'default');
+        list($subaccount, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
@@ -1543,7 +1543,7 @@ class nado extends Exchange {
         return $this->safe_integer($response, 'server_time');
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -1734,8 +1734,9 @@ class nado extends Exchange {
          */
         $response = $this->gatewayV2PublicGetAssets($params);
         $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $currency = $response[$i];
+        $assets = $this->to_array($response);
+        for ($i = 0; $i < count($assets); $i++) {
+            $currency = $assets[$i];
             $parsed = $this->parse_currency($currency);
             $code = $this->safe_string($parsed, 'code');
             if ($code === null) {
@@ -1956,7 +1957,7 @@ class nado extends Exchange {
         $rates = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $tickers[$i];
-            $rates[] = $response[$ticker];
+            $rates[] = $this->safe_dict($response, $ticker, array());
         }
         return $this->parse_funding_rates($rates, $symbols);
     }
@@ -2047,7 +2048,7 @@ class nado extends Exchange {
         $interests = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $tickers[$i];
-            $interests[] = $response[$ticker];
+            $interests[] = $this->safe_dict($response, $ticker, array());
         }
         return $this->parse_open_interests($interests, $symbols);
     }

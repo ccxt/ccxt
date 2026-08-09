@@ -1371,6 +1371,33 @@
                     "main"
                 ],
                 "output": "{\"action\":{\"type\":\"subAccountTransfer\",\"subAccountUser\":\"0xc751489d24a33172541ea451bc253d7a9e98c781\",\"isDeposit\":false,\"usd\":100000000},\"nonce\":1718449507242,\"signature\":{\"r\":\"0x575f802d4117366cdfc2df33185bf21af6d2cebf1549689cc23082ffcf232a5d\",\"s\":\"0x661b7e839f0a66de5c63f9d3ff437f0455f74f7e3218332e26f6f2616b0e50eb\",\"v\":27}}"
+            },
+            {
+                "description": "spot USDC transfer from main to subaccount via subAccountSpotTransfer",
+                "method": "transfer",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "USDC",
+                    7,
+                    "main",
+                    "0xc751489d24a33172541ea451bc253d7a9e98c781",
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "output": "{\"action\":{\"type\":\"subAccountSpotTransfer\",\"subAccountUser\":\"0xc751489d24a33172541ea451bc253d7a9e98c781\",\"isDeposit\":true,\"token\":\"USDC:0x6d1e7cde53ba9467b783cb7c530ce054\",\"amount\":\"7\"},\"nonce\":1785977955290,\"signature\":{\"r\":\"0x4bafbf5bbe27aea8e9ec76170468d2b1453b3fba9504b11c096ed9bc0541daf\",\"s\":\"0xe00f8490c848b39b729c07817b3b60ac9847ae0b06eef7c9cd4ffc3f441e3c8\",\"v\":28}}"
+            },
+            {
+                "description": "non-USDC spot transfer sends token as NAME:tokenId",
+                "method": "transfer",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "HYPE",
+                    3,
+                    "0xc751489d24a33172541ea451bc253d7a9e98c781",
+                    "main"
+                ],
+                "output": "{\"action\":{\"type\":\"subAccountSpotTransfer\",\"subAccountUser\":\"0xc751489d24a33172541ea451bc253d7a9e98c781\",\"isDeposit\":false,\"token\":\"HYPE:0x0d01dc56dcaaca66ad901c959b4011ec\",\"amount\":\"3\"},\"nonce\":1785977955306,\"signature\":{\"r\":\"0x18ca95bb25b010ed60aa44cee04b6ccb982dc9e0c99c5424e8254958e8e1df67\",\"s\":\"0x5a934b3316da5503f8629979610a2f1874f6ff8cf2d32fa1f019770492025cd6\",\"v\":27}}"
             }
         ],
         "withdraw": [

@@ -153,167 +153,425 @@ func (this *CryptocomCore) Describe() any {
 			"base": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"v1/public/get-announcements": 1,
+						"v1/public/get-announcements": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
 			"v1": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"public/auth":                         Divide(10, 3),
-						"public/get-instruments":              Divide(10, 3),
-						"public/get-book":                     1,
-						"public/get-candlestick":              1,
-						"public/get-trades":                   1,
-						"public/get-tickers":                  1,
-						"public/get-valuations":               1,
-						"public/get-expired-settlement-price": Divide(10, 3),
-						"public/get-insurance":                1,
-						"public/get-announcements":            1,
-						"public/get-risk-parameters":          1,
+						"public/auth": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"public/get-instruments": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"public/get-book": map[string]any{
+							"cost": 1,
+						},
+						"public/get-candlestick": map[string]any{
+							"cost": 1,
+						},
+						"public/get-trades": map[string]any{
+							"cost": 1,
+						},
+						"public/get-tickers": map[string]any{
+							"cost": 1,
+						},
+						"public/get-valuations": map[string]any{
+							"cost": 1,
+						},
+						"public/get-expired-settlement-price": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"public/get-insurance": map[string]any{
+							"cost": 1,
+						},
+						"public/get-announcements": map[string]any{
+							"cost": 1,
+						},
+						"public/get-risk-parameters": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"public/staking/get-conversion-rate": 2,
+						"public/staking/get-conversion-rate": map[string]any{
+							"cost": 2,
+						},
 					},
 				},
 				"private": map[string]any{
 					"post": map[string]any{
-						"private/set-cancel-on-disconnect":        Divide(10, 3),
-						"private/get-cancel-on-disconnect":        Divide(10, 3),
-						"private/user-balance":                    Divide(10, 3),
-						"private/user-balance-history":            Divide(10, 3),
-						"private/get-positions":                   Divide(10, 3),
-						"private/create-order":                    Divide(2, 3),
-						"private/amend-order":                     Divide(4, 3),
-						"private/create-order-list":               Divide(10, 3),
-						"private/cancel-order":                    Divide(2, 3),
-						"private/cancel-order-list":               Divide(10, 3),
-						"private/cancel-all-orders":               Divide(2, 3),
-						"private/close-position":                  Divide(10, 3),
-						"private/get-order-history":               100,
-						"private/get-open-orders":                 Divide(10, 3),
-						"private/get-order-detail":                Divide(1, 3),
-						"private/get-trades":                      100,
-						"private/change-account-leverage":         Divide(10, 3),
-						"private/get-transactions":                Divide(10, 3),
-						"private/create-subaccount-transfer":      Divide(10, 3),
-						"private/get-subaccount-balances":         Divide(10, 3),
-						"private/get-order-list":                  Divide(10, 3),
-						"private/create-withdrawal":               Divide(10, 3),
-						"private/get-currency-networks":           Divide(10, 3),
-						"private/get-deposit-address":             Divide(10, 3),
-						"private/get-accounts":                    Divide(10, 3),
-						"private/get-withdrawal-history":          Divide(10, 3),
-						"private/get-deposit-history":             Divide(10, 3),
-						"private/get-fee-rate":                    2,
-						"private/get-instrument-fee-rate":         2,
-						"private/fiat/fiat-deposit-info":          Divide(10, 3),
-						"private/fiat/fiat-deposit-history":       Divide(10, 3),
-						"private/fiat/fiat-withdraw-history":      Divide(10, 3),
-						"private/fiat/fiat-create-withdraw":       Divide(10, 3),
-						"private/fiat/fiat-transaction-quota":     Divide(10, 3),
-						"private/fiat/fiat-transaction-limit":     Divide(10, 3),
-						"private/fiat/fiat-get-bank-accounts":     Divide(10, 3),
-						"private/staking/stake":                   2,
-						"private/staking/unstake":                 2,
-						"private/staking/get-staking-position":    2,
-						"private/staking/get-staking-instruments": 2,
-						"private/staking/get-open-stake":          2,
-						"private/staking/get-stake-history":       2,
-						"private/staking/get-reward-history":      2,
-						"private/staking/convert":                 2,
-						"private/staking/get-open-convert":        2,
-						"private/staking/get-convert-history":     2,
-						"private/create-isolated-margin-transfer": Divide(10, 3),
-						"private/change-isolated-margin-leverage": Divide(10, 3),
+						"private/set-cancel-on-disconnect": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-cancel-on-disconnect": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/user-balance": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/user-balance-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-positions": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/create-order": map[string]any{
+							"cost": Divide(2, 3),
+						},
+						"private/amend-order": map[string]any{
+							"cost": Divide(4, 3),
+						},
+						"private/create-order-list": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/cancel-order": map[string]any{
+							"cost": Divide(2, 3),
+						},
+						"private/cancel-order-list": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/cancel-all-orders": map[string]any{
+							"cost": Divide(2, 3),
+						},
+						"private/close-position": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-order-history": map[string]any{
+							"cost": 100,
+						},
+						"private/get-open-orders": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-order-detail": map[string]any{
+							"cost": Divide(1, 3),
+						},
+						"private/get-trades": map[string]any{
+							"cost": 100,
+						},
+						"private/change-account-leverage": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-transactions": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/create-subaccount-transfer": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-subaccount-balances": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-order-list": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/create-withdrawal": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-currency-networks": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-deposit-address": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-accounts": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-withdrawal-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-deposit-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-fee-rate": map[string]any{
+							"cost": 2,
+						},
+						"private/get-instrument-fee-rate": map[string]any{
+							"cost": 2,
+						},
+						"private/fiat/fiat-deposit-info": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/fiat/fiat-deposit-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/fiat/fiat-withdraw-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/fiat/fiat-create-withdraw": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/fiat/fiat-transaction-quota": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/fiat/fiat-transaction-limit": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/fiat/fiat-get-bank-accounts": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/staking/stake": map[string]any{
+							"cost": 2,
+						},
+						"private/staking/unstake": map[string]any{
+							"cost": 2,
+						},
+						"private/staking/get-staking-position": map[string]any{
+							"cost": 2,
+						},
+						"private/staking/get-staking-instruments": map[string]any{
+							"cost": 2,
+						},
+						"private/staking/get-open-stake": map[string]any{
+							"cost": 2,
+						},
+						"private/staking/get-stake-history": map[string]any{
+							"cost": 2,
+						},
+						"private/staking/get-reward-history": map[string]any{
+							"cost": 2,
+						},
+						"private/staking/convert": map[string]any{
+							"cost": 2,
+						},
+						"private/staking/get-open-convert": map[string]any{
+							"cost": 2,
+						},
+						"private/staking/get-convert-history": map[string]any{
+							"cost": 2,
+						},
+						"private/create-isolated-margin-transfer": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/change-isolated-margin-leverage": map[string]any{
+							"cost": Divide(10, 3),
+						},
 					},
 				},
 			},
 			"v2": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"public/auth":                           1,
-						"public/get-instruments":                1,
-						"public/get-book":                       1,
-						"public/get-candlestick":                1,
-						"public/get-ticker":                     1,
-						"public/get-trades":                     1,
-						"public/margin/get-transfer-currencies": 1,
-						"public/margin/get-load-currenices":     1,
-						"public/respond-heartbeat":              1,
+						"public/auth": map[string]any{
+							"cost": 1,
+						},
+						"public/get-instruments": map[string]any{
+							"cost": 1,
+						},
+						"public/get-book": map[string]any{
+							"cost": 1,
+						},
+						"public/get-candlestick": map[string]any{
+							"cost": 1,
+						},
+						"public/get-ticker": map[string]any{
+							"cost": 1,
+						},
+						"public/get-trades": map[string]any{
+							"cost": 1,
+						},
+						"public/margin/get-transfer-currencies": map[string]any{
+							"cost": 1,
+						},
+						"public/margin/get-load-currenices": map[string]any{
+							"cost": 1,
+						},
+						"public/respond-heartbeat": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"post": map[string]any{
-						"private/set-cancel-on-disconnect":      Divide(10, 3),
-						"private/get-cancel-on-disconnect":      Divide(10, 3),
-						"private/create-withdrawal":             Divide(10, 3),
-						"private/get-withdrawal-history":        Divide(10, 3),
-						"private/get-currency-networks":         Divide(10, 3),
-						"private/get-deposit-history":           Divide(10, 3),
-						"private/get-deposit-address":           Divide(10, 3),
-						"private/export/create-export-request":  Divide(10, 3),
-						"private/export/get-export-requests":    Divide(10, 3),
-						"private/export/download-export-output": Divide(10, 3),
-						"private/get-account-summary":           Divide(10, 3),
-						"private/create-order":                  Divide(2, 3),
-						"private/cancel-order":                  Divide(2, 3),
-						"private/cancel-all-orders":             Divide(2, 3),
-						"private/create-order-list":             Divide(10, 3),
-						"private/get-order-history":             Divide(10, 3),
-						"private/get-open-orders":               Divide(10, 3),
-						"private/get-order-detail":              Divide(1, 3),
-						"private/get-trades":                    100,
-						"private/get-accounts":                  Divide(10, 3),
-						"private/get-subaccount-balances":       Divide(10, 3),
-						"private/create-subaccount-transfer":    Divide(10, 3),
-						"private/otc/get-otc-user":              Divide(10, 3),
-						"private/otc/get-instruments":           Divide(10, 3),
-						"private/otc/request-quote":             100,
-						"private/otc/accept-quote":              100,
-						"private/otc/get-quote-history":         Divide(10, 3),
-						"private/otc/get-trade-history":         Divide(10, 3),
-						"private/otc/create-order":              Divide(10, 3),
+						"private/set-cancel-on-disconnect": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-cancel-on-disconnect": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/create-withdrawal": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-withdrawal-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-currency-networks": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-deposit-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-deposit-address": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/export/create-export-request": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/export/get-export-requests": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/export/download-export-output": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-account-summary": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/create-order": map[string]any{
+							"cost": Divide(2, 3),
+						},
+						"private/cancel-order": map[string]any{
+							"cost": Divide(2, 3),
+						},
+						"private/cancel-all-orders": map[string]any{
+							"cost": Divide(2, 3),
+						},
+						"private/create-order-list": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-order-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-open-orders": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-order-detail": map[string]any{
+							"cost": Divide(1, 3),
+						},
+						"private/get-trades": map[string]any{
+							"cost": 100,
+						},
+						"private/get-accounts": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-subaccount-balances": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/create-subaccount-transfer": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/otc/get-otc-user": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/otc/get-instruments": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/otc/request-quote": map[string]any{
+							"cost": 100,
+						},
+						"private/otc/accept-quote": map[string]any{
+							"cost": 100,
+						},
+						"private/otc/get-quote-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/otc/get-trade-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/otc/create-order": map[string]any{
+							"cost": Divide(10, 3),
+						},
 					},
 				},
 			},
 			"derivatives": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"public/auth":                         Divide(10, 3),
-						"public/get-instruments":              Divide(10, 3),
-						"public/get-book":                     1,
-						"public/get-candlestick":              1,
-						"public/get-trades":                   1,
-						"public/get-tickers":                  1,
-						"public/get-valuations":               1,
-						"public/get-expired-settlement-price": Divide(10, 3),
-						"public/get-insurance":                1,
+						"public/auth": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"public/get-instruments": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"public/get-book": map[string]any{
+							"cost": 1,
+						},
+						"public/get-candlestick": map[string]any{
+							"cost": 1,
+						},
+						"public/get-trades": map[string]any{
+							"cost": 1,
+						},
+						"public/get-tickers": map[string]any{
+							"cost": 1,
+						},
+						"public/get-valuations": map[string]any{
+							"cost": 1,
+						},
+						"public/get-expired-settlement-price": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"public/get-insurance": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"post": map[string]any{
-						"private/set-cancel-on-disconnect":   Divide(10, 3),
-						"private/get-cancel-on-disconnect":   Divide(10, 3),
-						"private/user-balance":               Divide(10, 3),
-						"private/user-balance-history":       Divide(10, 3),
-						"private/get-positions":              Divide(10, 3),
-						"private/create-order":               Divide(2, 3),
-						"private/create-order-list":          Divide(10, 3),
-						"private/cancel-order":               Divide(2, 3),
-						"private/cancel-order-list":          Divide(10, 3),
-						"private/cancel-all-orders":          Divide(2, 3),
-						"private/close-position":             Divide(10, 3),
-						"private/convert-collateral":         Divide(10, 3),
-						"private/get-order-history":          100,
-						"private/get-open-orders":            Divide(10, 3),
-						"private/get-order-detail":           Divide(1, 3),
-						"private/get-trades":                 100,
-						"private/change-account-leverage":    Divide(10, 3),
-						"private/get-transactions":           Divide(10, 3),
-						"private/create-subaccount-transfer": Divide(10, 3),
-						"private/get-subaccount-balances":    Divide(10, 3),
-						"private/get-order-list":             Divide(10, 3),
+						"private/set-cancel-on-disconnect": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-cancel-on-disconnect": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/user-balance": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/user-balance-history": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-positions": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/create-order": map[string]any{
+							"cost": Divide(2, 3),
+						},
+						"private/create-order-list": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/cancel-order": map[string]any{
+							"cost": Divide(2, 3),
+						},
+						"private/cancel-order-list": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/cancel-all-orders": map[string]any{
+							"cost": Divide(2, 3),
+						},
+						"private/close-position": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/convert-collateral": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-order-history": map[string]any{
+							"cost": 100,
+						},
+						"private/get-open-orders": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-order-detail": map[string]any{
+							"cost": Divide(1, 3),
+						},
+						"private/get-trades": map[string]any{
+							"cost": 100,
+						},
+						"private/change-account-leverage": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-transactions": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/create-subaccount-transfer": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-subaccount-balances": map[string]any{
+							"cost": Divide(10, 3),
+						},
+						"private/get-order-list": map[string]any{
+							"cost": Divide(10, 3),
+						},
 					},
 				},
 			},
@@ -339,9 +597,10 @@ func (this *CryptocomCore) Describe() any {
 				"future":      "DERIVATIVES",
 			},
 			"networks": map[string]any{
-				"BEP20": "BSC",
-				"ERC20": "ETH",
-				"TRC20": "TRON",
+				"BEP20":    "BSC",
+				"ERC20":    "ETH",
+				"TRC20":    "TRON",
+				"ARBITRUM": "ARB",
 			},
 			"broker": "CCXT",
 		},
@@ -902,8 +1161,8 @@ func (this *CryptocomCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes87812 := (<-this.LoadMarkets())
-			PanicOnError(retRes87812)
+			retRes87912 := (<-this.LoadMarkets())
+			PanicOnError(retRes87912)
 		}
 		var market any = nil
 		var request any = map[string]any{}
@@ -976,8 +1235,8 @@ func (this *CryptocomCore) FetchTicker(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes93712 := (<-this.LoadMarkets())
-			PanicOnError(retRes93712)
+			retRes93812 := (<-this.LoadMarkets())
+			PanicOnError(retRes93812)
 		}
 		symbol = this.Symbol(symbol)
 
@@ -1019,8 +1278,8 @@ func (this *CryptocomCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes95912 := (<-this.LoadMarkets())
-			PanicOnError(retRes95912)
+			retRes96012 := (<-this.LoadMarkets())
+			PanicOnError(retRes96012)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
@@ -1028,9 +1287,9 @@ func (this *CryptocomCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes96419 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
-			PanicOnError(retRes96419)
-			ch <- retRes96419
+			retRes96519 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
+			PanicOnError(retRes96519)
+			ch <- retRes96519
 			return nil
 		}
 		var market any = nil
@@ -1128,8 +1387,8 @@ func (this *CryptocomCore) FetchTrades(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes104312 := (<-this.LoadMarkets())
-			PanicOnError(retRes104312)
+			retRes104412 := (<-this.LoadMarkets())
+			PanicOnError(retRes104412)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
@@ -1137,9 +1396,9 @@ func (this *CryptocomCore) FetchTrades(symbol any, optionalArgs ...any) <-chan a
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes104819 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
-			PanicOnError(retRes104819)
-			ch <- retRes104819
+			retRes104919 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+			PanicOnError(retRes104919)
+			ch <- retRes104919
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -1219,8 +1478,8 @@ func (this *CryptocomCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes110712 := (<-this.LoadMarkets())
-			PanicOnError(retRes110712)
+			retRes110812 := (<-this.LoadMarkets())
+			PanicOnError(retRes110812)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
@@ -1228,9 +1487,9 @@ func (this *CryptocomCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan an
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes111219 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 300))
-			PanicOnError(retRes111219)
-			ch <- retRes111219
+			retRes111319 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 300))
+			PanicOnError(retRes111319)
+			ch <- retRes111319
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -1313,8 +1572,8 @@ func (this *CryptocomCore) FetchOrderBook(symbol any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes117812 := (<-this.LoadMarkets())
-			PanicOnError(retRes117812)
+			retRes117912 := (<-this.LoadMarkets())
+			PanicOnError(retRes117912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1393,8 +1652,8 @@ func (this *CryptocomCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes124212 := (<-this.LoadMarkets())
-			PanicOnError(retRes124212)
+			retRes124312 := (<-this.LoadMarkets())
+			PanicOnError(retRes124312)
 		}
 
 		response := (<-this.V1PrivatePostPrivateUserBalance(params))
@@ -1471,8 +1730,8 @@ func (this *CryptocomCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes130312 := (<-this.LoadMarkets())
-			PanicOnError(retRes130312)
+			retRes130412 := (<-this.LoadMarkets())
+			PanicOnError(retRes130412)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1666,8 +1925,8 @@ func (this *CryptocomCore) CreateOrder(symbol any, typeVar any, side any, amount
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes147412 := (<-this.LoadMarkets())
-			PanicOnError(retRes147412)
+			retRes147512 := (<-this.LoadMarkets())
+			PanicOnError(retRes147512)
 		}
 		var market any = this.Market(symbol)
 		var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -1713,8 +1972,8 @@ func (this *CryptocomCore) CreateOrders(orders any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes150612 := (<-this.LoadMarkets())
-			PanicOnError(retRes150612)
+			retRes150712 := (<-this.LoadMarkets())
+			PanicOnError(retRes150712)
 		}
 		var ordersRequests any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
@@ -1948,8 +2207,8 @@ func (this *CryptocomCore) EditOrder(id any, symbol any, typeVar any, side any, 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes171312 := (<-this.LoadMarkets())
-			PanicOnError(retRes171312)
+			retRes171412 := (<-this.LoadMarkets())
+			PanicOnError(retRes171412)
 		}
 		var request any = this.EditOrderRequest(id, symbol, amount, price, params)
 
@@ -2008,8 +2267,8 @@ func (this *CryptocomCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes175312 := (<-this.LoadMarkets())
-			PanicOnError(retRes175312)
+			retRes175412 := (<-this.LoadMarkets())
+			PanicOnError(retRes175412)
 		}
 		var market any = nil
 		var request any = map[string]any{}
@@ -2051,8 +2310,8 @@ func (this *CryptocomCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes177712 := (<-this.LoadMarkets())
-			PanicOnError(retRes177712)
+			retRes177812 := (<-this.LoadMarkets())
+			PanicOnError(retRes177812)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2109,8 +2368,8 @@ func (this *CryptocomCore) CancelOrders(ids any, optionalArgs ...any) <-chan any
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes181812 := (<-this.LoadMarkets())
-			PanicOnError(retRes181812)
+			retRes181912 := (<-this.LoadMarkets())
+			PanicOnError(retRes181912)
 		}
 		var market any = this.Market(symbol)
 		var orderRequests any = []any{}
@@ -2156,8 +2415,8 @@ func (this *CryptocomCore) CancelOrdersForSymbols(orders any, optionalArgs ...an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes185012 := (<-this.LoadMarkets())
-			PanicOnError(retRes185012)
+			retRes185112 := (<-this.LoadMarkets())
+			PanicOnError(retRes185112)
 		}
 		var orderRequests any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
@@ -2213,8 +2472,8 @@ func (this *CryptocomCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes188612 := (<-this.LoadMarkets())
-			PanicOnError(retRes188612)
+			retRes188712 := (<-this.LoadMarkets())
+			PanicOnError(retRes188712)
 		}
 		var market any = nil
 		var request any = map[string]any{}
@@ -2300,8 +2559,8 @@ func (this *CryptocomCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes195212 := (<-this.LoadMarkets())
-			PanicOnError(retRes195212)
+			retRes195312 := (<-this.LoadMarkets())
+			PanicOnError(retRes195312)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -2309,9 +2568,9 @@ func (this *CryptocomCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes195719 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, 100))
-			PanicOnError(retRes195719)
-			ch <- retRes195719
+			retRes195819 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, 100))
+			PanicOnError(retRes195819)
+			ch <- retRes195819
 			return nil
 		}
 		var request any = map[string]any{}
@@ -2414,8 +2673,8 @@ func (this *CryptocomCore) Withdraw(code any, amount any, address any, optionalA
 		params = GetValue(tagparamsVariable, 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes204012 := (<-this.LoadMarkets())
-			PanicOnError(retRes204012)
+			retRes204112 := (<-this.LoadMarkets())
+			PanicOnError(retRes204112)
 		}
 		var currency any = this.SafeCurrency(code) // for instance, USDC is not inferred from markets but it's still available
 		var request any = map[string]any{
@@ -2480,8 +2739,8 @@ func (this *CryptocomCore) FetchDepositAddressesByNetwork(code any, optionalArgs
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes208912 := (<-this.LoadMarkets())
-			PanicOnError(retRes208912)
+			retRes209012 := (<-this.LoadMarkets())
+			PanicOnError(retRes209012)
 		}
 		var currency any = this.SafeCurrency(code)
 		var request any = map[string]any{
@@ -2608,8 +2867,8 @@ func (this *CryptocomCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes217912 := (<-this.LoadMarkets())
-			PanicOnError(retRes217912)
+			retRes218012 := (<-this.LoadMarkets())
+			PanicOnError(retRes218012)
 		}
 		var currency any = nil
 		var request any = map[string]any{}
@@ -2691,8 +2950,8 @@ func (this *CryptocomCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes224112 := (<-this.LoadMarkets())
-			PanicOnError(retRes224112)
+			retRes224212 := (<-this.LoadMarkets())
+			PanicOnError(retRes224212)
 		}
 		var currency any = nil
 		var request any = map[string]any{}
@@ -3227,8 +3486,8 @@ func (this *CryptocomCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes275112 := (<-this.LoadMarkets())
-			PanicOnError(retRes275112)
+			retRes275212 := (<-this.LoadMarkets())
+			PanicOnError(retRes275212)
 		}
 
 		response := (<-this.V1PrivatePostPrivateGetCurrencyNetworks(params))
@@ -3270,8 +3529,8 @@ func (this *CryptocomCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes277312 := (<-this.LoadMarkets())
-			PanicOnError(retRes277312)
+			retRes277412 := (<-this.LoadMarkets())
+			PanicOnError(retRes277412)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -3430,8 +3689,8 @@ func (this *CryptocomCore) FetchAccounts(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes291812 := (<-this.LoadMarkets())
-			PanicOnError(retRes291812)
+			retRes291912 := (<-this.LoadMarkets())
+			PanicOnError(retRes291912)
 		}
 
 		response := (<-this.V1PrivatePostPrivateGetAccounts(params))
@@ -3539,8 +3798,8 @@ func (this *CryptocomCore) FetchSettlementHistory(optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes300712 := (<-this.LoadMarkets())
-			PanicOnError(retRes300712)
+			retRes300812 := (<-this.LoadMarkets())
+			PanicOnError(retRes300812)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -3643,8 +3902,8 @@ func (this *CryptocomCore) FetchFundingRate(symbol any, optionalArgs ...any) <-c
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes309612 := (<-this.LoadMarkets())
-			PanicOnError(retRes309612)
+			retRes309712 := (<-this.LoadMarkets())
+			PanicOnError(retRes309712)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
@@ -3751,8 +4010,8 @@ func (this *CryptocomCore) FetchFundingRateHistory(optionalArgs ...any) <-chan a
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes318212 := (<-this.LoadMarkets())
-			PanicOnError(retRes318212)
+			retRes318312 := (<-this.LoadMarkets())
+			PanicOnError(retRes318312)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -3760,9 +4019,9 @@ func (this *CryptocomCore) FetchFundingRateHistory(optionalArgs ...any) <-chan a
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes318719 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-			PanicOnError(retRes318719)
-			ch <- retRes318719
+			retRes318819 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+			PanicOnError(retRes318819)
+			ch <- retRes318819
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -3845,8 +4104,8 @@ func (this *CryptocomCore) FetchPosition(symbol any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes325512 := (<-this.LoadMarkets())
-			PanicOnError(retRes325512)
+			retRes325612 := (<-this.LoadMarkets())
+			PanicOnError(retRes325612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -3907,8 +4166,8 @@ func (this *CryptocomCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes330012 := (<-this.LoadMarkets())
-			PanicOnError(retRes330012)
+			retRes330112 := (<-this.LoadMarkets())
+			PanicOnError(retRes330112)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
@@ -4078,8 +4337,8 @@ func (this *CryptocomCore) ClosePosition(symbol any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes345512 := (<-this.LoadMarkets())
-			PanicOnError(retRes345512)
+			retRes345612 := (<-this.LoadMarkets())
+			PanicOnError(retRes345612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -4135,8 +4394,8 @@ func (this *CryptocomCore) FetchTradingFee(symbol any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes349712 := (<-this.LoadMarkets())
-			PanicOnError(retRes349712)
+			retRes349812 := (<-this.LoadMarkets())
+			PanicOnError(retRes349812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -4186,8 +4445,8 @@ func (this *CryptocomCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes353312 := (<-this.LoadMarkets())
-			PanicOnError(retRes353312)
+			retRes353412 := (<-this.LoadMarkets())
+			PanicOnError(retRes353412)
 		}
 
 		response := (<-this.V1PrivatePostPrivateGetFeeRate(params))

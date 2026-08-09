@@ -42,6 +42,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
                 put( "watchPositions", true );
                 put( "unWatchPositions", true );
                 put( "unWatchOrderBook", true );
+                put( "unWatchTicker", true );
                 put( "unWatchTickers", true );
                 put( "unWatchTrades", true );
                 put( "unWatchOHLCV", true );
@@ -101,7 +102,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             Object responseOjb = this.safeDict(response, "response", new java.util.HashMap<String, Object>() {{}});
             Object data = this.safeDict(responseOjb, "data", new java.util.HashMap<String, Object>() {{}});
             Object statuses = this.safeList(data, "statuses", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            return this.parseOrders(statuses, null);
+            return this.parseOrders(statuses);
         });
 
     }
@@ -421,18 +422,62 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            // try to infer dex from market
-            Object dexName = this.safeString(this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}}), "dex");
-            if (Helpers.isTrue(dexName))
+            // the single-symbol path subscribes to the per-coin context channel, which hyperliquid
+            // pushes at block cadence with full ticker fields (mark, oracle, funding, volume),
+            // instead of the aggregate allMids broadcast that only carries mids and arrives at the
+            // server's own batch cadence, see https://github.com/ccxt/ccxt/issues/27475
+            Object messageHash = Helpers.add("ticker:", symbol);
+            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "method", "subscribe" );
+                put( "subscription", new java.util.HashMap<String, Object>() {{
+                    put( "type", "activeAssetCtx" );
+                    put( "coin", ((Helpers.isTrue(Helpers.GetValue(market, "swap")))) ? Helpers.GetValue(market, "baseName") : Helpers.GetValue(market, "id") );
+                }} );
+            }};
+            return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#unWatchTicker
+     * @description unWatches the price ticker stream of a specific market
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string} symbol unified symbol of the market to stop watching the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public java.util.concurrent.CompletableFuture<Object> unWatchTicker(Object symbol2, Object... optionalArgs)
+    {
+        final Object symbol3 = symbol2;
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            Object symbol = symbol3;
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
-                parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
-                    put( "dex", dexName );
-                }});
+                (this.loadMarkets()).join();
             }
-            Object tickers = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
-            return Helpers.GetValue(tickers, symbol);
+            Object market = this.market(symbol);
+            symbol = Helpers.GetValue(market, "symbol");
+            Object subMessageHash = Helpers.add("ticker:", symbol);
+            Object messageHash = Helpers.add("unsubscribe:", subMessageHash);
+            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "method", "unsubscribe" );
+                put( "subscription", new java.util.HashMap<String, Object>() {{
+                    put( "type", "activeAssetCtx" );
+                    put( "coin", ((Helpers.isTrue(Helpers.GetValue(market, "swap")))) ? Helpers.GetValue(market, "baseName") : Helpers.GetValue(market, "id") );
+                }} );
+            }};
+            return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
         });
 
     }
@@ -575,7 +620,12 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
                 }} );
             }};
             Object message = this.extend(request, parameters);
-            Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
+            if (Helpers.isTrue(Helpers.isEqual(userAddress, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchMyTrades() requires a user address")) ;
+            }
+            Object subscribeHash = Helpers.add("subscribe:userFills::", ((String)userAddress).toLowerCase());
+            Object trades = (this.watch(url, messageHash, message, subscribeHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -672,6 +722,43 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             }
             client.resolve(this.tickers, messageHash);
         }
+        return true;
+    }
+
+    public Object handleActiveAssetCtx(Client client, Object message)
+    {
+        //
+        //     {
+        //         "channel": "activeAssetCtx",
+        //         "data": {
+        //             "coin": "BTC",
+        //             "ctx": {
+        //                 "dayNtlVlm": "1169046.29406",
+        //                 "prevDayPx": "15.322",
+        //                 "markPx": "14.3161",
+        //                 "midPx": "14.314",
+        //                 "oraclePx": "14.32",
+        //                 "funding": "0.0000125",
+        //                 "openInterest": "688.11",
+        //                 "premium": "0.00031774",
+        //                 "impactPxs": [ "14.3047", "14.3444" ]
+        //             }
+        //         }
+        //     }
+        //
+        // the spot variant arrives on the activeSpotAssetCtx channel and carries
+        // "circulatingSupply" instead of the swap-only fields
+        //
+        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        Object coin = this.safeString(data, "coin");
+        Object marketId = this.coinToMarketId(coin);
+        Object market = this.safeMarket(marketId);
+        Object symbol = Helpers.GetValue(market, "symbol");
+        Object ctx = this.safeDict(data, "ctx", new java.util.HashMap<String, Object>() {{}});
+        Object ticker = this.parseWsTicker(ctx, market);
+        Helpers.addElementToObject(this.tickers, symbol, ticker);
+        Object messageHash = Helpers.add("ticker:", symbol);
+        client.resolve(ticker, messageHash);
         return true;
     }
 
@@ -1573,7 +1660,18 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
                 }} );
             }};
             Object message = this.extend(request, parameters);
-            Object orders = (this.watch(url, messageHash, message, messageHash, null)).join();
+            // dedup by (channel, user), not by messageHash: the server subscription is per-user,
+            // so a second user must send its own subscribe (https://github.com/ccxt/ccxt/issues/28369),
+            // and a second symbol-scoped call for the same user must NOT resend - hyperliquid answers
+            // duplicates on the error channel ("Already subscribed"), which rejects every pending
+            // future on the connection. address lowercased because the server is case-insensitive.
+            // note: orderUpdates payloads carry no user, so resolution/data stays shared across users
+            if (Helpers.isTrue(Helpers.isEqual(userAddress, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrders() requires a user address")) ;
+            }
+            Object subscribeHash = Helpers.add("subscribe:orderUpdates::", ((String)userAddress).toLowerCase());
+            Object orders = (this.watch(url, messageHash, message, subscribeHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
@@ -1717,6 +1815,13 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         if (Helpers.isTrue(Helpers.isEqual(channel, "error")))
         {
             Object ret_msg = this.safeString(message, "data", "");
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(ret_msg, "Already subscribed"), 0)))
+            {
+                // a duplicate subscribe is harmless - the server-side subscription is intact
+                // and data keeps flowing; rejecting all pending futures here would poison the
+                // whole connection, see https://github.com/ccxt/ccxt/issues/28369
+                return true;
+            }
             var error = new ExchangeError(Helpers.add(Helpers.add(this.id, " "), ret_msg));
             client.reject(error);
             return true;
@@ -1804,6 +1909,21 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         }
     }
 
+    public void handleTickerUnsubscription(Client client, Object subscription)
+    {
+        //
+        Object coin = this.safeString(subscription, "coin");
+        Object marketId = this.coinToMarketId(coin);
+        Object symbol = this.safeSymbol(marketId);
+        Object subMessageHash = Helpers.add("ticker:", symbol);
+        Object messageHash = Helpers.add("unsubscribe:", subMessageHash);
+        this.cleanUnsubscription(client, subMessageHash, messageHash);
+        if (Helpers.isTrue(Helpers.inOp(this.tickers, symbol)))
+        {
+            ((java.util.Map<String,Object>)this.tickers).remove((String)symbol);
+        }
+    }
+
     public void handleOHLCVUnsubscription(Client client, Object subscription)
     {
         Object coin = this.safeString(subscription, "coin");
@@ -1828,6 +1948,17 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         Object subHash = "order";
         Object unSubHash = Helpers.add("unsubscribe:", subHash);
         this.cleanUnsubscription(client, subHash, unSubHash, true);
+        // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
+        // clear it for the user echoed in the ack so a later watch re-subscribes
+        Object user = this.safeStringLower(subscription, "user");
+        if (Helpers.isTrue(!Helpers.isEqual(user, null)))
+        {
+            Object subscribeHash = Helpers.add("subscribe:orderUpdates::", user);
+            if (Helpers.isTrue(Helpers.inOp(client.subscriptions, subscribeHash)))
+            {
+                ((java.util.Map<String,Object>)client.subscriptions).remove((String)subscribeHash);
+            }
+        }
         Object topicStructure = new java.util.HashMap<String, Object>() {{
             put( "topic", "orders" );
         }};
@@ -1839,6 +1970,17 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         Object subHash = "myTrades";
         Object unSubHash = Helpers.add("unsubscribe:", subHash);
         this.cleanUnsubscription(client, subHash, unSubHash, true);
+        // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
+        // clear it for the user echoed in the ack so a later watch re-subscribes
+        Object user = this.safeStringLower(subscription, "user");
+        if (Helpers.isTrue(!Helpers.isEqual(user, null)))
+        {
+            Object subscribeHash = Helpers.add("subscribe:userFills::", user);
+            if (Helpers.isTrue(Helpers.inOp(client.subscriptions, subscribeHash)))
+            {
+                ((java.util.Map<String,Object>)client.subscriptions).remove((String)subscribeHash);
+            }
+        }
         Object topicStructure = new java.util.HashMap<String, Object>() {{
             put( "topic", "myTrades" );
         }};
@@ -1925,6 +2067,12 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             } else if (Helpers.isTrue(Helpers.isEqual(type, "spotState")))
             {
                 this.handleSpotBalanceUnsubscription(client, subscription);
+            } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "activeAssetCtx"))) || Helpers.isTrue((Helpers.isEqual(type, "activeSpotAssetCtx")))))
+            {
+                this.handleTickerUnsubscription(client, subscription);
+            } else if (Helpers.isTrue(Helpers.isEqual(type, "allMids")))
+            {
+                this.handleTickersUnsubscription(client, subscription);
             }
         }
     }
@@ -1958,6 +2106,8 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             put( "orderUpdates", "handleOrder");
             put( "userFills", "handleMyTrades");
             put( "allMids", "handleWsTickers");
+            put( "activeAssetCtx", "handleActiveAssetCtx");
+            put( "activeSpotAssetCtx", "handleActiveAssetCtx");
             put( "post", "handleWsPost");
             put( "subscriptionResponse", "handleSubscriptionResponse");
             put( "clearinghouseState", "handleBalance");

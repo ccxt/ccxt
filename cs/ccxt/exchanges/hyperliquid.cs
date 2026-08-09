@@ -163,7 +163,9 @@ public partial class hyperliquid : Exchange
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "exchange", 1 },
+                        { "exchange", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -602,7 +604,7 @@ public partial class hyperliquid : Exchange
         for (object i = 1; isLessThan(i, getArrayLength(fetchDexes)); postFixIncrement(ref i))
         {
             // builder-deployed perp dexs start at 110000
-            object dex = getValue(fetchDexes, i);
+            object dex = this.safeDict(fetchDexes, i, new Dictionary<string, object>() {});
             object secondPart = multiply((subtract(i, 1)), 10000);
             object offset = this.sum(110000, secondPart);
             ((IDictionary<string,object>)perpDexesOffset)[(string)getValue(dex, "name")] = offset;
@@ -1612,7 +1614,12 @@ public partial class hyperliquid : Exchange
         //         }
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, originalSince, limit, useTail);
+        object candles = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            candles = response;
+        }
+        return this.parseOHLCVs(candles, market, timeframe, originalSince, limit, useTail);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1704,7 +1711,12 @@ public partial class hyperliquid : Exchange
         //         }
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        object fills = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            fills = response;
+        }
+        return this.parseTrades(fills, market, since, limit);
     }
 
     public override object amountToPrecision(object symbol, object amount)
@@ -2104,7 +2116,11 @@ public partial class hyperliquid : Exchange
             object response = null;
             try
             {
-                response = await this.publicPostInfo(this.extend(request, parameters));
+                object rawResponse = await this.publicPostInfo(this.extend(request, parameters));
+                if (isTrue((rawResponse is string)))
+                {
+                    response = rawResponse;
+                }
             } catch(Exception e)
             {
                 if (isTrue(e is InvalidProxySettings))
@@ -2290,7 +2306,7 @@ public partial class hyperliquid : Exchange
         var orderglobalParamsVariable = this.parseCreateEditOrderArgs(null, symbol, type, side, amount, price, parameters);
         var order = ((IList<object>) orderglobalParamsVariable)[0];
         var globalParams = ((IList<object>) orderglobalParamsVariable)[1];
-        object orders = await this.createOrders(new List<object>() {((object)order)}, globalParams);
+        object orders = await this.createOrders(new List<object>() {order}, globalParams);
         return getValue(orders, 0);
     }
 
@@ -3218,7 +3234,7 @@ public partial class hyperliquid : Exchange
         var orderglobalParamsVariable = this.parseCreateEditOrderArgs(id, symbol, type, side, amount, price, parameters);
         var order = ((IList<object>) orderglobalParamsVariable)[0];
         var globalParams = ((IList<object>) orderglobalParamsVariable)[1];
-        object orders = await this.editOrders(new List<object>() {((object)order)}, globalParams);
+        object orders = await this.editOrders(new List<object>() {order}, globalParams);
         return getValue(orders, 0);
     }
 
@@ -3382,9 +3398,14 @@ public partial class hyperliquid : Exchange
         //     ]
         //
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object fundings = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            object entry = getValue(response, i);
+            fundings = response;
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(fundings)); postFixIncrement(ref i))
+        {
+            object entry = getValue(fundings, i);
             object timestamp = this.safeInteger(entry, "time");
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -3470,9 +3491,14 @@ public partial class hyperliquid : Exchange
         //     ]
         //
         object orderWithStatus = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object rawOrders = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            object order = getValue(response, i);
+            rawOrders = response;
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(rawOrders)); postFixIncrement(ref i))
+        {
+            object order = getValue(rawOrders, i);
             object extendOrder = new Dictionary<string, object>() {};
             if (isTrue(isEqual(this.safeString(order, "status"), null)))
             {
@@ -3613,9 +3639,14 @@ public partial class hyperliquid : Exchange
         // so a canceled order appears twice: once as 'open' and once as 'canceled'.
         // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
         object deduplicatedByOid = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object historicalOrders = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            object rawOrder = getValue(response, i);
+            historicalOrders = response;
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(historicalOrders)); postFixIncrement(ref i))
+        {
+            object rawOrder = getValue(historicalOrders, i);
             object entry = this.safeDict(rawOrder, "order");
             if (isTrue(isEqual(entry, null)))
             {
@@ -4007,7 +4038,12 @@ public partial class hyperliquid : Exchange
         //         }
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        object myFills = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            myFills = response;
+        }
+        return this.parseTrades(myFills, market, since, limit);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -4611,7 +4647,13 @@ public partial class hyperliquid : Exchange
             throw new NotSupported ((string)add(this.id, " transfer() only support main <> subaccount transfer")) ;
         }
         this.checkAddress(subAccountAddress);
-        if (isTrue(isTrue(isEqual(code, null)) || isTrue(isEqual(((string)code).ToUpper(), "USDC"))))
+        // hyperliquid keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
+        // moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
+        // params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
+        object transferType = this.safeString(parameters, "type");
+        parameters = this.omit(parameters, "type");
+        object isUsdc = isTrue((isEqual(code, null))) || isTrue((isEqual(((string)code).ToUpper(), "USDC")));
+        if (isTrue(isTrue(isUsdc) && isTrue((!isEqual(transferType, "spot")))))
         {
             // Transfer USDC with subAccountTransfer
             object usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
@@ -4634,13 +4676,22 @@ public partial class hyperliquid : Exchange
             return this.parseTransfer(response);
         } else
         {
-            // Transfer non-USDC with subAccountSpotTransfer
-            object symbol = this.symbol(code);
+            // Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
+            // expects the token as "NAME:tokenId", e.g. "USDC:0x6d1e7cde53ba9467b783cb7c530ce054"
+            if (isTrue(isEqual(code, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " transfer() requires a currency code for spot sub-account transfers")) ;
+            }
+            object currency = this.currency(code);
+            object currencyInfo = this.safeDict(currency, "info", new Dictionary<string, object>() {});
+            object tokenName = this.safeString(currencyInfo, "name");
+            object tokenId = this.safeString(currencyInfo, "tokenId");
+            object token = add(add(tokenName, ":"), tokenId);
             object action = new Dictionary<string, object>() {
                 { "type", "subAccountSpotTransfer" },
                 { "subAccountUser", subAccountAddress },
                 { "isDeposit", isDeposit },
-                { "token", symbol },
+                { "token", token },
                 { "amount", this.numberToString(amount) },
             };
             object sig = this.signL1Action(action, nonce);
@@ -5087,7 +5138,12 @@ public partial class hyperliquid : Exchange
         //     }
         // ]
         //
-        object records = this.extractTypeFromDelta(response);
+        object depositLedger = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            depositLedger = response;
+        }
+        object records = this.extractTypeFromDelta(depositLedger);
         object vaultAddress = null;
         var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "vaultAddress");
         vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
@@ -5167,7 +5223,12 @@ public partial class hyperliquid : Exchange
         //     }
         // ]
         //
-        object records = this.extractTypeFromDelta(response);
+        object withdrawalLedger = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            withdrawalLedger = response;
+        }
+        object records = this.extractTypeFromDelta(withdrawalLedger);
         object vaultAddress = null;
         var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "vaultAddress");
         vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];

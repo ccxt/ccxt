@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/foxbit.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict, Status, Endpoint, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -40,6 +40,8 @@ export default class foxbit extends Exchange {
                 'createMarketBuyOrder': true,
                 'createMarketSellOrder': true,
                 'createOrder': true,
+                'createOrders': true,
+                'editOrder': true,
                 'fecthOrderBook': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
@@ -54,7 +56,10 @@ export default class foxbit extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrdersByStatus': true,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -139,42 +144,42 @@ export default class foxbit extends Exchange {
                 'v3': {
                     'public': {
                         'get': {
-                            'currencies': 5, // 6 requests per second
-                            'markets': 5, // 6 requests per second
-                            'markets/ticker/24hr': 60, // 1 request per 2 seconds
-                            'markets/{market}/orderbook': 6, // 10 requests per 2 seconds
-                            'markets/{market}/candlesticks': 12, // 5 requests per 2 seconds
-                            'markets/{market}/trades/history': 12, // 5 requests per 2 seconds
-                            'markets/{market}/ticker/24hr': 15, // 4 requests per 2 seconds
+                            'currencies': { 'cost': 5 } as Endpoint<Dict>, // 6 requests per second
+                            'markets': { 'cost': 5 } as Endpoint<Dict>, // 6 requests per second
+                            'markets/ticker/24hr': { 'cost': 60 } as Endpoint<Dict>, // 1 request per 2 seconds
+                            'markets/{market}/orderbook': { 'cost': 6 } as Endpoint<Dict>, // 10 requests per 2 seconds
+                            'markets/{market}/candlesticks': { 'cost': 12 } as Endpoint<List>, // 5 requests per 2 seconds
+                            'markets/{market}/trades/history': { 'cost': 12 } as Endpoint<Dict>, // 5 requests per 2 seconds
+                            'markets/{market}/ticker/24hr': { 'cost': 15 } as Endpoint<Dict>, // 4 requests per 2 seconds
                         },
                     },
                     'private': {
                         'get': {
-                            'accounts': 2, // 15 requests per second
-                            'accounts/{symbol}/transactions': 60, // 1 requests per 2 seconds
-                            'orders': 2, // 30 requests per 2 seconds
-                            'orders/by-order-id/{id}': 2, // 30 requests per 2 seconds
-                            'trades': 6, // 5 orders per second
-                            'deposits/address': 10, // 3 requests per second
-                            'deposits': 10, // 3 requests per second
-                            'withdrawals': 10, // 3 requests per second
-                            'me/fees/trading': 60, // 1 requests per 2 seconds
+                            'accounts': { 'cost': 2 } as Endpoint<Dict>, // 15 requests per second
+                            'accounts/{symbol}/transactions': { 'cost': 60 } as Endpoint<Dict>, // 1 requests per 2 seconds
+                            'orders': { 'cost': 2 } as Endpoint<Dict>, // 30 requests per 2 seconds
+                            'orders/by-order-id/{id}': { 'cost': 2 } as Endpoint<Dict>, // 30 requests per 2 seconds
+                            'trades': { 'cost': 6 } as Endpoint<Dict>, // 5 orders per second
+                            'deposits/address': { 'cost': 10 } as Endpoint<Dict>, // 3 requests per second
+                            'deposits': { 'cost': 10 } as Endpoint<Dict>, // 3 requests per second
+                            'withdrawals': { 'cost': 10 } as Endpoint<Dict>, // 3 requests per second
+                            'me/fees/trading': { 'cost': 60 } as Endpoint<Dict>, // 1 requests per 2 seconds
                         },
                         'post': {
-                            'orders': 2, // 30 requests per 2 seconds
-                            'orders/batch': 7.5, // 8 requests per 2 seconds
-                            'orders/cancel-replace': 3, // 20 requests per 2 seconds
-                            'withdrawals': 10, // 3 requests per second
+                            'orders': { 'cost': 2 } as Endpoint<Dict>, // 30 requests per 2 seconds
+                            'orders/batch': { 'cost': 7.5 } as Endpoint<Dict>, // 8 requests per 2 seconds
+                            'orders/cancel-replace': { 'cost': 3 } as Endpoint<Dict>, // 20 requests per 2 seconds
+                            'withdrawals': { 'cost': 10 } as Endpoint<Dict>, // 3 requests per second
                         },
                         'put': {
-                            'orders/cancel': 2, // 30 requests per 2 seconds
+                            'orders/cancel': { 'cost': 2 } as Endpoint<Dict>, // 30 requests per 2 seconds
                         },
                     },
                 },
                 'status': {
                     'public': {
                         'get': {
-                            'status': 30, // 1 request per second
+                            'status': { 'cost': 30 } as Endpoint<Dict>, // 1 request per second
                         },
                     },
                 },
@@ -814,7 +819,7 @@ export default class foxbit extends Exchange {
         //         "15466.34096391" // taker buy quote volume
         //     ]
         // ]
-        return this.parseOHLCVs (response, market, interval, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, interval, since, limit);
     }
 
     /**
@@ -1479,7 +1484,7 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.statusPublicGetStatus (params);
         // {
         //     "data": {
@@ -1504,7 +1509,7 @@ export default class foxbit extends Exchange {
         };
         return {
             'status': this.safeString (statusMap, statusRaw, statusRaw),
-            'updated': this.safeString (attributes, 'updatedAt'),
+            'updated': this.parse8601 (this.safeString (attributes, 'updatedAt')),
             'eta': undefined,
             'url': undefined,
             'info': response,
@@ -1575,7 +1580,8 @@ export default class foxbit extends Exchange {
         //         "client_order_id": "451637946501"
         //     }
         // }
-        return this.parseOrder (response['create'], market);
+        const created = this.safeDict (response, 'create', {});
+        return this.parseOrder (created, market);
     }
 
     /**
@@ -2075,6 +2081,8 @@ export default class foxbit extends Exchange {
         }
         headers = {
             'Content-Type': 'application/json',
+            'X-FB-CLIENT': 'ccxt',
+            'X-FB-CLIENT-VERSION': this.getCcxtVersion (),
         };
         if (urlPath === 'private') {
             this.checkRequiredCredentials ();

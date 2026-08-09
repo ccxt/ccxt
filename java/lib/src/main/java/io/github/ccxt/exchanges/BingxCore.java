@@ -66,6 +66,7 @@ public class BingxCore extends BingxApi
                 put( "fetchBorrowRateHistory", false );
                 put( "fetchBorrowRates", false );
                 put( "fetchBorrowRatesPerSymbol", false );
+                put( "fetchCanceledAndClosedOrders", true );
                 put( "fetchCanceledOrders", true );
                 put( "fetchClosedOrders", true );
                 put( "fetchCrossBorrowRate", false );
@@ -104,7 +105,7 @@ public class BingxCore extends BingxApi
                 put( "fetchOrderBook", true );
                 put( "fetchOrders", true );
                 put( "fetchPosition", true );
-                put( "fetchPositionHistory", false );
+                put( "fetchPositionHistory", true );
                 put( "fetchPositionMode", true );
                 put( "fetchPositions", true );
                 put( "fetchPositionsHistory", true );
@@ -125,6 +126,7 @@ public class BingxCore extends BingxApi
                 put( "setMarginMode", true );
                 put( "setPositionMode", true );
                 put( "transfer", true );
+                put( "withdraw", true );
             }} );
             put( "hostname", "bingx.com" );
             put( "urls", new java.util.HashMap<String, Object>() {{
@@ -181,7 +183,9 @@ public class BingxCore extends BingxApi
                     put( "v1", new java.util.HashMap<String, Object>() {{
                         put( "private", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "account/balance", 1 );
+                                put( "account/balance", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
                             }} );
                         }} );
                     }} );
@@ -190,60 +194,128 @@ public class BingxCore extends BingxApi
                     put( "v1", new java.util.HashMap<String, Object>() {{
                         put( "public", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "server/time", 1 );
-                                put( "common/symbols", 1 );
-                                put( "market/trades", 1 );
-                                put( "market/depth", 1 );
-                                put( "market/kline", 1 );
-                                put( "ticker/24hr", 1 );
-                                put( "ticker/price", 1 );
-                                put( "ticker/bookTicker", 1 );
+                                put( "server/time", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "common/symbols", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "market/trades", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "market/depth", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "market/kline", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "ticker/24hr", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "ticker/price", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "ticker/bookTicker", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
                             }} );
                         }} );
                         put( "private", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "trade/query", 1 );
-                                put( "trade/openOrders", 1 );
-                                put( "trade/historyOrders", 1 );
-                                put( "trade/myTrades", 2 );
-                                put( "user/commissionRate", 5 );
-                                put( "account/balance", 2 );
-                                put( "oco/orderList", 5 );
-                                put( "oco/openOrderList", 5 );
-                                put( "oco/historyOrderList", 5 );
+                                put( "trade/query", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "trade/openOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "trade/historyOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "trade/myTrades", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "user/commissionRate", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "account/balance", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "oco/orderList", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "oco/openOrderList", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "oco/historyOrderList", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
                             }} );
                             put( "post", new java.util.HashMap<String, Object>() {{
-                                put( "trade/order", 2 );
-                                put( "trade/cancel", 2 );
-                                put( "trade/batchOrders", 5 );
-                                put( "trade/order/cancelReplace", 5 );
-                                put( "trade/cancelOrders", 5 );
-                                put( "trade/cancelOpenOrders", 5 );
-                                put( "trade/cancelAllAfter", 5 );
-                                put( "oco/order", 5 );
-                                put( "oco/cancel", 5 );
+                                put( "trade/order", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/cancel", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/batchOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "trade/order/cancelReplace", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "trade/cancelOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "trade/cancelOpenOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "trade/cancelAllAfter", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "oco/order", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "oco/cancel", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
                             }} );
                         }} );
                     }} );
                     put( "v2", new java.util.HashMap<String, Object>() {{
                         put( "public", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "market/depth", 1 );
-                                put( "market/kline", 1 );
-                                put( "ticker/price", 1 );
+                                put( "market/depth", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "market/kline", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "ticker/price", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
                             }} );
                         }} );
                     }} );
                     put( "v3", new java.util.HashMap<String, Object>() {{
                         put( "private", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "get/asset/transfer", 1 );
-                                put( "asset/transfer", 1 );
-                                put( "capital/deposit/hisrec", 1 );
-                                put( "capital/withdraw/history", 1 );
+                                put( "get/asset/transfer", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "asset/transfer", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "capital/deposit/hisrec", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "capital/withdraw/history", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
                             }} );
                             put( "post", new java.util.HashMap<String, Object>() {{
-                                put( "post/asset/transfer", 5 );
+                                put( "post/asset/transfer", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
                             }} );
                         }} );
                     }} );
@@ -252,103 +324,237 @@ public class BingxCore extends BingxApi
                     put( "v1", new java.util.HashMap<String, Object>() {{
                         put( "public", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "ticker/price", 1 );
-                                put( "market/historicalTrades", 1 );
-                                put( "market/markPriceKlines", 1 );
-                                put( "trade/multiAssetsRules", 1 );
-                                put( "tradingRules", 1 );
+                                put( "ticker/price", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "market/historicalTrades", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "market/markPriceKlines", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "trade/multiAssetsRules", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "tradingRules", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
                             }} );
                         }} );
                         put( "private", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "positionSide/dual", 5 );
-                                put( "trade/batchCancelReplace", 5 );
-                                put( "trade/fullOrder", 2 );
-                                put( "maintMarginRatio", 2 );
-                                put( "trade/positionHistory", 2 );
-                                put( "positionMargin/history", 2 );
-                                put( "twap/openOrders", 5 );
-                                put( "twap/historyOrders", 5 );
-                                put( "twap/orderDetail", 5 );
-                                put( "trade/assetMode", 5 );
-                                put( "user/marginAssets", 5 );
+                                put( "positionSide/dual", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "trade/batchCancelReplace", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "trade/fullOrder", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "maintMarginRatio", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/positionHistory", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "positionMargin/history", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "twap/openOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "twap/historyOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "twap/orderDetail", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "trade/assetMode", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "user/marginAssets", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
                             }} );
                             put( "post", new java.util.HashMap<String, Object>() {{
-                                put( "trade/amend", 2 );
-                                put( "trade/cancelReplace", 2 );
-                                put( "positionSide/dual", 5 );
-                                put( "trade/batchCancelReplace", 5 );
-                                put( "trade/closePosition", 2 );
-                                put( "trade/getVst", 5 );
-                                put( "twap/order", 5 );
-                                put( "twap/cancelOrder", 5 );
-                                put( "trade/assetMode", 5 );
-                                put( "trade/reverse", 5 );
-                                put( "trade/autoAddMargin", 5 );
+                                put( "trade/amend", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/cancelReplace", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "positionSide/dual", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "trade/batchCancelReplace", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "trade/closePosition", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/getVst", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "twap/order", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "twap/cancelOrder", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "trade/assetMode", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "trade/reverse", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "trade/autoAddMargin", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
                             }} );
                         }} );
                     }} );
                     put( "v2", new java.util.HashMap<String, Object>() {{
                         put( "public", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "server/time", 1 );
-                                put( "quote/contracts", 1 );
-                                put( "quote/price", 1 );
-                                put( "quote/depth", 1 );
-                                put( "quote/trades", 1 );
-                                put( "quote/premiumIndex", 1 );
-                                put( "quote/fundingRate", 1 );
-                                put( "quote/klines", 1 );
-                                put( "quote/openInterest", 1 );
-                                put( "quote/ticker", 1 );
-                                put( "quote/bookTicker", 1 );
+                                put( "server/time", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "quote/contracts", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "quote/price", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "quote/depth", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "quote/trades", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "quote/premiumIndex", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "quote/fundingRate", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "quote/klines", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "quote/openInterest", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "quote/ticker", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "quote/bookTicker", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
                             }} );
                         }} );
                         put( "private", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "user/balance", 2 );
-                                put( "user/positions", 2 );
-                                put( "user/income", 2 );
-                                put( "trade/openOrders", 2 );
-                                put( "trade/openOrder", 2 );
-                                put( "trade/order", 2 );
-                                put( "trade/marginType", 5 );
-                                put( "trade/leverage", 2 );
-                                put( "trade/forceOrders", 1 );
-                                put( "trade/allOrders", 2 );
-                                put( "trade/allFillOrders", 2 );
-                                put( "trade/fillHistory", 2 );
-                                put( "user/income/export", 2 );
-                                put( "user/commissionRate", 2 );
-                                put( "quote/bookTicker", 1 );
+                                put( "user/balance", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "user/positions", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "user/income", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/openOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/openOrder", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/order", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/marginType", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "trade/leverage", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/forceOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "trade/allOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/allFillOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/fillHistory", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "user/income/export", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "user/commissionRate", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "quote/bookTicker", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
                             }} );
                             put( "post", new java.util.HashMap<String, Object>() {{
-                                put( "trade/getVst", 5 );
-                                put( "trade/order", 2 );
-                                put( "trade/batchOrders", 2 );
-                                put( "trade/closeAllPositions", 2 );
-                                put( "trade/cancelAllAfter", 5 );
-                                put( "trade/marginType", 5 );
-                                put( "trade/leverage", 5 );
-                                put( "trade/positionMargin", 5 );
-                                put( "trade/order/test", 2 );
+                                put( "trade/getVst", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "trade/order", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/batchOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/closeAllPositions", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/cancelAllAfter", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "trade/marginType", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "trade/leverage", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "trade/positionMargin", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "trade/order/test", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
                             }} );
                             put( "delete", new java.util.HashMap<String, Object>() {{
-                                put( "trade/order", 2 );
-                                put( "trade/batchOrders", 2 );
-                                put( "trade/allOpenOrders", 2 );
+                                put( "trade/order", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/batchOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/allOpenOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
                             }} );
                         }} );
                     }} );
                     put( "v3", new java.util.HashMap<String, Object>() {{
                         put( "public", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "quote/klines", 1 );
+                                put( "quote/klines", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
                             }} );
                         }} );
                         put( "private", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "user/balance", 2 );
+                                put( "user/balance", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
                             }} );
                         }} );
                     }} );
@@ -357,38 +563,86 @@ public class BingxCore extends BingxApi
                     put( "v1", new java.util.HashMap<String, Object>() {{
                         put( "public", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "market/contracts", 1 );
-                                put( "market/premiumIndex", 1 );
-                                put( "market/openInterest", 1 );
-                                put( "market/klines", 1 );
-                                put( "market/depth", 1 );
-                                put( "market/ticker", 1 );
+                                put( "market/contracts", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "market/premiumIndex", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "market/openInterest", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "market/klines", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "market/depth", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "market/ticker", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
                             }} );
                         }} );
                         put( "private", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "trade/leverage", 2 );
-                                put( "trade/forceOrders", 2 );
-                                put( "trade/allFillOrders", 2 );
-                                put( "trade/openOrders", 2 );
-                                put( "trade/orderDetail", 2 );
-                                put( "trade/orderHistory", 2 );
-                                put( "trade/marginType", 2 );
-                                put( "user/commissionRate", 2 );
-                                put( "user/positions", 2 );
-                                put( "user/balance", 2 );
+                                put( "trade/leverage", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/forceOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/allFillOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/openOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/orderDetail", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/orderHistory", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/marginType", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "user/commissionRate", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "user/positions", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "user/balance", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
                             }} );
                             put( "post", new java.util.HashMap<String, Object>() {{
-                                put( "trade/order", 2 );
-                                put( "trade/leverage", 2 );
-                                put( "trade/allOpenOrders", 2 );
-                                put( "trade/closeAllPositions", 2 );
-                                put( "trade/marginType", 2 );
-                                put( "trade/positionMargin", 2 );
+                                put( "trade/order", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/leverage", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/allOpenOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/closeAllPositions", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/marginType", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/positionMargin", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
                             }} );
                             put( "delete", new java.util.HashMap<String, Object>() {{
-                                put( "trade/allOpenOrders", 2 );
-                                put( "trade/cancelOrder", 2 );
+                                put( "trade/allOpenOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "trade/cancelOrder", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
                             }} );
                         }} );
                     }} );
@@ -397,9 +651,15 @@ public class BingxCore extends BingxApi
                     put( "v1", new java.util.HashMap<String, Object>() {{
                         put( "private", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "allPosition", 2 );
-                                put( "allOrders", 2 );
-                                put( "balance", 2 );
+                                put( "allPosition", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "allOrders", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "balance", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
                             }} );
                         }} );
                     }} );
@@ -408,19 +668,41 @@ public class BingxCore extends BingxApi
                     put( "v1", new java.util.HashMap<String, Object>() {{
                         put( "private", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "capital/config/getall", 5 );
-                                put( "capital/deposit/address", 5 );
-                                put( "capital/innerTransfer/records", 1 );
-                                put( "capital/subAccount/deposit/address", 5 );
-                                put( "capital/deposit/subHisrec", 2 );
-                                put( "capital/subAccount/innerTransfer/records", 1 );
-                                put( "capital/deposit/riskRecords", 5 );
+                                put( "capital/config/getall", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "capital/deposit/address", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "capital/innerTransfer/records", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "capital/subAccount/deposit/address", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "capital/deposit/subHisrec", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "capital/subAccount/innerTransfer/records", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "capital/deposit/riskRecords", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
                             }} );
                             put( "post", new java.util.HashMap<String, Object>() {{
-                                put( "capital/withdraw/apply", 5 );
-                                put( "capital/innerTransfer/apply", 5 );
-                                put( "capital/subAccountInnerTransfer/apply", 2 );
-                                put( "capital/deposit/createSubAddress", 2 );
+                                put( "capital/withdraw/apply", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "capital/innerTransfer/apply", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "capital/subAccountInnerTransfer/apply", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "capital/deposit/createSubAddress", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
                             }} );
                         }} );
                     }} );
@@ -429,16 +711,32 @@ public class BingxCore extends BingxApi
                     put( "v1", new java.util.HashMap<String, Object>() {{
                         put( "private", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "list", 10 );
-                                put( "assets", 2 );
-                                put( "allAccountBalance", 2 );
+                                put( "list", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 10 );
+                                }} );
+                                put( "assets", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "allAccountBalance", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
                             }} );
                             put( "post", new java.util.HashMap<String, Object>() {{
-                                put( "create", 10 );
-                                put( "apiKey/create", 2 );
-                                put( "apiKey/edit", 2 );
-                                put( "apiKey/del", 2 );
-                                put( "updateStatus", 10 );
+                                put( "create", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 10 );
+                                }} );
+                                put( "apiKey/create", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "apiKey/edit", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "apiKey/del", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "updateStatus", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 10 );
+                                }} );
                             }} );
                         }} );
                     }} );
@@ -447,13 +745,23 @@ public class BingxCore extends BingxApi
                     put( "v1", new java.util.HashMap<String, Object>() {{
                         put( "private", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "uid", 1 );
-                                put( "apiKey/query", 2 );
-                                put( "account/apiPermissions", 5 );
-                                put( "allAccountBalance", 2 );
+                                put( "uid", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "apiKey/query", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "account/apiPermissions", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "allAccountBalance", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
                             }} );
                             put( "post", new java.util.HashMap<String, Object>() {{
-                                put( "innerTransfer/authorizeSubAccount", 1 );
+                                put( "innerTransfer/authorizeSubAccount", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
                             }} );
                         }} );
                     }} );
@@ -461,11 +769,17 @@ public class BingxCore extends BingxApi
                         put( "v1", new java.util.HashMap<String, Object>() {{
                             put( "private", new java.util.HashMap<String, Object>() {{
                                 put( "get", new java.util.HashMap<String, Object>() {{
-                                    put( "subAccount/asset/transferHistory", 1 );
+                                    put( "subAccount/asset/transferHistory", new java.util.HashMap<String, Object>() {{
+                                        put( "cost", 1 );
+                                    }} );
                                 }} );
                                 put( "post", new java.util.HashMap<String, Object>() {{
-                                    put( "subAccount/transferAsset/supportCoins", 1 );
-                                    put( "subAccount/transferAsset", 1 );
+                                    put( "subAccount/transferAsset/supportCoins", new java.util.HashMap<String, Object>() {{
+                                        put( "cost", 1 );
+                                    }} );
+                                    put( "subAccount/transferAsset", new java.util.HashMap<String, Object>() {{
+                                        put( "cost", 1 );
+                                    }} );
                                 }} );
                             }} );
                         }} );
@@ -475,13 +789,19 @@ public class BingxCore extends BingxApi
                     put( "auth", new java.util.HashMap<String, Object>() {{
                         put( "private", new java.util.HashMap<String, Object>() {{
                             put( "post", new java.util.HashMap<String, Object>() {{
-                                put( "userDataStream", 2 );
+                                put( "userDataStream", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
                             }} );
                             put( "put", new java.util.HashMap<String, Object>() {{
-                                put( "userDataStream", 2 );
+                                put( "userDataStream", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
                             }} );
                             put( "delete", new java.util.HashMap<String, Object>() {{
-                                put( "userDataStream", 2 );
+                                put( "userDataStream", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
                             }} );
                         }} );
                     }} );
@@ -490,21 +810,47 @@ public class BingxCore extends BingxApi
                     put( "v1", new java.util.HashMap<String, Object>() {{
                         put( "private", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "swap/trace/currentTrack", 2 );
-                                put( "PFutures/traderDetail", 2 );
-                                put( "PFutures/profitHistorySummarys", 2 );
-                                put( "PFutures/profitDetail", 2 );
-                                put( "PFutures/tradingPairs", 2 );
-                                put( "spot/traderDetail", 2 );
-                                put( "spot/profitHistorySummarys", 2 );
-                                put( "spot/profitDetail", 2 );
-                                put( "spot/historyOrder", 2 );
+                                put( "swap/trace/currentTrack", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "PFutures/traderDetail", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "PFutures/profitHistorySummarys", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "PFutures/profitDetail", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "PFutures/tradingPairs", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "spot/traderDetail", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "spot/profitHistorySummarys", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "spot/profitDetail", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "spot/historyOrder", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
                             }} );
                             put( "post", new java.util.HashMap<String, Object>() {{
-                                put( "swap/trace/closeTrackOrder", 2 );
-                                put( "swap/trace/setTPSL", 2 );
-                                put( "PFutures/setCommission", 2 );
-                                put( "spot/trader/sellOrder", 10 );
+                                put( "swap/trace/closeTrackOrder", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "swap/trace/setTPSL", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "PFutures/setCommission", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 2 );
+                                }} );
+                                put( "spot/trader/sellOrder", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 10 );
+                                }} );
                             }} );
                         }} );
                     }} );
@@ -513,13 +859,23 @@ public class BingxCore extends BingxApi
                     put( "v3", new java.util.HashMap<String, Object>() {{
                         put( "private", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "asset/transfer", 1 );
-                                put( "asset/transferRecord", 5 );
-                                put( "capital/deposit/hisrec", 1 );
-                                put( "capital/withdraw/history", 1 );
+                                put( "asset/transfer", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "asset/transferRecord", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "capital/deposit/hisrec", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
+                                put( "capital/withdraw/history", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
                             }} );
                             put( "post", new java.util.HashMap<String, Object>() {{
-                                put( "post/asset/transfer", 1 );
+                                put( "post/asset/transfer", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
                             }} );
                         }} );
                     }} );
@@ -527,12 +883,16 @@ public class BingxCore extends BingxApi
                         put( "v1", new java.util.HashMap<String, Object>() {{
                             put( "private", new java.util.HashMap<String, Object>() {{
                                 put( "post", new java.util.HashMap<String, Object>() {{
-                                    put( "transfer", 5 );
+                                    put( "transfer", new java.util.HashMap<String, Object>() {{
+                                        put( "cost", 5 );
+                                    }} );
                                 }} );
                             }} );
                             put( "public", new java.util.HashMap<String, Object>() {{
                                 put( "get", new java.util.HashMap<String, Object>() {{
-                                    put( "transfer/supportCoins", 5 );
+                                    put( "transfer/supportCoins", new java.util.HashMap<String, Object>() {{
+                                        put( "cost", 5 );
+                                    }} );
                                 }} );
                             }} );
                         }} );
@@ -542,14 +902,30 @@ public class BingxCore extends BingxApi
                     put( "v1", new java.util.HashMap<String, Object>() {{
                         put( "private", new java.util.HashMap<String, Object>() {{
                             put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "account/inviteAccountList", 5 );
-                                put( "reward/commissionDataList", 5 );
-                                put( "account/inviteRelationCheck", 5 );
-                                put( "asset/depositDetailList", 5 );
-                                put( "reward/third/commissionDataList", 5 );
-                                put( "asset/partnerData", 5 );
-                                put( "commissionDataList/referralCode", 5 );
-                                put( "account/superiorCheck", 5 );
+                                put( "account/inviteAccountList", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "reward/commissionDataList", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "account/inviteRelationCheck", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "asset/depositDetailList", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "reward/third/commissionDataList", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "asset/partnerData", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "commissionDataList/referralCode", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
+                                put( "account/superiorCheck", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
                             }} );
                         }} );
                     }} );
@@ -3316,7 +3692,7 @@ public class BingxCore extends BingxApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
-                if (Helpers.isTrue(Helpers.isTrue(isMarketOrder) && Helpers.isTrue(Helpers.isEqual(this.safeString(request, "quoteOrderQty"), null))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isMarketOrder) && Helpers.isTrue((Helpers.isEqual(side, "buy")))) && Helpers.isTrue(Helpers.isEqual(this.safeString(request, "quoteOrderQty"), null))))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders")) ;
                 }
@@ -3653,7 +4029,8 @@ public class BingxCore extends BingxApi
                 // and JSON.parse can not handle them in JS, so we have to use .parseJson
                 // however, when order has an attached SL/TP, their value types need extra parsing
                 response = this.fixStringifiedJsonMembers(response);
-                response = this.parseJson(response);
+                Object parsedResponse = this.parseJson(response);
+                response = parsedResponse;
             }
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object result = new java.util.HashMap<String, Object>() {{}};
@@ -3799,7 +4176,8 @@ public class BingxCore extends BingxApi
                 // and JSON.parse can not handle them in JS, so we have to use .parseJson
                 // however, when order has an attached SL/TP, their value types need extra parsing
                 response = this.fixStringifiedJsonMembers(response);
-                response = this.parseJson(response);
+                Object parsedResponse = this.parseJson(response);
+                response = parsedResponse;
             }
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object result = this.safeList(data, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -5135,13 +5513,13 @@ public class BingxCore extends BingxApi
             Object subType = null;
             Object standard = null;
             Object response = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
+            var typeparametersVariable = this.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchClosedOrders", market, parameters);
+            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            var standardparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "standard", false);
+            var standardparametersVariable = this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "standard", false);
             standard = ((java.util.List<Object>) standardparametersVariable).get(0);
             parameters = ((java.util.List<Object>) standardparametersVariable).get(1);
             if (Helpers.isTrue(standard))

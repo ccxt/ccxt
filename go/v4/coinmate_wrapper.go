@@ -860,7 +860,7 @@ func (this *Coinmate) FetchPosition(symbol string, options ...FetchPositionOptio
 func (this *Coinmate) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Coinmate) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Coinmate) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Coinmate) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -878,7 +878,7 @@ func (this *Coinmate) FetchPositionsRisk(options ...FetchPositionsRiskOptions) (
 func (this *Coinmate) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Coinmate) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Coinmate) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Coinmate) FetchTradingFees(params ...any) (TradingFees, error) {
@@ -995,7 +995,7 @@ func (this *Coinmate) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Coinmate) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Coinmate) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Coinmate) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Coinmate) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1040,7 +1040,7 @@ func (this *Coinmate) FetchTradesWs(symbol string, options ...FetchTradesWsOptio
 func (this *Coinmate) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Coinmate) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Coinmate) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Coinmate) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

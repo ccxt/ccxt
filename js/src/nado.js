@@ -91,48 +91,48 @@ export default class nado extends Exchange {
                 'gateway': {
                     'public': {
                         'get': {
-                            'symbols': 2,
-                            'query': 1,
-                            'edge/query': 1,
+                            'symbols': { 'cost': 2 },
+                            'query': { 'cost': 1 },
+                            'edge/query': { 'cost': 1 },
                         },
                         'post': {
-                            'query': 1,
+                            'query': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'post': {
-                            'execute': 1,
+                            'execute': { 'cost': 1 },
                         },
                     },
                 },
                 'gatewayV2': {
                     'public': {
                         'get': {
-                            'assets': 2,
-                            'pairs': 1,
-                            'orderbook': 1,
+                            'assets': { 'cost': 2 },
+                            'pairs': { 'cost': 1 },
+                            'orderbook': { 'cost': 1 },
                         },
                     },
                 },
                 'archive': {
                     'post': {
-                        '': 1,
+                        '': { 'cost': 1 },
                     },
                 },
                 'archiveV2': {
                     'public': {
                         'get': {
-                            'tickers': 1,
-                            'contracts': 1,
-                            'trades': 1,
+                            'tickers': { 'cost': 1 },
+                            'contracts': { 'cost': 1 },
+                            'trades': { 'cost': 1 },
                         },
                     },
                 },
                 'trigger': {
                     'private': {
                         'post': {
-                            'execute': 1,
-                            'query': 1,
+                            'execute': { 'cost': 1 },
+                            'query': { 'cost': 1 },
                         },
                     },
                 },
@@ -955,7 +955,7 @@ export default class nado extends Exchange {
             productIds.push(this.parseToInt(market['id']));
         }
         let subaccount = undefined;
-        [subaccount, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'subaccount', 'default');
+        [subaccount, params] = this.handleOptionAndParams(params, 'fetchOrders', 'subaccount', 'default');
         const sender = this.createSubaccount(this.walletAddress, subaccount);
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
@@ -1733,8 +1733,9 @@ export default class nado extends Exchange {
     async fetchCurrencies(params = {}) {
         const response = await this.gatewayV2PublicGetAssets(params);
         const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
+        const assets = this.toArray(response);
+        for (let i = 0; i < assets.length; i++) {
+            const currency = assets[i];
             const parsed = this.parseCurrency(currency);
             const code = this.safeString(parsed, 'code');
             if (code === undefined) {
@@ -1951,7 +1952,7 @@ export default class nado extends Exchange {
         const rates = [];
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
-            rates.push(response[ticker]);
+            rates.push(this.safeDict(response, ticker, {}));
         }
         return this.parseFundingRates(rates, symbols);
     }
@@ -2040,7 +2041,7 @@ export default class nado extends Exchange {
         const interests = [];
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
-            interests.push(response[ticker]);
+            interests.push(this.safeDict(response, ticker, {}));
         }
         return this.parseOpenInterests(interests, symbols);
     }

@@ -104,7 +104,7 @@ class bitopro(Exchange, ImplicitAPI):
                 'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': False,
+                'fetchOrders': True,
                 'fetchOrderTrades': False,
                 'fetchPosition': False,
                 'fetchPositionHistory': False,
@@ -169,42 +169,42 @@ class bitopro(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'order-book/{pair}': 1,
-                        'tickers': 1,
-                        'tickers/{pair}': 1,
-                        'trades/{pair}': 1,
-                        'provisioning/currencies': 1,
-                        'provisioning/trading-pairs': 1,
-                        'provisioning/limitations-and-fees': 1,
-                        'trading-history/{pair}': 1,
-                        'price/otc/{currency}': 1,
+                        'order-book/{pair}': {'cost': 1},
+                        'tickers': {'cost': 1},
+                        'tickers/{pair}': {'cost': 1},
+                        'trades/{pair}': {'cost': 1},
+                        'provisioning/currencies': {'cost': 1},
+                        'provisioning/trading-pairs': {'cost': 1},
+                        'provisioning/limitations-and-fees': {'cost': 1},
+                        'trading-history/{pair}': {'cost': 1},
+                        'price/otc/{currency}': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts/balance': 1,
-                        'orders/history': 1,
-                        'orders/all/{pair}': 1,
-                        'orders/trades/{pair}': 1,
-                        'orders/{pair}/{orderId}': 1,
-                        'wallet/withdraw/{currency}/{serial}': 1,
-                        'wallet/withdraw/{currency}/id/{id}': 1,
-                        'wallet/depositHistory/{currency}': 1,
-                        'wallet/withdrawHistory/{currency}': 1,
-                        'orders/open': 1,
+                        'accounts/balance': {'cost': 1},
+                        'orders/history': {'cost': 1},
+                        'orders/all/{pair}': {'cost': 1},
+                        'orders/trades/{pair}': {'cost': 1},
+                        'orders/{pair}/{orderId}': {'cost': 1},
+                        'wallet/withdraw/{currency}/{serial}': {'cost': 1},
+                        'wallet/withdraw/{currency}/id/{id}': {'cost': 1},
+                        'wallet/depositHistory/{currency}': {'cost': 1},
+                        'wallet/withdrawHistory/{currency}': {'cost': 1},
+                        'orders/open': {'cost': 1},
                     },
                     'post': {
-                        'orders/{pair}': 1 / 2,  # 1200/m => 20/s => 10/20 = 1/2
-                        'orders/batch': 20 / 3,  # 90/m => 1.5/s => 10/1.5 = 20/3
-                        'wallet/withdraw/{currency}': 10,  # 60/m => 1/s => 10/1 = 10
+                        'orders/{pair}': {'cost': 1 / 2},  # 1200/m => 20/s => 10/20 = 1/2
+                        'orders/batch': {'cost': 20 / 3},  # 90/m => 1.5/s => 10/1.5 = 20/3
+                        'wallet/withdraw/{currency}': {'cost': 10},  # 60/m => 1/s => 10/1 = 10
                     },
                     'put': {
-                        'orders': 5,  # 2/s => 10/2 = 5
+                        'orders': {'cost': 5},  # 2/s => 10/2 = 5
                     },
                     'delete': {
-                        'orders/{pair}/{id}': 2 / 3,  # 900/m => 15/s => 10/15 = 2/3
-                        'orders/all': 5,  # 2/s => 10/2 = 5
-                        'orders/{pair}': 5,  # 2/s => 10/2 = 5
+                        'orders/{pair}/{id}': {'cost': 2 / 3},  # 900/m => 15/s => 10/15 = 2/3
+                        'orders/all': {'cost': 5},  # 2/s => 10/2 = 5
+                        'orders/{pair}': {'cost': 5},  # 2/s => 10/2 = 5
                     },
                 },
             },

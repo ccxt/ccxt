@@ -93,8 +93,8 @@ class mudrex extends Exchange {
             'api' => array(
                 'market' => array(
                     'get' => array(
-                        'price/kline' => 1,
-                        'price/mark-kline' => 1,
+                        'price/kline' => array( 'cost' => 1 ),
+                        'price/mark-kline' => array( 'cost' => 1 ),
                     ),
                 ),
                 'public' => array(
@@ -103,36 +103,36 @@ class mudrex extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
-                        'futures' => 1,
-                        'futures/{asset_id}' => 1,
-                        'wallet/funds' => 5,
-                        'futures/funds' => 5,
-                        'futures/orders' => 1,
-                        'futures/orders/history' => 1,
-                        'futures/orders/{order_id}' => 1,
-                        'futures/positions' => 1,
-                        'futures/positions/history' => 1,
-                        'futures/fee/history' => 1,
-                        'futures/{asset_id}/leverage' => 2,
-                        'futures/positions/{position_id}/liq-price' => 1,
+                        'futures' => array( 'cost' => 1 ),
+                        'futures/{asset_id}' => array( 'cost' => 1 ),
+                        'wallet/funds' => array( 'cost' => 5 ),
+                        'futures/funds' => array( 'cost' => 5 ),
+                        'futures/orders' => array( 'cost' => 1 ),
+                        'futures/orders/history' => array( 'cost' => 1 ),
+                        'futures/orders/{order_id}' => array( 'cost' => 1 ),
+                        'futures/positions' => array( 'cost' => 1 ),
+                        'futures/positions/history' => array( 'cost' => 1 ),
+                        'futures/fee/history' => array( 'cost' => 1 ),
+                        'futures/{asset_id}/leverage' => array( 'cost' => 2 ),
+                        'futures/positions/{position_id}/liq-price' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'wallet/futures/transfer' => 5,
-                        'futures/transfers/inr' => 5,
-                        'futures/{asset_id}/order' => 2,
-                        'futures/positions/{position_id}/close' => 2,
-                        'futures/positions/{position_id}/close/partial' => 2,
-                        'futures/positions/{position_id}/reverse' => 2,
-                        'futures/positions/{position_id}/add-margin' => 2,
-                        'futures/positions/{position_id}/riskorder' => 2,
-                        'futures/{asset_id}/leverage' => 2,
+                        'wallet/futures/transfer' => array( 'cost' => 5 ),
+                        'futures/transfers/inr' => array( 'cost' => 5 ),
+                        'futures/{asset_id}/order' => array( 'cost' => 2 ),
+                        'futures/positions/{position_id}/close' => array( 'cost' => 2 ),
+                        'futures/positions/{position_id}/close/partial' => array( 'cost' => 2 ),
+                        'futures/positions/{position_id}/reverse' => array( 'cost' => 2 ),
+                        'futures/positions/{position_id}/add-margin' => array( 'cost' => 2 ),
+                        'futures/positions/{position_id}/riskorder' => array( 'cost' => 2 ),
+                        'futures/{asset_id}/leverage' => array( 'cost' => 2 ),
                     ),
                     'patch' => array(
-                        'futures/orders/{order_id}' => 1,
-                        'futures/positions/{position_id}/riskorder' => 2,
+                        'futures/orders/{order_id}' => array( 'cost' => 1 ),
+                        'futures/positions/{position_id}/riskorder' => array( 'cost' => 2 ),
                     ),
                     'delete' => array(
-                        'futures/orders/{order_id}' => 2,
+                        'futures/orders/{order_id}' => array( 'cost' => 2 ),
                     ),
                 ),
             ),
@@ -460,26 +460,31 @@ class mudrex extends Exchange {
             $items = array();
             if (gettype($data) === 'array' && (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
                 $items = $this->safe_list($data, 'items', array());
-                if (!strlen($items)) {
+                // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
+                $itemsLength = count($items);
+                if (!$itemsLength) {
                     $items = $this->safe_list($data, 'results', array());
+                    $itemsLength = count($items);
                 }
-                if (!strlen($items) && (is_array($data) && array_key_exists('symbol' ?? '', $data))) {
+                if (!$itemsLength && (is_array($data) && array_key_exists('symbol' ?? '', $data))) {
                     $items = array( $data );
                 }
             } else {
                 $items = $this->to_array($data);
             }
-            if (!strlen($items)) {
+            $numItems = count($items);
+            if (!$numItems) {
                 $paging = false;
                 break;
             }
-            for ($i = 0; $i < count($items); $i++) {
+            for ($i = 0; $i < $numItems; $i++) {
                 $aggregated[] = $items[$i];
             }
-            if (strlen($items) < $pageLimit) {
+            if ($numItems < $pageLimit) {
                 $paging = false;
             } else {
-                $offset .= $pageLimit;
+                // array($this, 'sum') keeps the $offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                $offset = $this->sum($offset, $pageLimit);
             }
         }
         $result = array();
@@ -1187,10 +1192,12 @@ class mudrex extends Exchange {
                 $request['limit_price'] = $lp;
             }
             $params = $this->omit($params, array( 'order_type', 'limit_price', 'amount', 'position_id' ));
-            return $this->privatePostFuturesPositionsPositionIdClosePartial($this->extend($request, $params));
+            $partialResponse = $this->privatePostFuturesPositionsPositionIdClosePartial($this->extend($request, $params));
+            return $partialResponse;
         }
         $params = $this->omit($params, array( 'position_id' ));
-        return $this->privatePostFuturesPositionsPositionIdClose($this->extend($request, $params));
+        $response = $this->privatePostFuturesPositionsPositionIdClose($this->extend($request, $params));
+        return $response;
     }
 
     public function add_margin(string $symbol, float $amount, $params = array()): array {
@@ -1227,7 +1234,8 @@ class mudrex extends Exchange {
             'margin' => $this->cost_to_precision($symbol, $amount),
         );
         $params = $this->omit($params, array( 'position_id' ));
-        return $this->privatePostFuturesPositionsPositionIdAddMargin($this->extend($request, $params));
+        $response = $this->privatePostFuturesPositionsPositionIdAddMargin($this->extend($request, $params));
+        return $response;
     }
 
     public function reduce_margin(string $symbol, float $amount, $params = array()): array {

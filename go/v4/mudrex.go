@@ -97,8 +97,12 @@ func (this *MudrexCore) Describe() any {
 		"api": map[string]any{
 			"market": map[string]any{
 				"get": map[string]any{
-					"price/kline":      1,
-					"price/mark-kline": 1,
+					"price/kline": map[string]any{
+						"cost": 1,
+					},
+					"price/mark-kline": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"public": map[string]any{
@@ -106,36 +110,84 @@ func (this *MudrexCore) Describe() any {
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"futures":                                   1,
-					"futures/{asset_id}":                        1,
-					"wallet/funds":                              5,
-					"futures/funds":                             5,
-					"futures/orders":                            1,
-					"futures/orders/history":                    1,
-					"futures/orders/{order_id}":                 1,
-					"futures/positions":                         1,
-					"futures/positions/history":                 1,
-					"futures/fee/history":                       1,
-					"futures/{asset_id}/leverage":               2,
-					"futures/positions/{position_id}/liq-price": 1,
+					"futures": map[string]any{
+						"cost": 1,
+					},
+					"futures/{asset_id}": map[string]any{
+						"cost": 1,
+					},
+					"wallet/funds": map[string]any{
+						"cost": 5,
+					},
+					"futures/funds": map[string]any{
+						"cost": 5,
+					},
+					"futures/orders": map[string]any{
+						"cost": 1,
+					},
+					"futures/orders/history": map[string]any{
+						"cost": 1,
+					},
+					"futures/orders/{order_id}": map[string]any{
+						"cost": 1,
+					},
+					"futures/positions": map[string]any{
+						"cost": 1,
+					},
+					"futures/positions/history": map[string]any{
+						"cost": 1,
+					},
+					"futures/fee/history": map[string]any{
+						"cost": 1,
+					},
+					"futures/{asset_id}/leverage": map[string]any{
+						"cost": 2,
+					},
+					"futures/positions/{position_id}/liq-price": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"wallet/futures/transfer":                       5,
-					"futures/transfers/inr":                         5,
-					"futures/{asset_id}/order":                      2,
-					"futures/positions/{position_id}/close":         2,
-					"futures/positions/{position_id}/close/partial": 2,
-					"futures/positions/{position_id}/reverse":       2,
-					"futures/positions/{position_id}/add-margin":    2,
-					"futures/positions/{position_id}/riskorder":     2,
-					"futures/{asset_id}/leverage":                   2,
+					"wallet/futures/transfer": map[string]any{
+						"cost": 5,
+					},
+					"futures/transfers/inr": map[string]any{
+						"cost": 5,
+					},
+					"futures/{asset_id}/order": map[string]any{
+						"cost": 2,
+					},
+					"futures/positions/{position_id}/close": map[string]any{
+						"cost": 2,
+					},
+					"futures/positions/{position_id}/close/partial": map[string]any{
+						"cost": 2,
+					},
+					"futures/positions/{position_id}/reverse": map[string]any{
+						"cost": 2,
+					},
+					"futures/positions/{position_id}/add-margin": map[string]any{
+						"cost": 2,
+					},
+					"futures/positions/{position_id}/riskorder": map[string]any{
+						"cost": 2,
+					},
+					"futures/{asset_id}/leverage": map[string]any{
+						"cost": 2,
+					},
 				},
 				"patch": map[string]any{
-					"futures/orders/{order_id}":                 1,
-					"futures/positions/{position_id}/riskorder": 2,
+					"futures/orders/{order_id}": map[string]any{
+						"cost": 1,
+					},
+					"futures/positions/{position_id}/riskorder": map[string]any{
+						"cost": 2,
+					},
 				},
 				"delete": map[string]any{
-					"futures/orders/{order_id}": 2,
+					"futures/orders/{order_id}": map[string]any{
+						"cost": 2,
+					},
 				},
 			},
 		},
@@ -570,26 +622,31 @@ func (this *MudrexCore) FetchMarkets(optionalArgs ...any) <-chan any {
 			var items any = []any{}
 			if IsTrue(IsTrue(IsObject(data)) && !IsTrue(IsArray(data))) {
 				items = this.SafeList(data, "items", []any{})
-				if !IsTrue(GetArrayLength(items)) {
+				// hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
+				var itemsLength any = GetArrayLength(items)
+				if !IsTrue(itemsLength) {
 					items = this.SafeList(data, "results", []any{})
+					itemsLength = GetArrayLength(items)
 				}
-				if IsTrue(!IsTrue(GetArrayLength(items)) && IsTrue((InOp(data, "symbol")))) {
+				if IsTrue(!IsTrue(itemsLength) && IsTrue((InOp(data, "symbol")))) {
 					items = []any{data}
 				}
 			} else {
 				items = this.ToArray(data)
 			}
-			if !IsTrue(GetArrayLength(items)) {
+			var numItems any = GetArrayLength(items)
+			if !IsTrue(numItems) {
 				paging = false
 				break
 			}
-			for i := 0; IsLessThan(i, GetArrayLength(items)); i++ {
+			for i := 0; IsLessThan(i, numItems); i++ {
 				AppendToArray(&aggregated, GetValue(items, i))
 			}
-			if IsTrue(IsLessThan(GetArrayLength(items), pageLimit)) {
+			if IsTrue(IsLessThan(numItems, pageLimit)) {
 				paging = false
 			} else {
-				offset = Add(offset, pageLimit)
+				// this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+				offset = this.Sum(offset, pageLimit)
 			}
 		}
 		var result any = []any{}
@@ -686,8 +743,8 @@ func (this *MudrexCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes57112 := (<-this.LoadMarkets())
-			PanicOnError(retRes57112)
+			retRes57612 := (<-this.LoadMarkets())
+			PanicOnError(retRes57612)
 		}
 		var typeVar any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params, "swap")
@@ -769,8 +826,8 @@ func (this *MudrexCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes63612 := (<-this.LoadMarkets())
-			PanicOnError(retRes63612)
+			retRes64112 := (<-this.LoadMarkets())
+			PanicOnError(retRes64112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -820,8 +877,8 @@ func (this *MudrexCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes67012 := (<-this.LoadMarkets())
-			PanicOnError(retRes67012)
+			retRes67512 := (<-this.LoadMarkets())
+			PanicOnError(retRes67512)
 		}
 		var market any = this.Market(symbol)
 		var marginType any = this.SafeString(params, "marginType", "ISOLATED")
@@ -877,8 +934,8 @@ func (this *MudrexCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes71012 := (<-this.LoadMarkets())
-			PanicOnError(retRes71012)
+			retRes71512 := (<-this.LoadMarkets())
+			PanicOnError(retRes71512)
 		}
 		var market any = this.Market(symbol)
 		// standalone stop-loss / take-profit orders (stopLossPrice/takeProfitPrice) are attached to
@@ -978,8 +1035,8 @@ func (this *MudrexCore) EditOrder(id any, symbol any, typeVar any, side any, opt
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes78812 := (<-this.LoadMarkets())
-			PanicOnError(retRes78812)
+			retRes79312 := (<-this.LoadMarkets())
+			PanicOnError(retRes79312)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1097,8 +1154,8 @@ func (this *MudrexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes89012 := (<-this.LoadMarkets())
-			PanicOnError(retRes89012)
+			retRes89512 := (<-this.LoadMarkets())
+			PanicOnError(retRes89512)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1140,8 +1197,8 @@ func (this *MudrexCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes91612 := (<-this.LoadMarkets())
-			PanicOnError(retRes91612)
+			retRes92112 := (<-this.LoadMarkets())
+			PanicOnError(retRes92112)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1189,8 +1246,8 @@ func (this *MudrexCore) FetchOrdersByState(state any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes94412 := (<-this.LoadMarkets())
-			PanicOnError(retRes94412)
+			retRes94912 := (<-this.LoadMarkets())
+			PanicOnError(retRes94912)
 		}
 		var q any = map[string]any{}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -1250,9 +1307,9 @@ func (this *MudrexCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes98215 := (<-this.FetchOrdersByState("closed", symbol, since, limit, params))
-		PanicOnError(retRes98215)
-		ch <- retRes98215
+		retRes98715 := (<-this.FetchOrdersByState("closed", symbol, since, limit, params))
+		PanicOnError(retRes98715)
+		ch <- retRes98715
 		return nil
 
 	}()
@@ -1284,9 +1341,9 @@ func (this *MudrexCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes99715 := (<-this.FetchOrdersByState("open", symbol, since, limit, params))
-		PanicOnError(retRes99715)
-		ch <- retRes99715
+		retRes100215 := (<-this.FetchOrdersByState("open", symbol, since, limit, params))
+		PanicOnError(retRes100215)
+		ch <- retRes100215
 		return nil
 
 	}()
@@ -1318,9 +1375,9 @@ func (this *MudrexCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes101215 := (<-this.FetchOrdersByState("closed", symbol, since, limit, params))
-		PanicOnError(retRes101215)
-		ch <- retRes101215
+		retRes101715 := (<-this.FetchOrdersByState("closed", symbol, since, limit, params))
+		PanicOnError(retRes101715)
+		ch <- retRes101715
 		return nil
 
 	}()
@@ -1348,8 +1405,8 @@ func (this *MudrexCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes102712 := (<-this.LoadMarkets())
-			PanicOnError(retRes102712)
+			retRes103212 := (<-this.LoadMarkets())
+			PanicOnError(retRes103212)
 		}
 		var q any = map[string]any{}
 
@@ -1405,8 +1462,8 @@ func (this *MudrexCore) FetchPositionsHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes106112 := (<-this.LoadMarkets())
-			PanicOnError(retRes106112)
+			retRes106612 := (<-this.LoadMarkets())
+			PanicOnError(retRes106612)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
@@ -1524,8 +1581,8 @@ func (this *MudrexCore) ClosePosition(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes116212 := (<-this.LoadMarkets())
-			PanicOnError(retRes116212)
+			retRes116712 := (<-this.LoadMarkets())
+			PanicOnError(retRes116712)
 		}
 		var positionId any = this.SafeString(params, "position_id")
 		var amount any = this.SafeValue(params, "amount")
@@ -1561,16 +1618,18 @@ func (this *MudrexCore) ClosePosition(symbol any, optionalArgs ...any) <-chan an
 			}
 			params = this.Omit(params, []any{"order_type", "limit_price", "amount", "position_id"})
 
-			retRes119519 := (<-this.PrivatePostFuturesPositionsPositionIdClosePartial(this.Extend(request, params)))
-			PanicOnError(retRes119519)
-			ch <- retRes119519
+			partialResponse := (<-this.PrivatePostFuturesPositionsPositionIdClosePartial(this.Extend(request, params)))
+			PanicOnError(partialResponse)
+
+			ch <- partialResponse
 			return nil
 		}
 		params = this.Omit(params, []any{"position_id"})
 
-		retRes119815 := (<-this.PrivatePostFuturesPositionsPositionIdClose(this.Extend(request, params)))
-		PanicOnError(retRes119815)
-		ch <- retRes119815
+		response := (<-this.PrivatePostFuturesPositionsPositionIdClose(this.Extend(request, params)))
+		PanicOnError(response)
+
+		ch <- response
 		return nil
 
 	}()
@@ -1597,8 +1656,8 @@ func (this *MudrexCore) AddMargin(symbol any, amount any, optionalArgs ...any) <
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes121412 := (<-this.LoadMarkets())
-			PanicOnError(retRes121412)
+			retRes122112 := (<-this.LoadMarkets())
+			PanicOnError(retRes122112)
 		}
 		var positionId any = this.SafeString(params, "position_id")
 		if IsTrue(IsEqual(positionId, nil)) {
@@ -1622,9 +1681,10 @@ func (this *MudrexCore) AddMargin(symbol any, amount any, optionalArgs ...any) <
 		}
 		params = this.Omit(params, []any{"position_id"})
 
-		retRes123515 := (<-this.PrivatePostFuturesPositionsPositionIdAddMargin(this.Extend(request, params)))
-		PanicOnError(retRes123515)
-		ch <- retRes123515
+		response := (<-this.PrivatePostFuturesPositionsPositionIdAddMargin(this.Extend(request, params)))
+		PanicOnError(response)
+
+		ch <- response
 		return nil
 
 	}()
@@ -1649,9 +1709,9 @@ func (this *MudrexCore) ReduceMargin(symbol any, amount any, optionalArgs ...any
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes124915 := (<-this.AddMargin(symbol, OpNeg(amount), params))
-		PanicOnError(retRes124915)
-		ch <- retRes124915
+		retRes125715 := (<-this.AddMargin(symbol, OpNeg(amount), params))
+		PanicOnError(retRes125715)
+		ch <- retRes125715
 		return nil
 
 	}()
@@ -1685,8 +1745,8 @@ func (this *MudrexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes126612 := (<-this.LoadMarkets())
-			PanicOnError(retRes126612)
+			retRes127412 := (<-this.LoadMarkets())
+			PanicOnError(retRes127412)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {

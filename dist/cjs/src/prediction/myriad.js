@@ -35,6 +35,7 @@ class myriad extends myriad$1["default"] {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'createMarketBuyOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
                 'editOrder': true,
@@ -92,46 +93,46 @@ class myriad extends myriad$1["default"] {
                 'myriad': {
                     'public': {
                         'get': {
-                            'questions': 1,
-                            'questions/{id}': 1,
-                            'markets': 1,
-                            'markets/{id}': 1,
-                            'markets/{networkId}/{id}': 1,
-                            'markets/{id}/events': 1,
-                            'markets/{id}/orderbook': 1,
-                            'markets/{id}/trades': 1,
-                            'markets/{id}/holders': 1,
-                            'markets/{id}/referrals': 1,
-                            'events': 1,
-                            'orders': 1,
-                            'orders/{hash}': 1,
-                            'users/{address}/events': 1,
-                            'users/{address}/referrals': 1,
-                            'users/{address}/portfolio': 1,
-                            'users/{address}/markets': 1,
-                            'tags': 1,
-                            'topics': 1,
+                            'questions': { 'cost': 1 },
+                            'questions/{id}': { 'cost': 1 },
+                            'markets': { 'cost': 1 },
+                            'markets/{id}': { 'cost': 1 },
+                            'markets/{networkId}/{id}': { 'cost': 1 },
+                            'markets/{id}/events': { 'cost': 1 },
+                            'markets/{id}/orderbook': { 'cost': 1 },
+                            'markets/{id}/trades': { 'cost': 1 },
+                            'markets/{id}/holders': { 'cost': 1 },
+                            'markets/{id}/referrals': { 'cost': 1 },
+                            'events': { 'cost': 1 },
+                            'orders': { 'cost': 1 },
+                            'orders/{hash}': { 'cost': 1 },
+                            'users/{address}/events': { 'cost': 1 },
+                            'users/{address}/referrals': { 'cost': 1 },
+                            'users/{address}/portfolio': { 'cost': 1 },
+                            'users/{address}/markets': { 'cost': 1 },
+                            'tags': { 'cost': 1 },
+                            'topics': { 'cost': 1 },
                         },
                         'post': {
-                            'markets/quote': 1,
-                            'markets/claim': 1,
-                            'orders': 1,
-                            'orders/cancel-batch': 1,
-                            'orders/cancel-all': 1,
-                            'positions/split': 1,
-                            'positions/merge': 1,
-                            'positions/redeem': 1,
-                            'positions/redeem-voided': 1,
-                            'positions/neg-risk/split': 1,
-                            'positions/neg-risk/merge': 1,
+                            'markets/quote': { 'cost': 1 },
+                            'markets/claim': { 'cost': 1 },
+                            'orders': { 'cost': 1 },
+                            'orders/cancel-batch': { 'cost': 1 },
+                            'orders/cancel-all': { 'cost': 1 },
+                            'positions/split': { 'cost': 1 },
+                            'positions/merge': { 'cost': 1 },
+                            'positions/redeem': { 'cost': 1 },
+                            'positions/redeem-voided': { 'cost': 1 },
+                            'positions/neg-risk/split': { 'cost': 1 },
+                            'positions/neg-risk/merge': { 'cost': 1 },
                         },
                         'delete': {
-                            'orders/{hash}': 1,
+                            'orders/{hash}': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'post': {
-                            'markets/quote_with_fee': 1,
+                            'markets/quote_with_fee': { 'cost': 1 },
                         },
                     },
                 },
@@ -263,7 +264,8 @@ class myriad extends myriad$1["default"] {
                 'state': state,
                 'limit': limit,
             }, rest));
-            const foundList = this.safeList(response, 'data', response);
+            const responseIsArray = Array.isArray(response);
+            const foundList = (responseIsArray) ? response : this.safeList(response, 'data', []);
             const found = (foundList !== undefined) ? foundList : [];
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
@@ -309,7 +311,8 @@ class myriad extends myriad$1["default"] {
                 'page': page,
                 'trading_model': tradingModel,
             }, rest));
-            const rawMarketsList = this.safeList(response, 'data', response);
+            const responseIsArray = Array.isArray(response);
+            const rawMarketsList = (responseIsArray) ? response : this.safeList(response, 'data', []);
             const rawMarkets = (rawMarketsList !== undefined) ? rawMarketsList : [];
             const rawMarketsLength = rawMarkets.length;
             if (rawMarketsLength === 0) {
@@ -436,7 +439,8 @@ class myriad extends myriad$1["default"] {
                 'keyword': q,
                 'limit': limit,
             }, rest));
-            const foundList = this.safeList(response, 'data', response);
+            const responseIsArray = Array.isArray(response);
+            const foundList = (responseIsArray) ? response : this.safeList(response, 'data', []);
             const found = (foundList !== undefined) ? foundList : [];
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
@@ -476,7 +480,8 @@ class myriad extends myriad$1["default"] {
                 request['state'] = state;
             }
             const response = await this.myriadPublicGetQuestions(this.extend(request, rest));
-            const rawQuestionsList = this.safeList(response, 'data', response);
+            const responseIsArray = Array.isArray(response);
+            const rawQuestionsList = (responseIsArray) ? response : this.safeList(response, 'data', []);
             const rawQuestions = (rawQuestionsList !== undefined) ? rawQuestionsList : [];
             const rawQuestionsLength = rawQuestions.length;
             if (rawQuestionsLength === 0) {
@@ -2881,7 +2886,8 @@ class myriad extends myriad$1["default"] {
         //         ]
         //     }
         //
-        const rowsList = this.safeList(response, 'data', response);
+        const responseIsArray = Array.isArray(response);
+        const rowsList = (responseIsArray) ? response : this.safeList(response, 'data', []);
         const rows = (rowsList !== undefined) ? rowsList : [];
         const trades = [];
         for (let i = 0; i < rows.length; i++) {

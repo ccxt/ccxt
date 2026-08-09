@@ -41,7 +41,7 @@ public class KrakenCore extends KrakenApi
                 put( "cancelOrders", true );
                 put( "createDepositAddress", true );
                 put( "createMarketBuyOrderWithCost", true );
-                put( "createMarketOrderWithCost", false );
+                put( "createMarketOrderWithCost", true );
                 put( "createMarketSellOrderWithCost", false );
                 put( "createOrder", true );
                 put( "createOrders", true );
@@ -134,73 +134,198 @@ public class KrakenCore extends KrakenApi
             put( "handleContentTypeApplicationZip", true );
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "zendesk", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("360000292886", "201893608")) );
+                    put( "get", new java.util.HashMap<String, Object>() {{
+                        put( "360000292886", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "201893608", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
                 }} );
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "Time", 1 );
-                        put( "SystemStatus", 1 );
-                        put( "Assets", 1 );
-                        put( "AssetPairs", 1 );
-                        put( "Ticker", 1 );
-                        put( "OHLC", 1.2 );
-                        put( "Depth", 1.2 );
-                        put( "GroupedBook", 1.2 );
-                        put( "Trades", 1.2 );
-                        put( "Spread", 1 );
-                        put( "PreTrade", 1 );
-                        put( "PostTrade", 1 );
+                        put( "Time", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "SystemStatus", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Assets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "AssetPairs", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Ticker", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "OHLC", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1.2 );
+                        }} );
+                        put( "Depth", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1.2 );
+                        }} );
+                        put( "GroupedBook", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1.2 );
+                        }} );
+                        put( "Trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1.2 );
+                        }} );
+                        put( "Spread", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "PreTrade", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "PostTrade", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "Level3", 1.2 );
-                        put( "Balance", 3 );
-                        put( "BalanceEx", 3 );
-                        put( "CreditLines", 3 );
-                        put( "TradeBalance", 3 );
-                        put( "OpenOrders", 3 );
-                        put( "ClosedOrders", 3 );
-                        put( "QueryOrders", 3 );
-                        put( "OrderAmends", 3 );
-                        put( "TradesHistory", 6 );
-                        put( "QueryTrades", 3 );
-                        put( "OpenPositions", 3 );
-                        put( "Ledgers", 6 );
-                        put( "QueryLedgers", 3 );
-                        put( "TradeVolume", 3 );
-                        put( "AddExport", 3 );
-                        put( "ExportStatus", 3 );
-                        put( "RetrieveExport", 3 );
-                        put( "RemoveExport", 3 );
-                        put( "GetApiKeyInfo", 3 );
-                        put( "AddOrder", 0 );
-                        put( "AmendOrder", 0 );
-                        put( "CancelOrder", 0 );
-                        put( "CancelAll", 3 );
-                        put( "CancelAllOrdersAfter", 3 );
-                        put( "GetWebSocketsToken", 3 );
-                        put( "AddOrderBatch", 0 );
-                        put( "CancelOrderBatch", 0 );
-                        put( "EditOrder", 0 );
-                        put( "DepositMethods", 3 );
-                        put( "DepositAddresses", 3 );
-                        put( "DepositStatus", 3 );
-                        put( "WithdrawMethods", 3 );
-                        put( "WithdrawAddresses", 3 );
-                        put( "WithdrawInfo", 3 );
-                        put( "Withdraw", 3 );
-                        put( "WithdrawStatus", 3 );
-                        put( "WithdrawCancel", 3 );
-                        put( "WalletTransfer", 3 );
-                        put( "CreateSubaccount", 3 );
-                        put( "AccountTransfer", 3 );
-                        put( "Earn/Allocate", 3 );
-                        put( "Earn/Deallocate", 3 );
-                        put( "Earn/AllocateStatus", 3 );
-                        put( "Earn/DeallocateStatus", 3 );
-                        put( "Earn/Strategies", 3 );
-                        put( "Earn/Allocations", 3 );
+                        put( "Level3", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1.2 );
+                        }} );
+                        put( "Balance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "BalanceEx", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "CreditLines", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "TradeBalance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "OpenOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "ClosedOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "QueryOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "OrderAmends", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "TradesHistory", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 6 );
+                        }} );
+                        put( "QueryTrades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "OpenPositions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "Ledgers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 6 );
+                        }} );
+                        put( "QueryLedgers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "TradeVolume", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "AddExport", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "ExportStatus", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "RetrieveExport", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "RemoveExport", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "GetApiKeyInfo", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "AddOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0 );
+                        }} );
+                        put( "AmendOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0 );
+                        }} );
+                        put( "CancelOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0 );
+                        }} );
+                        put( "CancelAll", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "CancelAllOrdersAfter", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "GetWebSocketsToken", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "AddOrderBatch", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0 );
+                        }} );
+                        put( "CancelOrderBatch", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0 );
+                        }} );
+                        put( "EditOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0 );
+                        }} );
+                        put( "DepositMethods", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "DepositAddresses", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "DepositStatus", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "WithdrawMethods", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "WithdrawAddresses", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "WithdrawInfo", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "Withdraw", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "WithdrawStatus", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "WithdrawCancel", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "WalletTransfer", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "CreateSubaccount", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "AccountTransfer", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "Earn/Allocate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "Earn/Deallocate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "Earn/AllocateStatus", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "Earn/DeallocateStatus", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "Earn/Strategies", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "Earn/Allocations", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -1193,7 +1318,7 @@ public class KrakenCore extends KrakenApi
                 Helpers.addElementToObject(request, "pair", String.join((String)",", (java.util.List<String>)marketIds));
             }
             Object response = (this.publicGetTicker(this.extend(request, parameters))).join();
-            Object tickers = Helpers.GetValue(response, "result");
+            Object tickers = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object ids = Helpers.objectKeys(tickers);
             Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
@@ -1233,7 +1358,8 @@ public class KrakenCore extends KrakenApi
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicGetTicker(this.extend(request, parameters))).join();
-            Object ticker = this.safeValue(Helpers.GetValue(response, "result"), Helpers.GetValue(market, "id"));
+            Object tickerResult = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            Object ticker = this.safeValue(tickerResult, Helpers.GetValue(market, "id"));
             return this.parseTicker(ticker, market);
         });
 
@@ -1505,7 +1631,7 @@ public class KrakenCore extends KrakenApi
             //                                       "amount": "-0.2805800000",
             //                                          "fee": "0.0050000000",
             //                                      "balance": "0.0000051000"           } } }
-            Object result = Helpers.GetValue(response, "result");
+            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object keys = Helpers.objectKeys(result);
             Object items = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -1761,7 +1887,7 @@ public class KrakenCore extends KrakenApi
             //         }
             //     }
             //
-            Object result = Helpers.GetValue(response, "result");
+            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object trades = this.safeValue(result, id);
             // trades is a sorted array: last (most recent trade) goes last
             Object length = Helpers.getArrayLength(trades);
@@ -2993,7 +3119,8 @@ final Object finalId = id;
             //         },
             //     }
             //
-            Object trades = Helpers.GetValue(Helpers.GetValue(response, "result"), "trades");
+            Object tradesResult = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            Object trades = this.safeDict(tradesResult, "trades", new java.util.HashMap<String, Object>() {{}});
             Object ids = Helpers.objectKeys(trades);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
@@ -3004,7 +3131,8 @@ final Object finalId = id;
             {
                 market = this.market(symbol);
             }
-            return this.parseTrades(trades, market, since, limit);
+            Object tradesList = this.toArray(trades);
+            return this.parseTrades(tradesList, market, since, limit);
         });
 
     }
@@ -3614,7 +3742,8 @@ final Object finalId = id;
             //                       "time":  1529223212,
             //                     "status": "Success"                                                       } ] }
             //
-            return this.parseTransactionsByType("deposit", Helpers.GetValue(response, "result"), code, since, limit);
+            Object depositResult = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            return this.parseTransactionsByType("deposit", depositResult, code, since, limit);
         });
 
     }

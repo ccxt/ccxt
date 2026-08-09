@@ -6,7 +6,7 @@ import Exchange from './abstract/okx.js';
 import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable, ManualInteractionNeeded, OperationRejected, RestrictedLocation, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, Fee, FeeString, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, CurrencyInterface, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, NullableDict, List, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests, Bool, DepositWithdrawFees } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, Fee, FeeString, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, CurrencyInterface, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, NullableDict, List, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests, Bool, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -32,6 +32,7 @@ export default class okx extends Exchange {
                 'future': true,
                 'option': true,
                 'addMargin': true,
+                'borrowCrossMargin': true,
                 'cancelAllOrders': false,
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
@@ -121,6 +122,7 @@ export default class okx extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositionHistory': 'emulated',
+                'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': true,
                 'fetchPositionsHistory': true,
@@ -195,476 +197,476 @@ export default class okx extends Exchange {
                 'public': {
                     'get': {
                         // market
-                        'market/tickers': 1,
-                        'market/ticker': 1,
-                        'market/books': 1 / 2,
-                        'market/books-full': 2,
-                        'market/candles': 1 / 2,
-                        'market/history-candles': 1,
-                        'market/trades': 1 / 5,
-                        'market/history-trades': 2,
-                        'market/option/instrument-family-trades': 1,
-                        'market/platform-24-volume': 10,
-                        'market/call-auction-detail': 1, // deprecated, use call-auction-details
-                        'market/call-auction-details': 1,
-                        'market/books-sbe': 10,
-                        'market/block-tickers': 1,
-                        'market/block-ticker': 1,
-                        'market/sprd-ticker': 1,
-                        'market/sprd-candles': 1 / 2,
-                        'market/sprd-history-candles': 1,
-                        'market/index-tickers': 1,
-                        'market/index-candles': 1,
-                        'market/history-index-candles': 2,
-                        'market/mark-price-candles': 1,
-                        'market/history-mark-price-candles': 1,
-                        'market/exchange-rate': 20,
-                        'market/index-components': 1,
-                        'market/open-oracle': 50, // not documented
-                        'market/books-lite': 5 / 3, // deprecated
+                        'market/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/books': { 'cost': 1 / 2 } as Endpoint<Dict>,
+                        'market/books-full': { 'cost': 2 } as Endpoint<Dict>,
+                        'market/candles': { 'cost': 1 / 2 } as Endpoint<Dict>,
+                        'market/history-candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/trades': { 'cost': 1 / 5 } as Endpoint<Dict>,
+                        'market/history-trades': { 'cost': 2 } as Endpoint<Dict>,
+                        'market/option/instrument-family-trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/platform-24-volume': { 'cost': 10 } as Endpoint<Dict>,
+                        'market/call-auction-detail': { 'cost': 1 } as Endpoint<Dict>, // deprecated, use call-auction-details
+                        'market/call-auction-details': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/books-sbe': { 'cost': 10 } as Endpoint<Dict>,
+                        'market/block-tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/block-ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/sprd-ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/sprd-candles': { 'cost': 1 / 2 } as Endpoint<Dict>,
+                        'market/sprd-history-candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/index-tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/index-candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/history-index-candles': { 'cost': 2 } as Endpoint<Dict>,
+                        'market/mark-price-candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/history-mark-price-candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/exchange-rate': { 'cost': 20 } as Endpoint<Dict>,
+                        'market/index-components': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/open-oracle': { 'cost': 50 } as Endpoint<Dict>, // not documented
+                        'market/books-lite': { 'cost': 5 / 3 } as Endpoint<Dict>, // deprecated
                         // public
-                        'public/option-trades': 1,
-                        'public/block-trades': 1,
-                        'public/instruments': 1,
-                        'public/estimated-price': 2,
-                        'public/delivery-exercise-history': 1 / 2,
-                        'public/estimated-settlement-info': 2,
-                        'public/settlement-history': 1 / 2,
-                        'public/funding-rate': 2,
-                        'public/funding-rate-history': 2,
-                        'public/open-interest': 1,
-                        'public/price-limit': 1,
-                        'public/opt-summary': 1,
-                        'public/discount-rate-interest-free-quota': 10,
-                        'public/time': 2,
-                        'public/mark-price': 2,
-                        'public/position-tiers': 2,
-                        'public/interest-rate-loan-quota': 10,
-                        'public/underlying': 1,
-                        'public/insurance-fund': 2,
-                        'public/convert-contract-coin': 2,
-                        'public/instrument-tick-bands': 4,
-                        'public/premium-history': 1,
-                        'public/economic-calendar': 50,
-                        'public/market-data-history': 4,
-                        'public/event-contract/events': 1,
-                        'public/event-contract/markets': 1,
-                        'public/event-contract/series': 1,
-                        'public/vip-interest-rate-loan-quota': 10, // not documented
+                        'public/option-trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/block-trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/instruments': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/estimated-price': { 'cost': 2 } as Endpoint<Dict>,
+                        'public/delivery-exercise-history': { 'cost': 1 / 2 } as Endpoint<Dict>,
+                        'public/estimated-settlement-info': { 'cost': 2 } as Endpoint<Dict>,
+                        'public/settlement-history': { 'cost': 1 / 2 } as Endpoint<Dict>,
+                        'public/funding-rate': { 'cost': 2 } as Endpoint<Dict>,
+                        'public/funding-rate-history': { 'cost': 2 } as Endpoint<Dict>,
+                        'public/open-interest': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/price-limit': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/opt-summary': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/discount-rate-interest-free-quota': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/time': { 'cost': 2 } as Endpoint<Dict>,
+                        'public/mark-price': { 'cost': 2 } as Endpoint<Dict>,
+                        'public/position-tiers': { 'cost': 2 } as Endpoint<Dict>,
+                        'public/interest-rate-loan-quota': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/underlying': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/insurance-fund': { 'cost': 2 } as Endpoint<Dict>,
+                        'public/convert-contract-coin': { 'cost': 2 } as Endpoint<Dict>,
+                        'public/instrument-tick-bands': { 'cost': 4 } as Endpoint<Dict>,
+                        'public/premium-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/economic-calendar': { 'cost': 50 } as Endpoint<Dict>,
+                        'public/market-data-history': { 'cost': 4 } as Endpoint<Dict>,
+                        'public/event-contract/events': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/event-contract/markets': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/event-contract/series': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/vip-interest-rate-loan-quota': { 'cost': 10 } as Endpoint<Dict>, // not documented
                         // rubik
-                        'rubik/stat/trading-data/support-coin': 4,
-                        'rubik/stat/contracts/open-interest-history': 2,
-                        'rubik/stat/taker-volume': 4,
-                        'rubik/stat/taker-volume-contract': 4,
-                        'rubik/stat/margin/loan-ratio': 4,
-                        'rubik/stat/contracts/long-short-account-ratio-contract-top-trader': 4,
-                        'rubik/stat/contracts/long-short-position-ratio-contract-top-trader': 4,
-                        'rubik/stat/contracts/long-short-account-ratio-contract': 4,
-                        'rubik/stat/contracts/long-short-account-ratio': 4,
-                        'rubik/stat/contracts/open-interest-volume': 4,
-                        'rubik/stat/option/open-interest-volume': 4,
-                        'rubik/stat/option/open-interest-volume-ratio': 4,
-                        'rubik/stat/option/open-interest-volume-expiry': 4,
-                        'rubik/stat/option/open-interest-volume-strike': 4,
-                        'rubik/stat/option/taker-block-volume': 4,
+                        'rubik/stat/trading-data/support-coin': { 'cost': 4 } as Endpoint<Dict>,
+                        'rubik/stat/contracts/open-interest-history': { 'cost': 2 } as Endpoint<Dict>,
+                        'rubik/stat/taker-volume': { 'cost': 4 } as Endpoint<Dict>,
+                        'rubik/stat/taker-volume-contract': { 'cost': 4 } as Endpoint<Dict>,
+                        'rubik/stat/margin/loan-ratio': { 'cost': 4 } as Endpoint<Dict>,
+                        'rubik/stat/contracts/long-short-account-ratio-contract-top-trader': { 'cost': 4 } as Endpoint<Dict>,
+                        'rubik/stat/contracts/long-short-position-ratio-contract-top-trader': { 'cost': 4 } as Endpoint<Dict>,
+                        'rubik/stat/contracts/long-short-account-ratio-contract': { 'cost': 4 } as Endpoint<Dict>,
+                        'rubik/stat/contracts/long-short-account-ratio': { 'cost': 4 } as Endpoint<Dict>,
+                        'rubik/stat/contracts/open-interest-volume': { 'cost': 4 } as Endpoint<Dict>,
+                        'rubik/stat/option/open-interest-volume': { 'cost': 4 } as Endpoint<Dict>,
+                        'rubik/stat/option/open-interest-volume-ratio': { 'cost': 4 } as Endpoint<Dict>,
+                        'rubik/stat/option/open-interest-volume-expiry': { 'cost': 4 } as Endpoint<Dict>,
+                        'rubik/stat/option/open-interest-volume-strike': { 'cost': 4 } as Endpoint<Dict>,
+                        'rubik/stat/option/taker-block-volume': { 'cost': 4 } as Endpoint<Dict>,
                         // system
-                        'system/status': 50,
+                        'system/status': { 'cost': 50 } as Endpoint<Dict>,
                         // sprd
-                        'sprd/spreads': 1,
-                        'sprd/books': 1,
-                        'sprd/public-trades': 1,
-                        'sprd/ticker': 1, // not documented
-                        'tradingBot/grid/ai-param': 1,
-                        'tradingBot/grid/min-investment': 1,
-                        'tradingBot/public/rsi-back-testing': 1,
-                        'tradingBot/grid/grid-quantity': 4,
-                        'asset/exchange-list': 5 / 3,
-                        'finance/staking-defi/eth/apy-history': 5 / 3,
-                        'finance/staking-defi/sol/apy-history': 5 / 3,
-                        'finance/savings/lending-rate-summary': 5 / 3,
-                        'finance/savings/lending-rate-history': 5 / 3,
-                        'finance/fixed-loan/lending-offers': 10 / 3, // not documented
-                        'finance/fixed-loan/lending-apy-history': 10 / 3, // not documented
-                        'finance/fixed-loan/pending-lending-volume': 10 / 3, // not documented
+                        'sprd/spreads': { 'cost': 1 } as Endpoint<Dict>,
+                        'sprd/books': { 'cost': 1 } as Endpoint<Dict>,
+                        'sprd/public-trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'sprd/ticker': { 'cost': 1 } as Endpoint<Dict>, // not documented
+                        'tradingBot/grid/ai-param': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/grid/min-investment': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/public/rsi-back-testing': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/grid/grid-quantity': { 'cost': 4 } as Endpoint<Dict>,
+                        'asset/exchange-list': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'finance/staking-defi/eth/apy-history': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'finance/staking-defi/sol/apy-history': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'finance/savings/lending-rate-summary': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'finance/savings/lending-rate-history': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'finance/fixed-loan/lending-offers': { 'cost': 10 / 3 } as Endpoint<Dict>, // not documented
+                        'finance/fixed-loan/lending-apy-history': { 'cost': 10 / 3 } as Endpoint<Dict>, // not documented
+                        'finance/fixed-loan/pending-lending-volume': { 'cost': 10 / 3 } as Endpoint<Dict>, // not documented
                         // public broker
-                        'finance/sfp/dcd/products': 2 / 3, // not documented
+                        'finance/sfp/dcd/products': { 'cost': 2 / 3 } as Endpoint<Dict>, // not documented
                         // copytrading
-                        'copytrading/public-config': 4,
-                        'copytrading/public-lead-traders': 4,
-                        'copytrading/public-weekly-pnl': 4,
-                        'copytrading/public-pnl': 4,
-                        'copytrading/public-stats': 4,
-                        'copytrading/public-preference-currency': 4,
-                        'copytrading/public-current-subpositions': 4,
-                        'copytrading/public-subpositions-history': 4,
-                        'copytrading/public-copy-traders': 4,
-                        'support/announcements': 4,
-                        'support/announcements-types': 20, // typo, use announcement-types
-                        'support/announcement-types': 20,
+                        'copytrading/public-config': { 'cost': 4 } as Endpoint<Dict>,
+                        'copytrading/public-lead-traders': { 'cost': 4 } as Endpoint<Dict>,
+                        'copytrading/public-weekly-pnl': { 'cost': 4 } as Endpoint<Dict>,
+                        'copytrading/public-pnl': { 'cost': 4 } as Endpoint<Dict>,
+                        'copytrading/public-stats': { 'cost': 4 } as Endpoint<Dict>,
+                        'copytrading/public-preference-currency': { 'cost': 4 } as Endpoint<Dict>,
+                        'copytrading/public-current-subpositions': { 'cost': 4 } as Endpoint<Dict>,
+                        'copytrading/public-subpositions-history': { 'cost': 4 } as Endpoint<Dict>,
+                        'copytrading/public-copy-traders': { 'cost': 4 } as Endpoint<Dict>,
+                        'support/announcements': { 'cost': 4 } as Endpoint<Dict>,
+                        'support/announcements-types': { 'cost': 20 } as Endpoint<Dict>, // typo, use announcement-types
+                        'support/announcement-types': { 'cost': 20 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'tradingBot/grid/min-investment': 1, // public
+                        'tradingBot/grid/min-investment': { 'cost': 1 } as Endpoint<Dict>, // public
                     },
                 },
                 'private': {
                     'get': {
                         // rfq
-                        'rfq/counterparties': 4,
-                        'rfq/maker-instrument-settings': 4,
-                        'rfq/mmp-config': 4,
-                        'rfq/rfqs': 10,
-                        'rfq/quotes': 10,
-                        'rfq/trades': 4,
-                        'rfq/public-trades': 4,
+                        'rfq/counterparties': { 'cost': 4 } as Endpoint<Dict>,
+                        'rfq/maker-instrument-settings': { 'cost': 4 } as Endpoint<Dict>,
+                        'rfq/mmp-config': { 'cost': 4 } as Endpoint<Dict>,
+                        'rfq/rfqs': { 'cost': 10 } as Endpoint<Dict>,
+                        'rfq/quotes': { 'cost': 10 } as Endpoint<Dict>,
+                        'rfq/trades': { 'cost': 4 } as Endpoint<Dict>,
+                        'rfq/public-trades': { 'cost': 4 } as Endpoint<Dict>,
                         // sprd
-                        'sprd/order': 1,
-                        'sprd/orders-pending': 2,
-                        'sprd/orders-history': 1,
-                        'sprd/orders-history-archive': 1,
-                        'sprd/trades': 1,
+                        'sprd/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'sprd/orders-pending': { 'cost': 2 } as Endpoint<Dict>,
+                        'sprd/orders-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'sprd/orders-history-archive': { 'cost': 1 } as Endpoint<Dict>,
+                        'sprd/trades': { 'cost': 1 } as Endpoint<Dict>,
                         // trade
-                        'trade/order': 1 / 3,
-                        'trade/orders-pending': 1 / 3,
-                        'trade/orders-history': 1 / 2,
-                        'trade/orders-history-archive': 1,
-                        'trade/fills': 1 / 3,
-                        'trade/fills-history': 2,
-                        'trade/fills-archive': 2, // not documented
-                        'trade/order-algo': 1,
-                        'trade/orders-algo-pending': 1,
-                        'trade/orders-algo-history': 1,
-                        'trade/easy-convert-currency-list': 20,
-                        'trade/easy-convert-history': 20,
-                        'trade/one-click-repay-currency-list': 20,
-                        'trade/one-click-repay-currency-list-v2': 20,
-                        'trade/one-click-repay-history': 20,
-                        'trade/one-click-repay-history-v2': 20,
-                        'trade/account-rate-limit': 1,
+                        'trade/order': { 'cost': 1 / 3 } as Endpoint<Dict>,
+                        'trade/orders-pending': { 'cost': 1 / 3 } as Endpoint<Dict>,
+                        'trade/orders-history': { 'cost': 1 / 2 } as Endpoint<Dict>,
+                        'trade/orders-history-archive': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/fills': { 'cost': 1 / 3 } as Endpoint<Dict>,
+                        'trade/fills-history': { 'cost': 2 } as Endpoint<Dict>,
+                        'trade/fills-archive': { 'cost': 2 } as Endpoint<Dict>, // not documented
+                        'trade/order-algo': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/orders-algo-pending': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/orders-algo-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/easy-convert-currency-list': { 'cost': 20 } as Endpoint<Dict>,
+                        'trade/easy-convert-history': { 'cost': 20 } as Endpoint<Dict>,
+                        'trade/one-click-repay-currency-list': { 'cost': 20 } as Endpoint<Dict>,
+                        'trade/one-click-repay-currency-list-v2': { 'cost': 20 } as Endpoint<Dict>,
+                        'trade/one-click-repay-history': { 'cost': 20 } as Endpoint<Dict>,
+                        'trade/one-click-repay-history-v2': { 'cost': 20 } as Endpoint<Dict>,
+                        'trade/account-rate-limit': { 'cost': 1 } as Endpoint<Dict>,
                         // asset
-                        'asset/currencies': 5 / 3,
-                        'asset/balances': 5 / 3,
-                        'asset/non-tradable-assets': 5 / 3,
-                        'asset/asset-valuation': 10,
-                        'asset/transfer-state': 1,
-                        'asset/bills': 5 / 3,
-                        'asset/bills-history': 10,
-                        'asset/deposit-lightning': 5, // not documented
-                        'asset/deposit-address': 5 / 3,
-                        'asset/deposit-history': 5 / 3,
-                        'asset/withdrawal-history': 5 / 3,
-                        'asset/deposit-withdraw-status': 20,
-                        'asset/monthly-statement': 2,
-                        'asset/convert/currencies': 5 / 3,
-                        'asset/convert/currency-pair': 5 / 3,
-                        'asset/convert/history': 5 / 3,
+                        'asset/currencies': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'asset/balances': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'asset/non-tradable-assets': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'asset/asset-valuation': { 'cost': 10 } as Endpoint<Dict>,
+                        'asset/transfer-state': { 'cost': 1 } as Endpoint<Dict>,
+                        'asset/bills': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'asset/bills-history': { 'cost': 10 } as Endpoint<Dict>,
+                        'asset/deposit-lightning': { 'cost': 5 } as Endpoint<Dict>, // not documented
+                        'asset/deposit-address': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'asset/deposit-history': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'asset/withdrawal-history': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'asset/deposit-withdraw-status': { 'cost': 20 } as Endpoint<Dict>,
+                        'asset/monthly-statement': { 'cost': 2 } as Endpoint<Dict>,
+                        'asset/convert/currencies': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'asset/convert/currency-pair': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'asset/convert/history': { 'cost': 5 / 3 } as Endpoint<Dict>,
                         // account
-                        'account/instruments': 1,
-                        'account/balance': 2,
-                        'account/positions': 2,
-                        'account/positions-history': 2,
-                        'account/account-position-risk': 2,
-                        'account/bills': 2,
-                        'account/bills-archive': 4,
-                        'account/bills-history-archive': 2,
-                        'account/config': 4,
-                        'account/subtypes': 4,
-                        'account/max-size': 1,
-                        'account/max-avail-size': 1,
-                        'account/leverage-info': 1,
-                        'account/adjust-leverage-info': 4,
-                        'account/max-loan': 1,
-                        'account/trade-fee': 4,
-                        'account/interest-accrued': 4,
-                        'account/interest-rate': 4,
-                        'account/max-withdrawal': 1,
-                        'account/risk-state': 2,
-                        'account/interest-limits': 4,
-                        'account/spot-borrow-repay-history': 4,
-                        'account/greeks': 2,
-                        'account/position-tiers': 2,
-                        'account/set-account-switch-precheck': 4,
-                        'account/collateral-assets': 4,
-                        'account/mmp-config': 4,
-                        'account/move-positions-history': 10,
-                        'account/precheck-set-delta-neutral': 20,
-                        'account/quick-margin-borrow-repay-history': 4,
-                        'account/borrow-repay-history': 4,
-                        'account/vip-interest-accrued': 4, // not documented
-                        'account/vip-interest-deducted': 4, // not documented
-                        'account/vip-loan-order-list': 4, // not documented
-                        'account/vip-loan-order-detail': 4, // not documented
-                        'account/fixed-loan/borrowing-limit': 4, // not documented
-                        'account/fixed-loan/borrowing-quote': 5, // not documented
-                        'account/fixed-loan/borrowing-orders-list': 5, // not documented
-                        'account/spot-manual-borrow-repay': 30, // not documented
-                        'account/set-auto-repay': 4, // not documented
+                        'account/instruments': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/balance': { 'cost': 2 } as Endpoint<Dict>,
+                        'account/positions': { 'cost': 2 } as Endpoint<Dict>,
+                        'account/positions-history': { 'cost': 2 } as Endpoint<Dict>,
+                        'account/account-position-risk': { 'cost': 2 } as Endpoint<Dict>,
+                        'account/bills': { 'cost': 2 } as Endpoint<Dict>,
+                        'account/bills-archive': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/bills-history-archive': { 'cost': 2 } as Endpoint<Dict>,
+                        'account/config': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/subtypes': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/max-size': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/max-avail-size': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/leverage-info': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/adjust-leverage-info': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/max-loan': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/trade-fee': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/interest-accrued': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/interest-rate': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/max-withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/risk-state': { 'cost': 2 } as Endpoint<Dict>,
+                        'account/interest-limits': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/spot-borrow-repay-history': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/greeks': { 'cost': 2 } as Endpoint<Dict>,
+                        'account/position-tiers': { 'cost': 2 } as Endpoint<Dict>,
+                        'account/set-account-switch-precheck': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/collateral-assets': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/mmp-config': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/move-positions-history': { 'cost': 10 } as Endpoint<Dict>,
+                        'account/precheck-set-delta-neutral': { 'cost': 20 } as Endpoint<Dict>,
+                        'account/quick-margin-borrow-repay-history': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/borrow-repay-history': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/vip-interest-accrued': { 'cost': 4 } as Endpoint<Dict>, // not documented
+                        'account/vip-interest-deducted': { 'cost': 4 } as Endpoint<Dict>, // not documented
+                        'account/vip-loan-order-list': { 'cost': 4 } as Endpoint<Dict>, // not documented
+                        'account/vip-loan-order-detail': { 'cost': 4 } as Endpoint<Dict>, // not documented
+                        'account/fixed-loan/borrowing-limit': { 'cost': 4 } as Endpoint<Dict>, // not documented
+                        'account/fixed-loan/borrowing-quote': { 'cost': 5 } as Endpoint<Dict>, // not documented
+                        'account/fixed-loan/borrowing-orders-list': { 'cost': 5 } as Endpoint<Dict>, // not documented
+                        'account/spot-manual-borrow-repay': { 'cost': 30 } as Endpoint<Dict>, // not documented
+                        'account/set-auto-repay': { 'cost': 4 } as Endpoint<Dict>, // not documented
                         // subaccount
-                        'users/subaccount/list': 10,
-                        'account/subaccount/balances': 10 / 3,
-                        'asset/subaccount/balances': 10 / 3,
-                        'account/subaccount/max-withdrawal': 1,
-                        'asset/subaccount/bills': 5 / 3,
-                        'asset/subaccount/managed-subaccount-bills': 5 / 3,
-                        'users/entrust-subaccount-list': 10,
-                        'account/subaccount/interest-limits': 4,
-                        'users/subaccount/apikey': 10,
+                        'users/subaccount/list': { 'cost': 10 } as Endpoint<Dict>,
+                        'account/subaccount/balances': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'asset/subaccount/balances': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'account/subaccount/max-withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'asset/subaccount/bills': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'asset/subaccount/managed-subaccount-bills': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'users/entrust-subaccount-list': { 'cost': 10 } as Endpoint<Dict>,
+                        'account/subaccount/interest-limits': { 'cost': 4 } as Endpoint<Dict>,
+                        'users/subaccount/apikey': { 'cost': 10 } as Endpoint<Dict>,
                         // grid trading
-                        'tradingBot/grid/orders-algo-pending': 1,
-                        'tradingBot/grid/orders-algo-history': 1,
-                        'tradingBot/grid/orders-algo-details': 1,
-                        'tradingBot/grid/sub-orders': 1,
-                        'tradingBot/grid/positions': 1,
-                        'tradingBot/grid/ai-param': 1,
-                        'tradingBot/signal/signals': 1,
-                        'tradingBot/signal/orders-algo-details': 1,
-                        'tradingBot/signal/orders-algo-pending': 1,
-                        'tradingBot/signal/orders-algo-history': 1,
-                        'tradingBot/signal/positions': 1,
-                        'tradingBot/signal/positions-history': 2,
-                        'tradingBot/signal/sub-orders': 1,
-                        'tradingBot/signal/event-history': 1,
-                        'tradingBot/recurring/orders-algo-pending': 1,
-                        'tradingBot/recurring/orders-algo-history': 1,
-                        'tradingBot/recurring/orders-algo-details': 1,
-                        'tradingBot/recurring/sub-orders': 1,
-                        'tradingBot/dca/ongoing-list': 1,
-                        'tradingBot/dca/history-list': 1,
-                        'tradingBot/dca/orders': 1,
-                        'tradingBot/dca/position-details': 1,
-                        'tradingBot/dca/cycle-list': 1,
+                        'tradingBot/grid/orders-algo-pending': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/grid/orders-algo-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/grid/orders-algo-details': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/grid/sub-orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/grid/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/grid/ai-param': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/signal/signals': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/signal/orders-algo-details': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/signal/orders-algo-pending': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/signal/orders-algo-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/signal/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/signal/positions-history': { 'cost': 2 } as Endpoint<Dict>,
+                        'tradingBot/signal/sub-orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/signal/event-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/recurring/orders-algo-pending': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/recurring/orders-algo-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/recurring/orders-algo-details': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/recurring/sub-orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/dca/ongoing-list': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/dca/history-list': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/dca/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/dca/position-details': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/dca/cycle-list': { 'cost': 1 } as Endpoint<Dict>,
                         // earn
-                        'finance/savings/balance': 5 / 3,
-                        'finance/savings/lending-history': 5 / 3,
-                        'finance/staking-defi/offers': 10 / 3,
-                        'finance/staking-defi/orders-active': 10 / 3,
-                        'finance/staking-defi/orders-history': 10 / 3,
+                        'finance/savings/balance': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'finance/savings/lending-history': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'finance/staking-defi/offers': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'finance/staking-defi/orders-active': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'finance/staking-defi/orders-history': { 'cost': 10 / 3 } as Endpoint<Dict>,
                         // eth staking
-                        'finance/staking-defi/eth/product-info': 10 / 3,
-                        'finance/staking-defi/eth/balance': 5 / 3,
-                        'finance/staking-defi/eth/purchase-redeem-history': 5 / 3,
-                        'finance/staking-defi/sol/product-info': 10 / 3,
-                        'finance/staking-defi/sol/balance': 5 / 3,
-                        'finance/staking-defi/sol/purchase-redeem-history': 5 / 3,
-                        'finance/flexible-loan/borrow-currencies': 4,
-                        'finance/flexible-loan/collateral-assets': 4,
-                        'finance/flexible-loan/max-collateral-redeem-amount': 4,
-                        'finance/flexible-loan/loan-info': 4,
-                        'finance/flexible-loan/loan-history': 4,
-                        'finance/flexible-loan/interest-accrued': 4,
+                        'finance/staking-defi/eth/product-info': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'finance/staking-defi/eth/balance': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'finance/staking-defi/eth/purchase-redeem-history': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'finance/staking-defi/sol/product-info': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'finance/staking-defi/sol/balance': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'finance/staking-defi/sol/purchase-redeem-history': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'finance/flexible-loan/borrow-currencies': { 'cost': 4 } as Endpoint<Dict>,
+                        'finance/flexible-loan/collateral-assets': { 'cost': 4 } as Endpoint<Dict>,
+                        'finance/flexible-loan/max-collateral-redeem-amount': { 'cost': 4 } as Endpoint<Dict>,
+                        'finance/flexible-loan/loan-info': { 'cost': 4 } as Endpoint<Dict>,
+                        'finance/flexible-loan/loan-history': { 'cost': 4 } as Endpoint<Dict>,
+                        'finance/flexible-loan/interest-accrued': { 'cost': 4 } as Endpoint<Dict>,
                         // copytrading
-                        'copytrading/current-subpositions': 1,
-                        'copytrading/subpositions-history': 1,
-                        'copytrading/instruments': 4,
-                        'copytrading/profit-sharing-details': 4,
-                        'copytrading/total-profit-sharing': 4,
-                        'copytrading/unrealized-profit-sharing-details': 4,
-                        'copytrading/total-unrealized-profit-sharing': 4,
-                        'copytrading/config': 4,
-                        'copytrading/copy-settings': 4,
-                        'copytrading/current-lead-traders': 4,
-                        'copytrading/batch-leverage-info': 4, // not documented
-                        'copytrading/lead-traders-history': 4, // not documented
+                        'copytrading/current-subpositions': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/subpositions-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/instruments': { 'cost': 4 } as Endpoint<Dict>,
+                        'copytrading/profit-sharing-details': { 'cost': 4 } as Endpoint<Dict>,
+                        'copytrading/total-profit-sharing': { 'cost': 4 } as Endpoint<Dict>,
+                        'copytrading/unrealized-profit-sharing-details': { 'cost': 4 } as Endpoint<Dict>,
+                        'copytrading/total-unrealized-profit-sharing': { 'cost': 4 } as Endpoint<Dict>,
+                        'copytrading/config': { 'cost': 4 } as Endpoint<Dict>,
+                        'copytrading/copy-settings': { 'cost': 4 } as Endpoint<Dict>,
+                        'copytrading/current-lead-traders': { 'cost': 4 } as Endpoint<Dict>,
+                        'copytrading/batch-leverage-info': { 'cost': 4 } as Endpoint<Dict>, // not documented
+                        'copytrading/lead-traders-history': { 'cost': 4 } as Endpoint<Dict>, // not documented
                         // broker
-                        'broker/dma/subaccount-info': 2,
-                        'broker/dma/subaccount-trade-fee': 10,
-                        'broker/dma/subaccount/apikey': 10,
-                        'broker/dma/rebate-per-orders': 300,
-                        'broker/fd/rebate-per-orders': 300,
-                        'broker/fd/if-rebate': 5,
-                        'broker/nd/info': 10, // not documented
-                        'broker/nd/subaccount-info': 10, // not documented
-                        'broker/nd/subaccount/apikey': 10, // not documented
-                        'asset/broker/nd/subaccount-deposit-address': 5 / 3, // not documented
-                        'asset/broker/nd/subaccount-deposit-history': 4, // not documented
-                        'asset/broker/nd/subaccount-withdrawal-history': 4, // not documented
-                        'broker/nd/rebate-daily': 100, // not documented
-                        'broker/nd/rebate-per-orders': 300, // not documented
-                        'finance/sfp/dcd/order': 2, // not documented
-                        'finance/sfp/dcd/orders': 2, // not documented
-                        'finance/sfp/dcd/currency-pair': 2,
-                        'finance/sfp/dcd/order-status': 2,
-                        'finance/sfp/dcd/order-history': 2,
+                        'broker/dma/subaccount-info': { 'cost': 2 } as Endpoint<Dict>,
+                        'broker/dma/subaccount-trade-fee': { 'cost': 10 } as Endpoint<Dict>,
+                        'broker/dma/subaccount/apikey': { 'cost': 10 } as Endpoint<Dict>,
+                        'broker/dma/rebate-per-orders': { 'cost': 300 } as Endpoint<Dict>,
+                        'broker/fd/rebate-per-orders': { 'cost': 300 } as Endpoint<Dict>,
+                        'broker/fd/if-rebate': { 'cost': 5 } as Endpoint<Dict>,
+                        'broker/nd/info': { 'cost': 10 } as Endpoint<Dict>, // not documented
+                        'broker/nd/subaccount-info': { 'cost': 10 } as Endpoint<Dict>, // not documented
+                        'broker/nd/subaccount/apikey': { 'cost': 10 } as Endpoint<Dict>, // not documented
+                        'asset/broker/nd/subaccount-deposit-address': { 'cost': 5 / 3 } as Endpoint<Dict>, // not documented
+                        'asset/broker/nd/subaccount-deposit-history': { 'cost': 4 } as Endpoint<Dict>, // not documented
+                        'asset/broker/nd/subaccount-withdrawal-history': { 'cost': 4 } as Endpoint<Dict>, // not documented
+                        'broker/nd/rebate-daily': { 'cost': 100 } as Endpoint<Dict>, // not documented
+                        'broker/nd/rebate-per-orders': { 'cost': 300 } as Endpoint<Dict>, // not documented
+                        'finance/sfp/dcd/order': { 'cost': 2 } as Endpoint<Dict>, // not documented
+                        'finance/sfp/dcd/orders': { 'cost': 2 } as Endpoint<Dict>, // not documented
+                        'finance/sfp/dcd/currency-pair': { 'cost': 2 } as Endpoint<Dict>,
+                        'finance/sfp/dcd/order-status': { 'cost': 2 } as Endpoint<Dict>,
+                        'finance/sfp/dcd/order-history': { 'cost': 2 } as Endpoint<Dict>,
                         // affiliate
-                        'affiliate/invitee/detail': 1,
-                        'users/partner/if-rebate': 1, // not documented
-                        'support/announcements': 4,
+                        'affiliate/invitee/detail': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/partner/if-rebate': { 'cost': 1 } as Endpoint<Dict>, // not documented
+                        'support/announcements': { 'cost': 4 } as Endpoint<Dict>,
                     },
                     'post': {
                         // rfq
-                        'rfq/create-rfq': 4,
-                        'rfq/cancel-rfq': 4,
-                        'rfq/cancel-batch-rfqs': 10,
-                        'rfq/cancel-all-rfqs': 10,
-                        'rfq/execute-quote': 15,
-                        'rfq/maker-instrument-settings': 4,
-                        'rfq/mmp-reset': 4,
-                        'rfq/mmp-config': 100,
-                        'rfq/create-quote': 0.4,
-                        'rfq/cancel-quote': 0.4,
-                        'rfq/cancel-batch-quotes': 10,
-                        'rfq/cancel-all-quotes': 10,
-                        'rfq/cancel-all-after': 10,
+                        'rfq/create-rfq': { 'cost': 4 } as Endpoint<Dict>,
+                        'rfq/cancel-rfq': { 'cost': 4 } as Endpoint<Dict>,
+                        'rfq/cancel-batch-rfqs': { 'cost': 10 } as Endpoint<Dict>,
+                        'rfq/cancel-all-rfqs': { 'cost': 10 } as Endpoint<Dict>,
+                        'rfq/execute-quote': { 'cost': 15 } as Endpoint<Dict>,
+                        'rfq/maker-instrument-settings': { 'cost': 4 } as Endpoint<Dict>,
+                        'rfq/mmp-reset': { 'cost': 4 } as Endpoint<Dict>,
+                        'rfq/mmp-config': { 'cost': 100 } as Endpoint<Dict>,
+                        'rfq/create-quote': { 'cost': 0.4 } as Endpoint<Dict>,
+                        'rfq/cancel-quote': { 'cost': 0.4 } as Endpoint<Dict>,
+                        'rfq/cancel-batch-quotes': { 'cost': 10 } as Endpoint<Dict>,
+                        'rfq/cancel-all-quotes': { 'cost': 10 } as Endpoint<Dict>,
+                        'rfq/cancel-all-after': { 'cost': 10 } as Endpoint<Dict>,
                         // sprd
-                        'sprd/order': 1,
-                        'sprd/cancel-order': 1,
-                        'sprd/mass-cancel': 1,
-                        'sprd/amend-order': 1,
-                        'sprd/cancel-all-after': 10,
+                        'sprd/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'sprd/cancel-order': { 'cost': 1 } as Endpoint<Dict>,
+                        'sprd/mass-cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'sprd/amend-order': { 'cost': 1 } as Endpoint<Dict>,
+                        'sprd/cancel-all-after': { 'cost': 10 } as Endpoint<Dict>,
                         // trade
-                        'trade/order': 1 / 3,
-                        'trade/batch-orders': 1 / 15,
-                        'trade/cancel-order': 1 / 3,
-                        'trade/cancel-batch-orders': 1 / 15,
-                        'trade/amend-order': 1 / 3,
-                        'trade/amend-batch-orders': 1 / 150,
-                        'trade/close-position': 1,
-                        'trade/fills-archive': 172800, // not documented
-                        'trade/cancel-advance-algos': 1, // not documented
-                        'trade/easy-convert': 20,
-                        'trade/one-click-repay': 20,
-                        'trade/one-click-repay-v2': 20,
-                        'trade/mass-cancel': 4,
-                        'trade/cancel-all-after': 10,
-                        'trade/order-precheck': 4,
-                        'trade/order-algo': 1,
-                        'trade/cancel-algos': 1,
-                        'trade/amend-algos': 1,
+                        'trade/order': { 'cost': 1 / 3 } as Endpoint<Dict>,
+                        'trade/batch-orders': { 'cost': 1 / 15 } as Endpoint<Dict>,
+                        'trade/cancel-order': { 'cost': 1 / 3 } as Endpoint<Dict>,
+                        'trade/cancel-batch-orders': { 'cost': 1 / 15 } as Endpoint<Dict>,
+                        'trade/amend-order': { 'cost': 1 / 3 } as Endpoint<Dict>,
+                        'trade/amend-batch-orders': { 'cost': 1 / 150 } as Endpoint<Dict>,
+                        'trade/close-position': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/fills-archive': { 'cost': 172800 } as Endpoint<Dict>, // not documented
+                        'trade/cancel-advance-algos': { 'cost': 1 } as Endpoint<Dict>, // not documented
+                        'trade/easy-convert': { 'cost': 20 } as Endpoint<Dict>,
+                        'trade/one-click-repay': { 'cost': 20 } as Endpoint<Dict>,
+                        'trade/one-click-repay-v2': { 'cost': 20 } as Endpoint<Dict>,
+                        'trade/mass-cancel': { 'cost': 4 } as Endpoint<Dict>,
+                        'trade/cancel-all-after': { 'cost': 10 } as Endpoint<Dict>,
+                        'trade/order-precheck': { 'cost': 4 } as Endpoint<Dict>,
+                        'trade/order-algo': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/cancel-algos': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/amend-algos': { 'cost': 1 } as Endpoint<Dict>,
                         // asset
-                        'asset/transfer': 5,
-                        'asset/withdrawal': 5 / 3,
-                        'asset/withdrawal-lightning': 5, // not documented
-                        'asset/cancel-withdrawal': 5 / 3,
-                        'asset/convert-dust-assets': 10,
-                        'asset/monthly-statement': 1296000, // 20 req/month, 10/20*30*24*60*60 = 1296000
-                        'asset/convert/estimate-quote': 50,
-                        'asset/convert/trade': 1,
+                        'asset/transfer': { 'cost': 5 } as Endpoint<Dict>,
+                        'asset/withdrawal': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'asset/withdrawal-lightning': { 'cost': 5 } as Endpoint<Dict>, // not documented
+                        'asset/cancel-withdrawal': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'asset/convert-dust-assets': { 'cost': 10 } as Endpoint<Dict>,
+                        'asset/monthly-statement': { 'cost': 1296000 } as Endpoint<Dict>, // 20 req/month, 10/20*30*24*60*60 = 1296000
+                        'asset/convert/estimate-quote': { 'cost': 50 } as Endpoint<Dict>,
+                        'asset/convert/trade': { 'cost': 1 } as Endpoint<Dict>,
                         // account
-                        'account/bills-history-archive': 72000, // 12 req/day
-                        'account/set-position-mode': 4,
-                        'account/set-leverage': 1,
-                        'account/position/margin-balance': 1,
-                        'account/set-fee-type': 4,
-                        'account/set-greeks': 4,
-                        'account/set-isolated-mode': 4,
-                        'account/spot-manual-borrow-repay': 30,
-                        'account/set-auto-repay': 4,
-                        'account/quick-margin-borrow-repay': 4, // not documented
-                        'account/borrow-repay': 5 / 3, // not documented
-                        'account/simulated_margin': 10, // not documented
-                        'account/position-builder': 10,
-                        'account/position-builder-graph': 50,
-                        'account/set-riskOffset-type': 2,
-                        'account/set-riskOffset-amt': 2,
-                        'account/activate-option': 4,
-                        'account/set-auto-loan': 4,
-                        'account/account-level-switch-preset': 4,
-                        'account/set-account-level': 4,
-                        'account/set-collateral-assets': 4,
-                        'account/mmp-reset': 4,
-                        'account/mmp-config': 50,
-                        'account/fixed-loan/borrowing-order': 5, // not documented
-                        'account/fixed-loan/amend-borrowing-order': 5, // not documented
-                        'account/fixed-loan/manual-reborrow': 5, // not documented
-                        'account/fixed-loan/repay-borrowing-order': 5, // not documented
-                        'account/move-positions': 10,
-                        'account/set-auto-earn': 10,
-                        'account/set-settle-currency': 1,
-                        'account/set-trading-config': 20,
-                        'account/demo-adjust-balance': 20, // 3 requests per day but we don't use that weight for now, set to 20 to be safe
+                        'account/bills-history-archive': { 'cost': 72000 } as Endpoint<Dict>, // 12 req/day
+                        'account/set-position-mode': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/set-leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/position/margin-balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/set-fee-type': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/set-greeks': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/set-isolated-mode': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/spot-manual-borrow-repay': { 'cost': 30 } as Endpoint<Dict>,
+                        'account/set-auto-repay': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/quick-margin-borrow-repay': { 'cost': 4 } as Endpoint<Dict>, // not documented
+                        'account/borrow-repay': { 'cost': 5 / 3 } as Endpoint<Dict>, // not documented
+                        'account/simulated_margin': { 'cost': 10 } as Endpoint<Dict>, // not documented
+                        'account/position-builder': { 'cost': 10 } as Endpoint<Dict>,
+                        'account/position-builder-graph': { 'cost': 50 } as Endpoint<Dict>,
+                        'account/set-riskOffset-type': { 'cost': 2 } as Endpoint<Dict>,
+                        'account/set-riskOffset-amt': { 'cost': 2 } as Endpoint<Dict>,
+                        'account/activate-option': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/set-auto-loan': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/account-level-switch-preset': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/set-account-level': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/set-collateral-assets': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/mmp-reset': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/mmp-config': { 'cost': 50 } as Endpoint<Dict>,
+                        'account/fixed-loan/borrowing-order': { 'cost': 5 } as Endpoint<Dict>, // not documented
+                        'account/fixed-loan/amend-borrowing-order': { 'cost': 5 } as Endpoint<Dict>, // not documented
+                        'account/fixed-loan/manual-reborrow': { 'cost': 5 } as Endpoint<Dict>, // not documented
+                        'account/fixed-loan/repay-borrowing-order': { 'cost': 5 } as Endpoint<Dict>, // not documented
+                        'account/move-positions': { 'cost': 10 } as Endpoint<Dict>,
+                        'account/set-auto-earn': { 'cost': 10 } as Endpoint<Dict>,
+                        'account/set-settle-currency': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/set-trading-config': { 'cost': 20 } as Endpoint<Dict>,
+                        'account/demo-adjust-balance': { 'cost': 20 } as Endpoint<Dict>, // 3 requests per day but we don't use that weight for now, set to 20 to be safe
                         // subaccount
-                        'asset/subaccount/transfer': 10,
-                        'account/subaccount/set-loan-allocation': 4, // not documented
-                        'users/subaccount/create-subaccount': 10,
-                        'users/subaccount/apikey': 10,
-                        'users/subaccount/modify-apikey': 10,
-                        'users/subaccount/subaccount-apikey': 10, // not documented
-                        'users/subaccount/delete-apikey': 10,
-                        'users/subaccount/set-transfer-out': 10,
+                        'asset/subaccount/transfer': { 'cost': 10 } as Endpoint<Dict>,
+                        'account/subaccount/set-loan-allocation': { 'cost': 4 } as Endpoint<Dict>, // not documented
+                        'users/subaccount/create-subaccount': { 'cost': 10 } as Endpoint<Dict>,
+                        'users/subaccount/apikey': { 'cost': 10 } as Endpoint<Dict>,
+                        'users/subaccount/modify-apikey': { 'cost': 10 } as Endpoint<Dict>,
+                        'users/subaccount/subaccount-apikey': { 'cost': 10 } as Endpoint<Dict>, // not documented
+                        'users/subaccount/delete-apikey': { 'cost': 10 } as Endpoint<Dict>,
+                        'users/subaccount/set-transfer-out': { 'cost': 10 } as Endpoint<Dict>,
                         // grid trading
-                        'tradingBot/grid/order-algo': 1,
-                        'tradingBot/grid/copy-order-algo': 1,
-                        'tradingBot/grid/amend-algo-basic-param': 1,
-                        'tradingBot/grid/amend-order-algo': 1,
-                        'tradingBot/grid/stop-order-algo': 1,
-                        'tradingBot/grid/close-position': 1,
-                        'tradingBot/grid/cancel-close-order': 1,
-                        'tradingBot/grid/order-instant-trigger': 1,
-                        'tradingBot/grid/withdraw-income': 1,
-                        'tradingBot/grid/compute-margin-balance': 1,
-                        'tradingBot/grid/margin-balance': 1,
-                        'tradingBot/grid/min-investment': 1, // public
-                        'tradingBot/grid/adjust-investment': 1,
-                        'tradingBot/signal/create-signal': 1,
-                        'tradingBot/signal/order-algo': 1,
-                        'tradingBot/signal/stop-order-algo': 1,
-                        'tradingBot/signal/margin-balance': 1,
-                        'tradingBot/signal/amendTPSL': 1,
-                        'tradingBot/signal/set-instruments': 1,
-                        'tradingBot/signal/close-position': 1,
-                        'tradingBot/signal/sub-order': 1,
-                        'tradingBot/signal/cancel-sub-order': 1,
-                        'tradingBot/recurring/order-algo': 1,
-                        'tradingBot/recurring/amend-order-algo': 1,
-                        'tradingBot/recurring/stop-order-algo': 1,
-                        'tradingBot/dca/create': 1,
-                        'tradingBot/dca/amend-order-algo': 1,
-                        'tradingBot/dca/stop': 1,
-                        'tradingBot/dca/orders/manual-buy': 1,
-                        'tradingBot/dca/settings/reinvestment': 1,
-                        'tradingBot/dca/settings/take-profit': 1,
-                        'tradingBot/dca/margin/add': 1,
-                        'tradingBot/dca/margin/reduce': 1,
-                        'tradingBot/recurring/add-investment': 1,
-                        'tradingBot/recurring/amend-price-range': 1,
-                        'tradingBot/recurring/amend-recurring-amount': 1,
-                        'tradingBot/recurring/amend-recurring-time': 1,
-                        'tradingBot/recurring/pause': 1,
-                        'tradingBot/recurring/restart': 1,
+                        'tradingBot/grid/order-algo': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/grid/copy-order-algo': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/grid/amend-algo-basic-param': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/grid/amend-order-algo': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/grid/stop-order-algo': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/grid/close-position': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/grid/cancel-close-order': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/grid/order-instant-trigger': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/grid/withdraw-income': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/grid/compute-margin-balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/grid/margin-balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/grid/min-investment': { 'cost': 1 } as Endpoint<Dict>, // public
+                        'tradingBot/grid/adjust-investment': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/signal/create-signal': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/signal/order-algo': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/signal/stop-order-algo': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/signal/margin-balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/signal/amendTPSL': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/signal/set-instruments': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/signal/close-position': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/signal/sub-order': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/signal/cancel-sub-order': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/recurring/order-algo': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/recurring/amend-order-algo': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/recurring/stop-order-algo': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/dca/create': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/dca/amend-order-algo': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/dca/stop': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/dca/orders/manual-buy': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/dca/settings/reinvestment': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/dca/settings/take-profit': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/dca/margin/add': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/dca/margin/reduce': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/recurring/add-investment': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/recurring/amend-price-range': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/recurring/amend-recurring-amount': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/recurring/amend-recurring-time': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/recurring/pause': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingBot/recurring/restart': { 'cost': 1 } as Endpoint<Dict>,
                         // earn
-                        'finance/savings/purchase-redempt': 5 / 3,
-                        'finance/savings/set-lending-rate': 5 / 3,
-                        'finance/staking-defi/purchase': 5,
-                        'finance/staking-defi/redeem': 5,
-                        'finance/staking-defi/cancel': 5,
+                        'finance/savings/purchase-redempt': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'finance/savings/set-lending-rate': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'finance/staking-defi/purchase': { 'cost': 5 } as Endpoint<Dict>,
+                        'finance/staking-defi/redeem': { 'cost': 5 } as Endpoint<Dict>,
+                        'finance/staking-defi/cancel': { 'cost': 5 } as Endpoint<Dict>,
                         // eth staking
-                        'finance/staking-defi/eth/purchase': 5,
-                        'finance/staking-defi/eth/redeem': 5,
-                        'finance/staking-defi/eth/cancel-redeem': 5,
-                        'finance/staking-defi/sol/purchase': 5,
-                        'finance/staking-defi/sol/redeem': 5,
-                        'finance/staking-defi/sol/cancel-redeem': 5,
-                        'finance/flexible-loan/max-loan': 4,
-                        'finance/flexible-loan/adjust-collateral': 4,
+                        'finance/staking-defi/eth/purchase': { 'cost': 5 } as Endpoint<Dict>,
+                        'finance/staking-defi/eth/redeem': { 'cost': 5 } as Endpoint<Dict>,
+                        'finance/staking-defi/eth/cancel-redeem': { 'cost': 5 } as Endpoint<Dict>,
+                        'finance/staking-defi/sol/purchase': { 'cost': 5 } as Endpoint<Dict>,
+                        'finance/staking-defi/sol/redeem': { 'cost': 5 } as Endpoint<Dict>,
+                        'finance/staking-defi/sol/cancel-redeem': { 'cost': 5 } as Endpoint<Dict>,
+                        'finance/flexible-loan/max-loan': { 'cost': 4 } as Endpoint<Dict>,
+                        'finance/flexible-loan/adjust-collateral': { 'cost': 4 } as Endpoint<Dict>,
                         // copytrading
-                        'copytrading/algo-order': 1,
-                        'copytrading/close-subposition': 1,
-                        'copytrading/set-instruments': 4,
-                        'copytrading/amend-profit-sharing-ratio': 4,
-                        'copytrading/first-copy-settings': 4,
-                        'copytrading/amend-copy-settings': 4,
-                        'copytrading/stop-copy-trading': 4,
-                        'copytrading/batch-set-leverage': 4, // not documented
+                        'copytrading/algo-order': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/close-subposition': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/set-instruments': { 'cost': 4 } as Endpoint<Dict>,
+                        'copytrading/amend-profit-sharing-ratio': { 'cost': 4 } as Endpoint<Dict>,
+                        'copytrading/first-copy-settings': { 'cost': 4 } as Endpoint<Dict>,
+                        'copytrading/amend-copy-settings': { 'cost': 4 } as Endpoint<Dict>,
+                        'copytrading/stop-copy-trading': { 'cost': 4 } as Endpoint<Dict>,
+                        'copytrading/batch-set-leverage': { 'cost': 4 } as Endpoint<Dict>, // not documented
                         // broker
-                        'broker/nd/create-subaccount': 0.25, // not documented
-                        'broker/nd/delete-subaccount': 1, // not documented
-                        'broker/nd/subaccount/apikey': 0.25, // not documented
-                        'broker/nd/subaccount/modify-apikey': 1, // not documented
-                        'broker/nd/subaccount/delete-apikey': 1, // not documented
-                        'broker/nd/set-subaccount-level': 4, // not documented
-                        'broker/nd/set-subaccount-fee-rate': 4, // not documented
-                        'broker/nd/set-subaccount-assets': 0.25, // not documented
-                        'asset/broker/nd/subaccount-deposit-address': 1, // not documented
-                        'asset/broker/nd/modify-subaccount-deposit-address': 5 / 3, // not documented
-                        'broker/nd/rebate-per-orders': 36000, // not documented
-                        'finance/sfp/dcd/quote': 10, // not documented
-                        'finance/sfp/dcd/order': 10, // not documented
-                        'finance/sfp/dcd/trade': 10,
-                        'finance/sfp/dcd/redeem-quote': 10,
-                        'finance/sfp/dcd/redeem': 10,
-                        'broker/nd/report-subaccount-ip': 0.25, // not documented
-                        'broker/dma/subaccount/apikey': 1 / 4,
-                        'broker/dma/trades': 36000,
-                        'broker/fd/rebate-per-orders': 36000,
+                        'broker/nd/create-subaccount': { 'cost': 0.25 } as Endpoint<Dict>, // not documented
+                        'broker/nd/delete-subaccount': { 'cost': 1 } as Endpoint<Dict>, // not documented
+                        'broker/nd/subaccount/apikey': { 'cost': 0.25 } as Endpoint<Dict>, // not documented
+                        'broker/nd/subaccount/modify-apikey': { 'cost': 1 } as Endpoint<Dict>, // not documented
+                        'broker/nd/subaccount/delete-apikey': { 'cost': 1 } as Endpoint<Dict>, // not documented
+                        'broker/nd/set-subaccount-level': { 'cost': 4 } as Endpoint<Dict>, // not documented
+                        'broker/nd/set-subaccount-fee-rate': { 'cost': 4 } as Endpoint<Dict>, // not documented
+                        'broker/nd/set-subaccount-assets': { 'cost': 0.25 } as Endpoint<Dict>, // not documented
+                        'asset/broker/nd/subaccount-deposit-address': { 'cost': 1 } as Endpoint<Dict>, // not documented
+                        'asset/broker/nd/modify-subaccount-deposit-address': { 'cost': 5 / 3 } as Endpoint<Dict>, // not documented
+                        'broker/nd/rebate-per-orders': { 'cost': 36000 } as Endpoint<Dict>, // not documented
+                        'finance/sfp/dcd/quote': { 'cost': 10 } as Endpoint<Dict>, // not documented
+                        'finance/sfp/dcd/order': { 'cost': 10 } as Endpoint<Dict>, // not documented
+                        'finance/sfp/dcd/trade': { 'cost': 10 } as Endpoint<Dict>,
+                        'finance/sfp/dcd/redeem-quote': { 'cost': 10 } as Endpoint<Dict>,
+                        'finance/sfp/dcd/redeem': { 'cost': 10 } as Endpoint<Dict>,
+                        'broker/nd/report-subaccount-ip': { 'cost': 0.25 } as Endpoint<Dict>, // not documented
+                        'broker/dma/subaccount/apikey': { 'cost': 1 / 4 } as Endpoint<Dict>,
+                        'broker/dma/trades': { 'cost': 36000 } as Endpoint<Dict>,
+                        'broker/fd/rebate-per-orders': { 'cost': 36000 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -1139,7 +1141,7 @@ export default class okx extends Exchange {
                     'APT': 'Aptos',
                     'SONIC': 'Sonic',
                     'SCROLL': 'Scroll',
-                    'ARBONE': 'Arbitrum One',
+                    'ARBITRUM': 'Arbitrum One',
                     'AVAXC': 'Avalanche C-Chain',
                     'AVAXX': 'Avalanche X-Chain',
                     'BASE': 'Base',
@@ -1555,7 +1557,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.publicGetSystemStatus (params);
         //
         // Note, if there is no maintenance around, the 'data' array is empty
@@ -1579,7 +1581,7 @@ export default class okx extends Exchange {
         //
         const data = this.safeList (response, 'data', []) as List;
         const dataLength = data.length;
-        const update: Dict = {
+        const update: Status = {
             'updated': undefined,
             'status': (dataLength === 0) ? 'ok' : 'maintenance',
             'eta': undefined,
@@ -2408,7 +2410,7 @@ export default class okx extends Exchange {
         symbols = this.marketSymbols (symbols);
         const market = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params, 'swap');
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMarkPrices', market, params, 'swap');
         const request: Dict = {
             'instType': this.convertToInstrumentType (marketType),
         };
@@ -4486,7 +4488,7 @@ export default class okx extends Exchange {
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] True if fetching trigger or conditional orders
-     * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+     * @param {string} [params.ordType] market, limit, post_only, fok, ioc and stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
      * @param {string} [params.algoId] Algo ID "'433845797218942976'"
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
@@ -5489,7 +5491,7 @@ export default class okx extends Exchange {
         code = this.safeCurrencyCode (code) as string;
         const network = this.networkIdToCode (rawNetwork, code);
         const responseRaw = await this.fetchDepositAddressesByNetwork (code, params);
-        const response: Dict = responseRaw as any;
+        const response: Dict = responseRaw;
         if (network !== undefined) {
             const result = this.safeDict (response, network);
             if (result === undefined) {
@@ -7144,7 +7146,7 @@ export default class okx extends Exchange {
      * @param {string} [params.accountId] if you have multiple accounts, you must specify the account id to fetch the position mode
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    override async fetchPositionMode (symbol: Str = undefined, params = {}) {
+    override async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<PositionModeInfo> {
         const accounts = await this.fetchAccounts ();
         const length = accounts.length;
         let selectedAccount: Dict;
@@ -7283,11 +7285,16 @@ export default class okx extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data', []) as List;
-        const rates: List = [];
+        // code-keyed dict (CrossBorrowRates); base fetchCrossBorrowRate looks up by code
+        const rates: CrossBorrowRates = {};
         for (let i = 0; i < data.length; i++) {
-            rates.push (this.parseBorrowRate (data[i]));
+            const rate = this.parseBorrowRate (data[i]);
+            const code = this.safeString (rate, 'currency');
+            if (code !== undefined) {
+                rates[code] = rate;
+            }
         }
-        return rates as any;
+        return rates;
     }
 
     /**
@@ -7340,7 +7347,7 @@ export default class okx extends Exchange {
         return {
             'currency': this.safeCurrencyCode (ccy),
             'rate': this.safeNumber2 (info, 'interestRate', 'rate'),
-            'period': 86400000,
+            'period': 3600000, // GET /api/v5/account/interest-rate returns the hourly borrowing interest rate
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': info,
@@ -7368,6 +7375,8 @@ export default class okx extends Exchange {
                     borrowRateHistories[code] = [];
                 }
                 const borrowRateStructure = this.parseBorrowRate (item);
+                // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
+                borrowRateStructure['period'] = 31536000000;
                 const borrrowRateCode = borrowRateHistories[code];
                 borrrowRateCode.push (borrowRateStructure);
             }
@@ -7559,7 +7568,8 @@ export default class okx extends Exchange {
         //
         const amountRaw = this.safeString2 (data, 'amt', 'posBalChg');
         const typeRaw = this.safeString (data, 'type');
-        let type: any = undefined;
+        // ledger uses numeric '6' (+/- amount); addMargin/reduceMargin already send 'add'/'reduce'
+        let type: Str = undefined;
         if (typeRaw === '6') {
             type = Precise.stringGt (amountRaw, '0') ? 'add' : 'reduce';
         } else {
@@ -7573,7 +7583,8 @@ export default class okx extends Exchange {
         return {
             'info': data,
             'symbol': responseMarket['symbol'],
-            'type': type,
+            // unified values are 'add'|'reduce'|'set'; ledger '6' is mapped above; pass through otherwise
+            'type': type as MarginModification['type'],
             'marginMode': 'isolated',
             'amount': this.parseNumber (amount),
             'code': code,
@@ -7811,7 +7822,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async borrowCrossMargin (code: string, amount: number, params = {}) {
+    override async borrowCrossMargin (code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7853,7 +7864,7 @@ export default class okx extends Exchange {
      * @param {string} [params.id] the order ID of borrowing, it is necessary while repaying
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async repayCrossMargin (code: string, amount: number, params = {}) {
+    override async repayCrossMargin (code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7890,7 +7901,7 @@ export default class okx extends Exchange {
         return this.parseMarginLoan (loan, currency);
     }
 
-    parseMarginLoan (info: any, currency: Currency = undefined) {
+    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
         //
         //     {
         //         "amt": "102",
@@ -8302,7 +8313,7 @@ export default class okx extends Exchange {
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchSettlementHistory() requires a symbol argument');
         }
@@ -8406,7 +8417,7 @@ export default class okx extends Exchange {
      * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
      * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
      */
-    async fetchUnderlyingAssets (params = {}) {
+    async fetchUnderlyingAssets (params = {}): Promise<string[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8497,7 +8508,7 @@ export default class okx extends Exchange {
                 return this.parseGreeks (entry, market);
             }
         }
-        return undefined as any;
+        throw new NullResponse (this.id + ' fetchGreeks() could not find greeks for ' + symbol);
     }
 
     /**
@@ -8627,7 +8638,7 @@ export default class okx extends Exchange {
             'lastPrice': undefined,
             'underlyingPrice': undefined,
             'info': greeks,
-        } as unknown as Greeks;
+        };
     }
 
     /**
@@ -8840,7 +8851,7 @@ export default class okx extends Exchange {
             'percentage': undefined,
             'baseVolume': this.safeNumber (chain, 'volCcy24h'),
             'quoteVolume': undefined,
-        } as unknown as Option;
+        };
     }
 
     /**

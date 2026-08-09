@@ -5,7 +5,7 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/p2b.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, int, Market, NullableDict } from './base/types.js';
+import type { Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, int, Market, NullableDict, Endpoint } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -158,28 +158,28 @@ export default class p2b extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'markets': 1,
-                        'market': 1,
-                        'tickers': 1,
-                        'ticker': 1,
-                        'book': 1,
-                        'history': 1,
-                        'depth/result': 1,
-                        'market/kline': 1,
+                        'markets': { 'cost': 1 } as Endpoint<Dict>,
+                        'market': { 'cost': 1 } as Endpoint<Dict>,
+                        'tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'book': { 'cost': 1 } as Endpoint<Dict>,
+                        'history': { 'cost': 1 } as Endpoint<Dict>,
+                        'depth/result': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/kline': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'post': {
-                        'account/balances': 1,
-                        'account/balance': 1,
-                        'order/new': 1,
-                        'order/cancel': 1,
-                        'orders': 1,
-                        'account/market_order_history': 1,
-                        'account/market_deal_history': 1,
-                        'account/order': 1,
-                        'account/order_history': 1,
-                        'account/executed_history': 1,
+                        'account/balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/new': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/market_order_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/market_deal_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/order_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/executed_history': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },

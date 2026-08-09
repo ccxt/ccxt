@@ -6,7 +6,7 @@ import Exchange from './abstract/coinmate.js';
 import { ExchangeError, InvalidOrder, OrderNotFound, RateLimitExceeded, InsufficientFunds, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, List, Int, Market, NullableDict, FeeString, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, List, Int, Market, NullableDict, FeeString, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -97,6 +97,7 @@ export default class coinmate extends Exchange {
                 'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
@@ -133,73 +134,73 @@ export default class coinmate extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'orderBook',
-                        'ticker',
-                        'tickerAll',
-                        'products',
-                        'transactions',
-                        'tradingPairs',
-                        'system/time',
-                    ],
+                    'get': {
+                        'orderBook': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'tickerAll': { 'cost': 1 } as Endpoint<Dict>,
+                        'products': { 'cost': 1 } as Endpoint<Dict>,
+                        'transactions': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingPairs': { 'cost': 1 } as Endpoint<Dict>,
+                        'system/time': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'currencies',
-                        'balances',
-                        'bitcoinCashWithdrawal',
-                        'bitcoinCashDepositAddresses',
-                        'bitcoinDepositAddresses',
-                        'bitcoinWithdrawal',
-                        'bitcoinWithdrawalFees',
-                        'buyInstant',
-                        'buyLimit',
-                        'cancelOrder',
-                        'cancelOrderWithInfo',
-                        'createVoucher',
-                        'dashDepositAddresses',
-                        'dashWithdrawal',
-                        'ethereumWithdrawal',
-                        'ethereumDepositAddresses',
-                        'litecoinWithdrawal',
-                        'litecoinDepositAddresses',
-                        'openOrders',
-                        'order',
-                        'orderHistory',
-                        'orderById',
-                        'pusherAuth',
-                        'redeemVoucher',
-                        'replaceByBuyLimit',
-                        'replaceByBuyInstant',
-                        'replaceBySellLimit',
-                        'replaceBySellInstant',
-                        'rippleDepositAddresses',
-                        'rippleWithdrawal',
-                        'sellInstant',
-                        'sellLimit',
-                        'transactionHistory',
-                        'traderFees',
-                        'tradeHistory',
-                        'transfer',
-                        'transferHistory',
-                        'unconfirmedBitcoinDeposits',
-                        'unconfirmedBitcoinCashDeposits',
-                        'unconfirmedDashDeposits',
-                        'unconfirmedEthereumDeposits',
-                        'unconfirmedLitecoinDeposits',
-                        'unconfirmedRippleDeposits',
-                        'cancelAllOpenOrders',
-                        'withdrawVirtualCurrency',
-                        'virtualCurrencyDepositAddresses',
-                        'unconfirmedVirtualCurrencyDeposits',
-                        'adaWithdrawal',
-                        'adaDepositAddresses',
-                        'unconfirmedAdaDeposits',
-                        'solWithdrawal',
-                        'solDepositAddresses',
-                        'unconfirmedSolDeposits',
-                        'bankWireWithdrawal',
-                    ],
+                    'post': {
+                        'currencies': { 'cost': 1 } as Endpoint<Dict>,
+                        'balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'bitcoinCashWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'bitcoinCashDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'bitcoinDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'bitcoinWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'bitcoinWithdrawalFees': { 'cost': 1 } as Endpoint<Dict>,
+                        'buyInstant': { 'cost': 1 } as Endpoint<Dict>,
+                        'buyLimit': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelOrderWithInfo': { 'cost': 1 } as Endpoint<Dict>,
+                        'createVoucher': { 'cost': 1 } as Endpoint<Dict>,
+                        'dashDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'dashWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'ethereumWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'ethereumDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'litecoinWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'litecoinDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'openOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderHistory': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderById': { 'cost': 1 } as Endpoint<Dict>,
+                        'pusherAuth': { 'cost': 1 } as Endpoint<Dict>,
+                        'redeemVoucher': { 'cost': 1 } as Endpoint<Dict>,
+                        'replaceByBuyLimit': { 'cost': 1 } as Endpoint<Dict>,
+                        'replaceByBuyInstant': { 'cost': 1 } as Endpoint<Dict>,
+                        'replaceBySellLimit': { 'cost': 1 } as Endpoint<Dict>,
+                        'replaceBySellInstant': { 'cost': 1 } as Endpoint<Dict>,
+                        'rippleDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'rippleWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'sellInstant': { 'cost': 1 } as Endpoint<Dict>,
+                        'sellLimit': { 'cost': 1 } as Endpoint<Dict>,
+                        'transactionHistory': { 'cost': 1 } as Endpoint<Dict>,
+                        'traderFees': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradeHistory': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'transferHistory': { 'cost': 1 } as Endpoint<Dict>,
+                        'unconfirmedBitcoinDeposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'unconfirmedBitcoinCashDeposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'unconfirmedDashDeposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'unconfirmedEthereumDeposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'unconfirmedLitecoinDeposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'unconfirmedRippleDeposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelAllOpenOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawVirtualCurrency': { 'cost': 1 } as Endpoint<Dict>,
+                        'virtualCurrencyDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'unconfirmedVirtualCurrencyDeposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'adaWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'adaDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'unconfirmedAdaDeposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'solWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'solDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'unconfirmedSolDeposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'bankWireWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -495,7 +496,7 @@ export default class coinmate extends Exchange {
             'groupByPriceLimit': 'False',
         };
         const response = await this.publicGetOrderBook (this.extend (request, params));
-        const orderbook = response['data'];
+        const orderbook = this.safeDict (response, 'data', {});
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
@@ -653,7 +654,7 @@ export default class coinmate extends Exchange {
             request['currency'] = currency['id'];
         }
         const response = await this.privatePostTransferHistory (this.extend (request, params));
-        const items = response['data'];
+        const items = this.safeList (response, 'data', []);
         return this.parseTransactions (items, undefined, since, limit);
     }
 
@@ -996,7 +997,8 @@ export default class coinmate extends Exchange {
     override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const response = await this.privatePostOpenOrders (this.extend ({}, params));
         const extension: Dict = { 'status': 'open' };
-        return this.parseOrders (response['data'], undefined, since, limit, extension);
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, undefined, since, limit, extension);
     }
 
     /**
@@ -1026,7 +1028,8 @@ export default class coinmate extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privatePostOrderHistory (this.extend (request, params));
-        return this.parseOrders (response['data'], market, since, limit);
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     parseOrderStatus (status: Str) {

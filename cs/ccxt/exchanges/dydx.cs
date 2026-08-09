@@ -138,70 +138,178 @@ public partial class dydx : Exchange
             { "api", new Dictionary<string, object>() {
                 { "indexer", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "addresses/{address}", 1 },
-                        { "addresses/{address}/parentSubaccountNumber/{number}", 1 },
-                        { "addresses/{address}/subaccountNumber/{subaccountNumber}", 1 },
-                        { "assetPositions", 1 },
-                        { "assetPositions/parentSubaccountNumber", 1 },
-                        { "candles/perpetualMarkets/{market}", 1 },
-                        { "compliance/screen/{address}", 1 },
-                        { "fills", 1 },
-                        { "fills/parentSubaccountNumber", 1 },
-                        { "fundingPayments", 1 },
-                        { "fundingPayments/parentSubaccount", 1 },
-                        { "height", 0.1 },
-                        { "historical-pnl", 1 },
-                        { "historical-pnl/parentSubaccountNumber", 1 },
-                        { "historicalBlockTradingRewards/{address}", 1 },
-                        { "historicalFunding/{market}", 1 },
-                        { "historicalTradingRewardAggregations/{address}", 1 },
-                        { "orderbooks/perpetualMarket/{market}", 1 },
-                        { "orders", 1 },
-                        { "orders/parentSubaccountNumber", 1 },
-                        { "orders/{orderId}", 1 },
-                        { "perpetualMarkets", 1 },
-                        { "perpetualPositions", 1 },
-                        { "perpetualPositions/parentSubaccountNumber", 1 },
-                        { "screen", 1 },
-                        { "sparklines", 1 },
-                        { "time", 1 },
-                        { "trades/perpetualMarket/{market}", 1 },
-                        { "transfers", 1 },
-                        { "transfers/between", 1 },
-                        { "transfers/parentSubaccountNumber", 1 },
-                        { "vault/v1/megavault/historicalPnl", 1 },
-                        { "vault/v1/megavault/positions", 1 },
-                        { "vault/v1/vaults/historicalPnl", 1 },
-                        { "perpetualMarketSparklines", 1 },
-                        { "perpetualMarkets/{ticker}", 1 },
-                        { "perpetualMarkets/{ticker}/orderbook", 1 },
-                        { "trades/perpetualMarket/{ticker}", 1 },
-                        { "historicalFunding/{ticker}", 1 },
-                        { "candles/{ticker}/{resolution}", 1 },
-                        { "addresses/{address}/subaccounts", 1 },
-                        { "addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions", 1 },
-                        { "addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions", 1 },
-                        { "addresses/{address}/subaccountNumber/{subaccountNumber}/orders", 1 },
-                        { "fills/parentSubaccount", 1 },
-                        { "historical-pnl/parentSubaccount", 1 },
+                        { "addresses/{address}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "addresses/{address}/parentSubaccountNumber/{number}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "addresses/{address}/subaccountNumber/{subaccountNumber}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assetPositions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assetPositions/parentSubaccountNumber", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "candles/perpetualMarkets/{market}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "compliance/screen/{address}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fills", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fills/parentSubaccountNumber", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fundingPayments", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fundingPayments/parentSubaccount", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "height", new Dictionary<string, object>() {
+                            { "cost", 0.1 },
+                        } },
+                        { "historical-pnl", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "historical-pnl/parentSubaccountNumber", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "historicalBlockTradingRewards/{address}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "historicalFunding/{market}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "historicalTradingRewardAggregations/{address}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbooks/perpetualMarket/{market}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/parentSubaccountNumber", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{orderId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "perpetualMarkets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "perpetualPositions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "perpetualPositions/parentSubaccountNumber", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "screen", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sparklines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades/perpetualMarket/{market}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfers/between", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfers/parentSubaccountNumber", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vault/v1/megavault/historicalPnl", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vault/v1/megavault/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vault/v1/vaults/historicalPnl", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "perpetualMarketSparklines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "perpetualMarkets/{ticker}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "perpetualMarkets/{ticker}/orderbook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades/perpetualMarket/{ticker}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "historicalFunding/{ticker}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "candles/{ticker}/{resolution}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "addresses/{address}/subaccounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "addresses/{address}/subaccountNumber/{subaccountNumber}/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fills/parentSubaccount", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "historical-pnl/parentSubaccount", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "nodeRpc", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "abci_info", 1 },
-                        { "block", 1 },
-                        { "broadcast_tx_async", 1 },
-                        { "broadcast_tx_sync", 1 },
-                        { "tx", 1 },
+                        { "abci_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "block", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "broadcast_tx_async", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "broadcast_tx_sync", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tx", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "nodeRest", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "cosmos/auth/v1beta1/account_info/{dydxAddress}", 1 },
+                        { "cosmos/auth/v1beta1/account_info/{dydxAddress}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "cosmos/tx/v1beta1/encode", 1 },
-                        { "cosmos/tx/v1beta1/simulate", 1 },
+                        { "cosmos/tx/v1beta1/encode", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cosmos/tx/v1beta1/simulate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -1200,7 +1308,7 @@ public partial class dydx : Exchange
         var userAddressparametersVariable = this.handlePublicAddress("fetchPositions", parameters);
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
         parameters = ((IList<object>)userAddressparametersVariable)[1];
-        var subAccountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "subAccountNumber", "0");
+        var subAccountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "subAccountNumber", "0");
         subAccountNumber = ((IList<object>)subAccountNumberparametersVariable)[0];
         parameters = ((IList<object>)subAccountNumberparametersVariable)[1];
         if (isTrue(isEqual(this.markets, null)))
@@ -2592,11 +2700,11 @@ public partial class dydx : Exchange
             await this.loadMarkets();
         }
         object userAddress = null;
-        var userAddressparametersVariable = this.handlePublicAddress("fetchAccounts", parameters);
+        var userAddressparametersVariable = this.handlePublicAddress("fetchBalance", parameters);
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         object subaccountNumber = null;
-        var subaccountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchAccounts", "subaccountNumber", 0);
+        var subaccountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "subaccountNumber", 0);
         subaccountNumber = ((IList<object>)subaccountNumberparametersVariable)[0];
         parameters = ((IList<object>)subaccountNumberparametersVariable)[1];
         object request = new Dictionary<string, object>() {

@@ -80,72 +80,72 @@ class limitless extends limitless$1["default"] {
                 'limitless': {
                     'public': {
                         'get': {
-                            'markets/active': 1,
-                            'markets/active/{categoryId}': 1,
-                            'categories': 1,
-                            'markets/{addressOrSlug}': 1,
-                            'markets/categories/count': 1,
-                            'markets/active/slugs': 1,
-                            'markets/search': 1,
-                            'markets/{slug}/orderbook': 1,
-                            'markets/{slug}/historical-price': 1,
-                            'auth/signing-message': 1,
-                            'markets/{addressOrSlug}/oracle-candles': 1,
-                            'markets/{slug}/get-feed-events': 1,
-                            'markets/{slug}/events': 1,
-                            'markets/timeline': 1,
-                            'markets/{slug}/timeline': 1,
-                            'navigation': 1,
-                            'market-pages/by-path': 1,
-                            'market-pages/{id}/markets': 1,
-                            'property-keys': 1,
-                            'property-keys/{id}': 1,
-                            'property-keys/{id}/options': 1,
-                            'portfolio/{account}/traded-volume': 1,
-                            'portfolio/{account}/positions': 1,
-                            'portfolio/{account}/pnl-chart': 1,
+                            'markets/active': { 'cost': 1 },
+                            'markets/active/{categoryId}': { 'cost': 1 },
+                            'categories': { 'cost': 1 },
+                            'markets/{addressOrSlug}': { 'cost': 1 },
+                            'markets/categories/count': { 'cost': 1 },
+                            'markets/active/slugs': { 'cost': 1 },
+                            'markets/search': { 'cost': 1 },
+                            'markets/{slug}/orderbook': { 'cost': 1 },
+                            'markets/{slug}/historical-price': { 'cost': 1 },
+                            'auth/signing-message': { 'cost': 1 },
+                            'markets/{addressOrSlug}/oracle-candles': { 'cost': 1 },
+                            'markets/{slug}/get-feed-events': { 'cost': 1 },
+                            'markets/{slug}/events': { 'cost': 1 },
+                            'markets/timeline': { 'cost': 1 },
+                            'markets/{slug}/timeline': { 'cost': 1 },
+                            'navigation': { 'cost': 1 },
+                            'market-pages/by-path': { 'cost': 1 },
+                            'market-pages/{id}/markets': { 'cost': 1 },
+                            'property-keys': { 'cost': 1 },
+                            'property-keys/{id}': { 'cost': 1 },
+                            'property-keys/{id}/options': { 'cost': 1 },
+                            'portfolio/{account}/traded-volume': { 'cost': 1 },
+                            'portfolio/{account}/positions': { 'cost': 1 },
+                            'portfolio/{account}/pnl-chart': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'get': {
-                            'auth/api-keys': 1,
-                            'profiles/partner-accounts': 1,
-                            'markets/{slug}/user-orders': 1,
-                            'portfolio/positions': 1,
-                            'portfolio/trades': 1,
-                            'markets/{slug}/locked-balance': 1,
-                            'profiles/me': 1,
-                            'profiles/{account}': 1,
-                            'portfolio/pnl-chart': 1,
-                            'portfolio/history': 1,
-                            'portfolio/points': 1,
-                            'portfolio/trading/allowance': 1,
-                            'auth/api-tokens/capabilities': 1,
-                            'auth/api-tokens': 1,
-                            'profiles/partner-accounts/{profileId}/allowances': 1,
+                            'auth/api-keys': { 'cost': 1 },
+                            'profiles/partner-accounts': { 'cost': 1 },
+                            'markets/{slug}/user-orders': { 'cost': 1 },
+                            'portfolio/positions': { 'cost': 1 },
+                            'portfolio/trades': { 'cost': 1 },
+                            'markets/{slug}/locked-balance': { 'cost': 1 },
+                            'profiles/me': { 'cost': 1 },
+                            'profiles/{account}': { 'cost': 1 },
+                            'portfolio/pnl-chart': { 'cost': 1 },
+                            'portfolio/history': { 'cost': 1 },
+                            'portfolio/points': { 'cost': 1 },
+                            'portfolio/trading/allowance': { 'cost': 1 },
+                            'auth/api-tokens/capabilities': { 'cost': 1 },
+                            'auth/api-tokens': { 'cost': 1 },
+                            'profiles/partner-accounts/{profileId}/allowances': { 'cost': 1 },
                         },
                         'post': {
-                            'auth/logout': 1,
-                            'auth/api-keys': 1,
-                            'auth/login': 1,
-                            'orders': 1,
-                            'orders/cancel': 1,
-                            'orders/cancel-batch': 1,
-                            'orders/batch-cancel': 1,
-                            'orders/status/batch': 1,
-                            'portfolio/redeem': 1,
-                            'portfolio/withdraw': 1,
-                            'portfolio/withdrawal-addresses': 1,
-                            'auth/api-tokens/derive': 1,
-                            'profiles/partner-accounts': 1,
-                            'profiles/partner-accounts/{profileId}/allowances/retry': 1,
+                            'auth/logout': { 'cost': 1 },
+                            'auth/api-keys': { 'cost': 1 },
+                            'auth/login': { 'cost': 1 },
+                            'orders': { 'cost': 1 },
+                            'orders/cancel': { 'cost': 1 },
+                            'orders/cancel-batch': { 'cost': 1 },
+                            'orders/batch-cancel': { 'cost': 1 },
+                            'orders/status/batch': { 'cost': 1 },
+                            'portfolio/redeem': { 'cost': 1 },
+                            'portfolio/withdraw': { 'cost': 1 },
+                            'portfolio/withdrawal-addresses': { 'cost': 1 },
+                            'auth/api-tokens/derive': { 'cost': 1 },
+                            'profiles/partner-accounts': { 'cost': 1 },
+                            'profiles/partner-accounts/{profileId}/allowances/retry': { 'cost': 1 },
                         },
                         'delete': {
-                            'auth/api-keys': 1,
-                            'orders/{order_id}': 1,
-                            'orders/all/{slug}': 1,
-                            'auth/api-tokens/{tokenId}': 1,
-                            'portfolio/withdrawal-addresses/{address}': 1,
+                            'auth/api-keys': { 'cost': 1 },
+                            'orders/{order_id}': { 'cost': 1 },
+                            'orders/all/{slug}': { 'cost': 1 },
+                            'auth/api-tokens/{tokenId}': { 'cost': 1 },
+                            'portfolio/withdrawal-addresses/{address}': { 'cost': 1 },
                         },
                     },
                 },
@@ -264,7 +264,11 @@ class limitless extends limitless$1["default"] {
                     page = this.sum(page, 1);
                     request['page'] = page;
                     const response = await this.limitlessPublicGetMarketsActive(this.extend(request, rest));
-                    const rawPageMarkets = this.safeList(response, 'data', response);
+                    let responseRows = [];
+                    if (Array.isArray(response)) {
+                        responseRows = response;
+                    }
+                    const rawPageMarkets = this.safeList(response, 'data', responseRows);
                     const page_markets = (rawPageMarkets !== undefined) ? rawPageMarkets : [];
                     const pageMarketsLength = page_markets.length;
                     if (!page_markets || pageMarketsLength === 0) {
@@ -1376,7 +1380,11 @@ class limitless extends limitless$1["default"] {
         //         }
         //     ]
         //
-        const rawHistoryList = this.safeList(response, 'data', this.safeList(response, 'prices', response));
+        let responseRows = [];
+        if (Array.isArray(response)) {
+            responseRows = response;
+        }
+        const rawHistoryList = this.safeList(response, 'data', this.safeList(response, 'prices', responseRows));
         const rawHistory = (rawHistoryList !== undefined) ? rawHistoryList : [];
         let history = rawHistory;
         const rawHistoryLength = rawHistory.length;
@@ -1504,7 +1512,7 @@ class limitless extends limitless$1["default"] {
         // pass undefined as market: parsePredictionOrder sets outcome to the market outcome while the outcome
         // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
         // endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
-        return this.parsePredictionOrders(response, undefined, since, limit);
+        return this.parsePredictionOrders(this.toArray(response), undefined, since, limit);
     }
     /**
      * @method
@@ -3020,7 +3028,10 @@ class limitless extends limitless$1["default"] {
      */
     async fetchRawMarketsByTags(tags, params = {}) {
         const categoriesResponse = await this.limitlessPublicGetCategories();
-        const categories = (categoriesResponse !== undefined) ? categoriesResponse : [];
+        let categories = [];
+        if (Array.isArray(categoriesResponse)) {
+            categories = categoriesResponse;
+        }
         const wanted = [];
         for (let i = 0; i < tags.length; i++) {
             wanted.push(tags[i].toLowerCase());

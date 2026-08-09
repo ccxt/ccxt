@@ -115,10 +115,96 @@ public partial class bithumb : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"ticker/ALL_{quoteId}", "ticker/{baseId}_{quoteId}", "orderbook/ALL_{quoteId}", "orderbook/{baseId}_{quoteId}", "transaction_history/{baseId}_{quoteId}", "network-info", "assetsstatus/multichain/ALL", "assetsstatus/multichain/{currency}", "withdraw/minimum/ALL", "withdraw/minimum/{currency}", "assetsstatus/ALL", "assetsstatus/{baseId}", "candlestick/{baseId}_{quoteId}/{interval}"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "ticker/ALL_{quoteId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker/{baseId}_{quoteId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbook/ALL_{quoteId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbook/{baseId}_{quoteId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction_history/{baseId}_{quoteId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "network-info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assetsstatus/multichain/ALL", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assetsstatus/multichain/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdraw/minimum/ALL", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdraw/minimum/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assetsstatus/ALL", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assetsstatus/{baseId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "candlestick/{baseId}_{quoteId}/{interval}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "post", new List<object>() {"info/account", "info/balance", "info/wallet_address", "info/ticker", "info/orders", "info/user_transactions", "info/order_detail", "trade/place", "trade/cancel", "trade/btc_withdrawal", "trade/krw_deposit", "trade/krw_withdrawal", "trade/market_buy", "trade/market_sell", "trade/stop_limit"} },
+                    { "post", new Dictionary<string, object>() {
+                        { "info/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "info/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "info/wallet_address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "info/ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "info/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "info/user_transactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "info/order_detail", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/place", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/btc_withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/krw_deposit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/krw_withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/market_buy", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/market_sell", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/stop_limit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {

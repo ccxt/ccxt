@@ -118,12 +118,112 @@ func (this *CoincheckCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"exchange/orders/rate", "exchange_status", "order_books", "rate/{pair}", "ticker", "trades"},
+				"get": map[string]any{
+					"exchange/orders/rate": map[string]any{
+						"cost": 1,
+					},
+					"exchange_status": map[string]any{
+						"cost": 1,
+					},
+					"order_books": map[string]any{
+						"cost": 1,
+					},
+					"rate/{pair}": map[string]any{
+						"cost": 1,
+					},
+					"ticker": map[string]any{
+						"cost": 1,
+					},
+					"trades": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"get":    []any{"accounts", "accounts/balance", "accounts/leverage_balance", "bank_accounts", "deposit_money", "exchange/orders/{id}", "exchange/orders/opens", "exchange/orders/cancel_status", "exchange/orders/transactions", "exchange/orders/transactions_pagination", "exchange/leverage/positions", "lending/borrows/matches", "send_money", "withdraws"},
-				"post":   []any{"bank_accounts", "deposit_money/{id}/fast", "exchange/orders", "exchange/transfers/to_leverage", "exchange/transfers/from_leverage", "lending/borrows", "lending/borrows/{id}/repay", "send_money", "withdraws"},
-				"delete": []any{"bank_accounts/{id}", "exchange/orders/{id}", "withdraws/{id}"},
+				"get": map[string]any{
+					"accounts": map[string]any{
+						"cost": 1,
+					},
+					"accounts/balance": map[string]any{
+						"cost": 1,
+					},
+					"accounts/leverage_balance": map[string]any{
+						"cost": 1,
+					},
+					"bank_accounts": map[string]any{
+						"cost": 1,
+					},
+					"deposit_money": map[string]any{
+						"cost": 1,
+					},
+					"exchange/orders/{id}": map[string]any{
+						"cost": 1,
+					},
+					"exchange/orders/opens": map[string]any{
+						"cost": 1,
+					},
+					"exchange/orders/cancel_status": map[string]any{
+						"cost": 1,
+					},
+					"exchange/orders/transactions": map[string]any{
+						"cost": 1,
+					},
+					"exchange/orders/transactions_pagination": map[string]any{
+						"cost": 1,
+					},
+					"exchange/leverage/positions": map[string]any{
+						"cost": 1,
+					},
+					"lending/borrows/matches": map[string]any{
+						"cost": 1,
+					},
+					"send_money": map[string]any{
+						"cost": 1,
+					},
+					"withdraws": map[string]any{
+						"cost": 1,
+					},
+				},
+				"post": map[string]any{
+					"bank_accounts": map[string]any{
+						"cost": 1,
+					},
+					"deposit_money/{id}/fast": map[string]any{
+						"cost": 1,
+					},
+					"exchange/orders": map[string]any{
+						"cost": 1,
+					},
+					"exchange/transfers/to_leverage": map[string]any{
+						"cost": 1,
+					},
+					"exchange/transfers/from_leverage": map[string]any{
+						"cost": 1,
+					},
+					"lending/borrows": map[string]any{
+						"cost": 1,
+					},
+					"lending/borrows/{id}/repay": map[string]any{
+						"cost": 1,
+					},
+					"send_money": map[string]any{
+						"cost": 1,
+					},
+					"withdraws": map[string]any{
+						"cost": 1,
+					},
+				},
+				"delete": map[string]any{
+					"bank_accounts/{id}": map[string]any{
+						"cost": 1,
+					},
+					"exchange/orders/{id}": map[string]any{
+						"cost": 1,
+					},
+					"withdraws/{id}": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"markets": map[string]any{

@@ -362,6 +362,26 @@ public partial class indodax
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
+    /// fetch the withdrawal fee for a currency; indodax charges no crypto deposit fees, see https://github.com/ccxt/ccxt/issues/25800
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
+    public async Task<DepositWithdrawFee> FetchDepositWithdrawFee(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositWithdrawFee(code, parameters);
+        return new DepositWithdrawFee(res);
+    }
+    /// <summary>
     /// fetch history of deposits and withdrawals
     /// </summary>
     /// <remarks>

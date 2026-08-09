@@ -47,13 +47,19 @@ func (this *BitrueCore) Describe() any {
 				"v1": map[string]any{
 					"private": map[string]any{
 						"post": map[string]any{
-							"poseidon/api/v1/listenKey": 1,
+							"poseidon/api/v1/listenKey": map[string]any{
+								"cost": 1,
+							},
 						},
 						"put": map[string]any{
-							"poseidon/api/v1/listenKey/{listenKey}": 1,
+							"poseidon/api/v1/listenKey/{listenKey}": map[string]any{
+								"cost": 1,
+							},
 						},
 						"delete": map[string]any{
-							"poseidon/api/v1/listenKey/{listenKey}": 1,
+							"poseidon/api/v1/listenKey/{listenKey}": map[string]any{
+								"cost": 1,
+							},
 						},
 					},
 				},

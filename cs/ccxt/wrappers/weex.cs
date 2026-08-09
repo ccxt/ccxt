@@ -21,10 +21,10 @@ public partial class weex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    public async Task<Status> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
-        return ((Dictionary<string, object>)res);
+        return new Status(res);
     }
     /// <summary>
     /// fetches the current integer timestamp in milliseconds from the exchange server
@@ -410,6 +410,7 @@ public partial class weex
     /// <remarks>
     /// See <see href="https://www.weex.com/api-doc/spot/AccountAPI/GetAccountBalance"/>  <br/>
     /// See <see href="https://www.weex.com/api-doc/contract/Account_API/GetAccountBalance"/>  <br/>
+    /// See <see href="https://www.weex.com/api-doc/contract/demo/GetAccountBalance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -420,7 +421,7 @@ public partial class weex
     /// <item>
     /// <term>params.type</term>
     /// <description>
-    /// string : 'spot' or 'swap' (default is 'spot')
+    /// string : 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default)
     /// </description>
     /// </item>
     /// </list>
@@ -485,6 +486,7 @@ public partial class weex
     /// See <see href="https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder"/>  <br/>
     /// See <see href="https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder"/>  <br/>
     /// See <see href="https://www.weex.com/api-doc/contract/Transaction_API/PlaceTpSlOrder"/>  <br/>
+    /// See <see href="https://www.weex.com/api-doc/contract/demo/PlaceOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -558,6 +560,7 @@ public partial class weex
     /// <remarks>
     /// See <see href="https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder"/>  <br/>
     /// See <see href="https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder"/>  <br/>
+    /// See <see href="https://www.weex.com/api-doc/contract/demo/PlaceOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -839,6 +842,7 @@ public partial class weex
     /// <remarks>
     /// See <see href="https://www.weex.com/api-doc/spot/orderApi/HistoryOrders"/>  <br/>
     /// See <see href="https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory"/>  <br/>
+    /// See <see href="https://www.weex.com/api-doc/contract/demo/GetOrderHistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -886,6 +890,7 @@ public partial class weex
     /// <remarks>
     /// See <see href="https://www.weex.com/api-doc/spot/orderApi/HistoryOrders"/>  <br/>
     /// See <see href="https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory"/>  <br/>
+    /// See <see href="https://www.weex.com/api-doc/contract/demo/GetOrderHistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -978,6 +983,7 @@ public partial class weex
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory"/>  <br/>
+    /// See <see href="https://www.weex.com/api-doc/contract/demo/GetOrderHistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -1184,6 +1190,7 @@ public partial class weex
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.weex.com/api-doc/contract/Account_API/GetAllPositions"/>  <br/>
+    /// See <see href="https://www.weex.com/api-doc/contract/demo/GetAllPositions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1418,10 +1425,10 @@ public partial class weex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
-    public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<PositionModeInfo> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositionMode(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new PositionModeInfo(res);
     }
     /// <summary>
     /// set hedged to true or false for a market

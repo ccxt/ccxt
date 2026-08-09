@@ -177,14 +177,173 @@ func (this *ExtendedCore) Describe() any {
 		"api": map[string]any{
 			"v1": map[string]any{
 				"public": map[string]any{
-					"get": []any{"info/markets", "info/assets", "info/assets/{asset}/price", "info/markets/{market}/stats", "info/markets/{market}/orderbook", "info/markets/{market}/trades", "info/candles/{market}/{candleType}", "info/{market}/funding", "info/{market}/open-interests", "info/builder/dashboard"},
+					"get": map[string]any{
+						"info/markets": map[string]any{
+							"cost": 1,
+						},
+						"info/assets": map[string]any{
+							"cost": 1,
+						},
+						"info/assets/{asset}/price": map[string]any{
+							"cost": 1,
+						},
+						"info/markets/{market}/stats": map[string]any{
+							"cost": 1,
+						},
+						"info/markets/{market}/orderbook": map[string]any{
+							"cost": 1,
+						},
+						"info/markets/{market}/trades": map[string]any{
+							"cost": 1,
+						},
+						"info/candles/{market}/{candleType}": map[string]any{
+							"cost": 1,
+						},
+						"info/{market}/funding": map[string]any{
+							"cost": 1,
+						},
+						"info/{market}/open-interests": map[string]any{
+							"cost": 1,
+						},
+						"info/builder/dashboard": map[string]any{
+							"cost": 1,
+						},
+					},
 				},
 				"private": map[string]any{
-					"get":    []any{"user/accounts", "user/account/info", "user/balance", "user/spot/balances", "user/assetOperations", "user/positions", "user/positions/history", "user/orders", "user/orders/history", "user/orders/{id}", "user/orders/external/{externalId}", "user/trades", "user/funding/history", "user/rebates/stats", "user/leverage", "user/fees", "user/bridge/config", "user/bridge/quote", "user/affiliate", "user/referrals/status", "user/referrals/links", "user/referrals/dashboard", "user/rewards/earned", "user/rewards/leaderboard/stats", "portfolio/charts/equities", "portfolio/charts/pnl", "vault/public/performance", "vault/public/summary", "builder/trades"},
-					"post":   []any{"user/order", "user/order/massCancel", "user/deadmanswitch", "user/bridge/quote", "user/withdrawal", "user/transfer", "user/referrals/use", "user/referrals"},
-					"put":    []any{"user/referrals"},
-					"patch":  []any{"user/leverage"},
-					"delete": []any{"user/order/{id}", "user/order"},
+					"get": map[string]any{
+						"user/accounts": map[string]any{
+							"cost": 1,
+						},
+						"user/account/info": map[string]any{
+							"cost": 1,
+						},
+						"user/balance": map[string]any{
+							"cost": 1,
+						},
+						"user/spot/balances": map[string]any{
+							"cost": 1,
+						},
+						"user/assetOperations": map[string]any{
+							"cost": 1,
+						},
+						"user/positions": map[string]any{
+							"cost": 1,
+						},
+						"user/positions/history": map[string]any{
+							"cost": 1,
+						},
+						"user/orders": map[string]any{
+							"cost": 1,
+						},
+						"user/orders/history": map[string]any{
+							"cost": 1,
+						},
+						"user/orders/{id}": map[string]any{
+							"cost": 1,
+						},
+						"user/orders/external/{externalId}": map[string]any{
+							"cost": 1,
+						},
+						"user/trades": map[string]any{
+							"cost": 1,
+						},
+						"user/funding/history": map[string]any{
+							"cost": 1,
+						},
+						"user/rebates/stats": map[string]any{
+							"cost": 1,
+						},
+						"user/leverage": map[string]any{
+							"cost": 1,
+						},
+						"user/fees": map[string]any{
+							"cost": 1,
+						},
+						"user/bridge/config": map[string]any{
+							"cost": 1,
+						},
+						"user/bridge/quote": map[string]any{
+							"cost": 1,
+						},
+						"user/affiliate": map[string]any{
+							"cost": 1,
+						},
+						"user/referrals/status": map[string]any{
+							"cost": 1,
+						},
+						"user/referrals/links": map[string]any{
+							"cost": 1,
+						},
+						"user/referrals/dashboard": map[string]any{
+							"cost": 1,
+						},
+						"user/rewards/earned": map[string]any{
+							"cost": 1,
+						},
+						"user/rewards/leaderboard/stats": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/charts/equities": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/charts/pnl": map[string]any{
+							"cost": 1,
+						},
+						"vault/public/performance": map[string]any{
+							"cost": 1,
+						},
+						"vault/public/summary": map[string]any{
+							"cost": 1,
+						},
+						"builder/trades": map[string]any{
+							"cost": 1,
+						},
+					},
+					"post": map[string]any{
+						"user/order": map[string]any{
+							"cost": 1,
+						},
+						"user/order/massCancel": map[string]any{
+							"cost": 1,
+						},
+						"user/deadmanswitch": map[string]any{
+							"cost": 1,
+						},
+						"user/bridge/quote": map[string]any{
+							"cost": 1,
+						},
+						"user/withdrawal": map[string]any{
+							"cost": 1,
+						},
+						"user/transfer": map[string]any{
+							"cost": 1,
+						},
+						"user/referrals/use": map[string]any{
+							"cost": 1,
+						},
+						"user/referrals": map[string]any{
+							"cost": 1,
+						},
+					},
+					"put": map[string]any{
+						"user/referrals": map[string]any{
+							"cost": 1,
+						},
+					},
+					"patch": map[string]any{
+						"user/leverage": map[string]any{
+							"cost": 1,
+						},
+					},
+					"delete": map[string]any{
+						"user/order/{id}": map[string]any{
+							"cost": 1,
+						},
+						"user/order": map[string]any{
+							"cost": 1,
+						},
+					},
 				},
 			},
 		},

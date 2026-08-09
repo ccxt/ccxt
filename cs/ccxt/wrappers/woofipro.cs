@@ -10,7 +10,7 @@ public partial class woofipro
     /// the latest known information on the availability of the exchange API
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -21,16 +21,16 @@ public partial class woofipro
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    public async Task<Status> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
-        return ((Dictionary<string, object>)res);
+        return new Status(res);
     }
     /// <summary>
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -50,7 +50,7 @@ public partial class woofipro
     /// retrieves data on all markets for woofipro
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-available-symbols"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -70,7 +70,7 @@ public partial class woofipro
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-market-trades"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -104,7 +104,7 @@ public partial class woofipro
     /// fetch the current funding rate interval
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -124,7 +124,7 @@ public partial class woofipro
     /// fetch the current funding rate
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -144,7 +144,7 @@ public partial class woofipro
     /// fetch the current funding rate for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -164,7 +164,7 @@ public partial class woofipro
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-funding-rate-history-for-one-market"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-market"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -210,7 +210,7 @@ public partial class woofipro
     /// fetch the history of funding payments paid and received on this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -256,7 +256,7 @@ public partial class woofipro
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -276,7 +276,7 @@ public partial class woofipro
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/orderbook-snapshot"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -303,7 +303,7 @@ public partial class woofipro
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-kline"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -363,8 +363,8 @@ public partial class woofipro
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-order"/>  <br/>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-algo-order"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/create-order"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -427,7 +427,7 @@ public partial class woofipro
     /// *contract only* create a list of trade orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-create-order"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -447,8 +447,8 @@ public partial class woofipro
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-order"/>  <br/>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-algo-order"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -494,10 +494,10 @@ public partial class woofipro
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order"/>  <br/>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order-by-client_order_id"/>  <br/>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order"/>  <br/>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order-by-client_order_id"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -529,8 +529,8 @@ public partial class woofipro
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders"/>  <br/>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -556,8 +556,8 @@ public partial class woofipro
     /// cancel all open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-all-pending-algo-orders"/>  <br/>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -589,10 +589,10 @@ public partial class woofipro
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-order_id"/>  <br/>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-client_order_id"/>  <br/>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-order_id"/>  <br/>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-client_order_id"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -624,8 +624,8 @@ public partial class woofipro
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders"/>  <br/>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -683,8 +683,8 @@ public partial class woofipro
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders"/>  <br/>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -742,8 +742,8 @@ public partial class woofipro
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders"/>  <br/>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -801,7 +801,7 @@ public partial class woofipro
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-trades-of-specific-order"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-trades-of-specific-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -835,7 +835,7 @@ public partial class woofipro
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-trades"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -875,7 +875,7 @@ public partial class woofipro
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-current-holding"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -895,7 +895,7 @@ public partial class woofipro
     /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -935,7 +935,7 @@ public partial class woofipro
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -969,7 +969,7 @@ public partial class woofipro
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1003,7 +1003,7 @@ public partial class woofipro
     /// fetch history of deposits and withdrawals
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -1043,7 +1043,7 @@ public partial class woofipro
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-withdraw-request"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-request"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1063,7 +1063,7 @@ public partial class woofipro
     /// fetch the set leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1083,7 +1083,7 @@ public partial class woofipro
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/update-leverage-setting"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/update-leverage-setting"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>leverage</term>
@@ -1115,7 +1115,7 @@ public partial class woofipro
     /// fetch data on an open position
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1135,7 +1135,7 @@ public partial class woofipro
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-positions-info"/>  <br/>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-positions-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

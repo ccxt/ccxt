@@ -144,127 +144,349 @@ func (this *ParadexCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"bbo/{market}":                    1,
-					"bbo/{market}/interactive":        1,
-					"funding/data":                    1,
-					"markets":                         1,
-					"markets/history":                 1,
-					"markets/klines":                  1,
-					"markets/settlement-price":        1,
-					"markets/summary":                 1,
-					"orderbook/{market}":              1,
-					"orderbook/{market}/impact-price": 1,
-					"orderbook/{market}/interactive":  1,
-					"insurance":                       1,
-					"jwks.json":                       1,
-					"onboarding":                      1,
-					"referrals/config":                1,
-					"staking/config":                  1,
-					"system/announcements":            1,
-					"system/config":                   1,
-					"system/portfolio-margin-config":  1,
-					"system/state":                    1,
-					"system/time":                     1,
-					"system/volume-tiers":             1,
-					"trades":                          1,
-					"vaults":                          1,
-					"vaults/balance":                  1,
-					"vaults/config":                   1,
-					"vaults/history":                  1,
-					"vaults/positions":                1,
-					"vaults/summary":                  1,
-					"vaults/transfers":                1,
-					"xp/fee-config":                   1,
-					"xp/public-transfers":             1,
-					"xp/transfer/{transfer_id}":       1,
+					"bbo/{market}": map[string]any{
+						"cost": 1,
+					},
+					"bbo/{market}/interactive": map[string]any{
+						"cost": 1,
+					},
+					"funding/data": map[string]any{
+						"cost": 1,
+					},
+					"markets": map[string]any{
+						"cost": 1,
+					},
+					"markets/history": map[string]any{
+						"cost": 1,
+					},
+					"markets/klines": map[string]any{
+						"cost": 1,
+					},
+					"markets/settlement-price": map[string]any{
+						"cost": 1,
+					},
+					"markets/summary": map[string]any{
+						"cost": 1,
+					},
+					"orderbook/{market}": map[string]any{
+						"cost": 1,
+					},
+					"orderbook/{market}/impact-price": map[string]any{
+						"cost": 1,
+					},
+					"orderbook/{market}/interactive": map[string]any{
+						"cost": 1,
+					},
+					"insurance": map[string]any{
+						"cost": 1,
+					},
+					"jwks.json": map[string]any{
+						"cost": 1,
+					},
+					"onboarding": map[string]any{
+						"cost": 1,
+					},
+					"referrals/config": map[string]any{
+						"cost": 1,
+					},
+					"staking/config": map[string]any{
+						"cost": 1,
+					},
+					"system/announcements": map[string]any{
+						"cost": 1,
+					},
+					"system/config": map[string]any{
+						"cost": 1,
+					},
+					"system/portfolio-margin-config": map[string]any{
+						"cost": 1,
+					},
+					"system/state": map[string]any{
+						"cost": 1,
+					},
+					"system/time": map[string]any{
+						"cost": 1,
+					},
+					"system/volume-tiers": map[string]any{
+						"cost": 1,
+					},
+					"trades": map[string]any{
+						"cost": 1,
+					},
+					"vaults": map[string]any{
+						"cost": 1,
+					},
+					"vaults/balance": map[string]any{
+						"cost": 1,
+					},
+					"vaults/config": map[string]any{
+						"cost": 1,
+					},
+					"vaults/history": map[string]any{
+						"cost": 1,
+					},
+					"vaults/positions": map[string]any{
+						"cost": 1,
+					},
+					"vaults/summary": map[string]any{
+						"cost": 1,
+					},
+					"vaults/transfers": map[string]any{
+						"cost": 1,
+					},
+					"xp/fee-config": map[string]any{
+						"cost": 1,
+					},
+					"xp/public-transfers": map[string]any{
+						"cost": 1,
+					},
+					"xp/transfer/{transfer_id}": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"account":                              1,
-					"account/compliance":                   1,
-					"account/history":                      1,
-					"account/info":                         1,
-					"account/margin":                       1,
-					"account/profile":                      1,
-					"account/settings":                     1,
-					"account/subaccounts":                  1,
-					"account/summary":                      1,
-					"balance":                              1,
-					"fills":                                1,
-					"funding/payments":                     1,
-					"positions":                            1,
-					"tradebusts":                           1,
-					"transactions":                         1,
-					"account/keys/subkeys":                 1,
-					"account/keys/subkeys/{public_key}":    1,
-					"account/tokens":                       1,
-					"algo/orders":                          1,
-					"algo/orders-history":                  1,
-					"algo/orders/{algo_id}":                1,
-					"block-trades":                         1,
-					"block-trades/{block_trade_id}":        1,
-					"block-trades/{block_trade_id}/offers": 1,
-					"block-trades/{block_trade_id}/offers/{offer_id}": 1,
-					"liquidations":                    1,
-					"orders":                          1,
-					"orders-history":                  1,
-					"orders/by_client_id/{client_id}": 1,
-					"orders/{order_id}":               1,
-					"referrals/qr-code":               1,
-					"referrals/summary":               1,
-					"staking/history":                 1,
-					"staking/summary":                 1,
-					"transfers":                       1,
-					"vaults/account-summary":          1,
-					"vaults/mine":                     1,
-					"xp/account-balance":              1,
-					"xp/transfers":                    1,
+					"account": map[string]any{
+						"cost": 1,
+					},
+					"account/compliance": map[string]any{
+						"cost": 1,
+					},
+					"account/history": map[string]any{
+						"cost": 1,
+					},
+					"account/info": map[string]any{
+						"cost": 1,
+					},
+					"account/margin": map[string]any{
+						"cost": 1,
+					},
+					"account/profile": map[string]any{
+						"cost": 1,
+					},
+					"account/settings": map[string]any{
+						"cost": 1,
+					},
+					"account/subaccounts": map[string]any{
+						"cost": 1,
+					},
+					"account/summary": map[string]any{
+						"cost": 1,
+					},
+					"balance": map[string]any{
+						"cost": 1,
+					},
+					"fills": map[string]any{
+						"cost": 1,
+					},
+					"funding/payments": map[string]any{
+						"cost": 1,
+					},
+					"positions": map[string]any{
+						"cost": 1,
+					},
+					"tradebusts": map[string]any{
+						"cost": 1,
+					},
+					"transactions": map[string]any{
+						"cost": 1,
+					},
+					"account/keys/subkeys": map[string]any{
+						"cost": 1,
+					},
+					"account/keys/subkeys/{public_key}": map[string]any{
+						"cost": 1,
+					},
+					"account/tokens": map[string]any{
+						"cost": 1,
+					},
+					"algo/orders": map[string]any{
+						"cost": 1,
+					},
+					"algo/orders-history": map[string]any{
+						"cost": 1,
+					},
+					"algo/orders/{algo_id}": map[string]any{
+						"cost": 1,
+					},
+					"block-trades": map[string]any{
+						"cost": 1,
+					},
+					"block-trades/{block_trade_id}": map[string]any{
+						"cost": 1,
+					},
+					"block-trades/{block_trade_id}/offers": map[string]any{
+						"cost": 1,
+					},
+					"block-trades/{block_trade_id}/offers/{offer_id}": map[string]any{
+						"cost": 1,
+					},
+					"liquidations": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders-history": map[string]any{
+						"cost": 1,
+					},
+					"orders/by_client_id/{client_id}": map[string]any{
+						"cost": 1,
+					},
+					"orders/{order_id}": map[string]any{
+						"cost": 1,
+					},
+					"referrals/qr-code": map[string]any{
+						"cost": 1,
+					},
+					"referrals/summary": map[string]any{
+						"cost": 1,
+					},
+					"staking/history": map[string]any{
+						"cost": 1,
+					},
+					"staking/summary": map[string]any{
+						"cost": 1,
+					},
+					"transfers": map[string]any{
+						"cost": 1,
+					},
+					"vaults/account-summary": map[string]any{
+						"cost": 1,
+					},
+					"vaults/mine": map[string]any{
+						"cost": 1,
+					},
+					"xp/account-balance": map[string]any{
+						"cost": 1,
+					},
+					"xp/transfers": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"account/compliance":                                      1,
-					"account/margin/{market}":                                 1,
-					"account/profile/market_max_slippage/{market}":            1,
-					"account/profile/notifications":                           1,
-					"account/profile/notifications/last_seen":                 1,
-					"account/profile/referral_code":                           1,
-					"account/profile/refresh_inventory":                       1,
-					"account/profile/size_currency_display":                   1,
-					"account/profile/username":                                1,
-					"account/referrer":                                        1,
-					"account/settings/trading_value_display":                  1,
-					"account/keys/subkeys/activate":                           1,
-					"account/keys/subkeys":                                    1,
-					"account/tokens":                                          1,
-					"algo/orders":                                             1,
-					"auth":                                                    1,
-					"block-trades":                                            1,
-					"block-trades/{block_trade_id}/execute":                   1,
-					"block-trades/{block_trade_id}/offers":                    1,
-					"block-trades/{block_trade_id}/offers/{offer_id}/execute": 1,
-					"onboarding":                                              1,
-					"orders":                                                  1,
-					"orders/batch":                                            1,
-					"v2/auth":                                                 1,
-					"v2/onboarding":                                           1,
-					"vaults":                                                  1,
-					"xp/transfer":                                             1,
+					"account/compliance": map[string]any{
+						"cost": 1,
+					},
+					"account/margin/{market}": map[string]any{
+						"cost": 1,
+					},
+					"account/profile/market_max_slippage/{market}": map[string]any{
+						"cost": 1,
+					},
+					"account/profile/notifications": map[string]any{
+						"cost": 1,
+					},
+					"account/profile/notifications/last_seen": map[string]any{
+						"cost": 1,
+					},
+					"account/profile/referral_code": map[string]any{
+						"cost": 1,
+					},
+					"account/profile/refresh_inventory": map[string]any{
+						"cost": 1,
+					},
+					"account/profile/size_currency_display": map[string]any{
+						"cost": 1,
+					},
+					"account/profile/username": map[string]any{
+						"cost": 1,
+					},
+					"account/referrer": map[string]any{
+						"cost": 1,
+					},
+					"account/settings/trading_value_display": map[string]any{
+						"cost": 1,
+					},
+					"account/keys/subkeys/activate": map[string]any{
+						"cost": 1,
+					},
+					"account/keys/subkeys": map[string]any{
+						"cost": 1,
+					},
+					"account/tokens": map[string]any{
+						"cost": 1,
+					},
+					"algo/orders": map[string]any{
+						"cost": 1,
+					},
+					"auth": map[string]any{
+						"cost": 1,
+					},
+					"block-trades": map[string]any{
+						"cost": 1,
+					},
+					"block-trades/{block_trade_id}/execute": map[string]any{
+						"cost": 1,
+					},
+					"block-trades/{block_trade_id}/offers": map[string]any{
+						"cost": 1,
+					},
+					"block-trades/{block_trade_id}/offers/{offer_id}/execute": map[string]any{
+						"cost": 1,
+					},
+					"onboarding": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/batch": map[string]any{
+						"cost": 1,
+					},
+					"v2/auth": map[string]any{
+						"cost": 1,
+					},
+					"v2/onboarding": map[string]any{
+						"cost": 1,
+					},
+					"vaults": map[string]any{
+						"cost": 1,
+					},
+					"xp/transfer": map[string]any{
+						"cost": 1,
+					},
 				},
 				"put": map[string]any{
-					"account/profile":                   1,
-					"account/keys/subkeys/{public_key}": 1,
-					"orders/{order_id}":                 1,
+					"account/profile": map[string]any{
+						"cost": 1,
+					},
+					"account/keys/subkeys/{public_key}": map[string]any{
+						"cost": 1,
+					},
+					"orders/{order_id}": map[string]any{
+						"cost": 1,
+					},
 				},
 				"delete": map[string]any{
-					"account/keys/subkeys/{public_key}":               1,
-					"account/tokens/{lookup_id}":                      1,
-					"algo/orders/{algo_id}":                           1,
-					"block-trades/{block_trade_id}":                   1,
-					"block-trades/{block_trade_id}/offers/{offer_id}": 1,
-					"orders":                          1,
-					"orders/batch":                    1,
-					"orders/by_client_id/{client_id}": 1,
-					"orders/{order_id}":               1,
+					"account/keys/subkeys/{public_key}": map[string]any{
+						"cost": 1,
+					},
+					"account/tokens/{lookup_id}": map[string]any{
+						"cost": 1,
+					},
+					"algo/orders/{algo_id}": map[string]any{
+						"cost": 1,
+					},
+					"block-trades/{block_trade_id}": map[string]any{
+						"cost": 1,
+					},
+					"block-trades/{block_trade_id}/offers/{offer_id}": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/batch": map[string]any{
+						"cost": 1,
+					},
+					"orders/by_client_id/{client_id}": map[string]any{
+						"cost": 1,
+					},
+					"orders/{order_id}": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -1509,7 +1731,7 @@ func (this *ParadexCore) GetSystemConfig() <-chan any {
 		//
 		AddElementToObject(this.Options, "systemConfig", response)
 
-		ch <- response
+		ch <- this.SafeDict(this.Options, "systemConfig", map[string]any{})
 		return nil
 
 	}()

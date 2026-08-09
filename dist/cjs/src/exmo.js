@@ -36,6 +36,7 @@ class exmo extends exmo$1["default"] {
                 'createMarketBuyOrder': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': true,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -122,67 +123,67 @@ class exmo extends exmo$1["default"] {
             },
             'api': {
                 'web': {
-                    'get': [
-                        'ctrl/feesAndLimits',
-                        'en/docs/fees',
-                    ],
+                    'get': {
+                        'ctrl/feesAndLimits': { 'cost': 1 },
+                        'en/docs/fees': { 'cost': 1 },
+                    },
                 },
                 'public': {
-                    'get': [
-                        'currency',
-                        'currency/list/extended',
-                        'order_book',
-                        'pair_settings',
-                        'ticker',
-                        'trades',
-                        'candles_history',
-                        'required_amount',
-                        'payments/providers/crypto/list',
-                    ],
+                    'get': {
+                        'currency': { 'cost': 1 },
+                        'currency/list/extended': { 'cost': 1 },
+                        'order_book': { 'cost': 1 },
+                        'pair_settings': { 'cost': 1 },
+                        'ticker': { 'cost': 1 },
+                        'trades': { 'cost': 1 },
+                        'candles_history': { 'cost': 1 },
+                        'required_amount': { 'cost': 1 },
+                        'payments/providers/crypto/list': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'post': [
-                        'user_info',
-                        'order_create',
-                        'order_cancel',
-                        'stop_market_order_create',
-                        'stop_market_order_cancel',
-                        'user_open_orders',
-                        'user_trades',
-                        'user_cancelled_orders',
-                        'order_trades',
-                        'deposit_address',
-                        'withdraw_crypt',
-                        'withdraw_get_txid',
-                        'excode_create',
-                        'excode_load',
-                        'code_check',
-                        'wallet_history',
-                        'wallet_operations',
-                        'margin/user/order/create',
-                        'margin/user/order/update',
-                        'margin/user/order/cancel',
-                        'margin/user/position/close',
-                        'margin/user/position/margin_add',
-                        'margin/user/position/margin_remove',
-                        'margin/currency/list',
-                        'margin/pair/list',
-                        'margin/settings',
-                        'margin/funding/list',
-                        'margin/user/info',
-                        'margin/user/order/list',
-                        'margin/user/order/history',
-                        'margin/user/order/trades',
-                        'margin/user/order/max_quantity',
-                        'margin/user/position/list',
-                        'margin/user/position/margin_remove_info',
-                        'margin/user/position/margin_add_info',
-                        'margin/user/wallet/list',
-                        'margin/user/wallet/history',
-                        'margin/user/trade/list',
-                        'margin/trades',
-                        'margin/liquidation/feed',
-                    ],
+                    'post': {
+                        'user_info': { 'cost': 1 },
+                        'order_create': { 'cost': 1 },
+                        'order_cancel': { 'cost': 1 },
+                        'stop_market_order_create': { 'cost': 1 },
+                        'stop_market_order_cancel': { 'cost': 1 },
+                        'user_open_orders': { 'cost': 1 },
+                        'user_trades': { 'cost': 1 },
+                        'user_cancelled_orders': { 'cost': 1 },
+                        'order_trades': { 'cost': 1 },
+                        'deposit_address': { 'cost': 1 },
+                        'withdraw_crypt': { 'cost': 1 },
+                        'withdraw_get_txid': { 'cost': 1 },
+                        'excode_create': { 'cost': 1 },
+                        'excode_load': { 'cost': 1 },
+                        'code_check': { 'cost': 1 },
+                        'wallet_history': { 'cost': 1 },
+                        'wallet_operations': { 'cost': 1 },
+                        'margin/user/order/create': { 'cost': 1 },
+                        'margin/user/order/update': { 'cost': 1 },
+                        'margin/user/order/cancel': { 'cost': 1 },
+                        'margin/user/position/close': { 'cost': 1 },
+                        'margin/user/position/margin_add': { 'cost': 1 },
+                        'margin/user/position/margin_remove': { 'cost': 1 },
+                        'margin/currency/list': { 'cost': 1 },
+                        'margin/pair/list': { 'cost': 1 },
+                        'margin/settings': { 'cost': 1 },
+                        'margin/funding/list': { 'cost': 1 },
+                        'margin/user/info': { 'cost': 1 },
+                        'margin/user/order/list': { 'cost': 1 },
+                        'margin/user/order/history': { 'cost': 1 },
+                        'margin/user/order/trades': { 'cost': 1 },
+                        'margin/user/order/max_quantity': { 'cost': 1 },
+                        'margin/user/position/list': { 'cost': 1 },
+                        'margin/user/position/margin_remove_info': { 'cost': 1 },
+                        'margin/user/position/margin_add_info': { 'cost': 1 },
+                        'margin/user/wallet/list': { 'cost': 1 },
+                        'margin/user/wallet/history': { 'cost': 1 },
+                        'margin/user/trade/list': { 'cost': 1 },
+                        'margin/trades': { 'cost': 1 },
+                        'margin/liquidation/feed': { 'cost': 1 },
+                    },
                 },
             },
             'fees': {
@@ -1214,7 +1215,8 @@ class exmo extends exmo$1["default"] {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const symbol = this.safeSymbol(marketId);
-            result[symbol] = this.parseOrderBook(response[marketId], symbol, undefined, 'bid', 'ask');
+            const rawOrderBook = this.safeDict(response, marketId, {});
+            result[symbol] = this.parseOrderBook(rawOrderBook, symbol, undefined, 'bid', 'ask');
         }
         return result;
     }
@@ -2199,7 +2201,7 @@ class exmo extends exmo$1["default"] {
             await this.loadMarkets();
         }
         let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('fetchOrders', params);
+        [marginMode, params] = this.handleMarginModeAndParams('fetchCanceledOrders', params);
         if (marginMode === 'cross') {
             throw new errors.BadRequest(this.id + ' only supports isolated margin');
         }
@@ -2589,7 +2591,8 @@ class exmo extends exmo$1["default"] {
         //       ],
         //     }
         //
-        return this.parseTransactions(response['history'], currency, since, limit);
+        const history = this.safeList(response, 'history', []);
+        return this.parseTransactions(history, currency, since, limit);
     }
     /**
      * @method

@@ -92,6 +92,12 @@ func (this *WsOrderBook) GetValue(key string, defaultValue any) any {
 		return this.Datetime
 	case "symbol":
 		return this.Symbol
+	case "outcome":
+		return this.Outcome
+	case "outcomeId":
+		return this.OutcomeId
+	case "market":
+		return this.Market
 	default:
 		return defaultValue
 	}

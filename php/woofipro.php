@@ -43,6 +43,7 @@ class woofipro extends Exchange {
                 'createMarketOrderWithCost' => false,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createOrderWithTakeProfitAndStopLoss' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => false,
@@ -53,6 +54,7 @@ class woofipro extends Exchange {
                 'createTrailingAmountOrder' => false,
                 'createTrailingPercentOrder' => false,
                 'createTriggerOrder' => true,
+                'editOrder' => true,
                 'fetchAccounts' => false,
                 'fetchAllGreeks' => false,
                 'fetchBalance' => true,
@@ -149,7 +151,7 @@ class woofipro extends Exchange {
                 ),
                 'www' => 'https://dex.woo.org',
                 'doc' => array(
-                    'https://orderly.network/docs/build-on-omnichain/building-on-evm',
+                    'https://orderly.network/docs/build-on-omnichain/building-on-omnichain',
                 ),
                 'fees' => array(
                     'https://dex.woo.org/en/orderly',
@@ -163,133 +165,133 @@ class woofipro extends Exchange {
                 'v1' => array(
                     'public' => array(
                         'get' => array(
-                            'public/volume/stats' => 1,
-                            'public/broker/name' => 1,
-                            'public/chain_info/{broker_id}' => 1,
-                            'public/system_info' => 1,
-                            'public/vault_balance' => 1,
-                            'public/insurancefund' => 1,
-                            'public/chain_info' => 1,
-                            'faucet/usdc' => 1,
-                            'public/account' => 1,
-                            'get_account' => 1,
-                            'registration_nonce' => 1,
-                            'get_orderly_key' => 1,
-                            'public/liquidation' => 1,
-                            'public/liquidated_positions' => 1,
-                            'public/config' => 1,
-                            'public/campaign/ranking' => 10,
-                            'public/campaign/stats' => 10,
-                            'public/campaign/user' => 10,
-                            'public/campaign/stats/details' => 10,
-                            'public/campaigns' => 10,
-                            'public/points/leaderboard' => 1,
-                            'client/points' => 1,
-                            'public/points/epoch' => 1,
-                            'public/points/epoch_dates' => 1,
-                            'public/referral/check_ref_code' => 1,
-                            'public/referral/verify_ref_code' => 1,
-                            'referral/admin_info' => 1,
-                            'referral/info' => 1,
-                            'referral/referee_info' => 1,
-                            'referral/referee_rebate_summary' => 1,
-                            'referral/referee_history' => 1,
-                            'referral/referral_history' => 1,
-                            'referral/rebate_summary' => 1,
-                            'client/distribution_history' => 1,
-                            'tv/config' => 1,
-                            'tv/history' => 1,
-                            'tv/symbol_info' => 1,
-                            'public/funding_rate_history' => 1,
-                            'public/funding_rate/{symbol}' => 0.33,
-                            'public/funding_rates' => 1,
-                            'public/info' => 1,
-                            'public/info/{symbol}' => 1,
-                            'public/market_trades' => 1,
-                            'public/token' => 1,
-                            'public/futures' => 1,
-                            'public/futures/{symbol}' => 1,
+                            'public/volume/stats' => array( 'cost' => 1 ),
+                            'public/broker/name' => array( 'cost' => 1 ),
+                            'public/chain_info/{broker_id}' => array( 'cost' => 1 ),
+                            'public/system_info' => array( 'cost' => 1 ),
+                            'public/vault_balance' => array( 'cost' => 1 ),
+                            'public/insurancefund' => array( 'cost' => 1 ),
+                            'public/chain_info' => array( 'cost' => 1 ),
+                            'faucet/usdc' => array( 'cost' => 1 ),
+                            'public/account' => array( 'cost' => 1 ),
+                            'get_account' => array( 'cost' => 1 ),
+                            'registration_nonce' => array( 'cost' => 1 ),
+                            'get_orderly_key' => array( 'cost' => 1 ),
+                            'public/liquidation' => array( 'cost' => 1 ),
+                            'public/liquidated_positions' => array( 'cost' => 1 ),
+                            'public/config' => array( 'cost' => 1 ),
+                            'public/campaign/ranking' => array( 'cost' => 10 ),
+                            'public/campaign/stats' => array( 'cost' => 10 ),
+                            'public/campaign/user' => array( 'cost' => 10 ),
+                            'public/campaign/stats/details' => array( 'cost' => 10 ),
+                            'public/campaigns' => array( 'cost' => 10 ),
+                            'public/points/leaderboard' => array( 'cost' => 1 ),
+                            'client/points' => array( 'cost' => 1 ),
+                            'public/points/epoch' => array( 'cost' => 1 ),
+                            'public/points/epoch_dates' => array( 'cost' => 1 ),
+                            'public/referral/check_ref_code' => array( 'cost' => 1 ),
+                            'public/referral/verify_ref_code' => array( 'cost' => 1 ),
+                            'referral/admin_info' => array( 'cost' => 1 ),
+                            'referral/info' => array( 'cost' => 1 ),
+                            'referral/referee_info' => array( 'cost' => 1 ),
+                            'referral/referee_rebate_summary' => array( 'cost' => 1 ),
+                            'referral/referee_history' => array( 'cost' => 1 ),
+                            'referral/referral_history' => array( 'cost' => 1 ),
+                            'referral/rebate_summary' => array( 'cost' => 1 ),
+                            'client/distribution_history' => array( 'cost' => 1 ),
+                            'tv/config' => array( 'cost' => 1 ),
+                            'tv/history' => array( 'cost' => 1 ),
+                            'tv/symbol_info' => array( 'cost' => 1 ),
+                            'public/funding_rate_history' => array( 'cost' => 1 ),
+                            'public/funding_rate/{symbol}' => array( 'cost' => 0.33 ),
+                            'public/funding_rates' => array( 'cost' => 1 ),
+                            'public/info' => array( 'cost' => 1 ),
+                            'public/info/{symbol}' => array( 'cost' => 1 ),
+                            'public/market_trades' => array( 'cost' => 1 ),
+                            'public/token' => array( 'cost' => 1 ),
+                            'public/futures' => array( 'cost' => 1 ),
+                            'public/futures/{symbol}' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'register_account' => 1,
+                            'register_account' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'client/key_info' => 6,
-                            'client/orderly_key_ip_restriction' => 6,
-                            'order/{oid}' => 1,
-                            'client/order/{client_order_id}' => 1,
-                            'algo/order/{oid}' => 1,
-                            'algo/client/order/{client_order_id}' => 1,
-                            'orders' => 1,
-                            'algo/orders' => 1,
-                            'trade/{tid}' => 1,
-                            'trades' => 1,
-                            'order/{oid}/trades' => 1,
-                            'client/liquidator_liquidations' => 1,
-                            'liquidations' => 1,
-                            'asset/history' => 60,
-                            'client/holding' => 1,
-                            'withdraw_nonce' => 1,
-                            'settle_nonce' => 1,
-                            'pnl_settlement/history' => 1,
-                            'volume/user/daily' => 60,
-                            'volume/user/stats' => 60,
-                            'client/statistics' => 60,
-                            'client/info' => 60,
-                            'client/statistics/daily' => 60,
-                            'positions' => 3.33,
-                            'position/{symbol}' => 3.33,
-                            'funding_fee/history' => 30,
-                            'notification/inbox/notifications' => 60,
-                            'notification/inbox/unread' => 60,
-                            'volume/broker/daily' => 60,
-                            'broker/fee_rate/default' => 10,
-                            'broker/user_info' => 10,
-                            'orderbook/{symbol}' => 1,
-                            'kline' => 1,
+                            'client/key_info' => array( 'cost' => 6 ),
+                            'client/orderly_key_ip_restriction' => array( 'cost' => 6 ),
+                            'order/{oid}' => array( 'cost' => 1 ),
+                            'client/order/{client_order_id}' => array( 'cost' => 1 ),
+                            'algo/order/{oid}' => array( 'cost' => 1 ),
+                            'algo/client/order/{client_order_id}' => array( 'cost' => 1 ),
+                            'orders' => array( 'cost' => 1 ),
+                            'algo/orders' => array( 'cost' => 1 ),
+                            'trade/{tid}' => array( 'cost' => 1 ),
+                            'trades' => array( 'cost' => 1 ),
+                            'order/{oid}/trades' => array( 'cost' => 1 ),
+                            'client/liquidator_liquidations' => array( 'cost' => 1 ),
+                            'liquidations' => array( 'cost' => 1 ),
+                            'asset/history' => array( 'cost' => 60 ),
+                            'client/holding' => array( 'cost' => 1 ),
+                            'withdraw_nonce' => array( 'cost' => 1 ),
+                            'settle_nonce' => array( 'cost' => 1 ),
+                            'pnl_settlement/history' => array( 'cost' => 1 ),
+                            'volume/user/daily' => array( 'cost' => 60 ),
+                            'volume/user/stats' => array( 'cost' => 60 ),
+                            'client/statistics' => array( 'cost' => 60 ),
+                            'client/info' => array( 'cost' => 60 ),
+                            'client/statistics/daily' => array( 'cost' => 60 ),
+                            'positions' => array( 'cost' => 3.33 ),
+                            'position/{symbol}' => array( 'cost' => 3.33 ),
+                            'funding_fee/history' => array( 'cost' => 30 ),
+                            'notification/inbox/notifications' => array( 'cost' => 60 ),
+                            'notification/inbox/unread' => array( 'cost' => 60 ),
+                            'volume/broker/daily' => array( 'cost' => 60 ),
+                            'broker/fee_rate/default' => array( 'cost' => 10 ),
+                            'broker/user_info' => array( 'cost' => 10 ),
+                            'orderbook/{symbol}' => array( 'cost' => 1 ),
+                            'kline' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'orderly_key' => 1,
-                            'client/set_orderly_key_ip_restriction' => 6,
-                            'client/reset_orderly_key_ip_restriction' => 6,
-                            'order' => 1,
-                            'batch-order' => 10,
-                            'algo/order' => 1,
-                            'liquidation' => 1,
-                            'claim_insurance_fund' => 1,
-                            'withdraw_request' => 1,
-                            'settle_pnl' => 1,
-                            'notification/inbox/mark_read' => 60,
-                            'notification/inbox/mark_read_all' => 60,
-                            'client/leverage' => 120,
-                            'client/maintenance_config' => 60,
-                            'delegate_signer' => 10,
-                            'delegate_orderly_key' => 10,
-                            'delegate_settle_pnl' => 10,
-                            'delegate_withdraw_request' => 10,
-                            'broker/fee_rate/set' => 10,
-                            'broker/fee_rate/set_default' => 10,
-                            'broker/fee_rate/default' => 10,
-                            'referral/create' => 10,
-                            'referral/update' => 10,
-                            'referral/bind' => 10,
-                            'referral/edit_split' => 10,
+                            'orderly_key' => array( 'cost' => 1 ),
+                            'client/set_orderly_key_ip_restriction' => array( 'cost' => 6 ),
+                            'client/reset_orderly_key_ip_restriction' => array( 'cost' => 6 ),
+                            'order' => array( 'cost' => 1 ),
+                            'batch-order' => array( 'cost' => 10 ),
+                            'algo/order' => array( 'cost' => 1 ),
+                            'liquidation' => array( 'cost' => 1 ),
+                            'claim_insurance_fund' => array( 'cost' => 1 ),
+                            'withdraw_request' => array( 'cost' => 1 ),
+                            'settle_pnl' => array( 'cost' => 1 ),
+                            'notification/inbox/mark_read' => array( 'cost' => 60 ),
+                            'notification/inbox/mark_read_all' => array( 'cost' => 60 ),
+                            'client/leverage' => array( 'cost' => 120 ),
+                            'client/maintenance_config' => array( 'cost' => 60 ),
+                            'delegate_signer' => array( 'cost' => 10 ),
+                            'delegate_orderly_key' => array( 'cost' => 10 ),
+                            'delegate_settle_pnl' => array( 'cost' => 10 ),
+                            'delegate_withdraw_request' => array( 'cost' => 10 ),
+                            'broker/fee_rate/set' => array( 'cost' => 10 ),
+                            'broker/fee_rate/set_default' => array( 'cost' => 10 ),
+                            'broker/fee_rate/default' => array( 'cost' => 10 ),
+                            'referral/create' => array( 'cost' => 10 ),
+                            'referral/update' => array( 'cost' => 10 ),
+                            'referral/bind' => array( 'cost' => 10 ),
+                            'referral/edit_split' => array( 'cost' => 10 ),
                         ),
                         'put' => array(
-                            'order' => 1,
-                            'algo/order' => 1,
+                            'order' => array( 'cost' => 1 ),
+                            'algo/order' => array( 'cost' => 1 ),
                         ),
                         'delete' => array(
-                            'order' => 1,
-                            'algo/order' => 1,
-                            'client/order' => 1,
-                            'algo/client/order' => 1,
-                            'algo/orders' => 1,
-                            'orders' => 1,
-                            'batch-order' => 1,
-                            'client/batch-order' => 1,
+                            'order' => array( 'cost' => 1 ),
+                            'algo/order' => array( 'cost' => 1 ),
+                            'client/order' => array( 'cost' => 1 ),
+                            'algo/client/order' => array( 'cost' => 1 ),
+                            'algo/orders' => array( 'cost' => 1 ),
+                            'orders' => array( 'cost' => 1 ),
+                            'batch-order' => array( 'cost' => 1 ),
+                            'client/batch-order' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
@@ -442,11 +444,11 @@ class woofipro extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-$status
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-$status
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
@@ -484,7 +486,7 @@ class woofipro extends Exchange {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -599,7 +601,7 @@ class woofipro extends Exchange {
         /**
          * retrieves $data on all markets for woofipro
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-available-symbols
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
@@ -649,8 +651,8 @@ class woofipro extends Exchange {
         /**
          * fetches all available currencies on an exchange
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
@@ -841,7 +843,7 @@ class woofipro extends Exchange {
         /**
          * get the list of most recent trades for a particular $symbol
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-$market-trades
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-$market-trades
          *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -937,7 +939,7 @@ class woofipro extends Exchange {
         /**
          * fetch the current funding rate interval
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
          *
          * @param {string} $symbol unified market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -950,7 +952,7 @@ class woofipro extends Exchange {
         /**
          * fetch the current funding rate
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-$market
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-$market
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -987,7 +989,7 @@ class woofipro extends Exchange {
         /**
          * fetch the current funding rate for multiple markets
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
          *
          * @param {string[]} $symbols unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1024,7 +1026,7 @@ class woofipro extends Exchange {
         /**
          * fetches historical funding rate prices
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-funding-rate-history-for-one-$market
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-$market
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
@@ -1128,7 +1130,7 @@ class woofipro extends Exchange {
         /**
          * fetch the history of funding payments paid and received on this account
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
          *
          * @param {string} [$symbol] unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch funding history for
@@ -1195,7 +1197,7 @@ class woofipro extends Exchange {
         /**
          * fetch the trading fees for multiple markets
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
@@ -1254,7 +1256,7 @@ class woofipro extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/orderbook-snapshot
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -1309,7 +1311,7 @@ class woofipro extends Exchange {
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-kline
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
          *
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -1580,16 +1582,10 @@ class woofipro extends Exchange {
             $request['algo_type'] = 'STOP';
         } elseif ($hasStopLoss || $hasTakeProfit) {
             $request['algo_type'] = 'TP_SL';
-            $outterOrder = array(
-                'symbol' => $market['id'],
-                'reduce_only' => false,
-                'algo_type' => 'POSITIONAL_TP_SL',
-                'child_orders' => array(),
-            );
-            $childOrders = $outterOrder['child_orders'];
+            $childOrders = array();
             $closeSide = ($orderSide === 'BUY') ? 'SELL' : 'BUY';
             if ($hasStopLoss) {
-                $stopLossPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'price', $stopLoss);
+                $stopLossPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'price', $stopLoss);
                 $stopLossOrder = array(
                     'side' => $closeSide,
                     'algo_type' => 'TP_SL',
@@ -1600,7 +1596,7 @@ class woofipro extends Exchange {
                 $childOrders[] = $stopLossOrder;
             }
             if ($hasTakeProfit) {
-                $takeProfitPrice = $this->safe_number_2($takeProfit, 'triggerPrice', 'price', $takeProfit);
+                $takeProfitPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'price', $takeProfit);
                 $takeProfitOrder = array(
                     'side' => $closeSide,
                     'algo_type' => 'TP_SL',
@@ -1610,6 +1606,12 @@ class woofipro extends Exchange {
                 );
                 $childOrders[] = $takeProfitOrder;
             }
+            $outterOrder = array(
+                'symbol' => $market['id'],
+                'reduce_only' => false,
+                'algo_type' => 'POSITIONAL_TP_SL',
+                'child_orders' => $childOrders,
+            );
             $request['child_orders'] = array( $outterOrder );
         }
         $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ));
@@ -1620,8 +1622,8 @@ class woofipro extends Exchange {
         /**
          * create a trade $order
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-$order
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-algo-$order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-$order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-$order
          *
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
@@ -1692,7 +1694,7 @@ class woofipro extends Exchange {
         /**
          * *contract only* create a list of trade $orders
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-create-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
          *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1750,8 +1752,8 @@ class woofipro extends Exchange {
         /**
          * edit a trade order
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-order
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-algo-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1834,10 +1836,10 @@ class woofipro extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order-by-client_order_id
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
          *
          * cancels an open order
          * @param {string} $id order $id
@@ -1918,8 +1920,8 @@ class woofipro extends Exchange {
         /**
          * cancel multiple orders
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
          *
          * @param {string[]} $ids order $ids
          * @param {string} [$symbol] unified market $symbol
@@ -1958,8 +1960,8 @@ class woofipro extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-all-pending-algo-orders
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
          *
          * cancel all open orders in a $market
          * @param {string} [$symbol] unified $market $symbol
@@ -2008,10 +2010,10 @@ class woofipro extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-order_id
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-client_order_id
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-order_id
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
          *
          * fetches information on an order made by the user
          * @param {string} $id the order $id
@@ -2086,8 +2088,8 @@ class woofipro extends Exchange {
         /**
          * fetches information on multiple $orders made by the user
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-$orders
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-$orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-$orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-$orders
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -2178,8 +2180,8 @@ class woofipro extends Exchange {
         /**
          * fetches information on multiple orders made by the user
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
          *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -2203,8 +2205,8 @@ class woofipro extends Exchange {
         /**
          * fetches information on multiple orders made by the user
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
          *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -2228,7 +2230,7 @@ class woofipro extends Exchange {
         /**
          * fetch all the $trades made from a single order
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-$trades-of-specific-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-$trades-of-specific-order
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified $market $symbol
@@ -2277,7 +2279,7 @@ class woofipro extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-$trades
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-$trades
          *
          * fetch all $trades made by the user
          * @param {string} $symbol unified $market $symbol
@@ -2353,7 +2355,7 @@ class woofipro extends Exchange {
             $code = $this->safe_currency_code($this->safe_string($balance, 'token'));
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'holding');
-            $account['frozen'] = $this->safe_string($balance, 'frozen');
+            $account['used'] = $this->safe_string($balance, 'frozen');
             if ($code !== null) {
                 $result[$code] = $account;
             }
@@ -2365,7 +2367,7 @@ class woofipro extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-current-holding
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
@@ -2484,7 +2486,7 @@ class woofipro extends Exchange {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
          *
          * @param {string} [$code] unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
@@ -2548,7 +2550,7 @@ class woofipro extends Exchange {
         /**
          * fetch all deposits made to an account
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
          *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
@@ -2566,7 +2568,7 @@ class woofipro extends Exchange {
         /**
          * fetch all withdrawals made from an account
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
          *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
@@ -2584,7 +2586,7 @@ class woofipro extends Exchange {
         /**
          * fetch history of deposits and withdrawals
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
          *
          * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
@@ -2649,7 +2651,7 @@ class woofipro extends Exchange {
         /**
          * make a withdrawal
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-withdraw-$request
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-$request
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
@@ -2743,7 +2745,7 @@ class woofipro extends Exchange {
         /**
          * fetch the set leverage for a $market
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2789,7 +2791,7 @@ class woofipro extends Exchange {
         /**
          * set the level of $leverage for a market
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/update-$leverage-setting
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-$leverage-setting
          *
          * @param {int} [$leverage] the rate of $leverage
          * @param {string} [$symbol] unified market $symbol
@@ -2882,7 +2884,7 @@ class woofipro extends Exchange {
     public function fetch_position(string $symbol, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
          *
          * fetch $data on an open position
          * @param {string} $symbol unified $market $symbol of the $market the position is held in
@@ -2931,7 +2933,7 @@ class woofipro extends Exchange {
         /**
          * fetch all open $positions
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-$positions-info
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-$positions-info
          *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint

@@ -635,7 +635,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             }
             Object watchOrderBookOptions = this.safeValue(this.options, "watchOrderBook");
             Object name = this.safeString(watchOrderBookOptions, "name", "book_lv2");
-            var nameparametersVariable = this.handleOptionAndParams(parameters, "method", "name", name);
+            var nameparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "name", name);
             name = ((java.util.List<Object>) nameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) nameparametersVariable).get(1);
             Object orderbook = (this.subscribe(name, name, false, new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();

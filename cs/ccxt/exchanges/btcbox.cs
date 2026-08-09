@@ -64,6 +64,7 @@ public partial class btcbox : Exchange
                 { "fetchMarginMode", false },
                 { "fetchMarginModes", false },
                 { "fetchMarketLeverageTiers", false },
+                { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
                 { "fetchMarkPrices", false },
                 { "fetchMyLiquidations", false },
@@ -117,13 +118,49 @@ public partial class btcbox : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"depth", "orders", "ticker", "tickers"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "depth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "post", new List<object>() {"balance", "trade_add", "trade_cancel", "trade_list", "trade_view", "wallet"} },
+                    { "post", new Dictionary<string, object>() {
+                        { "balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade_add", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade_cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade_list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade_view", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallet", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "webApi", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"ajax/coin/coinInfo"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "ajax/coin/coinInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "options", new Dictionary<string, object>() {
@@ -236,7 +273,7 @@ public partial class btcbox : Exchange
             object quote = this.safeString(symbolParts, 1, "");
             object quoteId = ((string)quote).ToLower();
             object id = ((string)baseCurr).ToLower();
-            object res = getValue(response1, marketId);
+            object res = this.safeDict(response1, marketId, new Dictionary<string, object>() {});
             object symbol = add(add(baseCurr, "/"), quote);
             object fee = ((bool) isTrue((isEqual(id, "BTC")))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
             object details = this.safeDict(result2Data, id, new Dictionary<string, object>() {});

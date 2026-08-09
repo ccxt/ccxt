@@ -80,6 +80,7 @@ class bitbank(Exchange, ImplicitAPI):
                 'fetchMarginMode': False,
                 'fetchMarginModes': False,
                 'fetchMarketLeverageTiers': False,
+                'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMarkPrices': False,
                 'fetchMyLiquidations': False,
@@ -147,44 +148,44 @@ class bitbank(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        '{pair}/ticker': 1,
-                        'tickers': 1,
-                        'tickers_jpy': 1,
-                        '{pair}/depth': 1,
-                        '{pair}/transactions': 1,
-                        '{pair}/transactions/{yyyymmdd}': 1,
-                        '{pair}/candlestick/{candletype}/{yyyymmdd}': 1,
-                        '{pair}/circuit_break_info': 1,
+                        '{pair}/ticker': {'cost': 1},
+                        'tickers': {'cost': 1},
+                        'tickers_jpy': {'cost': 1},
+                        '{pair}/depth': {'cost': 1},
+                        '{pair}/transactions': {'cost': 1},
+                        '{pair}/transactions/{yyyymmdd}': {'cost': 1},
+                        '{pair}/candlestick/{candletype}/{yyyymmdd}': {'cost': 1},
+                        '{pair}/circuit_break_info': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
-                        'user/assets': 1,
-                        'user/spot/order': 1,
-                        'user/spot/active_orders': 1,
-                        'user/margin/positions': 1,
-                        'user/spot/trade_history': 1,
-                        'user/deposit_history': 1,
-                        'user/unconfirmed_deposits': 1,
-                        'user/deposit_originators': 1,
-                        'user/withdrawal_account': 1,
-                        'user/withdrawal_history': 1,
-                        'spot/status': 1,
-                        'spot/pairs': 1,
+                        'user/assets': {'cost': 1},
+                        'user/spot/order': {'cost': 1},
+                        'user/spot/active_orders': {'cost': 1},
+                        'user/margin/positions': {'cost': 1},
+                        'user/spot/trade_history': {'cost': 1},
+                        'user/deposit_history': {'cost': 1},
+                        'user/unconfirmed_deposits': {'cost': 1},
+                        'user/deposit_originators': {'cost': 1},
+                        'user/withdrawal_account': {'cost': 1},
+                        'user/withdrawal_history': {'cost': 1},
+                        'spot/status': {'cost': 1},
+                        'spot/pairs': {'cost': 1},
                     },
                     'post': {
-                        'user/spot/order': 1.66,
-                        'user/spot/cancel_order': 1.66,
-                        'user/spot/cancel_orders': 1.66,
-                        'user/spot/orders_info': 1.66,  # might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
-                        'user/confirm_deposits': 1.66,  # might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
-                        'user/confirm_deposits_all': 1.66,  # might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
-                        'user/request_withdrawal': 1.66,
+                        'user/spot/order': {'cost': 1.66},
+                        'user/spot/cancel_order': {'cost': 1.66},
+                        'user/spot/cancel_orders': {'cost': 1.66},
+                        'user/spot/orders_info': {'cost': 1.66},  # might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/confirm_deposits': {'cost': 1.66},  # might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/confirm_deposits_all': {'cost': 1.66},  # might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/request_withdrawal': {'cost': 1.66},
                     },
                 },
                 'markets': {
                     'get': {
-                        'spot/pairs': 1,
+                        'spot/pairs': {'cost': 1},
                     },
                 },
             },

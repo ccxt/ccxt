@@ -128,64 +128,168 @@ public partial class latoken : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "book/{currency}/{quote}", 1 },
-                        { "chart/week", 1 },
-                        { "chart/week/{currency}/{quote}", 1 },
-                        { "currency", 1 },
-                        { "currency/available", 1 },
-                        { "currency/quotes", 1 },
-                        { "currency/{currency}", 1 },
-                        { "pair", 1 },
-                        { "pair/available", 1 },
-                        { "ticker", 1 },
-                        { "ticker/{base}/{quote}", 1 },
-                        { "time", 1 },
-                        { "trade/history/{currency}/{quote}", 1 },
-                        { "trade/fee/{currency}/{quote}", 1 },
-                        { "trade/feeLevels", 1 },
-                        { "transaction/bindings", 1 },
+                        { "book/{currency}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "chart/week", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "chart/week/{currency}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currency", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currency/available", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currency/quotes", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currency/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pair", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pair/available", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker/{base}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/history/{currency}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/fee/{currency}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/feeLevels", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/bindings", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "auth/account", 1 },
-                        { "auth/account/currency/{currency}/{type}", 1 },
-                        { "auth/order", 1 },
-                        { "auth/order/getOrder/{id}", 1 },
-                        { "auth/order/pair/{currency}/{quote}", 1 },
-                        { "auth/order/pair/{currency}/{quote}/active", 1 },
-                        { "auth/stopOrder", 1 },
-                        { "auth/stopOrder/getOrder/{id}", 1 },
-                        { "auth/stopOrder/pair/{currency}/{quote}", 1 },
-                        { "auth/stopOrder/pair/{currency}/{quote}/active", 1 },
-                        { "auth/trade", 1 },
-                        { "auth/trade/pair/{currency}/{quote}", 1 },
-                        { "auth/trade/fee/{currency}/{quote}", 1 },
-                        { "auth/transaction", 1 },
-                        { "auth/transaction/bindings", 1 },
-                        { "auth/transaction/bindings/{currency}", 1 },
-                        { "auth/transaction/{id}", 1 },
-                        { "auth/transfer", 1 },
+                        { "auth/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/account/currency/{currency}/{type}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/order/getOrder/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/order/pair/{currency}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/order/pair/{currency}/{quote}/active", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/stopOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/stopOrder/getOrder/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/stopOrder/pair/{currency}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/stopOrder/pair/{currency}/{quote}/active", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/trade", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/trade/pair/{currency}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/trade/fee/{currency}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transaction", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transaction/bindings", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transaction/bindings/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transaction/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "auth/order/cancel", 1 },
-                        { "auth/order/cancelAll", 1 },
-                        { "auth/order/cancelAll/{currency}/{quote}", 1 },
-                        { "auth/order/place", 1 },
-                        { "auth/spot/deposit", 1 },
-                        { "auth/spot/withdraw", 1 },
-                        { "auth/stopOrder/cancel", 1 },
-                        { "auth/stopOrder/cancelAll", 1 },
-                        { "auth/stopOrder/cancelAll/{currency}/{quote}", 1 },
-                        { "auth/stopOrder/place", 1 },
-                        { "auth/transaction/depositAddress", 1 },
-                        { "auth/transaction/withdraw", 1 },
-                        { "auth/transaction/withdraw/cancel", 1 },
-                        { "auth/transaction/withdraw/confirm", 1 },
-                        { "auth/transaction/withdraw/resendCode", 1 },
-                        { "auth/transfer/email", 1 },
-                        { "auth/transfer/id", 1 },
-                        { "auth/transfer/phone", 1 },
+                        { "auth/order/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/order/cancelAll", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/order/cancelAll/{currency}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/order/place", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/spot/deposit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/spot/withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/stopOrder/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/stopOrder/cancelAll", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/stopOrder/cancelAll/{currency}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/stopOrder/place", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transaction/depositAddress", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transaction/withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transaction/withdraw/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transaction/withdraw/confirm", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transaction/withdraw/resendCode", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transfer/email", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transfer/id", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transfer/phone", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -405,9 +509,10 @@ public partial class latoken : Exchange
         object currencies = this.safeDict(this.options, "cachedCurrencies", new Dictionary<string, object>() {});
         object currenciesById = this.indexBy(currencies, "id");
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object rawMarkets = this.toArray(response);
+        for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
         {
-            object market = getValue(response, i);
+            object market = getValue(rawMarkets, i);
             object id = this.safeString(market, "id");
             // the exchange shows them inverted
             object baseId = this.safeString(market, "baseCurrency");
@@ -1067,7 +1172,7 @@ public partial class latoken : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100
         }
-        object response = null;
+        object response = new List<object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);

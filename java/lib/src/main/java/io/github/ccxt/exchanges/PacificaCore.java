@@ -158,77 +158,211 @@ public class PacificaCore extends PacificaApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "info", 1 );
-                        put( "info/fees", 1 );
-                        put( "info/prices", 1 );
-                        put( "kline", 12 );
-                        put( "kline/mark", 12 );
-                        put( "book", 1 );
-                        put( "trades", 1 );
-                        put( "funding_rate/history", 1 );
-                        put( "loan_pool", 1 );
-                        put( "account", 1 );
-                        put( "account/loan", 1 );
-                        put( "account/settings", 1 );
-                        put( "positions", 1 );
-                        put( "trades/history", 12 );
-                        put( "funding/history", 1 );
-                        put( "portfolio", 1 );
-                        put( "account/balance/history", 12 );
-                        put( "account/spot_balance/history", 1 );
-                        put( "account/spot_asset/deposit/history", 1 );
-                        put( "account/spot_asset/withdraw/history", 1 );
-                        put( "account/spot_asset/withdraw/pending", 1 );
-                        put( "orders", 1 );
-                        put( "orders/history", 12 );
-                        put( "orders/history_by_id", 1 );
-                        put( "spot_assets", 1 );
-                        put( "spot_assets/bridge/info", 1 );
-                        put( "spot_assets/bridge/parameters/{symbol}", 1 );
-                        put( "lake/list", 1 );
-                        put( "account/builder_codes/approvals", 1 );
+                        put( "info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "info/fees", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "info/prices", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "kline", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 12 );
+                        }} );
+                        put( "kline/mark", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 12 );
+                        }} );
+                        put( "book", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "funding_rate/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "loan_pool", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/loan", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/settings", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "positions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trades/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 12 );
+                        }} );
+                        put( "funding/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "portfolio", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/balance/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 12 );
+                        }} );
+                        put( "account/spot_balance/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/spot_asset/deposit/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/spot_asset/withdraw/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/spot_asset/withdraw/pending", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orders/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 12 );
+                        }} );
+                        put( "orders/history_by_id", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "spot_assets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "spot_assets/bridge/info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "spot_assets/bridge/parameters/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "lake/list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/builder_codes/approvals", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "account/leverage", 1 );
-                        put( "account/margin", 1 );
-                        put( "account/withdraw", 1 );
-                        put( "account/settings/auto_lend_disabled", 1 );
-                        put( "account/settings/spot", 1 );
-                        put( "account/spot_asset/withdraw", 1 );
-                        put( "account/subaccount/create", 1 );
-                        put( "account/subaccount/list", 1 );
-                        put( "account/subaccount/transfer", 1 );
-                        put( "account/subaccount/spot_asset/transfer", 1 );
-                        put( "positions/add_isolated_margin", 1 );
-                        put( "orders/create", 1 );
-                        put( "orders/create_market", 1 );
-                        put( "orders/stop/create", 1 );
-                        put( "positions/tpsl", 1 );
-                        put( "orders/cancel", 0.5 );
-                        put( "orders/cancel_all", 0.5 );
-                        put( "orders/stop/cancel", 0.5 );
-                        put( "orders/edit", 1 );
-                        put( "orders/batch", 1 );
-                        put( "account/builder_codes/approve", 1 );
-                        put( "account/builder_codes/revoke", 1 );
-                        put( "agent/bind", 1 );
-                        put( "account/api_keys/create", 1 );
-                        put( "account/api_keys/revoke", 1 );
-                        put( "account/api_keys", 1 );
-                        put( "lake/add_blacklist", 1 );
-                        put( "lake/add_max_leverage", 1 );
-                        put( "lake/add_whitelist", 1 );
-                        put( "lake/claim_manager", 1 );
-                        put( "lake/claim_referral_code", 1 );
-                        put( "lake/create", 1 );
-                        put( "lake/deposit", 1 );
-                        put( "lake/remove_blacklist", 1 );
-                        put( "lake/remove_max_leverage", 1 );
-                        put( "lake/remove_whitelist", 1 );
-                        put( "lake/update_deposit_cap", 1 );
-                        put( "lake/withdraw", 1 );
+                        put( "account/leverage", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/margin", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/withdraw", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/settings/auto_lend_disabled", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/settings/spot", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/spot_asset/withdraw", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/subaccount/create", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/subaccount/list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/subaccount/transfer", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/subaccount/spot_asset/transfer", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "positions/add_isolated_margin", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orders/create", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orders/create_market", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orders/stop/create", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "positions/tpsl", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orders/cancel", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0.5 );
+                        }} );
+                        put( "orders/cancel_all", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0.5 );
+                        }} );
+                        put( "orders/stop/cancel", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0.5 );
+                        }} );
+                        put( "orders/edit", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orders/batch", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/builder_codes/approve", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/builder_codes/revoke", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "agent/bind", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/api_keys/create", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/api_keys/revoke", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/api_keys", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "lake/add_blacklist", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "lake/add_max_leverage", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "lake/add_whitelist", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "lake/claim_manager", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "lake/claim_referral_code", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "lake/create", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "lake/deposit", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "lake/remove_blacklist", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "lake/remove_max_leverage", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "lake/remove_whitelist", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "lake/update_deposit_cap", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "lake/withdraw", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -3196,7 +3330,7 @@ public class PacificaCore extends PacificaApi
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
-                ((java.util.List<Object>)result).add(this.parsePosition(Helpers.GetValue(data, i), null));
+                ((java.util.List<Object>)result).add(this.parsePosition(Helpers.GetValue(data, i)));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
         });
@@ -4092,7 +4226,7 @@ public class PacificaCore extends PacificaApi
     public Object handleOriginAndSingleAddress(Object methodName, Object parameters)
     {
         Object address = null;
-        var addressparametersVariable = this.handleParamString2(parameters, "account", "address", null);
+        var addressparametersVariable = this.handleParamString2(parameters, "account", "address");
         address = ((java.util.List<Object>) addressparametersVariable).get(0);
         parameters = ((java.util.List<Object>) addressparametersVariable).get(1); // this is for get endpoints that accept account or address
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))

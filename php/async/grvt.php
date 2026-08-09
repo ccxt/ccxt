@@ -110,64 +110,64 @@ class grvt extends Exchange {
                 // RL : https://help.grvt.io/en/articles/9636566-what-are-the-rate-limitations-on-grvt
                 'privateEdge' => array(
                     'post' => array(
-                        'auth/api_key/login' => 100,
-                        'auth/wallet/login' => 100,
+                        'auth/api_key/login' => array( 'cost' => 100 ),
+                        'auth/wallet/login' => array( 'cost' => 100 ),
                     ),
                 ),
                 'publicMarket' => array(
                     'post' => array(
-                        'full/v1/instrument' => 4,
-                        'full/v1/all_instruments' => 4,
-                        'full/v1/instruments' => 4,
-                        'full/v1/currency' => 12,
-                        'full/v1/margin_rules' => 12,
-                        'full/v1/mini' => 4,
-                        'full/v1/ticker' => 4,
-                        'full/v1/book' => 12,
-                        'full/v1/trade' => 12,
-                        'full/v1/trade_history' => 12,
-                        'full/v1/kline' => 12,
-                        'full/v1/funding' => 12,
+                        'full/v1/instrument' => array( 'cost' => 4 ),
+                        'full/v1/all_instruments' => array( 'cost' => 4 ),
+                        'full/v1/instruments' => array( 'cost' => 4 ),
+                        'full/v1/currency' => array( 'cost' => 12 ),
+                        'full/v1/margin_rules' => array( 'cost' => 12 ),
+                        'full/v1/mini' => array( 'cost' => 4 ),
+                        'full/v1/ticker' => array( 'cost' => 4 ),
+                        'full/v1/book' => array( 'cost' => 12 ),
+                        'full/v1/trade' => array( 'cost' => 12 ),
+                        'full/v1/trade_history' => array( 'cost' => 12 ),
+                        'full/v1/kline' => array( 'cost' => 12 ),
+                        'full/v1/funding' => array( 'cost' => 12 ),
                     ),
                 ),
                 'privateTrading' => array(
                     'post' => array(
-                        'full/v1/create_order' => 5,
-                        'full/v1/cancel_order' => 5,
-                        'full/v1/cancel_on_disconnect' => 100,
-                        'full/v1/cancel_all_orders' => 50,
-                        'full/v1/order' => $rlOrders,
-                        'full/v1/order_history' => $rlOrders,
-                        'full/v1/open_orders' => $rlOrders,
-                        'full/v1/fill_history' => $rlOrders,
-                        'full/v1/positions' => $rlOrders,
-                        'full/v1/funding_payment_history' => $rlOthers,
-                        'full/v1/get_sub_accounts' => $rlOthers,
-                        'full/v1/account_summary' => $rlOthers,
-                        'full/v1/account_history' => $rlOthers,
-                        'full/v1/aggregated_account_summary' => $rlOthers,
-                        'full/v1/funding_account_summary' => $rlOthers,
-                        'full/v1/transfer' => 100,
-                        'full/v1/deposit_history' => 100,
-                        'full/v1/transfer_history' => 100,
-                        'full/v1/withdrawal' => 100,
-                        'full/v1/withdrawal_history' => 100,
-                        'full/v1/add_position_margin' => $rlOthers, // addMargin
-                        'full/v1/get_position_margin_limits' => $rlOthers,
-                        'full/v1/set_position_config' => $rlOthers,  // setPositionMode/setMarginMode
-                        'full/v1/set_initial_leverage' => $rlOthers,
-                        'full/v1/get_all_initial_leverage' => $rlOthers,
-                        'full/v1/set_derisk_mm_ratio' => $rlOthers,
-                        'full/v1/vault_burn_tokens' => $rlOthers,
-                        'full/v1/vault_invest' => $rlOthers,
-                        'full/v1/vault_investor_summary' => $rlOthers,
-                        'full/v1/vault_redeem' => $rlOthers,
-                        'full/v1/vault_redeem_cancel' => $rlOthers,
-                        'full/v1/vault_view_redemption_queue' => $rlOthers,
-                        'full/v1/vault_manager_investor_history' => $rlOthers,
-                        'full/v1/authorize_builder' => $rlOthers, // https://pastebin(dot)com/0Mb8cFhN
-                        'full/v1/get_authorized_builders' => $rlOthers,
-                        'full/v1/builder_fill_history' => $rlOthers,
+                        'full/v1/create_order' => array( 'cost' => 5 ),
+                        'full/v1/cancel_order' => array( 'cost' => 5 ),
+                        'full/v1/cancel_on_disconnect' => array( 'cost' => 100 ),
+                        'full/v1/cancel_all_orders' => array( 'cost' => 50 ),
+                        'full/v1/order' => array( 'cost' => $rlOrders ),
+                        'full/v1/order_history' => array( 'cost' => $rlOrders ),
+                        'full/v1/open_orders' => array( 'cost' => $rlOrders ),
+                        'full/v1/fill_history' => array( 'cost' => $rlOrders ),
+                        'full/v1/positions' => array( 'cost' => $rlOrders ),
+                        'full/v1/funding_payment_history' => array( 'cost' => $rlOthers ),
+                        'full/v1/get_sub_accounts' => array( 'cost' => $rlOthers ),
+                        'full/v1/account_summary' => array( 'cost' => $rlOthers ),
+                        'full/v1/account_history' => array( 'cost' => $rlOthers ),
+                        'full/v1/aggregated_account_summary' => array( 'cost' => $rlOthers ),
+                        'full/v1/funding_account_summary' => array( 'cost' => $rlOthers ),
+                        'full/v1/transfer' => array( 'cost' => 100 ),
+                        'full/v1/deposit_history' => array( 'cost' => 100 ),
+                        'full/v1/transfer_history' => array( 'cost' => 100 ),
+                        'full/v1/withdrawal' => array( 'cost' => 100 ),
+                        'full/v1/withdrawal_history' => array( 'cost' => 100 ),
+                        'full/v1/add_position_margin' => array( 'cost' => $rlOthers ), // addMargin
+                        'full/v1/get_position_margin_limits' => array( 'cost' => $rlOthers ),
+                        'full/v1/set_position_config' => array( 'cost' => $rlOthers ),  // setPositionMode/setMarginMode
+                        'full/v1/set_initial_leverage' => array( 'cost' => $rlOthers ),
+                        'full/v1/get_all_initial_leverage' => array( 'cost' => $rlOthers ),
+                        'full/v1/set_derisk_mm_ratio' => array( 'cost' => $rlOthers ),
+                        'full/v1/vault_burn_tokens' => array( 'cost' => $rlOthers ),
+                        'full/v1/vault_invest' => array( 'cost' => $rlOthers ),
+                        'full/v1/vault_investor_summary' => array( 'cost' => $rlOthers ),
+                        'full/v1/vault_redeem' => array( 'cost' => $rlOthers ),
+                        'full/v1/vault_redeem_cancel' => array( 'cost' => $rlOthers ),
+                        'full/v1/vault_view_redemption_queue' => array( 'cost' => $rlOthers ),
+                        'full/v1/vault_manager_investor_history' => array( 'cost' => $rlOthers ),
+                        'full/v1/authorize_builder' => array( 'cost' => $rlOthers ), // https://pastebin(dot)com/0Mb8cFhN
+                        'full/v1/get_authorized_builders' => array( 'cost' => $rlOthers ),
+                        'full/v1/builder_fill_history' => array( 'cost' => $rlOthers ),
                     ),
                 ),
             ),
@@ -176,7 +176,7 @@ class grvt extends Exchange {
                 'accountId' => null, // needs to be set manually by user
                 // https://api.rhino.fi/bridge/configs
                 'networks' => array(
-                    'ARBONE' => '42161',
+                    'ARBITRUM' => '42161',
                     'AVAXC' => '43114',
                     'BASE' => '8453',
                     'BSC' => '56',
@@ -486,197 +486,207 @@ class grvt extends Exchange {
     }
 
     public function sign_in($params = array()) {
-        return Async\async(function () use ($params) {
-            /**
-             * sign in, must be called prior to using other authenticated methods
-             *
-             * @see https://api-docs.grvt.io/#authentication
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return response from exchange
-             */
-            // if ($this->uses_private_key()) {
-            //     Async\await($this->sign_in_with_private_key($params));
-            //     Async\await($this->initialize_client($params));
-            // } else {
-            //     Async\await($this->sign_in_with_api_key($params));
-            // }
-            if ($this->privateKey === null || $this->privateKey === '') {
-                throw new PermissionDenied('Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read => https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt');
-            }
-            Async\await($this->sign_in_with_private_key($params));
-            Async\await($this->initialize_client($params));
-            Async\await($this->load_account_infos());
-            return true;
-        })();
+        return Async\async(self::do_sign_in(...))($params);
+    }
+
+    private function do_sign_in($params = array()) {
+        /**
+         * sign in, must be called prior to using other authenticated methods
+         *
+         * @see https://api-docs.grvt.io/#authentication
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return response from exchange
+         */
+        // if ($this->uses_private_key()) {
+        //     Async\await($this->sign_in_with_private_key($params));
+        //     Async\await($this->initialize_client($params));
+        // } else {
+        //     Async\await($this->sign_in_with_api_key($params));
+        // }
+        if ($this->privateKey === null || $this->privateKey === '') {
+            throw new PermissionDenied('Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read => https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt');
+        }
+        Async\await($this->sign_in_with_private_key($params));
+        Async\await($this->initialize_client($params));
+        Async\await($this->load_account_infos());
+        return true;
     }
 
     public function sign_in_with_api_key($params = array()) {
-        return Async\async(function () use ($params) {
-            $now = $this->milliseconds();
-            // $expires in 24 hours suggested
-            $expires = $this->safe_integer($this->options, 'signInExpiration', 0);
-            // if previous sign-in not expired (give 10 seconds margin)
-            if ($expires !== null && $expires > $now + 10000) {
-                return array();
-            }
-            $request = array(
-                'api_key' => $this->apiKey,
-            );
-            $response = Async\await($this->privateEdgePostAuthApiKeyLogin($this->extend($request, $params)));
-            //
-            //    {
-            //        "location" => "",
-            //        "status" => "success"
-            //    }
-            //
-            $this->options['signInExpiration'] = $now + 86400000; // 24 hours
-            return $response;
-        })();
+        return Async\async(self::do_sign_in_with_api_key(...))($params);
+    }
+
+    private function do_sign_in_with_api_key($params = array()) {
+        $now = $this->milliseconds();
+        // $expires in 24 hours suggested
+        $expires = $this->safe_integer($this->options, 'signInExpiration', 0);
+        // if previous sign-in not expired (give 10 seconds margin)
+        if ($expires !== null && $expires > $now + 10000) {
+            return array();
+        }
+        $request = array(
+            'api_key' => $this->apiKey,
+        );
+        $response = Async\await($this->privateEdgePostAuthApiKeyLogin($this->extend($request, $params)));
+        //
+        //    {
+        //        "location" => "",
+        //        "status" => "success"
+        //    }
+        //
+        $this->options['signInExpiration'] = $now + 86400000; // 24 hours
+        return $response;
     }
 
     public function sign_in_with_private_key($params = array()) {
-        return Async\async(function () use ($params) {
-            $this->check_required_credentials();
-            $now = $this->milliseconds();
-            // $expires in 24 hours suggested
-            $expires = $this->safe_integer($this->options, 'signInExpiration', 0);
-            // if previous sign-in not expired (give 10 seconds margin)
-            if ($expires !== null && $expires > $now + 10000) {
-                return array();
-            }
-            $walletAddress = $this->eth_get_address_from_private_key($this->privateKey);
-            $request = array(
-                'address' => $walletAddress,
-                'signature' => $this->default_signature(),
-            );
-            $request = $this->create_signed_request($request, 'EIP712_WALLETLOGIN_TYPE');
-            $response = Async\await($this->privateEdgePostAuthWalletLogin($this->extend($request, $params)));
-            //
-            //    {
-            //        "location" => "",
-            //        "status" => "success"
-            //    }
-            //
-            $this->options['signInExpiration'] = $now + 86400000; // 24 hours
-            return $response;
-        })();
+        return Async\async(self::do_sign_in_with_private_key(...))($params);
+    }
+
+    private function do_sign_in_with_private_key($params = array()) {
+        $this->check_required_credentials();
+        $now = $this->milliseconds();
+        // $expires in 24 hours suggested
+        $expires = $this->safe_integer($this->options, 'signInExpiration', 0);
+        // if previous sign-in not expired (give 10 seconds margin)
+        if ($expires !== null && $expires > $now + 10000) {
+            return array();
+        }
+        $walletAddress = $this->eth_get_address_from_private_key($this->privateKey);
+        $request = array(
+            'address' => $walletAddress,
+            'signature' => $this->default_signature(),
+        );
+        $request = $this->create_signed_request($request, 'EIP712_WALLETLOGIN_TYPE');
+        $response = Async\await($this->privateEdgePostAuthWalletLogin($this->extend($request, $params)));
+        //
+        //    {
+        //        "location" => "",
+        //        "status" => "success"
+        //    }
+        //
+        $this->options['signInExpiration'] = $now + 86400000; // 24 hours
+        return $response;
     }
 
     public function initialize_client($params = array()) {
-        return Async\async(function () use ($params) {
-            $builderFee = $this->safe_bool($params, 'builderFee', $this->safe_bool($this->options, 'builderFee', true)); // we shouldn't omit here
-            if (!$builderFee) {
-                return false; // skip if builder fee is not enabled
+        return Async\async(self::do_initialize_client(...))($params);
+    }
+
+    private function do_initialize_client($params = array()) {
+        $builderFee = $this->safe_bool($params, 'builderFee', $this->safe_bool($this->options, 'builderFee', true)); // we shouldn't omit here
+        if (!$builderFee) {
+            return false; // skip if builder fee is not enabled
+        }
+        $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
+        if ($approvedBuilderFee) {
+            return true; // skip if builder fee is already approved
+        }
+        $results = Async\await(Promise\all(array( $this->privateTradingPostFullV1GetAuthorizedBuilders(), $this->load_account_infos() )));
+        //
+        // {
+        //     "results" => [array(
+        //         "builder_account_id" => "GRVT_MAIN_ACCOUNT_ID_HERE",
+        //         "max_futures_fee_rate" => 0.001,
+        //         "max_spot_fee_rate" => 0.0001
+        //     )]
+        // }
+        //
+        $currentBuilders = $results[0];
+        $approvedBuilder = $this->safe_list($currentBuilders, 'results', array());
+        $length = count($approvedBuilder);
+        $found = false;
+        for ($i = 0; $i < $length; $i++) {
+            $builderInfo = $this->safe_dict($approvedBuilder, $i, array());
+            $builderAccountId = $this->safe_string($builderInfo, 'builder_account_id');
+            if ($builderAccountId === $this->safe_string($this->options, 'builder')) {
+                $found = true;
+                break;
             }
-            $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
-            if ($approvedBuilderFee) {
-                return true; // skip if builder fee is already approved
-            }
-            $results = Async\await(Promise\all(array( $this->privateTradingPostFullV1GetAuthorizedBuilders(), $this->load_account_infos() )));
-            //
-            // {
-            //     "results" => [array(
-            //         "builder_account_id" => "GRVT_MAIN_ACCOUNT_ID_HERE",
-            //         "max_futures_fee_rate" => 0.001,
-            //         "max_spot_fee_rate" => 0.0001
-            //     )]
-            // }
-            //
-            $currentBuilders = $results[0];
-            $approvedBuilder = $this->safe_list($currentBuilders, 'results', array());
-            $length = count($approvedBuilder);
-            $found = false;
-            for ($i = 0; $i < $length; $i++) {
-                $builderInfo = $this->safe_dict($approvedBuilder, $i, array());
-                $builderAccountId = $this->safe_string($builderInfo, 'builder_account_id');
-                if ($builderAccountId === $this->safe_string($this->options, 'builder')) {
-                    $found = true;
-                    break;
+        }
+        if ($found) {
+            $this->options['approvedBuilderFee'] = true;
+        } else {
+            try {
+                $defaultFromAccountId = $this->safe_string($this->options, 'userMainAccountId'); // $this->eth_get_address_from_private_key($this->secret); // $this->safe_string($this->options, 'userMainAccountId');
+                $request = array(
+                    'main_account_id' => $defaultFromAccountId,
+                    'builder_account_id' => $this->safe_string($this->options, 'builder'),
+                    'max_futures_fee_rate' => $this->safe_string($this->options, 'builderRate'),
+                    'max_spot_fee_rate' => $this->safe_string($this->options, 'builderRate'),
+                    'signature' => $this->default_signature(),
+                );
+                $request = $this->create_signed_request($request, 'EIP712_BUILDER_APPROVAL_TYPE');
+                $authResponse = Async\await($this->privateTradingPostFullV1AuthorizeBuilder($this->extend($request, $params)));
+                //
+                // {
+                //     "result" => {
+                //         "ack" => "true",
+                //         "tx_id":"0"
+                //     }
+                // }
+                //
+                $authResult = $this->safe_dict($authResponse, 'result');
+                $ack = $this->safe_bool($authResult, 'ack');
+                if (!$ack) {
+                    throw new ExchangeError('Builder authorization failed, ' . $this->json($authResponse));
                 }
-            }
-            if ($found) {
                 $this->options['approvedBuilderFee'] = true;
-            } else {
-                try {
-                    $defaultFromAccountId = $this->safe_string($this->options, 'userMainAccountId'); // $this->eth_get_address_from_private_key($this->secret); // $this->safe_string($this->options, 'userMainAccountId');
-                    $request = array(
-                        'main_account_id' => $defaultFromAccountId,
-                        'builder_account_id' => $this->safe_string($this->options, 'builder'),
-                        'max_futures_fee_rate' => $this->safe_string($this->options, 'builderRate'),
-                        'max_spot_fee_rate' => $this->safe_string($this->options, 'builderRate'),
-                        'signature' => $this->default_signature(),
-                    );
-                    $request = $this->create_signed_request($request, 'EIP712_BUILDER_APPROVAL_TYPE');
-                    $authResponse = Async\await($this->privateTradingPostFullV1AuthorizeBuilder($this->extend($request, $params)));
-                    //
-                    // {
-                    //     "result" => {
-                    //         "ack" => "true",
-                    //         "tx_id":"0"
-                    //     }
-                    // }
-                    //
-                    $authResult = $this->safe_dict($authResponse, 'result');
-                    $ack = $this->safe_bool($authResult, 'ack');
-                    if (!$ack) {
-                        throw new ExchangeError('Builder authorization failed, ' . $this->json($authResponse));
-                    }
-                    $this->options['approvedBuilderFee'] = true;
-                } catch (Exception $e) {
-                    $this->options['builderFee'] = false; // disable builder fee if an error occurs
-                }
+            } catch (Exception $e) {
+                $this->options['builderFee'] = false; // disable builder fee if an error occurs
             }
-            return null; // just c#
-        })();
+        }
+        return null; // just c#
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * retrieves data on all markets
-             *
-             * @see https://api-docs.grvt.io/market_data_api/#get-instrument-prod
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} an array of objects representing market data
-             */
-            $marketsPromise = $this->publicMarketPostFullV1AllInstruments($params);
-            //
-            //    {
-            //        "result" => [
-            //            array(
-            //                "instrument" => "AAVE_USDT_Perp",
-            //                "instrument_hash" => "0x032201",
-            //                "base" => "AAVE",
-            //                "quote" => "USDT",
-            //                "kind" => "PERPETUAL",
-            //                "venues" => array(
-            //                    "ORDERBOOK",
-            //                    "RFQ"
-            //                ),
-            //                "settlement_period" => "PERPETUAL",
-            //                "base_decimals" => "9",
-            //                "quote_decimals" => "6",
-            //                "tick_size" => "0.01",
-            //                "min_size" => "0.1",
-            //                "create_time" => "1764303867576216941",
-            //                "max_position_size" => "3000.0",
-            //                "funding_interval_hours" => "8",
-            //                "adjusted_funding_rate_cap" => "0.75",
-            //                "adjusted_funding_rate_floor" => "-0.75"
-            //            ),
-            //            ...
-            //
-            $promises = array( $marketsPromise );
-            if (!$this->is_empty_string($this->apiKey) || !$this->is_empty_string($this->privateKey)) {
-                $promises[] = $this->sign_in();
-            }
-            $results = Async\await(Promise\all($promises));
-            $response = $results[0];
-            $result = $this->safe_list($response, 'result', array());
-            return $this->parse_markets($result);
-        })();
+        return Async\async(self::do_fetch_markets(...))($params);
+    }
+
+    private function do_fetch_markets($params = array()) {
+        /**
+         * retrieves data on all markets
+         *
+         * @see https://api-docs.grvt.io/market_data_api/#get-instrument-prod
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing market data
+         */
+        $marketsPromise = $this->publicMarketPostFullV1AllInstruments($params);
+        //
+        //    {
+        //        "result" => [
+        //            array(
+        //                "instrument" => "AAVE_USDT_Perp",
+        //                "instrument_hash" => "0x032201",
+        //                "base" => "AAVE",
+        //                "quote" => "USDT",
+        //                "kind" => "PERPETUAL",
+        //                "venues" => array(
+        //                    "ORDERBOOK",
+        //                    "RFQ"
+        //                ),
+        //                "settlement_period" => "PERPETUAL",
+        //                "base_decimals" => "9",
+        //                "quote_decimals" => "6",
+        //                "tick_size" => "0.01",
+        //                "min_size" => "0.1",
+        //                "create_time" => "1764303867576216941",
+        //                "max_position_size" => "3000.0",
+        //                "funding_interval_hours" => "8",
+        //                "adjusted_funding_rate_cap" => "0.75",
+        //                "adjusted_funding_rate_floor" => "-0.75"
+        //            ),
+        //            ...
+        //
+        $promises = array( $marketsPromise );
+        if (!$this->is_empty_string($this->apiKey) || !$this->is_empty_string($this->privateKey)) {
+            $promises[] = $this->sign_in();
+        }
+        $results = Async\await(Promise\all($promises));
+        $response = $results[0];
+        $result = $this->safe_list($response, 'result', array());
+        return $this->parse_markets($result);
     }
 
     public function parse_market(array $market): array {
@@ -775,31 +785,33 @@ class grvt extends Exchange {
     }
 
     public function fetch_currencies($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches all available currencies on an exchange
-             *
-             * @see https://api-docs.grvt.io/market_data_api/#get-currency-$response
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an associative dictionary of currencies
-             */
-            $request = array( '' => '' ); // workaround for php array() empty arr
-            $response = Async\await($this->publicMarketPostFullV1Currency($request));
-            //
-            //    {
-            //        "result" => [
-            //            array(
-            //                "id" => "4",
-            //                "symbol" => "ETH",
-            //                "balance_decimals" => "9",
-            //                "quantity_multiplier" => "1000000000"
-            //            ),
-            //            ..
-            //
-            $responseResult = $this->safe_list($response, 'result', array());
-            return $this->parse_currencies($responseResult);
-        })();
+        return Async\async(self::do_fetch_currencies(...))($params);
+    }
+
+    private function do_fetch_currencies($params = array()) {
+        /**
+         * fetches all available currencies on an exchange
+         *
+         * @see https://api-docs.grvt.io/market_data_api/#get-currency-$response
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an associative dictionary of currencies
+         */
+        $request = array( '' => '' ); // workaround for php array() empty arr
+        $response = Async\await($this->publicMarketPostFullV1Currency($request));
+        //
+        //    {
+        //        "result" => [
+        //            array(
+        //                "id" => "4",
+        //                "symbol" => "ETH",
+        //                "balance_decimals" => "9",
+        //                "quantity_multiplier" => "1000000000"
+        //            ),
+        //            ..
+        //
+        $responseResult = $this->safe_list($response, 'result', array());
+        return $this->parse_currencies($responseResult);
     }
 
     public function parse_currency(array $rawCurrency): array {
@@ -844,59 +856,61 @@ class grvt extends Exchange {
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             *
-             * @see https://api-docs.grvt.io/market_data_api/#ticker_1
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'instrument' => $this->market_id($symbol),
-            );
-            $response = Async\await($this->publicMarketPostFullV1Ticker($this->extend($request, $params)));
-            //
-            //    {
-            //        "result" => {
-            //            "event_time" => "1764774730025055205",
-            //            "instrument" => "BTC_USDT_Perp",
-            //            "mark_price" => "92697.300078773",
-            //            "index_price" => "92727.818122278",
-            //            "last_price" => "92683.0",
-            //            "last_size" => "0.001",
-            //            "mid_price" => "92682.95",
-            //            "best_bid_price" => "92682.9",
-            //            "best_bid_size" => "5.332",
-            //            "best_ask_price" => "92683.0",
-            //            "best_ask_size" => "0.009",
-            //            "funding_rate_8h_curr" => "0.0037",
-            //            "funding_rate_8h_avg" => "0.0037",
-            //            "interest_rate" => "0.0",
-            //            "forward_price" => "0.0",
-            //            "buy_volume_24h_b" => "2893.898",
-            //            "sell_volume_24h_b" => "2907.847",
-            //            "buy_volume_24h_q" => "266955739.1606",
-            //            "sell_volume_24h_q" => "268170211.7109",
-            //            "high_price" => "93908.3",
-            //            "low_price" => "89900.1",
-            //            "open_price" => "90129.2",
-            //            "open_interest" => "1523.218935908",
-            //            "long_short_ratio" => "1.472543",
-            //            "funding_rate" => "0.0037",
-            //            "next_funding_time" => "1764777600000000000"
-            //        }
-            //    }
-            //
-            $result = $this->safe_dict($response, 'result', array());
-            return $this->parse_ticker($result, $market);
-        })();
+        return Async\async(self::do_fetch_ticker(...))($symbol, $params);
+    }
+
+    private function do_fetch_ticker(string $symbol, $params = array()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://api-docs.grvt.io/market_data_api/#ticker_1
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'instrument' => $this->market_id($symbol),
+        );
+        $response = Async\await($this->publicMarketPostFullV1Ticker($this->extend($request, $params)));
+        //
+        //    {
+        //        "result" => {
+        //            "event_time" => "1764774730025055205",
+        //            "instrument" => "BTC_USDT_Perp",
+        //            "mark_price" => "92697.300078773",
+        //            "index_price" => "92727.818122278",
+        //            "last_price" => "92683.0",
+        //            "last_size" => "0.001",
+        //            "mid_price" => "92682.95",
+        //            "best_bid_price" => "92682.9",
+        //            "best_bid_size" => "5.332",
+        //            "best_ask_price" => "92683.0",
+        //            "best_ask_size" => "0.009",
+        //            "funding_rate_8h_curr" => "0.0037",
+        //            "funding_rate_8h_avg" => "0.0037",
+        //            "interest_rate" => "0.0",
+        //            "forward_price" => "0.0",
+        //            "buy_volume_24h_b" => "2893.898",
+        //            "sell_volume_24h_b" => "2907.847",
+        //            "buy_volume_24h_q" => "266955739.1606",
+        //            "sell_volume_24h_q" => "268170211.7109",
+        //            "high_price" => "93908.3",
+        //            "low_price" => "89900.1",
+        //            "open_price" => "90129.2",
+        //            "open_interest" => "1523.218935908",
+        //            "long_short_ratio" => "1.472543",
+        //            "funding_rate" => "0.0037",
+        //            "next_funding_time" => "1764777600000000000"
+        //        }
+        //    }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_ticker($result, $market);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -958,106 +972,110 @@ class grvt extends Exchange {
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://api-docs.grvt.io/market_data_api/#orderbook-levels
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->loc] crypto location, default => us
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array(
-                'instrument' => $this->market_id($symbol),
-            );
-            if ($limit === null) {
-                $limit = 100;
-            }
-            if ($limit <= 500) {
-                $request['depth'] = $this->find_nearest_ceiling(array( 10, 50, 100, 500 ), $limit);
-            }
-            $response = Async\await($this->publicMarketPostFullV1Book($this->extend($request, $params)));
-            //
-            //    {
-            //        "result" => {
-            //            "event_time" => "1764777396650000000",
-            //            "instrument" => "BTC_USDT_Perp",
-            //            "bids" => array(
-            //                array( "price" => "92336.0", "size" => "0.005", "num_orders" => "1" ),
-            //                ...
-            //            ),
-            //            "asks" => array(
-            //                array( "price" => "92336.1", "size" => "5.711", "num_orders" => "37" ),
-            //                ...
-            //            )
-            //        }
-            //    }
-            //
-            $result = $this->safe_dict($response, 'result', array());
-            $timestamp = $this->parse8601($this->safe_string($result, 'event_time'));
-            $marketId = $this->safe_string($result, 'instrument');
-            return $this->parse_order_book($result, $this->safe_symbol($marketId), $timestamp, 'bids', 'asks', 'price', 'size');
-        })();
+        return Async\async(self::do_fetch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_fetch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://api-docs.grvt.io/market_data_api/#orderbook-levels
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->loc] crypto location, default => us
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array(
+            'instrument' => $this->market_id($symbol),
+        );
+        if ($limit === null) {
+            $limit = 100;
+        }
+        if ($limit <= 500) {
+            $request['depth'] = $this->find_nearest_ceiling(array( 10, 50, 100, 500 ), $limit);
+        }
+        $response = Async\await($this->publicMarketPostFullV1Book($this->extend($request, $params)));
+        //
+        //    {
+        //        "result" => {
+        //            "event_time" => "1764777396650000000",
+        //            "instrument" => "BTC_USDT_Perp",
+        //            "bids" => array(
+        //                array( "price" => "92336.0", "size" => "0.005", "num_orders" => "1" ),
+        //                ...
+        //            ),
+        //            "asks" => array(
+        //                array( "price" => "92336.1", "size" => "5.711", "num_orders" => "37" ),
+        //                ...
+        //            )
+        //        }
+        //    }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        $timestamp = $this->parse8601($this->safe_string($result, 'event_time'));
+        $marketId = $this->safe_string($result, 'instrument');
+        return $this->parse_order_book($result, $this->safe_symbol($marketId), $timestamp, 'bids', 'asks', 'price', 'size');
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent trades for a particular $symbol
-             *
-             * @see https://api-docs.grvt.io/market_data_api/#trade_1
-             *
-             * @param {string} $symbol unified $symbol of the $market
-             * @param {int} [$since] timestamp in ms of the earliest item to fetch
-             * @param {int} [$limit] the maximum amount of items to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'instrument' => $market['id'],
-            );
-            if ($limit !== null) {
-                $request['limit'] = min($limit, 1000);
-            }
-            list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
-            if ($since !== null) {
-                $request['start_time'] = $this->number_to_string($since * 1000000);
-            }
-            $response = Async\await($this->publicMarketPostFullV1TradeHistory($this->extend($request, $params)));
-            //
-            //    {
-            //        "next" => "eyJ0cmFkZUlkIjo2NDc5MTAyMywidHJhZGVJbmRleCI6MX0",
-            //        "result" => [
-            //            array(
-            //                "event_time" => "1764779531332118705",
-            //                "instrument" => "ETH_USDT_Perp",
-            //                "is_taker_buyer" => false,
-            //                "size" => "23.73",
-            //                "price" => "3089.88",
-            //                "mark_price" => "3089.360002315",
-            //                "index_price" => "3090.443723246",
-            //                "interest_rate" => "0.0",
-            //                "forward_price" => "0.0",
-            //                "trade_id" => "64796657-1",
-            //                "venue" => "ORDERBOOK",
-            //                "is_rpi" => false
-            //            ),
-            //            ...
-            //
-            $result = $this->safe_list($response, 'result', array());
-            return $this->parse_trades($result, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         *
+         * @see https://api-docs.grvt.io/market_data_api/#trade_1
+         *
+         * @param {string} $symbol unified $symbol of the $market
+         * @param {int} [$since] timestamp in ms of the earliest item to fetch
+         * @param {int} [$limit] the maximum amount of items to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'instrument' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['limit'] = min($limit, 1000);
+        }
+        list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
+        if ($since !== null) {
+            $request['start_time'] = $this->number_to_string($since * 1000000);
+        }
+        $response = Async\await($this->publicMarketPostFullV1TradeHistory($this->extend($request, $params)));
+        //
+        //    {
+        //        "next" => "eyJ0cmFkZUlkIjo2NDc5MTAyMywidHJhZGVJbmRleCI6MX0",
+        //        "result" => [
+        //            array(
+        //                "event_time" => "1764779531332118705",
+        //                "instrument" => "ETH_USDT_Perp",
+        //                "is_taker_buyer" => false,
+        //                "size" => "23.73",
+        //                "price" => "3089.88",
+        //                "mark_price" => "3089.360002315",
+        //                "index_price" => "3090.443723246",
+        //                "interest_rate" => "0.0",
+        //                "forward_price" => "0.0",
+        //                "trade_id" => "64796657-1",
+        //                "venue" => "ORDERBOOK",
+        //                "is_rpi" => false
+        //            ),
+        //            ...
+        //
+        $result = $this->safe_list($response, 'result', array());
+        return $this->parse_trades($result, $market, $since, $limit);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1144,73 +1162,75 @@ class grvt extends Exchange {
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://api-docs.grvt.io/market_data_api/#candlestick_1
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest item to fetch
-             * @param {int} [$limit] the maximum amount of items to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
-             */
-            $maxLimit = 1000;
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit));
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'instrument' => $market['id'],
-                'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            );
-            $priceTypeMap = array(
-                'last' => 'TRADE',
-                'mark' => 'MARK',
-                'index' => 'INDEX',
-                // 'median' => 'MEDIAN',
-            );
-            $selectedPriceType = $this->safe_string($params, 'priceType', 'last');
-            $request['type'] = $this->safe_string($priceTypeMap, $selectedPriceType);
-            if ($limit !== null) {
-                $request['limit'] = min($limit, 1000);
-            }
-            list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
-            if ($since !== null) {
-                $request['start_time'] = $this->number_to_string($since * 1000000);
-            }
-            $response = Async\await($this->publicMarketPostFullV1Kline($this->extend($request, $params)));
-            //
-            //    {
-            //        "result" => array(
-            //            array(
-            //                "open_time" => "1767288240000000000",
-            //                "close_time" => "1767288300000000000",
-            //                "open" => "88178.8",
-            //                "close" => "88176.7",
-            //                "high" => "88192.7",
-            //                "low" => "88176.6",
-            //                "volume_b" => "15.32",
-            //                "volume_q" => "1350962.4782",
-            //                "trades" => 38,
-            //                "instrument" => "BTC_USDT_Perp"
-            //            ),
-            //        ),
-            //        "next" => "eyJvcGVuVGltZSI6MTc2NzI1ODMwMDAwMDAwMDAwMH0"
-            //    }
-            //
-            $candles = $this->safe_list($response, 'result', array());
-            return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://api-docs.grvt.io/market_data_api/#candlestick_1
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest item to fetch
+         * @param {int} [$limit] the maximum amount of items to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         */
+        $maxLimit = 1000;
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit));
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'instrument' => $market['id'],
+            'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+        );
+        $priceTypeMap = array(
+            'last' => 'TRADE',
+            'mark' => 'MARK',
+            'index' => 'INDEX',
+            // 'median' => 'MEDIAN',
+        );
+        $selectedPriceType = $this->safe_string($params, 'priceType', 'last');
+        $request['type'] = $this->safe_string($priceTypeMap, $selectedPriceType);
+        if ($limit !== null) {
+            $request['limit'] = min($limit, 1000);
+        }
+        list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
+        if ($since !== null) {
+            $request['start_time'] = $this->number_to_string($since * 1000000);
+        }
+        $response = Async\await($this->publicMarketPostFullV1Kline($this->extend($request, $params)));
+        //
+        //    {
+        //        "result" => array(
+        //            array(
+        //                "open_time" => "1767288240000000000",
+        //                "close_time" => "1767288300000000000",
+        //                "open" => "88178.8",
+        //                "close" => "88176.7",
+        //                "high" => "88192.7",
+        //                "low" => "88176.6",
+        //                "volume_b" => "15.32",
+        //                "volume_q" => "1350962.4782",
+        //                "trades" => 38,
+        //                "instrument" => "BTC_USDT_Perp"
+        //            ),
+        //        ),
+        //        "next" => "eyJvcGVuVGltZSI6MTc2NzI1ODMwMDAwMDAwMDAwMH0"
+        //    }
+        //
+        $candles = $this->safe_list($response, 'result', array());
+        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -1239,62 +1259,64 @@ class grvt extends Exchange {
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches historical funding rate prices
-             *
-             * @see https://api-docs.grvt.io/market_data_api/#funding-rate
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
-             * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
-             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest item
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params));
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'instrument' => $market['id'],
-            );
-            if ($limit !== null) {
-                $request['limit'] = min($limit, 1000);
-            }
-            list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
-            if ($since !== null) {
-                $request['start_time'] = $this->number_to_string($since * 1000000);
-            }
-            $response = Async\await($this->publicMarketPostFullV1Funding($this->extend($request, $params)));
-            //
-            //    {
-            //        "result" => array(
-            //            array(
-            //                "instrument" => "BTC_USDT_Perp",
-            //                "funding_rate" => "-0.0034",
-            //                "funding_time" => "1760494260000000000",
-            //                "mark_price" => "112721.159060304",
-            //                "funding_rate_8_h_avg" => "-0.0038",
-            //                "funding_interval_hours" => "0"
-            //            ),
-            //            ...
-            //        ),
-            //        "next" => "eyJmdW5kaW5nVGltZSI6MTc2MDQ5NDI2MDAwMDAwMDAwMH0"
-            //    }
-            //
-            $result = $this->safe_list($response, 'result', array());
-            return $this->parse_funding_rate_histories($result, $market);
-        })();
+        return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical funding rate prices
+         *
+         * @see https://api-docs.grvt.io/market_data_api/#funding-rate
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest item
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params));
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'instrument' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['limit'] = min($limit, 1000);
+        }
+        list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
+        if ($since !== null) {
+            $request['start_time'] = $this->number_to_string($since * 1000000);
+        }
+        $response = Async\await($this->publicMarketPostFullV1Funding($this->extend($request, $params)));
+        //
+        //    {
+        //        "result" => array(
+        //            array(
+        //                "instrument" => "BTC_USDT_Perp",
+        //                "funding_rate" => "-0.0034",
+        //                "funding_time" => "1760494260000000000",
+        //                "mark_price" => "112721.159060304",
+        //                "funding_rate_8_h_avg" => "-0.0038",
+        //                "funding_interval_hours" => "0"
+        //            ),
+        //            ...
+        //        ),
+        //        "next" => "eyJmdW5kaW5nVGltZSI6MTc2MDQ5NDI2MDAwMDAwMDAwMH0"
+        //    }
+        //
+        $result = $this->safe_list($response, 'result', array());
+        return $this->parse_funding_rate_histories($result, $market);
     }
 
     public function parse_funding_rate_history(mixed $rawItem, ?array $market = null) {
@@ -1329,51 +1351,53 @@ class grvt extends Exchange {
     }
 
     public function fetch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * query for account info
-             *
-             * @see https://api-docs.grvt.io/trading_api/#sub-account-summary
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            Async\await($this->load_markets_and_sign_in());
-            $request = array(
-                'sub_account_id' => $this->get_sub_account_id($params),
-            );
-            $response = Async\await($this->privateTradingPostFullV1AccountSummary($this->extend($request, $params)));
-            //
-            //    {
-            //        "result" => {
-            //            "event_time" => "1764863116142428457",
-            //            "sub_account_id" => "2147050003876484",
-            //            "margin_type" => "SIMPLE_CROSS_MARGIN",
-            //            "settle_currency" => "USDT",
-            //            "unrealized_pnl" => "0.0",
-            //            "total_equity" => "15.0",
-            //            "initial_margin" => "0.0",
-            //            "maintenance_margin" => "0.0",
-            //            "available_balance" => "15.0",
-            //            "spot_balances" => array(
-            //                {
-            //                    "currency" => "USDT",
-            //                    "balance" => "15.0",
-            //                    "index_price" => "1.000289735"
-            //                }
-            //            ),
-            //            "positions" => array(),
-            //            "settle_index_price" => "1.000289735",
-            //            "derisk_margin" => "0.0",
-            //            "derisk_to_maintenance_margin_ratio" => "1.0",
-            //            "total_cross_equity" => "15.0",
-            //            "cross_unrealized_pnl" => "0.0"
-            //        }
-            //    }
-            //
-            $result = $this->safe_dict($response, 'result', array());
-            return $this->parse_balance($result);
-        })();
+        return Async\async(self::do_fetch_balance(...))($params);
+    }
+
+    private function do_fetch_balance($params = array()) {
+        /**
+         * query for account info
+         *
+         * @see https://api-docs.grvt.io/trading_api/#sub-account-summary
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        Async\await($this->load_markets_and_sign_in());
+        $request = array(
+            'sub_account_id' => $this->get_sub_account_id($params),
+        );
+        $response = Async\await($this->privateTradingPostFullV1AccountSummary($this->extend($request, $params)));
+        //
+        //    {
+        //        "result" => {
+        //            "event_time" => "1764863116142428457",
+        //            "sub_account_id" => "2147050003876484",
+        //            "margin_type" => "SIMPLE_CROSS_MARGIN",
+        //            "settle_currency" => "USDT",
+        //            "unrealized_pnl" => "0.0",
+        //            "total_equity" => "15.0",
+        //            "initial_margin" => "0.0",
+        //            "maintenance_margin" => "0.0",
+        //            "available_balance" => "15.0",
+        //            "spot_balances" => array(
+        //                {
+        //                    "currency" => "USDT",
+        //                    "balance" => "15.0",
+        //                    "index_price" => "1.000289735"
+        //                }
+        //            ),
+        //            "positions" => array(),
+        //            "settle_index_price" => "1.000289735",
+        //            "derisk_margin" => "0.0",
+        //            "derisk_to_maintenance_margin_ratio" => "1.0",
+        //            "total_cross_equity" => "15.0",
+        //            "cross_unrealized_pnl" => "0.0"
+        //        }
+        //    }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_balance($result);
     }
 
     public function parse_balance(mixed $response): array {
@@ -1426,166 +1450,172 @@ class grvt extends Exchange {
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch all deposits made to an account
-             *
-             * @see https://api-docs.grvt.io/trading_api/#transfer
-             *
-             * @param {string} [$code] unified $currency $code
-             * @param {int} [$since] the earliest time in ms to fetch deposits for
-             * @param {int} [$limit] the maximum number of deposits structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest item
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            Async\await($this->load_markets_and_sign_in());
-            $request = array();
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-                $request['currency'] = array( $currency['code'] );
-            }
-            if ($limit !== null) {
-                $request['limit'] = min($limit, 1000);
-            }
-            list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
-            if ($since !== null) {
-                $request['start_time'] = $this->number_to_string($since * 1000000);
-            }
-            $useTransfersEndpoint = $this->safe_bool($this->options, 'useTransfersEndpointForDepositsWithdrawals', true);
-            if ($useTransfersEndpoint) {
-                $transfers = Async\await($this->internal_fetch_transfers($this->extend($request, $params), $currency, $since, $limit));
-                $filteredResults = $this->filter_transfers_by_type($transfers, 'deposit', true);
-                $transactions = $this->get_list_from_object_values($filteredResults[0], 'info');
-                return $this->parse_transactions($transactions, $currency, $since, $limit);
-            } else {
-                $response = Async\await($this->privateTradingPostFullV1DepositHistory($this->extend($request, $params)));
-                //
-                // {
-                //     "result" => [array(
-                //         "l_1_hash" => "0x10000101000203040506",
-                //         "l_2_hash" => "0x10000101000203040506",
-                //         "to_account_id" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-                //         "currency" => "USDT",
-                //         "num_tokens" => "1500.0",
-                //         "initiated_time" => "1697788800000000000",
-                //         "confirmed_time" => "1697788800000000000",
-                //         "from_address" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0"
-                //     )],
-                //     "next" => "Qw0918="
-                // }
-                //
-                $result = $this->safe_list($response, 'result', array());
-                return $this->parse_transactions($result, $currency, $since, $limit);
-            }
-        })();
+        return Async\async(self::do_fetch_deposits(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all deposits made to an account
+         *
+         * @see https://api-docs.grvt.io/trading_api/#transfer
+         *
+         * @param {string} [$code] unified $currency $code
+         * @param {int} [$since] the earliest time in ms to fetch deposits for
+         * @param {int} [$limit] the maximum number of deposits structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest item
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        Async\await($this->load_markets_and_sign_in());
+        $request = array();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = array( $currency['code'] );
+        }
+        if ($limit !== null) {
+            $request['limit'] = min($limit, 1000);
+        }
+        list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
+        if ($since !== null) {
+            $request['start_time'] = $this->number_to_string($since * 1000000);
+        }
+        $useTransfersEndpoint = $this->safe_bool($this->options, 'useTransfersEndpointForDepositsWithdrawals', true);
+        if ($useTransfersEndpoint) {
+            $transfers = Async\await($this->internal_fetch_transfers($this->extend($request, $params), $currency, $since, $limit));
+            $filteredResults = $this->filter_transfers_by_type($transfers, 'deposit', true);
+            $transactions = $this->get_list_from_object_values($filteredResults[0], 'info');
+            return $this->parse_transactions($transactions, $currency, $since, $limit);
+        } else {
+            $response = Async\await($this->privateTradingPostFullV1DepositHistory($this->extend($request, $params)));
+            //
+            // {
+            //     "result" => [array(
+            //         "l_1_hash" => "0x10000101000203040506",
+            //         "l_2_hash" => "0x10000101000203040506",
+            //         "to_account_id" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+            //         "currency" => "USDT",
+            //         "num_tokens" => "1500.0",
+            //         "initiated_time" => "1697788800000000000",
+            //         "confirmed_time" => "1697788800000000000",
+            //         "from_address" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0"
+            //     )],
+            //     "next" => "Qw0918="
+            // }
+            //
+            $result = $this->safe_list($response, 'result', array());
+            return $this->parse_transactions($result, $currency, $since, $limit);
+        }
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch all withdrawals made from an account
-             *
-             * @see https://api-docs.grvt.io/trading_api/#withdrawal-history
-             *
-             * @param {string} [$code] unified $currency $code of the $currency transferred
-             * @param {int} [$since] the earliest time in ms to fetch $transfers for (default 24 hours ago)
-             * @param {int} [$limit] the maximum number of transfer structures to retrieve (default 50, max 200)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest item
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            Async\await($this->load_markets_and_sign_in());
-            $request = array();
-            $currency = null;
-            if ($code === null) {
-                $request['currency'] = null;
-            } else {
-                $currency = $this->currency($code);
-                $request['currency'] = array( $currency['code'] );
-            }
-            if ($limit !== null) {
-                $request['limit'] = min($limit, 1000);
-            }
-            list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
-            if ($since !== null) {
-                $request['start_time'] = $this->number_to_string($since * 1000000);
-            }
-            $useTransfersEndpoint = $this->safe_bool($this->options, 'useTransfersEndpointForDepositsWithdrawals', true);
-            if ($useTransfersEndpoint) {
-                $transfers = Async\await($this->internal_fetch_transfers($this->extend($request, $params), $currency, $since, $limit));
-                $filteredResults = $this->filter_transfers_by_type($transfers, 'withdrawal', true);
-                $transactions = $this->get_list_from_object_values($filteredResults[0], 'info');
-                return $this->parse_transactions($transactions, $currency, $since, $limit);
-            } else {
-                $response = Async\await($this->privateTradingPostFullV1WithdrawalHistory($this->extend($request, $params)));
-                //
-                // {
-                //     "result" => [array(
-                //         "tx_id" => "1028403",
-                //         "from_account_id" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-                //         "to_eth_address" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-                //         "currency" => "USDT",
-                //         "num_tokens" => "1500.0",
-                //         "signature" => array(
-                //             "signer" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-                //             "r" => "0xb788d96fee91c7cdc35918e0441b756d4000ec1d07d900c73347d9abbc20acc8",
-                //             "s" => "0x3d786193125f7c29c958647da64d0e2875ece2c3f845a591bdd7dae8c475e26d",
-                //             "v" => 28,
-                //             "expiration" => "1697788800000000000",
-                //             "nonce" => 1234567890,
-                //             "chain_id" => "325"
-                //         ),
-                //         "event_time" => "1697788800000000000",
-                //         "l_1_hash" => "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-                //         "l_2_hash" => "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
-                //     )],
-                //     "next" => "Qw0918="
-                // }
-                //
-                $result = $this->safe_list($response, 'result', array());
-                return $this->parse_transactions($result, $currency, $since, $limit);
-            }
-        })();
+        return Async\async(self::do_fetch_withdrawals(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all withdrawals made from an account
+         *
+         * @see https://api-docs.grvt.io/trading_api/#withdrawal-history
+         *
+         * @param {string} [$code] unified $currency $code of the $currency transferred
+         * @param {int} [$since] the earliest time in ms to fetch $transfers for (default 24 hours ago)
+         * @param {int} [$limit] the maximum number of transfer structures to retrieve (default 50, max 200)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest item
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        Async\await($this->load_markets_and_sign_in());
+        $request = array();
+        $currency = null;
+        if ($code === null) {
+            $request['currency'] = null;
+        } else {
+            $currency = $this->currency($code);
+            $request['currency'] = array( $currency['code'] );
+        }
+        if ($limit !== null) {
+            $request['limit'] = min($limit, 1000);
+        }
+        list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
+        if ($since !== null) {
+            $request['start_time'] = $this->number_to_string($since * 1000000);
+        }
+        $useTransfersEndpoint = $this->safe_bool($this->options, 'useTransfersEndpointForDepositsWithdrawals', true);
+        if ($useTransfersEndpoint) {
+            $transfers = Async\await($this->internal_fetch_transfers($this->extend($request, $params), $currency, $since, $limit));
+            $filteredResults = $this->filter_transfers_by_type($transfers, 'withdrawal', true);
+            $transactions = $this->get_list_from_object_values($filteredResults[0], 'info');
+            return $this->parse_transactions($transactions, $currency, $since, $limit);
+        } else {
+            $response = Async\await($this->privateTradingPostFullV1WithdrawalHistory($this->extend($request, $params)));
+            //
+            // {
+            //     "result" => [array(
+            //         "tx_id" => "1028403",
+            //         "from_account_id" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+            //         "to_eth_address" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+            //         "currency" => "USDT",
+            //         "num_tokens" => "1500.0",
+            //         "signature" => array(
+            //             "signer" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+            //             "r" => "0xb788d96fee91c7cdc35918e0441b756d4000ec1d07d900c73347d9abbc20acc8",
+            //             "s" => "0x3d786193125f7c29c958647da64d0e2875ece2c3f845a591bdd7dae8c475e26d",
+            //             "v" => 28,
+            //             "expiration" => "1697788800000000000",
+            //             "nonce" => 1234567890,
+            //             "chain_id" => "325"
+            //         ),
+            //         "event_time" => "1697788800000000000",
+            //         "l_1_hash" => "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+            //         "l_2_hash" => "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+            //     )],
+            //     "next" => "Qw0918="
+            // }
+            //
+            $result = $this->safe_list($response, 'result', array());
+            return $this->parse_transactions($result, $currency, $since, $limit);
+        }
     }
 
     public function internal_fetch_transfers(mixed $req, mixed $currency = null, ?int $since = null, ?int $limit = null) {
-        return Async\async(function () use ($req, $currency, $since, $limit) {
-            $response = Async\await($this->privateTradingPostFullV1TransferHistory($req));
-            //
-            //    {
-            //        "result" => array(
-            //            array(
-            //                "tx_id" => "65119836",
-            //                "from_account_id" => "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
-            //                "from_sub_account_id" => "0",
-            //                "to_account_id" => "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-            //                "to_sub_account_id" => "0",
-            //                "currency" => "USDT",
-            //                "num_tokens" => "4.998",
-            //                "signature" => array(
-            //                    "signer" => "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
-            //                    "r" => "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
-            //                    "s" => "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
-            //                    "v" => "27",
-            //                    "expiration" => "1767455807929000000",
-            //                    "nonce" => "45905",
-            //                    "chain_id" => "0"
-            //                ),
-            //                "event_time" => "1764863808817370541",
-            //                "transfer_type" => "NON_NATIVE_BRIDGE_DEPOSIT",
-            //                "transfer_metadata" => "array(\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\")"
-            //            ),
-            //            ...
-            //        ),
-            //        "next" => ""
-            //    }
-            //
-            $rows = $this->safe_list($response, 'result', array());
-            $transfers = $this->parse_transfers($rows, $currency, $since, $limit);
-            return $transfers;
-        })();
+        return Async\async(self::do_internal_fetch_transfers(...))($req, $currency, $since, $limit);
+    }
+
+    private function do_internal_fetch_transfers(mixed $req, mixed $currency = null, ?int $since = null, ?int $limit = null) {
+        $response = Async\await($this->privateTradingPostFullV1TransferHistory($req));
+        //
+        //    {
+        //        "result" => array(
+        //            array(
+        //                "tx_id" => "65119836",
+        //                "from_account_id" => "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
+        //                "from_sub_account_id" => "0",
+        //                "to_account_id" => "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "to_sub_account_id" => "0",
+        //                "currency" => "USDT",
+        //                "num_tokens" => "4.998",
+        //                "signature" => array(
+        //                    "signer" => "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
+        //                    "r" => "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
+        //                    "s" => "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
+        //                    "v" => "27",
+        //                    "expiration" => "1767455807929000000",
+        //                    "nonce" => "45905",
+        //                    "chain_id" => "0"
+        //                ),
+        //                "event_time" => "1764863808817370541",
+        //                "transfer_type" => "NON_NATIVE_BRIDGE_DEPOSIT",
+        //                "transfer_metadata" => "array(\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\")"
+        //            ),
+        //            ...
+        //        ),
+        //        "next" => ""
+        //    }
+        //
+        $rows = $this->safe_list($response, 'result', array());
+        $transfers = $this->parse_transfers($rows, $currency, $since, $limit);
+        return $transfers;
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -1703,73 +1733,75 @@ class grvt extends Exchange {
     }
 
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch a history of internal $transfers made on an account
-             *
-             * @see https://api-docs.grvt.io/trading_api/#transfer-history
-             *
-             * @param {string} $code unified $currency $code of the $currency transferred
-             * @param {int} [$since] the earliest time in ms to fetch $transfers for
-             * @param {int} [$limit] the maximum number of $transfers structures to retrieve (default 10, max 100)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->paginate] whether to $paginate the results (default false)
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
-             */
-            if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $code argument');
-            }
-            Async\await($this->load_markets_and_sign_in());
-            $request = array();
-            $currency = $this->currency($code);
-            $maxLimit = 1000;
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate', false);
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_dynamic('fetchTransfers', null, $since, $limit, $params, $maxLimit));
-            }
-            if ($limit !== null) {
-                $request['limit'] = min($limit, 1000);
-            }
-            list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
-            if ($since !== null) {
-                $request['start_time'] = $this->number_to_string($since * 1000000);
-            }
-            $response = Async\await($this->privateTradingPostFullV1TransferHistory($this->extend($request, $params)));
-            //
-            //    {
-            //        "result" => array(
-            //            array(
-            //                "tx_id" => "65119836",
-            //                "from_account_id" => "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
-            //                "from_sub_account_id" => "0",
-            //                "to_account_id" => "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-            //                "to_sub_account_id" => "0",
-            //                "currency" => "USDT",
-            //                "num_tokens" => "4.998",
-            //                "signature" => array(
-            //                    "signer" => "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
-            //                    "r" => "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
-            //                    "s" => "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
-            //                    "v" => "27",
-            //                    "expiration" => "1767455807929000000",
-            //                    "nonce" => "45905",
-            //                    "chain_id" => "0"
-            //                ),
-            //                "event_time" => "1764863808817370541",
-            //                "transfer_type" => "NON_NATIVE_BRIDGE_DEPOSIT",
-            //                "transfer_metadata" => "array(\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\")"
-            //            ),
-            //            ...
-            //        ),
-            //        "next" => ""
-            //    }
-            //
-            $rows = $this->safe_list($response, 'result', array());
-            $transfers = $this->parse_transfers($rows, $currency, $since, $limit);
-            $filteredResults = $this->filter_transfers_by_type($transfers, 'internal', false);
-            return $filteredResults[1];
-        })();
+        return Async\async(self::do_fetch_transfers(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch a history of internal $transfers made on an account
+         *
+         * @see https://api-docs.grvt.io/trading_api/#transfer-history
+         *
+         * @param {string} $code unified $currency $code of the $currency transferred
+         * @param {int} [$since] the earliest time in ms to fetch $transfers for
+         * @param {int} [$limit] the maximum number of $transfers structures to retrieve (default 10, max 100)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->paginate] whether to $paginate the results (default false)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
+         */
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $code argument');
+        }
+        Async\await($this->load_markets_and_sign_in());
+        $request = array();
+        $currency = $this->currency($code);
+        $maxLimit = 1000;
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate', false);
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_dynamic('fetchTransfers', null, $since, $limit, $params, $maxLimit));
+        }
+        if ($limit !== null) {
+            $request['limit'] = min($limit, 1000);
+        }
+        list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
+        if ($since !== null) {
+            $request['start_time'] = $this->number_to_string($since * 1000000);
+        }
+        $response = Async\await($this->privateTradingPostFullV1TransferHistory($this->extend($request, $params)));
+        //
+        //    {
+        //        "result" => array(
+        //            array(
+        //                "tx_id" => "65119836",
+        //                "from_account_id" => "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
+        //                "from_sub_account_id" => "0",
+        //                "to_account_id" => "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "to_sub_account_id" => "0",
+        //                "currency" => "USDT",
+        //                "num_tokens" => "4.998",
+        //                "signature" => array(
+        //                    "signer" => "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
+        //                    "r" => "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
+        //                    "s" => "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
+        //                    "v" => "27",
+        //                    "expiration" => "1767455807929000000",
+        //                    "nonce" => "45905",
+        //                    "chain_id" => "0"
+        //                ),
+        //                "event_time" => "1764863808817370541",
+        //                "transfer_type" => "NON_NATIVE_BRIDGE_DEPOSIT",
+        //                "transfer_metadata" => "array(\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\")"
+        //            ),
+        //            ...
+        //        ),
+        //        "next" => ""
+        //    }
+        //
+        $rows = $this->safe_list($response, 'result', array());
+        $transfers = $this->parse_transfers($rows, $currency, $since, $limit);
+        $filteredResults = $this->filter_transfers_by_type($transfers, 'internal', false);
+        return $filteredResults[1];
     }
 
     public function filter_transfers_by_type(mixed $transfers, string $transferType, $onlyMainAccount = true): mixed {
@@ -1792,67 +1824,69 @@ class grvt extends Exchange {
     }
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
-            /**
-             * transfer $currency internally between wallets on the same account
-             *
-             * @see https://api-docs.grvt.io/trading_api/#transfer_1
-             *
-             * @param {string} $code unified $currency $codeåå
-             * @param {float} $amount amount to transfer
-             * @param {string} $fromAccount account to transfer from
-             * @param {string} $toAccount account to transfer to
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
-             */
-            Async\await($this->load_markets_and_sign_in());
-            $currency = $this->currency($code);
-            $defaultFromAccountId = $this->safe_string($this->options, 'userMainAccountId');
-            if ($this->in_array($fromAccount, array( 'trading', 'funding' )) && $this->in_array($toAccount, array( 'trading', 'funding' ))) {
-                $tradingAccountId = null;
-                list($tradingAccountId, $params) = $this->handle_option_and_params($params, 'transfer', 'tradingAccountId');
-                $fundingAccountId = null;
-                list($fundingAccountId, $params) = $this->handle_option_and_params($params, 'transfer', 'fundingAccountId');
-                if ($tradingAccountId === null || $fundingAccountId === null) {
-                    throw new ArgumentsRequired($this->id . ' transfer() => you should set (in the options or $params) "tradingAccountId" and "fundingAccountId" (you can use "0" main funding account id)');
-                }
-                $fromAccount = ($fromAccount === 'trading') ? $tradingAccountId : $fundingAccountId;
-                $toAccount = ($toAccount === 'trading') ? $tradingAccountId : $fundingAccountId;
+        return Async\async(self::do_transfer(...))($code, $amount, $fromAccount, $toAccount, $params);
+    }
+
+    private function do_transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()) {
+        /**
+         * transfer $currency internally between wallets on the same account
+         *
+         * @see https://api-docs.grvt.io/trading_api/#transfer_1
+         *
+         * @param {string} $code unified $currency $codeåå
+         * @param {float} $amount amount to transfer
+         * @param {string} $fromAccount account to transfer from
+         * @param {string} $toAccount account to transfer to
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
+         */
+        Async\await($this->load_markets_and_sign_in());
+        $currency = $this->currency($code);
+        $defaultFromAccountId = $this->safe_string($this->options, 'userMainAccountId');
+        if ($this->in_array($fromAccount, array( 'trading', 'funding' )) && $this->in_array($toAccount, array( 'trading', 'funding' ))) {
+            $tradingAccountId = null;
+            list($tradingAccountId, $params) = $this->handle_option_and_params($params, 'transfer', 'tradingAccountId');
+            $fundingAccountId = null;
+            list($fundingAccountId, $params) = $this->handle_option_and_params($params, 'transfer', 'fundingAccountId');
+            if ($tradingAccountId === null || $fundingAccountId === null) {
+                throw new ArgumentsRequired($this->id . ' transfer() => you should set (in the options or $params) "tradingAccountId" and "fundingAccountId" (you can use "0" main funding account id)');
             }
-            $request = array(
-                'from_account_id' => $this->safe_string($params, 'from_account_id', $defaultFromAccountId),
-                'from_sub_account_id' => $this->safe_string($params, 'from_sub_account_id', $fromAccount),
-                'to_account_id' => $this->safe_string($params, 'to_account_id', $defaultFromAccountId),
-                'to_sub_account_id' => $this->safe_string($params, 'to_sub_account_id', $toAccount),
-                'currency' => $currency['id'],
-                'num_tokens' => $this->currency_to_precision($code, $amount),
-                'signature' => $this->default_signature(),
-                'transfer_type' => 'STANDARD',
-                'transfer_metadata' => null,
-            );
-            $request = $this->create_signed_request($request, 'EIP712_TRANSFER_TYPE', $currency);
-            $response = null;
-            try {
-                $response = Async\await($this->privateTradingPostFullV1Transfer($this->extend($request, $params)));
-            } catch (Exception $error) {
-                $msg = $this->exception_message($error);
-                $isFromFundingAccount = $fromAccount === 'funding';
-                if ($isFromFundingAccount && mb_strpos($msg, 'You are not authorized')) {
-                    throw new PermissionDenied($this->id . ' transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts => ' . $msg);
-                }
-                throw $error;
+            $fromAccount = ($fromAccount === 'trading') ? $tradingAccountId : $fundingAccountId;
+            $toAccount = ($toAccount === 'trading') ? $tradingAccountId : $fundingAccountId;
+        }
+        $request = array(
+            'from_account_id' => $this->safe_string($params, 'from_account_id', $defaultFromAccountId),
+            'from_sub_account_id' => $this->safe_string($params, 'from_sub_account_id', $fromAccount),
+            'to_account_id' => $this->safe_string($params, 'to_account_id', $defaultFromAccountId),
+            'to_sub_account_id' => $this->safe_string($params, 'to_sub_account_id', $toAccount),
+            'currency' => $currency['id'],
+            'num_tokens' => $this->currency_to_precision($code, $amount),
+            'signature' => $this->default_signature(),
+            'transfer_type' => 'STANDARD',
+            'transfer_metadata' => null,
+        );
+        $request = $this->create_signed_request($request, 'EIP712_TRANSFER_TYPE', $currency);
+        $response = null;
+        try {
+            $response = Async\await($this->privateTradingPostFullV1Transfer($this->extend($request, $params)));
+        } catch (Exception $error) {
+            $msg = $this->exception_message($error);
+            $isFromFundingAccount = $fromAccount === 'funding';
+            if ($isFromFundingAccount && mb_strpos($msg, 'You are not authorized')) {
+                throw new PermissionDenied($this->id . ' transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts => ' . $msg);
             }
-            //
-            // {
-            //     "result" => {
-            //         "ack" => "true",
-            //         "tx_id" => "1028403"
-            //     }
-            // }
-            //
-            $result = $this->safe_dict($response, 'result', array());
-            return $this->parse_transfer($result, $currency);
-        })();
+            throw $error;
+        }
+        //
+        // {
+        //     "result" => {
+        //         "ack" => "true",
+        //         "tx_id" => "1028403"
+        //     }
+        // }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_transfer($result, $currency);
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -1905,320 +1939,326 @@ class grvt extends Exchange {
     }
 
     public function load_account_infos() {
-        return Async\async(function () {
-            if ($this->safe_string($this->options, 'userMainAccountId') !== null) {
-                return false;
+        return Async\async(self::do_load_account_infos(...))();
+    }
+
+    private function do_load_account_infos() {
+        if ($this->safe_string($this->options, 'userMainAccountId') !== null) {
+            return false;
+        }
+        $promises = array();
+        $promises[] = $this->privateTradingPostFullV1AggregatedAccountSummary();
+        //
+        //     {
+        //         "result" => {
+        //             "main_account_id" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+        //             "total_equity" => "3945034.23",
+        //             "spot_balances" => [array(
+        //                 "currency" => "USDT",
+        //                 "balance" => "123456.78",
+        //                 "index_price" => "1.0000102"
+        //             )],
+        //             "vault_investments" => [array(
+        //                 "vault_id" => 123456789,
+        //                 "num_lp_tokens" => 1000000,
+        //                 "share_price" => 1000000,
+        //                 "usd_notional_invested" => 1000000
+        //             )],
+        //             "total_sub_account_balance" => "3945034.23",
+        //             "total_sub_account_equity" => "3945034.23",
+        //             "total_vault_investments_balance" => "3945034.23",
+        //             "total_sub_account_available_balance" => "3945034.23",
+        //             "total_usd_notional_invested" => "3945034.23"
+        //         }
+        //     }
+        //
+        $accountIsUndefined = $this->safe_string($this->options, 'accountId') === null;
+        if ($accountIsUndefined) {
+            $promises[] = $this->privateTradingPostFullV1GetSubAccounts();
+        }
+        //
+        //     {
+        //         "sub_account_ids" => ["4724219064482495","2095919380","1170592370"]
+        //     }
+        //
+        $responses = Async\await(Promise\all($promises));
+        $result1 = $this->safe_dict($responses[0], 'result', array());
+        $mainAccountId = $this->safe_string($result1, 'main_account_id');
+        $this->options['userMainAccountId'] = $mainAccountId;
+        if ($accountIsUndefined) {
+            $subAccountIds = $this->safe_list($responses[1], 'sub_account_ids', array());
+            $length = count($subAccountIds);
+            if ($length < 1) {
+                throw new ArgumentsRequired($this->id . ' loadAccountInfos() => no sub accounts found, you might need to create an api-key in GRVT website');
             }
-            $promises = array();
-            $promises[] = $this->privateTradingPostFullV1AggregatedAccountSummary();
-            //
-            //     {
-            //         "result" => {
-            //             "main_account_id" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-            //             "total_equity" => "3945034.23",
-            //             "spot_balances" => [array(
-            //                 "currency" => "USDT",
-            //                 "balance" => "123456.78",
-            //                 "index_price" => "1.0000102"
-            //             )],
-            //             "vault_investments" => [array(
-            //                 "vault_id" => 123456789,
-            //                 "num_lp_tokens" => 1000000,
-            //                 "share_price" => 1000000,
-            //                 "usd_notional_invested" => 1000000
-            //             )],
-            //             "total_sub_account_balance" => "3945034.23",
-            //             "total_sub_account_equity" => "3945034.23",
-            //             "total_vault_investments_balance" => "3945034.23",
-            //             "total_sub_account_available_balance" => "3945034.23",
-            //             "total_usd_notional_invested" => "3945034.23"
-            //         }
-            //     }
-            //
-            $accountIsUndefined = $this->safe_string($this->options, 'accountId') === null;
-            if ($accountIsUndefined) {
-                $promises[] = $this->privateTradingPostFullV1GetSubAccounts();
+            if ($length > 1) {
+                throw new ArgumentsRequired($this->id . ' loadAccountInfos() => multiple sub accounts found, please set the exchange.options["accountId"] to your preferred sub_account_id from this list => ' . $this->json($subAccountIds));
             }
-            //
-            //     {
-            //         "sub_account_ids" => ["4724219064482495","2095919380","1170592370"]
-            //     }
-            //
-            $responses = Async\await(Promise\all($promises));
-            $result1 = $this->safe_dict($responses[0], 'result', array());
-            $mainAccountId = $this->safe_string($result1, 'main_account_id');
-            $this->options['userMainAccountId'] = $mainAccountId;
-            if ($accountIsUndefined) {
-                $subAccountIds = $this->safe_list($responses[1], 'sub_account_ids', array());
-                $length = count($subAccountIds);
-                if ($length < 1) {
-                    throw new ArgumentsRequired($this->id . ' loadAccountInfos() => no sub accounts found, you might need to create an api-key in GRVT website');
-                }
-                if ($length > 1) {
-                    throw new ArgumentsRequired($this->id . ' loadAccountInfos() => multiple sub accounts found, please set the exchange.options["accountId"] to your preferred sub_account_id from this list => ' . $this->json($subAccountIds));
-                }
-                $subAccountId = $this->safe_string($subAccountIds, 0);
-                $this->options['accountId'] = $subAccountId;
-            }
-            return true;
-        })();
+            $subAccountId = $this->safe_string($subAccountIds, 0);
+            $this->options['accountId'] = $subAccountId;
+        }
+        return true;
     }
 
     public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
-            /**
-             * make a withdrawal
-             *
-             * @see https://api-docs.grvt.io/trading_api/#withdrawal
-             *
-             * @param {string} $code unified $currency $code
-             * @param {float} $amount the $amount to withdraw
-             * @param {string} $address the $address to withdraw to
-             * @param {string} $tag
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} $params->network the network to withdraw on (mandatory)
-             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
-             */
-            $this->check_address($address);
-            Async\await($this->load_markets_and_sign_in());
-            $defaultFromAccountId = $this->safe_string($this->options, 'userMainAccountId');
-            $currency = $this->currency($code);
-            $request = array(
-                'to_eth_address' => $address,
-                'from_account_id' => $defaultFromAccountId,
-                'currency' => $currency['id'],
-                'num_tokens' => $this->currency_to_precision($code, $amount),
-                'signature' => $this->default_signature(),
-            );
-            list($networkCode, $query) = $this->handle_network_code_and_params($params);
-            $networkId = $this->network_code_to_id($networkCode, $code);
-            if ($networkId === null) {
-                throw new BadRequest($this->id . ' withdraw() requires a network parameter');
-            }
-            $request['signature']['chain_id'] = $networkId;
-            $request = $this->create_signed_request($request, 'EIP712_WITHDRAWAL_TYPE', $currency);
-            $response = Async\await($this->privateTradingPostFullV1Withdrawal($this->extend($request, $query)));
-            //
-            // {
-            //     "result" => {
-            //         "ack" => "true"
-            //     }
-            // }
-            //
-            $result = $this->safe_dict($response, 'result', array());
-            return $this->parse_transaction($result, $currency);
-        })();
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    }
+
+    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+        /**
+         * make a withdrawal
+         *
+         * @see https://api-docs.grvt.io/trading_api/#withdrawal
+         *
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string} $tag
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} $params->network the network to withdraw on (mandatory)
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
+         */
+        $this->check_address($address);
+        Async\await($this->load_markets_and_sign_in());
+        $defaultFromAccountId = $this->safe_string($this->options, 'userMainAccountId');
+        $currency = $this->currency($code);
+        $request = array(
+            'to_eth_address' => $address,
+            'from_account_id' => $defaultFromAccountId,
+            'currency' => $currency['id'],
+            'num_tokens' => $this->currency_to_precision($code, $amount),
+            'signature' => $this->default_signature(),
+        );
+        list($networkCode, $query) = $this->handle_network_code_and_params($params);
+        $networkId = $this->network_code_to_id($networkCode, $code);
+        if ($networkId === null) {
+            throw new BadRequest($this->id . ' withdraw() requires a network parameter');
+        }
+        $request['signature']['chain_id'] = $networkId;
+        $request = $this->create_signed_request($request, 'EIP712_WITHDRAWAL_TYPE', $currency);
+        $response = Async\await($this->privateTradingPostFullV1Withdrawal($this->extend($request, $query)));
+        //
+        // {
+        //     "result" => {
+        //         "ack" => "true"
+        //     }
+        // }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_transaction($result, $currency);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * create a trade order
-             *
-             * @see https://api-docs.grvt.io/trading_api/#create-order
-             *
-             * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
-             * @param {float} [$params->stopLossPrice] The $price a stop loss order is triggered at
-             * @param {float} [$params->takeProfitPrice] The $price a take profit order is triggered at
-             * @param {string} [$params->timeInForce] "GTC", "IOC", or "POST_ONLY"
-             * @param {bool} [$params->postOnly] true or false
-             * @param {bool} [$params->reduceOnly] Ensures that the executed order does not flip the opened position.
-             * @param {string} [$params->clientOrderId] a unique id for the order
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            Async\await($this->load_markets_and_sign_in());
-            $market = $this->market($symbol);
-            $orderLeg = array(
-                'instrument' => $market['id'],
-                'size' => $this->amount_to_precision($symbol, $amount),
+        return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * create a trade order
+         *
+         * @see https://api-docs.grvt.io/trading_api/#create-order
+         *
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
+         * @param {float} [$params->stopLossPrice] The $price a stop loss order is triggered at
+         * @param {float} [$params->takeProfitPrice] The $price a take profit order is triggered at
+         * @param {string} [$params->timeInForce] "GTC", "IOC", or "POST_ONLY"
+         * @param {bool} [$params->postOnly] true or false
+         * @param {bool} [$params->reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {string} [$params->clientOrderId] a unique id for the order
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        Async\await($this->load_markets_and_sign_in());
+        $market = $this->market($symbol);
+        $orderLeg = array(
+            'instrument' => $market['id'],
+            'size' => $this->amount_to_precision($symbol, $amount),
+        );
+        if ($price !== null) {
+            $orderLeg['limit_price'] = $this->price_to_precision($symbol, $price);
+        } else {
+            $orderLeg['limit_price'] = null;
+        }
+        if ($side === 'sell') {
+            $orderLeg['is_buying_asset'] = false;
+        } elseif ($side === 'buy') {
+            $orderLeg['is_buying_asset'] = true;
+        } else {
+            throw new InvalidOrder($this->id . ' createOrder() => order $side must be either "buy" or "sell"');
+        }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId === null) {
+            $clientOrderId = (string) $this->nonce() . '000' . (string) $this->request_id();
+        }
+        $params = $this->omit($params, array( 'clientOrderId' ));
+        $isMarketOrder = ($type === 'market');
+        $subAccountId = $this->get_sub_account_id($params);
+        $isReduceOnly = $this->safe_bool($params, 'reduceOnly', false);
+        $orderRequest = array(
+            'sub_account_id' => $subAccountId,
+            'time_in_force' => null,
+            'legs' => array( $orderLeg ),
+            'signature' => $this->default_signature(),
+            'metadata' => array(
+                'client_order_id' => $clientOrderId,
+            ),
+            'is_market' => $isMarketOrder,
+            'post_only' => false,
+            'reduce_only' => $isReduceOnly,
+            // 'order_id' => null,
+            // 'state' => null,
+        );
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce', 'GOOD_TILL_TIME');
+        $postOnly = $this->is_post_only($isMarketOrder, null, $params);
+        if ($postOnly) {
+            $orderRequest['post_only'] = true;
+        }
+        if ($timeInForce === null) {
+            $timeInForce = 'GOOD_TILL_TIME';
+        } else {
+            $tifMap = array(
+                'GTC' => 'GOOD_TILL_TIME',
+                'FOK' => 'FILL_OR_KILL', // tbd => why not 'ALL_OR_NONE'
+                'IOC' => 'IMMEDIATE_OR_CANCEL',
             );
-            if ($price !== null) {
-                $orderLeg['limit_price'] = $this->price_to_precision($symbol, $price);
-            } else {
-                $orderLeg['limit_price'] = null;
-            }
-            if ($side === 'sell') {
-                $orderLeg['is_buying_asset'] = false;
-            } elseif ($side === 'buy') {
-                $orderLeg['is_buying_asset'] = true;
-            } else {
-                throw new InvalidOrder($this->id . ' createOrder() => order $side must be either "buy" or "sell"');
-            }
-            $clientOrderId = $this->safe_string($params, 'clientOrderId');
-            if ($clientOrderId === null) {
-                $clientOrderId = (string) $this->nonce() . '000' . (string) $this->request_id();
-            }
-            $params = $this->omit($params, array( 'clientOrderId' ));
-            $isMarketOrder = ($type === 'market');
-            $subAccountId = $this->get_sub_account_id($params);
-            $isReduceOnly = $this->safe_bool($params, 'reduceOnly', false);
-            $orderRequest = array(
-                'sub_account_id' => $subAccountId,
-                'time_in_force' => null,
-                'legs' => array( $orderLeg ),
-                'signature' => $this->default_signature(),
-                'metadata' => array(
-                    'client_order_id' => $clientOrderId,
-                ),
-                'is_market' => $isMarketOrder,
-                'post_only' => false,
-                'reduce_only' => $isReduceOnly,
-                // 'order_id' => null,
-                // 'state' => null,
-            );
-            $timeInForce = $this->safe_string_upper($params, 'timeInForce', 'GOOD_TILL_TIME');
-            $postOnly = $this->is_post_only($isMarketOrder, null, $params);
+            $timeInForce = $this->safe_string($tifMap, $timeInForce, $timeInForce);
+        }
+        $orderRequest['time_in_force'] = $timeInForce;
+        if (!$isMarketOrder) {
             if ($postOnly) {
-                $orderRequest['post_only'] = true;
+                $timeInForce = 'POST_ONLY';
+            } elseif ($timeInForce === 'ioc') {
+                $timeInForce = 'IMMEDIATE_OR_CANCEL';
             }
-            if ($timeInForce === null) {
-                $timeInForce = 'GOOD_TILL_TIME';
+        }
+        $params = $this->omit($params, array( 'reduceOnly', 'postOnly', 'timeInForce' ));
+        // Trigger & SL & TP
+        $triggerPrice = null;
+        $stopLossPrice = null;
+        $takeProfitPrice = null;
+        list($triggerPrice, $stopLossPrice, $takeProfitPrice, $params) = $this->handle_trigger_prices_and_params($symbol, $params);
+        if ($triggerPrice !== null || $stopLossPrice !== null || $takeProfitPrice !== null) {
+            // trigger $price
+            $selectedPrice = null;
+            if ($triggerPrice !== null) {
+                $selectedPrice = $triggerPrice;
+            } elseif ($stopLossPrice !== null) {
+                $selectedPrice = $stopLossPrice;
+            } elseif ($takeProfitPrice !== null) {
+                $selectedPrice = $takeProfitPrice;
+            }
+            // trigger $type
+            $selectedType = null;
+            $isBuy = ($side === 'buy');
+            if ($stopLossPrice !== null) {
+                $selectedType = $isBuy ? 'STOP_LOSS' : 'TAKE_PROFIT';
+            } elseif ($takeProfitPrice !== null) {
+                $selectedType = $isBuy ? 'TAKE_PROFIT' : 'STOP_LOSS';
             } else {
-                $tifMap = array(
-                    'GTC' => 'GOOD_TILL_TIME',
-                    'FOK' => 'FILL_OR_KILL', // tbd => why not 'ALL_OR_NONE'
-                    'IOC' => 'IMMEDIATE_OR_CANCEL',
-                );
-                $timeInForce = $this->safe_string($tifMap, $timeInForce, $timeInForce);
-            }
-            $orderRequest['time_in_force'] = $timeInForce;
-            if (!$isMarketOrder) {
-                if ($postOnly) {
-                    $timeInForce = 'POST_ONLY';
-                } elseif ($timeInForce === 'ioc') {
-                    $timeInForce = 'IMMEDIATE_OR_CANCEL';
+                $triggerDirection = $this->safe_string($params, 'triggerDirection');
+                if ($triggerDirection === null) {
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerDirection parameter when $triggerPrice is specified, must be "ascending" or "descending"');
                 }
-            }
-            $params = $this->omit($params, array( 'reduceOnly', 'postOnly', 'timeInForce' ));
-            // Trigger & SL & TP
-            $triggerPrice = null;
-            $stopLossPrice = null;
-            $takeProfitPrice = null;
-            list($triggerPrice, $stopLossPrice, $takeProfitPrice, $params) = $this->handle_trigger_prices_and_params($symbol, $params);
-            if ($triggerPrice !== null || $stopLossPrice !== null || $takeProfitPrice !== null) {
-                // trigger $price
-                $selectedPrice = null;
-                if ($triggerPrice !== null) {
-                    $selectedPrice = $triggerPrice;
-                } elseif ($stopLossPrice !== null) {
-                    $selectedPrice = $stopLossPrice;
-                } elseif ($takeProfitPrice !== null) {
-                    $selectedPrice = $takeProfitPrice;
-                }
-                // trigger $type
-                $selectedType = null;
-                $isBuy = ($side === 'buy');
-                if ($stopLossPrice !== null) {
-                    $selectedType = $isBuy ? 'STOP_LOSS' : 'TAKE_PROFIT';
-                } elseif ($takeProfitPrice !== null) {
-                    $selectedType = $isBuy ? 'TAKE_PROFIT' : 'STOP_LOSS';
-                } else {
-                    $triggerDirection = $this->safe_string($params, 'triggerDirection');
-                    if ($triggerDirection === null) {
-                        throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerDirection parameter when $triggerPrice is specified, must be "ascending" or "descending"');
-                    }
-                    if ($triggerDirection !== null) {
-                        if ($triggerDirection === 'ascending') {
-                            $selectedType = $isBuy ? 'STOP_LOSS' : 'TAKE_PROFIT';
-                        } elseif ($triggerDirection === 'descending') {
-                            $selectedType = $isBuy ? 'TAKE_PROFIT' : 'STOP_LOSS';
-                        }
+                if ($triggerDirection !== null) {
+                    if ($triggerDirection === 'ascending') {
+                        $selectedType = $isBuy ? 'STOP_LOSS' : 'TAKE_PROFIT';
+                    } elseif ($triggerDirection === 'descending') {
+                        $selectedType = $isBuy ? 'TAKE_PROFIT' : 'STOP_LOSS';
                     }
                 }
-                // trigger by
-                $triggerPriceType = $this->safe_string_upper($params, 'triggerPriceType', 'LAST');
-                $orderRequest['metadata']['trigger'] = array(
-                    'trigger_type' => $selectedType,
-                    'tpsl' => array(
-                        'trigger_by' => $triggerPriceType,
-                        'trigger_price' => $selectedPrice,
-                        'close_position' => $this->safe_bool($params, 'closePosition', false),
-                    ),
-                );
-                $params = $this->omit($params, array( 'triggerDirection', 'triggerPriceType', 'closePosition' ));
             }
-            $eipType = 'EIP712_ORDER_TYPE';
-            $builderFee = $this->safe_bool($params, 'builderFee', $this->safe_bool($this->options, 'builderFee', true));
-            if ($builderFee) {
-                $eipType = 'EIP712_ORDER_WITH_BUILDER_TYPE';
-                $orderRequest['builder'] = $this->safe_string($this->options, 'builder');
-                $orderRequest['builder_fee'] = $this->safe_string($this->options, 'builderRate');
-            }
-            $params = $this->omit($params, array( 'builderFee' ));
-            $signedOrderRequest = $this->create_signed_request($orderRequest, $eipType);
-            $request = array(
-                'order' => $signedOrderRequest,
+            // trigger by
+            $triggerPriceType = $this->safe_string_upper($params, 'triggerPriceType', 'LAST');
+            $orderRequest['metadata']['trigger'] = array(
+                'trigger_type' => $selectedType,
+                'tpsl' => array(
+                    'trigger_by' => $triggerPriceType,
+                    'trigger_price' => $selectedPrice,
+                    'close_position' => $this->safe_bool($params, 'closePosition', false),
+                ),
             );
-            $response = Async\await($this->privateTradingPostFullV1CreateOrder($this->extend($request, $params)));
-            //
-            //    {
-            //        "result" => {
-            //            "order_id" => "0x00",
-            //            "sub_account_id" => "2147050003876484",
-            //            "is_market" => false,
-            //            "time_in_force" => "GOOD_TILL_TIME",
-            //            "post_only" => false,
-            //            "reduce_only" => false,
-            //            "legs" => array(
-            //                {
-            //                    "instrument" => "BTC_USDT_Perp",
-            //                    "size" => "0.001",
-            //                    "limit_price" => "50000.0",
-            //                    "is_buying_asset" => true
-            //                }
-            //            ),
-            //            "signature" => array(
-            //                "signer" => "0xbf465e6083a43b170791ea29393f60...",
-            //                "r" => "0x161826bc2fc43e07b4c1e4aeb01b3e58901f936af10b399e...",
-            //                "s" => "0x1b6d09609430ef73cb53dd87dbe73939824409296b3673719...",
-            //                "v" => 27,
-            //                "expiration" => "1766076771082000000",
-            //                "nonce" => 1766076671,
-            //                "chain_id" => "0"
-            //            ),
-            //            "metadata" => {
-            //                "client_order_id" => "1766076671",
-            //                "create_time" => "1766076671243762741",
-            //                "trigger" => array(
-            //                    "trigger_type" => "UNSPECIFIED",
-            //                    "tpsl" => array(
-            //                        "trigger_by" => "UNSPECIFIED",
-            //                        "trigger_price" => "0.0",
-            //                        "close_position" => false
-            //                    }
-            //                ),
-            //                "broker" => "UNSPECIFIED",
-            //                "is_position_transfer" => false,
-            //                "allow_crossing" => false
-            //            ),
-            //            "state" => array(
-            //                "status" => "PENDING",
-            //                "reject_reason" => "UNSPECIFIED",
-            //                "book_size" => array(
-            //                    "0.001"
-            //                ),
-            //                "traded_size" => array(
-            //                    "0.0"
-            //                ),
-            //                "update_time" => "1766076671243762741",
-            //                "avg_fill_price" => array(
-            //                    "0.0"
-            //                )
-            //            ),
-            //            "builder" => "0x00",
-            //            "builder_fee" => "0.0"
-            //        }
-            //    }
-            //
-            $data = $this->safe_dict($response, 'result', array());
-            return $this->parse_order($data, $market);
-        })();
+            $params = $this->omit($params, array( 'triggerDirection', 'triggerPriceType', 'closePosition' ));
+        }
+        $eipType = 'EIP712_ORDER_TYPE';
+        $builderFee = $this->safe_bool($params, 'builderFee', $this->safe_bool($this->options, 'builderFee', true));
+        if ($builderFee) {
+            $eipType = 'EIP712_ORDER_WITH_BUILDER_TYPE';
+            $orderRequest['builder'] = $this->safe_string($this->options, 'builder');
+            $orderRequest['builder_fee'] = $this->safe_string($this->options, 'builderRate');
+        }
+        $params = $this->omit($params, array( 'builderFee' ));
+        $signedOrderRequest = $this->create_signed_request($orderRequest, $eipType);
+        $request = array(
+            'order' => $signedOrderRequest,
+        );
+        $response = Async\await($this->privateTradingPostFullV1CreateOrder($this->extend($request, $params)));
+        //
+        //    {
+        //        "result" => {
+        //            "order_id" => "0x00",
+        //            "sub_account_id" => "2147050003876484",
+        //            "is_market" => false,
+        //            "time_in_force" => "GOOD_TILL_TIME",
+        //            "post_only" => false,
+        //            "reduce_only" => false,
+        //            "legs" => array(
+        //                {
+        //                    "instrument" => "BTC_USDT_Perp",
+        //                    "size" => "0.001",
+        //                    "limit_price" => "50000.0",
+        //                    "is_buying_asset" => true
+        //                }
+        //            ),
+        //            "signature" => array(
+        //                "signer" => "0xbf465e6083a43b170791ea29393f60...",
+        //                "r" => "0x161826bc2fc43e07b4c1e4aeb01b3e58901f936af10b399e...",
+        //                "s" => "0x1b6d09609430ef73cb53dd87dbe73939824409296b3673719...",
+        //                "v" => 27,
+        //                "expiration" => "1766076771082000000",
+        //                "nonce" => 1766076671,
+        //                "chain_id" => "0"
+        //            ),
+        //            "metadata" => {
+        //                "client_order_id" => "1766076671",
+        //                "create_time" => "1766076671243762741",
+        //                "trigger" => array(
+        //                    "trigger_type" => "UNSPECIFIED",
+        //                    "tpsl" => array(
+        //                        "trigger_by" => "UNSPECIFIED",
+        //                        "trigger_price" => "0.0",
+        //                        "close_position" => false
+        //                    }
+        //                ),
+        //                "broker" => "UNSPECIFIED",
+        //                "is_position_transfer" => false,
+        //                "allow_crossing" => false
+        //            ),
+        //            "state" => array(
+        //                "status" => "PENDING",
+        //                "reject_reason" => "UNSPECIFIED",
+        //                "book_size" => array(
+        //                    "0.001"
+        //                ),
+        //                "traded_size" => array(
+        //                    "0.0"
+        //                ),
+        //                "update_time" => "1766076671243762741",
+        //                "avg_fill_price" => array(
+        //                    "0.0"
+        //                )
+        //            ),
+        //            "builder" => "0x00",
+        //            "builder_fee" => "0.0"
+        //        }
+        //    }
+        //
+        $data = $this->safe_dict($response, 'result', array());
+        return $this->parse_order($data, $market);
     }
 
     public function convert_to_big_int_custom(mixed $x) {
@@ -2280,139 +2320,143 @@ class grvt extends Exchange {
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetch all trades made by the user
-             *
-             * @see https://api-docs.grvt.io/trading_api/#fill-history
-             *
-             * @param {string} [$symbol] unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest item
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            Async\await($this->load_markets_and_sign_in());
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params));
-            }
-            $request = array(
-                'sub_account_id' => $this->get_sub_account_id($params),
-            );
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['base'] = array();
-                $request['base'][] = $market['baseId'];
-                $request['quote'] = array();
-                $request['quote'][] = $market['quoteId'];
-            }
-            if ($limit !== null) {
-                $request['limit'] = min($limit, 1000);
-            }
-            list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
-            if ($since !== null) {
-                $request['start_time'] = $this->number_to_string($since * 1000000);
-            }
-            $response = Async\await($this->privateTradingPostFullV1FillHistory($this->extend($request, $params)));
-            //
-            //    {
-            //        "result" => array(
-            //            array(
-            //                "event_time" => "1764945709702747558",
-            //                "sub_account_id" => "2147050003876484",
-            //                "instrument" => "BTC_USDT_Perp",
-            //                "is_buyer" => true,
-            //                "is_taker" => false,
-            //                "size" => "0.001",
-            //                "price" => "90000.0",
-            //                "mark_price" => "90050.164063298",
-            //                "index_price" => "90089.803654938",
-            //                "interest_rate" => "0.0",
-            //                "forward_price" => "0.0",
-            //                "realized_pnl" => "0.0",
-            //                "fee" => "-0.00009",
-            //                "fee_rate" => "0.0",
-            //                "trade_id" => "65424692-2",
-            //                "order_id" => "0x01010105034cddc7000000006621285c",
-            //                "venue" => "ORDERBOOK",
-            //                "client_order_id" => "1375879248",
-            //                "signer" => "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-            //                "broker" => "UNSPECIFIED",
-            //                "is_rpi" => false
-            //            ),
-            //            ...
-            //        ),
-            //        "next" => ""
-            //    }
-            //
-            $result = $this->safe_list($response, 'result', array());
-            return $this->parse_trades($result, null, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all trades made by the user
+         *
+         * @see https://api-docs.grvt.io/trading_api/#fill-history
+         *
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest item
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        Async\await($this->load_markets_and_sign_in());
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params));
+        }
+        $request = array(
+            'sub_account_id' => $this->get_sub_account_id($params),
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['base'] = array();
+            $request['base'][] = $market['baseId'];
+            $request['quote'] = array();
+            $request['quote'][] = $market['quoteId'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = min($limit, 1000);
+        }
+        list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
+        if ($since !== null) {
+            $request['start_time'] = $this->number_to_string($since * 1000000);
+        }
+        $response = Async\await($this->privateTradingPostFullV1FillHistory($this->extend($request, $params)));
+        //
+        //    {
+        //        "result" => array(
+        //            array(
+        //                "event_time" => "1764945709702747558",
+        //                "sub_account_id" => "2147050003876484",
+        //                "instrument" => "BTC_USDT_Perp",
+        //                "is_buyer" => true,
+        //                "is_taker" => false,
+        //                "size" => "0.001",
+        //                "price" => "90000.0",
+        //                "mark_price" => "90050.164063298",
+        //                "index_price" => "90089.803654938",
+        //                "interest_rate" => "0.0",
+        //                "forward_price" => "0.0",
+        //                "realized_pnl" => "0.0",
+        //                "fee" => "-0.00009",
+        //                "fee_rate" => "0.0",
+        //                "trade_id" => "65424692-2",
+        //                "order_id" => "0x01010105034cddc7000000006621285c",
+        //                "venue" => "ORDERBOOK",
+        //                "client_order_id" => "1375879248",
+        //                "signer" => "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "broker" => "UNSPECIFIED",
+        //                "is_rpi" => false
+        //            ),
+        //            ...
+        //        ),
+        //        "next" => ""
+        //    }
+        //
+        $result = $this->safe_list($response, 'result', array());
+        return $this->parse_trades($result, null, $since, $limit);
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetch all open positions
-             *
-             * @see https://api-docs.grvt.io/trading_api/#positions-$request
-             *
-             * @param {string[]|null} $symbols list of unified $market $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
-             */
-            Async\await($this->load_markets_and_sign_in());
-            $request = array(
-                'sub_account_id' => $this->get_sub_account_id($params),
-            );
-            if ($symbols !== null) {
-                $symbols = $this->market_symbols($symbols);
-                $request['base'] = array();
-                $request['quote'] = array();
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $symbol = $symbols[$i];
-                    $market = $this->market($symbol);
-                    if ($market['contract'] !== true) {
-                        throw new BadRequest($this->id . ' fetchPositions() supports contract markets only');
-                    }
-                    $request['base'][] = $market['baseId'];
-                    $request['quote'][] = $market['quoteId'];
+        return Async\async(self::do_fetch_positions(...))($symbols, $params);
+    }
+
+    private function do_fetch_positions(?array $symbols = null, $params = array()) {
+        /**
+         * fetch all open positions
+         *
+         * @see https://api-docs.grvt.io/trading_api/#positions-$request
+         *
+         * @param {string[]|null} $symbols list of unified $market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
+         */
+        Async\await($this->load_markets_and_sign_in());
+        $request = array(
+            'sub_account_id' => $this->get_sub_account_id($params),
+        );
+        if ($symbols !== null) {
+            $symbols = $this->market_symbols($symbols);
+            $request['base'] = array();
+            $request['quote'] = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $market = $this->market($symbol);
+                if ($market['contract'] !== true) {
+                    throw new BadRequest($this->id . ' fetchPositions() supports contract markets only');
                 }
+                $request['base'][] = $market['baseId'];
+                $request['quote'][] = $market['quoteId'];
             }
-            $response = Async\await($this->privateTradingPostFullV1Positions($this->extend($request, $params)));
-            //
-            //    {
-            //        "result" => array(
-            //            {
-            //                "event_time" => "1765258069092857642",
-            //                "sub_account_id" => "2147050003876484",
-            //                "instrument" => "BTC_USDT_Perp",
-            //                "size" => "0.001",
-            //                "notional" => "89.8169",
-            //                "entry_price" => "90000.0",
-            //                "exit_price" => "0.0",
-            //                "mark_price" => "89816.900008979",
-            //                "unrealized_pnl" => "-0.183099",
-            //                "realized_pnl" => "0.0",
-            //                "total_pnl" => "-0.183099",
-            //                "roi" => "-0.2034",
-            //                "quote_index_price" => "1.00017885",
-            //                "est_liquidation_price" => "77951.450008979",
-            //                "leverage" => "28.0",
-            //                "cumulative_fee" => "-0.00009",
-            //                "cumulative_realized_funding_payment" => "0.033862"
-            //            }
-            //        )
-            //    }
-            //
-            $result = $this->safe_list($response, 'result', array());
-            return $this->parse_positions($result, $symbols);
-        })();
+        }
+        $response = Async\await($this->privateTradingPostFullV1Positions($this->extend($request, $params)));
+        //
+        //    {
+        //        "result" => array(
+        //            {
+        //                "event_time" => "1765258069092857642",
+        //                "sub_account_id" => "2147050003876484",
+        //                "instrument" => "BTC_USDT_Perp",
+        //                "size" => "0.001",
+        //                "notional" => "89.8169",
+        //                "entry_price" => "90000.0",
+        //                "exit_price" => "0.0",
+        //                "mark_price" => "89816.900008979",
+        //                "unrealized_pnl" => "-0.183099",
+        //                "realized_pnl" => "0.0",
+        //                "total_pnl" => "-0.183099",
+        //                "roi" => "-0.2034",
+        //                "quote_index_price" => "1.00017885",
+        //                "est_liquidation_price" => "77951.450008979",
+        //                "leverage" => "28.0",
+        //                "cumulative_fee" => "-0.00009",
+        //                "cumulative_realized_funding_payment" => "0.033862"
+        //            }
+        //        )
+        //    }
+        //
+        $result = $this->safe_list($response, 'result', array());
+        return $this->parse_positions($result, $symbols);
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -2474,67 +2518,71 @@ class grvt extends Exchange {
     }
 
     public function fetch_leverages(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetch the set leverage for all contract markets
-             *
-             * @see https://api-docs.grvt.io/trading_api/#get-all-initial-leverage
-             *
-             * @param {string[]} [$symbols] a list of unified market $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a list of ~@link https://docs.ccxt.com/?id=leverage-structure leverage structures~
-             */
-            Async\await($this->load_markets_and_sign_in());
-            $request = array(
-                'sub_account_id' => $this->get_sub_account_id($params),
-            );
-            $response = Async\await($this->privateTradingPostFullV1GetAllInitialLeverage($this->extend($request, $params)));
-            //
-            //    {
-            //        "results" => [
-            //            array(
-            //                "instrument" => "AAVE_USDT_Perp",
-            //                "leverage" => "10.0",
-            //                "min_leverage" => "1.0",
-            //                "max_leverage" => "50.0",
-            //                "margin_type" => "CROSS"
-            //            ),
-            //
-            $results = $this->safe_list($response, 'results', array());
-            return $this->parse_leverages($results, $symbols);
-        })();
+        return Async\async(self::do_fetch_leverages(...))($symbols, $params);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($leverage, $symbol, $params) {
-            /**
-             * set the level of $leverage for a $market
-             *
-             * @see https://api-docs.grvt.io/trading_api/#set-initial-$leverage
-             *
-             * @param {float} $leverage the rate of $leverage
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} $response from the exchange
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
-            }
-            Async\await($this->load_markets_and_sign_in());
-            $market = $this->market($symbol);
-            $request = array(
-                'sub_account_id' => $this->get_sub_account_id($params),
-                'instrument' => $market['id'],
-                'leverage' => $this->number_to_string($leverage),
-            );
-            $response = Async\await($this->privateTradingPostFullV1SetInitialLeverage($this->extend($request, $params)));
-            //
-            //    {
-            //        "success" => true
-            //    }
-            //
-            return $this->parse_leverage($response, $market);
-        })();
+    private function do_fetch_leverages(?array $symbols = null, $params = array()) {
+        /**
+         * fetch the set leverage for all contract markets
+         *
+         * @see https://api-docs.grvt.io/trading_api/#get-all-initial-leverage
+         *
+         * @param {string[]} [$symbols] a list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=leverage-structure leverage structures~
+         */
+        Async\await($this->load_markets_and_sign_in());
+        $request = array(
+            'sub_account_id' => $this->get_sub_account_id($params),
+        );
+        $response = Async\await($this->privateTradingPostFullV1GetAllInitialLeverage($this->extend($request, $params)));
+        //
+        //    {
+        //        "results" => [
+        //            array(
+        //                "instrument" => "AAVE_USDT_Perp",
+        //                "leverage" => "10.0",
+        //                "min_leverage" => "1.0",
+        //                "max_leverage" => "50.0",
+        //                "margin_type" => "CROSS"
+        //            ),
+        //
+        $results = $this->safe_list($response, 'results', array());
+        return $this->parse_leverages($results, $symbols);
+    }
+
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_set_leverage(...))($leverage, $symbol, $params);
+    }
+
+    private function do_set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+        /**
+         * set the level of $leverage for a $market
+         *
+         * @see https://api-docs.grvt.io/trading_api/#set-initial-$leverage
+         *
+         * @param {float} $leverage the rate of $leverage
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} $response from the exchange
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        Async\await($this->load_markets_and_sign_in());
+        $market = $this->market($symbol);
+        $request = array(
+            'sub_account_id' => $this->get_sub_account_id($params),
+            'instrument' => $market['id'],
+            'leverage' => $this->number_to_string($leverage),
+        );
+        $response = Async\await($this->privateTradingPostFullV1SetInitialLeverage($this->extend($request, $params)));
+        //
+        //    {
+        //        "success" => true
+        //    }
+        //
+        return $this->parse_leverage($response, $market);
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
@@ -2568,35 +2616,37 @@ class grvt extends Exchange {
     }
 
     public function fetch_margin_modes(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetches margin mode of the user
-             *
-             * @see https://api-docs.grvt.io/trading_api/#get-all-initial-leverage
-             *
-             * @param {string[]} $symbols unified market $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a list of ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structures~
-             */
-            Async\await($this->load_markets_and_sign_in());
-            $request = array(
-                'sub_account_id' => $this->get_sub_account_id($params),
-            );
-            $response = Async\await($this->privateTradingPostFullV1GetAllInitialLeverage($this->extend($request, $params)));
-            //
-            //    {
-            //        "results" => [
-            //            array(
-            //                "instrument" => "AAVE_USDT_Perp",
-            //                "leverage" => "10.0",
-            //                "min_leverage" => "1.0",
-            //                "max_leverage" => "50.0",
-            //                "margin_type" => "CROSS"
-            //            ),
-            //
-            $results = $this->safe_list($response, 'results', array());
-            return $this->parse_leverages($results, $symbols);
-        })();
+        return Async\async(self::do_fetch_margin_modes(...))($symbols, $params);
+    }
+
+    private function do_fetch_margin_modes(?array $symbols = null, $params = array()) {
+        /**
+         * fetches margin mode of the user
+         *
+         * @see https://api-docs.grvt.io/trading_api/#get-all-initial-leverage
+         *
+         * @param {string[]} $symbols unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structures~
+         */
+        Async\await($this->load_markets_and_sign_in());
+        $request = array(
+            'sub_account_id' => $this->get_sub_account_id($params),
+        );
+        $response = Async\await($this->privateTradingPostFullV1GetAllInitialLeverage($this->extend($request, $params)));
+        //
+        //    {
+        //        "results" => [
+        //            array(
+        //                "instrument" => "AAVE_USDT_Perp",
+        //                "leverage" => "10.0",
+        //                "min_leverage" => "1.0",
+        //                "max_leverage" => "50.0",
+        //                "margin_type" => "CROSS"
+        //            ),
+        //
+        $results = $this->safe_list($response, 'results', array());
+        return $this->parse_leverages($results, $symbols);
     }
 
     public function parse_margin_mode(array $marginMode, ?array $market = null): array {
@@ -2620,64 +2670,66 @@ class grvt extends Exchange {
     }
 
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetch the history of funding payments paid and received on this account
-             *
-             * @see https://api-docs.grvt.io/trading_api/#funding-payment-history
-             *
-             * @param {string} [$symbol] unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch funding history for
-             * @param {int} [$limit] the maximum number of funding history structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest item
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
-             */
-            Async\await($this->load_markets_and_sign_in());
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_dynamic('fetchFundingHistory', $symbol, $since, $limit, $params, 1000));
-            }
-            $request = array(
-                'sub_account_id' => $this->get_sub_account_id($params),
-            );
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['base'] = array();
-                $request['base'][] = $market['baseId'];
-                $request['quote'] = array();
-                $request['quote'][] = $market['quoteId'];
-            }
-            if ($limit !== null) {
-                $request['limit'] = min($limit, 1000);
-            }
-            list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
-            if ($since !== null) {
-                $request['start_time'] = $this->number_to_string($since * 1000000);
-            }
-            $response = Async\await($this->privateTradingPostFullV1FundingPaymentHistory($this->extend($request, $params)));
-            //
-            //    {
-            //        "result" => array(
-            //            array(
-            //                "event_time" => "1765267200004987902",
-            //                "sub_account_id" => "2147050003876484",
-            //                "instrument" => "BTC_USDT_Perp",
-            //                "currency" => "USDT",
-            //                "amount" => "-0.004522",
-            //                "tx_id" => "66625184"
-            //            ),
-            //            ..
-            //        ),
-            //        "next" => ""
-            //    }
-            //
-            $result = $this->safe_list($response, 'result', array());
-            return $this->parse_incomes($result, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_funding_history(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch the history of funding payments paid and received on this account
+         *
+         * @see https://api-docs.grvt.io/trading_api/#funding-payment-history
+         *
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch funding history for
+         * @param {int} [$limit] the maximum number of funding history structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest item
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
+         */
+        Async\await($this->load_markets_and_sign_in());
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_dynamic('fetchFundingHistory', $symbol, $since, $limit, $params, 1000));
+        }
+        $request = array(
+            'sub_account_id' => $this->get_sub_account_id($params),
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['base'] = array();
+            $request['base'][] = $market['baseId'];
+            $request['quote'] = array();
+            $request['quote'][] = $market['quoteId'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = min($limit, 1000);
+        }
+        list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
+        if ($since !== null) {
+            $request['start_time'] = $this->number_to_string($since * 1000000);
+        }
+        $response = Async\await($this->privateTradingPostFullV1FundingPaymentHistory($this->extend($request, $params)));
+        //
+        //    {
+        //        "result" => array(
+        //            array(
+        //                "event_time" => "1765267200004987902",
+        //                "sub_account_id" => "2147050003876484",
+        //                "instrument" => "BTC_USDT_Perp",
+        //                "currency" => "USDT",
+        //                "amount" => "-0.004522",
+        //                "tx_id" => "66625184"
+        //            ),
+        //            ..
+        //        ),
+        //        "next" => ""
+        //    }
+        //
+        $result = $this->safe_list($response, 'result', array());
+        return $this->parse_incomes($result, $market, $since, $limit);
     }
 
     public function parse_income(mixed $income, ?array $market = null) {
@@ -2706,277 +2758,283 @@ class grvt extends Exchange {
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple orders made by the user
-             *
-             * @see https://api-docs.grvt.io/trading_api/#order-history
-             *
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest item
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            Async\await($this->load_markets_and_sign_in());
-            $subAccountId = $this->get_sub_account_id($params);
-            $request = array(
-                'sub_account_id' => $subAccountId,
-            );
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['base'] = array();
-                $request['base'][] = $market['baseId'];
-                $request['quote'] = array();
-                $request['quote'][] = $market['quoteId'];
-            }
-            if ($limit !== null) {
-                $request['limit'] = min($limit, 1000);
-            }
-            list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
-            if ($since !== null) {
-                $request['start_time'] = $this->number_to_string($since * 1000000);
-            }
-            $response = Async\await($this->privateTradingPostFullV1OrderHistory($this->extend($request, $params)));
-            //
-            //    {
-            //        "result" => array(
-            //            {
-            //                "order_id" => "0x01010105034cddc7000000006621285c",
-            //                "sub_account_id" => "2147050003876484",
-            //                "is_market" => false,
-            //                "time_in_force" => "GOOD_TILL_TIME",
-            //                "post_only" => false,
-            //                "reduce_only" => false,
-            //                "legs" => array(
-            //                    {
-            //                        "instrument" => "BTC_USDT_Perp",
-            //                        "size" => "0.001",
-            //                        "limit_price" => "90000.0",
-            //                        "is_buying_asset" => true
-            //                    }
-            //                ),
-            //                "signature" => array(
-            //                    "signer" => "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-            //                    "r" => "0x2d567b0a04525baf0bbd792db3bb3a28c1bcc5e95936f6dc2515a28ad8529313",
-            //                    "s" => "0x0bc2468d96c819c8de005aa7bebfb58eecb34dd7a1bae1e81e74c7b8bc4cddc7",
-            //                    "v" => "27",
-            //                    "expiration" => "1767455222801000000",
-            //                    "nonce" => "1375879248",
-            //                    "chain_id" => "0"
-            //                ),
-            //                "metadata" => {
-            //                    "client_order_id" => "1375879248",
-            //                    "create_time" => "1764863234474424590",
-            //                    "trigger" => array(
-            //                        "trigger_type" => "UNSPECIFIED",
-            //                        "tpsl" => array(
-            //                            "trigger_by" => "UNSPECIFIED",
-            //                            "trigger_price" => "0.0",
-            //                            "close_position" => false
-            //                        }
-            //                    ),
-            //                    "broker" => "UNSPECIFIED",
-            //                    "is_position_transfer" => false,
-            //                    "allow_crossing" => false
-            //                ),
-            //                "state" => array(
-            //                    "status" => "FILLED",
-            //                    "reject_reason" => "UNSPECIFIED",
-            //                    "book_size" => array(
-            //                        "0.0"
-            //                    ),
-            //                    "traded_size" => array(
-            //                        "0.001"
-            //                    ),
-            //                    "update_time" => "1764945709704912003",
-            //                    "avg_fill_price" => array(
-            //                        "90000.0"
-            //                    )
-            //                }
-            //            ),
-            //            ...
-            //        ),
-            //        "next" => ""
-            //    }
-            //
-            $result = $this->safe_list($response, 'result', array());
-            return $this->parse_orders($result, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple orders made by the user
+         *
+         * @see https://api-docs.grvt.io/trading_api/#order-history
+         *
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest item
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        Async\await($this->load_markets_and_sign_in());
+        $subAccountId = $this->get_sub_account_id($params);
+        $request = array(
+            'sub_account_id' => $subAccountId,
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['base'] = array();
+            $request['base'][] = $market['baseId'];
+            $request['quote'] = array();
+            $request['quote'][] = $market['quoteId'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = min($limit, 1000);
+        }
+        list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
+        if ($since !== null) {
+            $request['start_time'] = $this->number_to_string($since * 1000000);
+        }
+        $response = Async\await($this->privateTradingPostFullV1OrderHistory($this->extend($request, $params)));
+        //
+        //    {
+        //        "result" => array(
+        //            {
+        //                "order_id" => "0x01010105034cddc7000000006621285c",
+        //                "sub_account_id" => "2147050003876484",
+        //                "is_market" => false,
+        //                "time_in_force" => "GOOD_TILL_TIME",
+        //                "post_only" => false,
+        //                "reduce_only" => false,
+        //                "legs" => array(
+        //                    {
+        //                        "instrument" => "BTC_USDT_Perp",
+        //                        "size" => "0.001",
+        //                        "limit_price" => "90000.0",
+        //                        "is_buying_asset" => true
+        //                    }
+        //                ),
+        //                "signature" => array(
+        //                    "signer" => "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                    "r" => "0x2d567b0a04525baf0bbd792db3bb3a28c1bcc5e95936f6dc2515a28ad8529313",
+        //                    "s" => "0x0bc2468d96c819c8de005aa7bebfb58eecb34dd7a1bae1e81e74c7b8bc4cddc7",
+        //                    "v" => "27",
+        //                    "expiration" => "1767455222801000000",
+        //                    "nonce" => "1375879248",
+        //                    "chain_id" => "0"
+        //                ),
+        //                "metadata" => {
+        //                    "client_order_id" => "1375879248",
+        //                    "create_time" => "1764863234474424590",
+        //                    "trigger" => array(
+        //                        "trigger_type" => "UNSPECIFIED",
+        //                        "tpsl" => array(
+        //                            "trigger_by" => "UNSPECIFIED",
+        //                            "trigger_price" => "0.0",
+        //                            "close_position" => false
+        //                        }
+        //                    ),
+        //                    "broker" => "UNSPECIFIED",
+        //                    "is_position_transfer" => false,
+        //                    "allow_crossing" => false
+        //                ),
+        //                "state" => array(
+        //                    "status" => "FILLED",
+        //                    "reject_reason" => "UNSPECIFIED",
+        //                    "book_size" => array(
+        //                        "0.0"
+        //                    ),
+        //                    "traded_size" => array(
+        //                        "0.001"
+        //                    ),
+        //                    "update_time" => "1764945709704912003",
+        //                    "avg_fill_price" => array(
+        //                        "90000.0"
+        //                    )
+        //                }
+        //            ),
+        //            ...
+        //        ),
+        //        "next" => ""
+        //    }
+        //
+        $result = $this->safe_list($response, 'result', array());
+        return $this->parse_orders($result, $market, $since, $limit);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetch all unfilled currently open orders
-             *
-             * @see https://api-docs.grvt.io/trading_api/#open-orders
-             *
-             * @param {string} [$symbol] unified market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            Async\await($this->load_markets_and_sign_in());
-            $request = array(
-                'sub_account_id' => $this->get_sub_account_id($params),
-            );
-            $response = Async\await($this->privateTradingPostFullV1OpenOrders($this->extend($request, $params)));
-            //
-            //    {
-            //        "result" => array(
-            //            {
-            //                "order_id" => "0x0101010503e693410000000069530a7d",
-            //                "sub_account_id" => "2147050003876484",
-            //                "is_market" => false,
-            //                "time_in_force" => "GOOD_TILL_TIME",
-            //                "post_only" => false,
-            //                "reduce_only" => false,
-            //                "legs" => array(
-            //                    {
-            //                        "instrument" => "BTC_USDT_Perp",
-            //                        "size" => "0.002",
-            //                        "limit_price" => "88123.0",
-            //                        "is_buying_asset" => true
-            //                    }
-            //                ),
-            //                "signature" => array(
-            //                    "signer" => "0x0982ebb82523fd20d1347d59f5a989ed84caa4b5",
-            //                    "r" => "0x22b13e5bc7c8d6793db9d0adf6a51340437292baf83aa4f89a01a3c0c1fef4a8",
-            //                    "s" => "0x46ecd483126c388cc933022979a9636670f64af3773d04a84ecbeac423e69341",
-            //                    "v" => "28",
-            //                    "expiration" => "1767871961406000000",
-            //                    "nonce" => "588129369",
-            //                    "chain_id" => "0"
-            //                ),
-            //                "metadata" => {
-            //                    "client_order_id" => "588129369",
-            //                    "create_time" => "1765279966899943792",
-            //                    "trigger" => array(
-            //                        "trigger_type" => "UNSPECIFIED",
-            //                        "tpsl" => array(
-            //                            "trigger_by" => "UNSPECIFIED",
-            //                            "trigger_price" => "0.0",
-            //                            "close_position" => false
-            //                        }
-            //                    ),
-            //                    "broker" => "UNSPECIFIED",
-            //                    "is_position_transfer" => false,
-            //                    "allow_crossing" => false
-            //                ),
-            //                "state" => {
-            //                    "status" => "OPEN",
-            //                    "reject_reason" => "UNSPECIFIED",
-            //                    "book_size" => array(
-            //                        "0.002"
-            //                    ),
-            //                    "traded_size" => array(
-            //                        "0.0"
-            //                    ),
-            //                    "update_time" => "1765279966899943792",
-            //                    "avg_fill_price" => array(
-            //                        "0.0"
-            //                    )
-            //                }
-            //            }
-            //        )
-            //    }
-            //
-            $result = $this->safe_list($response, 'result', array());
-            return $this->parse_orders($result, null, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_open_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all unfilled currently open orders
+         *
+         * @see https://api-docs.grvt.io/trading_api/#open-orders
+         *
+         * @param {string} [$symbol] unified market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        Async\await($this->load_markets_and_sign_in());
+        $request = array(
+            'sub_account_id' => $this->get_sub_account_id($params),
+        );
+        $response = Async\await($this->privateTradingPostFullV1OpenOrders($this->extend($request, $params)));
+        //
+        //    {
+        //        "result" => array(
+        //            {
+        //                "order_id" => "0x0101010503e693410000000069530a7d",
+        //                "sub_account_id" => "2147050003876484",
+        //                "is_market" => false,
+        //                "time_in_force" => "GOOD_TILL_TIME",
+        //                "post_only" => false,
+        //                "reduce_only" => false,
+        //                "legs" => array(
+        //                    {
+        //                        "instrument" => "BTC_USDT_Perp",
+        //                        "size" => "0.002",
+        //                        "limit_price" => "88123.0",
+        //                        "is_buying_asset" => true
+        //                    }
+        //                ),
+        //                "signature" => array(
+        //                    "signer" => "0x0982ebb82523fd20d1347d59f5a989ed84caa4b5",
+        //                    "r" => "0x22b13e5bc7c8d6793db9d0adf6a51340437292baf83aa4f89a01a3c0c1fef4a8",
+        //                    "s" => "0x46ecd483126c388cc933022979a9636670f64af3773d04a84ecbeac423e69341",
+        //                    "v" => "28",
+        //                    "expiration" => "1767871961406000000",
+        //                    "nonce" => "588129369",
+        //                    "chain_id" => "0"
+        //                ),
+        //                "metadata" => {
+        //                    "client_order_id" => "588129369",
+        //                    "create_time" => "1765279966899943792",
+        //                    "trigger" => array(
+        //                        "trigger_type" => "UNSPECIFIED",
+        //                        "tpsl" => array(
+        //                            "trigger_by" => "UNSPECIFIED",
+        //                            "trigger_price" => "0.0",
+        //                            "close_position" => false
+        //                        }
+        //                    ),
+        //                    "broker" => "UNSPECIFIED",
+        //                    "is_position_transfer" => false,
+        //                    "allow_crossing" => false
+        //                ),
+        //                "state" => {
+        //                    "status" => "OPEN",
+        //                    "reject_reason" => "UNSPECIFIED",
+        //                    "book_size" => array(
+        //                        "0.002"
+        //                    ),
+        //                    "traded_size" => array(
+        //                        "0.0"
+        //                    ),
+        //                    "update_time" => "1765279966899943792",
+        //                    "avg_fill_price" => array(
+        //                        "0.0"
+        //                    )
+        //                }
+        //            }
+        //        )
+        //    }
+        //
+        $result = $this->safe_list($response, 'result', array());
+        return $this->parse_orders($result, null, $since, $limit);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * fetches information on an order made by the user
-             *
-             * @see https://api-docs.grvt.io/trading_api/#get-order
-             *
-             * @param {string} $id the order $id
-             * @param {string} $symbol unified $symbol of the market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->clientOrderId] client order $id
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            Async\await($this->load_markets_and_sign_in());
-            $subAccountId = $this->get_sub_account_id($params);
-            $request = array(
-                'sub_account_id' => $subAccountId,
-            );
-            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
-            if ($clientOrderId !== null) {
-                $params = $this->omit($params, 'clientOrderId', 'client_order_id');
-                $request['client_order_id'] = $clientOrderId;
-            } else {
-                $request['order_id'] = $id;
-            }
-            $response = Async\await($this->privateTradingPostFullV1Order($this->extend($request, $params)));
-            //
-            //    {
-            //        "result" => {
-            //            "order_id" => "0x01010105034cddc7000000006621285c",
-            //            "sub_account_id" => "2147050003876484",
-            //            "is_market" => false,
-            //            "time_in_force" => "GOOD_TILL_TIME",
-            //            "post_only" => false,
-            //            "reduce_only" => false,
-            //            "legs" => array(
-            //                {
-            //                    "instrument" => "BTC_USDT_Perp",
-            //                    "size" => "0.001",
-            //                    "limit_price" => "90000.0",
-            //                    "is_buying_asset" => true
-            //                }
-            //            ),
-            //            "signature" => array(
-            //                "signer" => "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-            //                "r" => "0x2d567b0a04525baf0bbd792db3bb3a28c1bcc5e95936f6dc2515a28ad8529313",
-            //                "s" => "0x0bc2468d96c819c8de005aa7bebfb58eecb34dd7a1bae1e81e74c7b8bc4cddc7",
-            //                "v" => "27",
-            //                "expiration" => "1767455222801000000",
-            //                "nonce" => "1375879248",
-            //                "chain_id" => "0"
-            //            ),
-            //            "metadata" => {
-            //                "client_order_id" => "1375879248",
-            //                "create_time" => "1764863234474424590",
-            //                "trigger" => array(
-            //                    "trigger_type" => "UNSPECIFIED",
-            //                    "tpsl" => array(
-            //                        "trigger_by" => "UNSPECIFIED",
-            //                        "trigger_price" => "0.0",
-            //                        "close_position" => false
-            //                    }
-            //                ),
-            //                "broker" => "UNSPECIFIED",
-            //                "is_position_transfer" => false,
-            //                "allow_crossing" => false
-            //            ),
-            //            "state" => {
-            //                "status" => "FILLED",
-            //                "reject_reason" => "UNSPECIFIED",
-            //                "book_size" => array(
-            //                    "0.0"
-            //                ),
-            //                "traded_size" => array(
-            //                    "0.001"
-            //                ),
-            //                "update_time" => "1764945709704912003",
-            //                "avg_fill_price" => array(
-            //                    "90000.0"
-            //                )
-            //            }
-            //        }
-            //    }
-            //
-            $result = $this->safe_dict($response, 'result', array());
-            return $this->parse_order($result);
-        })();
+        return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
+    }
+
+    private function do_fetch_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * fetches information on an order made by the user
+         *
+         * @see https://api-docs.grvt.io/trading_api/#get-order
+         *
+         * @param {string} $id the order $id
+         * @param {string} $symbol unified $symbol of the market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] client order $id
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        Async\await($this->load_markets_and_sign_in());
+        $subAccountId = $this->get_sub_account_id($params);
+        $request = array(
+            'sub_account_id' => $subAccountId,
+        );
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
+        if ($clientOrderId !== null) {
+            $params = $this->omit($params, 'clientOrderId', 'client_order_id');
+            $request['client_order_id'] = $clientOrderId;
+        } else {
+            $request['order_id'] = $id;
+        }
+        $response = Async\await($this->privateTradingPostFullV1Order($this->extend($request, $params)));
+        //
+        //    {
+        //        "result" => {
+        //            "order_id" => "0x01010105034cddc7000000006621285c",
+        //            "sub_account_id" => "2147050003876484",
+        //            "is_market" => false,
+        //            "time_in_force" => "GOOD_TILL_TIME",
+        //            "post_only" => false,
+        //            "reduce_only" => false,
+        //            "legs" => array(
+        //                {
+        //                    "instrument" => "BTC_USDT_Perp",
+        //                    "size" => "0.001",
+        //                    "limit_price" => "90000.0",
+        //                    "is_buying_asset" => true
+        //                }
+        //            ),
+        //            "signature" => array(
+        //                "signer" => "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "r" => "0x2d567b0a04525baf0bbd792db3bb3a28c1bcc5e95936f6dc2515a28ad8529313",
+        //                "s" => "0x0bc2468d96c819c8de005aa7bebfb58eecb34dd7a1bae1e81e74c7b8bc4cddc7",
+        //                "v" => "27",
+        //                "expiration" => "1767455222801000000",
+        //                "nonce" => "1375879248",
+        //                "chain_id" => "0"
+        //            ),
+        //            "metadata" => {
+        //                "client_order_id" => "1375879248",
+        //                "create_time" => "1764863234474424590",
+        //                "trigger" => array(
+        //                    "trigger_type" => "UNSPECIFIED",
+        //                    "tpsl" => array(
+        //                        "trigger_by" => "UNSPECIFIED",
+        //                        "trigger_price" => "0.0",
+        //                        "close_position" => false
+        //                    }
+        //                ),
+        //                "broker" => "UNSPECIFIED",
+        //                "is_position_transfer" => false,
+        //                "allow_crossing" => false
+        //            ),
+        //            "state" => {
+        //                "status" => "FILLED",
+        //                "reject_reason" => "UNSPECIFIED",
+        //                "book_size" => array(
+        //                    "0.0"
+        //                ),
+        //                "traded_size" => array(
+        //                    "0.001"
+        //                ),
+        //                "update_time" => "1764945709704912003",
+        //                "avg_fill_price" => array(
+        //                    "90000.0"
+        //                )
+        //            }
+        //        }
+        //    }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_order($result);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -3145,76 +3203,80 @@ class grvt extends Exchange {
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * cancel all open orders in a $market
-             *
-             * @see https://api-docs.grvt.io/trading_api/#cancel-all-orders
-             *
-             * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            Async\await($this->load_markets_and_sign_in());
-            $request = array(
-                'sub_account_id' => $this->get_sub_account_id($params),
-            );
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['base'] = array();
-                $request['base'][] = $market['baseId'];
-                $request['quote'] = array();
-                $request['quote'][] = $market['quoteId'];
-            }
-            $response = Async\await($this->privateTradingPostFullV1CancelAllOrders($this->extend($request, $params)));
-            //
-            //    {
-            //        "result" => {
-            //            "ack" => true
-            //        }
-            //    }
-            //
-            $result = $this->safe_dict($response, 'result', array());
-            return $this->parse_orders(array( $result ));
-        })();
+        return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
+    }
+
+    private function do_cancel_all_orders(?string $symbol = null, $params = array()) {
+        /**
+         * cancel all open orders in a $market
+         *
+         * @see https://api-docs.grvt.io/trading_api/#cancel-all-orders
+         *
+         * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        Async\await($this->load_markets_and_sign_in());
+        $request = array(
+            'sub_account_id' => $this->get_sub_account_id($params),
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['base'] = array();
+            $request['base'][] = $market['baseId'];
+            $request['quote'] = array();
+            $request['quote'][] = $market['quoteId'];
+        }
+        $response = Async\await($this->privateTradingPostFullV1CancelAllOrders($this->extend($request, $params)));
+        //
+        //    {
+        //        "result" => {
+        //            "ack" => true
+        //        }
+        //    }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_orders(array( $result ));
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * cancels an open order
-             *
-             * @see https://api-docs.grvt.io/trading_api/#cancel-order
-             *
-             * @param {string} $id order $id
-             * @param {string} [$symbol] unified $symbol of the market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->clientOrderId] client order $id
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            Async\await($this->load_markets_and_sign_in());
-            $subAccoubntId = $this->get_sub_account_id($params);
-            $request = array(
-                'sub_account_id' => $subAccoubntId,
-            );
-            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
-            if ($clientOrderId !== null) {
-                $params = $this->omit($params, 'clientOrderId');
-                $request['client_order_id'] = $clientOrderId;
-            } else {
-                $request['order_id'] = $id;
-            }
-            $response = Async\await($this->privateTradingPostFullV1CancelOrder($this->extend($request, $params)));
-            //
-            //    {
-            //        "result" => {
-            //            "ack" => true
-            //        }
-            //    }
-            //
-            $result = $this->safe_dict($response, 'result', array());
-            return $this->parse_order($result);
-        })();
+        return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
+    }
+
+    private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * cancels an open order
+         *
+         * @see https://api-docs.grvt.io/trading_api/#cancel-order
+         *
+         * @param {string} $id order $id
+         * @param {string} [$symbol] unified $symbol of the market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] client order $id
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        Async\await($this->load_markets_and_sign_in());
+        $subAccoubntId = $this->get_sub_account_id($params);
+        $request = array(
+            'sub_account_id' => $subAccoubntId,
+        );
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
+        if ($clientOrderId !== null) {
+            $params = $this->omit($params, 'clientOrderId');
+            $request['client_order_id'] = $clientOrderId;
+        } else {
+            $request['order_id'] = $id;
+        }
+        $response = Async\await($this->privateTradingPostFullV1CancelOrder($this->extend($request, $params)));
+        //
+        //    {
+        //        "result" => {
+        //            "ack" => true
+        //        }
+        //    }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_order($result);
     }
 
     public function eip_domain_data() {

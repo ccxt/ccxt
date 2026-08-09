@@ -178,7 +178,7 @@ class weex extends weex$1["default"] {
                 'reduceMargin': true,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
-                'sandbox': false,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': true,
@@ -195,6 +195,13 @@ class weex extends weex$1["default"] {
                     'contract': 'https://api-contract.weex.com',
                     'contractPrivate': 'https://api-contract.weex.com',
                 },
+                'test': {
+                    // demo trading lives on the live host, the private contract endpoints are swapped to their capi/v3/sim/ variants when sandbox mode is enabled
+                    'public': 'https://api-spot.weex.com',
+                    'private': 'https://api-spot.weex.com',
+                    'contract': 'https://api-contract.weex.com',
+                    'contractPrivate': 'https://api-contract.weex.com',
+                },
                 'www': 'https://www.weex.com',
                 'doc': [
                     'https://www.weex.com/api-doc',
@@ -205,103 +212,107 @@ class weex extends weex$1["default"] {
                 'public': {
                     // multiply public endpoints weight by 5
                     'get': {
-                        'api/v3/time': 5, // done
-                        'api/v3/coins': 25, // done
-                        'api/v3/exchangeInfo': 100, // done
-                        'api/v3/ping': 5, // done
-                        'api/v3/apiTradingSymbols': 25, // not unified
-                        'api/v3/market/ticker/price': 20, // not unified
-                        'api/v3/market/ticker/24hr': 10, // done
-                        'api/v3/market/trades': 125, // done
-                        'api/v3/market/klines': 10, // done
-                        'api/v3/market/depth': 25, // done
-                        'api/v3/market/ticker/bookTicker': 20, // done
+                        'api/v3/time': { 'cost': 5 }, // done
+                        'api/v3/coins': { 'cost': 25 }, // done
+                        'api/v3/exchangeInfo': { 'cost': 100 }, // done
+                        'api/v3/ping': { 'cost': 5 }, // done
+                        'api/v3/apiTradingSymbols': { 'cost': 25 }, // not unified
+                        'api/v3/market/ticker/price': { 'cost': 20 }, // not unified
+                        'api/v3/market/ticker/24hr': { 'cost': 10 }, // done
+                        'api/v3/market/trades': { 'cost': 125 }, // done
+                        'api/v3/market/klines': { 'cost': 10 }, // done
+                        'api/v3/market/depth': { 'cost': 25 }, // done
+                        'api/v3/market/ticker/bookTicker': { 'cost': 20 }, // done
                     },
                 },
                 'private': {
                     'get': {
-                        'api/v3/account/': 5, // done
-                        'api/v3/account/transferRecords': 3, // done
-                        'api/v3/order': 2, // done
-                        'api/v3/openOrders': 3, // done
-                        'api/v3/allOrders': 10, // done
-                        'api/v3/myTrades': 5, // done
-                        'api/v3/rebate/affiliate/getAffiliateUIDs': 20, // not unified
-                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset': 20, // not unified
-                        'api/v3/rebate/affiliate/getAffiliateCommission': 20, // not unified
-                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus': 100, // not unified
-                        'api/v3/rebate/affiliate/querySubChannelTransactions': 10, // not unified
-                        'api/v3/agency/verifyReferrals': 20, // not unified
-                        'api/v3/agency/getAssert': 20, // not unified
-                        'api/v3/agency/getDealData': 20, // not unified
+                        'api/v3/account/': { 'cost': 5 }, // done
+                        'api/v3/account/transferRecords': { 'cost': 3 }, // done
+                        'api/v3/order': { 'cost': 2 }, // done
+                        'api/v3/openOrders': { 'cost': 3 }, // done
+                        'api/v3/allOrders': { 'cost': 10 }, // done
+                        'api/v3/myTrades': { 'cost': 5 }, // done
+                        'api/v3/rebate/affiliate/getAffiliateUIDs': { 'cost': 20 }, // not unified
+                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset': { 'cost': 20 }, // not unified
+                        'api/v3/rebate/affiliate/getAffiliateCommission': { 'cost': 20 }, // not unified
+                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus': { 'cost': 100 }, // not unified
+                        'api/v3/rebate/affiliate/querySubChannelTransactions': { 'cost': 10 }, // not unified
+                        'api/v3/agency/verifyReferrals': { 'cost': 20 }, // not unified
+                        'api/v3/agency/getAssert': { 'cost': 20 }, // not unified
+                        'api/v3/agency/getDealData': { 'cost': 20 }, // not unified
                     },
                     'post': {
-                        'api/v3/account/bills': 5, // done
-                        'api/v3/account/fundingBills': 5, // done
-                        'api/v3/order': 5, // done
-                        'api/v3/order/batch': 50, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
-                        'api/v3/rebate/affiliate/internalWithdrawal': 100, // not unified
+                        'api/v3/account/bills': { 'cost': 5 }, // done
+                        'api/v3/account/fundingBills': { 'cost': 5 }, // done
+                        'api/v3/order': { 'cost': 5 }, // done
+                        'api/v3/order/batch': { 'cost': 50 }, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
+                        'api/v3/rebate/affiliate/internalWithdrawal': { 'cost': 100 }, // not unified
                     },
                     'delete': {
-                        'api/v3/order': 1, // done
-                        'api/v3/openOrders': 1, // done
-                        'api/v3/order/batch': 10, // done
+                        'api/v3/order': { 'cost': 1 }, // done
+                        'api/v3/openOrders': { 'cost': 1 }, // done
+                        'api/v3/order/batch': { 'cost': 10 }, // done
                     },
                 },
                 'contract': {
                     // multiply public endpoints weight by 5
                     'get': {
-                        'capi/v3/market/time': 5, // done
-                        'capi/v3/market/exchangeInfo': 5, // done
-                        'capi/v3/market/depth': 5, // done
-                        'capi/v3/market/ticker/24hr': 200, // done
-                        'capi/v3/market/ticker/bookTicker': 5, // done
-                        'capi/v3/market/trades': 25, // done
-                        'capi/v3/market/klines': 5, // done
-                        'capi/v3/market/indexPriceKlines': 5, // done
-                        'capi/v3/market/markPriceKlines': 5, // done
-                        'capi/v3/market/historyKlines': 25, // done
-                        'capi/v3/market/symbolPrice': 5, // not unified
-                        'capi/v3/market/openInterest': 10, // done
-                        'capi/v3/market/premiumIndex': 5, // done
-                        'capi/v3/market/fundingRate': 25, // done
-                        'capi/v3/market/apiTradingSymbols': 25, // not unified
+                        'capi/v3/market/time': { 'cost': 5 }, // done
+                        'capi/v3/market/exchangeInfo': { 'cost': 5 }, // done
+                        'capi/v3/market/depth': { 'cost': 5 }, // done
+                        'capi/v3/market/ticker/24hr': { 'cost': 200 }, // done
+                        'capi/v3/market/ticker/bookTicker': { 'cost': 5 }, // done
+                        'capi/v3/market/trades': { 'cost': 25 }, // done
+                        'capi/v3/market/klines': { 'cost': 5 }, // done
+                        'capi/v3/market/indexPriceKlines': { 'cost': 5 }, // done
+                        'capi/v3/market/markPriceKlines': { 'cost': 5 }, // done
+                        'capi/v3/market/historyKlines': { 'cost': 25 }, // done
+                        'capi/v3/market/symbolPrice': { 'cost': 5 }, // not unified
+                        'capi/v3/market/openInterest': { 'cost': 10 }, // done
+                        'capi/v3/market/premiumIndex': { 'cost': 5 }, // done
+                        'capi/v3/market/fundingRate': { 'cost': 25 }, // done
+                        'capi/v3/market/apiTradingSymbols': { 'cost': 25 }, // not unified
                     },
                 },
                 'contractPrivate': {
                     'get': {
-                        'capi/v3/account/balance': 10, // done
-                        'capi/v3/account/commissionRate': 10, // done
-                        'capi/v3/account/accountConfig': 10, // not unified
-                        'capi/v3/account/symbolConfig': 10, // done
-                        'capi/v3/account/position/allPosition': 15, // done
-                        'capi/v3/account/position/singlePosition': 3, // done
-                        'capi/v3/order': 3, // done
-                        'capi/v3/openOrders': 5, // done
-                        'capi/v3/order/history': 10, // done
-                        'capi/v3/userTrades': 5, // done
-                        'capi/v3/openAlgoOrders': 3, // done
-                        'capi/v3/allAlgoOrders': 10, // not unified - capi/v3/order/history returns both regular and algo orders
+                        'capi/v3/account/balance': { 'cost': 10 }, // done
+                        'capi/v3/account/commissionRate': { 'cost': 10 }, // done
+                        'capi/v3/account/accountConfig': { 'cost': 10 }, // not unified
+                        'capi/v3/account/symbolConfig': { 'cost': 10 }, // done
+                        'capi/v3/account/position/allPosition': { 'cost': 15 }, // done
+                        'capi/v3/account/position/singlePosition': { 'cost': 3 }, // done
+                        'capi/v3/order': { 'cost': 3 }, // done
+                        'capi/v3/openOrders': { 'cost': 5 }, // done
+                        'capi/v3/order/history': { 'cost': 10 }, // done
+                        'capi/v3/userTrades': { 'cost': 5 }, // done
+                        'capi/v3/openAlgoOrders': { 'cost': 3 }, // done
+                        'capi/v3/allAlgoOrders': { 'cost': 10 }, // not unified - capi/v3/order/history returns both regular and algo orders
+                        'capi/v3/sim/balance': { 'cost': 10 }, // done - demo trading variant of capi/v3/account/balance
+                        'capi/v3/sim/position/allPosition': { 'cost': 15 }, // done - demo trading variant of capi/v3/account/position/allPosition
+                        'capi/v3/sim/order/history': { 'cost': 10 }, // done - demo trading variant of capi/v3/order/history
                     },
                     'post': {
-                        'capi/v3/account/income': 5, // done
-                        'capi/v3/account/marginType': 50, // done
-                        'capi/v3/account/leverage': 20, // done
-                        'capi/v3/account/positionMargin': 30, // done
-                        'capi/v3/account/modifyAutoAppendMargin': 30, // not unified
-                        'capi/v3/order': 5, // done
-                        'capi/v3/batchOrders': 10, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
-                        'capi/v3/closePositions': 50, // done
-                        'capi/v3/algoOrder': 5, // done
-                        'capi/v3/placeTpSlOrder': 5, // not unified
-                        'capi/v3/modifyTpSlOrder': 5, // not unified
+                        'capi/v3/account/income': { 'cost': 5 }, // done
+                        'capi/v3/account/marginType': { 'cost': 50 }, // done
+                        'capi/v3/account/leverage': { 'cost': 20 }, // done
+                        'capi/v3/account/positionMargin': { 'cost': 30 }, // done
+                        'capi/v3/account/modifyAutoAppendMargin': { 'cost': 30 }, // not unified
+                        'capi/v3/order': { 'cost': 5 }, // done
+                        'capi/v3/batchOrders': { 'cost': 10 }, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
+                        'capi/v3/closePositions': { 'cost': 50 }, // done
+                        'capi/v3/algoOrder': { 'cost': 5 }, // done
+                        'capi/v3/placeTpSlOrder': { 'cost': 5 }, // not unified
+                        'capi/v3/modifyTpSlOrder': { 'cost': 5 }, // not unified
+                        'capi/v3/sim/order': { 'cost': 5 }, // done - demo trading variant of capi/v3/order
                     },
                     'delete': {
-                        'capi/v3/order': 3, // done
-                        'capi/v3/batchOrders': 10, // done
-                        'capi/v3/allOpenOrders': 10, // done
-                        'capi/v3/algoOrder': 3, // done
-                        'capi/v3/algoOpenOrders': 10, // done
+                        'capi/v3/order': { 'cost': 3 }, // done
+                        'capi/v3/batchOrders': { 'cost': 10 }, // done
+                        'capi/v3/allOpenOrders': { 'cost': 10 }, // done
+                        'capi/v3/algoOrder': { 'cost': 3 }, // done
+                        'capi/v3/algoOpenOrders': { 'cost': 10 }, // done
                     },
                 },
             },
@@ -496,7 +507,7 @@ class weex extends weex$1["default"] {
                     'ETH': 'ERC20',
                     'POLYGON': 'POLYGON(MATIC)',
                     'MATIC': 'POLYGON(MATIC)',
-                    'ARBONE': 'ARBITRUM(ARB)',
+                    'ARBITRUM': 'ARBITRUM(ARB)',
                     'SOL': 'SOLANA(SOL)',
                     'OP': 'OPTIMISM(OP)',
                     'OPTIMISM': 'OPTIMISM(OP)',
@@ -506,7 +517,7 @@ class weex extends weex$1["default"] {
                     'BEP20(BSC)': 'BEP20',
                     'ERC20': 'ERC20',
                     'POLYGON(MATIC)': 'MATIC',
-                    'ARBITRUM(ARB)': 'ARBONE',
+                    'ARBITRUM(ARB)': 'ARBITRUM',
                     'SOLANA(SOL)': 'SOL',
                     'OPTIMISM(OP)': 'OP',
                     'AVALANCHE_C(AVAX_C)': 'AVAXC',
@@ -604,7 +615,7 @@ class weex extends weex$1["default"] {
                     },
                 },
                 'forDerivs': {
-                    'sandbox': false,
+                    'sandbox': true,
                     'createOrder': {
                         'marginMode': true,
                         'triggerPrice': false,
@@ -1190,7 +1201,7 @@ class weex extends weex$1["default"] {
         symbols = this.marketSymbols(symbols, undefined, true, true);
         const market = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchBidsAsks', market, params);
         let response = undefined;
         if (marketType === 'spot') {
             response = await this.publicGetApiV3MarketTickerBookTicker(params);
@@ -1378,7 +1389,7 @@ class weex extends weex$1["default"] {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
         const response = await this.publicGetApiV3MarketKlines(this.extend(request, params));
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
     /**
      * @method
@@ -1469,7 +1480,7 @@ class weex extends weex$1["default"] {
                 response = await this.contractGetCapiV3MarketKlines(this.extend(request, params));
             }
         }
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         return [
@@ -1526,7 +1537,7 @@ class weex extends weex$1["default"] {
         //
         let responseList = [];
         if (response !== undefined) {
-            responseList = response;
+            responseList = this.toArray(response);
         }
         return this.parseTrades(responseList, market, since, limit);
     }
@@ -1809,16 +1820,25 @@ class weex extends weex$1["default"] {
      * @name weex#fetchBalance
      * @see https://www.weex.com/api-doc/spot/AccountAPI/GetAccountBalance // spot
      * @see https://www.weex.com/api-doc/contract/Account_API/GetAccountBalance // contract
+     * @see https://www.weex.com/api-doc/contract/demo/GetAccountBalance // contract in sandbox mode
      * @description query for balance and get the amount of funds available for trading or funds locked in positions
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'spot' or 'swap' (default is 'spot')
+     * @param {string} [params.type] 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default)
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
+        const requestedType = this.safeString(params, 'type');
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
+        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        if (sandboxMode && (requestedType === undefined)) {
+            type = 'swap'; // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
+        }
         let response = undefined;
         if (type === 'spot') {
+            if (sandboxMode) {
+                throw new errors.NotSupported(this.id + ' fetchBalance() only supports the swap account in sandbox mode, use params["type"] = "swap"');
+            }
             //
             //     {
             //         "makerCommission": 0,
@@ -1851,7 +1871,7 @@ class weex extends weex$1["default"] {
             //
             //     [
             //         {
-            //             "asset": "USDT",
+            //             "asset": "USDT", // SUSDT in sandbox mode
             //             "balance": "20.00000000",
             //             "availableBalance": "20.00000000",
             //             "frozen": "0",
@@ -1859,7 +1879,12 @@ class weex extends weex$1["default"] {
             //         }
             //     ]
             //
-            response = await this.contractPrivateGetCapiV3AccountBalance(params);
+            if (sandboxMode) {
+                response = await this.contractPrivateGetCapiV3SimBalance(params);
+            }
+            else {
+                response = await this.contractPrivateGetCapiV3AccountBalance(params);
+            }
         }
         return this.parseBalance(response);
     }
@@ -1867,11 +1892,15 @@ class weex extends weex$1["default"] {
         const result = {
             'info': response,
         };
+        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const balances = this.safeList(response, 'balances', response);
         for (let i = 0; i < balances.length; i++) {
             const entry = this.safeDict(balances, i);
-            const id = this.safeString(entry, 'asset');
-            const code = this.safeCurrencyCode(id);
+            let currencyId = this.safeString(entry, 'asset');
+            if (sandboxMode && (currencyId === 'SUSDT')) {
+                currencyId = 'USDT'; // demo trading balances are denominated in the demo asset SUSDT
+            }
+            const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             account['free'] = this.safeString2(entry, 'availableBalance', 'free');
             account['used'] = this.safeString2(entry, 'frozen', 'locked');
@@ -1964,6 +1993,7 @@ class weex extends weex$1["default"] {
      * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder // contract
      * @see https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder // contract trigger
      * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceTpSlOrder // contract take profit / stop loss
+     * @see https://www.weex.com/api-doc/contract/demo/PlaceOrder // contract in sandbox mode
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
@@ -1982,6 +2012,10 @@ class weex extends weex$1["default"] {
             return await this.createContractOrder(symbol, type, side, amount, price, params);
         }
         else {
+            const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+            if (sandboxMode) {
+                throw new errors.NotSupported(this.id + ' createOrder() only supports swap markets in sandbox mode');
+            }
             return await this.createSpotOrder(symbol, type, side, amount, price, params);
         }
     }
@@ -2056,6 +2090,7 @@ class weex extends weex$1["default"] {
      * @description helper method for creating contract orders
      * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder
      * @see https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder
+     * @see https://www.weex.com/api-doc/contract/demo/PlaceOrder // sandbox mode
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
@@ -2084,9 +2119,16 @@ class weex extends weex$1["default"] {
         const market = this.market(symbol);
         const request = this.createContractOrderRequest(symbol, type, side, amount, price, params);
         const triggerPrice = this.safeString(request, 'triggerPrice');
+        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         let response = undefined;
         if (triggerPrice !== undefined) {
+            if (sandboxMode) {
+                throw new errors.NotSupported(this.id + ' createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode');
+            }
             response = await this.contractPrivatePostCapiV3AlgoOrder(request);
+        }
+        else if (sandboxMode) {
+            response = await this.contractPrivatePostCapiV3SimOrder(request);
         }
         else {
             response = await this.contractPrivatePostCapiV3Order(request);
@@ -2108,7 +2150,7 @@ class weex extends weex$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' createContractOrderRequest() requires a side argument');
         }
         const request = {
-            'symbol': market['id'],
+            'symbol': this.toSandboxMarketId(market),
             'side': side.toUpperCase(),
             'quantity': this.amountToPrecision(symbol, amount),
             'type': type.toUpperCase(),
@@ -2612,6 +2654,7 @@ class weex extends weex$1["default"] {
      * @description fetches information on multiple closed orders made by the user
      * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
      * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+     * @see https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2648,6 +2691,7 @@ class weex extends weex$1["default"] {
      * @description fetches information on multiple canceled orders made by the user
      * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
      * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+     * @see https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2746,6 +2790,7 @@ class weex extends weex$1["default"] {
      * @name weex#fetchCanceledAndClosedOrders
      * @description fetches information on multiple closed and canceled orders made by the user
      * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+     * @see https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
      * @param {string} [symbol] unified market symbol of the market orders were made in (required for spot orders)
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2764,19 +2809,19 @@ class weex extends weex$1["default"] {
             market = this.market(symbol);
         }
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchOrders', market, params);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchCanceledAndClosedOrders', market, params);
         if (marketType === 'spot') {
             throw new errors.NotSupported(this.id + ' fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status "canceled" or "closed"');
         }
         let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate', false);
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchCanceledAndClosedOrders', 'paginate', false);
         const maxLimit = 1000;
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchOrders', symbol, since, limit, params, maxLimit);
+            return await this.fetchPaginatedCallDynamic('fetchCanceledAndClosedOrders', symbol, since, limit, params, maxLimit);
         }
         let request = {};
         if (symbol !== undefined) {
-            request['symbol'] = this.safeString(market, 'id');
+            request['symbol'] = this.toSandboxMarketId(market);
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2785,7 +2830,14 @@ class weex extends weex$1["default"] {
             request['limit'] = limit;
         }
         [request, params] = this.handleUntilOption('endTime', request, params);
-        const response = await this.contractPrivateGetCapiV3OrderHistory(this.extend(request, params));
+        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        let response = undefined;
+        if (sandboxMode) {
+            response = await this.contractPrivateGetCapiV3SimOrderHistory(this.extend(request, params));
+        }
+        else {
+            response = await this.contractPrivateGetCapiV3OrderHistory(this.extend(request, params));
+        }
         //
         //     [
         //         {
@@ -2919,7 +2971,7 @@ class weex extends weex$1["default"] {
             this.handleOrderOrPositionError(errorCode, errorMessage, order);
         }
         if (market === undefined) {
-            const marketId = this.safeString(order, 'symbol');
+            const marketId = this.fromSandboxMarketId(this.safeString(order, 'symbol'));
             const positionSide = this.safeString(order, 'positionSide');
             const marketType = (positionSide === undefined) ? 'spot' : 'swap';
             market = this.safeMarket(marketId, undefined, undefined, marketType);
@@ -3118,7 +3170,7 @@ class weex extends weex$1["default"] {
         }
         let responseList = [];
         if (response !== undefined) {
-            responseList = response;
+            responseList = this.toArray(response);
         }
         return this.parseTrades(responseList, market, since, limit);
     }
@@ -3194,7 +3246,8 @@ class weex extends weex$1["default"] {
                 request['limit'] = limit;
             }
             [request, params] = this.handleUntilOption('before', request, params);
-            items = await this.privatePostApiV3AccountBills(this.extend(request, params));
+            const billsResponse = await this.privatePostApiV3AccountBills(this.extend(request, params));
+            items = this.toArray(billsResponse);
         }
         return this.parseLedger(items, currency, since, limit);
     }
@@ -3305,6 +3358,7 @@ class weex extends weex$1["default"] {
      * @name weex#fetchPositions
      * @description fetch all open positions
      * @see https://www.weex.com/api-doc/contract/Account_API/GetAllPositions
+     * @see https://www.weex.com/api-doc/contract/demo/GetAllPositions // sandbox mode
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -3314,7 +3368,14 @@ class weex extends weex$1["default"] {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        const response = await this.contractPrivateGetCapiV3AccountPositionAllPosition(params);
+        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        let response = undefined;
+        if (sandboxMode) {
+            response = await this.contractPrivateGetCapiV3SimPositionAllPosition(params);
+        }
+        else {
+            response = await this.contractPrivateGetCapiV3AccountPositionAllPosition(params);
+        }
         return this.parsePositions(response, symbols);
     }
     /**
@@ -3345,6 +3406,11 @@ class weex extends weex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        if (sandboxMode) {
+            // the demo trading API does not provide a single-position endpoint
+            return await this.fetchPositions([market['symbol']], params);
+        }
         const request = {
             'symbol': market['id'],
         };
@@ -3420,7 +3486,7 @@ class weex extends weex$1["default"] {
         if (errorMessage !== undefined) {
             this.handleOrderOrPositionError(errorCode, errorMessage, position);
         }
-        const marketId = this.safeString2(position, 'symbol', 'coinId'); // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
+        const marketId = this.fromSandboxMarketId(this.safeString2(position, 'symbol', 'coinId')); // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
         market = this.safeMarket(marketId, market, undefined, 'contract');
         const timestamp = this.safeInteger(position, 'createdTime');
         const marginType = this.safeString2(position, 'marginType', 'marginMode');
@@ -3615,7 +3681,7 @@ class weex extends weex$1["default"] {
         }
         symbols = this.marketSymbols(symbols);
         const response = await this.contractPrivateGetCapiV3AccountSymbolConfig(params);
-        return this.parseMarginModes(response, symbols, 'symbol', 'swap');
+        return this.parseMarginModes(this.toArray(response), symbols, 'symbol', 'swap');
     }
     parseMarginMode(marginMode, market = undefined) {
         const marketId = this.safeString(marginMode, 'symbol');
@@ -3704,7 +3770,7 @@ class weex extends weex$1["default"] {
         }
         symbols = this.marketSymbols(symbols);
         const response = await this.contractPrivateGetCapiV3AccountSymbolConfig(params);
-        return this.parseLeverages(response, symbols, 'symbol', 'swap');
+        return this.parseLeverages(this.toArray(response), symbols, 'symbol', 'swap');
     }
     parseLeverage(leverage, market = undefined) {
         const marketId = this.safeString(leverage, 'symbol');
@@ -3905,6 +3971,49 @@ class weex extends weex$1["default"] {
     async addMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, amount, 1, params);
     }
+    /**
+     * @method
+     * @ignore
+     * @name weex#toSandboxMarketId
+     * @description get the market id to send in a request, converting to the demo-trading market id (e.g. BTCSUSDT) when sandbox mode is enabled, only valid for USDT-margined linear markets which is all the demo environment provides
+     * @param {object} market a unified market structure
+     * @returns {string} the market id for the request
+     */
+    toSandboxMarketId(market) {
+        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        const baseId = this.safeString(market, 'baseId');
+        if (sandboxMode && (baseId !== undefined)) {
+            // demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
+            return baseId + 'SUSDT';
+        }
+        return this.safeString(market, 'id');
+    }
+    /**
+     * @method
+     * @ignore
+     * @name weex#fromSandboxMarketId
+     * @description convert a demo-trading market id (e.g. BTCSUSDT) from a response back into the live market id (e.g. BTCUSDT) when sandbox mode is enabled
+     * @param {string} [marketId] a market id from an exchange response
+     * @returns {string} the live market id
+     */
+    fromSandboxMarketId(marketId) {
+        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        if (!sandboxMode || (marketId === undefined)) {
+            return marketId;
+        }
+        if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
+            return marketId; // a live market id, not a demo one
+        }
+        if (marketId.endsWith('SUSDT')) {
+            const baseLength = marketId.length - 5;
+            return marketId.slice(0, baseLength) + 'USDT';
+        }
+        return marketId;
+    }
+    setSandboxMode(enable) {
+        super.setSandboxMode(enable);
+        this.options['sandboxMode'] = enable;
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
@@ -3915,6 +4024,11 @@ class weex extends weex$1["default"] {
             }
         }
         if ((api === 'private') || (api === 'contractPrivate')) {
+            const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+            if (sandboxMode && (path.indexOf('capi/v3/sim/') !== 0)) {
+                // guard against accidental live private calls with sandbox mode enabled, the demo trading API only provides the capi/v3/sim/ endpoints
+                throw new errors.NotSupported(this.id + ' ' + path + ' is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets');
+            }
             this.checkRequiredCredentials();
             const timestamp = this.numberToString(this.nonce());
             let payload = timestamp + method + '/' + endpoint;

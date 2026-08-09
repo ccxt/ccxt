@@ -124,11 +124,83 @@ func (this *Bit2cCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"Exchanges/{pair}/Ticker", "Exchanges/{pair}/orderbook", "Exchanges/{pair}/trades", "Exchanges/{pair}/lasttrades"},
+				"get": map[string]any{
+					"Exchanges/{pair}/Ticker": map[string]any{
+						"cost": 1,
+					},
+					"Exchanges/{pair}/orderbook": map[string]any{
+						"cost": 1,
+					},
+					"Exchanges/{pair}/trades": map[string]any{
+						"cost": 1,
+					},
+					"Exchanges/{pair}/lasttrades": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"post": []any{"Merchant/CreateCheckout", "Funds/AddCoinFundsRequest", "Order/AddFund", "Order/AddOrder", "Order/GetById", "Order/AddOrderMarketPriceBuy", "Order/AddOrderMarketPriceSell", "Order/CancelOrder", "Order/AddCoinFundsRequest", "Order/AddStopOrder", "Payment/GetMyId", "Payment/Send", "Payment/Pay"},
-				"get":  []any{"Account/Balance", "Account/Balance/v2", "Order/MyOrders", "Order/GetById", "Order/AccountHistory", "Order/OrderHistory"},
+				"post": map[string]any{
+					"Merchant/CreateCheckout": map[string]any{
+						"cost": 1,
+					},
+					"Funds/AddCoinFundsRequest": map[string]any{
+						"cost": 1,
+					},
+					"Order/AddFund": map[string]any{
+						"cost": 1,
+					},
+					"Order/AddOrder": map[string]any{
+						"cost": 1,
+					},
+					"Order/GetById": map[string]any{
+						"cost": 1,
+					},
+					"Order/AddOrderMarketPriceBuy": map[string]any{
+						"cost": 1,
+					},
+					"Order/AddOrderMarketPriceSell": map[string]any{
+						"cost": 1,
+					},
+					"Order/CancelOrder": map[string]any{
+						"cost": 1,
+					},
+					"Order/AddCoinFundsRequest": map[string]any{
+						"cost": 1,
+					},
+					"Order/AddStopOrder": map[string]any{
+						"cost": 1,
+					},
+					"Payment/GetMyId": map[string]any{
+						"cost": 1,
+					},
+					"Payment/Send": map[string]any{
+						"cost": 1,
+					},
+					"Payment/Pay": map[string]any{
+						"cost": 1,
+					},
+				},
+				"get": map[string]any{
+					"Account/Balance": map[string]any{
+						"cost": 1,
+					},
+					"Account/Balance/v2": map[string]any{
+						"cost": 1,
+					},
+					"Order/MyOrders": map[string]any{
+						"cost": 1,
+					},
+					"Order/GetById": map[string]any{
+						"cost": 1,
+					},
+					"Order/AccountHistory": map[string]any{
+						"cost": 1,
+					},
+					"Order/OrderHistory": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"markets": map[string]any{
@@ -501,29 +573,30 @@ func (this *Bit2cCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit) // max 100000
 		}
-		var response any = nil
+		var responseList any = []any{}
 		if IsTrue(IsEqual(method, "public_get_exchanges_pair_trades")) {
 
-			response = (<-this.PublicGetExchangesPairTrades(this.Extend(request, params)))
+			response := (<-this.PublicGetExchangesPairTrades(this.Extend(request, params)))
 			PanicOnError(response)
+			//
+			//     [
+			//         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
+			//         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
+			//         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
+			//     ]
+			//
+			if IsTrue(IsString(response)) {
+				panic(ExchangeError(response))
+			}
+			responseList = this.ToArray(response)
 		} else {
 
-			response = (<-this.PublicGetExchangesPairLasttrades(this.Extend(request, params)))
+			response := (<-this.PublicGetExchangesPairLasttrades(this.Extend(request, params)))
 			PanicOnError(response)
-		}
-		//
-		//     [
-		//         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
-		//         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
-		//         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
-		//     ]
-		//
-		if IsTrue(IsString(response)) {
-			panic(ExchangeError(response))
-		}
-		var responseList any = []any{}
-		if IsTrue(!IsEqual(response, nil)) {
-			responseList = response
+			if IsTrue(IsString(response)) {
+				panic(ExchangeError(response))
+			}
+			responseList = this.ToArray(response)
 		}
 
 		ch <- this.ParseTrades(responseList, market, since, limit)
@@ -550,8 +623,8 @@ func (this *Bit2cCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes50212 := (<-this.LoadMarkets())
-			PanicOnError(retRes50212)
+			retRes50312 := (<-this.LoadMarkets())
+			PanicOnError(retRes50312)
 		}
 
 		response := (<-this.PrivateGetAccountBalance(params))
@@ -624,8 +697,8 @@ func (this *Bit2cCore) CreateOrder(symbol any, typeVar any, side any, amount any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes55912 := (<-this.LoadMarkets())
-			PanicOnError(retRes55912)
+			retRes56012 := (<-this.LoadMarkets())
+			PanicOnError(retRes56012)
 		}
 		var method any = "privatePostOrderAddOrder"
 		var market any = this.Market(symbol)
@@ -715,8 +788,8 @@ func (this *Bit2cCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes61412 := (<-this.LoadMarkets())
-			PanicOnError(retRes61412)
+			retRes61512 := (<-this.LoadMarkets())
+			PanicOnError(retRes61512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -757,8 +830,8 @@ func (this *Bit2cCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes63912 := (<-this.LoadMarkets())
-			PanicOnError(retRes63912)
+			retRes64012 := (<-this.LoadMarkets())
+			PanicOnError(retRes64012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -930,8 +1003,8 @@ func (this *Bit2cCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes79012 := (<-this.LoadMarkets())
-			PanicOnError(retRes79012)
+			retRes79112 := (<-this.LoadMarkets())
+			PanicOnError(retRes79112)
 		}
 		var market any = nil
 		var request any = map[string]any{}
@@ -990,7 +1063,7 @@ func (this *Bit2cCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		//
 		var responseList any = []any{}
 		if IsTrue(!IsEqual(response, nil)) {
-			responseList = response
+			responseList = this.ToArray(response)
 		}
 
 		ch <- this.ParseTrades(responseList, market, since, limit)
@@ -1130,8 +1203,8 @@ func (this *Bit2cCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes97612 := (<-this.LoadMarkets())
-			PanicOnError(retRes97612)
+			retRes97712 := (<-this.LoadMarkets())
+			PanicOnError(retRes97712)
 		}
 		var currency any = this.Currency(code)
 		if IsTrue(this.IsFiat(code)) {

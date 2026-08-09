@@ -407,7 +407,7 @@
                     }
                 }
             },
-            "ARBONE": {
+            "ARBITRUM": {
                 "info": {
                     "name": "ARBEVM",
                     "addr": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
@@ -416,7 +416,7 @@
                     "deposit_disabled": false
                 },
                 "id": "ARBEVM",
-                "network": "ARBONE",
+                "network": "ARBITRUM",
                 "active": null,
                 "deposit": true,
                 "withdraw": true,
@@ -1164,7 +1164,7 @@
                     }
                 }
             },
-            "ARBONE": {
+            "ARBITRUM": {
                 "info": {
                     "name": "ARBEVM",
                     "addr": "",
@@ -1173,7 +1173,7 @@
                     "deposit_disabled": false
                 },
                 "id": "ARBEVM",
-                "network": "ARBONE",
+                "network": "ARBITRUM",
                 "active": null,
                 "deposit": true,
                 "withdraw": true,
@@ -1190,7 +1190,7 @@
                     }
                 }
             },
-            "ARBNOVA": {
+            "ARBITRUM_NOVA": {
                 "info": {
                     "name": "ARBNOVA",
                     "addr": "",
@@ -1199,7 +1199,7 @@
                     "deposit_disabled": false
                 },
                 "id": "ARBNOVA",
-                "network": "ARBNOVA",
+                "network": "ARBITRUM_NOVA",
                 "active": null,
                 "deposit": true,
                 "withdraw": true,
@@ -1769,7 +1769,7 @@
                     }
                 }
             },
-            "ARBONE": {
+            "ARBITRUM": {
                 "info": {
                     "name": "ARBEVM",
                     "addr": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
@@ -1778,7 +1778,7 @@
                     "deposit_disabled": false
                 },
                 "id": "ARBEVM",
-                "network": "ARBONE",
+                "network": "ARBITRUM",
                 "active": null,
                 "deposit": true,
                 "withdraw": true,

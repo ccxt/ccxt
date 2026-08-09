@@ -27,7 +27,7 @@ func (this *BullishCore) Describe() any {
 			"margin":                         false,
 			"swap":                           true,
 			"future":                         true,
-			"option":                         false,
+			"option":                         true,
 			"addMargin":                      false,
 			"borrowMargin":                   false,
 			"cancelAllOrders":                true,
@@ -152,70 +152,186 @@ func (this *BullishCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"v1/nonce":                                 1,
-					"v1/time":                                  1,
-					"v1/assets":                                1,
-					"v1/assets/{symbol}":                       1,
-					"v1/markets":                               1,
-					"v1/markets/{symbol}":                      1,
-					"v1/history/markets/{symbol}":              1,
-					"v1/markets/{symbol}/orderbook/hybrid":     1,
-					"v1/markets/{symbol}/trades":               1,
-					"v1/markets/{symbol}/tick":                 1,
-					"v1/markets/{symbol}/candle":               1,
-					"v1/history/markets/{symbol}/trades":       1,
-					"v1/history/markets/{symbol}/funding-rate": 1,
-					"v1/index-prices":                          1,
-					"v1/index-prices/{assetSymbol}":            1,
-					"v1/expiry-prices/{symbol}":                1,
-					"v1/option-ladder":                         1,
-					"v1/option-ladder/{symbol}":                1,
+					"v1/nonce": map[string]any{
+						"cost": 1,
+					},
+					"v1/time": map[string]any{
+						"cost": 1,
+					},
+					"v1/assets": map[string]any{
+						"cost": 1,
+					},
+					"v1/assets/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"v1/markets": map[string]any{
+						"cost": 1,
+					},
+					"v1/markets/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"v1/history/markets/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"v1/markets/{symbol}/orderbook/hybrid": map[string]any{
+						"cost": 1,
+					},
+					"v1/markets/{symbol}/trades": map[string]any{
+						"cost": 1,
+					},
+					"v1/markets/{symbol}/tick": map[string]any{
+						"cost": 1,
+					},
+					"v1/markets/{symbol}/candle": map[string]any{
+						"cost": 1,
+					},
+					"v1/history/markets/{symbol}/trades": map[string]any{
+						"cost": 1,
+					},
+					"v1/history/markets/{symbol}/funding-rate": map[string]any{
+						"cost": 1,
+					},
+					"v1/index-prices": map[string]any{
+						"cost": 1,
+					},
+					"v1/index-prices/{assetSymbol}": map[string]any{
+						"cost": 1,
+					},
+					"v1/expiry-prices/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"v1/option-ladder": map[string]any{
+						"cost": 1,
+					},
+					"v1/option-ladder/{symbol}": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"v2/orders":                                          1,
-					"v2/history/orders":                                  1,
-					"v2/orders/{orderId}":                                1,
-					"v2/amm-instructions":                                1,
-					"v2/amm-instructions/{instructionId}":                1,
-					"v1/wallets/transactions":                            1,
-					"v1/wallets/limits/{symbol}":                         1,
-					"v1/wallets/deposit-instructions/crypto/{symbol}":    1,
-					"v1/wallets/withdrawal-instructions/crypto/{symbol}": 1,
-					"v1/wallets/deposit-instructions/fiat/{symbol}":      1,
-					"v1/wallets/withdrawal-instructions/fiat/{symbol}":   1,
-					"v1/wallets/self-hosted/verification-attempts":       1,
-					"v1/trades":           5,
-					"v1/history/trades":   5,
-					"v1/trades/{tradeId}": 5,
-					"v1/trades/client-order-id/{clientOrderId}":       1,
-					"v1/accounts/asset":                               1,
-					"v1/accounts/asset/{symbol}":                      1,
-					"v1/users/logout":                                 1,
-					"v1/users/hmac/login":                             1,
-					"v1/accounts/trading-accounts":                    1,
-					"v1/accounts/trading-accounts/{tradingAccountId}": 1,
-					"v1/derivatives-positions":                        1,
-					"v1/history/derivatives-settlement":               1,
-					"v1/history/transfer":                             1,
-					"v1/history/borrow-interest":                      1,
-					"v2/mmp-configuration":                            1,
-					"v2/otc-trades":                                   1,
-					"v2/otc-trades/{otcTradeId}":                      1,
-					"v2/otc-trades/unconfirmed-trade":                 1,
+					"v2/orders": map[string]any{
+						"cost": 1,
+					},
+					"v2/history/orders": map[string]any{
+						"cost": 1,
+					},
+					"v2/orders/{orderId}": map[string]any{
+						"cost": 1,
+					},
+					"v2/amm-instructions": map[string]any{
+						"cost": 1,
+					},
+					"v2/amm-instructions/{instructionId}": map[string]any{
+						"cost": 1,
+					},
+					"v1/wallets/transactions": map[string]any{
+						"cost": 1,
+					},
+					"v1/wallets/limits/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"v1/wallets/deposit-instructions/crypto/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"v1/wallets/withdrawal-instructions/crypto/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"v1/wallets/deposit-instructions/fiat/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"v1/wallets/withdrawal-instructions/fiat/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"v1/wallets/self-hosted/verification-attempts": map[string]any{
+						"cost": 1,
+					},
+					"v1/trades": map[string]any{
+						"cost": 5,
+					},
+					"v1/history/trades": map[string]any{
+						"cost": 5,
+					},
+					"v1/trades/{tradeId}": map[string]any{
+						"cost": 5,
+					},
+					"v1/trades/client-order-id/{clientOrderId}": map[string]any{
+						"cost": 1,
+					},
+					"v1/accounts/asset": map[string]any{
+						"cost": 1,
+					},
+					"v1/accounts/asset/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"v1/users/logout": map[string]any{
+						"cost": 1,
+					},
+					"v1/users/hmac/login": map[string]any{
+						"cost": 1,
+					},
+					"v1/accounts/trading-accounts": map[string]any{
+						"cost": 1,
+					},
+					"v1/accounts/trading-accounts/{tradingAccountId}": map[string]any{
+						"cost": 1,
+					},
+					"v1/derivatives-positions": map[string]any{
+						"cost": 1,
+					},
+					"v1/history/derivatives-settlement": map[string]any{
+						"cost": 1,
+					},
+					"v1/history/transfer": map[string]any{
+						"cost": 1,
+					},
+					"v1/history/borrow-interest": map[string]any{
+						"cost": 1,
+					},
+					"v2/mmp-configuration": map[string]any{
+						"cost": 1,
+					},
+					"v2/otc-trades": map[string]any{
+						"cost": 1,
+					},
+					"v2/otc-trades/{otcTradeId}": map[string]any{
+						"cost": 1,
+					},
+					"v2/otc-trades/unconfirmed-trade": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"v2/orders":                       5,
-					"v2/command":                      5,
-					"v2/amm-instructions":             1,
-					"v1/wallets/withdrawal":           1,
-					"v2/users/login":                  1,
-					"v1/simulate-portfolio-margin":    1,
-					"v1/wallets/self-hosted/initiate": 1,
-					"v2/mmp-configuration":            1,
-					"v2/otc-trades":                   1,
-					"v2/otc-command":                  1,
+					"v2/orders": map[string]any{
+						"cost": 5,
+					},
+					"v2/command": map[string]any{
+						"cost": 5,
+					},
+					"v2/amm-instructions": map[string]any{
+						"cost": 1,
+					},
+					"v1/wallets/withdrawal": map[string]any{
+						"cost": 1,
+					},
+					"v2/users/login": map[string]any{
+						"cost": 1,
+					},
+					"v1/simulate-portfolio-margin": map[string]any{
+						"cost": 1,
+					},
+					"v1/wallets/self-hosted/initiate": map[string]any{
+						"cost": 1,
+					},
+					"v2/mmp-configuration": map[string]any{
+						"cost": 1,
+					},
+					"v2/otc-trades": map[string]any{
+						"cost": 1,
+					},
+					"v2/otc-command": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -1033,7 +1149,7 @@ func (this *BullishCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		}
 		var maxLimit any = 100
 		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
@@ -1599,7 +1715,6 @@ func (this *BullishCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 
 		response := (<-this.PublicGetV1MarketsSymbolCandle(this.Extend(request, params)))
 		PanicOnError(response)
-
 		//
 		//     [
 		//         {
@@ -1614,7 +1729,9 @@ func (this *BullishCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		//         }, ...
 		//     ]
 		//
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		var ohlcvs any = this.ToArray(response)
+
+		ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
 		return nil
 
 	}()
@@ -1655,8 +1772,8 @@ func (this *BullishCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes141712 := (<-this.LoadMarkets())
-			PanicOnError(retRes141712)
+			retRes141812 := (<-this.LoadMarkets())
+			PanicOnError(retRes141812)
 		}
 		var maxLimit any = 100
 		var paginate any = false
@@ -1666,9 +1783,9 @@ func (this *BullishCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any
 		if IsTrue(paginate) {
 			params = this.HandlePaginationParams("fetchFundingRateHistory", since, params)
 
-			retRes142419 := (<-this.FetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, params, maxLimit))
-			PanicOnError(retRes142419)
-			ch <- retRes142419
+			retRes142519 := (<-this.FetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, params, maxLimit))
+			PanicOnError(retRes142519)
+			ch <- retRes142519
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -1751,8 +1868,8 @@ func (this *BullishCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes14868 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes14868)
+		retRes14878 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes14878)
 
 		tradingAccountId := (<-this.LoadAccount(params))
 		PanicOnError(tradingAccountId)
@@ -1760,9 +1877,9 @@ func (this *BullishCore) FetchOrders(optionalArgs ...any) <-chan any {
 		if IsTrue(paginate) {
 			params = this.HandlePaginationParams("fetchOrders", since, params)
 
-			retRes149119 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params, 100))
-			PanicOnError(retRes149119)
-			ch <- retRes149119
+			retRes149219 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params, 100))
+			PanicOnError(retRes149219)
+			ch <- retRes149219
 			return nil
 		}
 		var market any = nil
@@ -1922,9 +2039,9 @@ func (this *BullishCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 			"status": "OPEN",
 		}
 
-		retRes161315 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes161315)
-		ch <- retRes161315
+		retRes161415 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes161415)
+		ch <- retRes161415
 		return nil
 
 	}()
@@ -1961,9 +2078,9 @@ func (this *BullishCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 			"method": "privateGetV2Orders",
 		}
 
-		retRes163315 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes163315)
-		ch <- retRes163315
+		retRes163415 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes163415)
+		ch <- retRes163415
 		return nil
 
 	}()
@@ -2000,9 +2117,9 @@ func (this *BullishCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 			"method": "privateGetV2Orders",
 		}
 
-		retRes165315 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes165315)
-		ch <- retRes165315
+		retRes165415 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes165415)
+		ch <- retRes165415
 		return nil
 
 	}()
@@ -2039,9 +2156,9 @@ func (this *BullishCore) FetchCanceledAndClosedOrders(optionalArgs ...any) <-cha
 			"method": "privateGetV2HistoryOrders",
 		}
 
-		retRes167315 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes167315)
-		ch <- retRes167315
+		retRes167415 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes167415)
+		ch <- retRes167415
 		return nil
 
 	}()
@@ -2069,8 +2186,8 @@ func (this *BullishCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes16888 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes16888)
+		retRes16898 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes16898)
 
 		tradingAccountId := (<-this.LoadAccount(params))
 		PanicOnError(tradingAccountId)
@@ -2149,8 +2266,8 @@ func (this *BullishCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes17498 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes17498)
+		retRes17508 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes17508)
 
 		tradingAccountId := (<-this.LoadAccount(params))
 		PanicOnError(tradingAccountId)
@@ -2236,8 +2353,8 @@ func (this *BullishCore) EditOrder(id any, symbol any, typeVar any, side any, op
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes18118 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes18118)
+		retRes18128 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes18128)
 
 		tradingAccountId := (<-this.LoadAccount(params))
 		PanicOnError(tradingAccountId)
@@ -2298,8 +2415,8 @@ func (this *BullishCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes18548 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes18548)
+		retRes18558 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes18558)
 
 		tradingAccountId := (<-this.LoadAccount(params))
 		PanicOnError(tradingAccountId)
@@ -2352,8 +2469,8 @@ func (this *BullishCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes18898 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes18898)
+		retRes18908 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes18908)
 
 		tradingAccountId := (<-this.LoadAccount(params))
 		PanicOnError(tradingAccountId)
@@ -2534,8 +2651,8 @@ func (this *BullishCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes20498 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes20498)
+		retRes20508 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes20508)
 		var request any = map[string]any{}
 		requestparamsVariable := this.HandleUntilOption("createdAtDatetime[lte]", request, params)
 		request = GetValue(requestparamsVariable, 0)
@@ -2622,8 +2739,8 @@ func (this *BullishCore) Withdraw(code any, amount any, address any, optionalArg
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes21188 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes21188)
+		retRes21198 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes21198)
 		// todo check this method properly
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -2763,15 +2880,16 @@ func (this *BullishCore) LoadAccount(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		var tradingAccountId any = nil
-		tradingAccountIdparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "tradingAccountId")
+		tradingAccountIdparamsVariable := this.HandleOptionAndParams(params, "loadAccount", "tradingAccountId")
 		tradingAccountId = GetValue(tradingAccountIdparamsVariable, 0)
 		params = GetValue(tradingAccountIdparamsVariable, 1)
 		if IsTrue(IsEqual(tradingAccountId, nil)) {
 
 			response := (<-this.PrivateGetV1AccountsTradingAccounts(params))
 			PanicOnError(response)
-			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-				var account any = GetValue(response, i)
+			var accounts any = this.ToArray(response)
+			for i := 0; IsLessThan(i, GetArrayLength(accounts)); i++ {
+				var account any = GetValue(accounts, i)
 				var name any = this.SafeString(account, "tradingAccountName")
 				if IsTrue(IsEqual(name, "Primary Account")) {
 					tradingAccountId = this.SafeString(account, "tradingAccountId")
@@ -2807,8 +2925,8 @@ func (this *BullishCore) FetchAccounts(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes22738 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes22738)
+		retRes22758 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes22758)
 
 		response := (<-this.PrivateGetV1AccountsTradingAccounts(params))
 		PanicOnError(response)
@@ -2925,8 +3043,8 @@ func (this *BullishCore) FetchDepositAddress(code any, optionalArgs ...any) <-ch
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes23778 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes23778)
+		retRes23798 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes23798)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"symbol": GetValue(currency, "id"),
@@ -3014,8 +3132,8 @@ func (this *BullishCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes24488 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes24488)
+		retRes24508 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes24508)
 
 		tradingAccountId := (<-this.LoadAccount(params))
 		PanicOnError(tradingAccountId)
@@ -3108,8 +3226,8 @@ func (this *BullishCore) FetchPositions(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes25198 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes25198)
+		retRes25218 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes25218)
 
 		tradingAccountId := (<-this.LoadAccount(params))
 		PanicOnError(tradingAccountId)
@@ -3241,8 +3359,8 @@ func (this *BullishCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes26298 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes26298)
+		retRes26318 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes26318)
 
 		tradingAccountId := (<-this.LoadAccount(params))
 		PanicOnError(tradingAccountId)
@@ -3254,9 +3372,9 @@ func (this *BullishCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		if IsTrue(paginate) {
 			params = this.HandlePaginationParams("fetchTransfers", since, params)
 
-			retRes263619 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params, maxLimit))
-			PanicOnError(retRes263619)
-			ch <- retRes263619
+			retRes263819 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params, maxLimit))
+			PanicOnError(retRes263819)
+			ch <- retRes263819
 			return nil
 		}
 		var request any = map[string]any{
@@ -3326,8 +3444,8 @@ func (this *BullishCore) Transfer(code any, amount any, fromAccount any, toAccou
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes26898 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes26898)
+		retRes26918 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes26918)
 		// todo check this method properly
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -3439,8 +3557,8 @@ func (this *BullishCore) FetchBorrowRateHistory(code any, optionalArgs ...any) <
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes27838 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes27838)
+		retRes27858 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes27858)
 
 		tradingAccountId := (<-this.LoadAccount(params))
 		PanicOnError(tradingAccountId)
@@ -3532,8 +3650,8 @@ func (this *BullishCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes285712 := (<-this.LoadMarkets())
-			PanicOnError(retRes285712)
+			retRes285912 := (<-this.LoadMarkets())
+			PanicOnError(retRes285912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -3758,9 +3876,9 @@ func (this *BullishCore) HandleToken(optionalArgs ...any) <-chan any {
 		var tokenExpires any = this.SafeInteger(this.Options, "tokenExpires")
 		if IsTrue(IsTrue(IsTrue((IsEqual(token, nil))) || IsTrue((IsEqual(tokenExpires, nil)))) || IsTrue((IsGreaterThan(now, tokenExpires)))) {
 
-			retRes304219 := (<-this.SignIn())
-			PanicOnError(retRes304219)
-			ch <- retRes304219
+			retRes304419 := (<-this.SignIn())
+			PanicOnError(retRes304419)
+			ch <- retRes304419
 			return nil
 		} else {
 

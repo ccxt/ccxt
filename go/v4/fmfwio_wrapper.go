@@ -349,7 +349,7 @@ func (this *Fmfwio) FetchPosition(symbol string, options ...FetchPositionOptions
 func (this *Fmfwio) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Fmfwio) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Fmfwio) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Fmfwio) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -367,7 +367,7 @@ func (this *Fmfwio) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Fmfwio) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Fmfwio) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Fmfwio) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Fmfwio) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
@@ -502,7 +502,7 @@ func (this *Fmfwio) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Fmfwio) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Fmfwio) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Fmfwio) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Fmfwio) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -547,7 +547,7 @@ func (this *Fmfwio) FetchTradesWs(symbol string, options ...FetchTradesWsOptions
 func (this *Fmfwio) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Fmfwio) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Fmfwio) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Fmfwio) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

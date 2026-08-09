@@ -86,6 +86,7 @@ class hibachi extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
+                'fetchOrdersByStatus' => true,
                 'fetchOrderTrades' => false,
                 'fetchPosition' => false,
                 'fetchPositionMode' => false,
@@ -132,44 +133,44 @@ class hibachi extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'market/exchange-info' => 1,
-                        'market/inventory' => 1,
-                        'market/data/prices' => 1,
-                        'market/data/stats' => 1,
-                        'market/data/trades' => 1,
-                        'market/data/klines' => 1,
-                        'market/data/open-interest' => 1,
-                        'market/data/orderbook' => 1,
-                        'market/data/funding-rates' => 1,
-                        'exchange/utc-timestamp' => 1,
+                        'market/exchange-info' => array( 'cost' => 1 ),
+                        'market/inventory' => array( 'cost' => 1 ),
+                        'market/data/prices' => array( 'cost' => 1 ),
+                        'market/data/stats' => array( 'cost' => 1 ),
+                        'market/data/trades' => array( 'cost' => 1 ),
+                        'market/data/klines' => array( 'cost' => 1 ),
+                        'market/data/open-interest' => array( 'cost' => 1 ),
+                        'market/data/orderbook' => array( 'cost' => 1 ),
+                        'market/data/funding-rates' => array( 'cost' => 1 ),
+                        'exchange/utc-timestamp' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'capital/balance' => 1,
-                        'capital/history' => 1,
-                        'capital/deposit-info' => 1,
-                        'trade/account/info' => 1,
-                        'trade/account/trades' => 1,
-                        'trade/account/trading_history' => 1, // not in current docs, used by fetchLedger
-                        'trade/account/settlements_history' => 1,
-                        'trade/orders' => 1,
-                        'trade/order' => 1,
-                        'trade/orders/history' => 1,
+                        'capital/balance' => array( 'cost' => 1 ),
+                        'capital/history' => array( 'cost' => 1 ),
+                        'capital/deposit-info' => array( 'cost' => 1 ),
+                        'trade/account/info' => array( 'cost' => 1 ),
+                        'trade/account/trades' => array( 'cost' => 1 ),
+                        'trade/account/trading_history' => array( 'cost' => 1 ), // not in current docs, used by fetchLedger
+                        'trade/account/settlements_history' => array( 'cost' => 1 ),
+                        'trade/orders' => array( 'cost' => 1 ),
+                        'trade/order' => array( 'cost' => 1 ),
+                        'trade/orders/history' => array( 'cost' => 1 ),
                     ),
                     'put' => array(
-                        'trade/order' => 1,
+                        'trade/order' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'trade/order' => 1,
-                        'trade/orders' => 1,
+                        'trade/order' => array( 'cost' => 1 ),
+                        'trade/orders' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'trade/order' => 1,
-                        'trade/orders' => 1,
-                        'capital/withdraw' => 1,
-                        'capital/transfer' => 1,
-                        'trade/account/leverage' => 1,
+                        'trade/order' => array( 'cost' => 1 ),
+                        'trade/orders' => array( 'cost' => 1 ),
+                        'capital/withdraw' => array( 'cost' => 1 ),
+                        'capital/transfer' => array( 'cost' => 1 ),
+                        'trade/account/leverage' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -1535,7 +1536,7 @@ class hibachi extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * @ignore
          * fetch $orders filtered by terminal $status

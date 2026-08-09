@@ -115,8 +115,8 @@ public class TokocryptoCore extends TokocryptoApi
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchSettlementHistory", false );
                 put( "fetchStatus", false );
-                put( "fetchTicker", false );
-                put( "fetchTickers", false );
+                put( "fetchTicker", true );
+                put( "fetchTickers", true );
                 put( "fetchTime", true );
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", false );
@@ -175,16 +175,28 @@ public class TokocryptoCore extends TokocryptoApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "binance", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "ping", 1 );
-                        put( "time", 1 );
+                        put( "ping", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "time", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "depth", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                             put( "byLimit", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(100, 1)), new java.util.ArrayList<Object>(java.util.Arrays.asList(500, 5)), new java.util.ArrayList<Object>(java.util.Arrays.asList(1000, 10)), new java.util.ArrayList<Object>(java.util.Arrays.asList(5000, 50)))) );
                         }} );
-                        put( "trades", 1 );
-                        put( "aggTrades", 1 );
-                        put( "historicalTrades", 5 );
-                        put( "klines", 1 );
+                        put( "trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "aggTrades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "historicalTrades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "klines", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "ticker/24hr", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                             put( "noSymbol", 40 );
@@ -197,45 +209,91 @@ public class TokocryptoCore extends TokocryptoApi
                             put( "cost", 1 );
                             put( "noSymbol", 2 );
                         }} );
-                        put( "exchangeInfo", 10 );
+                        put( "exchangeInfo", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
                     }} );
                     put( "put", new java.util.HashMap<String, Object>() {{
-                        put( "userDataStream", 1 );
+                        put( "userDataStream", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "userDataStream", 1 );
+                        put( "userDataStream", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "delete", new java.util.HashMap<String, Object>() {{
-                        put( "userDataStream", 1 );
+                        put( "userDataStream", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "open/v1/common/time", 1 );
-                        put( "open/v1/common/symbols", 1 );
-                        put( "open/v1/market/depth", 1 );
-                        put( "open/v1/market/trades", 1 );
-                        put( "open/v1/market/agg-trades", 1 );
-                        put( "open/v1/market/klines", 1 );
+                        put( "open/v1/common/time", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/common/symbols", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/market/depth", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/market/trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/market/agg-trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/market/klines", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "open/v1/orders/detail", 1 );
-                        put( "open/v1/orders", 1 );
-                        put( "open/v1/account/spot", 1 );
-                        put( "open/v1/account/spot/asset", 1 );
-                        put( "open/v1/orders/trades", 1 );
-                        put( "open/v1/withdraws", 1 );
-                        put( "open/v1/deposits", 1 );
-                        put( "open/v1/deposits/address", 1 );
+                        put( "open/v1/orders/detail", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/account/spot", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/account/spot/asset", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/orders/trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/withdraws", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/deposits", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/deposits/address", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "open/v1/orders", 1 );
-                        put( "open/v1/orders/cancel", 1 );
-                        put( "open/v1/orders/oco", 1 );
-                        put( "open/v1/withdraws", 1 );
-                        put( "open/v1/user-data-stream", 1 );
+                        put( "open/v1/orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/orders/cancel", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/orders/oco", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/withdraws", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/user-data-stream", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -1276,11 +1334,7 @@ public class TokocryptoCore extends TokocryptoApi
             //         }
             //     ]
             //
-            Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            if (Helpers.isTrue(!Helpers.isEqual(response, null)))
-            {
-                responseList = response;
-            }
+            Object responseList = this.toArray(response);
             return this.parseTrades(responseList, market, since, limit);
         });
 
@@ -1584,7 +1638,14 @@ public class TokocryptoCore extends TokocryptoApi
             //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
             //     ]
             //
-            Object data = this.safeList(response, "data", response);
+            Object data = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(response)))
+            {
+                data = response;
+            } else
+            {
+                data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            }
             return this.parseOHLCVs(data, market, timeframe, since, limit);
         });
 
@@ -3059,7 +3120,7 @@ public class TokocryptoCore extends TokocryptoApi
         } else if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(config, "byLimit"))) && Helpers.isTrue((Helpers.inOp(parameters, "limit")))))
         {
             Object limit = Helpers.GetValue(parameters, "limit");
-            Object byLimit = ((Object)Helpers.GetValue(config, "byLimit"));
+            Object byLimit = this.safeList(config, "byLimit", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(byLimit)); i++)
             {
                 Object entry = Helpers.GetValue(byLimit, i);

@@ -16,7 +16,7 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+  cancel-in-progress: ${{ !contains(github.event.head_commit.message, '[Automated changes]') }}
 
 jobs:
   build:
@@ -73,11 +73,7 @@ jobs:
     - name: Transpile prediction to C#
       if: env.prediction_modified == 'true'
       run: npm run transpile-prediction-cs
-    - name: Build Project (fast, PR)
-      if: github.event_name == 'pull_request'
-      run: npm run buildCSFast
     - name: Build Project
-      if: github.event_name != 'pull_request'
       run: npm run buildCS
     # - name: Run request lighter tests multiple times
     #   run: for i in {1..10}; do npm run request-cs -- lighter; done
@@ -169,9 +165,18 @@ jobs:
 
         git commit -m "[Automated changes] C# files"
 
-        git fetch origin master
-        git rebase --autostash origin/master
-        git push origin HEAD:master
+        for attempt in 1 2 3 4 5; do
+          git fetch origin master
+          git rebase --autostash origin/master
+          if git push origin HEAD:master; then
+            echo "pushed on attempt ${attempt}"
+            exit 0
+          fi
+          echo "master moved, retrying (${attempt})..."
+          sleep $(( (RANDOM % 5) + 2 ))
+        done
+        echo "push failed after 5 attempts"
+        exit 1
 
   live-tests:
     needs: build

@@ -172,30 +172,30 @@ class cryptomus extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'v2/user-api/exchange/markets' => 1, // done
-                        'v2/user-api/exchange/market/price' => 1, // not used
-                        'v1/exchange/market/assets' => 1, // done
-                        'v1/exchange/market/order-book/{currencyPair}' => 1, // done
-                        'v1/exchange/market/tickers' => 1, // done
-                        'v1/exchange/market/trades/{currencyPair}' => 1, // done
+                        'v2/user-api/exchange/markets' => array( 'cost' => 1 ), // done
+                        'v2/user-api/exchange/market/price' => array( 'cost' => 1 ), // not used
+                        'v1/exchange/market/assets' => array( 'cost' => 1 ), // done
+                        'v1/exchange/market/order-book/{currencyPair}' => array( 'cost' => 1 ), // done
+                        'v1/exchange/market/tickers' => array( 'cost' => 1 ), // done
+                        'v1/exchange/market/trades/{currencyPair}' => array( 'cost' => 1 ), // done
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'v2/user-api/exchange/orders' => 1, // done
-                        'v2/user-api/exchange/orders/history' => 1, // done
-                        'v2/user-api/exchange/account/balance' => 1, // done
-                        'v2/user-api/exchange/account/tariffs' => 1, // done
-                        'v2/user-api/payment/services' => 1,
-                        'v2/user-api/payout/services' => 1,
-                        'v2/user-api/transaction/list' => 1,
+                        'v2/user-api/exchange/orders' => array( 'cost' => 1 ), // done
+                        'v2/user-api/exchange/orders/history' => array( 'cost' => 1 ), // done
+                        'v2/user-api/exchange/account/balance' => array( 'cost' => 1 ), // done
+                        'v2/user-api/exchange/account/tariffs' => array( 'cost' => 1 ), // done
+                        'v2/user-api/payment/services' => array( 'cost' => 1 ),
+                        'v2/user-api/payout/services' => array( 'cost' => 1 ),
+                        'v2/user-api/transaction/list' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'v2/user-api/exchange/orders' => 1, // done
-                        'v2/user-api/exchange/orders/market' => 1, // done
+                        'v2/user-api/exchange/orders' => array( 'cost' => 1 ), // done
+                        'v2/user-api/exchange/orders/market' => array( 'cost' => 1 ), // done
                     ),
                     'delete' => array(
-                        'v2/user-api/exchange/orders/{orderId}' => 1, // done
+                        'v2/user-api/exchange/orders/{orderId}' => array( 'cost' => 1 ), // done
                     ),
                 ),
             ),
@@ -213,7 +213,7 @@ class cryptomus extends Exchange {
                     'BEP20' => 'bsc',
                     'DASH' => 'dash',
                     'POLYGON' => 'polygon',
-                    'ARB' => 'arbitrum',
+                    'ARBITRUM' => 'arbitrum',
                     'SOL' => 'sol',
                     'TON' => 'ton',
                     'ERC20' => 'eth',
@@ -230,7 +230,7 @@ class cryptomus extends Exchange {
                     'bsc' => 'BEP20',
                     'dash' => 'DASH',
                     'polygon' => 'POLYGON',
-                    'arbitrum' => 'ARB',
+                    'arbitrum' => 'ARBITRUM',
                     'sol' => 'SOL',
                     'ton' => 'TON',
                     'eth' => 'ERC20',
@@ -270,38 +270,40 @@ class cryptomus extends Exchange {
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * retrieves data on all markets for the exchange
-             *
-             * @see https://doc.cryptomus.com/personal/market-cap/tickers
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} an array of objects representing market data
-             */
-            $response = Async\await($this->publicGetV2UserApiExchangeMarkets($params));
-            //
-            //     {
-            //         "result" => array(
-            //             array(
-            //                 "id" => "01JHN5EFT64YC4HR9KCGM5M65D",
-            //                 "symbol" => "POL_USDT",
-            //                 "baseCurrency" => "POL",
-            //                 "quoteCurrency" => "USDT",
-            //                 "baseMinSize" => "1.00000000",
-            //                 "quoteMinSize" => "5.00000000",
-            //                 "baseMaxSize" => "50000.00000000",
-            //                 "quoteMaxSize" => "10000000000.00000000",
-            //                 "basePrec" => "1",
-            //                 "quotePrec" => "4"
-            //             ),
-            //             ...
-            //         )
-            //     }
-            //
-            $result = $this->safe_list($response, 'result', array());
-            return $this->parse_markets($result);
-        })();
+        return Async\async(self::do_fetch_markets(...))($params);
+    }
+
+    private function do_fetch_markets($params = array()) {
+        /**
+         * retrieves data on all markets for the exchange
+         *
+         * @see https://doc.cryptomus.com/personal/market-cap/tickers
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing market data
+         */
+        $response = Async\await($this->publicGetV2UserApiExchangeMarkets($params));
+        //
+        //     {
+        //         "result" => array(
+        //             array(
+        //                 "id" => "01JHN5EFT64YC4HR9KCGM5M65D",
+        //                 "symbol" => "POL_USDT",
+        //                 "baseCurrency" => "POL",
+        //                 "quoteCurrency" => "USDT",
+        //                 "baseMinSize" => "1.00000000",
+        //                 "quoteMinSize" => "5.00000000",
+        //                 "baseMaxSize" => "50000.00000000",
+        //                 "quoteMaxSize" => "10000000000.00000000",
+        //                 "basePrec" => "1",
+        //                 "quotePrec" => "4"
+        //             ),
+        //             ...
+        //         )
+        //     }
+        //
+        $result = $this->safe_list($response, 'result', array());
+        return $this->parse_markets($result);
     }
 
     public function parse_market(array $market): array {
@@ -387,39 +389,41 @@ class cryptomus extends Exchange {
     }
 
     public function fetch_currencies($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches all available currencies on an exchange
-             *
-             * @see https://doc.cryptomus.com/personal/market-cap/assets
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an associative dictionary of currencies
-             */
-            $response = Async\await($this->publicGetV1ExchangeMarketAssets($params));
-            //
-            //     {
-            //         'state' => '0',
-            //         'result' => array(
-            //             array(
-            //                 'currency_code' => 'USDC',
-            //                 'network_code' => 'bsc',
-            //                 'can_withdraw' => true,
-            //                 'can_deposit' => true,
-            //                 'min_withdraw' => '1.00000000',
-            //                 'max_withdraw' => '10000000.00000000',
-            //                 'max_deposit' => '10000000.00000000',
-            //                 'min_deposit' => '1.00000000'
-            //             ),
-            //             ...
-            //         )
-            //     }
-            //
-            $coins = $this->safe_list($response, 'result');
-            $groupedById = $this->group_by($coins, 'currency_code');
-            $groupedArray = is_array($groupedById) ? array_values($groupedById) : array();
-            return $this->parse_currencies($groupedArray);
-        })();
+        return Async\async(self::do_fetch_currencies(...))($params);
+    }
+
+    private function do_fetch_currencies($params = array()) {
+        /**
+         * fetches all available currencies on an exchange
+         *
+         * @see https://doc.cryptomus.com/personal/market-cap/assets
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an associative dictionary of currencies
+         */
+        $response = Async\await($this->publicGetV1ExchangeMarketAssets($params));
+        //
+        //     {
+        //         'state' => '0',
+        //         'result' => array(
+        //             array(
+        //                 'currency_code' => 'USDC',
+        //                 'network_code' => 'bsc',
+        //                 'can_withdraw' => true,
+        //                 'can_deposit' => true,
+        //                 'min_withdraw' => '1.00000000',
+        //                 'max_withdraw' => '10000000.00000000',
+        //                 'max_deposit' => '10000000.00000000',
+        //                 'min_deposit' => '1.00000000'
+        //             ),
+        //             ...
+        //         )
+        //     }
+        //
+        $coins = $this->safe_list($response, 'result');
+        $groupedById = $this->group_by($coins, 'currency_code');
+        $groupedArray = is_array($groupedById) ? array_values($groupedById) : array();
+        return $this->parse_currencies($groupedArray);
     }
 
     public function parse_currency(array $rawCurrency): array {
@@ -468,36 +472,38 @@ class cryptomus extends Exchange {
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-             *
-             * @see https://doc.cryptomus.com/personal/market-cap/tickers
-             *
-             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->publicGetV1ExchangeMarketTickers($params));
-            //
-            //     {
-            //         "data" => [
-            //         array(
-            //             "currency_pair" => "MATIC_USDT",
-            //             "last_price" => "0.342",
-            //             "base_volume" => "1676.84092771",
-            //             "quote_volume" => "573.48033609043"
-            //         ),
-            //         ...
-            //     }
-            //
-            $data = $this->safe_list($response, 'data');
-            return $this->parse_tickers($data, $symbols);
-        })();
+        return Async\async(self::do_fetch_tickers(...))($symbols, $params);
+    }
+
+    private function do_fetch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         *
+         * @see https://doc.cryptomus.com/personal/market-cap/tickers
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $response = Async\await($this->publicGetV1ExchangeMarketTickers($params));
+        //
+        //     {
+        //         "data" => [
+        //         array(
+        //             "currency_pair" => "MATIC_USDT",
+        //             "last_price" => "0.342",
+        //             "base_volume" => "1676.84092771",
+        //             "quote_volume" => "573.48033609043"
+        //         ),
+        //         ...
+        //     }
+        //
+        $data = $this->safe_list($response, 'data');
+        return $this->parse_tickers($data, $symbols);
     }
 
     public function parse_ticker(mixed $ticker, ?array $market = null): array {
@@ -538,96 +544,100 @@ class cryptomus extends Exchange {
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
-             *
-             * @see https://doc.cryptomus.com/personal/market-cap/orderbook
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->level] 0 or 1 or 2 or 3 or 4 or 5 - the $level of volume
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'currencyPair' => $market['id'],
-            );
-            $level = 0;
-            list($level, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'level', $level);
-            $request['level'] = $level;
-            $response = Async\await($this->publicGetV1ExchangeMarketOrderBookCurrencyPair($this->extend($request, $params)));
-            //
-            //     {
-            //         "data" => {
-            //             "timestamp" => "1730138702",
-            //             "bids" => array(
-            //                 {
-            //                     "price" => "2250.00",
-            //                     "quantity" => "1.00000"
-            //                 }
-            //             ),
-            //             "asks" => array(
-            //                 {
-            //                     "price" => "2428.69",
-            //                     "quantity" => "0.16470"
-            //                 }
-            //             )
-            //         }
-            //     }
-            //
-            $data = $this->safe_dict($response, 'data', array());
-            $timestamp = $this->safe_timestamp($data, 'timestamp');
-            return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'quantity');
-        })();
+        return Async\async(self::do_fetch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_fetch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+         *
+         * @see https://doc.cryptomus.com/personal/market-cap/orderbook
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->level] 0 or 1 or 2 or 3 or 4 or 5 - the $level of volume
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'currencyPair' => $market['id'],
+        );
+        $level = 0;
+        list($level, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'level', $level);
+        $request['level'] = $level;
+        $response = Async\await($this->publicGetV1ExchangeMarketOrderBookCurrencyPair($this->extend($request, $params)));
+        //
+        //     {
+        //         "data" => {
+        //             "timestamp" => "1730138702",
+        //             "bids" => array(
+        //                 {
+        //                     "price" => "2250.00",
+        //                     "quantity" => "1.00000"
+        //                 }
+        //             ),
+        //             "asks" => array(
+        //                 {
+        //                     "price" => "2428.69",
+        //                     "quantity" => "0.16470"
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $timestamp = $this->safe_timestamp($data, 'timestamp');
+        return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent trades for a particular $symbol
-             *
-             * @see https://doc.cryptomus.com/personal/market-cap/trades
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch (maximum value is 100)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'currencyPair' => $market['id'],
-            );
-            $response = Async\await($this->publicGetV1ExchangeMarketTradesCurrencyPair($this->extend($request, $params)));
-            //
-            //     {
-            //         "data" => array(
-            //             {
-            //                 "trade_id" => "01J829C3RAXHXHR09HABGQ1YAT",
-            //                 "price" => "2315.6320500000000000",
-            //                 "base_volume" => "21.9839623057260000",
-            //                 "quote_volume" => "0.0094937200000000",
-            //                 "timestamp" => 1726653796,
-            //                 "type" => "sell"
-            //             }
-            //         )
-            //     }
-            //
-            $data = $this->safe_list($response, 'data');
-            $dataList = array();
-            if ($data !== null) {
-                $dataList = $data;
-            }
-            return $this->parse_trades($dataList, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         *
+         * @see https://doc.cryptomus.com/personal/market-cap/trades
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch (maximum value is 100)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'currencyPair' => $market['id'],
+        );
+        $response = Async\await($this->publicGetV1ExchangeMarketTradesCurrencyPair($this->extend($request, $params)));
+        //
+        //     {
+        //         "data" => array(
+        //             {
+        //                 "trade_id" => "01J829C3RAXHXHR09HABGQ1YAT",
+        //                 "price" => "2315.6320500000000000",
+        //                 "base_volume" => "21.9839623057260000",
+        //                 "quote_volume" => "0.0094937200000000",
+        //                 "timestamp" => 1726653796,
+        //                 "type" => "sell"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_list($response, 'data');
+        $dataList = array();
+        if ($data !== null) {
+            $dataList = $data;
+        }
+        return $this->parse_trades($dataList, $market, $since, $limit);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -663,34 +673,36 @@ class cryptomus extends Exchange {
     }
 
     public function fetch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://doc.cryptomus.com/personal/converts/balance
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $response = Async\await($this->privateGetV2UserApiExchangeAccountBalance($this->extend($request, $params)));
-            //
-            //     {
-            //         "result" => array(
-            //             {
-            //                 "ticker" => "AVAX",
-            //                 "available" => "0.00000000",
-            //                 "held" => "0.00000000"
-            //             }
-            //         )
-            //     }
-            //
-            $result = $this->safe_list($response, 'result', array());
-            return $this->parse_balance($result);
-        })();
+        return Async\async(self::do_fetch_balance(...))($params);
+    }
+
+    private function do_fetch_balance($params = array()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://doc.cryptomus.com/personal/converts/balance
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $response = Async\await($this->privateGetV2UserApiExchangeAccountBalance($this->extend($request, $params)));
+        //
+        //     {
+        //         "result" => array(
+        //             {
+        //                 "ticker" => "AVAX",
+        //                 "available" => "0.00000000",
+        //                 "held" => "0.00000000"
+        //             }
+        //         )
+        //     }
+        //
+        $result = $this->safe_list($response, 'result', array());
+        return $this->parse_balance($result);
     }
 
     public function parse_balance(mixed $balance): array {
@@ -719,239 +731,247 @@ class cryptomus extends Exchange {
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * create a trade order
-             *
-             * @see https://doc.cryptomus.com/personal/exchange/market-order-creation
-             * @see https://doc.cryptomus.com/personal/exchange/limit-order-creation
-             *
-             * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type 'market' or 'limit' or for spot
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of you want to trade in units of the base currency
-             * @param {float} [$price] the $price that the order is to be fulfilled, in units of the quote currency, ignored in $market orders (only for limit orders)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {float} [$params->cost] *$market buy only* the quote quantity that can be used alternative for the $amount
-             * @param {string} [$params->clientOrderId] a unique identifier for the order (optional)
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'market' => $market['id'],
-                'direction' => $side,
-                'tag' => 'ccxt',
-            );
-            $clientOrderId = $this->safe_string($params, 'clientOrderId');
-            if ($clientOrderId !== null) {
-                $params = $this->omit($params, 'clientOrderId');
-                $request['client_order_id'] = $clientOrderId;
-            }
-            $sideBuy = $side === 'buy';
-            $amountToString = $this->number_to_string($amount);
-            $priceToString = $this->number_to_string($price);
-            $cost = null;
-            list($cost, $params) = $this->handle_param_string($params, 'cost');
-            if ($type === 'market') {
-                if ($sideBuy) {
-                    $createMarketBuyOrderRequiresPrice = true;
-                    list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                    if ($createMarketBuyOrderRequiresPrice) {
-                        if (($price === null) && ($cost === null)) {
-                            throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option of param to false and pass the $cost to spend in the $amount argument');
-                        } elseif ($cost === null) {
-                            $cost = Precise::string_mul($amountToString, $priceToString);
-                        }
-                    } else {
-                        $cost = $cost ? $cost : $amountToString;
+        return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * create a trade order
+         *
+         * @see https://doc.cryptomus.com/personal/exchange/market-order-creation
+         * @see https://doc.cryptomus.com/personal/exchange/limit-order-creation
+         *
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit' or for spot
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of you want to trade in units of the base currency
+         * @param {float} [$price] the $price that the order is to be fulfilled, in units of the quote currency, ignored in $market orders (only for limit orders)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->cost] *$market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {string} [$params->clientOrderId] a unique identifier for the order (optional)
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+            'direction' => $side,
+            'tag' => 'ccxt',
+        );
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $params = $this->omit($params, 'clientOrderId');
+            $request['client_order_id'] = $clientOrderId;
+        }
+        $sideBuy = $side === 'buy';
+        $amountToString = $this->number_to_string($amount);
+        $priceToString = $this->number_to_string($price);
+        $cost = null;
+        list($cost, $params) = $this->handle_param_string($params, 'cost');
+        if ($type === 'market') {
+            if ($sideBuy) {
+                $createMarketBuyOrderRequiresPrice = true;
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                if ($createMarketBuyOrderRequiresPrice) {
+                    if (($price === null) && ($cost === null)) {
+                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option of param to false and pass the $cost to spend in the $amount argument');
+                    } elseif ($cost === null) {
+                        $cost = Precise::string_mul($amountToString, $priceToString);
                     }
-                    $request['value'] = $cost;
                 } else {
-                    $request['quantity'] = $amountToString;
+                    $cost = $cost ? $cost : $amountToString;
                 }
-                $response = Async\await($this->privatePostV2UserApiExchangeOrdersMarket($this->extend($request, $params)));
-            } elseif ($type === 'limit') {
-                if ($price === null) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $price parameter for a ' . $type . ' order');
-                }
-                $request['quantity'] = $amountToString;
-                $request['price'] = $price;
-                $response = Async\await($this->privatePostV2UserApiExchangeOrders($this->extend($request, $params)));
+                $request['value'] = $cost;
             } else {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $type parameter (limit or $market)');
+                $request['quantity'] = $amountToString;
             }
-            //
-            //     {
-            //         "order_id" => "01JEXAFCCC5ZVJPZAAHHDKQBMG"
-            //     }
-            //
-            return $this->parse_order($response, $market);
-        })();
+            $response = Async\await($this->privatePostV2UserApiExchangeOrdersMarket($this->extend($request, $params)));
+        } elseif ($type === 'limit') {
+            if ($price === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price parameter for a ' . $type . ' order');
+            }
+            $request['quantity'] = $amountToString;
+            $request['price'] = $price;
+            $response = Async\await($this->privatePostV2UserApiExchangeOrders($this->extend($request, $params)));
+        } else {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $type parameter (limit or $market)');
+        }
+        //
+        //     {
+        //         "order_id" => "01JEXAFCCC5ZVJPZAAHHDKQBMG"
+        //     }
+        //
+        return $this->parse_order($response, $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * cancels an open limit order
-             *
-             * @see https://doc.cryptomus.com/personal/exchange/limit-order-cancellation
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the market the order was made in (not used in cryptomus)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $request['orderId'] = $id;
-            $response = Async\await($this->privateDeleteV2UserApiExchangeOrdersOrderId($this->extend($request, $params)));
-            //
-            //     {
-            //         "success" => true
-            //     }
-            //
-            return $this->safe_order(array( 'info' => $response ));
-        })();
+        return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
+    }
+
+    private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * cancels an open limit order
+         *
+         * @see https://doc.cryptomus.com/personal/exchange/limit-order-cancellation
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the market the order was made in (not used in cryptomus)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $request['orderId'] = $id;
+        $response = Async\await($this->privateDeleteV2UserApiExchangeOrdersOrderId($this->extend($request, $params)));
+        //
+        //     {
+        //         "success" => true
+        //     }
+        //
+        return $this->safe_order(array( 'info' => $response ));
     }
 
     public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple $orders made by the user
-             *
-             * @see https://doc.cryptomus.com/personal/exchange/history-of-completed-$orders
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $orders were made in (not used in cryptomus)
-             * @param {int} [$since] the earliest time in ms to fetch $orders for (not used in cryptomus)
-             * @param {int} [$limit] the maximum number of $order structures to retrieve (not used in cryptomus)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->direction] $order direction 'buy' or 'sell'
-             * @param {string} [$params->order_id] $order id
-             * @param {string} [$params->client_order_id] client $order id
-             * @param {string} [$params->limit] A special parameter that sets the maximum number of records the $request will return
-             * @param {string} [$params->offset] A special parameter that sets the number of records from the beginning of the list
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['market'] = $market['id'];
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = Async\await($this->privateGetV2UserApiExchangeOrdersHistory($this->extend($request, $params)));
-            //
-            //     {
-            //         "result" => array(
-            //             {
-            //                 "id" => "01JEXAPY04JDFBVFC2D23BCKMK",
-            //                 "type" => "market",
-            //                 "direction" => "sell",
-            //                 "symbol" => "TRX_USDT",
-            //                 "quantity" => "67.5400000000000000",
-            //                 "filledQuantity" => "67.5400000000000000",
-            //                 "filledValue" => "20.0053480000000000",
-            //                 "state" => "completed",
-            //                 "internalState" => "filled",
-            //                 "createdAt" => "2024-12-12 11:40:19",
-            //                 "finishedAt" => "2024-12-12 11:40:21",
-            //                 "deal" => {
-            //                     "id" => "01JEXAPZ9C9TWENPFZJASZ1YD2",
-            //                     "state" => "completed",
-            //                     "createdAt" => "2024-12-12 11:40:21",
-            //                     "completedAt" => "2024-12-12 11:40:21",
-            //                     "averageFilledPrice" => "0.2962000000000000",
-            //                     "transactions" => array(
-            //                         array(
-            //                             "id" => "01JEXAPZ9C9TWENPFZJASZ1YD3",
-            //                             "tradeRole" => "taker",
-            //                             "filledPrice" => "0.2962000000000000",
-            //                             "filledQuantity" => "67.5400000000000000",
-            //                             "filledValue" => "20.0053480000000000",
-            //                             "fee" => "0.0000000000000000",
-            //                             "feeCurrency" => "USDT",
-            //                             "committedAt" => "2024-12-12 11:40:21"
-            //                         }
-            //                     )
-            //                 }
-            //             ),
-            //             ...
-            //         )
-            //     }
-            //
-            $result = $this->safe_list($response, 'result', array());
-            $orders = array();
-            for ($i = 0; $i < count($result); $i++) {
-                $order = $result[$i];
-                $orders[] = $this->parse_order($order, $market);
-            }
-            return $orders;
-        })();
+        return Async\async(self::do_fetch_canceled_and_closed_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple $orders made by the user
+         *
+         * @see https://doc.cryptomus.com/personal/exchange/history-of-completed-$orders
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in (not used in cryptomus)
+         * @param {int} [$since] the earliest time in ms to fetch $orders for (not used in cryptomus)
+         * @param {int} [$limit] the maximum number of $order structures to retrieve (not used in cryptomus)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->direction] $order direction 'buy' or 'sell'
+         * @param {string} [$params->order_id] $order id
+         * @param {string} [$params->client_order_id] client $order id
+         * @param {string} [$params->limit] A special parameter that sets the maximum number of records the $request will return
+         * @param {string} [$params->offset] A special parameter that sets the number of records from the beginning of the list
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['market'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = Async\await($this->privateGetV2UserApiExchangeOrdersHistory($this->extend($request, $params)));
+        //
+        //     {
+        //         "result" => array(
+        //             {
+        //                 "id" => "01JEXAPY04JDFBVFC2D23BCKMK",
+        //                 "type" => "market",
+        //                 "direction" => "sell",
+        //                 "symbol" => "TRX_USDT",
+        //                 "quantity" => "67.5400000000000000",
+        //                 "filledQuantity" => "67.5400000000000000",
+        //                 "filledValue" => "20.0053480000000000",
+        //                 "state" => "completed",
+        //                 "internalState" => "filled",
+        //                 "createdAt" => "2024-12-12 11:40:19",
+        //                 "finishedAt" => "2024-12-12 11:40:21",
+        //                 "deal" => {
+        //                     "id" => "01JEXAPZ9C9TWENPFZJASZ1YD2",
+        //                     "state" => "completed",
+        //                     "createdAt" => "2024-12-12 11:40:21",
+        //                     "completedAt" => "2024-12-12 11:40:21",
+        //                     "averageFilledPrice" => "0.2962000000000000",
+        //                     "transactions" => array(
+        //                         array(
+        //                             "id" => "01JEXAPZ9C9TWENPFZJASZ1YD3",
+        //                             "tradeRole" => "taker",
+        //                             "filledPrice" => "0.2962000000000000",
+        //                             "filledQuantity" => "67.5400000000000000",
+        //                             "filledValue" => "20.0053480000000000",
+        //                             "fee" => "0.0000000000000000",
+        //                             "feeCurrency" => "USDT",
+        //                             "committedAt" => "2024-12-12 11:40:21"
+        //                         }
+        //                     )
+        //                 }
+        //             ),
+        //             ...
+        //         )
+        //     }
+        //
+        $result = $this->safe_list($response, 'result', array());
+        $orders = array();
+        for ($i = 0; $i < count($result); $i++) {
+            $order = $result[$i];
+            $orders[] = $this->parse_order($order, $market);
+        }
+        return $orders;
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetch all unfilled currently open orders
-             *
-             * @see https://doc.cryptomus.com/personal/exchange/list-of-active-orders
-             *
-             * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch open orders for (not used in cryptomus)
-             * @param {int} [$limit] the maximum number of  open orders structures to retrieve (not used in cryptomus)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->direction] order direction 'buy' or 'sell'
-             * @param {string} [$params->order_id] order id
-             * @param {string} [$params->client_order_id] client order id
-             * @param {string} [$params->limit] A special parameter that sets the maximum number of records the $request will return
-             * @param {string} [$params->offset] A special parameter that sets the number of records from the beginning of the list
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $request = array(
-            );
-            if ($market !== null) {
-                $request['market'] = $market['id'];
-            }
-            $response = Async\await($this->privateGetV2UserApiExchangeOrders($this->extend($request, $params)));
-            //
-            //     {
-            //         "result" => array(
-            //             array(
-            //                 "id" => "01JFFG72CBRDP68K179KC9DSTG",
-            //                 "direction" => "sell",
-            //                 "symbol" => "BTC_USDT",
-            //                 "price" => "102.0130000000000000",
-            //                 "quantity" => "0.0005000000000000",
-            //                 "value" => "0.0510065000000000",
-            //                 "filledQuantity" => "0.0000000000000000",
-            //                 "filledValue" => "0.0000000000000000",
-            //                 "createdAt" => "2024-12-19 09:02:51",
-            //                 "clientOrderId" => "987654321",
-            //                 "stopLossPrice" => "101.12"
-            //             ),
-            //             ...
-            //         )
-            //     }
-            $result = $this->safe_list($response, 'result', array());
-            return $this->parse_orders($result, $market, null, null);
-        })();
+        return Async\async(self::do_fetch_open_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all unfilled currently open orders
+         *
+         * @see https://doc.cryptomus.com/personal/exchange/list-of-active-orders
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch open orders for (not used in cryptomus)
+         * @param {int} [$limit] the maximum number of  open orders structures to retrieve (not used in cryptomus)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->direction] order direction 'buy' or 'sell'
+         * @param {string} [$params->order_id] order id
+         * @param {string} [$params->client_order_id] client order id
+         * @param {string} [$params->limit] A special parameter that sets the maximum number of records the $request will return
+         * @param {string} [$params->offset] A special parameter that sets the number of records from the beginning of the list
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $request = array(
+        );
+        if ($market !== null) {
+            $request['market'] = $market['id'];
+        }
+        $response = Async\await($this->privateGetV2UserApiExchangeOrders($this->extend($request, $params)));
+        //
+        //     {
+        //         "result" => array(
+        //             array(
+        //                 "id" => "01JFFG72CBRDP68K179KC9DSTG",
+        //                 "direction" => "sell",
+        //                 "symbol" => "BTC_USDT",
+        //                 "price" => "102.0130000000000000",
+        //                 "quantity" => "0.0005000000000000",
+        //                 "value" => "0.0510065000000000",
+        //                 "filledQuantity" => "0.0000000000000000",
+        //                 "filledValue" => "0.0000000000000000",
+        //                 "createdAt" => "2024-12-19 09:02:51",
+        //                 "clientOrderId" => "987654321",
+        //                 "stopLossPrice" => "101.12"
+        //             ),
+        //             ...
+        //         )
+        //     }
+        $result = $this->safe_list($response, 'result', array());
+        return $this->parse_orders($result, $market, null, null);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1077,91 +1097,93 @@ class cryptomus extends Exchange {
     }
 
     public function fetch_trading_fees($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetch the trading fees for multiple markets
-             *
-             * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
-             */
-            $response = Async\await($this->privateGetV2UserApiExchangeAccountTariffs($params));
-            //
-            //     {
-            //         $result => {
-            //             equivalent_currency_code => 'USD',
-            //             current_tariff_step => array(
-            //                 step => '0',
-            //                 from_turnover => '0.00000000',
-            //                 maker_percent => '0.08',
-            //                 taker_percent => '0.1'
-            //             ),
-            //             tariff_steps => array(
-            //                 array(
-            //                     step => '0',
-            //                     from_turnover => '0.00000000',
-            //                     maker_percent => '0.08',
-            //                     taker_percent => '0.1'
-            //                 ),
-            //                 array(
-            //                     step => '1',
-            //                     from_turnover => '100001.00000000',
-            //                     maker_percent => '0.06',
-            //                     taker_percent => '0.095'
-            //                 ),
-            //                 array(
-            //                     step => '2',
-            //                     from_turnover => '250001.00000000',
-            //                     maker_percent => '0.055',
-            //                     taker_percent => '0.085'
-            //                 ),
-            //                 array(
-            //                     step => '3',
-            //                     from_turnover => '500001.00000000',
-            //                     maker_percent => '0.05',
-            //                     taker_percent => '0.075'
-            //                 ),
-            //                 {
-            //                     step => '4',
-            //                     from_turnover => '2500001.00000000',
-            //                     maker_percent => '0.04',
-            //                     taker_percent => '0.07'
-            //                 }
-            //             ),
-            //             daily_turnover => '0.00000000',
-            //             monthly_turnover => '77.52062617',
-            //             circulation_funds => '25.48900443'
-            //         }
-            //     }
-            //
-            $data = $this->safe_dict($response, 'result', array());
-            $currentFeeTier = $this->safe_dict($data, 'current_tariff_step', array());
-            $makerFee = $this->safe_string($currentFeeTier, 'maker_percent');
-            $takerFee = $this->safe_string($currentFeeTier, 'taker_percent');
-            $makerFee = Precise::string_div($makerFee, '100');
-            $takerFee = Precise::string_div($takerFee, '100');
-            $feeTiers = $this->safe_list($data, 'tariff_steps', array());
-            $result = array();
-            $tiers = $this->parse_fee_tiers($feeTiers);
-            $symbols = $this->symbols;
-            if ($symbols === null) {
-                return $result;
-            }
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $result[$symbol] = array(
-                    'info' => $response,
-                    'symbol' => $symbol,
-                    'maker' => $this->parse_number($makerFee),
-                    'taker' => $this->parse_number($takerFee),
-                    'percentage' => true,
-                    'tierBased' => true,
-                    'tiers' => $tiers,
-                );
-            }
+        return Async\async(self::do_fetch_trading_fees(...))($params);
+    }
+
+    private function do_fetch_trading_fees($params = array()) {
+        /**
+         * fetch the trading fees for multiple markets
+         *
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
+         */
+        $response = Async\await($this->privateGetV2UserApiExchangeAccountTariffs($params));
+        //
+        //     {
+        //         $result => {
+        //             equivalent_currency_code => 'USD',
+        //             current_tariff_step => array(
+        //                 step => '0',
+        //                 from_turnover => '0.00000000',
+        //                 maker_percent => '0.08',
+        //                 taker_percent => '0.1'
+        //             ),
+        //             tariff_steps => array(
+        //                 array(
+        //                     step => '0',
+        //                     from_turnover => '0.00000000',
+        //                     maker_percent => '0.08',
+        //                     taker_percent => '0.1'
+        //                 ),
+        //                 array(
+        //                     step => '1',
+        //                     from_turnover => '100001.00000000',
+        //                     maker_percent => '0.06',
+        //                     taker_percent => '0.095'
+        //                 ),
+        //                 array(
+        //                     step => '2',
+        //                     from_turnover => '250001.00000000',
+        //                     maker_percent => '0.055',
+        //                     taker_percent => '0.085'
+        //                 ),
+        //                 array(
+        //                     step => '3',
+        //                     from_turnover => '500001.00000000',
+        //                     maker_percent => '0.05',
+        //                     taker_percent => '0.075'
+        //                 ),
+        //                 {
+        //                     step => '4',
+        //                     from_turnover => '2500001.00000000',
+        //                     maker_percent => '0.04',
+        //                     taker_percent => '0.07'
+        //                 }
+        //             ),
+        //             daily_turnover => '0.00000000',
+        //             monthly_turnover => '77.52062617',
+        //             circulation_funds => '25.48900443'
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'result', array());
+        $currentFeeTier = $this->safe_dict($data, 'current_tariff_step', array());
+        $makerFee = $this->safe_string($currentFeeTier, 'maker_percent');
+        $takerFee = $this->safe_string($currentFeeTier, 'taker_percent');
+        $makerFee = Precise::string_div($makerFee, '100');
+        $takerFee = Precise::string_div($takerFee, '100');
+        $feeTiers = $this->safe_list($data, 'tariff_steps', array());
+        $result = array();
+        $tiers = $this->parse_fee_tiers($feeTiers);
+        $symbols = $this->symbols;
+        if ($symbols === null) {
             return $result;
-        })();
+        }
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $result[$symbol] = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $this->parse_number($makerFee),
+                'taker' => $this->parse_number($takerFee),
+                'percentage' => true,
+                'tierBased' => true,
+                'tiers' => $tiers,
+            );
+        }
+        return $result;
     }
 
     public function parse_fee_tiers(mixed $feeTiers, ?array $market = null) {

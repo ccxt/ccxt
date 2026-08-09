@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bullish.js';
 import { AuthenticationError, ArgumentsRequired, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InvalidAddress, InvalidNonce, InvalidOrder, InsufficientFunds, MarketClosed, NotSupported, OperationRejected, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FeeInterface, Int, int, FundingRateHistory, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, OpenInterest, NullableDict } from './base/types.js';
+import { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FeeInterface, Int, int, FundingRateHistory, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, OpenInterest, NullableDict, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -27,7 +27,7 @@ export default class bullish extends Exchange {
                 'margin': false,
                 'swap': true,
                 'future': true,
-                'option': false,
+                'option': true,
                 'addMargin': false,
                 'borrowMargin': false,
                 'cancelAllOrders': true,
@@ -154,70 +154,70 @@ export default class bullish extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'v1/nonce': 1,
-                        'v1/time': 1,
-                        'v1/assets': 1,
-                        'v1/assets/{symbol}': 1,
-                        'v1/markets': 1,
-                        'v1/markets/{symbol}': 1,
-                        'v1/history/markets/{symbol}': 1,
-                        'v1/markets/{symbol}/orderbook/hybrid': 1,
-                        'v1/markets/{symbol}/trades': 1,
-                        'v1/markets/{symbol}/tick': 1,
-                        'v1/markets/{symbol}/candle': 1,
-                        'v1/history/markets/{symbol}/trades': 1,
-                        'v1/history/markets/{symbol}/funding-rate': 1,
-                        'v1/index-prices': 1,
-                        'v1/index-prices/{assetSymbol}': 1,
-                        'v1/expiry-prices/{symbol}': 1,
-                        'v1/option-ladder': 1,
-                        'v1/option-ladder/{symbol}': 1,
+                        'v1/nonce': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/time': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/assets': { 'cost': 1 } as Endpoint<List>,
+                        'v1/assets/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/markets': { 'cost': 1 } as Endpoint<List>,
+                        'v1/markets/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/history/markets/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/markets/{symbol}/orderbook/hybrid': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/markets/{symbol}/trades': { 'cost': 1 } as Endpoint<List>,
+                        'v1/markets/{symbol}/tick': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/markets/{symbol}/candle': { 'cost': 1 } as Endpoint<List>,
+                        'v1/history/markets/{symbol}/trades': { 'cost': 1 } as Endpoint<List>,
+                        'v1/history/markets/{symbol}/funding-rate': { 'cost': 1 } as Endpoint<List>,
+                        'v1/index-prices': { 'cost': 1 } as Endpoint<List>,
+                        'v1/index-prices/{assetSymbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/expiry-prices/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/option-ladder': { 'cost': 1 } as Endpoint<List>,
+                        'v1/option-ladder/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'v2/orders': 1,
-                        'v2/history/orders': 1,
-                        'v2/orders/{orderId}': 1,
-                        'v2/amm-instructions': 1,
-                        'v2/amm-instructions/{instructionId}': 1,
-                        'v1/wallets/transactions': 1,
-                        'v1/wallets/limits/{symbol}': 1,
-                        'v1/wallets/deposit-instructions/crypto/{symbol}': 1,
-                        'v1/wallets/withdrawal-instructions/crypto/{symbol}': 1,
-                        'v1/wallets/deposit-instructions/fiat/{symbol}': 1,
-                        'v1/wallets/withdrawal-instructions/fiat/{symbol}': 1,
-                        'v1/wallets/self-hosted/verification-attempts': 1,
-                        'v1/trades': 5,
-                        'v1/history/trades': 5,
-                        'v1/trades/{tradeId}': 5,
-                        'v1/trades/client-order-id/{clientOrderId}': 1,
-                        'v1/accounts/asset': 1,
-                        'v1/accounts/asset/{symbol}': 1,
-                        'v1/users/logout': 1,
-                        'v1/users/hmac/login': 1,
-                        'v1/accounts/trading-accounts': 1,
-                        'v1/accounts/trading-accounts/{tradingAccountId}': 1,
-                        'v1/derivatives-positions': 1,
-                        'v1/history/derivatives-settlement': 1,
-                        'v1/history/transfer': 1,
-                        'v1/history/borrow-interest': 1,
-                        'v2/mmp-configuration': 1,
-                        'v2/otc-trades': 1,
-                        'v2/otc-trades/{otcTradeId}': 1,
-                        'v2/otc-trades/unconfirmed-trade': 1,
+                        'v2/orders': { 'cost': 1 } as Endpoint<List>,
+                        'v2/history/orders': { 'cost': 1 } as Endpoint<List>,
+                        'v2/orders/{orderId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/amm-instructions': { 'cost': 1 } as Endpoint<List>,
+                        'v2/amm-instructions/{instructionId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/wallets/transactions': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/wallets/limits/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/wallets/deposit-instructions/crypto/{symbol}': { 'cost': 1 } as Endpoint<List>,
+                        'v1/wallets/withdrawal-instructions/crypto/{symbol}': { 'cost': 1 } as Endpoint<List>,
+                        'v1/wallets/deposit-instructions/fiat/{symbol}': { 'cost': 1 } as Endpoint<List>,
+                        'v1/wallets/withdrawal-instructions/fiat/{symbol}': { 'cost': 1 } as Endpoint<List>,
+                        'v1/wallets/self-hosted/verification-attempts': { 'cost': 1 } as Endpoint<List>,
+                        'v1/trades': { 'cost': 5 } as Endpoint<List>,
+                        'v1/history/trades': { 'cost': 5 } as Endpoint<List>,
+                        'v1/trades/{tradeId}': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/trades/client-order-id/{clientOrderId}': { 'cost': 1 } as Endpoint<List>,
+                        'v1/accounts/asset': { 'cost': 1 } as Endpoint<List>,
+                        'v1/accounts/asset/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/users/logout': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/users/hmac/login': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/accounts/trading-accounts': { 'cost': 1 } as Endpoint<List>,
+                        'v1/accounts/trading-accounts/{tradingAccountId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/derivatives-positions': { 'cost': 1 } as Endpoint<List>,
+                        'v1/history/derivatives-settlement': { 'cost': 1 } as Endpoint<List>,
+                        'v1/history/transfer': { 'cost': 1 } as Endpoint<List>,
+                        'v1/history/borrow-interest': { 'cost': 1 } as Endpoint<List>,
+                        'v2/mmp-configuration': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/otc-trades': { 'cost': 1 } as Endpoint<List>,
+                        'v2/otc-trades/{otcTradeId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/otc-trades/unconfirmed-trade': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'v2/orders': 5,
-                        'v2/command': 5,
-                        'v2/amm-instructions': 1,
-                        'v1/wallets/withdrawal': 1,
-                        'v2/users/login': 1,
-                        'v1/simulate-portfolio-margin': 1,
-                        'v1/wallets/self-hosted/initiate': 1,
-                        'v2/mmp-configuration': 1,
-                        'v2/otc-trades': 1,
-                        'v2/otc-command': 1,
+                        'v2/orders': { 'cost': 5 } as Endpoint<Dict>,
+                        'v2/command': { 'cost': 5 } as Endpoint<Dict>,
+                        'v2/amm-instructions': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/wallets/withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/users/login': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/simulate-portfolio-margin': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/wallets/self-hosted/initiate': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/mmp-configuration': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/otc-trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/otc-command': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -960,7 +960,7 @@ export default class bullish extends Exchange {
         }
         const maxLimit = 100;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
             params = this.handlePaginationParams ('fetchTrades', since, params);
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params, maxLimit) as Trade[];
@@ -1385,7 +1385,8 @@ export default class bullish extends Exchange {
         //         }, ...
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const ohlcvs = this.toArray (response);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -1505,7 +1506,7 @@ export default class bullish extends Exchange {
         }
         let method = 'privateGetV2HistoryOrders';
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'method', method);
-        let response: Dict[] = [];
+        let response: Dict | List = [];
         if (method === 'privateGetV2Orders') {
             //
             //     [
@@ -2243,11 +2244,12 @@ export default class bullish extends Exchange {
 
     async loadAccount (params = {}) {
         let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'tradingAccountId');
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'loadAccount', 'tradingAccountId');
         if (tradingAccountId === undefined) {
             const response = await this.privateGetV1AccountsTradingAccounts (params);
-            for (let i = 0; i < response.length; i++) {
-                const account = response[i];
+            const accounts = this.toArray (response);
+            for (let i = 0; i < accounts.length; i++) {
+                const account = accounts[i];
                 const name = this.safeString (account, 'tradingAccountName');
                 if (name === 'Primary Account') {
                     tradingAccountId = this.safeString (account, 'tradingAccountId');

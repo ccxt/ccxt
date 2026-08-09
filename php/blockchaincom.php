@@ -92,38 +92,38 @@ class blockchaincom extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'tickers' => 1, // fetchTickers
-                        'tickers/{symbol}' => 1, // fetchTicker
-                        'symbols' => 1, // fetchMarkets
-                        'symbols/{symbol}' => 1, // fetchMarket
-                        'l2/{symbol}' => 1, // fetchL2OrderBook
-                        'l3/{symbol}' => 1, // fetchL3OrderBook
+                        'tickers' => array( 'cost' => 1 ), // fetchTickers
+                        'tickers/{symbol}' => array( 'cost' => 1 ), // fetchTicker
+                        'symbols' => array( 'cost' => 1 ), // fetchMarkets
+                        'symbols/{symbol}' => array( 'cost' => 1 ), // fetchMarket
+                        'l2/{symbol}' => array( 'cost' => 1 ), // fetchL2OrderBook
+                        'l3/{symbol}' => array( 'cost' => 1 ), // fetchL3OrderBook
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'fees' => 1, // fetchFees
-                        'orders' => 1, // fetchOpenOrders, fetchClosedOrders
-                        'orders/{orderId}' => 1, // fetchOrder(id)
-                        'trades' => 1,
-                        'fills' => 1, // fetchMyTrades
-                        'deposits' => 1, // fetchDeposits
-                        'deposits/{depositId}' => 1, // fetchDeposit
-                        'accounts' => 1, // fetchBalance
-                        'accounts/{account}/{currency}' => 1,
-                        'whitelist' => 1, // fetchWithdrawalWhitelist
-                        'whitelist/{currency}' => 1, // fetchWithdrawalWhitelistByCurrency
-                        'withdrawals' => 1, // fetchWithdrawalWhitelist
-                        'withdrawals/{withdrawalId}' => 1, // fetchWithdrawalById
+                        'fees' => array( 'cost' => 1 ), // fetchFees
+                        'orders' => array( 'cost' => 1 ), // fetchOpenOrders, fetchClosedOrders
+                        'orders/{orderId}' => array( 'cost' => 1 ), // fetchOrder(id)
+                        'trades' => array( 'cost' => 1 ),
+                        'fills' => array( 'cost' => 1 ), // fetchMyTrades
+                        'deposits' => array( 'cost' => 1 ), // fetchDeposits
+                        'deposits/{depositId}' => array( 'cost' => 1 ), // fetchDeposit
+                        'accounts' => array( 'cost' => 1 ), // fetchBalance
+                        'accounts/{account}/{currency}' => array( 'cost' => 1 ),
+                        'whitelist' => array( 'cost' => 1 ), // fetchWithdrawalWhitelist
+                        'whitelist/{currency}' => array( 'cost' => 1 ), // fetchWithdrawalWhitelistByCurrency
+                        'withdrawals' => array( 'cost' => 1 ), // fetchWithdrawalWhitelist
+                        'withdrawals/{withdrawalId}' => array( 'cost' => 1 ), // fetchWithdrawalById
                     ),
                     'post' => array(
-                        'orders' => 1, // createOrder
-                        'deposits/{currency}' => 1, // fetchDepositAddress by currency (only crypto supported)
-                        'withdrawals' => 1, // withdraw
+                        'orders' => array( 'cost' => 1 ), // createOrder
+                        'deposits/{currency}' => array( 'cost' => 1 ), // fetchDepositAddress by currency (only crypto supported)
+                        'withdrawals' => array( 'cost' => 1 ), // withdraw
                     ),
                     'delete' => array(
-                        'orders' => 1, // cancelOrders
-                        'orders/{orderId}' => 1, // cancelOrder
+                        'orders' => array( 'cost' => 1 ), // cancelOrders
+                        'orders/{orderId}' => array( 'cost' => 1 ), // cancelOrder
                     ),
                 ),
             ),

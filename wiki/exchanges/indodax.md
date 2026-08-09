@@ -19,6 +19,7 @@
 * [createOrder](#createorder)
 * [cancelOrder](#cancelorder)
 * [fetchTransactionFee](#fetchtransactionfee)
+* [fetchDepositWithdrawFee](#fetchdepositwithdrawfee)
 * [fetchDepositsWithdrawals](#fetchdepositswithdrawals)
 * [withdraw](#withdraw)
 * [fetchDepositAddresses](#fetchdepositaddresses)
@@ -327,6 +328,27 @@ fetch the fee for a transaction
 
 ```javascript
 indodax.fetchTransactionFee (code, params?)
+```
+
+
+<a name="fetchDepositWithdrawFee" id="fetchdepositwithdrawfee"></a>
+
+### fetchDepositWithdrawFee{docsify-ignore}
+fetch the withdrawal fee for a currency; indodax charges no crypto deposit fees, see https://github.com/ccxt/ccxt/issues/25800
+
+**Kind**: instance method of [<code>indodax</code>](#indodax)  
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
+
+**See**: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+indodax.fetchDepositWithdrawFee (code, params?)
 ```
 
 

@@ -159,34 +159,34 @@ class onetrading extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'currencies',
-                        'candlesticks/{instrument_code}',
-                        'fees',
-                        'instruments',
-                        'order-book/{instrument_code}',
-                        'market-ticker',
-                        'market-ticker/{instrument_code}',
-                        'time',
+                        'currencies' => array( 'cost' => 1 ),
+                        'candlesticks/{instrument_code}' => array( 'cost' => 1 ),
+                        'fees' => array( 'cost' => 1 ),
+                        'instruments' => array( 'cost' => 1 ),
+                        'order-book/{instrument_code}' => array( 'cost' => 1 ),
+                        'market-ticker' => array( 'cost' => 1 ),
+                        'market-ticker/{instrument_code}' => array( 'cost' => 1 ),
+                        'time' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'account/balances',
-                        'account/fees',
-                        'account/orders',
-                        'account/orders/{order_id}',
-                        'account/orders/client/{client_id}',
-                        'account/orders/{order_id}/trades',
-                        'account/trades',
-                        'account/trade/{trade_id}',
+                        'account/balances' => array( 'cost' => 1 ),
+                        'account/fees' => array( 'cost' => 1 ),
+                        'account/orders' => array( 'cost' => 1 ),
+                        'account/orders/{order_id}' => array( 'cost' => 1 ),
+                        'account/orders/client/{client_id}' => array( 'cost' => 1 ),
+                        'account/orders/{order_id}/trades' => array( 'cost' => 1 ),
+                        'account/trades' => array( 'cost' => 1 ),
+                        'account/trade/{trade_id}' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'account/orders',
+                        'account/orders' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'account/orders',
-                        'account/orders/{order_id}',
-                        'account/orders/client/{client_id}',
+                        'account/orders' => array( 'cost' => 1 ),
+                        'account/orders/{order_id}' => array( 'cost' => 1 ),
+                        'account/orders/client/{client_id}' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -905,8 +905,9 @@ class onetrading extends Exchange {
         //     )
         //
         $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $ticker = $this->parse_ticker($response[$i]);
+        $rawTickers = $this->to_array($response);
+        for ($i = 0; $i < count($rawTickers); $i++) {
+            $ticker = $this->parse_ticker($rawTickers[$i]);
             $symbol = $ticker['symbol'];
             if ($symbol !== null) {
                 $result[$symbol] = $ticker;

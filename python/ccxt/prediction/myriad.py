@@ -44,6 +44,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'createMarketBuyOrderWithCost': True,
                 'createOrder': True,
                 'createOrders': True,
                 'editOrder': True,
@@ -101,46 +102,46 @@ class myriad(PredictionExchange, ImplicitAPI):
                 'myriad': {
                     'public': {
                         'get': {
-                            'questions': 1,
-                            'questions/{id}': 1,
-                            'markets': 1,
-                            'markets/{id}': 1,
-                            'markets/{networkId}/{id}': 1,
-                            'markets/{id}/events': 1,
-                            'markets/{id}/orderbook': 1,
-                            'markets/{id}/trades': 1,
-                            'markets/{id}/holders': 1,
-                            'markets/{id}/referrals': 1,
-                            'events': 1,
-                            'orders': 1,
-                            'orders/{hash}': 1,
-                            'users/{address}/events': 1,
-                            'users/{address}/referrals': 1,
-                            'users/{address}/portfolio': 1,
-                            'users/{address}/markets': 1,
-                            'tags': 1,
-                            'topics': 1,
+                            'questions': {'cost': 1},
+                            'questions/{id}': {'cost': 1},
+                            'markets': {'cost': 1},
+                            'markets/{id}': {'cost': 1},
+                            'markets/{networkId}/{id}': {'cost': 1},
+                            'markets/{id}/events': {'cost': 1},
+                            'markets/{id}/orderbook': {'cost': 1},
+                            'markets/{id}/trades': {'cost': 1},
+                            'markets/{id}/holders': {'cost': 1},
+                            'markets/{id}/referrals': {'cost': 1},
+                            'events': {'cost': 1},
+                            'orders': {'cost': 1},
+                            'orders/{hash}': {'cost': 1},
+                            'users/{address}/events': {'cost': 1},
+                            'users/{address}/referrals': {'cost': 1},
+                            'users/{address}/portfolio': {'cost': 1},
+                            'users/{address}/markets': {'cost': 1},
+                            'tags': {'cost': 1},
+                            'topics': {'cost': 1},
                         },
                         'post': {
-                            'markets/quote': 1,
-                            'markets/claim': 1,
-                            'orders': 1,
-                            'orders/cancel-batch': 1,
-                            'orders/cancel-all': 1,
-                            'positions/split': 1,
-                            'positions/merge': 1,
-                            'positions/redeem': 1,
-                            'positions/redeem-voided': 1,
-                            'positions/neg-risk/split': 1,
-                            'positions/neg-risk/merge': 1,
+                            'markets/quote': {'cost': 1},
+                            'markets/claim': {'cost': 1},
+                            'orders': {'cost': 1},
+                            'orders/cancel-batch': {'cost': 1},
+                            'orders/cancel-all': {'cost': 1},
+                            'positions/split': {'cost': 1},
+                            'positions/merge': {'cost': 1},
+                            'positions/redeem': {'cost': 1},
+                            'positions/redeem-voided': {'cost': 1},
+                            'positions/neg-risk/split': {'cost': 1},
+                            'positions/neg-risk/merge': {'cost': 1},
                         },
                         'delete': {
-                            'orders/{hash}': 1,
+                            'orders/{hash}': {'cost': 1},
                         },
                     },
                     'private': {
                         'post': {
-                            'markets/quote_with_fee': 1,
+                            'markets/quote_with_fee': {'cost': 1},
                         },
                     },
                 },
@@ -268,7 +269,8 @@ class myriad(PredictionExchange, ImplicitAPI):
                 'state': state,
                 'limit': limit,
             }, rest))
-            foundList = self.safe_list(response, 'data', response)
+            responseIsArray = isinstance(response, list)
+            foundList = response if (responseIsArray) else self.safe_list(response, 'data', [])
             found = foundList if (foundList is not None) else []
             for j in range(0, len(found)):
                 raw = found[j]
@@ -311,7 +313,8 @@ class myriad(PredictionExchange, ImplicitAPI):
                 'page': page,
                 'trading_model': tradingModel,
             }, rest))
-            rawMarketsList = self.safe_list(response, 'data', response)
+            responseIsArray = isinstance(response, list)
+            rawMarketsList = response if (responseIsArray) else self.safe_list(response, 'data', [])
             rawMarkets = rawMarketsList if (rawMarketsList is not None) else []
             rawMarketsLength = len(rawMarkets)
             if rawMarketsLength == 0:
@@ -419,7 +422,8 @@ class myriad(PredictionExchange, ImplicitAPI):
                 'keyword': q,
                 'limit': limit,
             }, rest))
-            foundList = self.safe_list(response, 'data', response)
+            responseIsArray = isinstance(response, list)
+            foundList = response if (responseIsArray) else self.safe_list(response, 'data', [])
             found = foundList if (foundList is not None) else []
             for j in range(0, len(found)):
                 raw = found[j]
@@ -453,7 +457,8 @@ class myriad(PredictionExchange, ImplicitAPI):
             if state is not None:
                 request['state'] = state
             response = await self.myriadPublicGetQuestions(self.extend(request, rest))
-            rawQuestionsList = self.safe_list(response, 'data', response)
+            responseIsArray = isinstance(response, list)
+            rawQuestionsList = response if (responseIsArray) else self.safe_list(response, 'data', [])
             rawQuestions = rawQuestionsList if (rawQuestionsList is not None) else []
             rawQuestionsLength = len(rawQuestions)
             if rawQuestionsLength == 0:
@@ -2678,7 +2683,8 @@ class myriad(PredictionExchange, ImplicitAPI):
         #         ]
         #     }
         #
-        rowsList = self.safe_list(response, 'data', response)
+        responseIsArray = isinstance(response, list)
+        rowsList = response if (responseIsArray) else self.safe_list(response, 'data', [])
         rows = rowsList if (rowsList is not None) else []
         trades = []
         for i in range(0, len(rows)):

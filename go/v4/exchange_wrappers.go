@@ -639,7 +639,7 @@ func (this *ExchangeTyped) UnWatchFundingRates(options ...UnWatchFundingRatesOpt
 	}
 	return res, nil
 }
-func (this *ExchangeTyped) WatchFundingRatesForSymbols(symbols []string, options ...WatchFundingRatesForSymbolsOptions) (map[string]any, error) {
+func (this *ExchangeTyped) WatchFundingRatesForSymbols(symbols []string, options ...WatchFundingRatesForSymbolsOptions) (FundingRates, error) {
 
 	opts := WatchFundingRatesForSymbolsOptionsStruct{}
 
@@ -653,9 +653,9 @@ func (this *ExchangeTyped) WatchFundingRatesForSymbols(symbols []string, options
 	}
 	res := <-this.Exchange.WatchFundingRatesForSymbols(symbols, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return FundingRates{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewFundingRates(res), nil
 }
 func (this *ExchangeTyped) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -1427,12 +1427,12 @@ func (this *ExchangeTyped) FetchTotalBalance(params ...any) (Balance, error) {
 	}
 	return NewBalance(res), nil
 }
-func (this *ExchangeTyped) FetchStatus(params ...any) (map[string]any, error) {
+func (this *ExchangeTyped) FetchStatus(params ...any) (Status, error) {
 	res := <-this.Exchange.FetchStatus(params...)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return Status{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewStatus(res), nil
 }
 func (this *ExchangeTyped) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 
@@ -1764,7 +1764,7 @@ func (this *ExchangeTyped) FetchConvertTradeHistory(options ...FetchConvertTrade
 	}
 	return NewConversionArray(res), nil
 }
-func (this *ExchangeTyped) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *ExchangeTyped) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 
 	opts := FetchPositionModeOptionsStruct{}
 
@@ -1783,9 +1783,9 @@ func (this *ExchangeTyped) FetchPositionMode(options ...FetchPositionModeOptions
 	}
 	res := <-this.Exchange.FetchPositionMode(symbol, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return PositionModeInfo{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewPositionModeInfo(res), nil
 }
 func (this *ExchangeTyped) FetchADLRank(symbol string, options ...FetchADLRankOptions) (ADL, error) {
 
@@ -2270,7 +2270,7 @@ func (this *ExchangeTyped) FetchWithdrawals(options ...FetchWithdrawalsOptions) 
 	}
 	return NewTransactionArray(res), nil
 }
-func (this *ExchangeTyped) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *ExchangeTyped) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 
 	opts := FetchDepositsWsOptionsStruct{}
 
@@ -2299,11 +2299,11 @@ func (this *ExchangeTyped) FetchDepositsWs(options ...FetchDepositsWsOptions) (m
 	}
 	res := <-this.Exchange.FetchDepositsWs(code, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewTransactionArray(res), nil
 }
-func (this *ExchangeTyped) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *ExchangeTyped) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 
 	opts := FetchWithdrawalsWsOptionsStruct{}
 
@@ -2332,9 +2332,9 @@ func (this *ExchangeTyped) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptio
 	}
 	res := <-this.Exchange.FetchWithdrawalsWs(code, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewTransactionArray(res), nil
 }
 func (this *ExchangeTyped) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -5311,7 +5311,7 @@ func (this *ExchangeTyped) CancelAllOrders(options ...CancelAllOrdersOptions) ([
 	}
 	return NewOrderArray(res), nil
 }
-func (this *ExchangeTyped) CancelUnifiedOrder(order Order, options ...CancelUnifiedOrderOptions) (map[string]any, error) {
+func (this *ExchangeTyped) CancelUnifiedOrder(order Order, options ...CancelUnifiedOrderOptions) (Order, error) {
 
 	opts := CancelUnifiedOrderOptionsStruct{}
 
@@ -5325,9 +5325,9 @@ func (this *ExchangeTyped) CancelUnifiedOrder(order Order, options ...CancelUnif
 	}
 	res := <-this.Exchange.CancelUnifiedOrder(order, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return Order{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewOrder(res), nil
 }
 func (this *ExchangeTyped) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 
@@ -6431,7 +6431,7 @@ func (this *BaseExchangeTyped) UnWatchFundingRates(options ...UnWatchFundingRate
 	}
 	return res, nil
 }
-func (this *BaseExchangeTyped) WatchFundingRatesForSymbols(symbols []string, options ...WatchFundingRatesForSymbolsOptions) (map[string]any, error) {
+func (this *BaseExchangeTyped) WatchFundingRatesForSymbols(symbols []string, options ...WatchFundingRatesForSymbolsOptions) (FundingRates, error) {
 
 	opts := WatchFundingRatesForSymbolsOptionsStruct{}
 
@@ -6445,9 +6445,9 @@ func (this *BaseExchangeTyped) WatchFundingRatesForSymbols(symbols []string, opt
 	}
 	res := <-this.BaseExchange.WatchFundingRatesForSymbols(symbols, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return FundingRates{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewFundingRates(res), nil
 }
 func (this *BaseExchangeTyped) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -7219,12 +7219,12 @@ func (this *BaseExchangeTyped) FetchTotalBalance(params ...any) (Balance, error)
 	}
 	return NewBalance(res), nil
 }
-func (this *BaseExchangeTyped) FetchStatus(params ...any) (map[string]any, error) {
+func (this *BaseExchangeTyped) FetchStatus(params ...any) (Status, error) {
 	res := <-this.BaseExchange.FetchStatus(params...)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return Status{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewStatus(res), nil
 }
 func (this *BaseExchangeTyped) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 
@@ -7556,7 +7556,7 @@ func (this *BaseExchangeTyped) FetchConvertTradeHistory(options ...FetchConvertT
 	}
 	return NewConversionArray(res), nil
 }
-func (this *BaseExchangeTyped) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *BaseExchangeTyped) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 
 	opts := FetchPositionModeOptionsStruct{}
 
@@ -7575,9 +7575,9 @@ func (this *BaseExchangeTyped) FetchPositionMode(options ...FetchPositionModeOpt
 	}
 	res := <-this.BaseExchange.FetchPositionMode(symbol, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return PositionModeInfo{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewPositionModeInfo(res), nil
 }
 func (this *BaseExchangeTyped) FetchADLRank(symbol string, options ...FetchADLRankOptions) (ADL, error) {
 
@@ -8062,7 +8062,7 @@ func (this *BaseExchangeTyped) FetchWithdrawals(options ...FetchWithdrawalsOptio
 	}
 	return NewTransactionArray(res), nil
 }
-func (this *BaseExchangeTyped) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *BaseExchangeTyped) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 
 	opts := FetchDepositsWsOptionsStruct{}
 
@@ -8091,11 +8091,11 @@ func (this *BaseExchangeTyped) FetchDepositsWs(options ...FetchDepositsWsOptions
 	}
 	res := <-this.BaseExchange.FetchDepositsWs(code, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewTransactionArray(res), nil
 }
-func (this *BaseExchangeTyped) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *BaseExchangeTyped) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 
 	opts := FetchWithdrawalsWsOptionsStruct{}
 
@@ -8124,9 +8124,9 @@ func (this *BaseExchangeTyped) FetchWithdrawalsWs(options ...FetchWithdrawalsWsO
 	}
 	res := <-this.BaseExchange.FetchWithdrawalsWs(code, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewTransactionArray(res), nil
 }
 func (this *BaseExchangeTyped) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 

@@ -100,6 +100,7 @@ public class GateCore extends GateApi
                 put( "cancelOrder", true );
                 put( "cancelOrders", true );
                 put( "cancelOrdersForSymbols", true );
+                put( "closePosition", true );
                 put( "createMarketBuyOrderWithCost", true );
                 put( "createMarketOrder", true );
                 put( "createMarketOrderWithCost", false );
@@ -159,6 +160,8 @@ public class GateCore extends GateApi
                 put( "fetchOptionChain", true );
                 put( "fetchOrder", true );
                 put( "fetchOrderBook", true );
+                put( "fetchOrdersByStatus", true );
+                put( "fetchOrderTrades", true );
                 put( "fetchPosition", true );
                 put( "fetchPositionHistory", "emulated" );
                 put( "fetchPositionMode", false );
@@ -191,499 +194,1177 @@ public class GateCore extends GateApi
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "wallet", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "currency_chains", 1 );
+                            put( "currency_chains", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                     put( "unified", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "currencies", 1 );
-                            put( "history_loan_rate", 1 );
+                            put( "currencies", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "history_loan_rate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                     put( "spot", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "currencies", 1 );
-                            put( "currencies/{currency}", 1 );
-                            put( "currency_pairs", 1 );
-                            put( "currency_pairs/{currency_pair}", 1 );
-                            put( "tickers", 1 );
-                            put( "order_book", 1 );
-                            put( "trades", 1 );
-                            put( "candlesticks", 1 );
-                            put( "time", 1 );
-                            put( "insurance_history", 1 );
+                            put( "currencies", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "currencies/{currency}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "currency_pairs", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "currency_pairs/{currency_pair}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "tickers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "order_book", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "candlesticks", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "time", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "insurance_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                     put( "margin", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "uni/currency_pairs", 1 );
-                            put( "uni/currency_pairs/{currency_pair}", 1 );
-                            put( "loan_margin_tiers", 1 );
-                            put( "currency_pairs", 1 );
-                            put( "currency_pairs/{currency_pair}", 1 );
-                            put( "funding_book", 1 );
-                            put( "cross/currencies", 1 );
-                            put( "cross/currencies/{currency}", 1 );
+                            put( "uni/currency_pairs", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "uni/currency_pairs/{currency_pair}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "loan_margin_tiers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "currency_pairs", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "currency_pairs/{currency_pair}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "funding_book", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "cross/currencies", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "cross/currencies/{currency}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                     put( "flash_swap", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "currency_pairs", 1 );
-                            put( "currencies", 1 );
+                            put( "currency_pairs", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "currencies", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                     put( "futures", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "{settle}/contracts", 1 );
-                            put( "{settle}/contracts/{contract}", 1 );
-                            put( "{settle}/order_book", 1 );
-                            put( "{settle}/trades", 1 );
-                            put( "{settle}/candlesticks", 1 );
-                            put( "{settle}/premium_index", 1 );
-                            put( "{settle}/tickers", 1 );
-                            put( "{settle}/funding_rate", 1 );
-                            put( "{settle}/insurance", 1 );
-                            put( "{settle}/contract_stats", 1 );
-                            put( "{settle}/index_constituents/{index}", 1 );
-                            put( "{settle}/liq_orders", 1 );
-                            put( "{settle}/risk_limit_tiers", 1 );
+                            put( "{settle}/contracts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/contracts/{contract}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/order_book", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/candlesticks", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/premium_index", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/tickers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/funding_rate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/insurance", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/contract_stats", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/index_constituents/{index}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/liq_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/risk_limit_tiers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                     put( "delivery", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "{settle}/contracts", 1 );
-                            put( "{settle}/contracts/{contract}", 1 );
-                            put( "{settle}/order_book", 1 );
-                            put( "{settle}/trades", 1 );
-                            put( "{settle}/candlesticks", 1 );
-                            put( "{settle}/tickers", 1 );
-                            put( "{settle}/insurance", 1 );
-                            put( "{settle}/risk_limit_tiers", 1 );
+                            put( "{settle}/contracts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/contracts/{contract}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/order_book", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/candlesticks", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/tickers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/insurance", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/risk_limit_tiers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                     put( "options", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "underlyings", 1 );
-                            put( "expirations", 1 );
-                            put( "contracts", 1 );
-                            put( "contracts/{contract}", 1 );
-                            put( "settlements", 1 );
-                            put( "settlements/{contract}", 1 );
-                            put( "order_book", 1 );
-                            put( "tickers", 1 );
-                            put( "underlying/tickers/{underlying}", 1 );
-                            put( "candlesticks", 1 );
-                            put( "underlying/candlesticks", 1 );
-                            put( "trades", 1 );
+                            put( "underlyings", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "expirations", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "contracts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "contracts/{contract}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "settlements", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "settlements/{contract}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "order_book", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "tickers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "underlying/tickers/{underlying}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "candlesticks", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "underlying/candlesticks", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                     put( "earn", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "uni/currencies", 1 );
-                            put( "uni/currencies/{currency}", 1 );
-                            put( "dual/investment_plan", 1 );
-                            put( "structured/products", 1 );
+                            put( "uni/currencies", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "uni/currencies/{currency}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "dual/investment_plan", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "structured/products", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                     put( "loan", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "collateral/currencies", 1 );
-                            put( "multi_collateral/currencies", 1 );
-                            put( "multi_collateral/ltv", 1 );
-                            put( "multi_collateral/fixed_rate", 1 );
-                            put( "multi_collateral/current_rate", 1 );
+                            put( "collateral/currencies", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "multi_collateral/currencies", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "multi_collateral/ltv", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "multi_collateral/fixed_rate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "multi_collateral/current_rate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "withdrawals", new java.util.HashMap<String, Object>() {{
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "withdrawals", 20 );
-                            put( "push", 1 );
+                            put( "withdrawals", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "push", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "delete", new java.util.HashMap<String, Object>() {{
-                            put( "withdrawals/{withdrawal_id}", 1 );
+                            put( "withdrawals/{withdrawal_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                     put( "wallet", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "deposit_address", 1 );
-                            put( "withdrawals", 1 );
-                            put( "deposits", 1 );
-                            put( "sub_account_transfers", 1 );
-                            put( "order_status", 1 );
-                            put( "withdraw_status", 1 );
-                            put( "sub_account_balances", 2.5 );
-                            put( "sub_account_margin_balances", 2.5 );
-                            put( "sub_account_futures_balances", 2.5 );
-                            put( "sub_account_cross_margin_balances", 2.5 );
-                            put( "saved_address", 1 );
-                            put( "fee", 1 );
-                            put( "total_balance", 2.5 );
-                            put( "small_balance", 1 );
-                            put( "small_balance_history", 1 );
-                            put( "push", 1 );
-                            put( "getLowCapExchangeList", 1 );
+                            put( "deposit_address", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "withdrawals", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "deposits", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "sub_account_transfers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "order_status", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "withdraw_status", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "sub_account_balances", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "sub_account_margin_balances", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "sub_account_futures_balances", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "sub_account_cross_margin_balances", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "saved_address", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "fee", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "total_balance", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "small_balance", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "small_balance_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "push", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "getLowCapExchangeList", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "transfers", 2.5 );
-                            put( "sub_account_transfers", 2.5 );
-                            put( "sub_account_to_sub_account", 2.5 );
-                            put( "small_balance", 1 );
+                            put( "transfers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "sub_account_transfers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "sub_account_to_sub_account", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "small_balance", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                     put( "subAccounts", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "sub_accounts", 2.5 );
-                            put( "sub_accounts/{user_id}", 2.5 );
-                            put( "sub_accounts/{user_id}/keys", 2.5 );
-                            put( "sub_accounts/{user_id}/keys/{key}", 2.5 );
+                            put( "sub_accounts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "sub_accounts/{user_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "sub_accounts/{user_id}/keys", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "sub_accounts/{user_id}/keys/{key}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "sub_accounts", 2.5 );
-                            put( "sub_accounts/{user_id}/keys", 2.5 );
-                            put( "sub_accounts/{user_id}/lock", 2.5 );
-                            put( "sub_accounts/{user_id}/unlock", 2.5 );
+                            put( "sub_accounts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "sub_accounts/{user_id}/keys", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "sub_accounts/{user_id}/lock", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "sub_accounts/{user_id}/unlock", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
                         }} );
                         put( "put", new java.util.HashMap<String, Object>() {{
-                            put( "sub_accounts/{user_id}/keys/{key}", 2.5 );
+                            put( "sub_accounts/{user_id}/keys/{key}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
                         }} );
                         put( "delete", new java.util.HashMap<String, Object>() {{
-                            put( "sub_accounts/{user_id}/keys/{key}", 2.5 );
+                            put( "sub_accounts/{user_id}/keys/{key}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
                         }} );
                     }} );
                     put( "unified", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "accounts", Helpers.divide(20, 15) );
-                            put( "borrowable", Helpers.divide(20, 15) );
-                            put( "transferable", Helpers.divide(20, 15) );
-                            put( "transferables", Helpers.divide(20, 15) );
-                            put( "batch_borrowable", Helpers.divide(20, 15) );
-                            put( "loans", Helpers.divide(20, 15) );
-                            put( "loan_records", Helpers.divide(20, 15) );
-                            put( "interest_records", Helpers.divide(20, 15) );
-                            put( "risk_units", Helpers.divide(20, 15) );
-                            put( "unified_mode", Helpers.divide(20, 15) );
-                            put( "estimate_rate", Helpers.divide(20, 15) );
-                            put( "currency_discount_tiers", Helpers.divide(20, 15) );
-                            put( "loan_margin_tiers", Helpers.divide(20, 15) );
-                            put( "leverage/user_currency_config", Helpers.divide(20, 15) );
-                            put( "leverage/user_currency_setting", Helpers.divide(20, 15) );
-                            put( "account_mode", Helpers.divide(20, 15) );
+                            put( "accounts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "borrowable", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "transferable", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "transferables", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "batch_borrowable", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "loans", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "loan_records", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "interest_records", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "risk_units", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "unified_mode", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "estimate_rate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "currency_discount_tiers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "loan_margin_tiers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "leverage/user_currency_config", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "leverage/user_currency_setting", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "account_mode", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "loans", Helpers.divide(200, 15) );
-                            put( "portfolio_calculator", Helpers.divide(20, 15) );
-                            put( "leverage/user_currency_setting", Helpers.divide(20, 15) );
-                            put( "collateral_currencies", Helpers.divide(20, 15) );
-                            put( "account_mode", Helpers.divide(20, 15) );
+                            put( "loans", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(200, 15) );
+                            }} );
+                            put( "portfolio_calculator", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "leverage/user_currency_setting", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "collateral_currencies", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "account_mode", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                         put( "put", new java.util.HashMap<String, Object>() {{
-                            put( "unified_mode", Helpers.divide(20, 15) );
+                            put( "unified_mode", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                     }} );
                     put( "spot", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "fee", 1 );
-                            put( "batch_fee", 1 );
-                            put( "accounts", 1 );
-                            put( "account_book", 1 );
-                            put( "open_orders", 1 );
-                            put( "orders", 1 );
-                            put( "orders/{order_id}", 1 );
-                            put( "my_trades", 1 );
-                            put( "price_orders", 1 );
-                            put( "price_orders/{order_id}", 1 );
+                            put( "fee", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "batch_fee", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "accounts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "account_book", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "open_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "my_trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "price_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "price_orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "batch_orders", 0.4 );
-                            put( "cross_liquidate_orders", 1 );
-                            put( "orders", 0.4 );
-                            put( "cancel_batch_orders", Helpers.divide(20, 75) );
-                            put( "countdown_cancel_all", Helpers.divide(20, 75) );
-                            put( "amend_batch_orders", 0.4 );
-                            put( "price_orders", 0.4 );
+                            put( "batch_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 0.4 );
+                            }} );
+                            put( "cross_liquidate_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 0.4 );
+                            }} );
+                            put( "cancel_batch_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 75) );
+                            }} );
+                            put( "countdown_cancel_all", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 75) );
+                            }} );
+                            put( "amend_batch_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 0.4 );
+                            }} );
+                            put( "price_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 0.4 );
+                            }} );
                         }} );
                         put( "delete", new java.util.HashMap<String, Object>() {{
-                            put( "orders", Helpers.divide(20, 75) );
-                            put( "orders/{order_id}", Helpers.divide(20, 75) );
-                            put( "price_orders", Helpers.divide(20, 75) );
-                            put( "price_orders/{order_id}", Helpers.divide(20, 75) );
+                            put( "orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 75) );
+                            }} );
+                            put( "orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 75) );
+                            }} );
+                            put( "price_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 75) );
+                            }} );
+                            put( "price_orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 75) );
+                            }} );
                         }} );
                         put( "patch", new java.util.HashMap<String, Object>() {{
-                            put( "orders/{order_id}", 0.4 );
+                            put( "orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 0.4 );
+                            }} );
                         }} );
                     }} );
                     put( "margin", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "accounts", Helpers.divide(20, 15) );
-                            put( "account_book", Helpers.divide(20, 15) );
-                            put( "funding_accounts", Helpers.divide(20, 15) );
-                            put( "auto_repay", Helpers.divide(20, 15) );
-                            put( "transferable", Helpers.divide(20, 15) );
-                            put( "uni/estimate_rate", Helpers.divide(20, 15) );
-                            put( "uni/loans", Helpers.divide(20, 15) );
-                            put( "uni/loan_records", Helpers.divide(20, 15) );
-                            put( "uni/interest_records", Helpers.divide(20, 15) );
-                            put( "uni/borrowable", Helpers.divide(20, 15) );
-                            put( "user/loan_margin_tiers", Helpers.divide(20, 15) );
-                            put( "user/account", Helpers.divide(20, 15) );
-                            put( "loans", Helpers.divide(20, 15) );
-                            put( "loans/{loan_id}", Helpers.divide(20, 15) );
-                            put( "loans/{loan_id}/repayment", Helpers.divide(20, 15) );
-                            put( "loan_records", Helpers.divide(20, 15) );
-                            put( "loan_records/{loan_record_id}", Helpers.divide(20, 15) );
-                            put( "borrowable", Helpers.divide(20, 15) );
-                            put( "cross/accounts", Helpers.divide(20, 15) );
-                            put( "cross/account_book", Helpers.divide(20, 15) );
-                            put( "cross/loans", Helpers.divide(20, 15) );
-                            put( "cross/loans/{loan_id}", Helpers.divide(20, 15) );
-                            put( "cross/repayments", Helpers.divide(20, 15) );
-                            put( "cross/interest_records", Helpers.divide(20, 15) );
-                            put( "cross/transferable", Helpers.divide(20, 15) );
-                            put( "cross/estimate_rate", Helpers.divide(20, 15) );
-                            put( "cross/borrowable", Helpers.divide(20, 15) );
+                            put( "accounts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "account_book", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "funding_accounts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "auto_repay", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "transferable", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "uni/estimate_rate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "uni/loans", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "uni/loan_records", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "uni/interest_records", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "uni/borrowable", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "user/loan_margin_tiers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "user/account", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "loans", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "loans/{loan_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "loans/{loan_id}/repayment", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "loan_records", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "loan_records/{loan_record_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "borrowable", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "cross/accounts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "cross/account_book", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "cross/loans", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "cross/loans/{loan_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "cross/repayments", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "cross/interest_records", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "cross/transferable", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "cross/estimate_rate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "cross/borrowable", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "auto_repay", Helpers.divide(20, 15) );
-                            put( "uni/loans", Helpers.divide(20, 15) );
-                            put( "leverage/user_market_setting", Helpers.divide(20, 15) );
-                            put( "loans", Helpers.divide(20, 15) );
-                            put( "merged_loans", Helpers.divide(20, 15) );
-                            put( "loans/{loan_id}/repayment", Helpers.divide(20, 15) );
-                            put( "cross/loans", Helpers.divide(20, 15) );
-                            put( "cross/repayments", Helpers.divide(20, 15) );
+                            put( "auto_repay", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "uni/loans", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "leverage/user_market_setting", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "loans", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "merged_loans", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "loans/{loan_id}/repayment", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "cross/loans", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "cross/repayments", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                         put( "patch", new java.util.HashMap<String, Object>() {{
-                            put( "loans/{loan_id}", Helpers.divide(20, 15) );
-                            put( "loan_records/{loan_record_id}", Helpers.divide(20, 15) );
+                            put( "loans/{loan_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "loan_records/{loan_record_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                         put( "delete", new java.util.HashMap<String, Object>() {{
-                            put( "loans/{loan_id}", Helpers.divide(20, 15) );
+                            put( "loans/{loan_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                     }} );
                     put( "flash_swap", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "orders", 1 );
-                            put( "orders/{order_id}", 1 );
+                            put( "orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "orders", 1 );
-                            put( "orders/preview", 1 );
+                            put( "orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders/preview", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                     put( "futures", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "{settle}/accounts", 1 );
-                            put( "{settle}/account_book", 1 );
-                            put( "{settle}/positions", 1 );
-                            put( "{settle}/positions/{contract}", 1 );
-                            put( "{settle}/get_leverage/{contract}", 1 );
-                            put( "{settle}/dual_comp/positions/{contract}", 1 );
-                            put( "{settle}/orders", 1 );
-                            put( "{settle}/orders_timerange", 1 );
-                            put( "{settle}/orders/{order_id}", 1 );
-                            put( "{settle}/my_trades", 1 );
-                            put( "{settle}/my_trades_timerange", 1 );
-                            put( "{settle}/position_close", 1 );
-                            put( "{settle}/liquidates", 1 );
-                            put( "{settle}/auto_deleverages", 1 );
-                            put( "{settle}/fee", 1 );
-                            put( "{settle}/risk_limit_table", 1 );
-                            put( "{settle}/price_orders", 1 );
-                            put( "{settle}/price_orders/{order_id}", 1 );
+                            put( "{settle}/accounts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/account_book", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/positions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/positions/{contract}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/get_leverage/{contract}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/dual_comp/positions/{contract}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/orders_timerange", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/my_trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/my_trades_timerange", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/position_close", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/liquidates", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/auto_deleverages", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/fee", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/risk_limit_table", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/price_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/price_orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "{settle}/positions/{contract}/margin", 1 );
-                            put( "{settle}/positions/{contract}/leverage", 1 );
-                            put( "{settle}/positions/{contract}/set_leverage", 1 );
-                            put( "{settle}/positions/{contract}/risk_limit", 1 );
-                            put( "{settle}/positions/cross_mode", 1 );
-                            put( "{settle}/dual_comp/positions/cross_mode", 1 );
-                            put( "{settle}/dual_mode", 1 );
-                            put( "{settle}/set_position_mode", 1 );
-                            put( "{settle}/dual_comp/positions/{contract}/margin", 1 );
-                            put( "{settle}/dual_comp/positions/{contract}/leverage", 1 );
-                            put( "{settle}/dual_comp/positions/{contract}/risk_limit", 1 );
-                            put( "{settle}/orders", 0.4 );
-                            put( "{settle}/batch_orders", 0.4 );
-                            put( "{settle}/countdown_cancel_all", 0.4 );
-                            put( "{settle}/batch_cancel_orders", 0.4 );
-                            put( "{settle}/batch_amend_orders", 0.4 );
-                            put( "{settle}/bbo_orders", 0.4 );
-                            put( "{settle}/price_orders", 0.4 );
+                            put( "{settle}/positions/{contract}/margin", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/positions/{contract}/leverage", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/positions/{contract}/set_leverage", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/positions/{contract}/risk_limit", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/positions/cross_mode", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/dual_comp/positions/cross_mode", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/dual_mode", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/set_position_mode", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/dual_comp/positions/{contract}/margin", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/dual_comp/positions/{contract}/leverage", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/dual_comp/positions/{contract}/risk_limit", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 0.4 );
+                            }} );
+                            put( "{settle}/batch_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 0.4 );
+                            }} );
+                            put( "{settle}/countdown_cancel_all", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 0.4 );
+                            }} );
+                            put( "{settle}/batch_cancel_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 0.4 );
+                            }} );
+                            put( "{settle}/batch_amend_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 0.4 );
+                            }} );
+                            put( "{settle}/bbo_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 0.4 );
+                            }} );
+                            put( "{settle}/price_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 0.4 );
+                            }} );
                         }} );
                         put( "put", new java.util.HashMap<String, Object>() {{
-                            put( "{settle}/orders/{order_id}", 1 );
-                            put( "{settle}/price_orders/{order_id}", 1 );
+                            put( "{settle}/orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/price_orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "delete", new java.util.HashMap<String, Object>() {{
-                            put( "{settle}/orders", Helpers.divide(20, 75) );
-                            put( "{settle}/orders/{order_id}", Helpers.divide(20, 75) );
-                            put( "{settle}/price_orders", Helpers.divide(20, 75) );
-                            put( "{settle}/price_orders/{order_id}", Helpers.divide(20, 75) );
+                            put( "{settle}/orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 75) );
+                            }} );
+                            put( "{settle}/orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 75) );
+                            }} );
+                            put( "{settle}/price_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 75) );
+                            }} );
+                            put( "{settle}/price_orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 75) );
+                            }} );
                         }} );
                     }} );
                     put( "delivery", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "{settle}/accounts", Helpers.divide(20, 15) );
-                            put( "{settle}/account_book", Helpers.divide(20, 15) );
-                            put( "{settle}/positions", Helpers.divide(20, 15) );
-                            put( "{settle}/positions/{contract}", Helpers.divide(20, 15) );
-                            put( "{settle}/orders", Helpers.divide(20, 15) );
-                            put( "{settle}/orders/{order_id}", Helpers.divide(20, 15) );
-                            put( "{settle}/my_trades", Helpers.divide(20, 15) );
-                            put( "{settle}/position_close", Helpers.divide(20, 15) );
-                            put( "{settle}/liquidates", Helpers.divide(20, 15) );
-                            put( "{settle}/settlements", Helpers.divide(20, 15) );
-                            put( "{settle}/price_orders", Helpers.divide(20, 15) );
-                            put( "{settle}/price_orders/{order_id}", Helpers.divide(20, 15) );
+                            put( "{settle}/accounts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "{settle}/account_book", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "{settle}/positions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "{settle}/positions/{contract}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "{settle}/orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "{settle}/orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "{settle}/my_trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "{settle}/position_close", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "{settle}/liquidates", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "{settle}/settlements", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "{settle}/price_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "{settle}/price_orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "{settle}/positions/{contract}/margin", Helpers.divide(20, 15) );
-                            put( "{settle}/positions/{contract}/leverage", Helpers.divide(20, 15) );
-                            put( "{settle}/positions/{contract}/risk_limit", Helpers.divide(20, 15) );
-                            put( "{settle}/orders", Helpers.divide(20, 15) );
-                            put( "{settle}/price_orders", Helpers.divide(20, 15) );
+                            put( "{settle}/positions/{contract}/margin", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "{settle}/positions/{contract}/leverage", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "{settle}/positions/{contract}/risk_limit", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "{settle}/orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "{settle}/price_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                         put( "delete", new java.util.HashMap<String, Object>() {{
-                            put( "{settle}/orders", Helpers.divide(20, 15) );
-                            put( "{settle}/orders/{order_id}", Helpers.divide(20, 15) );
-                            put( "{settle}/price_orders", Helpers.divide(20, 15) );
-                            put( "{settle}/price_orders/{order_id}", Helpers.divide(20, 15) );
+                            put( "{settle}/orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "{settle}/orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "{settle}/price_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "{settle}/price_orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                     }} );
                     put( "options", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "my_settlements", Helpers.divide(20, 15) );
-                            put( "accounts", Helpers.divide(20, 15) );
-                            put( "account_book", Helpers.divide(20, 15) );
-                            put( "positions", Helpers.divide(20, 15) );
-                            put( "positions/{contract}", Helpers.divide(20, 15) );
-                            put( "position_close", Helpers.divide(20, 15) );
-                            put( "orders", Helpers.divide(20, 15) );
-                            put( "orders/{order_id}", Helpers.divide(20, 15) );
-                            put( "my_trades", Helpers.divide(20, 15) );
-                            put( "mmp", Helpers.divide(20, 15) );
+                            put( "my_settlements", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "accounts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "account_book", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "positions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "positions/{contract}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "position_close", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "my_trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "mmp", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "orders", Helpers.divide(20, 15) );
-                            put( "countdown_cancel_all", Helpers.divide(20, 15) );
-                            put( "mmp", Helpers.divide(20, 15) );
-                            put( "mmp/reset", Helpers.divide(20, 15) );
+                            put( "orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "countdown_cancel_all", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "mmp", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "mmp/reset", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                         put( "delete", new java.util.HashMap<String, Object>() {{
-                            put( "orders", Helpers.divide(20, 15) );
-                            put( "orders/{order_id}", Helpers.divide(20, 15) );
+                            put( "orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                     }} );
                     put( "earn", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "uni/lends", Helpers.divide(20, 15) );
-                            put( "uni/lend_records", Helpers.divide(20, 15) );
-                            put( "uni/interests/{currency}", Helpers.divide(20, 15) );
-                            put( "uni/interest_records", Helpers.divide(20, 15) );
-                            put( "uni/interest_status/{currency}", Helpers.divide(20, 15) );
-                            put( "uni/chart", Helpers.divide(20, 15) );
-                            put( "uni/rate", Helpers.divide(20, 15) );
-                            put( "staking/eth2/rate_records", Helpers.divide(20, 15) );
-                            put( "dual/orders", Helpers.divide(20, 15) );
-                            put( "dual/balance", Helpers.divide(20, 15) );
-                            put( "structured/orders", Helpers.divide(20, 15) );
-                            put( "staking/coins", Helpers.divide(20, 15) );
-                            put( "staking/order_list", Helpers.divide(20, 15) );
-                            put( "staking/award_list", Helpers.divide(20, 15) );
-                            put( "staking/assets", Helpers.divide(20, 15) );
-                            put( "uni/currencies", Helpers.divide(20, 15) );
-                            put( "uni/currencies/{currency}", Helpers.divide(20, 15) );
+                            put( "uni/lends", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "uni/lend_records", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "uni/interests/{currency}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "uni/interest_records", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "uni/interest_status/{currency}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "uni/chart", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "uni/rate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "staking/eth2/rate_records", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "dual/orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "dual/balance", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "structured/orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "staking/coins", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "staking/order_list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "staking/award_list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "staking/assets", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "uni/currencies", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "uni/currencies/{currency}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "uni/lends", Helpers.divide(20, 15) );
-                            put( "staking/eth2/swap", Helpers.divide(20, 15) );
-                            put( "dual/orders", Helpers.divide(20, 15) );
-                            put( "structured/orders", Helpers.divide(20, 15) );
-                            put( "staking/swap", Helpers.divide(20, 15) );
+                            put( "uni/lends", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "staking/eth2/swap", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "dual/orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "structured/orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "staking/swap", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                         put( "put", new java.util.HashMap<String, Object>() {{
-                            put( "uni/interest_reinvest", Helpers.divide(20, 15) );
+                            put( "uni/interest_reinvest", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                         put( "patch", new java.util.HashMap<String, Object>() {{
-                            put( "uni/lends", Helpers.divide(20, 15) );
+                            put( "uni/lends", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                     }} );
                     put( "loan", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "collateral/orders", Helpers.divide(20, 15) );
-                            put( "collateral/orders/{order_id}", Helpers.divide(20, 15) );
-                            put( "collateral/repay_records", Helpers.divide(20, 15) );
-                            put( "collateral/collaterals", Helpers.divide(20, 15) );
-                            put( "collateral/total_amount", Helpers.divide(20, 15) );
-                            put( "collateral/ltv", Helpers.divide(20, 15) );
-                            put( "multi_collateral/orders", Helpers.divide(20, 15) );
-                            put( "multi_collateral/orders/{order_id}", Helpers.divide(20, 15) );
-                            put( "multi_collateral/repay", Helpers.divide(20, 15) );
-                            put( "multi_collateral/mortgage", Helpers.divide(20, 15) );
-                            put( "multi_collateral/currency_quota", Helpers.divide(20, 15) );
-                            put( "collateral/currencies", Helpers.divide(20, 15) );
-                            put( "multi_collateral/currencies", Helpers.divide(20, 15) );
-                            put( "multi_collateral/ltv", Helpers.divide(20, 15) );
-                            put( "multi_collateral/fixed_rate", Helpers.divide(20, 15) );
-                            put( "multi_collateral/current_rate", Helpers.divide(20, 15) );
+                            put( "collateral/orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "collateral/orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "collateral/repay_records", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "collateral/collaterals", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "collateral/total_amount", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "collateral/ltv", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "multi_collateral/orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "multi_collateral/orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "multi_collateral/repay", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "multi_collateral/mortgage", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "multi_collateral/currency_quota", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "collateral/currencies", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "multi_collateral/currencies", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "multi_collateral/ltv", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "multi_collateral/fixed_rate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "multi_collateral/current_rate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "collateral/orders", Helpers.divide(20, 15) );
-                            put( "collateral/repay", Helpers.divide(20, 15) );
-                            put( "collateral/collaterals", Helpers.divide(20, 15) );
-                            put( "multi_collateral/orders", Helpers.divide(20, 15) );
-                            put( "multi_collateral/repay", Helpers.divide(20, 15) );
-                            put( "multi_collateral/mortgage", Helpers.divide(20, 15) );
+                            put( "collateral/orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "collateral/repay", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "collateral/collaterals", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "multi_collateral/orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "multi_collateral/repay", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "multi_collateral/mortgage", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                     }} );
                     put( "account", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "detail", Helpers.divide(20, 15) );
-                            put( "main_keys", Helpers.divide(20, 15) );
-                            put( "rate_limit", Helpers.divide(20, 15) );
-                            put( "stp_groups", Helpers.divide(20, 15) );
-                            put( "stp_groups/{stp_id}/users", Helpers.divide(20, 15) );
-                            put( "stp_groups/debit_fee", Helpers.divide(20, 15) );
-                            put( "debit_fee", Helpers.divide(20, 15) );
+                            put( "detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "main_keys", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "rate_limit", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "stp_groups", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "stp_groups/{stp_id}/users", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "stp_groups/debit_fee", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "debit_fee", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "stp_groups", Helpers.divide(20, 15) );
-                            put( "stp_groups/{stp_id}/users", Helpers.divide(20, 15) );
-                            put( "debit_fee", Helpers.divide(20, 15) );
+                            put( "stp_groups", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "stp_groups/{stp_id}/users", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "debit_fee", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                         put( "delete", new java.util.HashMap<String, Object>() {{
-                            put( "stp_groups/{stp_id}/users", Helpers.divide(20, 15) );
+                            put( "stp_groups/{stp_id}/users", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                     }} );
                     put( "rebate", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "agency/transaction_history", Helpers.divide(20, 15) );
-                            put( "agency/commission_history", Helpers.divide(20, 15) );
-                            put( "partner/transaction_history", Helpers.divide(20, 15) );
-                            put( "partner/commission_history", Helpers.divide(20, 15) );
-                            put( "partner/sub_list", Helpers.divide(20, 15) );
-                            put( "broker/commission_history", Helpers.divide(20, 15) );
-                            put( "broker/transaction_history", Helpers.divide(20, 15) );
-                            put( "user/info", Helpers.divide(20, 15) );
-                            put( "user/sub_relation", Helpers.divide(20, 15) );
+                            put( "agency/transaction_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "agency/commission_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "partner/transaction_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "partner/commission_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "partner/sub_list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "broker/commission_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "broker/transaction_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "user/info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "user/sub_relation", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                     }} );
                     put( "otc", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "get_user_def_bank", 1 );
-                            put( "order/list", 1 );
-                            put( "stable_coin/order/list", 1 );
-                            put( "order/detail", 1 );
+                            put( "get_user_def_bank", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "order/list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "stable_coin/order/list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "order/detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "quote", 1 );
-                            put( "order/create", 1 );
-                            put( "stable_coin/order/create", 1 );
-                            put( "order/paid", 1 );
-                            put( "order/cancel", 1 );
+                            put( "quote", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "order/create", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "stable_coin/order/create", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "order/paid", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "order/cancel", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                 }} );
@@ -757,7 +1438,8 @@ public class GateCore extends GateApi
                     put( "ADA", "ADA" );
                     put( "AVAXC", "AVAX_C" );
                     put( "NEAR", "NEAR" );
-                    put( "ARBONE", "ARBEVM" );
+                    put( "ARBITRUM", "ARBEVM" );
+                    put( "ARBITRUM_NOVA", "ARBNOVA" );
                     put( "BASE", "BASEEVM" );
                     put( "SUI", "SUI" );
                     put( "CRONOS", "CRO" );
@@ -775,7 +1457,7 @@ public class GateCore extends GateApi
                     put( "MNT", "MNT" );
                     put( "CELO", "CELO" );
                     put( "HBAR", "HBAR" );
-                    put( "ZKSERA", "ZKSERA" );
+                    put( "ZKSYNC", "ZKSERA" );
                     put( "KLAY", "KLAY" );
                     put( "EOS", "EOS" );
                     put( "ACA", "ACA" );
@@ -1364,7 +2046,7 @@ public class GateCore extends GateApi
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(spotMarketsResponse)); i++)
             {
-                Object spotMarket = Helpers.GetValue(spotMarketsResponse, i);
+                Object spotMarket = this.safeDict(spotMarketsResponse, i, new java.util.HashMap<String, Object>() {{}});
                 Object id = this.safeString(spotMarket, "id");
                 Object marginMarket = this.safeValue(marginMarkets, id);
                 Object market = this.deepExtend(marginMarket, spotMarket);
@@ -1463,7 +2145,8 @@ public class GateCore extends GateApi
                 Object response = (this.publicFuturesGetSettleContracts(this.extend(request, parameters))).join();
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {
-                    Object parsedMarket = this.parseContractMarket(Helpers.GetValue(response, i), settleId);
+                    Object contract = this.safeDict(response, i, new java.util.HashMap<String, Object>() {{}});
+                    Object parsedMarket = this.parseContractMarket(contract, settleId);
                     ((java.util.List<Object>)result).add(parsedMarket);
                 }
             }
@@ -1493,7 +2176,8 @@ public class GateCore extends GateApi
                 Object response = (this.publicDeliveryGetSettleContracts(this.extend(request, parameters))).join();
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {
-                    Object parsedMarket = this.parseContractMarket(Helpers.GetValue(response, i), settleId);
+                    Object contract = this.safeDict(response, i, new java.util.HashMap<String, Object>() {{}});
+                    Object parsedMarket = this.parseContractMarket(contract, settleId);
                     ((java.util.List<Object>)result).add(parsedMarket);
                 }
             }
@@ -1753,7 +2437,7 @@ public class GateCore extends GateApi
                 //
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(response)); j++)
                 {
-                    Object market = Helpers.GetValue(response, j);
+                    Object market = this.safeDict(response, j, new java.util.HashMap<String, Object>() {{}});
                     Object id = this.safeString(market, "name");
                     Object parts = Helpers.split(((String)underlying), "_");
                     Object baseId = this.safeString(parts, 0);
@@ -1857,7 +2541,7 @@ public class GateCore extends GateApi
             Object underlyings = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(underlyingsResponse)); i++)
             {
-                Object underlying = Helpers.GetValue(underlyingsResponse, i);
+                Object underlying = this.safeDict(underlyingsResponse, i, new java.util.HashMap<String, Object>() {{}});
                 Object name = this.safeString(underlying, "name");
                 if (Helpers.isTrue(!Helpers.isEqual(name, null)))
                 {
@@ -2509,7 +3193,7 @@ public class GateCore extends GateApi
             networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             Object chainsIndexedByIdRaw = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
-            Object chainsIndexedById = ((Object)chainsIndexedByIdRaw);
+            Object chainsIndexedById = chainsIndexedByIdRaw;
             Object selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
             return Helpers.GetValue(chainsIndexedById, ((String)selectedNetworkIdOrCode));
         });
@@ -2712,7 +3396,7 @@ public class GateCore extends GateApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
                 withdrawFees = new java.util.HashMap<String, Object>() {{}};
-                Object entry = Helpers.GetValue(response, i);
+                Object entry = this.safeDict(response, i, new java.util.HashMap<String, Object>() {{}});
                 Object currencyId = this.safeString(entry, "currency");
                 Object code = this.safeCurrencyCode(currencyId);
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(codes, null))) && !Helpers.isTrue(this.inArray(code, codes))))
@@ -3797,7 +4481,7 @@ public class GateCore extends GateApi
                 }
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = null;
+            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
             {
                 Object isMark = (Helpers.isEqual(price, "mark"));
@@ -3818,7 +4502,7 @@ public class GateCore extends GateApi
             {
                 response = (this.publicSpotGetCandlesticks(this.extend(request, parameters))).join();
             }
-            return this.parseOHLCVs(response, market, timeframe, since, limit);
+            return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
         });
 
     }
@@ -3844,7 +4528,7 @@ public class GateCore extends GateApi
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Helpers.addElementToObject(request, "interval", this.safeString(this.timeframes, timeframe, timeframe));
             Object response = (this.publicOptionsGetCandlesticks(this.extend(request, parameters))).join();
-            return this.parseOHLCVs(response, market, timeframe, since, limit);
+            return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
         });
 
     }
@@ -3920,7 +4604,7 @@ public class GateCore extends GateApi
             Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
-                Object entry = Helpers.GetValue(response, i);
+                Object entry = this.safeDict(response, i, new java.util.HashMap<String, Object>() {{}});
                 Object timestamp = this.safeTimestamp(entry, "t");
     final Object finalSymbol = symbol;
                             ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
@@ -6508,12 +7192,14 @@ final Object finalRebate = rebate;
             Object result = response;
             if (Helpers.isTrue(openSpotOrders))
             {
-                result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                Object spotResult = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {
-                    Object ordersInner = this.safeValue(Helpers.GetValue(response, i), "orders");
-                    result = this.arrayConcat(result, ordersInner);
+                    Object responseEntry = this.safeDict(response, i, new java.util.HashMap<String, Object>() {{}});
+                    Object ordersInner = this.safeValue(responseEntry, "orders");
+                    spotResult = this.arrayConcat(spotResult, ordersInner);
                 }
+                result = spotResult;
             }
             Object orders = this.parseOrders(result, market, since, limit);
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
@@ -6740,7 +7426,7 @@ final Object finalRebate = rebate;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "settle", settle );
             }};
-            Object finalList = ((Object)new java.util.ArrayList<Object>(java.util.Arrays.asList(request))); // hacky but needs to be done here
+            Object finalList = new java.util.ArrayList<Object>(java.util.Arrays.asList(request)); // hacky but needs to be done here
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
                 ((java.util.List<Object>)finalList).add(Helpers.GetValue(ids, i));
@@ -7508,7 +8194,7 @@ final Object finalRebate = rebate;
             Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(response, null)))
             {
-                responseList = response;
+                responseList = this.toArray(response);
             }
             return this.parsePositions(responseList, symbols);
         });
@@ -8027,7 +8713,7 @@ final Object finalI = i;
         Object marketId = this.safeString(info, "currency_pair");
         final Object finalTimestamp = timestamp;
         return new java.util.HashMap<String, Object>() {{
-            put( "id", GateCore.this.safeInteger(info, "id") );
+            put( "id", GateCore.this.safeString(info, "id") );
             put( "currency", GateCore.this.safeCurrencyCode(currencyId, currency) );
             put( "amount", GateCore.this.safeNumber(info, "amount") );
             put( "symbol", GateCore.this.safeSymbol(marketId, null, "_", "margin") );
@@ -8164,7 +8850,7 @@ final Object finalI = i;
             path = this.implodeParams(path, settle);
             // remove the first element from params
             Object newParams = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object anyParams = ((Object)parameters);
+            Object anyParams = this.toArray(parameters);
             for (var i = 1; Helpers.isLessThan(i, Helpers.getArrayLength(anyParams)); i++)
             {
                 ((java.util.List<Object>)newParams).add(Helpers.GetValue(parameters, i));
@@ -9134,7 +9820,7 @@ final Object finalI = i;
             Object underlyings = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
-                Object underlying = Helpers.GetValue(response, i);
+                Object underlying = this.safeDict(response, i, new java.util.HashMap<String, Object>() {{}});
                 Object name = this.safeString(underlying, "name");
                 if (Helpers.isTrue(!Helpers.isEqual(name, null)))
                 {
@@ -9203,7 +9889,7 @@ final Object finalI = i;
             //         },
             //     ]
             //
-            return this.parseLiquidations(response, market, since, limit);
+            return this.parseLiquidations(this.toArray(response), market, since, limit);
         });
 
     }
@@ -9302,7 +9988,7 @@ final Object finalI = i;
             //         }
             //     ]
             //
-            return this.parseLiquidations(response, market, since, limit);
+            return this.parseLiquidations(this.toArray(response), market, since, limit);
         });
 
     }
@@ -9451,14 +10137,14 @@ final Object finalI = i;
             Object marketId = Helpers.GetValue(market, "id");
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
-                Object entry = Helpers.GetValue(response, i);
+                Object entry = this.safeDict(response, i, new java.util.HashMap<String, Object>() {{}});
                 Object entryMarketId = this.safeString(entry, "name");
                 if (Helpers.isTrue(Helpers.isEqual(entryMarketId, marketId)))
                 {
                     return this.parseGreeks(entry, market);
                 }
             }
-            return null;
+            throw new NullResponse((String)Helpers.add(Helpers.add(this.id, " fetchGreeks() could not find greeks for "), symbol)) ;
         });
 
     }
@@ -9635,7 +10321,7 @@ final Object finalI = i;
             {
                 response = (this.publicMarginGetCurrencyPairs(parameters)).join(); // deprecated
             }
-            return this.parseLeverages(response, symbols, marketIdRequest, "spot");
+            return this.parseLeverages(this.toArray(response), symbols, marketIdRequest, "spot");
         });
 
     }
@@ -9791,7 +10477,7 @@ final Object finalI = i;
             //         },
             //     ]
             //
-            return this.parseOptionChain(response, null, "name");
+            return this.parseOptionChain(this.toArray(response), null, "name");
         });
 
     }
@@ -9961,7 +10647,7 @@ final Object finalI = i;
             Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(response, null)))
             {
-                responseList = response;
+                responseList = this.toArray(response);
             }
             return this.parsePositions(responseList, symbols, parameters);
         });

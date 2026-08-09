@@ -76,6 +76,7 @@ public class BtcboxCore extends BtcboxApi
                 put( "fetchMarginMode", false );
                 put( "fetchMarginModes", false );
                 put( "fetchMarketLeverageTiers", false );
+                put( "fetchMarkets", true );
                 put( "fetchMarkOHLCV", false );
                 put( "fetchMarkPrices", false );
                 put( "fetchMyLiquidations", false );
@@ -129,13 +130,49 @@ public class BtcboxCore extends BtcboxApi
             }} );
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "public", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("depth", "orders", "ticker", "tickers")) );
+                    put( "get", new java.util.HashMap<String, Object>() {{
+                        put( "depth", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "ticker", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "tickers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
-                    put( "post", new java.util.ArrayList<Object>(java.util.Arrays.asList("balance", "trade_add", "trade_cancel", "trade_list", "trade_view", "wallet")) );
+                    put( "post", new java.util.HashMap<String, Object>() {{
+                        put( "balance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade_add", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade_cancel", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade_list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade_view", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "wallet", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
                 }} );
                 put( "webApi", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("ajax/coin/coinInfo")) );
+                    put( "get", new java.util.HashMap<String, Object>() {{
+                        put( "ajax/coin/coinInfo", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
                 }} );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
@@ -251,7 +288,7 @@ public class BtcboxCore extends BtcboxApi
                 Object quote = this.safeString(symbolParts, 1, "");
                 Object quoteId = ((String)quote).toLowerCase();
                 Object id = ((String)baseCurr).toLowerCase();
-                Object res = Helpers.GetValue(response1, marketId);
+                Object res = this.safeDict(response1, marketId, new java.util.HashMap<String, Object>() {{}});
                 Object symbol = Helpers.add(Helpers.add(baseCurr, "/"), quote);
                 Object fee = ((Helpers.isTrue((Helpers.isEqual(id, "BTC"))))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
                 Object details = this.safeDict(result2Data, id, new java.util.HashMap<String, Object>() {{}});

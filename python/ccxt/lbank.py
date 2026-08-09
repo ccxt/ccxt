@@ -66,10 +66,11 @@ class lbank(Exchange, ImplicitAPI):
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
+                'fetchDeposits': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
-                'fetchFundingRate': False,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
@@ -96,8 +97,10 @@ class lbank(Exchange, ImplicitAPI):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransactionFees': True,
+                'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
@@ -134,82 +137,82 @@ class lbank(Exchange, ImplicitAPI):
                 'spot': {
                     'public': {
                         'get': {
-                            'currencyPairs': 2.5,
-                            'accuracy': 2.5,
-                            'usdToCny': 2.5,
-                            'assetConfigs': 2.5,
-                            'withdrawConfigs': 2.5 * 1.5,  # frequently rate-limits, so increase self endpoint RL
-                            'timestamp': 2.5,
-                            'ticker/24hr': 2.5,
-                            'ticker': 2.5,
-                            'depth': 2.5,
-                            'incrDepth': 2.5,
-                            'trades': 2.5,
-                            'kline': 2.5,
+                            'currencyPairs': {'cost': 2.5},
+                            'accuracy': {'cost': 2.5},
+                            'usdToCny': {'cost': 2.5},
+                            'assetConfigs': {'cost': 2.5},
+                            'withdrawConfigs': {'cost': 2.5 * 1.5},  # frequently rate-limits, so increase self endpoint RL
+                            'timestamp': {'cost': 2.5},
+                            'ticker/24hr': {'cost': 2.5},
+                            'ticker': {'cost': 2.5},
+                            'depth': {'cost': 2.5},
+                            'incrDepth': {'cost': 2.5},
+                            'trades': {'cost': 2.5},
+                            'kline': {'cost': 2.5},
                             # new quote endpoints
-                            'supplement/system_ping': 2.5,
-                            'supplement/incrDepth': 2.5,
-                            'supplement/trades': 2.5,
-                            'supplement/ticker/price': 2.5,
-                            'supplement/ticker/bookTicker': 2.5,
+                            'supplement/system_ping': {'cost': 2.5},
+                            'supplement/incrDepth': {'cost': 2.5},
+                            'supplement/trades': {'cost': 2.5},
+                            'supplement/ticker/price': {'cost': 2.5},
+                            'supplement/ticker/bookTicker': {'cost': 2.5},
                         },
                         'post': {
-                            'supplement/system_status': 2.5,
+                            'supplement/system_status': {'cost': 2.5},
                         },
                     },
                     'private': {
                         'post': {
                             # account
-                            'user_info': 2.5,
-                            'subscribe/get_key': 2.5,
-                            'subscribe/refresh_key': 2.5,
-                            'subscribe/destroy_key': 2.5,
-                            'get_deposit_address': 2.5,
-                            'deposit_history': 2.5,
+                            'user_info': {'cost': 2.5},
+                            'subscribe/get_key': {'cost': 2.5},
+                            'subscribe/refresh_key': {'cost': 2.5},
+                            'subscribe/destroy_key': {'cost': 2.5},
+                            'get_deposit_address': {'cost': 2.5},
+                            'deposit_history': {'cost': 2.5},
                             # order
-                            'create_order': 1,
-                            'batch_create_order': 1,
-                            'cancel_order': 1,
-                            'cancel_clientOrders': 1,
-                            'orders_info': 2.5,
-                            'orders_info_history': 2.5,
-                            'order_transaction_detail': 2.5,
-                            'transaction_history': 2.5,
-                            'orders_info_no_deal': 2.5,
+                            'create_order': {'cost': 1},
+                            'batch_create_order': {'cost': 1},
+                            'cancel_order': {'cost': 1},
+                            'cancel_clientOrders': {'cost': 1},
+                            'orders_info': {'cost': 2.5},
+                            'orders_info_history': {'cost': 2.5},
+                            'order_transaction_detail': {'cost': 2.5},
+                            'transaction_history': {'cost': 2.5},
+                            'orders_info_no_deal': {'cost': 2.5},
                             # withdraw
-                            'withdraw': 2.5,
-                            'withdrawCancel': 2.5,
-                            'withdraws': 2.5,
-                            'supplement/user_info': 2.5,
-                            'supplement/withdraw': 2.5,
-                            'supplement/deposit_history': 2.5,
-                            'supplement/withdraws': 2.5,
-                            'supplement/get_deposit_address': 2.5,
-                            'supplement/asset_detail': 2.5,
-                            'supplement/customer_trade_fee': 2.5,
-                            'supplement/api_Restrictions': 2.5,
+                            'withdraw': {'cost': 2.5},
+                            'withdrawCancel': {'cost': 2.5},
+                            'withdraws': {'cost': 2.5},
+                            'supplement/user_info': {'cost': 2.5},
+                            'supplement/withdraw': {'cost': 2.5},
+                            'supplement/deposit_history': {'cost': 2.5},
+                            'supplement/withdraws': {'cost': 2.5},
+                            'supplement/get_deposit_address': {'cost': 2.5},
+                            'supplement/asset_detail': {'cost': 2.5},
+                            'supplement/customer_trade_fee': {'cost': 2.5},
+                            'supplement/api_Restrictions': {'cost': 2.5},
                             # new quote endpoints
-                            'supplement/system_ping': 2.5,
+                            'supplement/system_ping': {'cost': 2.5},
                             # new order endpoints
-                            'supplement/create_order_test': 1,
-                            'supplement/create_order': 1,
-                            'supplement/cancel_order': 1,
-                            'supplement/cancel_order_by_symbol': 1,
-                            'supplement/orders_info': 2.5,
-                            'supplement/orders_info_no_deal': 2.5,
-                            'supplement/orders_info_history': 2.5,
-                            'supplement/user_info_account': 2.5,
-                            'supplement/transaction_history': 2.5,
+                            'supplement/create_order_test': {'cost': 1},
+                            'supplement/create_order': {'cost': 1},
+                            'supplement/cancel_order': {'cost': 1},
+                            'supplement/cancel_order_by_symbol': {'cost': 1},
+                            'supplement/orders_info': {'cost': 2.5},
+                            'supplement/orders_info_no_deal': {'cost': 2.5},
+                            'supplement/orders_info_history': {'cost': 2.5},
+                            'supplement/user_info_account': {'cost': 2.5},
+                            'supplement/transaction_history': {'cost': 2.5},
                         },
                     },
                 },
                 'contract': {
                     'public': {
                         'get': {
-                            'cfd/openApi/v1/pub/getTime': 2.5,
-                            'cfd/openApi/v1/pub/instrument': 2.5,
-                            'cfd/openApi/v1/pub/marketData': 2.5,
-                            'cfd/openApi/v1/pub/marketOrder': 2.5,
+                            'cfd/openApi/v1/pub/getTime': {'cost': 2.5},
+                            'cfd/openApi/v1/pub/instrument': {'cost': 2.5},
+                            'cfd/openApi/v1/pub/marketData': {'cost': 2.5},
+                            'cfd/openApi/v1/pub/marketOrder': {'cost': 2.5},
                         },
                     },
                 },
@@ -536,7 +539,7 @@ class lbank(Exchange, ImplicitAPI):
         resolvedMarkets = marketsPromises
         return self.array_concat(resolvedMarkets[0], resolvedMarkets[1])
 
-    def fetch_spot_markets(self, params: Any = {}):
+    def fetch_spot_markets(self, params: Any = {}) -> List[Market]:
         response = self.spotPublicGetAccuracy(params)
         #
         #     {
@@ -615,7 +618,7 @@ class lbank(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_swap_markets(self, params: Any = {}):
+    def fetch_swap_markets(self, params: Any = {}) -> List[Market]:
         request = {
             'productGroup': 'SwapU',
         }
@@ -1329,7 +1332,7 @@ class lbank(Exchange, ImplicitAPI):
                 if codeInner is not None:
                     result[codeInner] = account
             return self.safe_balance(result)
-        return None
+        return self.safe_balance(result)
 
     def parse_funding_rate(self, ticker: Any, market: Market = None) -> FundingRate:
         # {

@@ -29,7 +29,7 @@ public partial class kraken : Exchange
                 { "cancelOrders", true },
                 { "createDepositAddress", true },
                 { "createMarketBuyOrderWithCost", true },
-                { "createMarketOrderWithCost", false },
+                { "createMarketOrderWithCost", true },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
                 { "createOrders", true },
@@ -122,73 +122,198 @@ public partial class kraken : Exchange
             { "handleContentTypeApplicationZip", true },
             { "api", new Dictionary<string, object>() {
                 { "zendesk", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"360000292886", "201893608"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "360000292886", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "201893608", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "Time", 1 },
-                        { "SystemStatus", 1 },
-                        { "Assets", 1 },
-                        { "AssetPairs", 1 },
-                        { "Ticker", 1 },
-                        { "OHLC", 1.2 },
-                        { "Depth", 1.2 },
-                        { "GroupedBook", 1.2 },
-                        { "Trades", 1.2 },
-                        { "Spread", 1 },
-                        { "PreTrade", 1 },
-                        { "PostTrade", 1 },
+                        { "Time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SystemStatus", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "AssetPairs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "OHLC", new Dictionary<string, object>() {
+                            { "cost", 1.2 },
+                        } },
+                        { "Depth", new Dictionary<string, object>() {
+                            { "cost", 1.2 },
+                        } },
+                        { "GroupedBook", new Dictionary<string, object>() {
+                            { "cost", 1.2 },
+                        } },
+                        { "Trades", new Dictionary<string, object>() {
+                            { "cost", 1.2 },
+                        } },
+                        { "Spread", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "PreTrade", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "PostTrade", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "Level3", 1.2 },
-                        { "Balance", 3 },
-                        { "BalanceEx", 3 },
-                        { "CreditLines", 3 },
-                        { "TradeBalance", 3 },
-                        { "OpenOrders", 3 },
-                        { "ClosedOrders", 3 },
-                        { "QueryOrders", 3 },
-                        { "OrderAmends", 3 },
-                        { "TradesHistory", 6 },
-                        { "QueryTrades", 3 },
-                        { "OpenPositions", 3 },
-                        { "Ledgers", 6 },
-                        { "QueryLedgers", 3 },
-                        { "TradeVolume", 3 },
-                        { "AddExport", 3 },
-                        { "ExportStatus", 3 },
-                        { "RetrieveExport", 3 },
-                        { "RemoveExport", 3 },
-                        { "GetApiKeyInfo", 3 },
-                        { "AddOrder", 0 },
-                        { "AmendOrder", 0 },
-                        { "CancelOrder", 0 },
-                        { "CancelAll", 3 },
-                        { "CancelAllOrdersAfter", 3 },
-                        { "GetWebSocketsToken", 3 },
-                        { "AddOrderBatch", 0 },
-                        { "CancelOrderBatch", 0 },
-                        { "EditOrder", 0 },
-                        { "DepositMethods", 3 },
-                        { "DepositAddresses", 3 },
-                        { "DepositStatus", 3 },
-                        { "WithdrawMethods", 3 },
-                        { "WithdrawAddresses", 3 },
-                        { "WithdrawInfo", 3 },
-                        { "Withdraw", 3 },
-                        { "WithdrawStatus", 3 },
-                        { "WithdrawCancel", 3 },
-                        { "WalletTransfer", 3 },
-                        { "CreateSubaccount", 3 },
-                        { "AccountTransfer", 3 },
-                        { "Earn/Allocate", 3 },
-                        { "Earn/Deallocate", 3 },
-                        { "Earn/AllocateStatus", 3 },
-                        { "Earn/DeallocateStatus", 3 },
-                        { "Earn/Strategies", 3 },
-                        { "Earn/Allocations", 3 },
+                        { "Level3", new Dictionary<string, object>() {
+                            { "cost", 1.2 },
+                        } },
+                        { "Balance", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "BalanceEx", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "CreditLines", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "TradeBalance", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "OpenOrders", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "ClosedOrders", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "QueryOrders", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "OrderAmends", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "TradesHistory", new Dictionary<string, object>() {
+                            { "cost", 6 },
+                        } },
+                        { "QueryTrades", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "OpenPositions", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "Ledgers", new Dictionary<string, object>() {
+                            { "cost", 6 },
+                        } },
+                        { "QueryLedgers", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "TradeVolume", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "AddExport", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "ExportStatus", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "RetrieveExport", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "RemoveExport", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "GetApiKeyInfo", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "AddOrder", new Dictionary<string, object>() {
+                            { "cost", 0 },
+                        } },
+                        { "AmendOrder", new Dictionary<string, object>() {
+                            { "cost", 0 },
+                        } },
+                        { "CancelOrder", new Dictionary<string, object>() {
+                            { "cost", 0 },
+                        } },
+                        { "CancelAll", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "CancelAllOrdersAfter", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "GetWebSocketsToken", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "AddOrderBatch", new Dictionary<string, object>() {
+                            { "cost", 0 },
+                        } },
+                        { "CancelOrderBatch", new Dictionary<string, object>() {
+                            { "cost", 0 },
+                        } },
+                        { "EditOrder", new Dictionary<string, object>() {
+                            { "cost", 0 },
+                        } },
+                        { "DepositMethods", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "DepositAddresses", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "DepositStatus", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "WithdrawMethods", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "WithdrawAddresses", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "WithdrawInfo", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "Withdraw", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "WithdrawStatus", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "WithdrawCancel", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "WalletTransfer", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "CreateSubaccount", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "AccountTransfer", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "Earn/Allocate", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "Earn/Deallocate", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "Earn/AllocateStatus", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "Earn/DeallocateStatus", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "Earn/Strategies", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "Earn/Allocations", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
                     } },
                 } },
             } },
@@ -1139,7 +1264,7 @@ public partial class kraken : Exchange
             ((IDictionary<string,object>)request)["pair"] = String.Join(",", ((IList<object>)marketIds).ToArray());
         }
         object response = await this.publicGetTicker(this.extend(request, parameters));
-        object tickers = getValue(response, "result");
+        object tickers = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object ids = new List<object>(((IDictionary<string,object>)tickers).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
@@ -1174,7 +1299,8 @@ public partial class kraken : Exchange
             { "pair", getValue(market, "id") },
         };
         object response = await this.publicGetTicker(this.extend(request, parameters));
-        object ticker = this.safeValue(getValue(response, "result"), getValue(market, "id"));
+        object tickerResult = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object ticker = this.safeValue(tickerResult, getValue(market, "id"));
         return this.parseTicker(ticker, market);
     }
 
@@ -1420,7 +1546,7 @@ public partial class kraken : Exchange
         //                                       "amount": "-0.2805800000",
         //                                          "fee": "0.0050000000",
         //                                      "balance": "0.0000051000"           } } }
-        object result = getValue(response, "result");
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object keys = new List<object>(((IDictionary<string,object>)result).Keys);
         object items = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -1650,7 +1776,7 @@ public partial class kraken : Exchange
         //         }
         //     }
         //
-        object result = getValue(response, "result");
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object trades = this.safeValue(result, id);
         // trades is a sorted array: last (most recent trade) goes last
         object length = getArrayLength(trades);
@@ -2801,7 +2927,8 @@ public partial class kraken : Exchange
         //         },
         //     }
         //
-        object trades = getValue(getValue(response, "result"), "trades");
+        object tradesResult = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object trades = this.safeDict(tradesResult, "trades", new Dictionary<string, object>() {});
         object ids = new List<object>(((IDictionary<string,object>)trades).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
@@ -2812,7 +2939,8 @@ public partial class kraken : Exchange
         {
             market = this.market(symbol);
         }
-        return this.parseTrades(trades, market, since, limit);
+        object tradesList = this.toArray(trades);
+        return this.parseTrades(tradesList, market, since, limit);
     }
 
     /**
@@ -3366,7 +3494,8 @@ public partial class kraken : Exchange
         //                       "time":  1529223212,
         //                     "status": "Success"                                                       } ] }
         //
-        return this.parseTransactionsByType("deposit", getValue(response, "result"), code, since, limit);
+        object depositResult = this.safeList(response, "result", new List<object>() {});
+        return this.parseTransactionsByType("deposit", depositResult, code, since, limit);
     }
 
     /**

@@ -60,6 +60,7 @@ class gemini extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -116,102 +117,106 @@ class gemini extends Exchange {
             'api' => array(
                 'webExchange' => array(
                     'get' => array(
-                        '',
+                        '' => array( 'cost' => 1 ),
                     ),
                 ),
                 'web' => array(
                     'get' => array(
-                        'rest-api',
+                        // fetchMarkets passes this through fetchWebEndpoint with
+                        // returnAsJson=false and a startRegex, i.e. it splits the
+                        // body => this endpoint answers with the docs page
+                        // markup, not with JSON
+                        'rest-api' => array( 'cost' => 1 ),
                     ),
                 ),
                 'public' => array(
                     'get' => array(
-                        'v1/symbols' => 5,
-                        'v1/symbols/details/{symbol}' => 5,
-                        'v1/network/{token}' => 5,
-                        'v1/staking/rates' => 5,
-                        'v1/pubticker/{symbol}' => 5,
-                        'v1/feepromos' => 5,
-                        'v2/ticker/{symbol}' => 5,
-                        'v2/candles/{symbol}/{timeframe}' => 5,
-                        'v1/trades/{symbol}' => 5,
-                        'v1/auction/{symbol}' => 5,
-                        'v1/auction/{symbol}/history' => 5,
-                        'v1/pricefeed' => 5,
-                        'v1/fundingamount/{symbol}' => 5,
-                        'v1/fundingamountreport/records.xlsx' => 5,
-                        'v1/book/{symbol}' => 5,
-                        'v1/earn/rates' => 5,
-                        'v2/derivatives/candles/{symbol}/{time_frame}' => 5,
-                        'v2/fxrate/{symbol}/{timestamp}' => 5,
-                        'v1/riskstats/{symbol}' => 5,
+                        'v1/symbols' => array( 'cost' => 5 ),
+                        'v1/symbols/details/{symbol}' => array( 'cost' => 5 ),
+                        'v1/network/{token}' => array( 'cost' => 5 ),
+                        'v1/staking/rates' => array( 'cost' => 5 ),
+                        'v1/pubticker/{symbol}' => array( 'cost' => 5 ),
+                        'v1/feepromos' => array( 'cost' => 5 ),
+                        'v2/ticker/{symbol}' => array( 'cost' => 5 ),
+                        'v2/candles/{symbol}/{timeframe}' => array( 'cost' => 5 ),
+                        'v1/trades/{symbol}' => array( 'cost' => 5 ),
+                        'v1/auction/{symbol}' => array( 'cost' => 5 ),
+                        'v1/auction/{symbol}/history' => array( 'cost' => 5 ),
+                        'v1/pricefeed' => array( 'cost' => 5 ),
+                        'v1/fundingamount/{symbol}' => array( 'cost' => 5 ),
+                        'v1/fundingamountreport/records.xlsx' => array( 'cost' => 5 ),
+                        'v1/book/{symbol}' => array( 'cost' => 5 ),
+                        'v1/earn/rates' => array( 'cost' => 5 ),
+                        'v2/derivatives/candles/{symbol}/{time_frame}' => array( 'cost' => 5 ),
+                        'v2/fxrate/{symbol}/{timestamp}' => array( 'cost' => 5 ),
+                        'v1/riskstats/{symbol}' => array( 'cost' => 5 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'v1/perpetuals/fundingpaymentreport/records.xlsx' => 1,
+                        'v1/perpetuals/fundingpaymentreport/records.xlsx' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'v1/staking/unstake' => 1,
-                        'v1/staking/stake' => 1,
-                        'v1/staking/rewards' => 1,
-                        'v1/staking/history' => 1,
-                        'v1/order/new' => 1,
-                        'v1/order/cancel' => 1,
-                        'v1/wrap/{symbol}' => 1,
-                        'v1/order/cancel/session' => 1,
-                        'v1/order/cancel/all' => 1,
-                        'v1/order/status' => 1,
-                        'v1/orders' => 1,
-                        'v1/mytrades' => 1,
-                        'v1/notionalvolume' => 1,
-                        'v1/tradevolume' => 1,
-                        'v1/clearing/new' => 1,
-                        'v1/clearing/status' => 1,
-                        'v1/clearing/cancel' => 1,
-                        'v1/clearing/confirm' => 1,
-                        'v1/balances' => 1,
-                        'v1/balances/staking' => 1,
-                        'v1/notionalbalances/{currency}' => 1,
-                        'v1/transfers' => 1,
-                        'v1/addresses/{network}' => 1,
-                        'v1/deposit/{network}/newAddress' => 1,
-                        'v1/deposit/{currency}/newAddress' => 1,
-                        'v1/withdraw/{currency}' => 1,
-                        'v1/account/transfer/{currency}' => 1,
-                        'v1/payments/addbank' => 1,
-                        'v1/payments/methods' => 1,
-                        'v1/payments/sen/withdraw' => 1,
-                        'v1/balances/earn' => 1,
-                        'v1/earn/interest' => 1,
-                        'v1/earn/history' => 1,
-                        'v1/approvedAddresses/{network}/request' => 1,
-                        'v1/approvedAddresses/account/{network}' => 1,
-                        'v1/approvedAddresses/{network}/remove' => 1,
-                        'v1/account' => 1,
-                        'v1/account/create' => 1,
-                        'v1/account/list' => 1,
-                        'v1/heartbeat' => 1,
-                        'v1/roles' => 1,
-                        'v1/custodyaccountfees' => 1,
-                        'v1/withdraw/{currencyCodeLowerCase}/feeEstimate' => 1,
-                        'v1/payments/addbank/cad' => 1,
-                        'v1/transactions' => 1,
-                        'v1/margin/account' => 1,
-                        'v1/margin/rates' => 1,
-                        'v1/margin/order/preview' => 1,
-                        'v1/clearing/list' => 1,
-                        'v1/clearing/broker/list' => 1,
-                        'v1/clearing/broker/new' => 1,
-                        'v1/clearing/trades' => 1,
-                        'v1/instant/quote' => 1,
-                        'v1/instant/execute' => 1,
-                        'v1/account/rename' => 1,
-                        'v1/oauth/revokeByToken' => 1,
-                        'v1/margin' => 1,
-                        'v1/perpetuals/fundingPayment' => 1,
-                        'v1/perpetuals/fundingpaymentreport/records.json' => 1,
-                        'v1/positions' => 1,
+                        'v1/staking/unstake' => array( 'cost' => 1 ),
+                        'v1/staking/stake' => array( 'cost' => 1 ),
+                        'v1/staking/rewards' => array( 'cost' => 1 ),
+                        'v1/staking/history' => array( 'cost' => 1 ),
+                        'v1/order/new' => array( 'cost' => 1 ),
+                        'v1/order/cancel' => array( 'cost' => 1 ),
+                        'v1/wrap/{symbol}' => array( 'cost' => 1 ),
+                        'v1/order/cancel/session' => array( 'cost' => 1 ),
+                        'v1/order/cancel/all' => array( 'cost' => 1 ),
+                        'v1/order/status' => array( 'cost' => 1 ),
+                        'v1/orders' => array( 'cost' => 1 ),
+                        'v1/mytrades' => array( 'cost' => 1 ),
+                        'v1/notionalvolume' => array( 'cost' => 1 ),
+                        'v1/tradevolume' => array( 'cost' => 1 ),
+                        'v1/clearing/new' => array( 'cost' => 1 ),
+                        'v1/clearing/status' => array( 'cost' => 1 ),
+                        'v1/clearing/cancel' => array( 'cost' => 1 ),
+                        'v1/clearing/confirm' => array( 'cost' => 1 ),
+                        'v1/balances' => array( 'cost' => 1 ),
+                        'v1/balances/staking' => array( 'cost' => 1 ),
+                        'v1/notionalbalances/{currency}' => array( 'cost' => 1 ),
+                        'v1/transfers' => array( 'cost' => 1 ),
+                        'v1/addresses/{network}' => array( 'cost' => 1 ),
+                        'v1/deposit/{network}/newAddress' => array( 'cost' => 1 ),
+                        'v1/deposit/{currency}/newAddress' => array( 'cost' => 1 ),
+                        'v1/withdraw/{currency}' => array( 'cost' => 1 ),
+                        'v1/account/transfer/{currency}' => array( 'cost' => 1 ),
+                        'v1/payments/addbank' => array( 'cost' => 1 ),
+                        'v1/payments/methods' => array( 'cost' => 1 ),
+                        'v1/payments/sen/withdraw' => array( 'cost' => 1 ),
+                        'v1/balances/earn' => array( 'cost' => 1 ),
+                        'v1/earn/interest' => array( 'cost' => 1 ),
+                        'v1/earn/history' => array( 'cost' => 1 ),
+                        'v1/approvedAddresses/{network}/request' => array( 'cost' => 1 ),
+                        'v1/approvedAddresses/account/{network}' => array( 'cost' => 1 ),
+                        'v1/approvedAddresses/{network}/remove' => array( 'cost' => 1 ),
+                        'v1/account' => array( 'cost' => 1 ),
+                        'v1/account/create' => array( 'cost' => 1 ),
+                        'v1/account/list' => array( 'cost' => 1 ),
+                        'v1/heartbeat' => array( 'cost' => 1 ),
+                        'v1/roles' => array( 'cost' => 1 ),
+                        'v1/custodyaccountfees' => array( 'cost' => 1 ),
+                        'v1/withdraw/{currencyCodeLowerCase}/feeEstimate' => array( 'cost' => 1 ),
+                        'v1/payments/addbank/cad' => array( 'cost' => 1 ),
+                        'v1/transactions' => array( 'cost' => 1 ),
+                        'v1/margin/account' => array( 'cost' => 1 ),
+                        'v1/margin/rates' => array( 'cost' => 1 ),
+                        'v1/margin/order/preview' => array( 'cost' => 1 ),
+                        'v1/clearing/list' => array( 'cost' => 1 ),
+                        'v1/clearing/broker/list' => array( 'cost' => 1 ),
+                        'v1/clearing/broker/new' => array( 'cost' => 1 ),
+                        'v1/clearing/trades' => array( 'cost' => 1 ),
+                        'v1/instant/quote' => array( 'cost' => 1 ),
+                        'v1/instant/execute' => array( 'cost' => 1 ),
+                        'v1/account/rename' => array( 'cost' => 1 ),
+                        'v1/oauth/revokeByToken' => array( 'cost' => 1 ),
+                        'v1/margin' => array( 'cost' => 1 ),
+                        'v1/perpetuals/fundingPayment' => array( 'cost' => 1 ),
+                        'v1/perpetuals/fundingpaymentreport/records.json' => array( 'cost' => 1 ),
+                        'v1/positions' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -660,9 +665,13 @@ class gemini extends Exchange {
         $options = $this->safe_dict($this->options, 'fetchMarketsFromAPI', array());
         $brokenPairs = $this->safe_list($this->options, 'brokenPairs', array());
         $marketIds = array();
-        for ($i = 0; $i < count($marketIdsRaw); $i++) {
-            if (!$this->in_array($marketIdsRaw[$i], $brokenPairs)) {
-                $marketIds[] = $marketIdsRaw[$i];
+        $allMarketIds = array();
+        if ((gettype($marketIdsRaw) === 'array' && array_keys($marketIdsRaw) === array_keys(array_keys($marketIdsRaw)))) {
+            $allMarketIds = $marketIdsRaw;
+        }
+        for ($i = 0; $i < count($allMarketIds); $i++) {
+            if (!$this->in_array($allMarketIds[$i], $brokenPairs)) {
+                $marketIds[] = $allMarketIds[$i];
             }
         }
         if ($this->safe_bool($options, 'fetchDetailsForAllSymbols', false)) {
@@ -2065,14 +2074,14 @@ class gemini extends Exchange {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
-         * @see https://docs.gemini.com/rest-api/#candles
+         * @see https://docs.gemini.com/rest-api/#$candles
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -2091,7 +2100,11 @@ class gemini extends Exchange {
         //         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        $candles = array();
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+            $candles = $response;
+        }
+        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_open_interest(string $symbol, $params = array()) {

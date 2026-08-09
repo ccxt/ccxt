@@ -5,7 +5,7 @@ import Exchange from './abstract/tokocrypto.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, Dict, Fee, FeeString, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, List, NullableDict } from './base/types.js';
+import type { Balances, Currency, Dict, Fee, FeeString, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, List, NullableDict, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -112,8 +112,8 @@ export default class tokocrypto extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
                 'fetchStatus': false,
-                'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
@@ -173,56 +173,56 @@ export default class tokocrypto extends Exchange {
             'api': {
                 'binance': {
                     'get': {
-                        'ping': 1,
-                        'time': 1,
-                        'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ] },
-                        'trades': 1,
-                        'aggTrades': 1,
-                        'historicalTrades': 5,
-                        'klines': 1,
-                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
-                        'ticker/price': { 'cost': 1, 'noSymbol': 2 },
-                        'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
-                        'exchangeInfo': 10,
+                        'ping': { 'cost': 1 } as Endpoint<Dict>,
+                        'time': { 'cost': 1 } as Endpoint<Dict>,
+                        'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ] } as Endpoint<Dict>,
+                        'trades': { 'cost': 1 } as Endpoint<List>,
+                        'aggTrades': { 'cost': 1 } as Endpoint<List>,
+                        'historicalTrades': { 'cost': 5 } as Endpoint<List>,
+                        'klines': { 'cost': 1 } as Endpoint<List>,
+                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<List>,
+                        'ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<Dict>,
+                        'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
+                        'exchangeInfo': { 'cost': 10 } as Endpoint<Dict>,
                     },
                     'put': {
-                        'userDataStream': 1,
+                        'userDataStream': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'userDataStream': 1,
+                        'userDataStream': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'userDataStream': 1,
+                        'userDataStream': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'public': {
                     'get': {
-                        'open/v1/common/time': 1,
-                        'open/v1/common/symbols': 1,
+                        'open/v1/common/time': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/common/symbols': { 'cost': 1 } as Endpoint<Dict>,
                         // all the actual symbols are type 1
-                        'open/v1/market/depth': 1, // when symbol type is not 1
-                        'open/v1/market/trades': 1, // when symbol type is not 1
-                        'open/v1/market/agg-trades': 1, // when symbol type is not 1
-                        'open/v1/market/klines': 1, // when symbol type is not 1
+                        'open/v1/market/depth': { 'cost': 1 } as Endpoint<Dict>, // when symbol type is not 1
+                        'open/v1/market/trades': { 'cost': 1 } as Endpoint<Dict>, // when symbol type is not 1
+                        'open/v1/market/agg-trades': { 'cost': 1 } as Endpoint<Dict>, // when symbol type is not 1
+                        'open/v1/market/klines': { 'cost': 1 } as Endpoint<Dict>, // when symbol type is not 1
                     },
                 },
                 'private': {
                     'get': {
-                        'open/v1/orders/detail': 1,
-                        'open/v1/orders': 1,
-                        'open/v1/account/spot': 1,
-                        'open/v1/account/spot/asset': 1,
-                        'open/v1/orders/trades': 1,
-                        'open/v1/withdraws': 1,
-                        'open/v1/deposits': 1,
-                        'open/v1/deposits/address': 1,
+                        'open/v1/orders/detail': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/account/spot': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/account/spot/asset': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/orders/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/withdraws': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/deposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/deposits/address': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'open/v1/orders': 1,
-                        'open/v1/orders/cancel': 1,
-                        'open/v1/orders/oco': 1,
-                        'open/v1/withdraws': 1,
-                        'open/v1/user-data-stream': 1,
+                        'open/v1/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/orders/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/orders/oco': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/withdraws': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/user-data-stream': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -1204,10 +1204,7 @@ export default class tokocrypto extends Exchange {
         //         }
         //     ]
         //
-        let responseList: any[] = [];
-        if (response !== undefined) {
-            responseList = response;
-        }
+        const responseList = this.toArray (response);
         return this.parseTrades (responseList, market, since, limit);
     }
 
@@ -1463,7 +1460,12 @@ export default class tokocrypto extends Exchange {
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         //     ]
         //
-        const data = this.safeList (response, 'data', response);
+        let data: List = [];
+        if (Array.isArray (response)) {
+            data = response;
+        } else {
+            data = this.safeList (response, 'data', []);
+        }
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -2685,7 +2687,7 @@ export default class tokocrypto extends Exchange {
             return config['noPoolId'];
         } else if (('byLimit' in config) && ('limit' in params)) {
             const limit = params['limit'];
-            const byLimit = config['byLimit'] as any;
+            const byLimit = this.safeList (config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 if (limit <= entry[0]) {

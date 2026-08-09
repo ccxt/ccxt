@@ -10,6 +10,7 @@ from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, T
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NotSupported
 
 
 class lbank(ccxt.async_support.lbank):
@@ -67,6 +68,12 @@ class lbank(ccxt.async_support.lbank):
         self.unlock_id()
         return newValue
 
+    def check_contract_market(self, market: Market, methodName: str):
+        # the spot ws rejects futures ids and lbank's contract ws protocol is not published,
+        # see https://github.com/ccxt/ccxt/issues/26864
+        if (market is not None) and market['contract']:
+            raise NotSupported(self.id + ' ' + methodName + '() does not support ' + market['type'] + ' markets yet')
+
     async def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
@@ -83,6 +90,7 @@ class lbank(ccxt.async_support.lbank):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        self.check_contract_market(market, 'fetchOHLCVWs')
         url = self.urls['api']['ws']
         watchOHLCVOptions = self.safe_value(self.options, 'watchOHLCV', {})
         timeframes = self.safe_value(watchOHLCVOptions, 'timeframes', {})
@@ -118,6 +126,7 @@ class lbank(ccxt.async_support.lbank):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        self.check_contract_market(market, 'watchOHLCV')
         watchOHLCVOptions = self.safe_value(self.options, 'watchOHLCV', {})
         timeframes = self.safe_value(watchOHLCVOptions, 'timeframes', {})
         timeframeId = self.safe_string(timeframes, timeframe, timeframe)
@@ -249,6 +258,7 @@ class lbank(ccxt.async_support.lbank):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        self.check_contract_market(market, 'fetchTickerWs')
         url = self.urls['api']['ws']
         messageHash = 'fetchTicker:' + market['symbol']
         message = {
@@ -273,6 +283,7 @@ class lbank(ccxt.async_support.lbank):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        self.check_contract_market(market, 'watchTicker')
         url = self.urls['api']['ws']
         messageHash = 'ticker:' + market['symbol']
         message = {
@@ -379,6 +390,7 @@ class lbank(ccxt.async_support.lbank):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        self.check_contract_market(market, 'fetchTradesWs')
         url = self.urls['api']['ws']
         messageHash = 'fetchTrades:' + market['symbol']
         if limit is None:
@@ -408,6 +420,7 @@ class lbank(ccxt.async_support.lbank):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        self.check_contract_market(market, 'watchTrades')
         url = self.urls['api']['ws']
         messageHash = 'trades:' + market['symbol']
         message = {
@@ -737,6 +750,7 @@ class lbank(ccxt.async_support.lbank):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        self.check_contract_market(market, 'fetchOrderBookWs')
         url = self.urls['api']['ws']
         messageHash = 'fetchOrderbook:' + market['symbol']
         if limit is None:
@@ -765,6 +779,7 @@ class lbank(ccxt.async_support.lbank):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        self.check_contract_market(market, 'watchOrderBook')
         url = self.urls['api']['ws']
         messageHash = 'orderbook:' + market['symbol']
         params = self.omit(params, 'aggregation')

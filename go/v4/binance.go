@@ -254,49 +254,135 @@ func (this *BinanceCore) Describe() any {
 		"api": map[string]any{
 			"sapi": map[string]any{
 				"get": map[string]any{
-					"copyTrading/futures/userStatus": 2,
-					"copyTrading/futures/leadSymbol": 2,
-					"system/status":                  0.1,
-					"accountSnapshot":                240,
-					"account/info":                   0.1,
-					"margin/asset":                   1,
-					"margin/pair":                    1,
-					"margin/allAssets":               0.1,
-					"margin/allPairs":                0.1,
-					"margin/priceIndex":              1,
-					"spot/delist-schedule":           10,
-					"asset/assetDividend":            1,
-					"asset/dribblet":                 0.1,
-					"asset/transfer":                 0.1,
-					"asset/assetDetail":              0.1,
-					"asset/tradeFee":                 0.1,
-					"asset/ledger-transfer/cloud-mining/queryByPage": 4.0002,
-					"asset/convert-transfer/queryByPage":             0.033335,
-					"asset/wallet/balance":                           6,
-					"asset/custody/transfer-history":                 6,
-					"margin/borrow-repay":                            1,
-					"margin/loan":                                    1,
-					"margin/repay":                                   1,
-					"margin/account":                                 1,
-					"margin/transfer":                                0.1,
-					"margin/interestHistory":                         0.1,
-					"margin/forceLiquidationRec":                     0.1,
-					"margin/order":                                   1,
-					"margin/openOrders":                              1,
-					"margin/allOrders":                               20,
-					"margin/myTrades":                                1,
-					"margin/maxBorrowable":                           5,
-					"margin/maxTransferable":                         5,
-					"margin/tradeCoeff":                              1,
-					"margin/isolated/transfer":                       0.1,
-					"margin/isolated/account":                        1,
-					"margin/isolated/pair":                           1,
-					"margin/isolated/allPairs":                       1,
-					"margin/isolated/accountLimit":                   0.1,
-					"margin/interestRateHistory":                     0.1,
-					"margin/orderList":                               1,
-					"margin/allOrderList":                            20,
-					"margin/openOrderList":                           1,
+					"copyTrading/futures/userStatus": map[string]any{
+						"cost": 2,
+					},
+					"copyTrading/futures/leadSymbol": map[string]any{
+						"cost": 2,
+					},
+					"system/status": map[string]any{
+						"cost": 0.1,
+					},
+					"accountSnapshot": map[string]any{
+						"cost": 240,
+					},
+					"account/info": map[string]any{
+						"cost": 0.1,
+					},
+					"margin/asset": map[string]any{
+						"cost": 1,
+					},
+					"margin/pair": map[string]any{
+						"cost": 1,
+					},
+					"margin/allAssets": map[string]any{
+						"cost": 0.1,
+					},
+					"margin/allPairs": map[string]any{
+						"cost": 0.1,
+					},
+					"margin/priceIndex": map[string]any{
+						"cost": 1,
+					},
+					"spot/delist-schedule": map[string]any{
+						"cost": 10,
+					},
+					"asset/assetDividend": map[string]any{
+						"cost": 1,
+					},
+					"asset/dribblet": map[string]any{
+						"cost": 0.1,
+					},
+					"asset/transfer": map[string]any{
+						"cost": 0.1,
+					},
+					"asset/assetDetail": map[string]any{
+						"cost": 0.1,
+					},
+					"asset/tradeFee": map[string]any{
+						"cost": 0.1,
+					},
+					"asset/ledger-transfer/cloud-mining/queryByPage": map[string]any{
+						"cost": 4.0002,
+					},
+					"asset/convert-transfer/queryByPage": map[string]any{
+						"cost": 0.033335,
+					},
+					"asset/wallet/balance": map[string]any{
+						"cost": 6,
+					},
+					"asset/custody/transfer-history": map[string]any{
+						"cost": 6,
+					},
+					"margin/borrow-repay": map[string]any{
+						"cost": 1,
+					},
+					"margin/loan": map[string]any{
+						"cost": 1,
+					},
+					"margin/repay": map[string]any{
+						"cost": 1,
+					},
+					"margin/account": map[string]any{
+						"cost": 1,
+					},
+					"margin/transfer": map[string]any{
+						"cost": 0.1,
+					},
+					"margin/interestHistory": map[string]any{
+						"cost": 0.1,
+					},
+					"margin/forceLiquidationRec": map[string]any{
+						"cost": 0.1,
+					},
+					"margin/order": map[string]any{
+						"cost": 1,
+					},
+					"margin/openOrders": map[string]any{
+						"cost": 1,
+					},
+					"margin/allOrders": map[string]any{
+						"cost": 20,
+					},
+					"margin/myTrades": map[string]any{
+						"cost": 1,
+					},
+					"margin/maxBorrowable": map[string]any{
+						"cost": 5,
+					},
+					"margin/maxTransferable": map[string]any{
+						"cost": 5,
+					},
+					"margin/tradeCoeff": map[string]any{
+						"cost": 1,
+					},
+					"margin/isolated/transfer": map[string]any{
+						"cost": 0.1,
+					},
+					"margin/isolated/account": map[string]any{
+						"cost": 1,
+					},
+					"margin/isolated/pair": map[string]any{
+						"cost": 1,
+					},
+					"margin/isolated/allPairs": map[string]any{
+						"cost": 1,
+					},
+					"margin/isolated/accountLimit": map[string]any{
+						"cost": 0.1,
+					},
+					"margin/interestRateHistory": map[string]any{
+						"cost": 0.1,
+					},
+					"margin/orderList": map[string]any{
+						"cost": 1,
+					},
+					"margin/allOrderList": map[string]any{
+						"cost": 20,
+					},
+					"margin/openOrderList": map[string]any{
+						"cost": 1,
+					},
 					"margin/crossMarginData": map[string]any{
 						"cost":   0.1,
 						"noCoin": 0.5,
@@ -305,419 +391,1177 @@ func (this *BinanceCore) Describe() any {
 						"cost":   0.1,
 						"noCoin": 1,
 					},
-					"margin/isolatedMarginTier":                                0.1,
-					"margin/rateLimit/order":                                   2,
-					"margin/dribblet":                                          0.1,
-					"margin/dust":                                              20.001,
-					"margin/crossMarginCollateralRatio":                        10,
-					"margin/exchange-small-liability":                          0.6667,
-					"margin/exchange-small-liability-history":                  0.6667,
-					"margin/next-hourly-interest-rate":                         0.6667,
-					"margin/capital-flow":                                      10,
-					"margin/delist-schedule":                                   10,
-					"margin/available-inventory":                               0.3334,
-					"margin/leverageBracket":                                   0.1,
-					"loan/vip/loanable/data":                                   40,
-					"loan/vip/collateral/data":                                 40,
-					"loan/vip/request/data":                                    2.6668,
-					"loan/vip/request/interestRate":                            2.6668,
-					"loan/income":                                              40.002,
-					"loan/ongoing/orders":                                      40,
-					"loan/ltv/adjustment/history":                              40,
-					"loan/borrow/history":                                      40,
-					"loan/repay/history":                                       40,
-					"loan/loanable/data":                                       40,
-					"loan/collateral/data":                                     40,
-					"loan/repay/collateral/rate":                               600,
-					"loan/flexible/ongoing/orders":                             30,
-					"loan/flexible/borrow/history":                             40,
-					"loan/flexible/repay/history":                              40,
-					"loan/flexible/ltv/adjustment/history":                     40,
-					"loan/vip/ongoing/orders":                                  40,
-					"loan/vip/repay/history":                                   40,
-					"loan/vip/collateral/account":                              600,
-					"fiat/orders":                                              600.03,
-					"fiat/payments":                                            0.1,
-					"futures/transfer":                                         1,
-					"futures/histDataLink":                                     0.1,
-					"rebate/taxQuery":                                          80.004,
-					"capital/config/getall":                                    1,
-					"capital/deposit/address":                                  1,
-					"capital/deposit/address/list":                             1,
-					"capital/deposit/hisrec":                                   0.1,
-					"capital/deposit/subAddress":                               0.1,
-					"capital/deposit/subHisrec":                                0.1,
-					"capital/withdraw/history":                                 2,
-					"capital/withdraw/address/list":                            10,
-					"capital/contract/convertible-coins":                       4.0002,
-					"convert/tradeFlow":                                        20.001,
-					"convert/exchangeInfo":                                     50,
-					"convert/assetInfo":                                        10,
-					"convert/orderStatus":                                      0.6667,
-					"convert/limit/queryOpenOrders":                            20.001,
-					"account/status":                                           0.1,
-					"account/apiTradingStatus":                                 0.1,
-					"account/apiRestrictions/ipRestriction":                    0.1,
-					"bnbBurn":                                                  0.1,
-					"sub-account/futures/account":                              1,
-					"sub-account/futures/accountSummary":                       0.1,
-					"sub-account/futures/positionRisk":                         1,
-					"sub-account/futures/internalTransfer":                     0.1,
-					"sub-account/list":                                         0.1,
-					"sub-account/margin/account":                               1,
-					"sub-account/margin/accountSummary":                        1,
-					"sub-account/spotSummary":                                  0.1,
-					"sub-account/status":                                       1,
-					"sub-account/sub/transfer/history":                         0.1,
-					"sub-account/transfer/subUserHistory":                      0.1,
-					"sub-account/universalTransfer":                            0.1,
-					"sub-account/apiRestrictions/ipRestriction/thirdPartyList": 1,
-					"sub-account/transaction-statistics":                       0.40002,
-					"sub-account/subAccountApi/ipRestriction":                  20.001,
-					"managed-subaccount/asset":                                 0.1,
-					"managed-subaccount/accountSnapshot":                       240,
-					"managed-subaccount/queryTransLogForInvestor":              0.1,
-					"managed-subaccount/queryTransLogForTradeParent":           0.40002,
-					"managed-subaccount/fetch-future-asset":                    0.40002,
-					"managed-subaccount/marginAsset":                           0.1,
-					"managed-subaccount/info":                                  0.40002,
-					"managed-subaccount/deposit/address":                       0.006667,
-					"managed-subaccount/query-trans-log":                       0.40002,
-					"lending/daily/product/list":                               0.1,
-					"lending/daily/userLeftQuota":                              0.1,
-					"lending/daily/userRedemptionQuota":                        0.1,
-					"lending/daily/token/position":                             0.1,
-					"lending/union/account":                                    0.1,
-					"lending/union/purchaseRecord":                             0.1,
-					"lending/union/redemptionRecord":                           0.1,
-					"lending/union/interestHistory":                            0.1,
-					"lending/project/list":                                     0.1,
-					"lending/project/position/list":                            0.1,
-					"eth-staking/eth/history/stakingHistory":                   15,
-					"eth-staking/eth/history/redemptionHistory":                15,
-					"eth-staking/eth/history/rewardsHistory":                   15,
-					"eth-staking/eth/quota":                                    15,
-					"eth-staking/eth/history/rateHistory":                      15,
-					"eth-staking/account":                                      15,
-					"eth-staking/wbeth/history/wrapHistory":                    15,
-					"eth-staking/wbeth/history/unwrapHistory":                  15,
-					"eth-staking/eth/history/wbethRewardsHistory":              15,
-					"sol-staking/sol/history/stakingHistory":                   15,
-					"sol-staking/sol/history/redemptionHistory":                15,
-					"sol-staking/sol/history/bnsolRewardsHistory":              15,
-					"sol-staking/sol/history/rateHistory":                      15,
-					"sol-staking/account":                                      15,
-					"sol-staking/sol/quota":                                    15,
-					"mining/pub/algoList":                                      0.1,
-					"mining/pub/coinList":                                      0.1,
-					"mining/worker/detail":                                     0.5,
-					"mining/worker/list":                                       0.5,
-					"mining/payment/list":                                      0.5,
-					"mining/statistics/user/status":                            0.5,
-					"mining/statistics/user/list":                              0.5,
-					"mining/payment/uid":                                       0.5,
-					"bswap/pools":                                              0.1,
+					"margin/isolatedMarginTier": map[string]any{
+						"cost": 0.1,
+					},
+					"margin/rateLimit/order": map[string]any{
+						"cost": 2,
+					},
+					"margin/dribblet": map[string]any{
+						"cost": 0.1,
+					},
+					"margin/dust": map[string]any{
+						"cost": 20.001,
+					},
+					"margin/crossMarginCollateralRatio": map[string]any{
+						"cost": 10,
+					},
+					"margin/exchange-small-liability": map[string]any{
+						"cost": 0.6667,
+					},
+					"margin/exchange-small-liability-history": map[string]any{
+						"cost": 0.6667,
+					},
+					"margin/next-hourly-interest-rate": map[string]any{
+						"cost": 0.6667,
+					},
+					"margin/capital-flow": map[string]any{
+						"cost": 10,
+					},
+					"margin/delist-schedule": map[string]any{
+						"cost": 10,
+					},
+					"margin/available-inventory": map[string]any{
+						"cost": 0.3334,
+					},
+					"margin/leverageBracket": map[string]any{
+						"cost": 0.1,
+					},
+					"loan/vip/loanable/data": map[string]any{
+						"cost": 40,
+					},
+					"loan/vip/collateral/data": map[string]any{
+						"cost": 40,
+					},
+					"loan/vip/request/data": map[string]any{
+						"cost": 2.6668,
+					},
+					"loan/vip/request/interestRate": map[string]any{
+						"cost": 2.6668,
+					},
+					"loan/income": map[string]any{
+						"cost": 40.002,
+					},
+					"loan/ongoing/orders": map[string]any{
+						"cost": 40,
+					},
+					"loan/ltv/adjustment/history": map[string]any{
+						"cost": 40,
+					},
+					"loan/borrow/history": map[string]any{
+						"cost": 40,
+					},
+					"loan/repay/history": map[string]any{
+						"cost": 40,
+					},
+					"loan/loanable/data": map[string]any{
+						"cost": 40,
+					},
+					"loan/collateral/data": map[string]any{
+						"cost": 40,
+					},
+					"loan/repay/collateral/rate": map[string]any{
+						"cost": 600,
+					},
+					"loan/flexible/ongoing/orders": map[string]any{
+						"cost": 30,
+					},
+					"loan/flexible/borrow/history": map[string]any{
+						"cost": 40,
+					},
+					"loan/flexible/repay/history": map[string]any{
+						"cost": 40,
+					},
+					"loan/flexible/ltv/adjustment/history": map[string]any{
+						"cost": 40,
+					},
+					"loan/vip/ongoing/orders": map[string]any{
+						"cost": 40,
+					},
+					"loan/vip/repay/history": map[string]any{
+						"cost": 40,
+					},
+					"loan/vip/collateral/account": map[string]any{
+						"cost": 600,
+					},
+					"fiat/orders": map[string]any{
+						"cost": 600.03,
+					},
+					"fiat/payments": map[string]any{
+						"cost": 0.1,
+					},
+					"futures/transfer": map[string]any{
+						"cost": 1,
+					},
+					"futures/histDataLink": map[string]any{
+						"cost": 0.1,
+					},
+					"rebate/taxQuery": map[string]any{
+						"cost": 80.004,
+					},
+					"capital/config/getall": map[string]any{
+						"cost": 1,
+					},
+					"capital/deposit/address": map[string]any{
+						"cost": 1,
+					},
+					"capital/deposit/address/list": map[string]any{
+						"cost": 1,
+					},
+					"capital/deposit/hisrec": map[string]any{
+						"cost": 0.1,
+					},
+					"capital/deposit/subAddress": map[string]any{
+						"cost": 0.1,
+					},
+					"capital/deposit/subHisrec": map[string]any{
+						"cost": 0.1,
+					},
+					"capital/withdraw/history": map[string]any{
+						"cost": 2,
+					},
+					"capital/withdraw/address/list": map[string]any{
+						"cost": 10,
+					},
+					"capital/contract/convertible-coins": map[string]any{
+						"cost": 4.0002,
+					},
+					"convert/tradeFlow": map[string]any{
+						"cost": 20.001,
+					},
+					"convert/exchangeInfo": map[string]any{
+						"cost": 50,
+					},
+					"convert/assetInfo": map[string]any{
+						"cost": 10,
+					},
+					"convert/orderStatus": map[string]any{
+						"cost": 0.6667,
+					},
+					"convert/limit/queryOpenOrders": map[string]any{
+						"cost": 20.001,
+					},
+					"account/status": map[string]any{
+						"cost": 0.1,
+					},
+					"account/apiTradingStatus": map[string]any{
+						"cost": 0.1,
+					},
+					"account/apiRestrictions/ipRestriction": map[string]any{
+						"cost": 0.1,
+					},
+					"bnbBurn": map[string]any{
+						"cost": 0.1,
+					},
+					"sub-account/futures/account": map[string]any{
+						"cost": 1,
+					},
+					"sub-account/futures/accountSummary": map[string]any{
+						"cost": 0.1,
+					},
+					"sub-account/futures/positionRisk": map[string]any{
+						"cost": 1,
+					},
+					"sub-account/futures/internalTransfer": map[string]any{
+						"cost": 0.1,
+					},
+					"sub-account/list": map[string]any{
+						"cost": 0.1,
+					},
+					"sub-account/margin/account": map[string]any{
+						"cost": 1,
+					},
+					"sub-account/margin/accountSummary": map[string]any{
+						"cost": 1,
+					},
+					"sub-account/spotSummary": map[string]any{
+						"cost": 0.1,
+					},
+					"sub-account/status": map[string]any{
+						"cost": 1,
+					},
+					"sub-account/sub/transfer/history": map[string]any{
+						"cost": 0.1,
+					},
+					"sub-account/transfer/subUserHistory": map[string]any{
+						"cost": 0.1,
+					},
+					"sub-account/universalTransfer": map[string]any{
+						"cost": 0.1,
+					},
+					"sub-account/apiRestrictions/ipRestriction/thirdPartyList": map[string]any{
+						"cost": 1,
+					},
+					"sub-account/transaction-statistics": map[string]any{
+						"cost": 0.40002,
+					},
+					"sub-account/subAccountApi/ipRestriction": map[string]any{
+						"cost": 20.001,
+					},
+					"managed-subaccount/asset": map[string]any{
+						"cost": 0.1,
+					},
+					"managed-subaccount/accountSnapshot": map[string]any{
+						"cost": 240,
+					},
+					"managed-subaccount/queryTransLogForInvestor": map[string]any{
+						"cost": 0.1,
+					},
+					"managed-subaccount/queryTransLogForTradeParent": map[string]any{
+						"cost": 0.40002,
+					},
+					"managed-subaccount/fetch-future-asset": map[string]any{
+						"cost": 0.40002,
+					},
+					"managed-subaccount/marginAsset": map[string]any{
+						"cost": 0.1,
+					},
+					"managed-subaccount/info": map[string]any{
+						"cost": 0.40002,
+					},
+					"managed-subaccount/deposit/address": map[string]any{
+						"cost": 0.006667,
+					},
+					"managed-subaccount/query-trans-log": map[string]any{
+						"cost": 0.40002,
+					},
+					"lending/daily/product/list": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/daily/userLeftQuota": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/daily/userRedemptionQuota": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/daily/token/position": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/union/account": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/union/purchaseRecord": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/union/redemptionRecord": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/union/interestHistory": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/project/list": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/project/position/list": map[string]any{
+						"cost": 0.1,
+					},
+					"eth-staking/eth/history/stakingHistory": map[string]any{
+						"cost": 15,
+					},
+					"eth-staking/eth/history/redemptionHistory": map[string]any{
+						"cost": 15,
+					},
+					"eth-staking/eth/history/rewardsHistory": map[string]any{
+						"cost": 15,
+					},
+					"eth-staking/eth/quota": map[string]any{
+						"cost": 15,
+					},
+					"eth-staking/eth/history/rateHistory": map[string]any{
+						"cost": 15,
+					},
+					"eth-staking/account": map[string]any{
+						"cost": 15,
+					},
+					"eth-staking/wbeth/history/wrapHistory": map[string]any{
+						"cost": 15,
+					},
+					"eth-staking/wbeth/history/unwrapHistory": map[string]any{
+						"cost": 15,
+					},
+					"eth-staking/eth/history/wbethRewardsHistory": map[string]any{
+						"cost": 15,
+					},
+					"sol-staking/sol/history/stakingHistory": map[string]any{
+						"cost": 15,
+					},
+					"sol-staking/sol/history/redemptionHistory": map[string]any{
+						"cost": 15,
+					},
+					"sol-staking/sol/history/bnsolRewardsHistory": map[string]any{
+						"cost": 15,
+					},
+					"sol-staking/sol/history/rateHistory": map[string]any{
+						"cost": 15,
+					},
+					"sol-staking/account": map[string]any{
+						"cost": 15,
+					},
+					"sol-staking/sol/quota": map[string]any{
+						"cost": 15,
+					},
+					"mining/pub/algoList": map[string]any{
+						"cost": 0.1,
+					},
+					"mining/pub/coinList": map[string]any{
+						"cost": 0.1,
+					},
+					"mining/worker/detail": map[string]any{
+						"cost": 0.5,
+					},
+					"mining/worker/list": map[string]any{
+						"cost": 0.5,
+					},
+					"mining/payment/list": map[string]any{
+						"cost": 0.5,
+					},
+					"mining/statistics/user/status": map[string]any{
+						"cost": 0.5,
+					},
+					"mining/statistics/user/list": map[string]any{
+						"cost": 0.5,
+					},
+					"mining/payment/uid": map[string]any{
+						"cost": 0.5,
+					},
+					"bswap/pools": map[string]any{
+						"cost": 0.1,
+					},
 					"bswap/liquidity": map[string]any{
 						"cost":     0.1,
 						"noPoolId": 1,
 					},
-					"bswap/liquidityOps":                              20.001,
-					"bswap/quote":                                     1.00005,
-					"bswap/swap":                                      20.001,
-					"bswap/poolConfigure":                             1.00005,
-					"bswap/addLiquidityPreview":                       1.00005,
-					"bswap/removeLiquidityPreview":                    1.00005,
-					"bswap/unclaimedRewards":                          6.667,
-					"bswap/claimedHistory":                            6.667,
-					"blvt/tokenInfo":                                  0.1,
-					"blvt/subscribe/record":                           0.1,
-					"blvt/redeem/record":                              0.1,
-					"blvt/userLimit":                                  0.1,
-					"apiReferral/ifNewUser":                           1,
-					"apiReferral/customization":                       1,
-					"apiReferral/userCustomization":                   1,
-					"apiReferral/rebate/recentRecord":                 1,
-					"apiReferral/rebate/historicalRecord":             1,
-					"apiReferral/kickback/recentRecord":               1,
-					"apiReferral/kickback/historicalRecord":           1,
-					"broker/subAccountApi":                            1,
-					"broker/subAccount":                               1,
-					"broker/subAccountApi/commission/futures":         1,
-					"broker/subAccountApi/commission/coinFutures":     1,
-					"broker/info":                                     1,
-					"broker/transfer":                                 1,
-					"broker/transfer/futures":                         1,
-					"broker/rebate/recentRecord":                      1,
-					"broker/rebate/historicalRecord":                  1,
-					"broker/subAccount/bnbBurn/status":                1,
-					"broker/subAccount/depositHist":                   1,
-					"broker/subAccount/spotSummary":                   1,
-					"broker/subAccount/marginSummary":                 1,
-					"broker/subAccount/futuresSummary":                1,
-					"broker/rebate/futures/recentRecord":              1,
-					"broker/subAccountApi/ipRestriction":              1,
-					"broker/universalTransfer":                        1,
-					"account/apiRestrictions":                         0.1,
-					"c2c/orderMatch/listUserOrderHistory":             0.1,
-					"nft/history/transactions":                        20.001,
-					"nft/history/deposit":                             20.001,
-					"nft/history/withdraw":                            20.001,
-					"nft/user/getAsset":                               20.001,
-					"pay/transactions":                                20.001,
-					"giftcard/verify":                                 0.1,
-					"giftcard/cryptography/rsa-public-key":            0.1,
-					"giftcard/buyCode/token-limit":                    0.1,
-					"algo/spot/openOrders":                            0.1,
-					"algo/spot/historicalOrders":                      0.1,
-					"algo/spot/subOrders":                             0.1,
-					"algo/futures/openOrders":                         0.1,
-					"algo/futures/historicalOrders":                   0.1,
-					"algo/futures/subOrders":                          0.1,
-					"portfolio/account":                               0.1,
-					"portfolio/collateralRate":                        5,
-					"portfolio/pmLoan":                                3.3335,
-					"portfolio/interest-history":                      0.6667,
-					"portfolio/asset-index-price":                     0.1,
-					"portfolio/repay-futures-switch":                  3,
-					"portfolio/margin-asset-leverage":                 5,
-					"portfolio/balance":                               2,
-					"portfolio/negative-balance-exchange-record":      2,
-					"portfolio/pmloan-history":                        5,
-					"portfolio/earn-asset-balance":                    150,
-					"portfolio/delta-mode":                            150,
-					"staking/productList":                             0.1,
-					"staking/position":                                0.1,
-					"staking/stakingRecord":                           0.1,
-					"staking/personalLeftQuota":                       0.1,
-					"lending/auto-invest/target-asset/list":           0.1,
-					"lending/auto-invest/target-asset/roi/list":       0.1,
-					"lending/auto-invest/all/asset":                   0.1,
-					"lending/auto-invest/source-asset/list":           0.1,
-					"lending/auto-invest/plan/list":                   0.1,
-					"lending/auto-invest/plan/id":                     0.1,
-					"lending/auto-invest/history/list":                0.1,
-					"lending/auto-invest/index/info":                  0.1,
-					"lending/auto-invest/index/user-summary":          0.1,
-					"lending/auto-invest/one-off/status":              0.1,
-					"lending/auto-invest/redeem/history":              0.1,
-					"lending/auto-invest/rebalance/history":           0.1,
-					"simple-earn/flexible/list":                       15,
-					"simple-earn/locked/list":                         15,
-					"simple-earn/flexible/personalLeftQuota":          15,
-					"simple-earn/locked/personalLeftQuota":            15,
-					"simple-earn/flexible/subscriptionPreview":        15,
-					"simple-earn/locked/subscriptionPreview":          15,
-					"simple-earn/flexible/history/rateHistory":        15,
-					"simple-earn/flexible/position":                   15,
-					"simple-earn/locked/position":                     15,
-					"simple-earn/account":                             15,
-					"simple-earn/flexible/history/subscriptionRecord": 15,
-					"simple-earn/locked/history/subscriptionRecord":   15,
-					"simple-earn/flexible/history/redemptionRecord":   15,
-					"simple-earn/locked/history/redemptionRecord":     15,
-					"simple-earn/flexible/history/rewardsRecord":      15,
-					"simple-earn/locked/history/rewardsRecord":        15,
-					"simple-earn/flexible/history/collateralRecord":   0.1,
-					"dci/product/list":                                0.1,
-					"dci/product/positions":                           0.1,
-					"dci/product/accounts":                            0.1,
-					"accumulator/product/list":                        0.1,
-					"accumulator/product/position/list":               0.1,
-					"accumulator/product/sum-holding":                 0.1,
+					"bswap/liquidityOps": map[string]any{
+						"cost": 20.001,
+					},
+					"bswap/quote": map[string]any{
+						"cost": 1.00005,
+					},
+					"bswap/swap": map[string]any{
+						"cost": 20.001,
+					},
+					"bswap/poolConfigure": map[string]any{
+						"cost": 1.00005,
+					},
+					"bswap/addLiquidityPreview": map[string]any{
+						"cost": 1.00005,
+					},
+					"bswap/removeLiquidityPreview": map[string]any{
+						"cost": 1.00005,
+					},
+					"bswap/unclaimedRewards": map[string]any{
+						"cost": 6.667,
+					},
+					"bswap/claimedHistory": map[string]any{
+						"cost": 6.667,
+					},
+					"blvt/tokenInfo": map[string]any{
+						"cost": 0.1,
+					},
+					"blvt/subscribe/record": map[string]any{
+						"cost": 0.1,
+					},
+					"blvt/redeem/record": map[string]any{
+						"cost": 0.1,
+					},
+					"blvt/userLimit": map[string]any{
+						"cost": 0.1,
+					},
+					"apiReferral/ifNewUser": map[string]any{
+						"cost": 1,
+					},
+					"apiReferral/customization": map[string]any{
+						"cost": 1,
+					},
+					"apiReferral/userCustomization": map[string]any{
+						"cost": 1,
+					},
+					"apiReferral/rebate/recentRecord": map[string]any{
+						"cost": 1,
+					},
+					"apiReferral/rebate/historicalRecord": map[string]any{
+						"cost": 1,
+					},
+					"apiReferral/kickback/recentRecord": map[string]any{
+						"cost": 1,
+					},
+					"apiReferral/kickback/historicalRecord": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccountApi": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccount": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccountApi/commission/futures": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccountApi/commission/coinFutures": map[string]any{
+						"cost": 1,
+					},
+					"broker/info": map[string]any{
+						"cost": 1,
+					},
+					"broker/transfer": map[string]any{
+						"cost": 1,
+					},
+					"broker/transfer/futures": map[string]any{
+						"cost": 1,
+					},
+					"broker/rebate/recentRecord": map[string]any{
+						"cost": 1,
+					},
+					"broker/rebate/historicalRecord": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccount/bnbBurn/status": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccount/depositHist": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccount/spotSummary": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccount/marginSummary": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccount/futuresSummary": map[string]any{
+						"cost": 1,
+					},
+					"broker/rebate/futures/recentRecord": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccountApi/ipRestriction": map[string]any{
+						"cost": 1,
+					},
+					"broker/universalTransfer": map[string]any{
+						"cost": 1,
+					},
+					"account/apiRestrictions": map[string]any{
+						"cost": 0.1,
+					},
+					"c2c/orderMatch/listUserOrderHistory": map[string]any{
+						"cost": 0.1,
+					},
+					"nft/history/transactions": map[string]any{
+						"cost": 20.001,
+					},
+					"nft/history/deposit": map[string]any{
+						"cost": 20.001,
+					},
+					"nft/history/withdraw": map[string]any{
+						"cost": 20.001,
+					},
+					"nft/user/getAsset": map[string]any{
+						"cost": 20.001,
+					},
+					"pay/transactions": map[string]any{
+						"cost": 20.001,
+					},
+					"giftcard/verify": map[string]any{
+						"cost": 0.1,
+					},
+					"giftcard/cryptography/rsa-public-key": map[string]any{
+						"cost": 0.1,
+					},
+					"giftcard/buyCode/token-limit": map[string]any{
+						"cost": 0.1,
+					},
+					"algo/spot/openOrders": map[string]any{
+						"cost": 0.1,
+					},
+					"algo/spot/historicalOrders": map[string]any{
+						"cost": 0.1,
+					},
+					"algo/spot/subOrders": map[string]any{
+						"cost": 0.1,
+					},
+					"algo/futures/openOrders": map[string]any{
+						"cost": 0.1,
+					},
+					"algo/futures/historicalOrders": map[string]any{
+						"cost": 0.1,
+					},
+					"algo/futures/subOrders": map[string]any{
+						"cost": 0.1,
+					},
+					"portfolio/account": map[string]any{
+						"cost": 0.1,
+					},
+					"portfolio/collateralRate": map[string]any{
+						"cost": 5,
+					},
+					"portfolio/pmLoan": map[string]any{
+						"cost": 3.3335,
+					},
+					"portfolio/interest-history": map[string]any{
+						"cost": 0.6667,
+					},
+					"portfolio/asset-index-price": map[string]any{
+						"cost": 0.1,
+					},
+					"portfolio/repay-futures-switch": map[string]any{
+						"cost": 3,
+					},
+					"portfolio/margin-asset-leverage": map[string]any{
+						"cost": 5,
+					},
+					"portfolio/balance": map[string]any{
+						"cost": 2,
+					},
+					"portfolio/negative-balance-exchange-record": map[string]any{
+						"cost": 2,
+					},
+					"portfolio/pmloan-history": map[string]any{
+						"cost": 5,
+					},
+					"portfolio/earn-asset-balance": map[string]any{
+						"cost": 150,
+					},
+					"portfolio/delta-mode": map[string]any{
+						"cost": 150,
+					},
+					"staking/productList": map[string]any{
+						"cost": 0.1,
+					},
+					"staking/position": map[string]any{
+						"cost": 0.1,
+					},
+					"staking/stakingRecord": map[string]any{
+						"cost": 0.1,
+					},
+					"staking/personalLeftQuota": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/auto-invest/target-asset/list": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/auto-invest/target-asset/roi/list": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/auto-invest/all/asset": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/auto-invest/source-asset/list": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/auto-invest/plan/list": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/auto-invest/plan/id": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/auto-invest/history/list": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/auto-invest/index/info": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/auto-invest/index/user-summary": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/auto-invest/one-off/status": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/auto-invest/redeem/history": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/auto-invest/rebalance/history": map[string]any{
+						"cost": 0.1,
+					},
+					"simple-earn/flexible/list": map[string]any{
+						"cost": 15,
+					},
+					"simple-earn/locked/list": map[string]any{
+						"cost": 15,
+					},
+					"simple-earn/flexible/personalLeftQuota": map[string]any{
+						"cost": 15,
+					},
+					"simple-earn/locked/personalLeftQuota": map[string]any{
+						"cost": 15,
+					},
+					"simple-earn/flexible/subscriptionPreview": map[string]any{
+						"cost": 15,
+					},
+					"simple-earn/locked/subscriptionPreview": map[string]any{
+						"cost": 15,
+					},
+					"simple-earn/flexible/history/rateHistory": map[string]any{
+						"cost": 15,
+					},
+					"simple-earn/flexible/position": map[string]any{
+						"cost": 15,
+					},
+					"simple-earn/locked/position": map[string]any{
+						"cost": 15,
+					},
+					"simple-earn/account": map[string]any{
+						"cost": 15,
+					},
+					"simple-earn/flexible/history/subscriptionRecord": map[string]any{
+						"cost": 15,
+					},
+					"simple-earn/locked/history/subscriptionRecord": map[string]any{
+						"cost": 15,
+					},
+					"simple-earn/flexible/history/redemptionRecord": map[string]any{
+						"cost": 15,
+					},
+					"simple-earn/locked/history/redemptionRecord": map[string]any{
+						"cost": 15,
+					},
+					"simple-earn/flexible/history/rewardsRecord": map[string]any{
+						"cost": 15,
+					},
+					"simple-earn/locked/history/rewardsRecord": map[string]any{
+						"cost": 15,
+					},
+					"simple-earn/flexible/history/collateralRecord": map[string]any{
+						"cost": 0.1,
+					},
+					"dci/product/list": map[string]any{
+						"cost": 0.1,
+					},
+					"dci/product/positions": map[string]any{
+						"cost": 0.1,
+					},
+					"dci/product/accounts": map[string]any{
+						"cost": 0.1,
+					},
+					"accumulator/product/list": map[string]any{
+						"cost": 0.1,
+					},
+					"accumulator/product/position/list": map[string]any{
+						"cost": 0.1,
+					},
+					"accumulator/product/sum-holding": map[string]any{
+						"cost": 0.1,
+					},
 				},
 				"post": map[string]any{
-					"asset/dust":                                        0.06667,
-					"asset/dust-btc":                                    0.1,
-					"asset/transfer":                                    6.0003,
-					"asset/get-funding-asset":                           0.1,
-					"asset/convert-transfer":                            0.033335,
-					"account/disableFastWithdrawSwitch":                 0.1,
-					"account/enableFastWithdrawSwitch":                  0.1,
-					"capital/withdraw/apply":                            4.0002,
-					"capital/contract/convertible-coins":                4.0002,
-					"capital/deposit/credit-apply":                      0.1,
-					"margin/borrow-repay":                               20.001,
-					"margin/transfer":                                   4.0002,
-					"margin/loan":                                       20.001,
-					"margin/repay":                                      20.001,
-					"margin/order":                                      0.040002,
-					"margin/order/oco":                                  0.040002,
-					"margin/dust":                                       20.001,
-					"margin/exchange-small-liability":                   20.001,
-					"margin/isolated/transfer":                          4.0002,
-					"margin/isolated/account":                           2.0001,
-					"margin/max-leverage":                               300,
-					"bnbBurn":                                           0.1,
-					"sub-account/virtualSubAccount":                     0.1,
-					"sub-account/margin/transfer":                       4.0002,
-					"sub-account/margin/enable":                         0.1,
-					"sub-account/futures/enable":                        0.1,
-					"sub-account/futures/transfer":                      0.1,
-					"sub-account/futures/internalTransfer":              0.1,
-					"sub-account/transfer/subToSub":                     0.1,
-					"sub-account/transfer/subToMaster":                  0.1,
-					"sub-account/universalTransfer":                     0.1,
-					"sub-account/options/enable":                        0.1,
-					"managed-subaccount/deposit":                        0.1,
-					"managed-subaccount/withdraw":                       0.1,
-					"userDataStream":                                    0.1,
-					"userDataStream/isolated":                           0.1,
-					"userListenToken":                                   0.1,
-					"futures/transfer":                                  0.1,
-					"lending/customizedFixed/purchase":                  0.1,
-					"lending/daily/purchase":                            0.1,
-					"lending/daily/redeem":                              0.1,
-					"bswap/liquidityAdd":                                60,
-					"bswap/liquidityRemove":                             60,
-					"bswap/swap":                                        60,
-					"bswap/claimRewards":                                6.667,
-					"blvt/subscribe":                                    0.1,
-					"blvt/redeem":                                       0.1,
-					"apiReferral/customization":                         1,
-					"apiReferral/userCustomization":                     1,
-					"apiReferral/rebate/historicalRecord":               1,
-					"apiReferral/kickback/historicalRecord":             1,
-					"broker/subAccount":                                 1,
-					"broker/subAccount/margin":                          1,
-					"broker/subAccount/futures":                         1,
-					"broker/subAccountApi":                              1,
-					"broker/subAccountApi/permission":                   1,
-					"broker/subAccountApi/commission":                   1,
-					"broker/subAccountApi/commission/futures":           1,
-					"broker/subAccountApi/commission/coinFutures":       1,
-					"broker/transfer":                                   1,
-					"broker/transfer/futures":                           1,
-					"broker/rebate/historicalRecord":                    1,
-					"broker/subAccount/bnbBurn/spot":                    1,
-					"broker/subAccount/bnbBurn/marginInterest":          1,
-					"broker/subAccount/blvt":                            1,
-					"broker/subAccountApi/ipRestriction":                1,
-					"broker/subAccountApi/ipRestriction/ipList":         1,
-					"broker/universalTransfer":                          1,
-					"broker/subAccountApi/permission/universalTransfer": 1,
-					"broker/subAccountApi/permission/vanillaOptions":    1,
-					"giftcard/createCode":                               0.1,
-					"giftcard/redeemCode":                               0.1,
-					"giftcard/buyCode":                                  0.1,
-					"algo/spot/newOrderTwap":                            20.001,
-					"algo/futures/newOrderVp":                           20.001,
-					"algo/futures/newOrderTwap":                         20.001,
-					"staking/purchase":                                  0.1,
-					"staking/redeem":                                    0.1,
-					"staking/setAutoStaking":                            0.1,
-					"eth-staking/eth/stake":                             15,
-					"eth-staking/eth/redeem":                            15,
-					"eth-staking/wbeth/wrap":                            15,
-					"sol-staking/sol/stake":                             15,
-					"sol-staking/sol/redeem":                            15,
-					"mining/hash-transfer/config":                       0.5,
-					"mining/hash-transfer/config/cancel":                0.5,
-					"portfolio/repay":                                   20.001,
-					"loan/vip/renew":                                    40.002,
-					"loan/vip/borrow":                                   40.002,
-					"loan/borrow":                                       40.002,
-					"loan/repay":                                        40.002,
-					"loan/adjust/ltv":                                   40.002,
-					"loan/customize/margin_call":                        40.002,
-					"loan/flexible/repay":                               40.002,
-					"loan/flexible/adjust/ltv":                          40.002,
-					"loan/vip/repay":                                    40.002,
-					"convert/getQuote":                                  1.3334,
-					"convert/acceptQuote":                               3.3335,
-					"convert/limit/placeOrder":                          3.3335,
-					"convert/limit/cancelOrder":                         1.3334,
-					"portfolio/auto-collection":                         150,
-					"portfolio/asset-collection":                        6,
-					"portfolio/bnb-transfer":                            150,
-					"portfolio/repay-futures-switch":                    150,
-					"portfolio/repay-futures-negative-balance":          150,
-					"portfolio/mint":                                    20,
-					"portfolio/redeem":                                  20,
-					"portfolio/earn-asset-transfer":                     150,
-					"portfolio/delta-mode":                              150,
-					"lending/auto-invest/plan/add":                      0.1,
-					"lending/auto-invest/plan/edit":                     0.1,
-					"lending/auto-invest/plan/edit-status":              0.1,
-					"lending/auto-invest/one-off":                       0.1,
-					"lending/auto-invest/redeem":                        0.1,
-					"simple-earn/flexible/subscribe":                    0.1,
-					"simple-earn/locked/subscribe":                      0.1,
-					"simple-earn/flexible/redeem":                       0.1,
-					"simple-earn/locked/redeem":                         0.1,
-					"simple-earn/flexible/setAutoSubscribe":             15,
-					"simple-earn/locked/setAutoSubscribe":               15,
-					"simple-earn/locked/setRedeemOption":                5,
-					"dci/product/subscribe":                             0.1,
-					"dci/product/auto_compound/edit":                    0.1,
-					"accumulator/product/subscribe":                     0.1,
+					"asset/dust": map[string]any{
+						"cost": 0.06667,
+					},
+					"asset/dust-btc": map[string]any{
+						"cost": 0.1,
+					},
+					"asset/transfer": map[string]any{
+						"cost": 6.0003,
+					},
+					"asset/get-funding-asset": map[string]any{
+						"cost": 0.1,
+					},
+					"asset/convert-transfer": map[string]any{
+						"cost": 0.033335,
+					},
+					"account/disableFastWithdrawSwitch": map[string]any{
+						"cost": 0.1,
+					},
+					"account/enableFastWithdrawSwitch": map[string]any{
+						"cost": 0.1,
+					},
+					"capital/withdraw/apply": map[string]any{
+						"cost": 4.0002,
+					},
+					"capital/contract/convertible-coins": map[string]any{
+						"cost": 4.0002,
+					},
+					"capital/deposit/credit-apply": map[string]any{
+						"cost": 0.1,
+					},
+					"margin/borrow-repay": map[string]any{
+						"cost": 20.001,
+					},
+					"margin/transfer": map[string]any{
+						"cost": 4.0002,
+					},
+					"margin/loan": map[string]any{
+						"cost": 20.001,
+					},
+					"margin/repay": map[string]any{
+						"cost": 20.001,
+					},
+					"margin/order": map[string]any{
+						"cost": 0.040002,
+					},
+					"margin/order/oco": map[string]any{
+						"cost": 0.040002,
+					},
+					"margin/dust": map[string]any{
+						"cost": 20.001,
+					},
+					"margin/exchange-small-liability": map[string]any{
+						"cost": 20.001,
+					},
+					"margin/isolated/transfer": map[string]any{
+						"cost": 4.0002,
+					},
+					"margin/isolated/account": map[string]any{
+						"cost": 2.0001,
+					},
+					"margin/max-leverage": map[string]any{
+						"cost": 300,
+					},
+					"bnbBurn": map[string]any{
+						"cost": 0.1,
+					},
+					"sub-account/virtualSubAccount": map[string]any{
+						"cost": 0.1,
+					},
+					"sub-account/margin/transfer": map[string]any{
+						"cost": 4.0002,
+					},
+					"sub-account/margin/enable": map[string]any{
+						"cost": 0.1,
+					},
+					"sub-account/futures/enable": map[string]any{
+						"cost": 0.1,
+					},
+					"sub-account/futures/transfer": map[string]any{
+						"cost": 0.1,
+					},
+					"sub-account/futures/internalTransfer": map[string]any{
+						"cost": 0.1,
+					},
+					"sub-account/transfer/subToSub": map[string]any{
+						"cost": 0.1,
+					},
+					"sub-account/transfer/subToMaster": map[string]any{
+						"cost": 0.1,
+					},
+					"sub-account/universalTransfer": map[string]any{
+						"cost": 0.1,
+					},
+					"sub-account/options/enable": map[string]any{
+						"cost": 0.1,
+					},
+					"managed-subaccount/deposit": map[string]any{
+						"cost": 0.1,
+					},
+					"managed-subaccount/withdraw": map[string]any{
+						"cost": 0.1,
+					},
+					"userDataStream": map[string]any{
+						"cost": 0.1,
+					},
+					"userDataStream/isolated": map[string]any{
+						"cost": 0.1,
+					},
+					"userListenToken": map[string]any{
+						"cost": 0.1,
+					},
+					"futures/transfer": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/customizedFixed/purchase": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/daily/purchase": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/daily/redeem": map[string]any{
+						"cost": 0.1,
+					},
+					"bswap/liquidityAdd": map[string]any{
+						"cost": 60,
+					},
+					"bswap/liquidityRemove": map[string]any{
+						"cost": 60,
+					},
+					"bswap/swap": map[string]any{
+						"cost": 60,
+					},
+					"bswap/claimRewards": map[string]any{
+						"cost": 6.667,
+					},
+					"blvt/subscribe": map[string]any{
+						"cost": 0.1,
+					},
+					"blvt/redeem": map[string]any{
+						"cost": 0.1,
+					},
+					"apiReferral/customization": map[string]any{
+						"cost": 1,
+					},
+					"apiReferral/userCustomization": map[string]any{
+						"cost": 1,
+					},
+					"apiReferral/rebate/historicalRecord": map[string]any{
+						"cost": 1,
+					},
+					"apiReferral/kickback/historicalRecord": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccount": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccount/margin": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccount/futures": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccountApi": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccountApi/permission": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccountApi/commission": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccountApi/commission/futures": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccountApi/commission/coinFutures": map[string]any{
+						"cost": 1,
+					},
+					"broker/transfer": map[string]any{
+						"cost": 1,
+					},
+					"broker/transfer/futures": map[string]any{
+						"cost": 1,
+					},
+					"broker/rebate/historicalRecord": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccount/bnbBurn/spot": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccount/bnbBurn/marginInterest": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccount/blvt": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccountApi/ipRestriction": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccountApi/ipRestriction/ipList": map[string]any{
+						"cost": 1,
+					},
+					"broker/universalTransfer": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccountApi/permission/universalTransfer": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccountApi/permission/vanillaOptions": map[string]any{
+						"cost": 1,
+					},
+					"giftcard/createCode": map[string]any{
+						"cost": 0.1,
+					},
+					"giftcard/redeemCode": map[string]any{
+						"cost": 0.1,
+					},
+					"giftcard/buyCode": map[string]any{
+						"cost": 0.1,
+					},
+					"algo/spot/newOrderTwap": map[string]any{
+						"cost": 20.001,
+					},
+					"algo/futures/newOrderVp": map[string]any{
+						"cost": 20.001,
+					},
+					"algo/futures/newOrderTwap": map[string]any{
+						"cost": 20.001,
+					},
+					"staking/purchase": map[string]any{
+						"cost": 0.1,
+					},
+					"staking/redeem": map[string]any{
+						"cost": 0.1,
+					},
+					"staking/setAutoStaking": map[string]any{
+						"cost": 0.1,
+					},
+					"eth-staking/eth/stake": map[string]any{
+						"cost": 15,
+					},
+					"eth-staking/eth/redeem": map[string]any{
+						"cost": 15,
+					},
+					"eth-staking/wbeth/wrap": map[string]any{
+						"cost": 15,
+					},
+					"sol-staking/sol/stake": map[string]any{
+						"cost": 15,
+					},
+					"sol-staking/sol/redeem": map[string]any{
+						"cost": 15,
+					},
+					"mining/hash-transfer/config": map[string]any{
+						"cost": 0.5,
+					},
+					"mining/hash-transfer/config/cancel": map[string]any{
+						"cost": 0.5,
+					},
+					"portfolio/repay": map[string]any{
+						"cost": 20.001,
+					},
+					"loan/vip/renew": map[string]any{
+						"cost": 40.002,
+					},
+					"loan/vip/borrow": map[string]any{
+						"cost": 40.002,
+					},
+					"loan/borrow": map[string]any{
+						"cost": 40.002,
+					},
+					"loan/repay": map[string]any{
+						"cost": 40.002,
+					},
+					"loan/adjust/ltv": map[string]any{
+						"cost": 40.002,
+					},
+					"loan/customize/margin_call": map[string]any{
+						"cost": 40.002,
+					},
+					"loan/flexible/repay": map[string]any{
+						"cost": 40.002,
+					},
+					"loan/flexible/adjust/ltv": map[string]any{
+						"cost": 40.002,
+					},
+					"loan/vip/repay": map[string]any{
+						"cost": 40.002,
+					},
+					"convert/getQuote": map[string]any{
+						"cost": 1.3334,
+					},
+					"convert/acceptQuote": map[string]any{
+						"cost": 3.3335,
+					},
+					"convert/limit/placeOrder": map[string]any{
+						"cost": 3.3335,
+					},
+					"convert/limit/cancelOrder": map[string]any{
+						"cost": 1.3334,
+					},
+					"portfolio/auto-collection": map[string]any{
+						"cost": 150,
+					},
+					"portfolio/asset-collection": map[string]any{
+						"cost": 6,
+					},
+					"portfolio/bnb-transfer": map[string]any{
+						"cost": 150,
+					},
+					"portfolio/repay-futures-switch": map[string]any{
+						"cost": 150,
+					},
+					"portfolio/repay-futures-negative-balance": map[string]any{
+						"cost": 150,
+					},
+					"portfolio/mint": map[string]any{
+						"cost": 20,
+					},
+					"portfolio/redeem": map[string]any{
+						"cost": 20,
+					},
+					"portfolio/earn-asset-transfer": map[string]any{
+						"cost": 150,
+					},
+					"portfolio/delta-mode": map[string]any{
+						"cost": 150,
+					},
+					"lending/auto-invest/plan/add": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/auto-invest/plan/edit": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/auto-invest/plan/edit-status": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/auto-invest/one-off": map[string]any{
+						"cost": 0.1,
+					},
+					"lending/auto-invest/redeem": map[string]any{
+						"cost": 0.1,
+					},
+					"simple-earn/flexible/subscribe": map[string]any{
+						"cost": 0.1,
+					},
+					"simple-earn/locked/subscribe": map[string]any{
+						"cost": 0.1,
+					},
+					"simple-earn/flexible/redeem": map[string]any{
+						"cost": 0.1,
+					},
+					"simple-earn/locked/redeem": map[string]any{
+						"cost": 0.1,
+					},
+					"simple-earn/flexible/setAutoSubscribe": map[string]any{
+						"cost": 15,
+					},
+					"simple-earn/locked/setAutoSubscribe": map[string]any{
+						"cost": 15,
+					},
+					"simple-earn/locked/setRedeemOption": map[string]any{
+						"cost": 5,
+					},
+					"dci/product/subscribe": map[string]any{
+						"cost": 0.1,
+					},
+					"dci/product/auto_compound/edit": map[string]any{
+						"cost": 0.1,
+					},
+					"accumulator/product/subscribe": map[string]any{
+						"cost": 0.1,
+					},
 				},
 				"put": map[string]any{
-					"userDataStream":          0.1,
-					"userDataStream/isolated": 0.1,
+					"userDataStream": map[string]any{
+						"cost": 0.1,
+					},
+					"userDataStream/isolated": map[string]any{
+						"cost": 0.1,
+					},
 				},
 				"delete": map[string]any{
-					"margin/openOrders":                              0.1,
-					"margin/order":                                   0.006667,
-					"margin/orderList":                               0.006667,
-					"margin/isolated/account":                        2.0001,
-					"userDataStream":                                 0.1,
-					"userDataStream/isolated":                        0.1,
-					"broker/subAccountApi":                           1,
-					"broker/subAccountApi/ipRestriction/ipList":      1,
-					"algo/spot/order":                                0.1,
-					"algo/futures/order":                             0.1,
-					"sub-account/subAccountApi/ipRestriction/ipList": 20.001,
+					"margin/openOrders": map[string]any{
+						"cost": 0.1,
+					},
+					"margin/order": map[string]any{
+						"cost": 0.006667,
+					},
+					"margin/orderList": map[string]any{
+						"cost": 0.006667,
+					},
+					"margin/isolated/account": map[string]any{
+						"cost": 2.0001,
+					},
+					"userDataStream": map[string]any{
+						"cost": 0.1,
+					},
+					"userDataStream/isolated": map[string]any{
+						"cost": 0.1,
+					},
+					"broker/subAccountApi": map[string]any{
+						"cost": 1,
+					},
+					"broker/subAccountApi/ipRestriction/ipList": map[string]any{
+						"cost": 1,
+					},
+					"algo/spot/order": map[string]any{
+						"cost": 0.1,
+					},
+					"algo/futures/order": map[string]any{
+						"cost": 0.1,
+					},
+					"sub-account/subAccountApi/ipRestriction/ipList": map[string]any{
+						"cost": 20.001,
+					},
 				},
 			},
 			"sapiV2": map[string]any{
 				"get": map[string]any{
-					"eth-staking/account":                  15,
-					"sub-account/futures/account":          0.1,
-					"sub-account/futures/accountSummary":   1,
-					"sub-account/futures/positionRisk":     0.1,
-					"loan/flexible/ongoing/orders":         30,
-					"loan/flexible/borrow/history":         40,
-					"loan/flexible/repay/history":          40,
-					"loan/flexible/ltv/adjustment/history": 40,
-					"loan/flexible/loanable/data":          40,
-					"loan/flexible/collateral/data":        40,
-					"portfolio/account":                    2,
+					"eth-staking/account": map[string]any{
+						"cost": 15,
+					},
+					"sub-account/futures/account": map[string]any{
+						"cost": 0.1,
+					},
+					"sub-account/futures/accountSummary": map[string]any{
+						"cost": 1,
+					},
+					"sub-account/futures/positionRisk": map[string]any{
+						"cost": 0.1,
+					},
+					"loan/flexible/ongoing/orders": map[string]any{
+						"cost": 30,
+					},
+					"loan/flexible/borrow/history": map[string]any{
+						"cost": 40,
+					},
+					"loan/flexible/repay/history": map[string]any{
+						"cost": 40,
+					},
+					"loan/flexible/ltv/adjustment/history": map[string]any{
+						"cost": 40,
+					},
+					"loan/flexible/loanable/data": map[string]any{
+						"cost": 40,
+					},
+					"loan/flexible/collateral/data": map[string]any{
+						"cost": 40,
+					},
+					"portfolio/account": map[string]any{
+						"cost": 2,
+					},
 				},
 				"post": map[string]any{
-					"eth-staking/eth/stake":                   15,
-					"sub-account/subAccountApi/ipRestriction": 20.001,
-					"loan/flexible/borrow":                    40.002,
-					"loan/flexible/repay":                     40.002,
-					"loan/flexible/adjust/ltv":                40.002,
+					"eth-staking/eth/stake": map[string]any{
+						"cost": 15,
+					},
+					"sub-account/subAccountApi/ipRestriction": map[string]any{
+						"cost": 20.001,
+					},
+					"loan/flexible/borrow": map[string]any{
+						"cost": 40.002,
+					},
+					"loan/flexible/repay": map[string]any{
+						"cost": 40.002,
+					},
+					"loan/flexible/adjust/ltv": map[string]any{
+						"cost": 40.002,
+					},
 				},
 			},
 			"sapiV3": map[string]any{
 				"get": map[string]any{
-					"sub-account/assets": 0.40002,
+					"sub-account/assets": map[string]any{
+						"cost": 0.40002,
+					},
 				},
 				"post": map[string]any{
-					"asset/getUserAsset": 0.5,
+					"asset/getUserAsset": map[string]any{
+						"cost": 0.5,
+					},
 				},
 			},
 			"sapiV4": map[string]any{
 				"get": map[string]any{
-					"sub-account/assets": 0.40002,
+					"sub-account/assets": map[string]any{
+						"cost": 0.40002,
+					},
 				},
 			},
 			"dapiPublic": map[string]any{
 				"get": map[string]any{
-					"ping":         1,
-					"time":         1,
-					"exchangeInfo": 1,
+					"ping": map[string]any{
+						"cost": 1,
+					},
+					"time": map[string]any{
+						"cost": 1,
+					},
+					"exchangeInfo": map[string]any{
+						"cost": 1,
+					},
 					"depth": map[string]any{
 						"cost":    2,
 						"byLimit": []any{[]any{50, 2}, []any{100, 5}, []any{500, 10}, []any{1000, 20}},
 					},
-					"trades":           5,
-					"historicalTrades": 20,
-					"aggTrades":        20,
-					"premiumIndex":     10,
-					"fundingRate":      1,
+					"trades": map[string]any{
+						"cost": 5,
+					},
+					"historicalTrades": map[string]any{
+						"cost": 20,
+					},
+					"aggTrades": map[string]any{
+						"cost": 20,
+					},
+					"premiumIndex": map[string]any{
+						"cost": 10,
+					},
+					"fundingRate": map[string]any{
+						"cost": 1,
+					},
 					"klines": map[string]any{
 						"cost":    1,
 						"byLimit": []any{[]any{99, 1}, []any{499, 2}, []any{1000, 5}, []any{10000, 10}},
@@ -750,28 +1594,56 @@ func (this *BinanceCore) Describe() any {
 						"cost":     2,
 						"noSymbol": 5,
 					},
-					"constituents": 2,
-					"openInterest": 1,
-					"fundingInfo":  1,
+					"constituents": map[string]any{
+						"cost": 2,
+					},
+					"openInterest": map[string]any{
+						"cost": 1,
+					},
+					"fundingInfo": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"dapiData": map[string]any{
 				"get": map[string]any{
-					"delivery-price":              1,
-					"openInterestHist":            1,
-					"topLongShortAccountRatio":    1,
-					"topLongShortPositionRatio":   1,
-					"globalLongShortAccountRatio": 1,
-					"takerBuySellVol":             1,
-					"basis":                       1,
+					"delivery-price": map[string]any{
+						"cost": 1,
+					},
+					"openInterestHist": map[string]any{
+						"cost": 1,
+					},
+					"topLongShortAccountRatio": map[string]any{
+						"cost": 1,
+					},
+					"topLongShortPositionRatio": map[string]any{
+						"cost": 1,
+					},
+					"globalLongShortAccountRatio": map[string]any{
+						"cost": 1,
+					},
+					"takerBuySellVol": map[string]any{
+						"cost": 1,
+					},
+					"basis": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"dapiPrivate": map[string]any{
 				"get": map[string]any{
-					"positionSide/dual": 30,
-					"orderAmendment":    1,
-					"order":             1,
-					"openOrder":         1,
+					"positionSide/dual": map[string]any{
+						"cost": 30,
+					},
+					"orderAmendment": map[string]any{
+						"cost": 1,
+					},
+					"order": map[string]any{
+						"cost": 1,
+					},
+					"openOrder": map[string]any{
+						"cost": 1,
+					},
 					"openOrders": map[string]any{
 						"cost":     1,
 						"noSymbol": 5,
@@ -780,13 +1652,27 @@ func (this *BinanceCore) Describe() any {
 						"cost":     1,
 						"noSymbol": 40,
 					},
-					"allOrders":              5,
-					"balance":                1,
-					"account":                5,
-					"positionMargin/history": 1,
-					"positionRisk":           1,
-					"userTrades":             5,
-					"income":                 20,
+					"allOrders": map[string]any{
+						"cost": 5,
+					},
+					"balance": map[string]any{
+						"cost": 1,
+					},
+					"account": map[string]any{
+						"cost": 5,
+					},
+					"positionMargin/history": map[string]any{
+						"cost": 1,
+					},
+					"positionRisk": map[string]any{
+						"cost": 1,
+					},
+					"userTrades": map[string]any{
+						"cost": 5,
+					},
+					"income": map[string]any{
+						"cost": 20,
+					},
 					"leverageBracket": map[string]any{
 						"cost":     2,
 						"noSymbol": 2,
@@ -795,59 +1681,129 @@ func (this *BinanceCore) Describe() any {
 						"cost":     20,
 						"noSymbol": 50,
 					},
-					"adlQuantile":    5,
-					"commissionRate": 20,
-					"income/asyn":    5,
-					"income/asyn/id": 5,
-					"trade/asyn":     0.5,
-					"trade/asyn/id":  0.5,
-					"order/asyn":     0.5,
-					"order/asyn/id":  0.5,
-					"pmExchangeInfo": 0.5,
-					"pmAccountInfo":  0.5,
+					"adlQuantile": map[string]any{
+						"cost": 5,
+					},
+					"commissionRate": map[string]any{
+						"cost": 20,
+					},
+					"income/asyn": map[string]any{
+						"cost": 5,
+					},
+					"income/asyn/id": map[string]any{
+						"cost": 5,
+					},
+					"trade/asyn": map[string]any{
+						"cost": 0.5,
+					},
+					"trade/asyn/id": map[string]any{
+						"cost": 0.5,
+					},
+					"order/asyn": map[string]any{
+						"cost": 0.5,
+					},
+					"order/asyn/id": map[string]any{
+						"cost": 0.5,
+					},
+					"pmExchangeInfo": map[string]any{
+						"cost": 0.5,
+					},
+					"pmAccountInfo": map[string]any{
+						"cost": 0.5,
+					},
 				},
 				"post": map[string]any{
-					"positionSide/dual":  1,
-					"order":              4,
-					"algoOrder":          1,
-					"batchOrders":        5,
-					"countdownCancelAll": 10,
-					"leverage":           1,
-					"marginType":         1,
-					"positionMargin":     1,
-					"listenKey":          1,
+					"positionSide/dual": map[string]any{
+						"cost": 1,
+					},
+					"order": map[string]any{
+						"cost": 4,
+					},
+					"algoOrder": map[string]any{
+						"cost": 1,
+					},
+					"batchOrders": map[string]any{
+						"cost": 5,
+					},
+					"countdownCancelAll": map[string]any{
+						"cost": 10,
+					},
+					"leverage": map[string]any{
+						"cost": 1,
+					},
+					"marginType": map[string]any{
+						"cost": 1,
+					},
+					"positionMargin": map[string]any{
+						"cost": 1,
+					},
+					"listenKey": map[string]any{
+						"cost": 1,
+					},
 				},
 				"put": map[string]any{
-					"listenKey":   1,
-					"order":       1,
-					"batchOrders": 5,
+					"listenKey": map[string]any{
+						"cost": 1,
+					},
+					"order": map[string]any{
+						"cost": 1,
+					},
+					"batchOrders": map[string]any{
+						"cost": 5,
+					},
 				},
 				"delete": map[string]any{
-					"order":         1,
-					"algoOrder":     1,
-					"allOpenOrders": 1,
-					"batchOrders":   5,
-					"listenKey":     1,
+					"order": map[string]any{
+						"cost": 1,
+					},
+					"algoOrder": map[string]any{
+						"cost": 1,
+					},
+					"allOpenOrders": map[string]any{
+						"cost": 1,
+					},
+					"batchOrders": map[string]any{
+						"cost": 5,
+					},
+					"listenKey": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"dapiPrivateV2": map[string]any{
 				"get": map[string]any{
-					"leverageBracket": 1,
+					"leverageBracket": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"fapiPublic": map[string]any{
 				"get": map[string]any{
-					"ping":         1,
-					"time":         1,
-					"exchangeInfo": 1,
+					"ping": map[string]any{
+						"cost": 1,
+					},
+					"time": map[string]any{
+						"cost": 1,
+					},
+					"exchangeInfo": map[string]any{
+						"cost": 1,
+					},
 					"depth": map[string]any{
 						"cost":    2,
 						"byLimit": []any{[]any{50, 2}, []any{100, 5}, []any{500, 10}, []any{1000, 20}},
 					},
-					"rpiDepth":         20,
-					"trades":           5,
-					"historicalTrades": 20,
-					"aggTrades":        20,
+					"rpiDepth": map[string]any{
+						"cost": 20,
+					},
+					"trades": map[string]any{
+						"cost": 5,
+					},
+					"historicalTrades": map[string]any{
+						"cost": 20,
+					},
+					"aggTrades": map[string]any{
+						"cost": 20,
+					},
 					"klines": map[string]any{
 						"cost":    1,
 						"byLimit": []any{[]any{99, 1}, []any{499, 2}, []any{1000, 5}, []any{10000, 10}},
@@ -868,9 +1824,15 @@ func (this *BinanceCore) Describe() any {
 						"cost":    1,
 						"byLimit": []any{[]any{99, 1}, []any{499, 2}, []any{1000, 5}, []any{10000, 10}},
 					},
-					"fundingRate":  1,
-					"fundingInfo":  1,
-					"premiumIndex": 1,
+					"fundingRate": map[string]any{
+						"cost": 1,
+					},
+					"fundingInfo": map[string]any{
+						"cost": 1,
+					},
+					"premiumIndex": map[string]any{
+						"cost": 1,
+					},
 					"ticker/24hr": map[string]any{
 						"cost":     1,
 						"noSymbol": 40,
@@ -883,33 +1845,63 @@ func (this *BinanceCore) Describe() any {
 						"cost":     1,
 						"noSymbol": 2,
 					},
-					"openInterest": 1,
-					"indexInfo":    1,
+					"openInterest": map[string]any{
+						"cost": 1,
+					},
+					"indexInfo": map[string]any{
+						"cost": 1,
+					},
 					"assetIndex": map[string]any{
 						"cost":     1,
 						"noSymbol": 10,
 					},
-					"constituents": 2,
+					"constituents": map[string]any{
+						"cost": 2,
+					},
 					"apiTradingStatus": map[string]any{
 						"cost":     1,
 						"noSymbol": 10,
 					},
-					"lvtKlines":            1,
-					"convert/exchangeInfo": 4,
-					"insuranceBalance":     1,
-					"symbolAdlRisk":        1,
-					"tradingSchedule":      5,
+					"lvtKlines": map[string]any{
+						"cost": 1,
+					},
+					"convert/exchangeInfo": map[string]any{
+						"cost": 4,
+					},
+					"insuranceBalance": map[string]any{
+						"cost": 1,
+					},
+					"symbolAdlRisk": map[string]any{
+						"cost": 1,
+					},
+					"tradingSchedule": map[string]any{
+						"cost": 5,
+					},
 				},
 			},
 			"fapiData": map[string]any{
 				"get": map[string]any{
-					"delivery-price":              1,
-					"openInterestHist":            1,
-					"topLongShortAccountRatio":    1,
-					"topLongShortPositionRatio":   1,
-					"globalLongShortAccountRatio": 1,
-					"takerlongshortRatio":         1,
-					"basis":                       1,
+					"delivery-price": map[string]any{
+						"cost": 1,
+					},
+					"openInterestHist": map[string]any{
+						"cost": 1,
+					},
+					"topLongShortAccountRatio": map[string]any{
+						"cost": 1,
+					},
+					"topLongShortPositionRatio": map[string]any{
+						"cost": 1,
+					},
+					"globalLongShortAccountRatio": map[string]any{
+						"cost": 1,
+					},
+					"takerlongshortRatio": map[string]any{
+						"cost": 1,
+					},
+					"basis": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"fapiPrivate": map[string]any{
@@ -918,96 +1910,232 @@ func (this *BinanceCore) Describe() any {
 						"cost":     20,
 						"noSymbol": 50,
 					},
-					"allOrders": 5,
-					"openOrder": 1,
+					"allOrders": map[string]any{
+						"cost": 5,
+					},
+					"openOrder": map[string]any{
+						"cost": 1,
+					},
 					"openOrders": map[string]any{
 						"cost":     1,
 						"noSymbol": 40,
 					},
-					"order":                         1,
-					"account":                       5,
-					"balance":                       5,
-					"leverageBracket":               1,
-					"positionMargin/history":        1,
-					"positionRisk":                  5,
-					"positionSide/dual":             30,
-					"userTrades":                    5,
-					"income":                        30,
-					"commissionRate":                20,
-					"rateLimit/order":               1,
-					"apiTradingStatus":              1,
-					"multiAssetsMargin":             30,
-					"apiReferral/ifNewUser":         1,
-					"apiReferral/customization":     1,
-					"apiReferral/userCustomization": 1,
-					"apiReferral/traderNum":         1,
-					"apiReferral/overview":          1,
-					"apiReferral/tradeVol":          1,
-					"apiReferral/rebateVol":         1,
-					"apiReferral/traderSummary":     1,
-					"adlQuantile":                   5,
-					"pmAccountInfo":                 5,
-					"orderAmendment":                1,
-					"income/asyn":                   1000,
-					"income/asyn/id":                10,
-					"order/asyn":                    1000,
-					"order/asyn/id":                 10,
-					"trade/asyn":                    1000,
-					"trade/asyn/id":                 10,
-					"feeBurn":                       1,
-					"symbolConfig":                  5,
-					"accountConfig":                 5,
-					"convert/orderStatus":           5,
-					"algoOrder":                     1,
+					"order": map[string]any{
+						"cost": 1,
+					},
+					"account": map[string]any{
+						"cost": 5,
+					},
+					"balance": map[string]any{
+						"cost": 5,
+					},
+					"leverageBracket": map[string]any{
+						"cost": 1,
+					},
+					"positionMargin/history": map[string]any{
+						"cost": 1,
+					},
+					"positionRisk": map[string]any{
+						"cost": 5,
+					},
+					"positionSide/dual": map[string]any{
+						"cost": 30,
+					},
+					"userTrades": map[string]any{
+						"cost": 5,
+					},
+					"income": map[string]any{
+						"cost": 30,
+					},
+					"commissionRate": map[string]any{
+						"cost": 20,
+					},
+					"rateLimit/order": map[string]any{
+						"cost": 1,
+					},
+					"apiTradingStatus": map[string]any{
+						"cost": 1,
+					},
+					"multiAssetsMargin": map[string]any{
+						"cost": 30,
+					},
+					"apiReferral/ifNewUser": map[string]any{
+						"cost": 1,
+					},
+					"apiReferral/customization": map[string]any{
+						"cost": 1,
+					},
+					"apiReferral/userCustomization": map[string]any{
+						"cost": 1,
+					},
+					"apiReferral/traderNum": map[string]any{
+						"cost": 1,
+					},
+					"apiReferral/overview": map[string]any{
+						"cost": 1,
+					},
+					"apiReferral/tradeVol": map[string]any{
+						"cost": 1,
+					},
+					"apiReferral/rebateVol": map[string]any{
+						"cost": 1,
+					},
+					"apiReferral/traderSummary": map[string]any{
+						"cost": 1,
+					},
+					"adlQuantile": map[string]any{
+						"cost": 5,
+					},
+					"pmAccountInfo": map[string]any{
+						"cost": 5,
+					},
+					"orderAmendment": map[string]any{
+						"cost": 1,
+					},
+					"income/asyn": map[string]any{
+						"cost": 1000,
+					},
+					"income/asyn/id": map[string]any{
+						"cost": 10,
+					},
+					"order/asyn": map[string]any{
+						"cost": 1000,
+					},
+					"order/asyn/id": map[string]any{
+						"cost": 10,
+					},
+					"trade/asyn": map[string]any{
+						"cost": 1000,
+					},
+					"trade/asyn/id": map[string]any{
+						"cost": 10,
+					},
+					"feeBurn": map[string]any{
+						"cost": 1,
+					},
+					"symbolConfig": map[string]any{
+						"cost": 5,
+					},
+					"accountConfig": map[string]any{
+						"cost": 5,
+					},
+					"convert/orderStatus": map[string]any{
+						"cost": 5,
+					},
+					"algoOrder": map[string]any{
+						"cost": 1,
+					},
 					"openAlgoOrders": map[string]any{
 						"cost":     1,
 						"noSymbol": 40,
 					},
-					"allAlgoOrders":  5,
-					"stock/contract": 50,
+					"allAlgoOrders": map[string]any{
+						"cost": 5,
+					},
+					"stock/contract": map[string]any{
+						"cost": 50,
+					},
 				},
 				"post": map[string]any{
-					"batchOrders":                   5,
-					"positionSide/dual":             1,
-					"positionMargin":                1,
-					"marginType":                    1,
-					"order":                         4,
-					"order/test":                    1,
-					"leverage":                      1,
-					"listenKey":                     1,
-					"countdownCancelAll":            10,
-					"multiAssetsMargin":             1,
-					"apiReferral/customization":     1,
-					"apiReferral/userCustomization": 1,
-					"feeBurn":                       1,
-					"convert/getQuote":              200,
-					"convert/acceptQuote":           20,
-					"algoOrder":                     1,
+					"batchOrders": map[string]any{
+						"cost": 5,
+					},
+					"positionSide/dual": map[string]any{
+						"cost": 1,
+					},
+					"positionMargin": map[string]any{
+						"cost": 1,
+					},
+					"marginType": map[string]any{
+						"cost": 1,
+					},
+					"order": map[string]any{
+						"cost": 4,
+					},
+					"order/test": map[string]any{
+						"cost": 1,
+					},
+					"leverage": map[string]any{
+						"cost": 1,
+					},
+					"listenKey": map[string]any{
+						"cost": 1,
+					},
+					"countdownCancelAll": map[string]any{
+						"cost": 10,
+					},
+					"multiAssetsMargin": map[string]any{
+						"cost": 1,
+					},
+					"apiReferral/customization": map[string]any{
+						"cost": 1,
+					},
+					"apiReferral/userCustomization": map[string]any{
+						"cost": 1,
+					},
+					"feeBurn": map[string]any{
+						"cost": 1,
+					},
+					"convert/getQuote": map[string]any{
+						"cost": 200,
+					},
+					"convert/acceptQuote": map[string]any{
+						"cost": 20,
+					},
+					"algoOrder": map[string]any{
+						"cost": 1,
+					},
 				},
 				"put": map[string]any{
-					"listenKey":   1,
-					"order":       1,
-					"batchOrders": 5,
+					"listenKey": map[string]any{
+						"cost": 1,
+					},
+					"order": map[string]any{
+						"cost": 1,
+					},
+					"batchOrders": map[string]any{
+						"cost": 5,
+					},
 				},
 				"delete": map[string]any{
-					"batchOrders":    1,
-					"order":          1,
-					"allOpenOrders":  1,
-					"listenKey":      1,
-					"algoOrder":      1,
-					"algoOpenOrders": 1,
+					"batchOrders": map[string]any{
+						"cost": 1,
+					},
+					"order": map[string]any{
+						"cost": 1,
+					},
+					"allOpenOrders": map[string]any{
+						"cost": 1,
+					},
+					"listenKey": map[string]any{
+						"cost": 1,
+					},
+					"algoOrder": map[string]any{
+						"cost": 1,
+					},
+					"algoOpenOrders": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"fapiPublicV2": map[string]any{
 				"get": map[string]any{
-					"ticker/price": 0,
+					"ticker/price": map[string]any{
+						"cost": 0,
+					},
 				},
 			},
 			"fapiPrivateV2": map[string]any{
 				"get": map[string]any{
-					"account":      1,
-					"balance":      1,
-					"positionRisk": 1,
+					"account": map[string]any{
+						"cost": 1,
+					},
+					"balance": map[string]any{
+						"cost": 1,
+					},
+					"positionRisk": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"fapiPublicV3": map[string]any{
@@ -1015,88 +2143,200 @@ func (this *BinanceCore) Describe() any {
 			},
 			"fapiPrivateV3": map[string]any{
 				"get": map[string]any{
-					"account":      1,
-					"balance":      1,
-					"positionRisk": 1,
+					"account": map[string]any{
+						"cost": 1,
+					},
+					"balance": map[string]any{
+						"cost": 1,
+					},
+					"positionRisk": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"eapiPublic": map[string]any{
 				"get": map[string]any{
-					"ping":             1,
-					"time":             1,
-					"exchangeInfo":     1,
-					"index":            1,
-					"ticker":           5,
-					"mark":             5,
-					"depth":            1,
-					"klines":           1,
-					"trades":           5,
-					"historicalTrades": 20,
-					"exerciseHistory":  3,
-					"openInterest":     3,
+					"ping": map[string]any{
+						"cost": 1,
+					},
+					"time": map[string]any{
+						"cost": 1,
+					},
+					"exchangeInfo": map[string]any{
+						"cost": 1,
+					},
+					"index": map[string]any{
+						"cost": 1,
+					},
+					"ticker": map[string]any{
+						"cost": 5,
+					},
+					"mark": map[string]any{
+						"cost": 5,
+					},
+					"depth": map[string]any{
+						"cost": 1,
+					},
+					"klines": map[string]any{
+						"cost": 1,
+					},
+					"trades": map[string]any{
+						"cost": 5,
+					},
+					"historicalTrades": map[string]any{
+						"cost": 20,
+					},
+					"exerciseHistory": map[string]any{
+						"cost": 3,
+					},
+					"openInterest": map[string]any{
+						"cost": 3,
+					},
 				},
 			},
 			"eapiPrivate": map[string]any{
 				"get": map[string]any{
-					"account":  3,
-					"position": 5,
+					"account": map[string]any{
+						"cost": 3,
+					},
+					"position": map[string]any{
+						"cost": 5,
+					},
 					"openOrders": map[string]any{
 						"cost":     1,
 						"noSymbol": 40,
 					},
-					"historyOrders":       3,
-					"userTrades":          5,
-					"exerciseRecord":      5,
-					"bill":                1,
-					"income/asyn":         5,
-					"income/asyn/id":      5,
-					"marginAccount":       3,
-					"mmp":                 1,
-					"countdownCancelAll":  1,
-					"order":               1,
-					"block/order/orders":  5,
-					"block/order/execute": 5,
-					"block/user-trades":   5,
-					"blockTrades":         5,
-					"comission":           5,
+					"historyOrders": map[string]any{
+						"cost": 3,
+					},
+					"userTrades": map[string]any{
+						"cost": 5,
+					},
+					"exerciseRecord": map[string]any{
+						"cost": 5,
+					},
+					"bill": map[string]any{
+						"cost": 1,
+					},
+					"income/asyn": map[string]any{
+						"cost": 5,
+					},
+					"income/asyn/id": map[string]any{
+						"cost": 5,
+					},
+					"marginAccount": map[string]any{
+						"cost": 3,
+					},
+					"mmp": map[string]any{
+						"cost": 1,
+					},
+					"countdownCancelAll": map[string]any{
+						"cost": 1,
+					},
+					"order": map[string]any{
+						"cost": 1,
+					},
+					"block/order/orders": map[string]any{
+						"cost": 5,
+					},
+					"block/order/execute": map[string]any{
+						"cost": 5,
+					},
+					"block/user-trades": map[string]any{
+						"cost": 5,
+					},
+					"blockTrades": map[string]any{
+						"cost": 5,
+					},
+					"comission": map[string]any{
+						"cost": 5,
+					},
 				},
 				"post": map[string]any{
-					"order":                       1,
-					"batchOrders":                 5,
-					"listenKey":                   1,
-					"mmpSet":                      1,
-					"mmpReset":                    1,
-					"countdownCancelAll":          1,
-					"countdownCancelAllHeartBeat": 10,
-					"block/order/create":          5,
-					"block/order/execute":         5,
+					"order": map[string]any{
+						"cost": 1,
+					},
+					"batchOrders": map[string]any{
+						"cost": 5,
+					},
+					"listenKey": map[string]any{
+						"cost": 1,
+					},
+					"mmpSet": map[string]any{
+						"cost": 1,
+					},
+					"mmpReset": map[string]any{
+						"cost": 1,
+					},
+					"countdownCancelAll": map[string]any{
+						"cost": 1,
+					},
+					"countdownCancelAllHeartBeat": map[string]any{
+						"cost": 10,
+					},
+					"block/order/create": map[string]any{
+						"cost": 5,
+					},
+					"block/order/execute": map[string]any{
+						"cost": 5,
+					},
 				},
 				"put": map[string]any{
-					"listenKey":          1,
-					"block/order/create": 5,
+					"listenKey": map[string]any{
+						"cost": 1,
+					},
+					"block/order/create": map[string]any{
+						"cost": 5,
+					},
 				},
 				"delete": map[string]any{
-					"order":                     1,
-					"batchOrders":               1,
-					"allOpenOrders":             1,
-					"allOpenOrdersByUnderlying": 1,
-					"listenKey":                 1,
-					"block/order/create":        5,
+					"order": map[string]any{
+						"cost": 1,
+					},
+					"batchOrders": map[string]any{
+						"cost": 1,
+					},
+					"allOpenOrders": map[string]any{
+						"cost": 1,
+					},
+					"allOpenOrdersByUnderlying": map[string]any{
+						"cost": 1,
+					},
+					"listenKey": map[string]any{
+						"cost": 1,
+					},
+					"block/order/create": map[string]any{
+						"cost": 5,
+					},
 				},
 			},
 			"public": map[string]any{
 				"get": map[string]any{
-					"ping": 0.2,
-					"time": 0.2,
+					"ping": map[string]any{
+						"cost": 0.2,
+					},
+					"time": map[string]any{
+						"cost": 0.2,
+					},
 					"depth": map[string]any{
 						"cost":    1,
 						"byLimit": []any{[]any{100, 1}, []any{500, 5}, []any{1000, 10}, []any{5000, 50}},
 					},
-					"trades":           2,
-					"aggTrades":        0.4,
-					"historicalTrades": 2,
-					"klines":           0.4,
-					"uiKlines":         0.4,
+					"trades": map[string]any{
+						"cost": 2,
+					},
+					"aggTrades": map[string]any{
+						"cost": 0.4,
+					},
+					"historicalTrades": map[string]any{
+						"cost": 2,
+					},
+					"klines": map[string]any{
+						"cost": 0.4,
+					},
+					"uiKlines": map[string]any{
+						"cost": 0.4,
+					},
 					"ticker/24hr": map[string]any{
 						"cost":     0.4,
 						"noSymbol": 16,
@@ -1105,7 +2345,9 @@ func (this *BinanceCore) Describe() any {
 						"cost":     0.4,
 						"noSymbol": 16,
 					},
-					"ticker/tradingDay": 0.8,
+					"ticker/tradingDay": map[string]any{
+						"cost": 0.8,
+					},
 					"ticker/price": map[string]any{
 						"cost":     0.4,
 						"noSymbol": 0.8,
@@ -1114,110 +2356,234 @@ func (this *BinanceCore) Describe() any {
 						"cost":     0.4,
 						"noSymbol": 0.8,
 					},
-					"exchangeInfo": 4,
-					"avgPrice":     0.4,
+					"exchangeInfo": map[string]any{
+						"cost": 4,
+					},
+					"avgPrice": map[string]any{
+						"cost": 0.4,
+					},
 				},
 				"put": map[string]any{
-					"userDataStream": 0.4,
+					"userDataStream": map[string]any{
+						"cost": 0.4,
+					},
 				},
 				"post": map[string]any{
-					"userDataStream": 0.4,
+					"userDataStream": map[string]any{
+						"cost": 0.4,
+					},
 				},
 				"delete": map[string]any{
-					"userDataStream": 0.4,
+					"userDataStream": map[string]any{
+						"cost": 0.4,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"allOrderList":  4,
-					"openOrderList": 1.2,
-					"orderList":     0.8,
-					"order":         0.8,
+					"allOrderList": map[string]any{
+						"cost": 4,
+					},
+					"openOrderList": map[string]any{
+						"cost": 1.2,
+					},
+					"orderList": map[string]any{
+						"cost": 0.8,
+					},
+					"order": map[string]any{
+						"cost": 0.8,
+					},
 					"openOrders": map[string]any{
 						"cost":     1.2,
 						"noSymbol": 16,
 					},
-					"allOrders":          4,
-					"account":            4,
-					"myTrades":           4,
-					"rateLimit/order":    8,
-					"myPreventedMatches": 4,
-					"myAllocations":      4,
-					"account/commission": 4,
+					"allOrders": map[string]any{
+						"cost": 4,
+					},
+					"account": map[string]any{
+						"cost": 4,
+					},
+					"myTrades": map[string]any{
+						"cost": 4,
+					},
+					"rateLimit/order": map[string]any{
+						"cost": 8,
+					},
+					"myPreventedMatches": map[string]any{
+						"cost": 4,
+					},
+					"myAllocations": map[string]any{
+						"cost": 4,
+					},
+					"account/commission": map[string]any{
+						"cost": 4,
+					},
 				},
 				"post": map[string]any{
-					"order/oco":           0.2,
-					"orderList/oco":       0.2,
-					"orderList/oto":       0.2,
-					"orderList/otoco":     0.2,
-					"orderList/opo":       0.2,
-					"orderList/opoco":     0.2,
-					"sor/order":           0.2,
-					"sor/order/test":      0.2,
-					"order":               0.2,
-					"order/cancelReplace": 0.2,
-					"order/test":          0.2,
+					"order/oco": map[string]any{
+						"cost": 0.2,
+					},
+					"orderList/oco": map[string]any{
+						"cost": 0.2,
+					},
+					"orderList/oto": map[string]any{
+						"cost": 0.2,
+					},
+					"orderList/otoco": map[string]any{
+						"cost": 0.2,
+					},
+					"orderList/opo": map[string]any{
+						"cost": 0.2,
+					},
+					"orderList/opoco": map[string]any{
+						"cost": 0.2,
+					},
+					"sor/order": map[string]any{
+						"cost": 0.2,
+					},
+					"sor/order/test": map[string]any{
+						"cost": 0.2,
+					},
+					"order": map[string]any{
+						"cost": 0.2,
+					},
+					"order/cancelReplace": map[string]any{
+						"cost": 0.2,
+					},
+					"order/test": map[string]any{
+						"cost": 0.2,
+					},
 				},
 				"delete": map[string]any{
-					"openOrders": 0.2,
-					"orderList":  0.2,
-					"order":      0.2,
+					"openOrders": map[string]any{
+						"cost": 0.2,
+					},
+					"orderList": map[string]any{
+						"cost": 0.2,
+					},
+					"order": map[string]any{
+						"cost": 0.2,
+					},
 				},
 			},
 			"papi": map[string]any{
 				"get": map[string]any{
-					"ping":         0.2,
-					"um/order":     1,
-					"um/openOrder": 1,
+					"ping": map[string]any{
+						"cost": 0.2,
+					},
+					"um/order": map[string]any{
+						"cost": 1,
+					},
+					"um/openOrder": map[string]any{
+						"cost": 1,
+					},
 					"um/openOrders": map[string]any{
 						"cost":     1,
 						"noSymbol": 40,
 					},
-					"um/allOrders": 5,
-					"cm/order":     1,
-					"cm/openOrder": 1,
+					"um/allOrders": map[string]any{
+						"cost": 5,
+					},
+					"cm/order": map[string]any{
+						"cost": 1,
+					},
+					"cm/openOrder": map[string]any{
+						"cost": 1,
+					},
 					"cm/openOrders": map[string]any{
 						"cost":     1,
 						"noSymbol": 40,
 					},
-					"cm/allOrders":             20,
-					"um/conditional/openOrder": 1,
+					"cm/allOrders": map[string]any{
+						"cost": 20,
+					},
+					"um/conditional/openOrder": map[string]any{
+						"cost": 1,
+					},
 					"um/conditional/openOrders": map[string]any{
 						"cost":     1,
 						"noSymbol": 40,
 					},
-					"um/conditional/orderHistory": 1,
+					"um/conditional/orderHistory": map[string]any{
+						"cost": 1,
+					},
 					"um/conditional/allOrders": map[string]any{
 						"cost":     1,
 						"noSymbol": 40,
 					},
-					"cm/conditional/openOrder": 1,
+					"cm/conditional/openOrder": map[string]any{
+						"cost": 1,
+					},
 					"cm/conditional/openOrders": map[string]any{
 						"cost":     1,
 						"noSymbol": 40,
 					},
-					"cm/conditional/orderHistory": 1,
-					"cm/conditional/allOrders":    40,
-					"margin/order":                10,
-					"margin/openOrders":           5,
-					"margin/allOrders":            100,
-					"margin/orderList":            5,
-					"margin/allOrderList":         100,
-					"margin/openOrderList":        5,
-					"margin/myTrades":             5,
-					"balance":                     4,
-					"account":                     4,
-					"margin/maxBorrowable":        1,
-					"margin/maxWithdraw":          1,
-					"um/positionRisk":             1,
-					"cm/positionRisk":             0.2,
-					"um/positionSide/dual":        6,
-					"cm/positionSide/dual":        6,
-					"um/userTrades":               5,
-					"cm/userTrades":               20,
-					"um/leverageBracket":          0.2,
-					"cm/leverageBracket":          0.2,
-					"margin/forceOrders":          1,
+					"cm/conditional/orderHistory": map[string]any{
+						"cost": 1,
+					},
+					"cm/conditional/allOrders": map[string]any{
+						"cost": 40,
+					},
+					"margin/order": map[string]any{
+						"cost": 10,
+					},
+					"margin/openOrders": map[string]any{
+						"cost": 5,
+					},
+					"margin/allOrders": map[string]any{
+						"cost": 100,
+					},
+					"margin/orderList": map[string]any{
+						"cost": 5,
+					},
+					"margin/allOrderList": map[string]any{
+						"cost": 100,
+					},
+					"margin/openOrderList": map[string]any{
+						"cost": 5,
+					},
+					"margin/myTrades": map[string]any{
+						"cost": 5,
+					},
+					"balance": map[string]any{
+						"cost": 4,
+					},
+					"account": map[string]any{
+						"cost": 4,
+					},
+					"margin/maxBorrowable": map[string]any{
+						"cost": 1,
+					},
+					"margin/maxWithdraw": map[string]any{
+						"cost": 1,
+					},
+					"um/positionRisk": map[string]any{
+						"cost": 1,
+					},
+					"cm/positionRisk": map[string]any{
+						"cost": 0.2,
+					},
+					"um/positionSide/dual": map[string]any{
+						"cost": 6,
+					},
+					"cm/positionSide/dual": map[string]any{
+						"cost": 6,
+					},
+					"um/userTrades": map[string]any{
+						"cost": 5,
+					},
+					"cm/userTrades": map[string]any{
+						"cost": 20,
+					},
+					"um/leverageBracket": map[string]any{
+						"cost": 0.2,
+					},
+					"cm/leverageBracket": map[string]any{
+						"cost": 0.2,
+					},
+					"margin/forceOrders": map[string]any{
+						"cost": 1,
+					},
 					"um/forceOrders": map[string]any{
 						"cost":     20,
 						"noSymbol": 50,
@@ -1230,80 +2596,208 @@ func (this *BinanceCore) Describe() any {
 						"cost":     0.2,
 						"noSymbol": 2,
 					},
-					"um/commissionRate":            4,
-					"cm/commissionRate":            4,
-					"margin/marginLoan":            2,
-					"margin/repayLoan":             2,
-					"margin/marginInterestHistory": 0.2,
-					"portfolio/interest-history":   10,
-					"um/income":                    6,
-					"cm/income":                    6,
-					"um/account":                   1,
-					"cm/account":                   1,
-					"repay-futures-switch":         6,
-					"um/adlQuantile":               5,
-					"cm/adlQuantile":               5,
-					"um/trade/asyn":                300,
-					"um/trade/asyn/id":             2,
-					"um/order/asyn":                300,
-					"um/order/asyn/id":             2,
-					"um/income/asyn":               300,
-					"um/income/asyn/id":            2,
-					"um/orderAmendment":            1,
-					"cm/orderAmendment":            1,
-					"um/feeBurn":                   30,
-					"um/accountConfig":             1,
-					"um/symbolConfig":              1,
-					"cm/accountConfig":             1,
-					"cm/symbolConfig":              1,
-					"rateLimit/order":              1,
+					"um/commissionRate": map[string]any{
+						"cost": 4,
+					},
+					"cm/commissionRate": map[string]any{
+						"cost": 4,
+					},
+					"margin/marginLoan": map[string]any{
+						"cost": 2,
+					},
+					"margin/repayLoan": map[string]any{
+						"cost": 2,
+					},
+					"margin/marginInterestHistory": map[string]any{
+						"cost": 0.2,
+					},
+					"portfolio/interest-history": map[string]any{
+						"cost": 10,
+					},
+					"um/income": map[string]any{
+						"cost": 6,
+					},
+					"cm/income": map[string]any{
+						"cost": 6,
+					},
+					"um/account": map[string]any{
+						"cost": 1,
+					},
+					"cm/account": map[string]any{
+						"cost": 1,
+					},
+					"repay-futures-switch": map[string]any{
+						"cost": 6,
+					},
+					"um/adlQuantile": map[string]any{
+						"cost": 5,
+					},
+					"cm/adlQuantile": map[string]any{
+						"cost": 5,
+					},
+					"um/trade/asyn": map[string]any{
+						"cost": 300,
+					},
+					"um/trade/asyn/id": map[string]any{
+						"cost": 2,
+					},
+					"um/order/asyn": map[string]any{
+						"cost": 300,
+					},
+					"um/order/asyn/id": map[string]any{
+						"cost": 2,
+					},
+					"um/income/asyn": map[string]any{
+						"cost": 300,
+					},
+					"um/income/asyn/id": map[string]any{
+						"cost": 2,
+					},
+					"um/orderAmendment": map[string]any{
+						"cost": 1,
+					},
+					"cm/orderAmendment": map[string]any{
+						"cost": 1,
+					},
+					"um/feeBurn": map[string]any{
+						"cost": 30,
+					},
+					"um/accountConfig": map[string]any{
+						"cost": 1,
+					},
+					"um/symbolConfig": map[string]any{
+						"cost": 1,
+					},
+					"cm/accountConfig": map[string]any{
+						"cost": 1,
+					},
+					"cm/symbolConfig": map[string]any{
+						"cost": 1,
+					},
+					"rateLimit/order": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"um/order":                       1,
-					"um/conditional/order":           1,
-					"cm/order":                       1,
-					"cm/conditional/order":           1,
-					"margin/order":                   1,
-					"marginLoan":                     100,
-					"repayLoan":                      100,
-					"margin/order/oco":               1,
-					"um/leverage":                    0.2,
-					"cm/leverage":                    0.2,
-					"um/positionSide/dual":           0.2,
-					"cm/positionSide/dual":           0.2,
-					"auto-collection":                150,
-					"bnb-transfer":                   150,
-					"repay-futures-switch":           150,
-					"repay-futures-negative-balance": 150,
-					"listenKey":                      0.2,
-					"asset-collection":               6,
-					"margin/repay-debt":              3000,
-					"um/feeBurn":                     1,
-					"um/stock/contract":              1,
+					"um/order": map[string]any{
+						"cost": 1,
+					},
+					"um/conditional/order": map[string]any{
+						"cost": 1,
+					},
+					"cm/order": map[string]any{
+						"cost": 1,
+					},
+					"cm/conditional/order": map[string]any{
+						"cost": 1,
+					},
+					"margin/order": map[string]any{
+						"cost": 1,
+					},
+					"marginLoan": map[string]any{
+						"cost": 100,
+					},
+					"repayLoan": map[string]any{
+						"cost": 100,
+					},
+					"margin/order/oco": map[string]any{
+						"cost": 1,
+					},
+					"um/leverage": map[string]any{
+						"cost": 0.2,
+					},
+					"cm/leverage": map[string]any{
+						"cost": 0.2,
+					},
+					"um/positionSide/dual": map[string]any{
+						"cost": 0.2,
+					},
+					"cm/positionSide/dual": map[string]any{
+						"cost": 0.2,
+					},
+					"auto-collection": map[string]any{
+						"cost": 150,
+					},
+					"bnb-transfer": map[string]any{
+						"cost": 150,
+					},
+					"repay-futures-switch": map[string]any{
+						"cost": 150,
+					},
+					"repay-futures-negative-balance": map[string]any{
+						"cost": 150,
+					},
+					"listenKey": map[string]any{
+						"cost": 0.2,
+					},
+					"asset-collection": map[string]any{
+						"cost": 6,
+					},
+					"margin/repay-debt": map[string]any{
+						"cost": 3000,
+					},
+					"um/feeBurn": map[string]any{
+						"cost": 1,
+					},
+					"um/stock/contract": map[string]any{
+						"cost": 1,
+					},
 				},
 				"put": map[string]any{
-					"listenKey": 0.2,
-					"um/order":  1,
-					"cm/order":  1,
+					"listenKey": map[string]any{
+						"cost": 0.2,
+					},
+					"um/order": map[string]any{
+						"cost": 1,
+					},
+					"cm/order": map[string]any{
+						"cost": 1,
+					},
 				},
 				"delete": map[string]any{
-					"um/order":                     1,
-					"um/conditional/order":         1,
-					"um/allOpenOrders":             1,
-					"um/conditional/allOpenOrders": 1,
-					"cm/order":                     1,
-					"cm/conditional/order":         1,
-					"cm/allOpenOrders":             1,
-					"cm/conditional/allOpenOrders": 1,
-					"margin/order":                 2,
-					"margin/allOpenOrders":         5,
-					"margin/orderList":             2,
-					"listenKey":                    0.2,
+					"um/order": map[string]any{
+						"cost": 1,
+					},
+					"um/conditional/order": map[string]any{
+						"cost": 1,
+					},
+					"um/allOpenOrders": map[string]any{
+						"cost": 1,
+					},
+					"um/conditional/allOpenOrders": map[string]any{
+						"cost": 1,
+					},
+					"cm/order": map[string]any{
+						"cost": 1,
+					},
+					"cm/conditional/order": map[string]any{
+						"cost": 1,
+					},
+					"cm/allOpenOrders": map[string]any{
+						"cost": 1,
+					},
+					"cm/conditional/allOpenOrders": map[string]any{
+						"cost": 1,
+					},
+					"margin/order": map[string]any{
+						"cost": 2,
+					},
+					"margin/allOpenOrders": map[string]any{
+						"cost": 5,
+					},
+					"margin/orderList": map[string]any{
+						"cost": 2,
+					},
+					"listenKey": map[string]any{
+						"cost": 0.2,
+					},
 				},
 			},
 			"papiV2": map[string]any{
 				"get": map[string]any{
-					"um/account": 1,
+					"um/account": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -1435,7 +2929,7 @@ func (this *BinanceCore) Describe() any {
 				"DOGE":         "DOGE",
 				"SOL":          "SOL",
 				"SONIC":        "SONIC",
-				"ARBONE":       "ARBITRUM",
+				"ARBITRUM":     "ARBITRUM",
 				"AVAXC":        "AVAXC",
 				"MATIC":        "MATIC",
 				"BASE":         "BASE",
@@ -4558,6 +6052,7 @@ func (this *BinanceCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
  * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker   // spot
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // swap
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // future
+ * @see https://developers.binance.com/docs/derivatives/options-trading/market-data/24hr-Ticker-Price-Change-Statistics      // option
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
@@ -4574,8 +6069,8 @@ func (this *BinanceCore) FetchBidsAsks(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes450412 := (<-this.LoadMarkets())
-			PanicOnError(retRes450412)
+			retRes450512 := (<-this.LoadMarkets())
+			PanicOnError(retRes450512)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var market any = this.GetMarketFromSymbols(symbols)
@@ -4588,7 +6083,11 @@ func (this *BinanceCore) FetchBidsAsks(optionalArgs ...any) <-chan any {
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
 		var response any = nil
-		if IsTrue(this.IsLinear(typeVar, subType)) {
+		if IsTrue(IsEqual(typeVar, "option")) {
+
+			response = (<-this.EapiPublicGetTicker(params))
+			PanicOnError(response)
+		} else if IsTrue(this.IsLinear(typeVar, subType)) {
 
 			response = (<-this.FapiPublicGetTickerBookTicker(params))
 			PanicOnError(response)
@@ -4638,8 +6137,8 @@ func (this *BinanceCore) FetchLastPrices(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes454312 := (<-this.LoadMarkets())
-			PanicOnError(retRes454312)
+			retRes454612 := (<-this.LoadMarkets())
+			PanicOnError(retRes454612)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var market any = this.GetMarketFromSymbols(symbols)
@@ -4742,8 +6241,8 @@ func (this *BinanceCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes465012 := (<-this.LoadMarkets())
-			PanicOnError(retRes465012)
+			retRes465312 := (<-this.LoadMarkets())
+			PanicOnError(retRes465312)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var market any = this.GetMarketFromSymbols(symbols)
@@ -4820,6 +6319,7 @@ func (this *BinanceCore) ParseTickersForRolling(response any, symbols any) any {
  * @description fetches mark price for the market
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+ * @see https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
@@ -4834,8 +6334,8 @@ func (this *BinanceCore) FetchMarkPrice(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes471412 := (<-this.LoadMarkets())
-			PanicOnError(retRes471412)
+			retRes471812 := (<-this.LoadMarkets())
+			PanicOnError(retRes471812)
 		}
 		var market any = this.Market(symbol)
 		var typeVar any = nil
@@ -4850,7 +6350,11 @@ func (this *BinanceCore) FetchMarkPrice(symbol any, optionalArgs ...any) <-chan 
 			"symbol": GetValue(market, "id"),
 		}
 		var response any = nil
-		if IsTrue(this.IsLinear(typeVar, subType)) {
+		if IsTrue(GetValue(market, "option")) {
+
+			response = (<-this.EapiPublicGetMark(this.Extend(request, params)))
+			PanicOnError(response)
+		} else if IsTrue(this.IsLinear(typeVar, subType)) {
 
 			response = (<-this.FapiPublicGetPremiumIndex(this.Extend(request, params)))
 			PanicOnError(response)
@@ -4883,6 +6387,7 @@ func (this *BinanceCore) FetchMarkPrice(symbol any, optionalArgs ...any) <-chan 
  * @description fetches mark prices for multiple markets
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+ * @see https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
@@ -4899,8 +6404,8 @@ func (this *BinanceCore) FetchMarkPrices(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes475412 := (<-this.LoadMarkets())
-			PanicOnError(retRes475412)
+			retRes476112 := (<-this.LoadMarkets())
+			PanicOnError(retRes476112)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var market any = this.GetMarketFromSymbols(symbols)
@@ -4913,7 +6418,11 @@ func (this *BinanceCore) FetchMarkPrices(optionalArgs ...any) <-chan any {
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
 		var response any = nil
-		if IsTrue(this.IsLinear(typeVar, subType)) {
+		if IsTrue(IsEqual(typeVar, "option")) {
+
+			response = (<-this.EapiPublicGetMark(params))
+			PanicOnError(response)
+		} else if IsTrue(this.IsLinear(typeVar, subType)) {
 
 			response = (<-this.FapiPublicGetPremiumIndex(params))
 			PanicOnError(response)
@@ -5029,8 +6538,8 @@ func (this *BinanceCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes486312 := (<-this.LoadMarkets())
-			PanicOnError(retRes486312)
+			retRes487212 := (<-this.LoadMarkets())
+			PanicOnError(retRes487212)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
@@ -5038,9 +6547,9 @@ func (this *BinanceCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes486819 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
-			PanicOnError(retRes486819)
-			ch <- retRes486819
+			retRes487719 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+			PanicOnError(retRes487719)
+			ch <- retRes487719
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -5163,7 +6672,7 @@ func (this *BinanceCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		//         }
 		//     ]
 		//
-		var candles any = this.ParseOHLCVs(response, market, timeframe, since, limit)
+		var candles any = this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
 
 		ch <- candles
 		return nil
@@ -5483,8 +6992,8 @@ func (this *BinanceCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes527312 := (<-this.LoadMarkets())
-			PanicOnError(retRes527312)
+			retRes528212 := (<-this.LoadMarkets())
+			PanicOnError(retRes528212)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
@@ -5492,9 +7001,9 @@ func (this *BinanceCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes527819 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
-			PanicOnError(retRes527819)
-			ch <- retRes527819
+			retRes528719 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+			PanicOnError(retRes528719)
+			ch <- retRes528719
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -5649,7 +7158,7 @@ func (this *BinanceCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		//
 		var responseList any = []any{}
 		if IsTrue(!IsEqual(response, nil)) {
-			responseList = response
+			responseList = this.ToArray(response)
 		}
 
 		ch <- this.ParseTrades(responseList, market, since, limit)
@@ -5686,8 +7195,8 @@ func (this *BinanceCore) EditSpotOrder(id any, symbol any, typeVar any, side any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes543712 := (<-this.LoadMarkets())
-			PanicOnError(retRes543712)
+			retRes544612 := (<-this.LoadMarkets())
+			PanicOnError(retRes544612)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
@@ -5950,8 +7459,8 @@ func (this *BinanceCore) EditContractOrder(id any, symbol any, typeVar any, side
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes567912 := (<-this.LoadMarkets())
-			PanicOnError(retRes567912)
+			retRes568812 := (<-this.LoadMarkets())
+			PanicOnError(retRes568812)
 		}
 		var market any = this.Market(symbol)
 		var isPortfolioMargin any = nil
@@ -6048,8 +7557,8 @@ func (this *BinanceCore) EditOrder(id any, symbol any, typeVar any, side any, op
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes575012 := (<-this.LoadMarkets())
-			PanicOnError(retRes575012)
+			retRes575912 := (<-this.LoadMarkets())
+			PanicOnError(retRes575912)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(GetValue(market, "option")) {
@@ -6057,15 +7566,15 @@ func (this *BinanceCore) EditOrder(id any, symbol any, typeVar any, side any, op
 		}
 		if IsTrue(GetValue(market, "spot")) {
 
-			retRes575719 := (<-this.EditSpotOrder(id, symbol, typeVar, side, amount, price, params))
-			PanicOnError(retRes575719)
-			ch <- retRes575719
+			retRes576619 := (<-this.EditSpotOrder(id, symbol, typeVar, side, amount, price, params))
+			PanicOnError(retRes576619)
+			ch <- retRes576619
 			return nil
 		} else {
 
-			retRes575919 := (<-this.EditContractOrder(id, symbol, typeVar, side, amount, price, params))
-			PanicOnError(retRes575919)
-			ch <- retRes575919
+			retRes576819 := (<-this.EditContractOrder(id, symbol, typeVar, side, amount, price, params))
+			PanicOnError(retRes576819)
+			ch <- retRes576819
 			return nil
 		}
 
@@ -6092,8 +7601,8 @@ func (this *BinanceCore) EditOrders(orders any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes577512 := (<-this.LoadMarkets())
-			PanicOnError(retRes577512)
+			retRes578412 := (<-this.LoadMarkets())
+			PanicOnError(retRes578412)
 		}
 		var ordersRequests any = []any{}
 		var orderSymbols any = []any{}
@@ -6844,8 +8353,8 @@ func (this *BinanceCore) CreateOrders(orders any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes650612 := (<-this.LoadMarkets())
-			PanicOnError(retRes650612)
+			retRes651512 := (<-this.LoadMarkets())
+			PanicOnError(retRes651512)
 		}
 		var ordersRequests any = []any{}
 		var orderSymbols any = []any{}
@@ -6978,8 +8487,8 @@ func (this *BinanceCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes661912 := (<-this.LoadMarkets())
-			PanicOnError(retRes661912)
+			retRes662812 := (<-this.LoadMarkets())
+			PanicOnError(retRes662812)
 		}
 		var market any = this.Market(symbol)
 		// don't handle/omit params here, omitting happens inside createOrderRequest
@@ -7463,8 +8972,8 @@ func (this *BinanceCore) CreateMarketOrderWithCost(symbol any, side any, cost an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes705212 := (<-this.LoadMarkets())
-			PanicOnError(retRes705212)
+			retRes706112 := (<-this.LoadMarkets())
+			PanicOnError(retRes706112)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
@@ -7474,9 +8983,9 @@ func (this *BinanceCore) CreateMarketOrderWithCost(symbol any, side any, cost an
 			"cost": cost,
 		}
 
-		retRes706115 := (<-this.CreateOrder(symbol, "market", side, cost, nil, this.Extend(req, params)))
-		PanicOnError(retRes706115)
-		ch <- retRes706115
+		retRes707015 := (<-this.CreateOrder(symbol, "market", side, cost, nil, this.Extend(req, params)))
+		PanicOnError(retRes707015)
+		ch <- retRes707015
 		return nil
 
 	}()
@@ -7502,8 +9011,8 @@ func (this *BinanceCore) CreateMarketBuyOrderWithCost(symbol any, cost any, opti
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes707612 := (<-this.LoadMarkets())
-			PanicOnError(retRes707612)
+			retRes708512 := (<-this.LoadMarkets())
+			PanicOnError(retRes708512)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
@@ -7513,9 +9022,9 @@ func (this *BinanceCore) CreateMarketBuyOrderWithCost(symbol any, cost any, opti
 			"cost": cost,
 		}
 
-		retRes708515 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, this.Extend(req, params)))
-		PanicOnError(retRes708515)
-		ch <- retRes708515
+		retRes709415 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, this.Extend(req, params)))
+		PanicOnError(retRes709415)
+		ch <- retRes709415
 		return nil
 
 	}()
@@ -7541,8 +9050,8 @@ func (this *BinanceCore) CreateMarketSellOrderWithCost(symbol any, cost any, opt
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes710012 := (<-this.LoadMarkets())
-			PanicOnError(retRes710012)
+			retRes710912 := (<-this.LoadMarkets())
+			PanicOnError(retRes710912)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
@@ -7550,9 +9059,9 @@ func (this *BinanceCore) CreateMarketSellOrderWithCost(symbol any, cost any, opt
 		}
 		AddElementToObject(params, "quoteOrderQty", cost)
 
-		retRes710715 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, params))
-		PanicOnError(retRes710715)
-		ch <- retRes710715
+		retRes711615 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, params))
+		PanicOnError(retRes711615)
+		ch <- retRes711615
 		return nil
 
 	}()
@@ -7593,8 +9102,8 @@ func (this *BinanceCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes713512 := (<-this.LoadMarkets())
-			PanicOnError(retRes713512)
+			retRes714412 := (<-this.LoadMarkets())
+			PanicOnError(retRes714412)
 		}
 		var market any = this.Market(symbol)
 		var defaultType any = this.SafeString2(this.Options, "fetchOrder", "defaultType", "spot")
@@ -7729,8 +9238,8 @@ func (this *BinanceCore) FetchOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes723012 := (<-this.LoadMarkets())
-			PanicOnError(retRes723012)
+			retRes723912 := (<-this.LoadMarkets())
+			PanicOnError(retRes723912)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
@@ -7738,9 +9247,9 @@ func (this *BinanceCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes723519 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
-			PanicOnError(retRes723519)
-			ch <- retRes723519
+			retRes724419 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
+			PanicOnError(retRes724419)
+			ch <- retRes724419
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -8056,8 +9565,8 @@ func (this *BinanceCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes750412 := (<-this.LoadMarkets())
-			PanicOnError(retRes750412)
+			retRes751312 := (<-this.LoadMarkets())
+			PanicOnError(retRes751312)
 		}
 		var market any = nil
 		var typeVar any = nil
@@ -8207,8 +9716,8 @@ func (this *BinanceCore) FetchOpenOrder(id any, optionalArgs ...any) <-chan any 
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes761012 := (<-this.LoadMarkets())
-			PanicOnError(retRes761012)
+			retRes761912 := (<-this.LoadMarkets())
+			PanicOnError(retRes761912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -8611,8 +10120,8 @@ func (this *BinanceCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes792812 := (<-this.LoadMarkets())
-			PanicOnError(retRes792812)
+			retRes793712 := (<-this.LoadMarkets())
+			PanicOnError(retRes793712)
 		}
 		var market any = this.Market(symbol)
 		var defaultType any = this.SafeString2(this.Options, "cancelOrder", "defaultType", "spot")
@@ -8766,8 +10275,8 @@ func (this *BinanceCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes804012 := (<-this.LoadMarkets())
-			PanicOnError(retRes804012)
+			retRes804912 := (<-this.LoadMarkets())
+			PanicOnError(retRes804912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -8892,8 +10401,8 @@ func (this *BinanceCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes821412 := (<-this.LoadMarkets())
-			PanicOnError(retRes821412)
+			retRes822312 := (<-this.LoadMarkets())
+			PanicOnError(retRes822312)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
@@ -8995,8 +10504,8 @@ func (this *BinanceCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan an
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes829512 := (<-this.LoadMarkets())
-			PanicOnError(retRes829512)
+			retRes830412 := (<-this.LoadMarkets())
+			PanicOnError(retRes830412)
 		}
 		var market any = this.Market(symbol)
 		var typeVar any = this.SafeString(params, "type", GetValue(market, "type"))
@@ -9008,9 +10517,9 @@ func (this *BinanceCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan an
 			"orderId": id,
 		}
 
-		retRes830615 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes830615)
-		ch <- retRes830615
+		retRes831515 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes831515)
+		ch <- retRes831515
 		return nil
 
 	}()
@@ -9052,8 +10561,8 @@ func (this *BinanceCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes833112 := (<-this.LoadMarkets())
-			PanicOnError(retRes833112)
+			retRes834012 := (<-this.LoadMarkets())
+			PanicOnError(retRes834012)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -9061,9 +10570,9 @@ func (this *BinanceCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes833619 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-			PanicOnError(retRes833619)
-			ch <- retRes833619
+			retRes834519 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+			PanicOnError(retRes834519)
+			ch <- retRes834519
 			return nil
 		}
 		var request any = map[string]any{}
@@ -9290,7 +10799,7 @@ func (this *BinanceCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		//
 		var responseList any = []any{}
 		if IsTrue(!IsEqual(response, nil)) {
-			responseList = response
+			responseList = this.ToArray(response)
 		}
 
 		ch <- this.ParseTrades(responseList, market, since, limit)
@@ -9333,8 +10842,8 @@ func (this *BinanceCore) FetchMyDustTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes856512 := (<-this.LoadMarkets())
-			PanicOnError(retRes856512)
+			retRes857412 := (<-this.LoadMarkets())
+			PanicOnError(retRes857412)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -9500,8 +11009,8 @@ func (this *BinanceCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes871012 := (<-this.LoadMarkets())
-			PanicOnError(retRes871012)
+			retRes871912 := (<-this.LoadMarkets())
+			PanicOnError(retRes871912)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
@@ -9509,9 +11018,9 @@ func (this *BinanceCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes871519 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
-			PanicOnError(retRes871519)
-			ch <- retRes871519
+			retRes872419 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+			PanicOnError(retRes872419)
+			ch <- retRes872419
 			return nil
 		}
 		var currency any = nil
@@ -9561,12 +11070,12 @@ func (this *BinanceCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(response, nil)) {
 			panic(NullResponse(Add(this.Id, " method() returned empty response")))
 		}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			AddElementToObject(GetValue(response, i), "type", "deposit")
-		}
 		var responseList any = []any{}
 		if IsTrue(!IsEqual(response, nil)) {
-			responseList = response
+			responseList = this.ToArray(response)
+		}
+		for i := 0; IsLessThan(i, GetArrayLength(responseList)); i++ {
+			AddElementToObject(GetValue(responseList, i), "type", "deposit")
 		}
 
 		ch <- this.ParseTransactions(responseList, currency, since, limit)
@@ -9606,8 +11115,8 @@ func (this *BinanceCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes883212 := (<-this.LoadMarkets())
-			PanicOnError(retRes883212)
+			retRes884112 := (<-this.LoadMarkets())
+			PanicOnError(retRes884112)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
@@ -9615,9 +11124,9 @@ func (this *BinanceCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes883719 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
-			PanicOnError(retRes883719)
-			ch <- retRes883719
+			retRes884619 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
+			PanicOnError(retRes884619)
+			ch <- retRes884619
 			return nil
 		}
 		var legalMoney any = this.SafeDict(this.Options, "legalMoney", map[string]any{})
@@ -9668,7 +11177,7 @@ func (this *BinanceCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		}
 		var responseList any = []any{}
 		if IsTrue(!IsEqual(response, nil)) {
-			responseList = response
+			responseList = this.ToArray(response)
 		}
 		for i := 0; IsLessThan(i, GetArrayLength(responseList)); i++ {
 			AddElementToObject(GetValue(responseList, i), "type", "withdrawal")
@@ -10016,8 +11525,8 @@ func (this *BinanceCore) Transfer(code any, amount any, fromAccount any, toAccou
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes928612 := (<-this.LoadMarkets())
-			PanicOnError(retRes928612)
+			retRes929512 := (<-this.LoadMarkets())
+			PanicOnError(retRes929512)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -10141,8 +11650,8 @@ func (this *BinanceCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes939012 := (<-this.LoadMarkets())
-			PanicOnError(retRes939012)
+			retRes939912 := (<-this.LoadMarkets())
+			PanicOnError(retRes939912)
 		}
 		var internal any = this.SafeBool(params, "internal")
 		params = this.Omit(params, "internal")
@@ -10152,9 +11661,9 @@ func (this *BinanceCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(IsTrue(paginate) && !IsTrue(internal)) {
 
-			retRes939719 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params))
-			PanicOnError(retRes939719)
-			ch <- retRes939719
+			retRes940619 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params))
+			PanicOnError(retRes940619)
+			ch <- retRes940619
 			return nil
 		}
 		var currency any = nil
@@ -10235,8 +11744,8 @@ func (this *BinanceCore) FetchDepositAddress(code any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes953312 := (<-this.LoadMarkets())
-			PanicOnError(retRes953312)
+			retRes954212 := (<-this.LoadMarkets())
+			PanicOnError(retRes954212)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -10326,8 +11835,8 @@ func (this *BinanceCore) FetchTransactionFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes960512 := (<-this.LoadMarkets())
-			PanicOnError(retRes960512)
+			retRes961412 := (<-this.LoadMarkets())
+			PanicOnError(retRes961412)
 		}
 
 		response := (<-this.SapiGetCapitalConfigGetall(params))
@@ -10414,8 +11923,9 @@ func (this *BinanceCore) FetchTransactionFees(optionalArgs ...any) <-chan any {
 		//  ]
 		//
 		var withdrawFees any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var entry any = GetValue(response, i)
+		var coins any = this.ToArray(response)
+		for i := 0; IsLessThan(i, GetArrayLength(coins)); i++ {
+			var entry any = GetValue(coins, i)
 			var currencyId any = this.SafeString(entry, "coin")
 			var code any = this.SafeCurrencyCode(currencyId)
 			var networkList any = this.SafeList(entry, "networkList", []any{})
@@ -10464,8 +11974,8 @@ func (this *BinanceCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes972612 := (<-this.LoadMarkets())
-			PanicOnError(retRes972612)
+			retRes973612 := (<-this.LoadMarkets())
+			PanicOnError(retRes973612)
 		}
 
 		response := (<-this.SapiGetCapitalConfigGetall(params))
@@ -10620,8 +12130,8 @@ func (this *BinanceCore) Withdraw(code any, amount any, address any, optionalArg
 		this.CheckAddress(address)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes986212 := (<-this.LoadMarkets())
-			PanicOnError(retRes986212)
+			retRes987212 := (<-this.LoadMarkets())
+			PanicOnError(retRes987212)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -10706,8 +12216,8 @@ func (this *BinanceCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes993212 := (<-this.LoadMarkets())
-			PanicOnError(retRes993212)
+			retRes994212 := (<-this.LoadMarkets())
+			PanicOnError(retRes994212)
 		}
 		var market any = this.Market(symbol)
 		var typeVar any = GetValue(market, "type")
@@ -10805,8 +12315,8 @@ func (this *BinanceCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1000412 := (<-this.LoadMarkets())
-			PanicOnError(retRes1000412)
+			retRes1001412 := (<-this.LoadMarkets())
+			PanicOnError(retRes1001412)
 		}
 		var typeVar any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
@@ -10900,8 +12410,9 @@ func (this *BinanceCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 			if IsTrue(IsEqual(response, nil)) {
 				panic(NullResponse(Add(this.Id, " method() returned empty response")))
 			}
-			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-				var fee any = this.ParseTradingFee(GetValue(response, i))
+			var fees any = this.ToArray(response)
+			for i := 0; IsLessThan(i, GetArrayLength(fees)); i++ {
+				var fee any = this.ParseTradingFee(GetValue(fees, i))
 				var symbol any = GetValue(fee, "symbol")
 				if IsTrue(!IsEqual(symbol, nil)) {
 					AddElementToObject(result, symbol, fee)
@@ -10997,8 +12508,7 @@ func (this *BinanceCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 			ch <- result
 			return nil
 		}
-
-		return nil
+		panic(NotSupported(Add(Add(Add(this.Id, " fetchTradingFees() is not supported for "), typeVar), " markets")))
 
 	}()
 	return ch
@@ -11029,8 +12539,8 @@ func (this *BinanceCore) FuturesTransfer(code any, amount any, typeVar any, opti
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1020012 := (<-this.LoadMarkets())
-			PanicOnError(retRes1020012)
+			retRes1021112 := (<-this.LoadMarkets())
+			PanicOnError(retRes1021112)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -11073,8 +12583,8 @@ func (this *BinanceCore) FetchFundingRate(symbol any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1022912 := (<-this.LoadMarkets())
-			PanicOnError(retRes1022912)
+			retRes1024012 := (<-this.LoadMarkets())
+			PanicOnError(retRes1024012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -11148,8 +12658,8 @@ func (this *BinanceCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1028112 := (<-this.LoadMarkets())
-			PanicOnError(retRes1028112)
+			retRes1029212 := (<-this.LoadMarkets())
+			PanicOnError(retRes1029212)
 		}
 		var request any = map[string]any{}
 		var paginate any = false
@@ -11158,9 +12668,9 @@ func (this *BinanceCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes1028719 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-			PanicOnError(retRes1028719)
-			ch <- retRes1028719
+			retRes1029819 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+			PanicOnError(retRes1029819)
+			ch <- retRes1029819
 			return nil
 		}
 		var defaultType any = this.SafeString2(this.Options, "fetchFundingRateHistory", "defaultType", "future")
@@ -11256,8 +12766,8 @@ func (this *BinanceCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1036112 := (<-this.LoadMarkets())
-			PanicOnError(retRes1036112)
+			retRes1037212 := (<-this.LoadMarkets())
+			PanicOnError(retRes1037212)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var defaultType any = this.SafeString2(this.Options, "fetchFundingRates", "defaultType", "future")
@@ -11895,8 +13405,8 @@ func (this *BinanceCore) LoadLeverageBrackets(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1097612 := (<-this.LoadMarkets())
-			PanicOnError(retRes1097612)
+			retRes1098712 := (<-this.LoadMarkets())
+			PanicOnError(retRes1098712)
 		}
 		// by default cache the leverage bracket
 		// it contains useful stuff like the maintenance margin and initial margin for positions
@@ -11941,8 +13451,9 @@ func (this *BinanceCore) LoadLeverageBrackets(optionalArgs ...any) <-chan any {
 			if IsTrue(IsEqual(response, nil)) {
 				panic(NullResponse(Add(this.Id, " loadLeverageBrackets() returned empty response")))
 			}
-			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-				var entry any = GetValue(response, i)
+			var entries any = this.ToArray(response)
+			for i := 0; IsLessThan(i, GetArrayLength(entries)); i++ {
+				var entry any = GetValue(entries, i)
 				var marketId any = this.SafeString(entry, "symbol")
 				var symbol any = this.SafeSymbol(marketId, nil, nil, "contract")
 				var brackets any = this.SafeList(entry, "brackets", []any{})
@@ -11989,8 +13500,8 @@ func (this *BinanceCore) FetchLeverageTiers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1104312 := (<-this.LoadMarkets())
-			PanicOnError(retRes1104312)
+			retRes1105512 := (<-this.LoadMarkets())
+			PanicOnError(retRes1105512)
 		}
 		var typeVar any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchLeverageTiers", nil, params)
@@ -12136,8 +13647,8 @@ func (this *BinanceCore) FetchPosition(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1116212 := (<-this.LoadMarkets())
-			PanicOnError(retRes1116212)
+			retRes1117412 := (<-this.LoadMarkets())
+			PanicOnError(retRes1117412)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "option")) {
@@ -12173,7 +13684,7 @@ func (this *BinanceCore) FetchPosition(symbol any, optionalArgs ...any) <-chan a
 		//         }
 		//     ]
 		//
-		ch <- this.ParseOptionPosition(GetValue(response, 0), market)
+		ch <- this.ParseOptionPosition(this.SafeDict(response, 0, map[string]any{}), market)
 		return nil
 
 	}()
@@ -12200,8 +13711,8 @@ func (this *BinanceCore) FetchOptionPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1120912 := (<-this.LoadMarkets())
-			PanicOnError(retRes1120912)
+			retRes1122112 := (<-this.LoadMarkets())
+			PanicOnError(retRes1122112)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
@@ -12247,8 +13758,9 @@ func (this *BinanceCore) FetchOptionPositions(optionalArgs ...any) <-chan any {
 		//     ]
 		//
 		var result any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			AppendToArray(&result, this.ParseOptionPosition(GetValue(response, i), market))
+		var positions any = this.ToArray(response)
+		for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
+			AppendToArray(&result, this.ParseOptionPosition(GetValue(positions, i), market))
 		}
 
 		ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -12359,21 +13871,21 @@ func (this *BinanceCore) FetchPositions(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(defaultMethod, "positionRisk")) {
 
-			retRes1134819 := (<-this.FetchPositionsRisk(symbols, params))
-			PanicOnError(retRes1134819)
-			ch <- retRes1134819
+			retRes1136119 := (<-this.FetchPositionsRisk(symbols, params))
+			PanicOnError(retRes1136119)
+			ch <- retRes1136119
 			return nil
 		} else if IsTrue(IsEqual(defaultMethod, "account")) {
 
-			retRes1135019 := (<-this.FetchAccountPositions(symbols, params))
-			PanicOnError(retRes1135019)
-			ch <- retRes1135019
+			retRes1136319 := (<-this.FetchAccountPositions(symbols, params))
+			PanicOnError(retRes1136319)
+			ch <- retRes1136319
 			return nil
 		} else if IsTrue(IsEqual(defaultMethod, "option")) {
 
-			retRes1135219 := (<-this.FetchOptionPositions(symbols, params))
-			PanicOnError(retRes1135219)
-			ch <- retRes1135219
+			retRes1136519 := (<-this.FetchOptionPositions(symbols, params))
+			PanicOnError(retRes1136519)
+			ch <- retRes1136519
 			return nil
 		} else {
 			panic(NotSupported(Add(Add(Add(this.Id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\", \"positionRisk\" and \"option\"")))
@@ -12417,12 +13929,12 @@ func (this *BinanceCore) FetchAccountPositions(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1138312 := (<-this.LoadMarkets())
-			PanicOnError(retRes1138312)
+			retRes1139612 := (<-this.LoadMarkets())
+			PanicOnError(retRes1139612)
 		}
 
-		retRes113858 := (<-this.LoadLeverageBrackets(false, params))
-		PanicOnError(retRes113858)
+		retRes113988 := (<-this.LoadLeverageBrackets(false, params))
+		PanicOnError(retRes113988)
 		var defaultType any = this.SafeString(this.Options, "defaultType", "future")
 		var typeVar any = this.SafeString(params, "type", defaultType)
 		params = this.Omit(params, "type")
@@ -12515,12 +14027,12 @@ func (this *BinanceCore) FetchPositionsRisk(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1151212 := (<-this.LoadMarkets())
-			PanicOnError(retRes1151212)
+			retRes1152512 := (<-this.LoadMarkets())
+			PanicOnError(retRes1152512)
 		}
 
-		retRes115148 := (<-this.LoadLeverageBrackets(false, params))
-		PanicOnError(retRes115148)
+		retRes115278 := (<-this.LoadLeverageBrackets(false, params))
+		PanicOnError(retRes115278)
 		var request any = map[string]any{}
 		var defaultType any = "future"
 		defaultType = this.SafeString(this.Options, "defaultType", defaultType)
@@ -12654,11 +14166,12 @@ func (this *BinanceCore) FetchPositionsRisk(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(response, nil)) {
 			panic(NullResponse(Add(this.Id, " method() returned empty response")))
 		}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var rawPosition any = GetValue(response, i)
+		var positions any = this.ToArray(response)
+		for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
+			var rawPosition any = GetValue(positions, i)
 			var entryPriceString any = this.SafeString(rawPosition, "entryPrice")
 			if IsTrue(Precise.StringGt(entryPriceString, "0")) {
-				AppendToArray(&result, this.ParsePositionRisk(GetValue(response, i)))
+				AppendToArray(&result, this.ParsePositionRisk(rawPosition))
 			}
 		}
 		symbols = this.MarketSymbols(symbols)
@@ -12702,8 +14215,8 @@ func (this *BinanceCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1168812 := (<-this.LoadMarkets())
-			PanicOnError(retRes1168812)
+			retRes1170212 := (<-this.LoadMarkets())
+			PanicOnError(retRes1170212)
 		}
 		var market any = nil
 		var request any = map[string]any{
@@ -12801,8 +14314,8 @@ func (this *BinanceCore) SetLeverage(leverage any, optionalArgs ...any) <-chan a
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1175812 := (<-this.LoadMarkets())
-			PanicOnError(retRes1175812)
+			retRes1177212 := (<-this.LoadMarkets())
+			PanicOnError(retRes1177212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -12887,8 +14400,8 @@ func (this *BinanceCore) SetMarginMode(marginMode any, optionalArgs ...any) <-ch
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1181912 := (<-this.LoadMarkets())
-			PanicOnError(retRes1181912)
+			retRes1183312 := (<-this.LoadMarkets())
+			PanicOnError(retRes1183312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -13070,12 +14583,12 @@ func (this *BinanceCore) FetchLeverages(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1193712 := (<-this.LoadMarkets())
-			PanicOnError(retRes1193712)
+			retRes1195112 := (<-this.LoadMarkets())
+			PanicOnError(retRes1195112)
 		}
 
-		retRes119398 := (<-this.LoadLeverageBrackets(false, params))
-		PanicOnError(retRes119398)
+		retRes119538 := (<-this.LoadLeverageBrackets(false, params))
+		PanicOnError(retRes119538)
 		var typeVar any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchLeverages", nil, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
@@ -13183,8 +14696,8 @@ func (this *BinanceCore) FetchSettlementHistory(optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1201412 := (<-this.LoadMarkets())
-			PanicOnError(retRes1201412)
+			retRes1202812 := (<-this.LoadMarkets())
+			PanicOnError(retRes1202812)
 		}
 		var market any = Ternary(IsTrue((IsEqual(symbol, nil))), nil, this.Market(symbol))
 		var typeVar any = nil
@@ -13255,8 +14768,8 @@ func (this *BinanceCore) FetchMySettlementHistory(optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1206312 := (<-this.LoadMarkets())
-			PanicOnError(retRes1206312)
+			retRes1207712 := (<-this.LoadMarkets())
+			PanicOnError(retRes1207712)
 		}
 		var market any = Ternary(IsTrue((IsEqual(symbol, nil))), nil, this.Market(symbol))
 		var typeVar any = nil
@@ -13413,8 +14926,8 @@ func (this *BinanceCore) FetchLedgerEntry(id any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1220412 := (<-this.LoadMarkets())
-			PanicOnError(retRes1220412)
+			retRes1221812 := (<-this.LoadMarkets())
+			PanicOnError(retRes1221812)
 		}
 		var typeVar any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchLedgerEntry", nil, params)
@@ -13486,8 +14999,8 @@ func (this *BinanceCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1225412 := (<-this.LoadMarkets())
-			PanicOnError(retRes1225412)
+			retRes1226812 := (<-this.LoadMarkets())
+			PanicOnError(retRes1226812)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
@@ -13495,9 +15008,9 @@ func (this *BinanceCore) FetchLedger(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes1225919 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, nil, false))
-			PanicOnError(retRes1225919)
-			ch <- retRes1225919
+			retRes1227319 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, nil, false))
+			PanicOnError(retRes1227319)
+			ch <- retRes1227319
 			return nil
 		}
 		var typeVar any = nil
@@ -13994,6 +15507,7 @@ func (this *BinanceCore) HandleErrors(code any, reason any, url any, method any,
 	return nil
 }
 func (this *BinanceCore) CalculateRateLimiterCost(api any, method any, path any, params any, optionalArgs ...any) any {
+	// safeValue keeps runtime identical to the prior bare index (no empty-array default)
 	config := GetArg(optionalArgs, 0, map[string]any{})
 	_ = config
 	if IsTrue(IsTrue((InOp(config, "noCoin"))) && !IsTrue((InOp(params, "coin")))) {
@@ -14004,7 +15518,7 @@ func (this *BinanceCore) CalculateRateLimiterCost(api any, method any, path any,
 		return GetValue(config, "noPoolId")
 	} else if IsTrue(IsTrue((InOp(config, "byLimit"))) && IsTrue((InOp(params, "limit")))) {
 		var limit any = GetValue(params, "limit")
-		var byLimit any = GetValue(config, "byLimit")
+		var byLimit any = this.SafeValue(config, "byLimit")
 		for i := 0; IsLessThan(i, GetArrayLength(byLimit)); i++ {
 			var entry any = GetValue(byLimit, i)
 			if IsTrue(IsLessThanOrEqual(limit, GetValue(entry, 0))) {
@@ -14063,8 +15577,8 @@ func (this *BinanceCore) ModifyMarginHelper(symbol any, amount any, addOrReduce 
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1275112 := (<-this.LoadMarkets())
-			PanicOnError(retRes1275112)
+			retRes1276612 := (<-this.LoadMarkets())
+			PanicOnError(retRes1276612)
 		}
 		var market any = this.Market(symbol)
 		amount = this.AmountToPrecision(symbol, amount)
@@ -14172,9 +15686,9 @@ func (this *BinanceCore) ReduceMargin(symbol any, amount any, optionalArgs ...an
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes1284215 := (<-this.ModifyMarginHelper(symbol, amount, 2, params))
-		PanicOnError(retRes1284215)
-		ch <- retRes1284215
+		retRes1285715 := (<-this.ModifyMarginHelper(symbol, amount, 2, params))
+		PanicOnError(retRes1285715)
+		ch <- retRes1285715
 		return nil
 
 	}()
@@ -14200,9 +15714,9 @@ func (this *BinanceCore) AddMargin(symbol any, amount any, optionalArgs ...any) 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes1285715 := (<-this.ModifyMarginHelper(symbol, amount, 1, params))
-		PanicOnError(retRes1285715)
-		ch <- retRes1285715
+		retRes1287215 := (<-this.ModifyMarginHelper(symbol, amount, 1, params))
+		PanicOnError(retRes1287215)
+		ch <- retRes1287215
 		return nil
 
 	}()
@@ -14227,8 +15741,8 @@ func (this *BinanceCore) FetchCrossBorrowRate(code any, optionalArgs ...any) <-c
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1287112 := (<-this.LoadMarkets())
-			PanicOnError(retRes1287112)
+			retRes1288612 := (<-this.LoadMarkets())
+			PanicOnError(retRes1288612)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -14310,8 +15824,8 @@ func (this *BinanceCore) FetchIsolatedBorrowRates(optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1292712 := (<-this.LoadMarkets())
-			PanicOnError(retRes1292712)
+			retRes1294212 := (<-this.LoadMarkets())
+			PanicOnError(retRes1294212)
 		}
 		var request any = map[string]any{}
 		var symbol any = this.SafeString(params, "symbol")
@@ -14376,8 +15890,8 @@ func (this *BinanceCore) FetchBorrowRateHistory(code any, optionalArgs ...any) <
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1297412 := (<-this.LoadMarkets())
-			PanicOnError(retRes1297412)
+			retRes1298912 := (<-this.LoadMarkets())
+			PanicOnError(retRes1298912)
 		}
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = 93
@@ -14496,8 +16010,8 @@ func (this *BinanceCore) CreateGiftCode(code any, amount any, optionalArgs ...an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1307812 := (<-this.LoadMarkets())
-			PanicOnError(retRes1307812)
+			retRes1309312 := (<-this.LoadMarkets())
+			PanicOnError(retRes1309312)
 		}
 		var currency any = this.Currency(code)
 		// ensure you have enough token in your funding account before calling this code
@@ -14643,8 +16157,8 @@ func (this *BinanceCore) FetchBorrowInterest(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1317612 := (<-this.LoadMarkets())
-			PanicOnError(retRes1317612)
+			retRes1319112 := (<-this.LoadMarkets())
+			PanicOnError(retRes1319112)
 		}
 		var isPortfolioMargin any = nil
 		isPortfolioMarginparamsVariable := this.HandleOptionAndParams2(params, "fetchBorrowInterest", "papi", "portfolioMargin", false)
@@ -14767,8 +16281,8 @@ func (this *BinanceCore) RepayCrossMargin(code any, amount any, optionalArgs ...
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1327812 := (<-this.LoadMarkets())
-			PanicOnError(retRes1327812)
+			retRes1329312 := (<-this.LoadMarkets())
+			PanicOnError(retRes1329312)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -14829,8 +16343,8 @@ func (this *BinanceCore) RepayIsolatedMargin(symbol any, code any, amount any, o
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1333812 := (<-this.LoadMarkets())
-			PanicOnError(retRes1333812)
+			retRes1335312 := (<-this.LoadMarkets())
+			PanicOnError(retRes1335312)
 		}
 		var currency any = this.Currency(code)
 		var market any = this.Market(symbol)
@@ -14879,8 +16393,8 @@ func (this *BinanceCore) BorrowCrossMargin(code any, amount any, optionalArgs ..
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1337312 := (<-this.LoadMarkets())
-			PanicOnError(retRes1337312)
+			retRes1338812 := (<-this.LoadMarkets())
+			PanicOnError(retRes1338812)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -14937,8 +16451,8 @@ func (this *BinanceCore) BorrowIsolatedMargin(symbol any, code any, amount any, 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1341212 := (<-this.LoadMarkets())
-			PanicOnError(retRes1341212)
+			retRes1342712 := (<-this.LoadMarkets())
+			PanicOnError(retRes1342712)
 		}
 		var currency any = this.Currency(code)
 		var market any = this.Market(symbol)
@@ -14987,7 +16501,7 @@ func (this *BinanceCore) ParseMarginLoan(info any, optionalArgs ...any) any {
 	var currencyId any = this.SafeString(info, "asset")
 	var timestamp any = this.SafeInteger(info, "updateTime")
 	return map[string]any{
-		"id":        this.SafeInteger(info, "tranId"),
+		"id":        this.SafeString(info, "tranId"),
 		"currency":  this.SafeCurrencyCode(currencyId, currency),
 		"amount":    this.SafeNumber(info, "amount"),
 		"symbol":    nil,
@@ -15030,8 +16544,8 @@ func (this *BinanceCore) FetchOpenInterestHistory(symbol any, optionalArgs ...an
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1348312 := (<-this.LoadMarkets())
-			PanicOnError(retRes1348312)
+			retRes1349812 := (<-this.LoadMarkets())
+			PanicOnError(retRes1349812)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenInterestHistory", "paginate", false)
@@ -15039,9 +16553,9 @@ func (this *BinanceCore) FetchOpenInterestHistory(symbol any, optionalArgs ...an
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes1348819 := (<-this.FetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 500))
-			PanicOnError(retRes1348819)
-			ch <- retRes1348819
+			retRes1350319 := (<-this.FetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 500))
+			PanicOnError(retRes1350319)
+			ch <- retRes1350319
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -15120,8 +16634,8 @@ func (this *BinanceCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1355012 := (<-this.LoadMarkets())
-			PanicOnError(retRes1355012)
+			retRes1356512 := (<-this.LoadMarkets())
+			PanicOnError(retRes1356512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
@@ -15255,8 +16769,8 @@ func (this *BinanceCore) FetchMyLiquidations(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1365712 := (<-this.LoadMarkets())
-			PanicOnError(retRes1365712)
+			retRes1367212 := (<-this.LoadMarkets())
+			PanicOnError(retRes1367212)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyLiquidations", "paginate")
@@ -15264,9 +16778,9 @@ func (this *BinanceCore) FetchMyLiquidations(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes1366219 := (<-this.FetchPaginatedCallIncremental("fetchMyLiquidations", symbol, since, limit, params, "current", 100))
-			PanicOnError(retRes1366219)
-			ch <- retRes1366219
+			retRes1367719 := (<-this.FetchPaginatedCallIncremental("fetchMyLiquidations", symbol, since, limit, params, "current", 100))
+			PanicOnError(retRes1367719)
+			ch <- retRes1367719
 			return nil
 		}
 		var market any = nil
@@ -15419,10 +16933,13 @@ func (this *BinanceCore) FetchMyLiquidations(optionalArgs ...any) <-chan any {
 		//         },
 		//     ]
 		//
-		var liquidations any = this.SafeList(response, "rows", response)
 		var liquidationsList any = []any{}
-		if IsTrue(!IsEqual(liquidations, nil)) {
-			liquidationsList = liquidations
+		var rows any = this.SafeList(response, "rows")
+		if IsTrue(!IsEqual(rows, nil)) {
+			liquidationsList = rows
+		} else if IsTrue(IsArray(response)) {
+			// linear and inverse return the bare array, margin wraps it in 'rows'
+			liquidationsList = response
 		}
 
 		ch <- this.ParseLiquidations(liquidationsList, market, since, limit)
@@ -15536,8 +17053,8 @@ func (this *BinanceCore) FetchGreeks(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1389812 := (<-this.LoadMarkets())
-			PanicOnError(retRes1389812)
+			retRes1391612 := (<-this.LoadMarkets())
+			PanicOnError(retRes1391612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -15564,7 +17081,7 @@ func (this *BinanceCore) FetchGreeks(symbol any, optionalArgs ...any) <-chan any
 		//         }
 		//     ]
 		//
-		ch <- this.ParseGreeks(GetValue(response, 0), market)
+		ch <- this.ParseGreeks(this.SafeDict(response, 0, map[string]any{}), market)
 		return nil
 
 	}()
@@ -15591,8 +17108,8 @@ func (this *BinanceCore) FetchAllGreeks(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1393612 := (<-this.LoadMarkets())
-			PanicOnError(retRes1393612)
+			retRes1395412 := (<-this.LoadMarkets())
+			PanicOnError(retRes1395412)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var request any = map[string]any{}
@@ -15787,8 +17304,8 @@ func (this *BinanceCore) FetchMarginModes(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1408112 := (<-this.LoadMarkets())
-			PanicOnError(retRes1408112)
+			retRes1409912 := (<-this.LoadMarkets())
+			PanicOnError(retRes1409912)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -15843,8 +17360,8 @@ func (this *BinanceCore) FetchMarginMode(symbol any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1417712 := (<-this.LoadMarkets())
-			PanicOnError(retRes1417712)
+			retRes1419512 := (<-this.LoadMarkets())
+			PanicOnError(retRes1419512)
 		}
 		var market any = this.Market(symbol)
 		var subType any = nil
@@ -15918,8 +17435,8 @@ func (this *BinanceCore) FetchOption(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1424112 := (<-this.LoadMarkets())
-			PanicOnError(retRes1424112)
+			retRes1425912 := (<-this.LoadMarkets())
+			PanicOnError(retRes1425912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -16041,8 +17558,8 @@ func (this *BinanceCore) FetchMarginAdjustmentHistory(optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1433812 := (<-this.LoadMarkets())
-			PanicOnError(retRes1433812)
+			retRes1435612 := (<-this.LoadMarkets())
+			PanicOnError(retRes1435612)
 		}
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchMarginAdjustmentHistory () requires a symbol argument")))
@@ -16095,7 +17612,7 @@ func (this *BinanceCore) FetchMarginAdjustmentHistory(optionalArgs ...any) <-cha
 		if IsTrue(IsEqual(response, nil)) {
 			panic(NullResponse(Add(this.Id, " parseMarginModifications() returned empty response")))
 		}
-		var modifications any = this.ParseMarginModifications(response)
+		var modifications any = this.ParseMarginModifications(this.ToArray(response))
 
 		ch <- this.FilterBySymbolSinceLimit(modifications, symbol, since, limit)
 		return nil
@@ -16121,8 +17638,8 @@ func (this *BinanceCore) FetchConvertCurrencies(optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1440112 := (<-this.LoadMarkets())
-			PanicOnError(retRes1440112)
+			retRes1441912 := (<-this.LoadMarkets())
+			PanicOnError(retRes1441912)
 		}
 
 		response := (<-this.SapiGetConvertAssetInfo(params))
@@ -16136,8 +17653,9 @@ func (this *BinanceCore) FetchConvertCurrencies(optionalArgs ...any) <-chan any 
 		//     ]
 		//
 		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var entry any = GetValue(response, i)
+		var assets any = this.ToArray(response)
+		for i := 0; IsLessThan(i, GetArrayLength(assets)); i++ {
+			var entry any = GetValue(assets, i)
 			var id any = this.SafeString(entry, "asset")
 			var code any = this.SafeCurrencyCode(id)
 			if IsTrue(!IsEqual(code, nil)) {
@@ -16205,8 +17723,8 @@ func (this *BinanceCore) FetchConvertQuote(fromCode any, toCode any, optionalArg
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1446812 := (<-this.LoadMarkets())
-			PanicOnError(retRes1446812)
+			retRes1448712 := (<-this.LoadMarkets())
+			PanicOnError(retRes1448712)
 		}
 		var request any = map[string]any{
 			"fromAsset":  fromCode,
@@ -16262,8 +17780,8 @@ func (this *BinanceCore) CreateConvertTrade(id any, fromCode any, toCode any, op
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1450812 := (<-this.LoadMarkets())
-			PanicOnError(retRes1450812)
+			retRes1452712 := (<-this.LoadMarkets())
+			PanicOnError(retRes1452712)
 		}
 		var request any = map[string]any{}
 		var response any = nil
@@ -16318,8 +17836,8 @@ func (this *BinanceCore) FetchConvertTrade(id any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1455812 := (<-this.LoadMarkets())
-			PanicOnError(retRes1455812)
+			retRes1457712 := (<-this.LoadMarkets())
+			PanicOnError(retRes1457712)
 		}
 		var request any = map[string]any{}
 		var response any = nil
@@ -16395,8 +17913,8 @@ func (this *BinanceCore) FetchConvertTradeHistory(optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1464312 := (<-this.LoadMarkets())
-			PanicOnError(retRes1464312)
+			retRes1466212 := (<-this.LoadMarkets())
+			PanicOnError(retRes1466212)
 		}
 		var request any = map[string]any{}
 		var msInThirtyDays any = 2592000000
@@ -16567,8 +18085,8 @@ func (this *BinanceCore) FetchFundingIntervals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1483312 := (<-this.LoadMarkets())
-			PanicOnError(retRes1483312)
+			retRes1485212 := (<-this.LoadMarkets())
+			PanicOnError(retRes1485212)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -16642,8 +18160,8 @@ func (this *BinanceCore) FetchLongShortRatioHistory(optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1488112 := (<-this.LoadMarkets())
-			PanicOnError(retRes1488112)
+			retRes1490012 := (<-this.LoadMarkets())
+			PanicOnError(retRes1490012)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(IsEqual(timeframe, nil)) {
@@ -16740,8 +18258,8 @@ func (this *BinanceCore) FetchADLRank(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1497912 := (<-this.LoadMarkets())
-			PanicOnError(retRes1497912)
+			retRes1499812 := (<-this.LoadMarkets())
+			PanicOnError(retRes1499812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -16794,8 +18312,8 @@ func (this *BinanceCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1502112 := (<-this.LoadMarkets())
-			PanicOnError(retRes1502112)
+			retRes1504012 := (<-this.LoadMarkets())
+			PanicOnError(retRes1504012)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var market any = this.GetMarketFromSymbols(symbols)
@@ -16845,7 +18363,7 @@ func (this *BinanceCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
 		//
 		var responseList any = []any{}
 		if IsTrue(!IsEqual(response, nil)) {
-			responseList = response
+			responseList = this.ToArray(response)
 		}
 
 		ch <- this.ParseADLRanks(responseList, symbols)

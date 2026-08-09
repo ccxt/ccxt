@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hashkey import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LastPrice, LastPrices, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LastPrice, LastPrices, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -72,6 +72,7 @@ class hashkey(Exchange, ImplicitAPI):
                 'createMarketOrderWithCost': False,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
+                'createOrders': True,
                 'createOrderWithTakeProfitAndStopLoss': False,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
@@ -118,6 +119,7 @@ class hashkey(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
                 'fetchIsolatedPositions': False,
+                'fetchLastPrices': True,
                 'fetchLedger': True,
                 'fetchLeverage': True,
                 'fetchLeverages': False,
@@ -214,83 +216,83 @@ class hashkey(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'api/v1/exchangeInfo': 5,
-                        'quote/v1/depth': 1,
-                        'quote/v1/trades': 1,
-                        'quote/v1/klines': 1,
-                        'quote/v1/ticker/24hr': 1,
-                        'quote/v1/ticker/price': 1,
-                        'quote/v1/ticker/bookTicker': 1,  # not unified
-                        'quote/v1/depth/merged': 1,
-                        'quote/v1/markPrice': 1,
-                        'quote/v1/index': 1,
-                        'api/v1/futures/fundingRate': 1,
-                        'api/v1/futures/historyFundingRate': 1,
-                        'api/v1/ping': 1,
-                        'api/v1/time': 1,
+                        'api/v1/exchangeInfo': {'cost': 5},
+                        'quote/v1/depth': {'cost': 1},
+                        'quote/v1/trades': {'cost': 1},
+                        'quote/v1/klines': {'cost': 1},
+                        'quote/v1/ticker/24hr': {'cost': 1},
+                        'quote/v1/ticker/price': {'cost': 1},
+                        'quote/v1/ticker/bookTicker': {'cost': 1},  # not unified
+                        'quote/v1/depth/merged': {'cost': 1},
+                        'quote/v1/markPrice': {'cost': 1},
+                        'quote/v1/index': {'cost': 1},
+                        'api/v1/futures/fundingRate': {'cost': 1},
+                        'api/v1/futures/historyFundingRate': {'cost': 1},
+                        'api/v1/ping': {'cost': 1},
+                        'api/v1/time': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
-                        'api/v1/spot/order': 1,
-                        'api/v1/spot/openOrders': 1,
-                        'api/v1/spot/tradeOrders': 5,
-                        'api/v1/futures/leverage': 1,
-                        'api/v1/futures/order': 1,
-                        'api/v1/futures/openOrders': 1,
-                        'api/v1/futures/userTrades': 1,
-                        'api/v1/futures/positions': 1,
-                        'api/v1/futures/historyOrders': 1,
-                        'api/v1/futures/balance': 1,
-                        'api/v1/futures/liquidationAssignStatus': 1,
-                        'api/v1/futures/riskLimit': 1,
-                        'api/v1/futures/commissionRate': 1,
-                        'api/v1/futures/getBestOrder': 1,
-                        'api/v1/coinInfo': 1,
-                        'api/v1/account/vipInfo': 1,
-                        'api/v1/account': 1,
-                        'api/v1/account/trades': 5,
-                        'api/v1/account/type': 5,
-                        'api/v1/account/chainType': 1,
-                        'api/v1/account/checkApiKey': 1,
-                        'api/v1/account/balanceFlow': 5,
-                        'api/v1/spot/subAccount/openOrders': 1,
-                        'api/v1/spot/subAccount/tradeOrders': 1,
-                        'api/v1/subAccount/trades': 1,
-                        'api/v1/futures/subAccount/openOrders': 1,
-                        'api/v1/futures/subAccount/historyOrders': 1,
-                        'api/v1/futures/subAccount/userTrades': 1,
-                        'api/v1/account/deposit/address': 1,
-                        'api/v1/account/depositOrders': 1,
-                        'api/v1/account/withdrawOrders': 1,
+                        'api/v1/spot/order': {'cost': 1},
+                        'api/v1/spot/openOrders': {'cost': 1},
+                        'api/v1/spot/tradeOrders': {'cost': 5},
+                        'api/v1/futures/leverage': {'cost': 1},
+                        'api/v1/futures/order': {'cost': 1},
+                        'api/v1/futures/openOrders': {'cost': 1},
+                        'api/v1/futures/userTrades': {'cost': 1},
+                        'api/v1/futures/positions': {'cost': 1},
+                        'api/v1/futures/historyOrders': {'cost': 1},
+                        'api/v1/futures/balance': {'cost': 1},
+                        'api/v1/futures/liquidationAssignStatus': {'cost': 1},
+                        'api/v1/futures/riskLimit': {'cost': 1},
+                        'api/v1/futures/commissionRate': {'cost': 1},
+                        'api/v1/futures/getBestOrder': {'cost': 1},
+                        'api/v1/coinInfo': {'cost': 1},
+                        'api/v1/account/vipInfo': {'cost': 1},
+                        'api/v1/account': {'cost': 1},
+                        'api/v1/account/trades': {'cost': 5},
+                        'api/v1/account/type': {'cost': 5},
+                        'api/v1/account/chainType': {'cost': 1},
+                        'api/v1/account/checkApiKey': {'cost': 1},
+                        'api/v1/account/balanceFlow': {'cost': 5},
+                        'api/v1/spot/subAccount/openOrders': {'cost': 1},
+                        'api/v1/spot/subAccount/tradeOrders': {'cost': 1},
+                        'api/v1/subAccount/trades': {'cost': 1},
+                        'api/v1/futures/subAccount/openOrders': {'cost': 1},
+                        'api/v1/futures/subAccount/historyOrders': {'cost': 1},
+                        'api/v1/futures/subAccount/userTrades': {'cost': 1},
+                        'api/v1/account/deposit/address': {'cost': 1},
+                        'api/v1/account/depositOrders': {'cost': 1},
+                        'api/v1/account/withdrawOrders': {'cost': 1},
                     },
                     'post': {
-                        'api/v1/userDataStream': 1,
-                        'api/v1/spot/orderTest': 1,
-                        'api/v1/spot/order': 1,
-                        'api/v1.1/spot/order': 1,
-                        'api/v1/spot/batchOrders': 5,
-                        'api/v1/futures/leverage': 1,
-                        'api/v1/futures/order': 1,
-                        'api/v1/futures/marginType': 1,
-                        'api/v1/futures/positionMargin': 1,
-                        'api/v1/futures/position/trading-stop': 3,
-                        'api/v1/futures/batchOrders': 5,
-                        'api/v1/account/assetTransfer': 1,
-                        'api/v1/account/authAddress': 1,
-                        'api/v1/account/withdraw': 1,
+                        'api/v1/userDataStream': {'cost': 1},
+                        'api/v1/spot/orderTest': {'cost': 1},
+                        'api/v1/spot/order': {'cost': 1},
+                        'api/v1.1/spot/order': {'cost': 1},
+                        'api/v1/spot/batchOrders': {'cost': 5},
+                        'api/v1/futures/leverage': {'cost': 1},
+                        'api/v1/futures/order': {'cost': 1},
+                        'api/v1/futures/marginType': {'cost': 1},
+                        'api/v1/futures/positionMargin': {'cost': 1},
+                        'api/v1/futures/position/trading-stop': {'cost': 3},
+                        'api/v1/futures/batchOrders': {'cost': 5},
+                        'api/v1/account/assetTransfer': {'cost': 1},
+                        'api/v1/account/authAddress': {'cost': 1},
+                        'api/v1/account/withdraw': {'cost': 1},
                     },
                     'put': {
-                        'api/v1/userDataStream': 1,
+                        'api/v1/userDataStream': {'cost': 1},
                     },
                     'delete': {
-                        'api/v1/spot/order': 1,
-                        'api/v1/spot/openOrders': 5,
-                        'api/v1/spot/cancelOrderByIds': 5,
-                        'api/v1/futures/order': 1,
-                        'api/v1/futures/batchOrders': 1,
-                        'api/v1/futures/cancelOrderByIds': 1,
-                        'api/v1/userDataStream': 1,
+                        'api/v1/spot/order': {'cost': 1},
+                        'api/v1/spot/openOrders': {'cost': 5},
+                        'api/v1/spot/cancelOrderByIds': {'cost': 5},
+                        'api/v1/futures/order': {'cost': 1},
+                        'api/v1/futures/batchOrders': {'cost': 1},
+                        'api/v1/futures/cancelOrderByIds': {'cost': 1},
+                        'api/v1/userDataStream': {'cost': 1},
                     },
                 },
             },
@@ -370,7 +372,7 @@ class hashkey(Exchange, ImplicitAPI):
                     'DOT': 'Polkadot',
                     'LTC': 'LTC',
                     'OPTIMISM': 'Optimism',
-                    'ARB': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                     'DOGE': 'Dogecoin',
                     'TRC20': 'Tron',
                     'ZKSYNC': 'zkSync',
@@ -387,7 +389,7 @@ class hashkey(Exchange, ImplicitAPI):
                     'AVAX C-Chain': 'AVAX',
                     'Solana': 'SOL',
                     'Cosmos': 'ATOM',
-                    'Arbitrum': 'ARB',
+                    'Arbitrum': 'ARBITRUM',
                     'Polygon': 'MATIC',
                     'Optimism': 'OPTIMISM',
                     'Polkadot': 'DOT',
@@ -673,7 +675,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    def fetch_status(self, params={}):
+    def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -1579,7 +1581,8 @@ class hashkey(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        ohlcvs = self.to_array(response)
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
@@ -2951,7 +2954,7 @@ class hashkey(Exchange, ImplicitAPI):
         side = self.safe_string(params, 'side')
         if side is not None:
             request['side'] = side
-        response = None
+        response: dict
         if market['spot']:
             response = self.privateDeleteApiV1SpotOpenOrders(self.extend(request, params))
             #
@@ -2992,7 +2995,7 @@ class hashkey(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType = 'spot'
         marketType, params = self.handle_market_type_and_params(methodName, market, params, marketType)
-        response = None
+        response: dict
         if marketType == 'spot':
             response = self.privateDeleteApiV1SpotCancelOrderByIds(request)
             #
@@ -3767,8 +3770,9 @@ class hashkey(Exchange, ImplicitAPI):
         #     ]
         #
         rates = []
-        for i in range(0, len(response)):
-            entry = response[i]
+        rows = self.to_array(response)
+        for i in range(0, len(rows)):
+            entry = rows[i]
             timestamp = self.safe_integer(entry, 'settleTime')
             rates.append({
                 'info': entry,
@@ -3924,7 +3928,7 @@ class hashkey(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}) -> Leverage:
         """
         set the level of leverage for a market
 

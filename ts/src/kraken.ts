@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 
 ;
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Market, TransferEntry, Num, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest, NullableDict, FeeString, NullableList } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Market, TransferEntry, Num, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest, NullableDict, FeeString, NullableList, Status, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -44,7 +44,7 @@ export default class kraken extends Exchange {
                 'cancelOrders': true,
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
-                'createMarketOrderWithCost': false,
+                'createMarketOrderWithCost': true,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
@@ -157,84 +157,82 @@ export default class kraken extends Exchange {
             'handleContentTypeApplicationZip': true,
             'api': {
                 'zendesk': {
-                    'get': [
-                        // we should really refrain from putting fixed fee numbers and stop hardcoding
-                        // we will be using their web APIs to scrape all numbers from these articles
-                        '360000292886', // -What-are-the-deposit-fees-
-                        '201893608', // -What-are-the-withdrawal-fees-
-                    ],
+                    'get': {
+                        '360000292886': { 'cost': 1 } as Endpoint<Dict>,
+                        '201893608': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'public': {
                     'get': {
                         // rate-limits explained in comment in the top of this file
-                        'Time': 1,
-                        'SystemStatus': 1,
-                        'Assets': 1,
-                        'AssetPairs': 1,
-                        'Ticker': 1,
-                        'OHLC': 1.2, // 1.2 because 1 triggers too many requests immediately
-                        'Depth': 1.2,
-                        'GroupedBook': 1.2,
-                        'Trades': 1.2,
-                        'Spread': 1,
-                        'PreTrade': 1,
-                        'PostTrade': 1,
+                        'Time': { 'cost': 1 } as Endpoint<Dict>,
+                        'SystemStatus': { 'cost': 1 } as Endpoint<Dict>,
+                        'Assets': { 'cost': 1 } as Endpoint<Dict>,
+                        'AssetPairs': { 'cost': 1 } as Endpoint<Dict>,
+                        'Ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'OHLC': { 'cost': 1.2 } as Endpoint<Dict>, // 1.2 because 1 triggers too many requests immediately
+                        'Depth': { 'cost': 1.2 } as Endpoint<Dict>,
+                        'GroupedBook': { 'cost': 1.2 } as Endpoint<Dict>,
+                        'Trades': { 'cost': 1.2 } as Endpoint<Dict>,
+                        'Spread': { 'cost': 1 } as Endpoint<Dict>,
+                        'PreTrade': { 'cost': 1 } as Endpoint<Dict>,
+                        'PostTrade': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'post': {
-                        'Level3': 1.2,
+                        'Level3': { 'cost': 1.2 } as Endpoint<Dict>,
                         // account
-                        'Balance': 3,
-                        'BalanceEx': 3,
-                        'CreditLines': 3,
-                        'TradeBalance': 3,
-                        'OpenOrders': 3,
-                        'ClosedOrders': 3,
-                        'QueryOrders': 3,
-                        'OrderAmends': 3,
-                        'TradesHistory': 6,
-                        'QueryTrades': 3,
-                        'OpenPositions': 3,
-                        'Ledgers': 6,
-                        'QueryLedgers': 3,
-                        'TradeVolume': 3,
-                        'AddExport': 3,
-                        'ExportStatus': 3,
-                        'RetrieveExport': 3,
-                        'RemoveExport': 3,
-                        'GetApiKeyInfo': 3,
+                        'Balance': { 'cost': 3 } as Endpoint<Dict>,
+                        'BalanceEx': { 'cost': 3 } as Endpoint<Dict>,
+                        'CreditLines': { 'cost': 3 } as Endpoint<Dict>,
+                        'TradeBalance': { 'cost': 3 } as Endpoint<Dict>,
+                        'OpenOrders': { 'cost': 3 } as Endpoint<Dict>,
+                        'ClosedOrders': { 'cost': 3 } as Endpoint<Dict>,
+                        'QueryOrders': { 'cost': 3 } as Endpoint<Dict>,
+                        'OrderAmends': { 'cost': 3 } as Endpoint<Dict>,
+                        'TradesHistory': { 'cost': 6 } as Endpoint<Dict>,
+                        'QueryTrades': { 'cost': 3 } as Endpoint<Dict>,
+                        'OpenPositions': { 'cost': 3 } as Endpoint<Dict>,
+                        'Ledgers': { 'cost': 6 } as Endpoint<Dict>,
+                        'QueryLedgers': { 'cost': 3 } as Endpoint<Dict>,
+                        'TradeVolume': { 'cost': 3 } as Endpoint<Dict>,
+                        'AddExport': { 'cost': 3 } as Endpoint<Dict>,
+                        'ExportStatus': { 'cost': 3 } as Endpoint<Dict>,
+                        'RetrieveExport': { 'cost': 3 } as Endpoint<Dict>,
+                        'RemoveExport': { 'cost': 3 } as Endpoint<Dict>,
+                        'GetApiKeyInfo': { 'cost': 3 } as Endpoint<Dict>,
                         // trading
-                        'AddOrder': 0,
-                        'AmendOrder': 0,
-                        'CancelOrder': 0,
-                        'CancelAll': 3,
-                        'CancelAllOrdersAfter': 3,
-                        'GetWebSocketsToken': 3,
-                        'AddOrderBatch': 0,
-                        'CancelOrderBatch': 0,
-                        'EditOrder': 0,
+                        'AddOrder': { 'cost': 0 } as Endpoint<Dict>,
+                        'AmendOrder': { 'cost': 0 } as Endpoint<Dict>,
+                        'CancelOrder': { 'cost': 0 } as Endpoint<Dict>,
+                        'CancelAll': { 'cost': 3 } as Endpoint<Dict>,
+                        'CancelAllOrdersAfter': { 'cost': 3 } as Endpoint<Dict>,
+                        'GetWebSocketsToken': { 'cost': 3 } as Endpoint<Dict>,
+                        'AddOrderBatch': { 'cost': 0 } as Endpoint<Dict>,
+                        'CancelOrderBatch': { 'cost': 0 } as Endpoint<Dict>,
+                        'EditOrder': { 'cost': 0 } as Endpoint<Dict>,
                         // funding
-                        'DepositMethods': 3,
-                        'DepositAddresses': 3,
-                        'DepositStatus': 3,
-                        'WithdrawMethods': 3,
-                        'WithdrawAddresses': 3,
-                        'WithdrawInfo': 3,
-                        'Withdraw': 3,
-                        'WithdrawStatus': 3,
-                        'WithdrawCancel': 3,
-                        'WalletTransfer': 3,
+                        'DepositMethods': { 'cost': 3 } as Endpoint<Dict>,
+                        'DepositAddresses': { 'cost': 3 } as Endpoint<Dict>,
+                        'DepositStatus': { 'cost': 3 } as Endpoint<Dict>,
+                        'WithdrawMethods': { 'cost': 3 } as Endpoint<Dict>,
+                        'WithdrawAddresses': { 'cost': 3 } as Endpoint<Dict>,
+                        'WithdrawInfo': { 'cost': 3 } as Endpoint<Dict>,
+                        'Withdraw': { 'cost': 3 } as Endpoint<Dict>,
+                        'WithdrawStatus': { 'cost': 3 } as Endpoint<Dict>,
+                        'WithdrawCancel': { 'cost': 3 } as Endpoint<Dict>,
+                        'WalletTransfer': { 'cost': 3 } as Endpoint<Dict>,
                         // sub accounts
-                        'CreateSubaccount': 3,
-                        'AccountTransfer': 3,
+                        'CreateSubaccount': { 'cost': 3 } as Endpoint<Dict>,
+                        'AccountTransfer': { 'cost': 3 } as Endpoint<Dict>,
                         // earn
-                        'Earn/Allocate': 3,
-                        'Earn/Deallocate': 3,
-                        'Earn/AllocateStatus': 3,
-                        'Earn/DeallocateStatus': 3,
-                        'Earn/Strategies': 3,
-                        'Earn/Allocations': 3,
+                        'Earn/Allocate': { 'cost': 3 } as Endpoint<Dict>,
+                        'Earn/Deallocate': { 'cost': 3 } as Endpoint<Dict>,
+                        'Earn/AllocateStatus': { 'cost': 3 } as Endpoint<Dict>,
+                        'Earn/DeallocateStatus': { 'cost': 3 } as Endpoint<Dict>,
+                        'Earn/Strategies': { 'cost': 3 } as Endpoint<Dict>,
+                        'Earn/Allocations': { 'cost': 3 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -767,7 +765,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.publicGetSystemStatus (params);
         //
         // {
@@ -1140,7 +1138,7 @@ export default class kraken extends Exchange {
             request['pair'] = marketIds.join (',');
         }
         const response = await this.publicGetTicker (this.extend (request, params));
-        const tickers = response['result'];
+        const tickers = this.safeDict (response, 'result', {});
         const ids = Object.keys (tickers);
         const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
@@ -1171,7 +1169,8 @@ export default class kraken extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
-        const ticker = this.safeValue (response['result'], market['id']);
+        const tickerResult = this.safeDict (response, 'result', {});
+        const ticker = this.safeValue (tickerResult, market['id']);
         return this.parseTicker (ticker, market);
     }
 
@@ -1398,7 +1397,7 @@ export default class kraken extends Exchange {
         //                                       "amount": "-0.2805800000",
         //                                          "fee": "0.0050000000",
         //                                      "balance": "0.0000051000"           } } }
-        const result = response['result'];
+        const result = this.safeDict (response, 'result', {});
         const keys = Object.keys (result);
         const items: List = [];
         for (let i = 0; i < keys.length; i++) {
@@ -1606,7 +1605,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const result = response['result'];
+        const result = this.safeDict (response, 'result', {});
         const trades = this.safeValue (result, id);
         // trades is a sorted array: last (most recent trade) goes last
         const length = trades.length;
@@ -2538,7 +2537,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrdersByIds (ids: any, symbol: Str = undefined, params = {}) {
+    async fetchOrdersByIds (ids: any, symbol: Str = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2620,7 +2619,8 @@ export default class kraken extends Exchange {
         //         },
         //     }
         //
-        const trades = response['result']['trades'];
+        const tradesResult = this.safeDict (response, 'result', {});
+        const trades = this.safeDict (tradesResult, 'trades', {});
         const ids = Object.keys (trades);
         for (let i = 0; i < ids.length; i++) {
             trades[ids[i]]['id'] = ids[i];
@@ -2629,7 +2629,8 @@ export default class kraken extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        return this.parseTrades (trades, market, since, limit);
+        const tradesList = this.toArray (trades);
+        return this.parseTrades (tradesList, market, since, limit);
     }
 
     /**
@@ -3140,7 +3141,8 @@ export default class kraken extends Exchange {
         //                       "time":  1529223212,
         //                     "status": "Success"                                                       } ] }
         //
-        return this.parseTransactionsByType ('deposit', response['result'], code, since, limit);
+        const depositResult = this.safeList (response, 'result', []);
+        return this.parseTransactionsByType ('deposit', depositResult, code, since, limit);
     }
 
     /**

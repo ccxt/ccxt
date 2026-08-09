@@ -69,96 +69,244 @@ public partial class kalshi : PredictionExchange
                 { "kalshi", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "events", 1 },
-                            { "events/multivariate", 1 },
-                            { "events/fee_changes", 1 },
-                            { "events/{event_ticker}", 1 },
-                            { "events/{event_ticker}/metadata", 1 },
-                            { "series", 1 },
-                            { "series/fee_changes", 1 },
-                            { "series/{series_ticker}", 1 },
-                            { "series/{series_ticker}/markets/{ticker}/candlesticks", 1 },
-                            { "series/{series_ticker}/events/{ticker}/candlesticks", 1 },
-                            { "series/{series_ticker}/events/{ticker}/forecast_percentile_history", 1 },
-                            { "markets", 1 },
-                            { "markets/trades", 1 },
-                            { "markets/orderbooks", 1 },
-                            { "markets/candlesticks", 1 },
-                            { "markets/{ticker}", 1 },
-                            { "markets/{ticker}/orderbook", 1 },
-                            { "exchange/status", 1 },
-                            { "exchange/schedule", 1 },
-                            { "exchange/announcements", 1 },
-                            { "exchange/user_data_timestamp", 1 },
-                            { "milestones", 1 },
-                            { "milestones/{milestone_id}", 1 },
-                            { "structured_targets", 1 },
-                            { "structured_targets/{structured_target_id}", 1 },
-                            { "search/filters_by_sport", 1 },
-                            { "search/tags_by_categories", 1 },
-                            { "live_data/batch", 1 },
-                            { "live_data/milestone/{milestone_id}", 1 },
-                            { "historical/markets", 1 },
-                            { "historical/markets/{ticker}/candlesticks", 1 },
-                            { "historical/trades", 1 },
-                            { "historical/cutoff_timestamps", 1 },
-                            { "multivariate_event_collections", 1 },
-                            { "multivariate_event_collections/{collection_ticker}", 1 },
-                            { "multivariate_event_collections/{collection_ticker}/lookup", 1 },
-                            { "incentive_programs", 1 },
+                            { "events", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "events/multivariate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "events/fee_changes", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "events/{event_ticker}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "events/{event_ticker}/metadata", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "series", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "series/fee_changes", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "series/{series_ticker}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "series/{series_ticker}/markets/{ticker}/candlesticks", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "series/{series_ticker}/events/{ticker}/candlesticks", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "series/{series_ticker}/events/{ticker}/forecast_percentile_history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/orderbooks", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/candlesticks", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{ticker}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{ticker}/orderbook", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "exchange/status", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "exchange/schedule", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "exchange/announcements", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "exchange/user_data_timestamp", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "milestones", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "milestones/{milestone_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "structured_targets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "structured_targets/{structured_target_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "search/filters_by_sport", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "search/tags_by_categories", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "live_data/batch", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "live_data/milestone/{milestone_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "historical/markets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "historical/markets/{ticker}/candlesticks", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "historical/trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "historical/cutoff_timestamps", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "multivariate_event_collections", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "multivariate_event_collections/{collection_ticker}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "multivariate_event_collections/{collection_ticker}/lookup", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "incentive_programs", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "portfolio/balance", 1 },
-                            { "portfolio/orders", 1 },
-                            { "portfolio/orders/{order_id}", 1 },
-                            { "portfolio/orders/{order_id}/queue_position", 1 },
-                            { "portfolio/orders/queue_positions", 1 },
-                            { "portfolio/positions", 1 },
-                            { "portfolio/fills", 1 },
-                            { "portfolio/settlements", 1 },
-                            { "portfolio/deposits", 1 },
-                            { "portfolio/withdrawals", 1 },
-                            { "portfolio/order_groups", 1 },
-                            { "portfolio/order_groups/{order_group_id}", 1 },
-                            { "portfolio/summary/total_resting_order_value", 1 },
-                            { "portfolio/subaccounts/balances", 1 },
-                            { "portfolio/subaccounts/netting", 1 },
-                            { "portfolio/subaccounts/transfers", 1 },
-                            { "historical/fills", 1 },
-                            { "historical/orders", 1 },
+                            { "portfolio/balance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/orders/{order_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/orders/{order_id}/queue_position", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/orders/queue_positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/fills", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/settlements", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/deposits", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/withdrawals", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/order_groups", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/order_groups/{order_group_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/summary/total_resting_order_value", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/subaccounts/balances", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/subaccounts/netting", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/subaccounts/transfers", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "historical/fills", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "historical/orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "portfolio/orders", 1 },
-                            { "portfolio/events/orders", 1 },
-                            { "portfolio/orders/batched", 1 },
-                            { "portfolio/orders/{order_id}/amend", 1 },
-                            { "portfolio/orders/{order_id}/decrease", 1 },
-                            { "portfolio/order_groups/create", 1 },
-                            { "portfolio/subaccounts", 1 },
-                            { "portfolio/subaccounts/transfer", 1 },
-                            { "multivariate_event_collections/{collection_ticker}", 1 },
+                            { "portfolio/orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/events/orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/orders/batched", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/orders/{order_id}/amend", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/orders/{order_id}/decrease", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/order_groups/create", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/subaccounts", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/subaccounts/transfer", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "multivariate_event_collections/{collection_ticker}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "put", new Dictionary<string, object>() {
-                            { "portfolio/order_groups/{order_group_id}/reset", 1 },
-                            { "portfolio/order_groups/{order_group_id}/trigger", 1 },
-                            { "portfolio/order_groups/{order_group_id}/limit", 1 },
-                            { "portfolio/subaccounts/netting", 1 },
-                            { "multivariate_event_collections/{collection_ticker}/lookup", 1 },
+                            { "portfolio/order_groups/{order_group_id}/reset", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/order_groups/{order_group_id}/trigger", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/order_groups/{order_group_id}/limit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/subaccounts/netting", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "multivariate_event_collections/{collection_ticker}/lookup", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "delete", new Dictionary<string, object>() {
-                            { "portfolio/orders/{order_id}", 1 },
-                            { "portfolio/orders/batched", 1 },
-                            { "portfolio/events/orders/{order_id}", 1 },
-                            { "portfolio/order_groups/{order_group_id}", 1 },
+                            { "portfolio/orders/{order_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/orders/batched", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/events/orders/{order_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/order_groups/{order_group_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
                 { "elections", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "search/series", 1 },
+                            { "search/series", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },

@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.backpack import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, FundingRateHistory
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, FundingRateHistory
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -168,72 +168,72 @@ class backpack(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'api/v1/assets': 1,  # done
-                        'api/v1/collateral': 1,  # not used
-                        'api/v1/borrowLend/markets': 1,
-                        'api/v1/borrowLend/markets/history': 1,
-                        'api/v1/markets': 1,  # done
-                        'api/v1/market': 1,  # not used
-                        'api/v1/ticker': 1,  # done
-                        'api/v1/tickers': 1,  # done
-                        'api/v1/depth': 1,  # done
-                        'api/v1/klines': 1,  # done
-                        'api/v1/markPrices': 1,  # done
-                        'api/v1/openInterest': 1,  # done
-                        'api/v1/fundingRates': 1,  # done
-                        'api/v1/status': 1,  # done
-                        'api/v1/ping': 1,  # todo check if it is needed for ws
-                        'api/v1/time': 1,  # done
-                        'api/v1/wallets': 1,  # not used
-                        'api/v1/trades': 1,  # done
-                        'api/v1/trades/history': 1,  # done
+                        'api/v1/assets': {'cost': 1},  # done
+                        'api/v1/collateral': {'cost': 1},  # not used
+                        'api/v1/borrowLend/markets': {'cost': 1},
+                        'api/v1/borrowLend/markets/history': {'cost': 1},
+                        'api/v1/markets': {'cost': 1},  # done
+                        'api/v1/market': {'cost': 1},  # not used
+                        'api/v1/ticker': {'cost': 1},  # done
+                        'api/v1/tickers': {'cost': 1},  # done
+                        'api/v1/depth': {'cost': 1},  # done
+                        'api/v1/klines': {'cost': 1},  # done
+                        'api/v1/markPrices': {'cost': 1},  # done
+                        'api/v1/openInterest': {'cost': 1},  # done
+                        'api/v1/fundingRates': {'cost': 1},  # done
+                        'api/v1/status': {'cost': 1},  # done
+                        'api/v1/ping': {'cost': 1},  # todo check if it is needed for ws
+                        'api/v1/time': {'cost': 1},  # done
+                        'api/v1/wallets': {'cost': 1},  # not used
+                        'api/v1/trades': {'cost': 1},  # done
+                        'api/v1/trades/history': {'cost': 1},  # done
                     },
                 },
                 'private': {
                     'get': {
-                        'api/v1/account': 1,  # todo fetchTradingFee
-                        'api/v1/account/limits/borrow': 1,  # not used
-                        'api/v1/account/limits/order': 1,  # not used
-                        'api/v1/account/limits/withdrawal': 1,  # not used
-                        'api/v1/borrowLend/positions': 1,  # todo fetchBorrowInterest
-                        'api/v1/capital': 1,  # done
-                        'api/v1/capital/collateral': 1,  # not used
-                        'wapi/v1/capital/deposits': 1,  # done
-                        'wapi/v1/capital/deposit/address': 1,  # done
-                        'wapi/v1/capital/withdrawals': 1,  # todo complete after withdrawal
-                        'api/v1/position': 1,  # done but todo check if all is right
-                        'wapi/v1/history/borrowLend': 1,  # not used
-                        'wapi/v1/history/interest': 1,  # not used
-                        'wapi/v1/history/borrowLend/positions': 1,  # not used
-                        'wapi/v1/history/dust': 1,  # not used
-                        'wapi/v1/history/fills': 1,  # done
-                        'wapi/v1/history/funding': 1,  # done
-                        'wapi/v1/history/orders': 1,  # done
-                        'wapi/v1/history/rfq': 1,
-                        'wapi/v1/history/quote': 1,
-                        'wapi/v1/history/settlement': 1,
-                        'wapi/v1/history/strategies': 1,
-                        'api/v1/order': 1,  # done
-                        'api/v1/orders': 1,  # done
+                        'api/v1/account': {'cost': 1},  # todo fetchTradingFee
+                        'api/v1/account/limits/borrow': {'cost': 1},  # not used
+                        'api/v1/account/limits/order': {'cost': 1},  # not used
+                        'api/v1/account/limits/withdrawal': {'cost': 1},  # not used
+                        'api/v1/borrowLend/positions': {'cost': 1},  # todo fetchBorrowInterest
+                        'api/v1/capital': {'cost': 1},  # done
+                        'api/v1/capital/collateral': {'cost': 1},  # not used
+                        'wapi/v1/capital/deposits': {'cost': 1},  # done
+                        'wapi/v1/capital/deposit/address': {'cost': 1},  # done
+                        'wapi/v1/capital/withdrawals': {'cost': 1},  # todo complete after withdrawal
+                        'api/v1/position': {'cost': 1},  # done but todo check if all is right
+                        'wapi/v1/history/borrowLend': {'cost': 1},  # not used
+                        'wapi/v1/history/interest': {'cost': 1},  # not used
+                        'wapi/v1/history/borrowLend/positions': {'cost': 1},  # not used
+                        'wapi/v1/history/dust': {'cost': 1},  # not used
+                        'wapi/v1/history/fills': {'cost': 1},  # done
+                        'wapi/v1/history/funding': {'cost': 1},  # done
+                        'wapi/v1/history/orders': {'cost': 1},  # done
+                        'wapi/v1/history/rfq': {'cost': 1},
+                        'wapi/v1/history/quote': {'cost': 1},
+                        'wapi/v1/history/settlement': {'cost': 1},
+                        'wapi/v1/history/strategies': {'cost': 1},
+                        'api/v1/order': {'cost': 1},  # done
+                        'api/v1/orders': {'cost': 1},  # done
                     },
                     'post': {
-                        'api/v1/account/convertDust': 1,
-                        'api/v1/borrowLend': 1,  # todo borrowCrossMargin
-                        'wapi/v1/capital/withdrawals': 1,  # todo complete after withdrawal
-                        'api/v1/order': 1,  # done
-                        'api/v1/orders': 1,  # done
-                        'api/v1/rfq': 1,
-                        'api/v1/rfq/accept': 1,
-                        'api/v1/rfq/refresh': 1,
-                        'api/v1/rfq/cancel': 1,
-                        'api/v1/rfq/quote': 1,
+                        'api/v1/account/convertDust': {'cost': 1},
+                        'api/v1/borrowLend': {'cost': 1},  # todo borrowCrossMargin
+                        'wapi/v1/capital/withdrawals': {'cost': 1},  # todo complete after withdrawal
+                        'api/v1/order': {'cost': 1},  # done
+                        'api/v1/orders': {'cost': 1},  # done
+                        'api/v1/rfq': {'cost': 1},
+                        'api/v1/rfq/accept': {'cost': 1},
+                        'api/v1/rfq/refresh': {'cost': 1},
+                        'api/v1/rfq/cancel': {'cost': 1},
+                        'api/v1/rfq/quote': {'cost': 1},
                     },
                     'delete': {
-                        'api/v1/order': 1,  # done
-                        'api/v1/orders': 1,  # done
+                        'api/v1/order': {'cost': 1},  # done
+                        'api/v1/orders': {'cost': 1},  # done
                     },
                     'patch': {
-                        'api/v1/account': 1,
+                        'api/v1/account': {'cost': 1},
                     },
                 },
             },
@@ -416,7 +416,7 @@ class backpack(Exchange, ImplicitAPI):
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'networks': {
                     'APT': 'Aptos',
-                    'ARB': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                     'AVAX': 'Avalanche',
                     'BASE': 'Base',
                     'BERA': 'Berachain',
@@ -441,7 +441,7 @@ class backpack(Exchange, ImplicitAPI):
                 },
                 'networksById': {
                     'aptos': 'APT',
-                    'arbitrum': 'ARB',
+                    'arbitrum': 'ARBITRUM',
                     'avalanche': 'AVAX',
                     'base': 'BASE',
                     'berachain': 'BERA',
@@ -979,7 +979,8 @@ class backpack(Exchange, ImplicitAPI):
             request['priceType'] = self.capitalize(price)
             params = self.omit(params, 'price')
         response = await self.publicGetApiV1Klines(self.extend(request, params))
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        ohlcvs = self.to_array(response)
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
@@ -1140,8 +1141,9 @@ class backpack(Exchange, ImplicitAPI):
         #     ]
         #
         rates = []
-        for i in range(0, len(response)):
-            rate = response[i]
+        rawRates = self.to_array(response)
+        for i in range(0, len(rawRates)):
+            rate = rawRates[i]
             datetime = self.safe_string(rate, 'intervalEndTimestamp')
             timestamp = self.parse8601(datetime)
             rates.append({
@@ -1182,9 +1184,7 @@ class backpack(Exchange, ImplicitAPI):
             response = await self.publicGetApiV1TradesHistory(self.extend(request, params))
         else:
             response = await self.publicGetApiV1Trades(self.extend(request, params))
-        responseList = []
-        if response is not None:
-            responseList = response
+        responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -1220,9 +1220,7 @@ class backpack(Exchange, ImplicitAPI):
         if fillType is None:
             request['fillType'] = 'User'  # default
         response = await self.privateGetWapiV1HistoryFills(self.extend(request, params))
-        responseList = []
-        if response is not None:
-            responseList = response
+        responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
@@ -1298,7 +1296,7 @@ class backpack(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_status(self, params={}):
+    async def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -1803,7 +1801,7 @@ class backpack(Exchange, ImplicitAPI):
         response = await self.privateGetApiV1Orders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch an open order by it's id
 

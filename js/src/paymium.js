@@ -68,40 +68,40 @@ export default class paymium extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'countries',
-                        'currencies',
-                        'data/{currency}/ticker',
-                        'data/{currency}/trades',
-                        'data/{currency}/depth',
-                        'bitcoin_charts/{id}/trades',
-                        'bitcoin_charts/{id}/depth',
-                    ],
+                    'get': {
+                        'countries': { 'cost': 1 },
+                        'currencies': { 'cost': 1 },
+                        'data/{currency}/ticker': { 'cost': 1 },
+                        'data/{currency}/trades': { 'cost': 1 },
+                        'data/{currency}/depth': { 'cost': 1 },
+                        'bitcoin_charts/{id}/trades': { 'cost': 1 },
+                        'bitcoin_charts/{id}/depth': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'get': [
-                        'user',
-                        'user/addresses',
-                        'user/addresses/{address}',
-                        'user/orders',
-                        'user/orders/{uuid}',
-                        'user/price_alerts',
-                        'merchant/get_payment/{uuid}',
-                    ],
-                    'post': [
-                        'user/addresses',
-                        'user/orders',
-                        'user/withdrawals',
-                        'user/email_transfers',
-                        'user/payment_requests',
-                        'user/price_alerts',
-                        'merchant/create_payment',
-                    ],
-                    'delete': [
-                        'user/orders/{uuid}',
-                        'user/orders/{uuid}/cancel',
-                        'user/price_alerts/{id}',
-                    ],
+                    'get': {
+                        'user': { 'cost': 1 },
+                        'user/addresses': { 'cost': 1 },
+                        'user/addresses/{address}': { 'cost': 1 },
+                        'user/orders': { 'cost': 1 },
+                        'user/orders/{uuid}': { 'cost': 1 },
+                        'user/price_alerts': { 'cost': 1 },
+                        'merchant/get_payment/{uuid}': { 'cost': 1 },
+                    },
+                    'post': {
+                        'user/addresses': { 'cost': 1 },
+                        'user/orders': { 'cost': 1 },
+                        'user/withdrawals': { 'cost': 1 },
+                        'user/email_transfers': { 'cost': 1 },
+                        'user/payment_requests': { 'cost': 1 },
+                        'user/price_alerts': { 'cost': 1 },
+                        'merchant/create_payment': { 'cost': 1 },
+                    },
+                    'delete': {
+                        'user/orders/{uuid}': { 'cost': 1 },
+                        'user/orders/{uuid}/cancel': { 'cost': 1 },
+                        'user/price_alerts/{id}': { 'cost': 1 },
+                    },
                 },
             },
             'markets': {
@@ -470,7 +470,7 @@ export default class paymium extends Exchange {
         const response = await this.privatePostUserOrders(this.extend(request, params));
         return this.safeOrder({
             'info': response,
-            'id': response['uuid'],
+            'id': this.safeString(response, 'uuid'),
         }, market);
     }
     /**

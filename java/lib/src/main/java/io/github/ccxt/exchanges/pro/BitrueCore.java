@@ -47,13 +47,19 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
                     put( "v1", new java.util.HashMap<String, Object>() {{
                         put( "private", new java.util.HashMap<String, Object>() {{
                             put( "post", new java.util.HashMap<String, Object>() {{
-                                put( "poseidon/api/v1/listenKey", 1 );
+                                put( "poseidon/api/v1/listenKey", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
                             }} );
                             put( "put", new java.util.HashMap<String, Object>() {{
-                                put( "poseidon/api/v1/listenKey/{listenKey}", 1 );
+                                put( "poseidon/api/v1/listenKey/{listenKey}", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
                             }} );
                             put( "delete", new java.util.HashMap<String, Object>() {{
-                                put( "poseidon/api/v1/listenKey/{listenKey}", 1 );
+                                put( "poseidon/api/v1/listenKey/{listenKey}", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 1 );
+                                }} );
                             }} );
                         }} );
                     }} );

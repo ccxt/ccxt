@@ -116,7 +116,7 @@ public partial class apex : Exchange
                 { "setLeverage", true },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
-                { "transfer", false },
+                { "transfer", true },
                 { "withdraw", false },
             } },
             { "timeframes", new Dictionary<string, object>() {
@@ -152,39 +152,93 @@ public partial class apex : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "v3/symbols", 1 },
-                        { "v3/history-funding", 1 },
-                        { "v3/ticker", 1 },
-                        { "v3/klines", 1 },
-                        { "v3/trades", 1 },
-                        { "v3/depth", 1 },
-                        { "v3/time", 1 },
-                        { "v3/data/all-ticker-info", 1 },
+                        { "v3/symbols", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/history-funding", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/klines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/depth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/data/all-ticker-info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "v3/account", 1 },
-                        { "v3/account-balance", 1 },
-                        { "v3/fills", 1 },
-                        { "v3/order-fills", 1 },
-                        { "v3/order", 1 },
-                        { "v3/history-orders", 1 },
-                        { "v3/order-by-client-order-id", 1 },
-                        { "v3/funding", 1 },
-                        { "v3/historical-pnl", 1 },
-                        { "v3/open-orders", 1 },
-                        { "v3/transfers", 1 },
-                        { "v3/transfer", 1 },
+                        { "v3/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/account-balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/fills", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/order-fills", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/history-orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/order-by-client-order-id", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/funding", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/historical-pnl", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/open-orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "v3/delete-open-orders", 1 },
-                        { "v3/delete-client-order-id", 1 },
-                        { "v3/delete-order", 1 },
-                        { "v3/order", 1 },
-                        { "v3/set-initial-margin-rate", 1 },
-                        { "v3/transfer-out", 1 },
-                        { "v3/contract-transfer-out", 1 },
+                        { "v3/delete-open-orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/delete-client-order-id", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/delete-order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/set-initial-margin-rate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/transfer-out", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/contract-transfer-out", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },

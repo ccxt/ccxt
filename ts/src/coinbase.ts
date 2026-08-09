@@ -7,13 +7,30 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, Conversion, Dict, Fee, NullableDict, List, NullableList, int, TradingFees, LedgerEntry, DepositAddress, Position, Bool, TransferEntry } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, Conversion, Dict, Fee, NullableDict, List, NullableList, int, TradingFees, LedgerEntry, DepositAddress, Position, Bool, TransferEntry, Endpoint } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
 /**
  * @class coinbase
  * @augments Exchange
+ * @description This is the retail Coinbase.com exchange class, covering the Advanced Trade API - the successor
+ * of the former Coinbase Pro after the Pro/retail unification. Use this class for regular Coinbase.com accounts
+ * and API keys created at coinbase.com. For the institutional Coinbase Exchange API (exchange.coinbase.com,
+ * application-gated credentials) see the separate coinbaseexchange class, and for Coinbase International
+ * derivatives see coinbaseinternational. Historical Coinbase Pro trading data lives in the retail account and
+ * is accessible through this class.
+ *
+ * Instantiation with CDP (Cloud Developer Platform) keys, the current key format, see https://github.com/ccxt/ccxt/issues/23771:
+ *
+ *     const exchange = new ccxt.coinbase ({
+ *         'apiKey': 'organizations/{org_id}/apiKeys/{key_id}', // the full "name" field from the CDP key file
+ *         'secret': '-----BEGIN EC PRIVATE KEY-----\n...\n-----END EC PRIVATE KEY-----\n', // the "privateKey" field, keep the newlines
+ *     });
+ *
+ * No password/passphrase is used - that field belonged to the old Coinbase Pro keys. If the secret travels
+ * through an env var or json config, literal backslash-n sequences instead of real newlines will break the
+ * signature - pass the PEM exactly as issued.
  */
 export default class coinbase extends Exchange {
     override describe (): any {
@@ -134,6 +151,7 @@ export default class coinbase extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrdersByStatus': true,
                 'fetchPosition': true,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
@@ -186,124 +204,124 @@ export default class coinbase extends Exchange {
                 'v2': {
                     'public': {
                         'get': {
-                            'currencies': 10.6,
-                            'currencies/crypto': 10.6,
-                            'time': 10.6,
-                            'exchange-rates': 10.6,
-                            'users/{user_id}': 10.6,
-                            'prices/{symbol}/buy': 10.6,
-                            'prices/{symbol}/sell': 10.6,
-                            'prices/{symbol}/spot': 10.6,
+                            'currencies': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'currencies/crypto': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'time': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'exchange-rates': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'users/{user_id}': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'prices/{symbol}/buy': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'prices/{symbol}/sell': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'prices/{symbol}/spot': { 'cost': 10.6 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'get': {
-                            'accounts': 10.6,
-                            'accounts/{account_id}': 10.6,
-                            'accounts/{account_id}/addresses': 10.6,
-                            'accounts/{account_id}/addresses/{address_id}': 10.6,
-                            'accounts/{account_id}/addresses/{address_id}/transactions': 10.6,
-                            'accounts/{account_id}/transactions': 10.6,
-                            'accounts/{account_id}/transactions/{transaction_id}': 10.6,
-                            'accounts/{account_id}/buys': 10.6,
-                            'accounts/{account_id}/buys/{buy_id}': 10.6,
-                            'accounts/{account_id}/sells': 10.6,
-                            'accounts/{account_id}/sells/{sell_id}': 10.6,
-                            'accounts/{account_id}/deposits': 10.6,
-                            'accounts/{account_id}/deposits/{deposit_id}': 10.6,
-                            'accounts/{account_id}/withdrawals': 10.6,
-                            'accounts/{account_id}/withdrawals/{withdrawal_id}': 10.6,
-                            'payment-methods': 10.6,
-                            'payment-methods/{payment_method_id}': 10.6,
-                            'user': 10.6,
-                            'user/auth': 10.6,
+                            'accounts': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/addresses': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/addresses/{address_id}': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/addresses/{address_id}/transactions': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/transactions': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/transactions/{transaction_id}': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/buys': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/buys/{buy_id}': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/sells': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/sells/{sell_id}': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/deposits': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/deposits/{deposit_id}': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/withdrawals': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/withdrawals/{withdrawal_id}': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'payment-methods': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'payment-methods/{payment_method_id}': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'user': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'user/auth': { 'cost': 10.6 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'accounts': 10.6,
-                            'accounts/{account_id}/primary': 10.6,
-                            'accounts/{account_id}/addresses': 10.6,
-                            'accounts/{account_id}/transactions': 10.6,
-                            'accounts/{account_id}/transactions/{transaction_id}/complete': 10.6,
-                            'accounts/{account_id}/transactions/{transaction_id}/resend': 10.6,
-                            'accounts/{account_id}/buys': 10.6,
-                            'accounts/{account_id}/buys/{buy_id}/commit': 10.6,
-                            'accounts/{account_id}/sells': 10.6,
-                            'accounts/{account_id}/sells/{sell_id}/commit': 10.6,
-                            'accounts/{account_id}/deposits': 10.6,
-                            'accounts/{account_id}/deposits/{deposit_id}/commit': 10.6,
-                            'accounts/{account_id}/withdrawals': 10.6,
-                            'accounts/{account_id}/withdrawals/{withdrawal_id}/commit': 10.6,
+                            'accounts': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/primary': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/addresses': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/transactions': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/transactions/{transaction_id}/complete': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/transactions/{transaction_id}/resend': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/buys': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/buys/{buy_id}/commit': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/sells': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/sells/{sell_id}/commit': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/deposits': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/deposits/{deposit_id}/commit': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/withdrawals': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/withdrawals/{withdrawal_id}/commit': { 'cost': 10.6 } as Endpoint<Dict>,
                         },
                         'put': {
-                            'accounts/{account_id}': 10.6,
-                            'user': 10.6,
+                            'accounts/{account_id}': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'user': { 'cost': 10.6 } as Endpoint<Dict>,
                         },
                         'delete': {
-                            'accounts/{id}': 10.6,
-                            'accounts/{account_id}/transactions/{transaction_id}': 10.6,
+                            'accounts/{id}': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'accounts/{account_id}/transactions/{transaction_id}': { 'cost': 10.6 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'v3': {
                     'public': {
                         'get': {
-                            'brokerage/time': 3,
-                            'brokerage/market/product_book': 3,
-                            'brokerage/market/products': 3,
-                            'brokerage/market/products/{product_id}': 3,
-                            'brokerage/market/products/{product_id}/candles': 3,
-                            'brokerage/market/products/{product_id}/ticker': 3,
+                            'brokerage/time': { 'cost': 3 } as Endpoint<Dict>,
+                            'brokerage/market/product_book': { 'cost': 3 } as Endpoint<Dict>,
+                            'brokerage/market/products': { 'cost': 3 } as Endpoint<Dict>,
+                            'brokerage/market/products/{product_id}': { 'cost': 3 } as Endpoint<Dict>,
+                            'brokerage/market/products/{product_id}/candles': { 'cost': 3 } as Endpoint<Dict>,
+                            'brokerage/market/products/{product_id}/ticker': { 'cost': 3 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'get': {
-                            'brokerage/accounts': 1,
-                            'brokerage/accounts/{account_uuid}': 1,
-                            'brokerage/orders/historical/batch': 1,
-                            'brokerage/orders/historical/fills': 1,
-                            'brokerage/orders/historical/{order_id}': 1,
-                            'brokerage/products': 3,
-                            'brokerage/products/{product_id}': 3,
-                            'brokerage/products/{product_id}/candles': 3,
-                            'brokerage/products/{product_id}/ticker': 3,
-                            'brokerage/best_bid_ask': 3,
-                            'brokerage/product_book': 3,
-                            'brokerage/transaction_summary': 3,
-                            'brokerage/portfolios': 1,
-                            'brokerage/portfolios/{portfolio_uuid}': 1,
-                            'brokerage/convert/trade/{trade_id}': 1,
-                            'brokerage/cfm/balance_summary': 1,
-                            'brokerage/cfm/positions': 1,
-                            'brokerage/cfm/positions/{product_id}': 1,
-                            'brokerage/cfm/sweeps': 1,
-                            'brokerage/intx/portfolio/{portfolio_uuid}': 1,
-                            'brokerage/intx/positions/{portfolio_uuid}': 1,
-                            'brokerage/intx/positions/{portfolio_uuid}/{symbol}': 1,
-                            'brokerage/payment_methods': 1,
-                            'brokerage/payment_methods/{payment_method_id}': 1,
-                            'brokerage/key_permissions': 1,
+                            'brokerage/accounts': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/accounts/{account_uuid}': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/orders/historical/batch': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/orders/historical/fills': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/orders/historical/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/products': { 'cost': 3 } as Endpoint<Dict>,
+                            'brokerage/products/{product_id}': { 'cost': 3 } as Endpoint<Dict>,
+                            'brokerage/products/{product_id}/candles': { 'cost': 3 } as Endpoint<Dict>,
+                            'brokerage/products/{product_id}/ticker': { 'cost': 3 } as Endpoint<Dict>,
+                            'brokerage/best_bid_ask': { 'cost': 3 } as Endpoint<Dict>,
+                            'brokerage/product_book': { 'cost': 3 } as Endpoint<Dict>,
+                            'brokerage/transaction_summary': { 'cost': 3 } as Endpoint<Dict>,
+                            'brokerage/portfolios': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/portfolios/{portfolio_uuid}': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/convert/trade/{trade_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/cfm/balance_summary': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/cfm/positions': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/cfm/positions/{product_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/cfm/sweeps': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/intx/portfolio/{portfolio_uuid}': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/intx/positions/{portfolio_uuid}': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/intx/positions/{portfolio_uuid}/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/payment_methods': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/payment_methods/{payment_method_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/key_permissions': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'brokerage/orders': 1,
-                            'brokerage/orders/batch_cancel': 1,
-                            'brokerage/orders/edit': 1,
-                            'brokerage/orders/edit_preview': 1,
-                            'brokerage/orders/preview': 1,
-                            'brokerage/portfolios': 1,
-                            'brokerage/portfolios/move_funds': 1,
-                            'brokerage/convert/quote': 1,
-                            'brokerage/convert/trade/{trade_id}': 1,
-                            'brokerage/cfm/sweeps/schedule': 1,
-                            'brokerage/intx/allocate': 1,
+                            'brokerage/orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/orders/batch_cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/orders/edit': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/orders/edit_preview': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/orders/preview': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/portfolios': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/portfolios/move_funds': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/convert/quote': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/convert/trade/{trade_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/cfm/sweeps/schedule': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/intx/allocate': { 'cost': 1 } as Endpoint<Dict>,
                             // futures
-                            'brokerage/orders/close_position': 1,
+                            'brokerage/orders/close_position': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'put': {
-                            'brokerage/portfolios/{portfolio_uuid}': 1,
+                            'brokerage/portfolios/{portfolio_uuid}': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'delete': {
-                            'brokerage/portfolios/{portfolio_uuid}': 1,
-                            'brokerage/cfm/sweeps': 1,
+                            'brokerage/portfolios/{portfolio_uuid}': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/cfm/sweeps': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -704,7 +722,7 @@ export default class coinbase extends Exchange {
     async fetchPortfolios (params = {}): Promise<Account[]> {
         const response = await this.v3PrivateGetBrokeragePortfolios (params);
         const portfolios = this.safeList (response, 'portfolios', []);
-        const result: any[] = [];
+        const result: Account[] = [];
         for (let i = 0; i < portfolios.length; i++) {
             const portfolio = portfolios[i];
             result.push ({
@@ -885,7 +903,8 @@ export default class coinbase extends Exchange {
         }
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
         const sells = await this.v2PrivateGetAccountsAccountIdSells (this.extend (request, query));
-        return this.parseTrades (sells['data'], undefined, since, limit);
+        const sellsData = this.safeList (sells, 'data', []);
+        return this.parseTrades (sellsData, undefined, since, limit);
     }
 
     /**
@@ -908,7 +927,8 @@ export default class coinbase extends Exchange {
         }
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
         const buys = await this.v2PrivateGetAccountsAccountIdBuys (this.extend (request, query));
-        return this.parseTrades (buys['data'], undefined, since, limit);
+        const buysData = this.safeList (buys, 'data', []);
+        return this.parseTrades (buysData, undefined, since, limit);
     }
 
     async fetchTransactionsWithMethod (method: any, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -959,7 +979,7 @@ export default class coinbase extends Exchange {
      */
     override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         let currencyType: Str = undefined;
-        [ currencyType, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'currencyType');
+        [ currencyType, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'currencyType');
         if (currencyType === 'crypto') {
             const results = await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params);
             return this.filterByArray (results, 'type', 'deposit', false);
@@ -1565,7 +1585,7 @@ export default class coinbase extends Exchange {
         const expiringFeeTier = this.safeDict (expiringFees, 'fee_tier', {}); // fee tier null?
         const perpetualFeeTier = this.safeDict (perpetualFees, 'fee_tier', {}); // fee tier null?
         const data = this.safeList (spot, 'products', []);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < data.length; i++) {
             result.push (this.parseSpotMarket (data[i], feeTier));
         }
@@ -1577,7 +1597,7 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < perpetualData.length; i++) {
             result.push (this.parseContractMarket (perpetualData[i], perpetualFeeTier));
         }
-        const newMarkets: any[] = [];
+        const newMarkets: Market[] = [];
         for (let i = 0; i < result.length; i++) {
             const market = result[i];
             const info = this.safeValue (market, 'info', {});
@@ -2605,7 +2625,8 @@ export default class coinbase extends Exchange {
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_http_response -> pagination.next_starting_after
         const response = await this.v2PrivateGetAccountsAccountIdTransactions (this.extend (request, params));
-        const ledger = this.parseLedger (response['data'], currency, since, limit);
+        const data = this.safeList (response, 'data', []);
+        const ledger = this.parseLedger (data, currency, since, limit);
         const length = ledger.length;
         if (length === 0) {
             return ledger;
@@ -3714,7 +3735,7 @@ export default class coinbase extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4676,7 +4697,7 @@ export default class coinbase extends Exchange {
     }
 
     parseDepositMethodIds (ids: any, params = {}) {
-        const result: any[] = [];
+        const result: Dict[] = [];
         for (let i = 0; i < ids.length; i++) {
             const id = this.extend (this.parseDepositMethodId (ids[i]), params);
             result.push (id);
@@ -5202,7 +5223,7 @@ export default class coinbase extends Exchange {
         const portfolioName = this.safeString (portfolioInfo, 'name', 'Unknown');
         const portfolioUuid = this.safeString (portfolioInfo, 'uuid', '');
         const spotPositions = this.safeList (breakdown, 'spot_positions', []);
-        const parsedPositions: any[] = [];
+        const parsedPositions: Dict[] = [];
         for (let i = 0; i < spotPositions.length; i++) {
             const position: Dict = spotPositions[i];
             const currencyCode = this.safeString (position, 'asset', 'Unknown');

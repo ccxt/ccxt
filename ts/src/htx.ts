@@ -6,7 +6,7 @@ import Exchange from './abstract/htx.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, OperationFailed, NotSupported, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, FeeString, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, Bool, SubType, CurrencyInterface, DepositWithdrawFees } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, FeeString, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, Bool, SubType, CurrencyInterface, DepositWithdrawFees, Status, MarginLoan, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -115,7 +115,7 @@ export default class htx extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
-                'fetchStatus': false, // none of `summary.json` endpoint work atm. revise in near future
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -206,131 +206,131 @@ export default class htx extends Exchange {
                 // old api definitions
                 'v2Public': {
                     'get': {
-                        'reference/currencies': 1, // 币链参考信息
-                        'market-status': 1, // 获取当前市场状态
+                        'reference/currencies': { 'cost': 1 } as Endpoint<Dict>, // 币链参考信息
+                        'market-status': { 'cost': 1 } as Endpoint<Dict>, // 获取当前市场状态
                     },
                 },
                 'v2Private': {
                     'get': {
-                        'account/ledger': 1,
-                        'account/withdraw/quota': 1,
-                        'account/withdraw/address': 1, // 提币地址查询(限母用户可用)
-                        'account/deposit/address': 1,
-                        'account/repayment': 5, // 还币交易记录查询
-                        'reference/transact-fee-rate': 1,
-                        'account/asset-valuation': 0.2, // 获取账户资产估值
-                        'point/account': 5, // 点卡余额查询
-                        'sub-user/user-list': 1, // 获取子用户列表
-                        'sub-user/user-state': 1, // 获取特定子用户的用户状态
-                        'sub-user/account-list': 1, // 获取特定子用户的账户列表
-                        'sub-user/deposit-address': 1, // 子用户充币地址查询
-                        'sub-user/query-deposit': 1, // 子用户充币记录查询
-                        'user/api-key': 1, // 母子用户API key信息查询
-                        'user/uid': 1, // 母子用户获取用户UID
-                        'algo-orders/opening': 1, // 查询未触发OPEN策略委托
-                        'algo-orders/history': 1, // 查询策略委托历史
-                        'algo-orders/specific': 1, // 查询特定策略委托
-                        'c2c/offers': 1, // 查询借入借出订单
-                        'c2c/offer': 1, // 查询特定借入借出订单及其交易记录
-                        'c2c/transactions': 1, // 查询借入借出交易记录
-                        'c2c/repayment': 1, // 查询还币交易记录
-                        'c2c/account': 1, // 查询账户余额
-                        'etp/reference': 1, // 基础参考信息
-                        'etp/transactions': 5, // 获取杠杆ETP申赎记录
-                        'etp/transaction': 5, // 获取特定杠杆ETP申赎记录
-                        'etp/rebalance': 1, // 获取杠杆ETP调仓记录
-                        'etp/limit': 1, // 获取ETP持仓限额
+                        'account/ledger': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/withdraw/quota': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/withdraw/address': { 'cost': 1 } as Endpoint<Dict>, // 提币地址查询(限母用户可用)
+                        'account/deposit/address': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/repayment': { 'cost': 5 } as Endpoint<Dict>, // 还币交易记录查询
+                        'reference/transact-fee-rate': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/asset-valuation': { 'cost': 0.2 } as Endpoint<Dict>, // 获取账户资产估值
+                        'point/account': { 'cost': 5 } as Endpoint<Dict>, // 点卡余额查询
+                        'sub-user/user-list': { 'cost': 1 } as Endpoint<Dict>, // 获取子用户列表
+                        'sub-user/user-state': { 'cost': 1 } as Endpoint<Dict>, // 获取特定子用户的用户状态
+                        'sub-user/account-list': { 'cost': 1 } as Endpoint<Dict>, // 获取特定子用户的账户列表
+                        'sub-user/deposit-address': { 'cost': 1 } as Endpoint<Dict>, // 子用户充币地址查询
+                        'sub-user/query-deposit': { 'cost': 1 } as Endpoint<Dict>, // 子用户充币记录查询
+                        'user/api-key': { 'cost': 1 } as Endpoint<Dict>, // 母子用户API key信息查询
+                        'user/uid': { 'cost': 1 } as Endpoint<Dict>, // 母子用户获取用户UID
+                        'algo-orders/opening': { 'cost': 1 } as Endpoint<Dict>, // 查询未触发OPEN策略委托
+                        'algo-orders/history': { 'cost': 1 } as Endpoint<Dict>, // 查询策略委托历史
+                        'algo-orders/specific': { 'cost': 1 } as Endpoint<Dict>, // 查询特定策略委托
+                        'c2c/offers': { 'cost': 1 } as Endpoint<Dict>, // 查询借入借出订单
+                        'c2c/offer': { 'cost': 1 } as Endpoint<Dict>, // 查询特定借入借出订单及其交易记录
+                        'c2c/transactions': { 'cost': 1 } as Endpoint<Dict>, // 查询借入借出交易记录
+                        'c2c/repayment': { 'cost': 1 } as Endpoint<Dict>, // 查询还币交易记录
+                        'c2c/account': { 'cost': 1 } as Endpoint<Dict>, // 查询账户余额
+                        'etp/reference': { 'cost': 1 } as Endpoint<Dict>, // 基础参考信息
+                        'etp/transactions': { 'cost': 5 } as Endpoint<Dict>, // 获取杠杆ETP申赎记录
+                        'etp/transaction': { 'cost': 5 } as Endpoint<Dict>, // 获取特定杠杆ETP申赎记录
+                        'etp/rebalance': { 'cost': 1 } as Endpoint<Dict>, // 获取杠杆ETP调仓记录
+                        'etp/limit': { 'cost': 1 } as Endpoint<Dict>, // 获取ETP持仓限额
                     },
                     'post': {
-                        'account/transfer': 1,
-                        'account/repayment': 5, // 归还借币（全仓逐仓通用）
-                        'point/transfer': 5, // 点卡划转
-                        'sub-user/management': 1, // 冻结/解冻子用户
-                        'sub-user/creation': 1, // 子用户创建
-                        'sub-user/tradable-market': 1, // 设置子用户交易权限
-                        'sub-user/transferability': 1, // 设置子用户资产转出权限
-                        'sub-user/api-key-generation': 1, // 子用户API key创建
-                        'sub-user/api-key-modification': 1, // 修改子用户API key
-                        'sub-user/api-key-deletion': 1, // 删除子用户API key
-                        'sub-user/deduct-mode': 1, // 设置子用户手续费抵扣模式
-                        'algo-orders': 1, // 策略委托下单
-                        'algo-orders/cancel-all-after': 1, // 自动撤销订单
-                        'algo-orders/cancellation': 1, // 策略委托（触发前）撤单
-                        'c2c/offer': 1, // 借入借出下单
-                        'c2c/cancellation': 1, // 借入借出撤单
-                        'c2c/cancel-all': 1, // 撤销所有借入借出订单
-                        'c2c/repayment': 1, // 还币
-                        'c2c/transfer': 1, // 资产划转
-                        'etp/creation': 5, // 杠杆ETP换入
-                        'etp/redemption': 5, // 杠杆ETP换出
-                        'etp/{transactId}/cancel': 10, // 杠杆ETP单个撤单
-                        'etp/batch-cancel': 50, // 杠杆ETP批量撤单
+                        'account/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/repayment': { 'cost': 5 } as Endpoint<Dict>, // 归还借币（全仓逐仓通用）
+                        'point/transfer': { 'cost': 5 } as Endpoint<Dict>, // 点卡划转
+                        'sub-user/management': { 'cost': 1 } as Endpoint<Dict>, // 冻结/解冻子用户
+                        'sub-user/creation': { 'cost': 1 } as Endpoint<Dict>, // 子用户创建
+                        'sub-user/tradable-market': { 'cost': 1 } as Endpoint<Dict>, // 设置子用户交易权限
+                        'sub-user/transferability': { 'cost': 1 } as Endpoint<Dict>, // 设置子用户资产转出权限
+                        'sub-user/api-key-generation': { 'cost': 1 } as Endpoint<Dict>, // 子用户API key创建
+                        'sub-user/api-key-modification': { 'cost': 1 } as Endpoint<Dict>, // 修改子用户API key
+                        'sub-user/api-key-deletion': { 'cost': 1 } as Endpoint<Dict>, // 删除子用户API key
+                        'sub-user/deduct-mode': { 'cost': 1 } as Endpoint<Dict>, // 设置子用户手续费抵扣模式
+                        'algo-orders': { 'cost': 1 } as Endpoint<Dict>, // 策略委托下单
+                        'algo-orders/cancel-all-after': { 'cost': 1 } as Endpoint<Dict>, // 自动撤销订单
+                        'algo-orders/cancellation': { 'cost': 1 } as Endpoint<Dict>, // 策略委托（触发前）撤单
+                        'c2c/offer': { 'cost': 1 } as Endpoint<Dict>, // 借入借出下单
+                        'c2c/cancellation': { 'cost': 1 } as Endpoint<Dict>, // 借入借出撤单
+                        'c2c/cancel-all': { 'cost': 1 } as Endpoint<Dict>, // 撤销所有借入借出订单
+                        'c2c/repayment': { 'cost': 1 } as Endpoint<Dict>, // 还币
+                        'c2c/transfer': { 'cost': 1 } as Endpoint<Dict>, // 资产划转
+                        'etp/creation': { 'cost': 5 } as Endpoint<Dict>, // 杠杆ETP换入
+                        'etp/redemption': { 'cost': 5 } as Endpoint<Dict>, // 杠杆ETP换出
+                        'etp/{transactId}/cancel': { 'cost': 10 } as Endpoint<Dict>, // 杠杆ETP单个撤单
+                        'etp/batch-cancel': { 'cost': 50 } as Endpoint<Dict>, // 杠杆ETP批量撤单
                     },
                 },
                 'public': {
                     'get': {
-                        'common/symbols': 1, // 查询系统支持的所有交易对
-                        'common/currencys': 1, // 查询系统支持的所有币种
-                        'common/timestamp': 1, // 查询系统当前时间
-                        'common/exchange': 1, // order limits
-                        'settings/currencys': 1, // ?language=en-US
+                        'common/symbols': { 'cost': 1 } as Endpoint<Dict>, // 查询系统支持的所有交易对
+                        'common/currencys': { 'cost': 1 } as Endpoint<Dict>, // 查询系统支持的所有币种
+                        'common/timestamp': { 'cost': 1 } as Endpoint<Dict>, // 查询系统当前时间
+                        'common/exchange': { 'cost': 1 } as Endpoint<Dict>, // order limits
+                        'settings/currencys': { 'cost': 1 } as Endpoint<Dict>, // ?language=en-US
                     },
                 },
                 'private': {
                     'get': {
-                        'account/accounts': 0.2, // 查询当前用户的所有账户(即account-id)
-                        'account/accounts/{id}/balance': 0.2, // 查询指定账户的余额
-                        'account/accounts/{sub-uid}': 1,
-                        'account/history': 4,
-                        'cross-margin/loan-info': 1,
-                        'margin/loan-info': 1, // 查询借币币息率及额度
-                        'fee/fee-rate/get': 1,
-                        'order/openOrders': 0.4,
-                        'order/orders': 0.4,
-                        'order/orders/{id}': 0.4, // 查询某个订单详情
-                        'order/orders/{id}/matchresults': 0.4, // 查询某个订单的成交明细
-                        'order/orders/getClientOrder': 0.4,
-                        'order/history': 1, // 查询当前委托、历史委托
-                        'order/matchresults': 1, // 查询当前成交、历史成交
+                        'account/accounts': { 'cost': 0.2 } as Endpoint<Dict>, // 查询当前用户的所有账户(即account-id)
+                        'account/accounts/{id}/balance': { 'cost': 0.2 } as Endpoint<Dict>, // 查询指定账户的余额
+                        'account/accounts/{sub-uid}': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/history': { 'cost': 4 } as Endpoint<Dict>,
+                        'cross-margin/loan-info': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/loan-info': { 'cost': 1 } as Endpoint<Dict>, // 查询借币币息率及额度
+                        'fee/fee-rate/get': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/openOrders': { 'cost': 0.4 } as Endpoint<Dict>,
+                        'order/orders': { 'cost': 0.4 } as Endpoint<Dict>,
+                        'order/orders/{id}': { 'cost': 0.4 } as Endpoint<Dict>, // 查询某个订单详情
+                        'order/orders/{id}/matchresults': { 'cost': 0.4 } as Endpoint<Dict>, // 查询某个订单的成交明细
+                        'order/orders/getClientOrder': { 'cost': 0.4 } as Endpoint<Dict>,
+                        'order/history': { 'cost': 1 } as Endpoint<Dict>, // 查询当前委托、历史委托
+                        'order/matchresults': { 'cost': 1 } as Endpoint<Dict>, // 查询当前成交、历史成交
                         // 'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址（Deprecated）
-                        'query/deposit-withdraw': 1,
+                        'query/deposit-withdraw': { 'cost': 1 } as Endpoint<Dict>,
                         // 'margin/loan-info', // duplicate
-                        'margin/loan-orders': 0.2, // 借贷订单
-                        'margin/accounts/balance': 0.2, // 借贷账户详情
-                        'cross-margin/loan-orders': 1, // 查询借币订单
-                        'cross-margin/accounts/balance': 1, // 借币账户详情
-                        'points/actions': 1,
-                        'points/orders': 1,
-                        'subuser/aggregate-balance': 10,
-                        'stable-coin/exchange_rate': 1,
-                        'stable-coin/quote': 1,
+                        'margin/loan-orders': { 'cost': 0.2 } as Endpoint<Dict>, // 借贷订单
+                        'margin/accounts/balance': { 'cost': 0.2 } as Endpoint<Dict>, // 借贷账户详情
+                        'cross-margin/loan-orders': { 'cost': 1 } as Endpoint<Dict>, // 查询借币订单
+                        'cross-margin/accounts/balance': { 'cost': 1 } as Endpoint<Dict>, // 借币账户详情
+                        'points/actions': { 'cost': 1 } as Endpoint<Dict>,
+                        'points/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'subuser/aggregate-balance': { 'cost': 10 } as Endpoint<Dict>,
+                        'stable-coin/exchange_rate': { 'cost': 1 } as Endpoint<Dict>,
+                        'stable-coin/quote': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'account/transfer': 1, // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
-                        'futures/transfer': 1,
-                        'order/batch-orders': 0.4,
-                        'order/orders/place': 0.2, // 创建并执行一个新订单 (一步下单， 推荐使用)
-                        'order/orders/submitCancelClientOrder': 0.2,
-                        'order/orders/batchCancelOpenOrders': 0.4,
+                        'account/transfer': { 'cost': 1 } as Endpoint<Dict>, // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
+                        'futures/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/batch-orders': { 'cost': 0.4 } as Endpoint<Dict>,
+                        'order/orders/place': { 'cost': 0.2 } as Endpoint<Dict>, // 创建并执行一个新订单 (一步下单， 推荐使用)
+                        'order/orders/submitCancelClientOrder': { 'cost': 0.2 } as Endpoint<Dict>,
+                        'order/orders/batchCancelOpenOrders': { 'cost': 0.4 } as Endpoint<Dict>,
                         // 'order/orders', // 创建一个新的订单请求 （仅创建订单，不执行下单）
                         // 'order/orders/{id}/place', // 执行一个订单 （仅执行已创建的订单）
-                        'order/orders/{id}/submitcancel': 0.2, // 申请撤销一个订单请求
-                        'order/orders/batchcancel': 0.4, // 批量撤销订单
+                        'order/orders/{id}/submitcancel': { 'cost': 0.2 } as Endpoint<Dict>, // 申请撤销一个订单请求
+                        'order/orders/batchcancel': { 'cost': 0.4 } as Endpoint<Dict>, // 批量撤销订单
                         // 'dw/balance/transfer', // 资产划转
-                        'dw/withdraw/api/create': 1, // 申请提现虚拟币
+                        'dw/withdraw/api/create': { 'cost': 1 } as Endpoint<Dict>, // 申请提现虚拟币
                         // 'dw/withdraw-virtual/create', // 申请提现虚拟币
                         // 'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现（Deprecated）
-                        'dw/withdraw-virtual/{id}/cancel': 1, // 申请取消提现虚拟币
-                        'dw/transfer-in/margin': 10, // 现货账户划入至借贷账户
-                        'dw/transfer-out/margin': 10, // 借贷账户划出至现货账户
-                        'margin/orders': 10, // 申请借贷
-                        'margin/orders/{id}/repay': 10, // 归还借贷
-                        'cross-margin/transfer-in': 1, // 资产划转
-                        'cross-margin/transfer-out': 1, // 资产划转
-                        'cross-margin/orders': 1, // 申请借币
-                        'cross-margin/orders/{id}/repay': 1, // 归还借币
-                        'stable-coin/exchange': 1,
-                        'subuser/transfer': 10,
+                        'dw/withdraw-virtual/{id}/cancel': { 'cost': 1 } as Endpoint<Dict>, // 申请取消提现虚拟币
+                        'dw/transfer-in/margin': { 'cost': 10 } as Endpoint<Dict>, // 现货账户划入至借贷账户
+                        'dw/transfer-out/margin': { 'cost': 10 } as Endpoint<Dict>, // 借贷账户划出至现货账户
+                        'margin/orders': { 'cost': 10 } as Endpoint<Dict>, // 申请借贷
+                        'margin/orders/{id}/repay': { 'cost': 10 } as Endpoint<Dict>, // 归还借贷
+                        'cross-margin/transfer-in': { 'cost': 1 } as Endpoint<Dict>, // 资产划转
+                        'cross-margin/transfer-out': { 'cost': 1 } as Endpoint<Dict>, // 资产划转
+                        'cross-margin/orders': { 'cost': 1 } as Endpoint<Dict>, // 申请借币
+                        'cross-margin/orders/{id}/repay': { 'cost': 1 } as Endpoint<Dict>, // 归还借币
+                        'stable-coin/exchange': { 'cost': 1 } as Endpoint<Dict>,
+                        'subuser/transfer': { 'cost': 10 } as Endpoint<Dict>,
                     },
                 },
                 // ------------------------------------------------------------
@@ -343,30 +343,30 @@ export default class htx extends Exchange {
                     'public': {
                         'spot': {
                             'get': {
-                                'api/v2/summary.json': 1,
+                                'api/v2/summary.json': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                         'future': {
                             'inverse': {
                                 'get': {
-                                    'api/v2/summary.json': 1,
+                                    'api/v2/summary.json': { 'cost': 1 } as Endpoint<Dict>,
                                 },
                             },
                             'linear': {
                                 'get': {
-                                    'api/v2/summary.json': 1,
+                                    'api/v2/summary.json': { 'cost': 1 } as Endpoint<Dict>,
                                 },
                             },
                         },
                         'swap': {
                             'inverse': {
                                 'get': {
-                                    'api/v2/summary.json': 1,
+                                    'api/v2/summary.json': { 'cost': 1 } as Endpoint<Dict>,
                                 },
                             },
                             'linear': {
                                 'get': {
-                                    'api/v2/summary.json': 1,
+                                    'api/v2/summary.json': { 'cost': 1 } as Endpoint<Dict>,
                                 },
                             },
                         },
@@ -375,414 +375,414 @@ export default class htx extends Exchange {
                 'spot': {
                     'public': {
                         'get': {
-                            'v2/market-status': 1,
-                            'v1/common/symbols': 1,
-                            'v1/common/currencys': 1,
-                            'v2/settings/common/currencies': 1,
-                            'v2/reference/currencies': 1,
-                            'v1/common/timestamp': 1,
-                            'v1/common/exchange': 1, // order limits
-                            'v1/settings/common/chains': 1,
-                            'v1/settings/common/currencys': 1,
-                            'v1/settings/common/symbols': 1,
-                            'v2/settings/common/symbols': 1,
-                            'v1/settings/common/market-symbols': 1,
+                            'v2/market-status': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/common/symbols': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/common/currencys': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/settings/common/currencies': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/reference/currencies': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/common/timestamp': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/common/exchange': { 'cost': 1 } as Endpoint<Dict>, // order limits
+                            'v1/settings/common/chains': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/settings/common/currencys': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/settings/common/symbols': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/settings/common/symbols': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/settings/common/market-symbols': { 'cost': 1 } as Endpoint<Dict>,
                             // Market Data
-                            'market/history/candles': 1,
-                            'market/history/kline': 1,
-                            'market/detail/merged': 1,
-                            'market/tickers': 1,
-                            'market/detail': 1,
-                            'market/depth': 1,
-                            'market/trade': 1,
-                            'market/history/trade': 1,
-                            'market/etp': 1, // Get real-time equity of leveraged ETP
+                            'market/history/candles': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/history/kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/detail/merged': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/trade': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/history/trade': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/etp': { 'cost': 1 } as Endpoint<Dict>, // Get real-time equity of leveraged ETP
                             // ETP
-                            'v2/etp/reference': 1,
-                            'v2/etp/rebalance': 1,
+                            'v2/etp/reference': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/etp/rebalance': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'get': {
                             // Account
-                            'v1/account/accounts': 0.2,
-                            'v1/account/accounts/{account-id}/balance': 0.2,
-                            'v2/account/valuation': 1,
-                            'v2/account/asset-valuation': 0.2,
-                            'v1/account/history': 4,
-                            'v2/account/ledger': 1,
-                            'v2/point/account': 5,
+                            'v1/account/accounts': { 'cost': 0.2 } as Endpoint<Dict>,
+                            'v1/account/accounts/{account-id}/balance': { 'cost': 0.2 } as Endpoint<Dict>,
+                            'v2/account/valuation': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/account/asset-valuation': { 'cost': 0.2 } as Endpoint<Dict>,
+                            'v1/account/history': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/account/ledger': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/point/account': { 'cost': 5 } as Endpoint<Dict>,
                             // Wallet (Deposit and Withdraw)
-                            'v2/account/deposit/address': 1,
-                            'v2/account/withdraw/quota': 1,
-                            'v2/account/withdraw/address': 1,
-                            'v2/reference/currencies': 1,
-                            'v1/query/deposit-withdraw': 1,
-                            'v1/query/withdraw/client-order-id': 1,
+                            'v2/account/deposit/address': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/account/withdraw/quota': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/account/withdraw/address': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/reference/currencies': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/query/deposit-withdraw': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/query/withdraw/client-order-id': { 'cost': 1 } as Endpoint<Dict>,
                             // Sub user management
-                            'v2/user/api-key': 1,
-                            'v2/user/uid': 1,
-                            'v2/sub-user/user-list': 1,
-                            'v2/sub-user/user-state': 1,
-                            'v2/sub-user/account-list': 1,
-                            'v2/sub-user/deposit-address': 1,
-                            'v2/sub-user/query-deposit': 1,
-                            'v1/subuser/aggregate-balance': 10,
-                            'v1/account/accounts/{sub-uid}': 1,
+                            'v2/user/api-key': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/user/uid': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/user-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/user-state': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/account-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/deposit-address': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/query-deposit': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/subuser/aggregate-balance': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/account/accounts/{sub-uid}': { 'cost': 1 } as Endpoint<Dict>,
                             // Trading
-                            'v1/order/openOrders': 0.4,
-                            'v1/order/orders/{order-id}': 0.4,
-                            'v1/order/orders/getClientOrder': 0.4,
-                            'v1/order/orders/{order-id}/matchresult': 0.4,
-                            'v1/order/orders/{order-id}/matchresults': 0.4,
-                            'v1/order/orders': 0.4,
-                            'v1/order/history': 1,
-                            'v1/order/matchresults': 1,
-                            'v2/reference/transact-fee-rate': 1,
+                            'v1/order/openOrders': { 'cost': 0.4 } as Endpoint<Dict>,
+                            'v1/order/orders/{order-id}': { 'cost': 0.4 } as Endpoint<Dict>,
+                            'v1/order/orders/getClientOrder': { 'cost': 0.4 } as Endpoint<Dict>,
+                            'v1/order/orders/{order-id}/matchresult': { 'cost': 0.4 } as Endpoint<Dict>,
+                            'v1/order/orders/{order-id}/matchresults': { 'cost': 0.4 } as Endpoint<Dict>,
+                            'v1/order/orders': { 'cost': 0.4 } as Endpoint<Dict>,
+                            'v1/order/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/order/matchresults': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/reference/transact-fee-rate': { 'cost': 1 } as Endpoint<Dict>,
                             // Conditional Order
-                            'v2/algo-orders/opening': 1,
-                            'v2/algo-orders/history': 1,
-                            'v2/algo-orders/specific': 1,
+                            'v2/algo-orders/opening': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/algo-orders/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/algo-orders/specific': { 'cost': 1 } as Endpoint<Dict>,
                             // Margin Loan (Cross/Isolated)
-                            'v1/margin/loan-info': 1,
-                            'v1/margin/loan-orders': 0.2,
-                            'v1/margin/accounts/balance': 0.2,
-                            'v1/cross-margin/loan-info': 1,
-                            'v1/cross-margin/loan-orders': 1,
-                            'v1/cross-margin/accounts/balance': 1,
-                            'v2/account/repayment': 5,
+                            'v1/margin/loan-info': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/margin/loan-orders': { 'cost': 0.2 } as Endpoint<Dict>,
+                            'v1/margin/accounts/balance': { 'cost': 0.2 } as Endpoint<Dict>,
+                            'v1/cross-margin/loan-info': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/cross-margin/loan-orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/cross-margin/accounts/balance': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/account/repayment': { 'cost': 5 } as Endpoint<Dict>,
                             // Universal Transfer
-                            'v5/account/universal_transfer_records': 4, // 5 requests per 2 seconds
+                            'v5/account/universal_transfer_records': { 'cost': 4 } as Endpoint<Dict>, // 5 requests per 2 seconds
                             // Stable Coin Exchange
-                            'v1/stable-coin/quote': 1,
-                            'v1/stable_coin/exchange_rate': 1,
+                            'v1/stable-coin/quote': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/stable_coin/exchange_rate': { 'cost': 1 } as Endpoint<Dict>,
                             // ETP
-                            'v2/etp/transactions': 5,
-                            'v2/etp/transaction': 5,
-                            'v2/etp/limit': 1,
+                            'v2/etp/transactions': { 'cost': 5 } as Endpoint<Dict>,
+                            'v2/etp/transaction': { 'cost': 5 } as Endpoint<Dict>,
+                            'v2/etp/limit': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
                             // Account
-                            'v1/account/transfer': 1,
-                            'v1/futures/transfer': 1, // future transfers
-                            'v2/point/transfer': 5,
-                            'v2/account/transfer': 1, // swap transfers
+                            'v1/account/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/futures/transfer': { 'cost': 1 } as Endpoint<Dict>, // future transfers
+                            'v2/point/transfer': { 'cost': 5 } as Endpoint<Dict>,
+                            'v2/account/transfer': { 'cost': 1 } as Endpoint<Dict>, // swap transfers
                             // Wallet (Deposit and Withdraw)
-                            'v1/dw/withdraw/api/create': 1,
-                            'v1/dw/withdraw-virtual/{withdraw-id}/cancel': 1,
+                            'v1/dw/withdraw/api/create': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/dw/withdraw-virtual/{withdraw-id}/cancel': { 'cost': 1 } as Endpoint<Dict>,
                             // Sub user management
-                            'v2/sub-user/deduct-mode': 1,
-                            'v2/sub-user/creation': 1,
-                            'v2/sub-user/management': 1,
-                            'v2/sub-user/tradable-market': 1,
-                            'v2/sub-user/transferability': 1,
-                            'v2/sub-user/api-key-generation': 1,
-                            'v2/sub-user/api-key-modification': 1,
-                            'v2/sub-user/api-key-deletion': 1,
-                            'v1/subuser/transfer': 10,
-                            'v1/trust/user/active/credit': 10,
+                            'v2/sub-user/deduct-mode': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/creation': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/management': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/tradable-market': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/transferability': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/api-key-generation': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/api-key-modification': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/api-key-deletion': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/subuser/transfer': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/trust/user/active/credit': { 'cost': 10 } as Endpoint<Dict>,
                             // Trading
-                            'v1/order/orders/place': 0.2,
-                            'v1/order/batch-orders': 0.4,
-                            'v1/order/auto/place': 0.2,
-                            'v1/order/orders/{order-id}/submitcancel': 0.2,
-                            'v1/order/orders/submitCancelClientOrder': 0.2,
-                            'v1/order/orders/batchCancelOpenOrders': 0.4,
-                            'v1/order/orders/batchcancel': 0.4,
-                            'v2/algo-orders/cancel-all-after': 1,
+                            'v1/order/orders/place': { 'cost': 0.2 } as Endpoint<Dict>,
+                            'v1/order/batch-orders': { 'cost': 0.4 } as Endpoint<Dict>,
+                            'v1/order/auto/place': { 'cost': 0.2 } as Endpoint<Dict>,
+                            'v1/order/orders/{order-id}/submitcancel': { 'cost': 0.2 } as Endpoint<Dict>,
+                            'v1/order/orders/submitCancelClientOrder': { 'cost': 0.2 } as Endpoint<Dict>,
+                            'v1/order/orders/batchCancelOpenOrders': { 'cost': 0.4 } as Endpoint<Dict>,
+                            'v1/order/orders/batchcancel': { 'cost': 0.4 } as Endpoint<Dict>,
+                            'v2/algo-orders/cancel-all-after': { 'cost': 1 } as Endpoint<Dict>,
                             // Conditional Order
-                            'v2/algo-orders': 1,
-                            'v2/algo-orders/cancellation': 1,
+                            'v2/algo-orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/algo-orders/cancellation': { 'cost': 1 } as Endpoint<Dict>,
                             // Margin Loan (Cross/Isolated)
-                            'v2/account/repayment': 5,
-                            'v1/dw/transfer-in/margin': 10,
-                            'v1/dw/transfer-out/margin': 10,
-                            'v1/margin/orders': 10,
-                            'v1/margin/orders/{order-id}/repay': 10,
-                            'v1/cross-margin/transfer-in': 1,
-                            'v1/cross-margin/transfer-out': 1,
-                            'v1/cross-margin/orders': 1,
-                            'v1/cross-margin/orders/{order-id}/repay': 1,
+                            'v2/account/repayment': { 'cost': 5 } as Endpoint<Dict>,
+                            'v1/dw/transfer-in/margin': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/dw/transfer-out/margin': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/margin/orders': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/margin/orders/{order-id}/repay': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/cross-margin/transfer-in': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/cross-margin/transfer-out': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/cross-margin/orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/cross-margin/orders/{order-id}/repay': { 'cost': 1 } as Endpoint<Dict>,
                             // Stable Coin Exchange
-                            'v1/stable-coin/exchange': 1,
+                            'v1/stable-coin/exchange': { 'cost': 1 } as Endpoint<Dict>,
                             // ETP
-                            'v2/etp/creation': 5,
-                            'v2/etp/redemption': 5,
-                            'v2/etp/{transactId}/cancel': 10,
-                            'v2/etp/batch-cancel': 50,
+                            'v2/etp/creation': { 'cost': 5 } as Endpoint<Dict>,
+                            'v2/etp/redemption': { 'cost': 5 } as Endpoint<Dict>,
+                            'v2/etp/{transactId}/cancel': { 'cost': 10 } as Endpoint<Dict>,
+                            'v2/etp/batch-cancel': { 'cost': 50 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'contract': {
                     'public': {
                         'get': {
-                            'api/v1/timestamp': 1,
-                            'heartbeat/': 1, // backslash is not a typo
+                            'api/v1/timestamp': { 'cost': 1 } as Endpoint<Dict>,
+                            'heartbeat/': { 'cost': 1 } as Endpoint<Dict>, // backslash is not a typo
                             // Future Market Data interface
-                            'api/v1/contract_contract_info': 1,
-                            'api/v1/contract_index': 1,
-                            'api/v1/contract_query_elements': 1,
-                            'api/v1/contract_price_limit': 1,
-                            'api/v1/contract_open_interest': 1,
-                            'api/v1/contract_delivery_price': 1,
-                            'market/depth': 1,
-                            'market/bbo': 1,
-                            'market/history/kline': 1,
-                            'index/market/history/mark_price_kline': 1,
-                            'market/detail/merged': 1,
-                            'market/detail/batch_merged': 1,
-                            'v2/market/detail/batch_merged': 1,
-                            'market/trade': 1,
-                            'market/history/trade': 1,
-                            'api/v1/contract_risk_info': 1,
-                            'api/v1/contract_insurance_fund': 1,
-                            'api/v1/contract_adjustfactor': 1,
-                            'api/v1/contract_his_open_interest': 1,
-                            'api/v1/contract_ladder_margin': 1,
-                            'api/v1/contract_api_state': 1,
-                            'api/v1/contract_elite_account_ratio': 1,
-                            'api/v1/contract_elite_position_ratio': 1,
-                            'api/v1/contract_liquidation_orders': 1,
-                            'api/v1/contract_settlement_records': 1,
-                            'index/market/history/index': 1,
-                            'index/market/history/basis': 1,
-                            'api/v1/contract_estimated_settlement_price': 1,
-                            'api/v3/contract_liquidation_orders': 1,
+                            'api/v1/contract_contract_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_index': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_query_elements': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_price_limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_open_interest': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_delivery_price': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/bbo': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/history/kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/mark_price_kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/detail/merged': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/detail/batch_merged': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/market/detail/batch_merged': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/trade': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/history/trade': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_risk_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_insurance_fund': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_adjustfactor': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_his_open_interest': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_ladder_margin': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_api_state': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_elite_account_ratio': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_elite_position_ratio': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_liquidation_orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_settlement_records': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/index': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/basis': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_estimated_settlement_price': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v3/contract_liquidation_orders': { 'cost': 1 } as Endpoint<Dict>,
                             // Swap Market Data interface
-                            'swap-api/v1/swap_contract_info': 1,
-                            'swap-api/v1/swap_index': 1,
-                            'swap-api/v1/swap_query_elements': 1,
-                            'swap-api/v1/swap_price_limit': 1,
-                            'swap-api/v1/swap_open_interest': 1,
-                            'swap-ex/market/depth': 1,
-                            'swap-ex/market/bbo': 1,
-                            'swap-ex/market/history/kline': 1,
-                            'index/market/history/swap_mark_price_kline': 1,
-                            'swap-ex/market/detail/merged': 1,
-                            'v2/swap-ex/market/detail/batch_merged': 1,
-                            'index/market/history/swap_premium_index_kline': 1,
-                            'swap-ex/market/detail/batch_merged': 1,
-                            'swap-ex/market/trade': 1,
-                            'swap-ex/market/history/trade': 1,
-                            'swap-api/v1/swap_risk_info': 1,
-                            'swap-api/v1/swap_insurance_fund': 1,
-                            'swap-api/v1/swap_adjustfactor': 1,
-                            'swap-api/v1/swap_his_open_interest': 1,
-                            'swap-api/v1/swap_ladder_margin': 1,
-                            'swap-api/v1/swap_api_state': 1,
-                            'swap-api/v1/swap_elite_account_ratio': 1,
-                            'swap-api/v1/swap_elite_position_ratio': 1,
-                            'swap-api/v1/swap_estimated_settlement_price': 1,
-                            'swap-api/v1/swap_liquidation_orders': 1,
-                            'swap-api/v1/swap_settlement_records': 1,
-                            'swap-api/v1/swap_funding_rate': 1,
-                            'swap-api/v1/swap_batch_funding_rate': 1,
-                            'swap-api/v1/swap_historical_funding_rate': 1,
-                            'swap-api/v3/swap_liquidation_orders': 1,
-                            'index/market/history/swap_estimated_rate_kline': 1,
-                            'index/market/history/swap_basis': 1,
+                            'swap-api/v1/swap_contract_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_index': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_query_elements': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_price_limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_open_interest': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-ex/market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-ex/market/bbo': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-ex/market/history/kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/swap_mark_price_kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-ex/market/detail/merged': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/swap-ex/market/detail/batch_merged': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/swap_premium_index_kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-ex/market/detail/batch_merged': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-ex/market/trade': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-ex/market/history/trade': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_risk_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_insurance_fund': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_adjustfactor': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_his_open_interest': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_ladder_margin': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_api_state': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_elite_account_ratio': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_elite_position_ratio': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_estimated_settlement_price': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_liquidation_orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_settlement_records': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_funding_rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_batch_funding_rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_historical_funding_rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v3/swap_liquidation_orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/swap_estimated_rate_kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/swap_basis': { 'cost': 1 } as Endpoint<Dict>,
                             // Linear Swap Market Data interface
-                            'linear-swap-api/v1/swap_contract_info': 1,
-                            'linear-swap-api/v1/swap_index': 1,
-                            'linear-swap-api/v1/swap_query_elements': 1,
-                            'linear-swap-api/v1/swap_price_limit': 1,
-                            'linear-swap-ex/market/depth': 1,
-                            'linear-swap-ex/market/bbo': 1,
-                            'linear-swap-ex/market/history/kline': 1,
-                            'index/market/history/linear_swap_mark_price_kline': 1,
-                            'linear-swap-ex/market/detail/merged': 1,
-                            'linear-swap-ex/market/detail/batch_merged': 1,
-                            'v2/linear-swap-ex/market/detail/batch_merged': 1,
-                            'linear-swap-ex/market/trade': 1,
-                            'linear-swap-ex/market/history/trade': 1,
-                            'swap-api/v1/linear-swap-api/v1/swap_insurance_fund': 1,
-                            'linear-swap-api/v1/swap_adjustfactor': 1,
-                            'linear-swap-api/v1/swap_cross_adjustfactor': 1,
-                            'linear-swap-api/v1/swap_his_open_interest': 1,
-                            'linear-swap-api/v1/swap_ladder_margin': 1,
-                            'linear-swap-api/v1/swap_cross_ladder_margin': 1,
-                            'linear-swap-api/v1/swap_api_state': 1,
-                            'linear-swap-api/v1/swap_elite_account_ratio': 1,
-                            'linear-swap-api/v1/swap_elite_position_ratio': 1,
-                            'linear-swap-api/v1/swap_settlement_records': 1,
-                            'linear-swap-api/v3/swap_liquidation_orders': 1,
-                            'index/market/history/linear_swap_premium_index_kline': 1,
-                            'index/market/history/linear_swap_estimated_rate_kline': 1,
-                            'index/market/history/linear_swap_basis': 1,
-                            'linear-swap-api/v1/swap_estimated_settlement_price': 1,
-                            'v5/market/funding_rate': 0.125, // 80 requests per second = 1000ms / ( 100 * 0.125)
-                            'v5/market/funding_rate_history': 0.125,
-                            'v5/market/open_interest': 0.125,
-                            'v5/market/liquidation_orders': 0.125,
-                            'v5/market/settlement_history': 0.125,
-                            'v5/market/elite_account_ratio': 0.125,
-                            'v5/market/elite_position_ratio': 0.125,
-                            'v5/market/estimated_settlement_price': 0.125,
-                            'v5/market/price_limit': 0.125,
+                            'linear-swap-api/v1/swap_contract_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_index': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_query_elements': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_price_limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-ex/market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-ex/market/bbo': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-ex/market/history/kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/linear_swap_mark_price_kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-ex/market/detail/merged': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-ex/market/detail/batch_merged': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/linear-swap-ex/market/detail/batch_merged': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-ex/market/trade': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-ex/market/history/trade': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/linear-swap-api/v1/swap_insurance_fund': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_adjustfactor': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_cross_adjustfactor': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_his_open_interest': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_ladder_margin': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_cross_ladder_margin': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_api_state': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_elite_account_ratio': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_elite_position_ratio': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_settlement_records': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v3/swap_liquidation_orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/linear_swap_premium_index_kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/linear_swap_estimated_rate_kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/linear_swap_basis': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_estimated_settlement_price': { 'cost': 1 } as Endpoint<Dict>,
+                            'v5/market/funding_rate': { 'cost': 0.125 } as Endpoint<Dict>, // 80 requests per second = 1000ms / ( 100 * 0.125)
+                            'v5/market/funding_rate_history': { 'cost': 0.125 } as Endpoint<Dict>,
+                            'v5/market/open_interest': { 'cost': 0.125 } as Endpoint<Dict>,
+                            'v5/market/liquidation_orders': { 'cost': 0.125 } as Endpoint<Dict>,
+                            'v5/market/settlement_history': { 'cost': 0.125 } as Endpoint<Dict>,
+                            'v5/market/elite_account_ratio': { 'cost': 0.125 } as Endpoint<Dict>,
+                            'v5/market/elite_position_ratio': { 'cost': 0.125 } as Endpoint<Dict>,
+                            'v5/market/estimated_settlement_price': { 'cost': 0.125 } as Endpoint<Dict>,
+                            'v5/market/price_limit': { 'cost': 0.125 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'get': {
                             // Future Account Interface
-                            'api/v1/contract_sub_auth_list': 1,
-                            'api/v1/contract_api_trading_status': 1,
+                            'api/v1/contract_sub_auth_list': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_api_trading_status': { 'cost': 1 } as Endpoint<Dict>,
                             // Swap Account Interface
-                            'swap-api/v1/swap_sub_auth_list': 1,
-                            'swap-api/v1/swap_api_trading_status': 1,
+                            'swap-api/v1/swap_sub_auth_list': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_api_trading_status': { 'cost': 1 } as Endpoint<Dict>,
                             // Linear Swap Interface
-                            'v5/account/asset_mode': 0.20834, // 48 requests per second = 1000ms / ( 100 * 0.20834)
-                            'v5/account/balance': 0.20834,
-                            'v5/account/bills': 0.20834,
-                            'v5/account/fee_deduction_currency': 0.20834,
-                            'v5/trade/position/opens': 0.41679, // 24 requests per second = 1000ms / ( 100 * 0.41679)
-                            'v5/trade/order/opens': 0.41679,
-                            'v5/trade/order/details': 0.41679,
-                            'v5/trade/order/history': 0.41679,
-                            'v5/trade/order': 0.41679,
-                            'v5/position/lever': 0.20834,
-                            'v5/position/mode': 0.20834,
-                            'v5/position/risk/limit': 0.20834,
-                            'v5/position/risk/limit_tier': 0.20834,
-                            'v5/market/risk/limit': 0.125,
-                            'v5/market/assets_deduction_currency': 0.125,
-                            'v5/market/multi_assets_margin': 0.125,
-                            'v5/algo/order/opens': 0.41679,
-                            'v5/algo/order': 0.41679,
-                            'v5/algo/order/history': 0.41679,
+                            'v5/account/asset_mode': { 'cost': 0.20834 } as Endpoint<Dict>, // 48 requests per second = 1000ms / ( 100 * 0.20834)
+                            'v5/account/balance': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/account/bills': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/account/fee_deduction_currency': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/trade/position/opens': { 'cost': 0.41679 } as Endpoint<Dict>, // 24 requests per second = 1000ms / ( 100 * 0.41679)
+                            'v5/trade/order/opens': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/trade/order/details': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/trade/order/history': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/trade/order': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/position/lever': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/position/mode': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/position/risk/limit': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/position/risk/limit_tier': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/market/risk/limit': { 'cost': 0.125 } as Endpoint<Dict>,
+                            'v5/market/assets_deduction_currency': { 'cost': 0.125 } as Endpoint<Dict>,
+                            'v5/market/multi_assets_margin': { 'cost': 0.125 } as Endpoint<Dict>,
+                            'v5/algo/order/opens': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/algo/order': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/algo/order/history': { 'cost': 0.41679 } as Endpoint<Dict>,
                         },
                         'post': {
                             // Future Account Interface
-                            'api/v1/contract_balance_valuation': 1,
-                            'api/v1/contract_account_info': 1,
-                            'api/v1/contract_position_info': 1,
-                            'api/v1/contract_sub_auth': 1,
-                            'api/v1/contract_sub_account_list': 1,
-                            'api/v1/contract_sub_account_info_list': 1,
-                            'api/v1/contract_sub_account_info': 1,
-                            'api/v1/contract_sub_position_info': 1,
-                            'api/v1/contract_financial_record': 1,
-                            'api/v1/contract_financial_record_exact': 1,
-                            'api/v1/contract_user_settlement_records': 1,
-                            'api/v1/contract_order_limit': 1,
-                            'api/v1/contract_fee': 1,
-                            'api/v1/contract_transfer_limit': 1,
-                            'api/v1/contract_position_limit': 1,
-                            'api/v1/contract_account_position_info': 1,
-                            'api/v1/contract_master_sub_transfer': 1,
-                            'api/v1/contract_master_sub_transfer_record': 1,
-                            'api/v1/contract_available_level_rate': 1,
-                            'api/v3/contract_financial_record': 1,
-                            'api/v3/contract_financial_record_exact': 1,
+                            'api/v1/contract_balance_valuation': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_account_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_position_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_sub_auth': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_sub_account_list': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_sub_account_info_list': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_sub_account_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_sub_position_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_financial_record': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_financial_record_exact': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_user_settlement_records': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_order_limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_fee': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_transfer_limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_position_limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_account_position_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_master_sub_transfer': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_master_sub_transfer_record': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_available_level_rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v3/contract_financial_record': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v3/contract_financial_record_exact': { 'cost': 1 } as Endpoint<Dict>,
                             // Future Trade Interface
-                            'api/v1/contract-cancel-after': 1,
-                            'api/v1/contract_order': 1,
-                            'api/v1/contract_batchorder': 1,
-                            'api/v1/contract_cancel': 1,
-                            'api/v1/contract_cancelall': 1,
-                            'api/v1/contract_switch_lever_rate': 30,
-                            'api/v1/lightning_close_position': 1,
-                            'api/v1/contract_order_info': 1,
-                            'api/v1/contract_order_detail': 1,
-                            'api/v1/contract_openorders': 1,
-                            'api/v1/contract_hisorders': 1,
-                            'api/v1/contract_hisorders_exact': 1,
-                            'api/v1/contract_matchresults': 1,
-                            'api/v1/contract_matchresults_exact': 1,
-                            'api/v3/contract_hisorders': 1,
-                            'api/v3/contract_hisorders_exact': 1,
-                            'api/v3/contract_matchresults': 1,
-                            'api/v3/contract_matchresults_exact': 1,
+                            'api/v1/contract-cancel-after': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_batchorder': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_cancelall': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_switch_lever_rate': { 'cost': 30 } as Endpoint<Dict>,
+                            'api/v1/lightning_close_position': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_order_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_order_detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_openorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_hisorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_hisorders_exact': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_matchresults': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_matchresults_exact': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v3/contract_hisorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v3/contract_hisorders_exact': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v3/contract_matchresults': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v3/contract_matchresults_exact': { 'cost': 1 } as Endpoint<Dict>,
                             // Contract Strategy Order Interface
-                            'api/v1/contract_trigger_order': 1,
-                            'api/v1/contract_trigger_cancel': 1,
-                            'api/v1/contract_trigger_cancelall': 1,
-                            'api/v1/contract_trigger_openorders': 1,
-                            'api/v1/contract_trigger_hisorders': 1,
-                            'api/v1/contract_tpsl_order': 1,
-                            'api/v1/contract_tpsl_cancel': 1,
-                            'api/v1/contract_tpsl_cancelall': 1,
-                            'api/v1/contract_tpsl_openorders': 1,
-                            'api/v1/contract_tpsl_hisorders': 1,
-                            'api/v1/contract_relation_tpsl_order': 1,
-                            'api/v1/contract_track_order': 1,
-                            'api/v1/contract_track_cancel': 1,
-                            'api/v1/contract_track_cancelall': 1,
-                            'api/v1/contract_track_openorders': 1,
-                            'api/v1/contract_track_hisorders': 1,
+                            'api/v1/contract_trigger_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_trigger_cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_trigger_cancelall': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_trigger_openorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_trigger_hisorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_tpsl_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_tpsl_cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_tpsl_cancelall': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_tpsl_openorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_tpsl_hisorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_relation_tpsl_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_track_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_track_cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_track_cancelall': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_track_openorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_track_hisorders': { 'cost': 1 } as Endpoint<Dict>,
                             // Swap Account Interface
-                            'swap-api/v1/swap_balance_valuation': 1,
-                            'swap-api/v1/swap_account_info': 1,
-                            'swap-api/v1/swap_position_info': 1,
-                            'swap-api/v1/swap_account_position_info': 1,
-                            'swap-api/v1/swap_sub_auth': 1,
-                            'swap-api/v1/swap_sub_account_list': 1,
-                            'swap-api/v1/swap_sub_account_info_list': 1,
-                            'swap-api/v1/swap_sub_account_info': 1,
-                            'swap-api/v1/swap_sub_position_info': 1,
-                            'swap-api/v1/swap_financial_record': 1,
-                            'swap-api/v1/swap_financial_record_exact': 1,
-                            'swap-api/v1/swap_user_settlement_records': 1,
-                            'swap-api/v1/swap_available_level_rate': 1,
-                            'swap-api/v1/swap_order_limit': 1,
-                            'swap-api/v1/swap_fee': 1,
-                            'swap-api/v1/swap_transfer_limit': 1,
-                            'swap-api/v1/swap_position_limit': 1,
-                            'swap-api/v1/swap_master_sub_transfer': 1,
-                            'swap-api/v1/swap_master_sub_transfer_record': 1,
-                            'swap-api/v3/swap_financial_record': 1,
-                            'swap-api/v3/swap_financial_record_exact': 1,
+                            'swap-api/v1/swap_balance_valuation': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_account_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_position_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_account_position_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_sub_auth': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_sub_account_list': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_sub_account_info_list': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_sub_account_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_sub_position_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_financial_record': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_financial_record_exact': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_user_settlement_records': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_available_level_rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_order_limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_fee': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_transfer_limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_position_limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_master_sub_transfer': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_master_sub_transfer_record': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v3/swap_financial_record': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v3/swap_financial_record_exact': { 'cost': 1 } as Endpoint<Dict>,
                             // Swap Trade Interface
-                            'swap-api/v1/swap-cancel-after': 1,
-                            'swap-api/v1/swap_order': 1,
-                            'swap-api/v1/swap_batchorder': 1,
-                            'swap-api/v1/swap_cancel': 1,
-                            'swap-api/v1/swap_cancelall': 1,
-                            'swap-api/v1/swap_lightning_close_position': 1,
-                            'swap-api/v1/swap_switch_lever_rate': 30,
-                            'swap-api/v1/swap_order_info': 1,
-                            'swap-api/v1/swap_order_detail': 1,
-                            'swap-api/v1/swap_openorders': 1,
-                            'swap-api/v1/swap_hisorders': 1,
-                            'swap-api/v1/swap_hisorders_exact': 1,
-                            'swap-api/v1/swap_matchresults': 1,
-                            'swap-api/v1/swap_matchresults_exact': 1,
-                            'swap-api/v3/swap_matchresults': 1,
-                            'swap-api/v3/swap_matchresults_exact': 1,
-                            'swap-api/v3/swap_hisorders': 1,
-                            'swap-api/v3/swap_hisorders_exact': 1,
+                            'swap-api/v1/swap-cancel-after': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_batchorder': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_cancelall': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_lightning_close_position': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_switch_lever_rate': { 'cost': 30 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_order_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_order_detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_openorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_hisorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_hisorders_exact': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_matchresults': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_matchresults_exact': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v3/swap_matchresults': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v3/swap_matchresults_exact': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v3/swap_hisorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v3/swap_hisorders_exact': { 'cost': 1 } as Endpoint<Dict>,
                             // Swap Strategy Order Interface
-                            'swap-api/v1/swap_trigger_order': 1,
-                            'swap-api/v1/swap_trigger_cancel': 1,
-                            'swap-api/v1/swap_trigger_cancelall': 1,
-                            'swap-api/v1/swap_trigger_openorders': 1,
-                            'swap-api/v1/swap_trigger_hisorders': 1,
-                            'swap-api/v1/swap_tpsl_order': 1,
-                            'swap-api/v1/swap_tpsl_cancel': 1,
-                            'swap-api/v1/swap_tpsl_cancelall': 1,
-                            'swap-api/v1/swap_tpsl_openorders': 1,
-                            'swap-api/v1/swap_tpsl_hisorders': 1,
-                            'swap-api/v1/swap_relation_tpsl_order': 1,
-                            'swap-api/v1/swap_track_order': 1,
-                            'swap-api/v1/swap_track_cancel': 1,
-                            'swap-api/v1/swap_track_cancelall': 1,
-                            'swap-api/v1/swap_track_openorders': 1,
-                            'swap-api/v1/swap_track_hisorders': 1,
+                            'swap-api/v1/swap_trigger_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_trigger_cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_trigger_cancelall': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_trigger_openorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_trigger_hisorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_tpsl_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_tpsl_cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_tpsl_cancelall': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_tpsl_openorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_tpsl_hisorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_relation_tpsl_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_track_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_track_cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_track_cancelall': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_track_openorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_track_hisorders': { 'cost': 1 } as Endpoint<Dict>,
                             // Linear Swap Interface
-                            'v5/account/asset_mode': 100, // 0.1 requests per second = 1000ms / (100 * 100)
-                            'v5/trade/order': 0.41679,
-                            'v5/trade/batch_orders': 0.41679,
-                            'v5/trade/cancel_order': 0.41679,
-                            'v5/trade/cancel_batch_orders': 0.41679,
-                            'v5/trade/cancel_all_orders': 0.41679,
-                            'v5/trade/cancel-after': 0.41679,
-                            'v5/trade/position': 0.41679,
-                            'v5/trade/position_all': 0.41679,
-                            'v5/position/lever': 0.20834,
-                            'v5/position/mode': 0.20834,
-                            'v5/position/margin': 0.20834,
-                            'v5/account/fee_deduction_currency': 0.20834,
-                            'v5/algo/order': 0.41679,
-                            'v5/algo/cancel_orders': 0.41679,
+                            'v5/account/asset_mode': { 'cost': 100 } as Endpoint<Dict>, // 0.1 requests per second = 1000ms / (100 * 100)
+                            'v5/trade/order': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/trade/batch_orders': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/trade/cancel_order': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/trade/cancel_batch_orders': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/trade/cancel_all_orders': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/trade/cancel-after': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/trade/position': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/trade/position_all': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/position/lever': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/position/mode': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/position/margin': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/account/fee_deduction_currency': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/algo/order': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/algo/cancel_orders': { 'cost': 0.41679 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -1317,7 +1317,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1507,7 +1507,7 @@ export default class htx extends Exchange {
         //      }
         //
         let status: Str = undefined;
-        let updated: Str | number = undefined;
+        let updated: Int = undefined;
         let url: Str = undefined;
         if (marketType === 'contract') {
             const statusRaw = this.safeString (response, 'status');
@@ -1516,7 +1516,7 @@ export default class htx extends Exchange {
             } else {
                 status = (statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
             }
-            updated = this.safeString (response, 'ts');
+            updated = this.safeInteger (response, 'ts');
         } else {
             const statusData = this.safeValue (response, 'status', {});
             const statusRaw = this.safeString (statusData, 'indicator');
@@ -2844,7 +2844,8 @@ export default class htx extends Exchange {
             'order-id': id,
         };
         const response = await this.spotPrivateGetV1OrderOrdersOrderIdMatchresults (this.extend (request, params));
-        return this.parseTrades (response['data'], undefined, since, limit);
+        const data = this.safeList (response, 'data', []);
+        return this.parseTrades (data, undefined, since, limit);
     }
 
     /**
@@ -3764,7 +3765,7 @@ export default class htx extends Exchange {
         //     }
         //
         const finalResponse = response;
-        let result: Dict = { 'info': finalResponse } as any;
+        let result: Dict = { 'info': finalResponse };
         const data = this.safeValue (response, 'data');
         if (isMultiAssetMode || (linear && (swap || future))) {
             const details = this.safeList (data, 'details', []);
@@ -6655,7 +6656,7 @@ export default class htx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const allAddresses = this.parseDepositAddresses (data, [ currency['code'] ], false) as any; // cjg: to do remove this weird object or array ambiguity
+        const allAddresses: Dict[] = this.parseDepositAddresses (data, [ currency['code'] ], false);
         const addresses: List = [];
         for (let i = 0; i < allAddresses.length; i++) {
             const address = allAddresses[i];
@@ -6728,7 +6729,8 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        return this.parseTransactions (response['data'], currency, since, limit);
+        const data = this.safeList (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     /**
@@ -6789,7 +6791,8 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        return this.parseTransactions (response['data'], currency, since, limit);
+        const data = this.safeList (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -7820,7 +7823,7 @@ export default class htx extends Exchange {
             const access = this.safeString (api, 1);
             const levelOneNestedPath = this.safeString (api, 2);
             const levelTwoNestedPath = this.safeString (api, 3);
-            let hostname = undefined;
+            let hostname: Str = undefined;
             let hostnames = this.safeValue (this.urls['hostnames'], type);
             if (typeof hostnames !== 'string') {
                 hostnames = this.safeValue (hostnames, levelOneNestedPath);
@@ -9204,7 +9207,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
+    override async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9223,7 +9226,7 @@ export default class htx extends Exchange {
         //         "data": 1000
         //     }
         //
-        const transaction = this.parseMarginLoan (response, currency);
+        const transaction: MarginLoan = this.parseMarginLoan (response, currency);
         return this.extend (transaction, {
             'amount': amount,
             'symbol': symbol,
@@ -9241,7 +9244,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async borrowCrossMargin (code: string, amount: number, params = {}) {
+    override async borrowCrossMargin (code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9259,7 +9262,7 @@ export default class htx extends Exchange {
         //         "data": null
         //     }
         //
-        const transaction = this.parseMarginLoan (response, currency);
+        const transaction: MarginLoan = this.parseMarginLoan (response, currency);
         return this.extend (transaction, {
             'amount': amount,
         });
@@ -9276,7 +9279,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async repayIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
+    override async repayIsolatedMargin (symbol: string, code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9301,7 +9304,7 @@ export default class htx extends Exchange {
         //
         const data = this.safeValue (response, 'Data', []);
         const loan = this.safeValue (data, 0);
-        const transaction = this.parseMarginLoan (loan, currency);
+        const transaction: MarginLoan = this.parseMarginLoan (loan, currency);
         return this.extend (transaction, {
             'amount': amount,
             'symbol': symbol,
@@ -9318,7 +9321,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async repayCrossMargin (code: string, amount: number, params = {}) {
+    override async repayCrossMargin (code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9343,13 +9346,13 @@ export default class htx extends Exchange {
         //
         const data = this.safeValue (response, 'Data', []);
         const loan = this.safeValue (data, 0);
-        const transaction = this.parseMarginLoan (loan, currency);
+        const transaction: MarginLoan = this.parseMarginLoan (loan, currency);
         return this.extend (transaction, {
             'amount': amount,
         });
     }
 
-    parseMarginLoan (info: any, currency: Currency = undefined) {
+    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
         //
         // borrowMargin cross
         //
@@ -9399,7 +9402,7 @@ export default class htx extends Exchange {
      * @param {int} [params.code] unified currency code, can be used when symbol is undefined
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchSettlementHistory() requires a symbol argument');
         }

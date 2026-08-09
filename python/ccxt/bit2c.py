@@ -135,37 +135,37 @@ class bit2c(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'Exchanges/{pair}/Ticker',
-                        'Exchanges/{pair}/orderbook',
-                        'Exchanges/{pair}/trades',
-                        'Exchanges/{pair}/lasttrades',
-                    ],
+                    'get': {
+                        'Exchanges/{pair}/Ticker': {'cost': 1},
+                        'Exchanges/{pair}/orderbook': {'cost': 1},
+                        'Exchanges/{pair}/trades': {'cost': 1},
+                        'Exchanges/{pair}/lasttrades': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'post': [
-                        'Merchant/CreateCheckout',
-                        'Funds/AddCoinFundsRequest',
-                        'Order/AddFund',
-                        'Order/AddOrder',
-                        'Order/GetById',
-                        'Order/AddOrderMarketPriceBuy',
-                        'Order/AddOrderMarketPriceSell',
-                        'Order/CancelOrder',
-                        'Order/AddCoinFundsRequest',
-                        'Order/AddStopOrder',
-                        'Payment/GetMyId',
-                        'Payment/Send',
-                        'Payment/Pay',
-                    ],
-                    'get': [
-                        'Account/Balance',
-                        'Account/Balance/v2',
-                        'Order/MyOrders',
-                        'Order/GetById',
-                        'Order/AccountHistory',
-                        'Order/OrderHistory',
-                    ],
+                    'post': {
+                        'Merchant/CreateCheckout': {'cost': 1},
+                        'Funds/AddCoinFundsRequest': {'cost': 1},
+                        'Order/AddFund': {'cost': 1},
+                        'Order/AddOrder': {'cost': 1},
+                        'Order/GetById': {'cost': 1},
+                        'Order/AddOrderMarketPriceBuy': {'cost': 1},
+                        'Order/AddOrderMarketPriceSell': {'cost': 1},
+                        'Order/CancelOrder': {'cost': 1},
+                        'Order/AddCoinFundsRequest': {'cost': 1},
+                        'Order/AddStopOrder': {'cost': 1},
+                        'Payment/GetMyId': {'cost': 1},
+                        'Payment/Send': {'cost': 1},
+                        'Payment/Pay': {'cost': 1},
+                    },
+                    'get': {
+                        'Account/Balance': {'cost': 1},
+                        'Account/Balance/v2': {'cost': 1},
+                        'Order/MyOrders': {'cost': 1},
+                        'Order/GetById': {'cost': 1},
+                        'Order/AccountHistory': {'cost': 1},
+                        'Order/OrderHistory': {'cost': 1},
+                    },
                 },
             },
             'markets': {
@@ -457,23 +457,24 @@ class bit2c(Exchange, ImplicitAPI):
             request['date'] = self.parse_to_int(since)
         if limit is not None:
             request['limit'] = limit  # max 100000
-        response = None
+        responseList = []
         if method == 'public_get_exchanges_pair_trades':
             response = self.publicGetExchangesPairTrades(self.extend(request, params))
+            #
+            #     [
+            #         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
+            #         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
+            #         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
+            #     ]
+            #
+            if isinstance(response, str):
+                raise ExchangeError(response)
+            responseList = self.to_array(response)
         else:
             response = self.publicGetExchangesPairLasttrades(self.extend(request, params))
-        #
-        #     [
-        #         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
-        #         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
-        #         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
-        #     ]
-        #
-        if isinstance(response, str):
-            raise ExchangeError(response)
-        responseList = []
-        if response is not None:
-            responseList = response
+            if isinstance(response, str):
+                raise ExchangeError(response)
+            responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
     def fetch_trading_fees(self, params={}) -> TradingFees:
@@ -807,7 +808,7 @@ class bit2c(Exchange, ImplicitAPI):
         #
         responseList = []
         if response is not None:
-            responseList = response
+            responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
     def remove_comma_from_value(self, str: Any):

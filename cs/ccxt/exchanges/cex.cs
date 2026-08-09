@@ -86,6 +86,7 @@ public partial class cex : Exchange
                 { "fetchOption", false },
                 { "fetchOptionChain", false },
                 { "fetchOrderBook", true },
+                { "fetchOrdersByStatus", true },
                 { "fetchPosition", false },
                 { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
@@ -126,39 +127,95 @@ public partial class cex : Exchange
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {} },
                     { "post", new Dictionary<string, object>() {
-                        { "get_server_time", 1 },
-                        { "get_pairs_info", 1 },
-                        { "get_currencies_info", 1 },
-                        { "get_processing_info", 10 },
-                        { "get_ticker", 1 },
-                        { "get_trade_history", 1 },
-                        { "get_order_book", 1 },
-                        { "get_candles", 1 },
+                        { "get_server_time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_pairs_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_currencies_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_processing_info", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "get_ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_trade_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_order_book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {} },
                     { "post", new Dictionary<string, object>() {
-                        { "get_my_current_fee", 5 },
-                        { "get_fee_strategy", 1 },
-                        { "get_my_volume", 5 },
-                        { "do_create_account", 1 },
-                        { "get_my_account_status_v3", 5 },
-                        { "get_my_wallet_balance", 5 },
-                        { "get_my_orders", 5 },
-                        { "do_my_new_order", 1 },
-                        { "do_cancel_my_order", 1 },
-                        { "do_cancel_all_orders", 5 },
-                        { "get_order_book", 1 },
-                        { "get_candles", 1 },
-                        { "get_trade_history", 1 },
-                        { "get_my_transaction_history", 1 },
-                        { "get_my_funding_history", 5 },
-                        { "do_my_internal_transfer", 1 },
-                        { "get_processing_info", 10 },
-                        { "get_deposit_address", 5 },
-                        { "do_deposit_funds_from_wallet", 1 },
-                        { "do_withdrawal_funds_to_wallet", 1 },
+                        { "get_my_current_fee", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "get_fee_strategy", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_my_volume", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "do_create_account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_my_account_status_v3", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "get_my_wallet_balance", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "get_my_orders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "do_my_new_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "do_cancel_my_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "do_cancel_all_orders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "get_order_book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_trade_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_my_transaction_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_my_funding_history", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "do_my_internal_transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_processing_info", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "get_deposit_address", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "do_deposit_funds_from_wallet", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "do_withdrawal_funds_to_wallet", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -275,7 +332,7 @@ public partial class cex : Exchange
                     { "AVALANCHEC", "avalanche" },
                     { "ETHPOW", "ethereumpow" },
                     { "NEAR", "near" },
-                    { "ARB", "arbitrum" },
+                    { "ARBITRUM", "arbitrum" },
                     { "DOT", "polkadot" },
                     { "OPT", "optimism" },
                     { "INJ", "injective" },

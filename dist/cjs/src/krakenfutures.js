@@ -37,6 +37,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 'cancelOrders': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createOrders': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -109,63 +110,63 @@ class krakenfutures extends krakenfutures$1["default"] {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'feeschedules', // deprecated
-                        'instruments',
-                        'orderbook',
-                        'tickers',
-                        'history',
-                        'historicalfundingrates',
-                    ],
+                    'get': {
+                        'feeschedules': { 'cost': 1 },
+                        'instruments': { 'cost': 1 },
+                        'orderbook': { 'cost': 1 },
+                        'tickers': { 'cost': 1 },
+                        'history': { 'cost': 1 },
+                        'historicalfundingrates': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'get': [
-                        'feeschedules/volumes', // deprecated
-                        'openpositions',
-                        'notifications',
-                        'accounts',
-                        'openorders',
-                        'recentorders',
-                        'fills',
-                        'transfers',
-                        'leveragepreferences',
-                        'pnlpreferences',
-                        'assignmentprogram/current',
-                        'assignmentprogram/history',
-                        'orders/status',
-                    ],
-                    'post': [
-                        'sendorder',
-                        'editorder',
-                        'cancelorder',
-                        'transfer',
-                        'batchorder',
-                        'cancelallorders',
-                        'cancelallordersafter',
-                        'withdrawal', // for futures wallet -> kraken spot wallet
-                        'assignmentprogram/add',
-                        'assignmentprogram/delete',
-                    ],
-                    'put': [
-                        'leveragepreferences',
-                        'pnlpreferences',
-                    ],
+                    'get': {
+                        'feeschedules/volumes': { 'cost': 1 },
+                        'openpositions': { 'cost': 1 },
+                        'notifications': { 'cost': 1 },
+                        'accounts': { 'cost': 1 },
+                        'openorders': { 'cost': 1 },
+                        'recentorders': { 'cost': 1 },
+                        'fills': { 'cost': 1 },
+                        'transfers': { 'cost': 1 },
+                        'leveragepreferences': { 'cost': 1 },
+                        'pnlpreferences': { 'cost': 1 },
+                        'assignmentprogram/current': { 'cost': 1 },
+                        'assignmentprogram/history': { 'cost': 1 },
+                        'orders/status': { 'cost': 1 },
+                    },
+                    'post': {
+                        'sendorder': { 'cost': 1 },
+                        'editorder': { 'cost': 1 },
+                        'cancelorder': { 'cost': 1 },
+                        'transfer': { 'cost': 1 },
+                        'batchorder': { 'cost': 1 },
+                        'cancelallorders': { 'cost': 1 },
+                        'cancelallordersafter': { 'cost': 1 },
+                        'withdrawal': { 'cost': 1 },
+                        'assignmentprogram/add': { 'cost': 1 },
+                        'assignmentprogram/delete': { 'cost': 1 },
+                    },
+                    'put': {
+                        'leveragepreferences': { 'cost': 1 },
+                        'pnlpreferences': { 'cost': 1 },
+                    },
                 },
                 'charts': {
-                    'get': [
-                        '{price_type}/{symbol}/{interval}',
-                    ],
+                    'get': {
+                        '{price_type}/{symbol}/{interval}': { 'cost': 1 },
+                    },
                 },
                 'history': {
-                    'get': [
-                        'orders',
-                        'executions',
-                        'triggers',
-                        'accountlogcsv',
-                        'account-log',
-                        'market/{symbol}/orders',
-                        'market/{symbol}/executions',
-                    ],
+                    'get': {
+                        'orders': { 'cost': 1 },
+                        'executions': { 'cost': 1 },
+                        'triggers': { 'cost': 1 },
+                        'accountlogcsv': { 'cost': 1 },
+                        'account-log': { 'cost': 1 },
+                        'market/{symbol}/orders': { 'cost': 1 },
+                        'market/{symbol}/executions': { 'cost': 1 },
+                    },
                 },
             },
             'fees': {
@@ -588,8 +589,9 @@ class krakenfutures extends krakenfutures$1["default"] {
         //        },
         //    }
         //
-        const timestamp = this.parse8601(response['serverTime']);
-        return this.parseOrderBook(response['orderBook'], symbol, timestamp);
+        const timestamp = this.parse8601(this.safeString(response, 'serverTime'));
+        const orderBook = this.safeDict(response, 'orderBook', {});
+        return this.parseOrderBook(orderBook, symbol, timestamp);
     }
     /**
      * @method
@@ -1328,9 +1330,10 @@ class krakenfutures extends krakenfutures$1["default"] {
             request['limitPrice'] = price;
         }
         const response = await this.privatePostEditorder(this.extend(request, params));
-        const status = this.safeString(response['editStatus'], 'status');
+        const editStatus = this.safeDict(response, 'editStatus', {});
+        const status = this.safeString(editStatus, 'status');
         this.verifyOrderActionSuccess(status, 'editOrder', ['filled']);
-        const order = this.parseOrder(response['editStatus']);
+        const order = this.parseOrder(editStatus);
         order['info'] = response;
         return order;
     }
@@ -2317,7 +2320,8 @@ class krakenfutures extends krakenfutures$1["default"] {
         //        ]
         //    }
         //
-        return this.parseTrades(response['fills'], market, since, limit);
+        const fills = this.safeList(response, 'fills', []);
+        return this.parseTrades(fills, market, since, limit);
     }
     /**
      * @method

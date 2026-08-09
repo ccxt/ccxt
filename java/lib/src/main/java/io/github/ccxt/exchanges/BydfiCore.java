@@ -136,7 +136,7 @@ public class BydfiCore extends BydfiApi
                 put( "fetchOpenInterest", false );
                 put( "fetchOpenInterestHistory", false );
                 put( "fetchOpenInterests", false );
-                put( "fetchOpenOrder", false );
+                put( "fetchOpenOrder", true );
                 put( "fetchOpenOrders", true );
                 put( "fetchOption", false );
                 put( "fetchOptionChain", false );
@@ -202,57 +202,147 @@ public class BydfiCore extends BydfiApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "v1/public/api_limits", 1 );
-                        put( "v1/fapi/market/exchange_info", 1 );
-                        put( "v1/fapi/market/depth", 1 );
-                        put( "v1/fapi/market/trades", 1 );
-                        put( "v1/fapi/market/klines", 1 );
-                        put( "v1/fapi/market/ticker/24hr", 1 );
-                        put( "v1/fapi/market/ticker/price", 1 );
-                        put( "v1/fapi/market/mark_price", 1 );
-                        put( "v1/fapi/market/funding_rate", 1 );
-                        put( "v1/fapi/market/funding_rate_history", 1 );
-                        put( "v1/fapi/market/risk_limit", 1 );
+                        put( "v1/public/api_limits", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/market/exchange_info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/market/depth", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/market/trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/market/klines", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/market/ticker/24hr", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/market/ticker/price", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/market/mark_price", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/market/funding_rate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/market/funding_rate_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/market/risk_limit", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "v1/account/assets", 1 );
-                        put( "v1/account/transfer_records", 1 );
-                        put( "v1/spot/deposit_records", 1 );
-                        put( "v1/spot/withdraw_records", 1 );
-                        put( "v1/fapi/trade/open_order", 1 );
-                        put( "v1/fapi/trade/plan_order", 1 );
-                        put( "v1/fapi/trade/leverage", 1 );
-                        put( "v1/fapi/trade/history_order", 1 );
-                        put( "v1/fapi/trade/history_trade", 1 );
-                        put( "v1/fapi/trade/position_history", 1 );
-                        put( "v1/fapi/trade/positions", 1 );
-                        put( "v1/fapi/account/balance", 1 );
-                        put( "v1/fapi/user_data/assets_margin", 1 );
-                        put( "v1/fapi/user_data/position_side/dual", 1 );
-                        put( "v1/agent/teams", 1 );
-                        put( "v1/agent/agent_links", 1 );
-                        put( "v1/agent/regular_overview", 1 );
-                        put( "v1/agent/agent_sub_overview", 1 );
-                        put( "v1/agent/partener_user_deposit", 1 );
-                        put( "v1/agent/partener_users_data", 1 );
-                        put( "v1/agent/affiliate_uids", 1 );
-                        put( "v1/agent/affiliate_commission", 1 );
-                        put( "v1/agent/internal_withdrawal_status", 1 );
+                        put( "v1/account/assets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/account/transfer_records", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/spot/deposit_records", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/spot/withdraw_records", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/trade/open_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/trade/plan_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/trade/leverage", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/trade/history_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/trade/history_trade", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/trade/position_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/trade/positions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/account/balance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/user_data/assets_margin", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/user_data/position_side/dual", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/agent/teams", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/agent/agent_links", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/agent/regular_overview", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/agent/agent_sub_overview", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/agent/partener_user_deposit", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/agent/partener_users_data", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/agent/affiliate_uids", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/agent/affiliate_commission", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/agent/internal_withdrawal_status", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "v1/account/transfer", 1 );
-                        put( "v1/fapi/trade/place_order", 1 );
-                        put( "v1/fapi/trade/batch_place_order", 1 );
-                        put( "v1/fapi/trade/edit_order", 1 );
-                        put( "v1/fapi/trade/batch_edit_order", 1 );
-                        put( "v1/fapi/trade/cancel_all_order", 1 );
-                        put( "v1/fapi/trade/leverage", 1 );
-                        put( "v1/fapi/trade/batch_leverage_margin", 1 );
-                        put( "v1/fapi/user_data/margin_type", 1 );
-                        put( "v1/fapi/user_data/position_side/dual", 1 );
-                        put( "v1/agent/internal_withdrawal", 1 );
+                        put( "v1/account/transfer", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/trade/place_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/trade/batch_place_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/trade/edit_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/trade/batch_edit_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/trade/cancel_all_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/trade/leverage", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/trade/batch_leverage_margin", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/user_data/margin_type", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/fapi/user_data/position_side/dual", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/agent/internal_withdrawal", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -2612,7 +2702,7 @@ public class BydfiCore extends BydfiApi
             }
             Object market = this.market(symbol);
             Object contractType = "FUTURE";
-            var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsHistory", "contractType", contractType);
+            var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionHistory", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) contractTypeparametersVariable).get(1);
             final Object finalContractType = contractType;
@@ -2826,11 +2916,11 @@ public class BydfiCore extends BydfiApi
             }
             Object market = this.market(symbol);
             Object contractType = "FUTURE";
-            var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchMarginMode", "contractType", contractType);
+            var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) contractTypeparametersVariable).get(1);
             Object wallet = "W001";
-            var walletparametersVariable = this.handleOptionAndParams(parameters, "fetchMarginMode", "wallet", wallet);
+            var walletparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             final Object finalContractType = contractType;

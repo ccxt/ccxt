@@ -100,6 +100,7 @@ public partial class blofin : Exchange
                 { "fetchPositions", true },
                 { "fetchPositionsADLRank", true },
                 { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", true },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchSettlementHistory", false },
@@ -166,91 +167,249 @@ public partial class blofin : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "market/instruments", 1 },
-                        { "market/tickers", 1 },
-                        { "market/books", 1 },
-                        { "market/trades", 1 },
-                        { "market/mark-price", 1 },
-                        { "market/funding-rate", 1 },
-                        { "market/funding-rate-history", 1 },
-                        { "market/candles", 1 },
-                        { "market/index-candles", 1 },
-                        { "market/mark-price-candles", 1 },
-                        { "market/position-tiers", 1 },
+                        { "market/instruments", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/books", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/mark-price", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/funding-rate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/funding-rate-history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/index-candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/mark-price-candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/position-tiers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "asset/balances", 1 },
-                        { "asset/bills", 1 },
-                        { "asset/withdrawal-history", 1 },
-                        { "asset/deposit-history", 1 },
-                        { "account/config", 1 },
-                        { "asset/currencies", 1 },
-                        { "account/balance", 1 },
-                        { "account/positions", 1 },
-                        { "account/positions-history", 1 },
-                        { "account/margin-mode", 1 },
-                        { "account/position-mode", 1 },
-                        { "account/leverage-info", 1 },
-                        { "account/batch-leverage-info", 1 },
-                        { "trade/orders-pending", 1 },
-                        { "trade/order-detail", 1 },
-                        { "trade/orders-tpsl-pending", 1 },
-                        { "trade/order-tpsl-detail", 1 },
-                        { "trade/orders-algo-pending", 1 },
-                        { "trade/orders-history", 1 },
-                        { "trade/orders-tpsl-history", 1 },
-                        { "trade/orders-algo-history", 1 },
-                        { "trade/fills-history", 1 },
-                        { "trade/order/price-range", 1 },
-                        { "affiliate/basic", 1 },
-                        { "affiliate/referral-code", 1 },
-                        { "affiliate/invitees", 1 },
-                        { "affiliate/sub-invitees", 1 },
-                        { "affiliate/sub-affiliates", 1 },
-                        { "affiliate/invitees/daily/info", 1 },
-                        { "copytrading/instruments", 1 },
-                        { "copytrading/config", 1 },
-                        { "copytrading/account/balance", 1 },
-                        { "copytrading/account/positions-by-order", 1 },
-                        { "copytrading/account/positions-details-by-order", 1 },
-                        { "copytrading/account/positions-by-contract", 1 },
-                        { "copytrading/account/position-mode", 1 },
-                        { "copytrading/account/leverage-info", 1 },
-                        { "copytrading/trade/orders-pending", 1 },
-                        { "copytrading/trade/pending-tpsl-by-contract", 1 },
-                        { "copytrading/trade/position-history-by-order", 1 },
-                        { "copytrading/trade/orders-history", 1 },
-                        { "copytrading/trade/pending-tpsl-by-order", 1 },
-                        { "user/query-apikey", 1 },
-                        { "spot/trade/fills-history", 1 },
+                        { "asset/balances", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "asset/bills", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "asset/withdrawal-history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "asset/deposit-history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/config", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "asset/currencies", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/positions-history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/margin-mode", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/position-mode", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/leverage-info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/batch-leverage-info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/orders-pending", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/order-detail", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/orders-tpsl-pending", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/order-tpsl-detail", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/orders-algo-pending", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/orders-history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/orders-tpsl-history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/orders-algo-history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/fills-history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/order/price-range", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "affiliate/basic", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "affiliate/referral-code", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "affiliate/invitees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "affiliate/sub-invitees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "affiliate/sub-affiliates", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "affiliate/invitees/daily/info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/instruments", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/config", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/account/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/account/positions-by-order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/account/positions-details-by-order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/account/positions-by-contract", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/account/position-mode", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/account/leverage-info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/trade/orders-pending", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/trade/pending-tpsl-by-contract", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/trade/position-history-by-order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/trade/orders-history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/trade/pending-tpsl-by-order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/query-apikey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot/trade/fills-history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "asset/transfer", 1 },
-                        { "asset/demo-apply-money", 1 },
-                        { "account/set-margin-mode", 1 },
-                        { "account/set-position-mode", 1 },
-                        { "account/set-leverage", 1 },
-                        { "trade/order", 1 },
-                        { "trade/batch-orders", 1 },
-                        { "trade/order-tpsl", 1 },
-                        { "trade/order-algo", 1 },
-                        { "trade/cancel-order", 1 },
-                        { "trade/cancel-batch-orders", 1 },
-                        { "trade/cancel-tpsl", 1 },
-                        { "trade/cancel-algo", 1 },
-                        { "trade/close-position", 1 },
-                        { "copytrading/account/set-position-mode", 1 },
-                        { "copytrading/account/set-leverage", 1 },
-                        { "copytrading/trade/place-order", 1 },
-                        { "copytrading/trade/cancel-order", 1 },
-                        { "copytrading/trade/place-tpsl-by-contract", 1 },
-                        { "copytrading/trade/cancel-tpsl-by-contract", 1 },
-                        { "copytrading/trade/place-tpsl-by-order", 1 },
-                        { "copytrading/trade/cancel-tpsl-by-order", 1 },
-                        { "copytrading/trade/close-position-by-order", 1 },
-                        { "copytrading/trade/close-position-by-contract", 1 },
+                        { "asset/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "asset/demo-apply-money", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/set-margin-mode", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/set-position-mode", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/set-leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/batch-orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/order-tpsl", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/order-algo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/cancel-order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/cancel-batch-orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/cancel-tpsl", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/cancel-algo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/close-position", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/account/set-position-mode", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/account/set-leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/trade/place-order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/trade/cancel-order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/trade/place-tpsl-by-contract", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/trade/cancel-tpsl-by-contract", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/trade/place-tpsl-by-order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/trade/cancel-tpsl-by-order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/trade/close-position-by-order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "copytrading/trade/close-position-by-contract", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -3034,7 +3193,7 @@ public partial class blofin : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ((object)this.parseMarginMode(data, market));  // keep untyped to match the base setMarginMode return ({}) — narrowing it breaks the Go IExchange interface
+        return this.parseMarginMode(data, market);  // Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
     }
 
     /**

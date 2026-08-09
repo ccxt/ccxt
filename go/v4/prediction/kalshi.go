@@ -77,96 +77,244 @@ func (this *KalshiCore) Describe() any {
 			"kalshi": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"events":                         1,
-						"events/multivariate":            1,
-						"events/fee_changes":             1,
-						"events/{event_ticker}":          1,
-						"events/{event_ticker}/metadata": 1,
-						"series":                         1,
-						"series/fee_changes":             1,
-						"series/{series_ticker}":         1,
-						"series/{series_ticker}/markets/{ticker}/candlesticks":               1,
-						"series/{series_ticker}/events/{ticker}/candlesticks":                1,
-						"series/{series_ticker}/events/{ticker}/forecast_percentile_history": 1,
-						"markets":                                            1,
-						"markets/trades":                                     1,
-						"markets/orderbooks":                                 1,
-						"markets/candlesticks":                               1,
-						"markets/{ticker}":                                   1,
-						"markets/{ticker}/orderbook":                         1,
-						"exchange/status":                                    1,
-						"exchange/schedule":                                  1,
-						"exchange/announcements":                             1,
-						"exchange/user_data_timestamp":                       1,
-						"milestones":                                         1,
-						"milestones/{milestone_id}":                          1,
-						"structured_targets":                                 1,
-						"structured_targets/{structured_target_id}":          1,
-						"search/filters_by_sport":                            1,
-						"search/tags_by_categories":                          1,
-						"live_data/batch":                                    1,
-						"live_data/milestone/{milestone_id}":                 1,
-						"historical/markets":                                 1,
-						"historical/markets/{ticker}/candlesticks":           1,
-						"historical/trades":                                  1,
-						"historical/cutoff_timestamps":                       1,
-						"multivariate_event_collections":                     1,
-						"multivariate_event_collections/{collection_ticker}": 1,
-						"multivariate_event_collections/{collection_ticker}/lookup": 1,
-						"incentive_programs": 1,
+						"events": map[string]any{
+							"cost": 1,
+						},
+						"events/multivariate": map[string]any{
+							"cost": 1,
+						},
+						"events/fee_changes": map[string]any{
+							"cost": 1,
+						},
+						"events/{event_ticker}": map[string]any{
+							"cost": 1,
+						},
+						"events/{event_ticker}/metadata": map[string]any{
+							"cost": 1,
+						},
+						"series": map[string]any{
+							"cost": 1,
+						},
+						"series/fee_changes": map[string]any{
+							"cost": 1,
+						},
+						"series/{series_ticker}": map[string]any{
+							"cost": 1,
+						},
+						"series/{series_ticker}/markets/{ticker}/candlesticks": map[string]any{
+							"cost": 1,
+						},
+						"series/{series_ticker}/events/{ticker}/candlesticks": map[string]any{
+							"cost": 1,
+						},
+						"series/{series_ticker}/events/{ticker}/forecast_percentile_history": map[string]any{
+							"cost": 1,
+						},
+						"markets": map[string]any{
+							"cost": 1,
+						},
+						"markets/trades": map[string]any{
+							"cost": 1,
+						},
+						"markets/orderbooks": map[string]any{
+							"cost": 1,
+						},
+						"markets/candlesticks": map[string]any{
+							"cost": 1,
+						},
+						"markets/{ticker}": map[string]any{
+							"cost": 1,
+						},
+						"markets/{ticker}/orderbook": map[string]any{
+							"cost": 1,
+						},
+						"exchange/status": map[string]any{
+							"cost": 1,
+						},
+						"exchange/schedule": map[string]any{
+							"cost": 1,
+						},
+						"exchange/announcements": map[string]any{
+							"cost": 1,
+						},
+						"exchange/user_data_timestamp": map[string]any{
+							"cost": 1,
+						},
+						"milestones": map[string]any{
+							"cost": 1,
+						},
+						"milestones/{milestone_id}": map[string]any{
+							"cost": 1,
+						},
+						"structured_targets": map[string]any{
+							"cost": 1,
+						},
+						"structured_targets/{structured_target_id}": map[string]any{
+							"cost": 1,
+						},
+						"search/filters_by_sport": map[string]any{
+							"cost": 1,
+						},
+						"search/tags_by_categories": map[string]any{
+							"cost": 1,
+						},
+						"live_data/batch": map[string]any{
+							"cost": 1,
+						},
+						"live_data/milestone/{milestone_id}": map[string]any{
+							"cost": 1,
+						},
+						"historical/markets": map[string]any{
+							"cost": 1,
+						},
+						"historical/markets/{ticker}/candlesticks": map[string]any{
+							"cost": 1,
+						},
+						"historical/trades": map[string]any{
+							"cost": 1,
+						},
+						"historical/cutoff_timestamps": map[string]any{
+							"cost": 1,
+						},
+						"multivariate_event_collections": map[string]any{
+							"cost": 1,
+						},
+						"multivariate_event_collections/{collection_ticker}": map[string]any{
+							"cost": 1,
+						},
+						"multivariate_event_collections/{collection_ticker}/lookup": map[string]any{
+							"cost": 1,
+						},
+						"incentive_programs": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"portfolio/balance":                           1,
-						"portfolio/orders":                            1,
-						"portfolio/orders/{order_id}":                 1,
-						"portfolio/orders/{order_id}/queue_position":  1,
-						"portfolio/orders/queue_positions":            1,
-						"portfolio/positions":                         1,
-						"portfolio/fills":                             1,
-						"portfolio/settlements":                       1,
-						"portfolio/deposits":                          1,
-						"portfolio/withdrawals":                       1,
-						"portfolio/order_groups":                      1,
-						"portfolio/order_groups/{order_group_id}":     1,
-						"portfolio/summary/total_resting_order_value": 1,
-						"portfolio/subaccounts/balances":              1,
-						"portfolio/subaccounts/netting":               1,
-						"portfolio/subaccounts/transfers":             1,
-						"historical/fills":                            1,
-						"historical/orders":                           1,
+						"portfolio/balance": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/orders": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/orders/{order_id}": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/orders/{order_id}/queue_position": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/orders/queue_positions": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/positions": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/fills": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/settlements": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/deposits": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/withdrawals": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/order_groups": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/order_groups/{order_group_id}": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/summary/total_resting_order_value": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/subaccounts/balances": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/subaccounts/netting": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/subaccounts/transfers": map[string]any{
+							"cost": 1,
+						},
+						"historical/fills": map[string]any{
+							"cost": 1,
+						},
+						"historical/orders": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"portfolio/orders":                                   1,
-						"portfolio/events/orders":                            1,
-						"portfolio/orders/batched":                           1,
-						"portfolio/orders/{order_id}/amend":                  1,
-						"portfolio/orders/{order_id}/decrease":               1,
-						"portfolio/order_groups/create":                      1,
-						"portfolio/subaccounts":                              1,
-						"portfolio/subaccounts/transfer":                     1,
-						"multivariate_event_collections/{collection_ticker}": 1,
+						"portfolio/orders": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/events/orders": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/orders/batched": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/orders/{order_id}/amend": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/orders/{order_id}/decrease": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/order_groups/create": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/subaccounts": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/subaccounts/transfer": map[string]any{
+							"cost": 1,
+						},
+						"multivariate_event_collections/{collection_ticker}": map[string]any{
+							"cost": 1,
+						},
 					},
 					"put": map[string]any{
-						"portfolio/order_groups/{order_group_id}/reset":             1,
-						"portfolio/order_groups/{order_group_id}/trigger":           1,
-						"portfolio/order_groups/{order_group_id}/limit":             1,
-						"portfolio/subaccounts/netting":                             1,
-						"multivariate_event_collections/{collection_ticker}/lookup": 1,
+						"portfolio/order_groups/{order_group_id}/reset": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/order_groups/{order_group_id}/trigger": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/order_groups/{order_group_id}/limit": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/subaccounts/netting": map[string]any{
+							"cost": 1,
+						},
+						"multivariate_event_collections/{collection_ticker}/lookup": map[string]any{
+							"cost": 1,
+						},
 					},
 					"delete": map[string]any{
-						"portfolio/orders/{order_id}":             1,
-						"portfolio/orders/batched":                1,
-						"portfolio/events/orders/{order_id}":      1,
-						"portfolio/order_groups/{order_group_id}": 1,
+						"portfolio/orders/{order_id}": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/orders/batched": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/events/orders/{order_id}": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/order_groups/{order_group_id}": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
 			"elections": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"search/series": 1,
+						"search/series": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},

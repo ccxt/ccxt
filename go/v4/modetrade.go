@@ -44,6 +44,7 @@ func (this *ModetradeCore) Describe() any {
 			"createMarketOrderWithCost":            false,
 			"createMarketSellOrderWithCost":        false,
 			"createOrder":                          true,
+			"createOrders":                         true,
 			"createOrderWithTakeProfitAndStopLoss": true,
 			"createReduceOnlyOrder":                true,
 			"createStopLimitOrder":                 true,
@@ -54,6 +55,7 @@ func (this *ModetradeCore) Describe() any {
 			"createTrailingAmountOrder":            false,
 			"createTrailingPercentOrder":           false,
 			"createTriggerOrder":                   true,
+			"editOrder":                            true,
 			"fetchAccounts":                        false,
 			"fetchBalance":                         true,
 			"fetchCanceledOrders":                  false,
@@ -141,133 +143,363 @@ func (this *ModetradeCore) Describe() any {
 			"v1": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"public/volume/stats":             1,
-						"public/broker/name":              1,
-						"public/chain_info/{broker_id}":   1,
-						"public/system_info":              1,
-						"public/vault_balance":            1,
-						"public/insurancefund":            1,
-						"public/chain_info":               1,
-						"faucet/usdc":                     1,
-						"public/account":                  1,
-						"get_account":                     1,
-						"registration_nonce":              1,
-						"get_orderly_key":                 1,
-						"public/liquidation":              1,
-						"public/liquidated_positions":     1,
-						"public/config":                   1,
-						"public/campaign/ranking":         10,
-						"public/campaign/stats":           10,
-						"public/campaign/user":            10,
-						"public/campaign/stats/details":   10,
-						"public/campaigns":                10,
-						"public/points/leaderboard":       1,
-						"client/points":                   1,
-						"public/points/epoch":             1,
-						"public/points/epoch_dates":       1,
-						"public/referral/check_ref_code":  1,
-						"public/referral/verify_ref_code": 1,
-						"referral/admin_info":             1,
-						"referral/info":                   1,
-						"referral/referee_info":           1,
-						"referral/referee_rebate_summary": 1,
-						"referral/referee_history":        1,
-						"referral/referral_history":       1,
-						"referral/rebate_summary":         1,
-						"client/distribution_history":     1,
-						"tv/config":                       1,
-						"tv/history":                      1,
-						"tv/symbol_info":                  1,
-						"public/funding_rate_history":     1,
-						"public/funding_rate/{symbol}":    0.33,
-						"public/funding_rates":            1,
-						"public/info":                     1,
-						"public/info/{symbol}":            1,
-						"public/market_trades":            1,
-						"public/token":                    1,
-						"public/futures":                  1,
-						"public/futures/{symbol}":         1,
+						"public/volume/stats": map[string]any{
+							"cost": 1,
+						},
+						"public/broker/name": map[string]any{
+							"cost": 1,
+						},
+						"public/chain_info/{broker_id}": map[string]any{
+							"cost": 1,
+						},
+						"public/system_info": map[string]any{
+							"cost": 1,
+						},
+						"public/vault_balance": map[string]any{
+							"cost": 1,
+						},
+						"public/insurancefund": map[string]any{
+							"cost": 1,
+						},
+						"public/chain_info": map[string]any{
+							"cost": 1,
+						},
+						"faucet/usdc": map[string]any{
+							"cost": 1,
+						},
+						"public/account": map[string]any{
+							"cost": 1,
+						},
+						"get_account": map[string]any{
+							"cost": 1,
+						},
+						"registration_nonce": map[string]any{
+							"cost": 1,
+						},
+						"get_orderly_key": map[string]any{
+							"cost": 1,
+						},
+						"public/liquidation": map[string]any{
+							"cost": 1,
+						},
+						"public/liquidated_positions": map[string]any{
+							"cost": 1,
+						},
+						"public/config": map[string]any{
+							"cost": 1,
+						},
+						"public/campaign/ranking": map[string]any{
+							"cost": 10,
+						},
+						"public/campaign/stats": map[string]any{
+							"cost": 10,
+						},
+						"public/campaign/user": map[string]any{
+							"cost": 10,
+						},
+						"public/campaign/stats/details": map[string]any{
+							"cost": 10,
+						},
+						"public/campaigns": map[string]any{
+							"cost": 10,
+						},
+						"public/points/leaderboard": map[string]any{
+							"cost": 1,
+						},
+						"client/points": map[string]any{
+							"cost": 1,
+						},
+						"public/points/epoch": map[string]any{
+							"cost": 1,
+						},
+						"public/points/epoch_dates": map[string]any{
+							"cost": 1,
+						},
+						"public/referral/check_ref_code": map[string]any{
+							"cost": 1,
+						},
+						"public/referral/verify_ref_code": map[string]any{
+							"cost": 1,
+						},
+						"referral/admin_info": map[string]any{
+							"cost": 1,
+						},
+						"referral/info": map[string]any{
+							"cost": 1,
+						},
+						"referral/referee_info": map[string]any{
+							"cost": 1,
+						},
+						"referral/referee_rebate_summary": map[string]any{
+							"cost": 1,
+						},
+						"referral/referee_history": map[string]any{
+							"cost": 1,
+						},
+						"referral/referral_history": map[string]any{
+							"cost": 1,
+						},
+						"referral/rebate_summary": map[string]any{
+							"cost": 1,
+						},
+						"client/distribution_history": map[string]any{
+							"cost": 1,
+						},
+						"tv/config": map[string]any{
+							"cost": 1,
+						},
+						"tv/history": map[string]any{
+							"cost": 1,
+						},
+						"tv/symbol_info": map[string]any{
+							"cost": 1,
+						},
+						"public/funding_rate_history": map[string]any{
+							"cost": 1,
+						},
+						"public/funding_rate/{symbol}": map[string]any{
+							"cost": 0.33,
+						},
+						"public/funding_rates": map[string]any{
+							"cost": 1,
+						},
+						"public/info": map[string]any{
+							"cost": 1,
+						},
+						"public/info/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"public/market_trades": map[string]any{
+							"cost": 1,
+						},
+						"public/token": map[string]any{
+							"cost": 1,
+						},
+						"public/futures": map[string]any{
+							"cost": 1,
+						},
+						"public/futures/{symbol}": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"register_account": 1,
+						"register_account": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"client/key_info":                     6,
-						"client/orderly_key_ip_restriction":   6,
-						"order/{oid}":                         1,
-						"client/order/{client_order_id}":      1,
-						"algo/order/{oid}":                    1,
-						"algo/client/order/{client_order_id}": 1,
-						"orders":                              1,
-						"algo/orders":                         1,
-						"trade/{tid}":                         1,
-						"trades":                              1,
-						"order/{oid}/trades":                  1,
-						"client/liquidator_liquidations":      1,
-						"liquidations":                        1,
-						"asset/history":                       60,
-						"client/holding":                      1,
-						"withdraw_nonce":                      1,
-						"settle_nonce":                        1,
-						"pnl_settlement/history":              1,
-						"volume/user/daily":                   60,
-						"volume/user/stats":                   60,
-						"client/statistics":                   60,
-						"client/info":                         60,
-						"client/statistics/daily":             60,
-						"positions":                           3.33,
-						"position/{symbol}":                   3.33,
-						"funding_fee/history":                 30,
-						"notification/inbox/notifications":    60,
-						"notification/inbox/unread":           60,
-						"volume/broker/daily":                 60,
-						"broker/fee_rate/default":             10,
-						"broker/user_info":                    10,
-						"orderbook/{symbol}":                  1,
-						"kline":                               1,
+						"client/key_info": map[string]any{
+							"cost": 6,
+						},
+						"client/orderly_key_ip_restriction": map[string]any{
+							"cost": 6,
+						},
+						"order/{oid}": map[string]any{
+							"cost": 1,
+						},
+						"client/order/{client_order_id}": map[string]any{
+							"cost": 1,
+						},
+						"algo/order/{oid}": map[string]any{
+							"cost": 1,
+						},
+						"algo/client/order/{client_order_id}": map[string]any{
+							"cost": 1,
+						},
+						"orders": map[string]any{
+							"cost": 1,
+						},
+						"algo/orders": map[string]any{
+							"cost": 1,
+						},
+						"trade/{tid}": map[string]any{
+							"cost": 1,
+						},
+						"trades": map[string]any{
+							"cost": 1,
+						},
+						"order/{oid}/trades": map[string]any{
+							"cost": 1,
+						},
+						"client/liquidator_liquidations": map[string]any{
+							"cost": 1,
+						},
+						"liquidations": map[string]any{
+							"cost": 1,
+						},
+						"asset/history": map[string]any{
+							"cost": 60,
+						},
+						"client/holding": map[string]any{
+							"cost": 1,
+						},
+						"withdraw_nonce": map[string]any{
+							"cost": 1,
+						},
+						"settle_nonce": map[string]any{
+							"cost": 1,
+						},
+						"pnl_settlement/history": map[string]any{
+							"cost": 1,
+						},
+						"volume/user/daily": map[string]any{
+							"cost": 60,
+						},
+						"volume/user/stats": map[string]any{
+							"cost": 60,
+						},
+						"client/statistics": map[string]any{
+							"cost": 60,
+						},
+						"client/info": map[string]any{
+							"cost": 60,
+						},
+						"client/statistics/daily": map[string]any{
+							"cost": 60,
+						},
+						"positions": map[string]any{
+							"cost": 3.33,
+						},
+						"position/{symbol}": map[string]any{
+							"cost": 3.33,
+						},
+						"funding_fee/history": map[string]any{
+							"cost": 30,
+						},
+						"notification/inbox/notifications": map[string]any{
+							"cost": 60,
+						},
+						"notification/inbox/unread": map[string]any{
+							"cost": 60,
+						},
+						"volume/broker/daily": map[string]any{
+							"cost": 60,
+						},
+						"broker/fee_rate/default": map[string]any{
+							"cost": 10,
+						},
+						"broker/user_info": map[string]any{
+							"cost": 10,
+						},
+						"orderbook/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"kline": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"orderly_key":                             1,
-						"client/set_orderly_key_ip_restriction":   6,
-						"client/reset_orderly_key_ip_restriction": 6,
-						"order":                            1,
-						"batch-order":                      10,
-						"algo/order":                       1,
-						"liquidation":                      1,
-						"claim_insurance_fund":             1,
-						"withdraw_request":                 1,
-						"settle_pnl":                       1,
-						"notification/inbox/mark_read":     60,
-						"notification/inbox/mark_read_all": 60,
-						"client/leverage":                  120,
-						"client/maintenance_config":        60,
-						"delegate_signer":                  10,
-						"delegate_orderly_key":             10,
-						"delegate_settle_pnl":              10,
-						"delegate_withdraw_request":        10,
-						"broker/fee_rate/set":              10,
-						"broker/fee_rate/set_default":      10,
-						"broker/fee_rate/default":          10,
-						"referral/create":                  10,
-						"referral/update":                  10,
-						"referral/bind":                    10,
-						"referral/edit_split":              10,
+						"orderly_key": map[string]any{
+							"cost": 1,
+						},
+						"client/set_orderly_key_ip_restriction": map[string]any{
+							"cost": 6,
+						},
+						"client/reset_orderly_key_ip_restriction": map[string]any{
+							"cost": 6,
+						},
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"batch-order": map[string]any{
+							"cost": 10,
+						},
+						"algo/order": map[string]any{
+							"cost": 1,
+						},
+						"liquidation": map[string]any{
+							"cost": 1,
+						},
+						"claim_insurance_fund": map[string]any{
+							"cost": 1,
+						},
+						"withdraw_request": map[string]any{
+							"cost": 1,
+						},
+						"settle_pnl": map[string]any{
+							"cost": 1,
+						},
+						"notification/inbox/mark_read": map[string]any{
+							"cost": 60,
+						},
+						"notification/inbox/mark_read_all": map[string]any{
+							"cost": 60,
+						},
+						"client/leverage": map[string]any{
+							"cost": 120,
+						},
+						"client/maintenance_config": map[string]any{
+							"cost": 60,
+						},
+						"delegate_signer": map[string]any{
+							"cost": 10,
+						},
+						"delegate_orderly_key": map[string]any{
+							"cost": 10,
+						},
+						"delegate_settle_pnl": map[string]any{
+							"cost": 10,
+						},
+						"delegate_withdraw_request": map[string]any{
+							"cost": 10,
+						},
+						"broker/fee_rate/set": map[string]any{
+							"cost": 10,
+						},
+						"broker/fee_rate/set_default": map[string]any{
+							"cost": 10,
+						},
+						"broker/fee_rate/default": map[string]any{
+							"cost": 10,
+						},
+						"referral/create": map[string]any{
+							"cost": 10,
+						},
+						"referral/update": map[string]any{
+							"cost": 10,
+						},
+						"referral/bind": map[string]any{
+							"cost": 10,
+						},
+						"referral/edit_split": map[string]any{
+							"cost": 10,
+						},
 					},
 					"put": map[string]any{
-						"order":      1,
-						"algo/order": 1,
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"algo/order": map[string]any{
+							"cost": 1,
+						},
 					},
 					"delete": map[string]any{
-						"order":              1,
-						"algo/order":         1,
-						"client/order":       1,
-						"algo/client/order":  1,
-						"algo/orders":        1,
-						"orders":             1,
-						"batch-order":        1,
-						"client/batch-order": 1,
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"algo/order": map[string]any{
+							"cost": 1,
+						},
+						"client/order": map[string]any{
+							"cost": 1,
+						},
+						"algo/client/order": map[string]any{
+							"cost": 1,
+						},
+						"algo/orders": map[string]any{
+							"cost": 1,
+						},
+						"orders": map[string]any{
+							"cost": 1,
+						},
+						"batch-order": map[string]any{
+							"cost": 1,
+						},
+						"client/batch-order": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
@@ -866,8 +1098,8 @@ func (this *ModetradeCore) FetchTrades(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes81612 := (<-this.LoadMarkets())
-			PanicOnError(retRes81612)
+			retRes81812 := (<-this.LoadMarkets())
+			PanicOnError(retRes81812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -975,9 +1207,9 @@ func (this *ModetradeCore) FetchFundingInterval(symbol any, optionalArgs ...any)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes91015 := (<-this.FetchFundingRate(symbol, params))
-		PanicOnError(retRes91015)
-		ch <- retRes91015
+		retRes91215 := (<-this.FetchFundingRate(symbol, params))
+		PanicOnError(retRes91215)
+		ch <- retRes91215
 		return nil
 
 	}()
@@ -1002,8 +1234,8 @@ func (this *ModetradeCore) FetchFundingRate(symbol any, optionalArgs ...any) <-c
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes92412 := (<-this.LoadMarkets())
-			PanicOnError(retRes92412)
+			retRes92612 := (<-this.LoadMarkets())
+			PanicOnError(retRes92612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1056,8 +1288,8 @@ func (this *ModetradeCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes96112 := (<-this.LoadMarkets())
-			PanicOnError(retRes96112)
+			retRes96312 := (<-this.LoadMarkets())
+			PanicOnError(retRes96312)
 		}
 		symbols = this.MarketSymbols(symbols)
 
@@ -1118,8 +1350,8 @@ func (this *ModetradeCore) FetchFundingRateHistory(optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes100212 := (<-this.LoadMarkets())
-			PanicOnError(retRes100212)
+			retRes100412 := (<-this.LoadMarkets())
+			PanicOnError(retRes100412)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -1127,9 +1359,9 @@ func (this *ModetradeCore) FetchFundingRateHistory(optionalArgs ...any) <-chan a
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes100719 := (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
-			PanicOnError(retRes100719)
-			ch <- retRes100719
+			retRes100919 := (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
+			PanicOnError(retRes100919)
+			ch <- retRes100919
 			return nil
 		}
 		var request any = map[string]any{}
@@ -1251,8 +1483,8 @@ func (this *ModetradeCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes110512 := (<-this.LoadMarkets())
-			PanicOnError(retRes110512)
+			retRes110712 := (<-this.LoadMarkets())
+			PanicOnError(retRes110712)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
@@ -1260,9 +1492,9 @@ func (this *ModetradeCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes111019 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes111019)
-			ch <- retRes111019
+			retRes111219 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes111219)
+			ch <- retRes111219
 			return nil
 		}
 		var request any = map[string]any{}
@@ -1335,8 +1567,8 @@ func (this *ModetradeCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes116812 := (<-this.LoadMarkets())
-			PanicOnError(retRes116812)
+			retRes117012 := (<-this.LoadMarkets())
+			PanicOnError(retRes117012)
 		}
 
 		response := (<-this.V1PrivateGetClientInfo(params))
@@ -1415,8 +1647,8 @@ func (this *ModetradeCore) FetchOrderBook(symbol any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes123112 := (<-this.LoadMarkets())
-			PanicOnError(retRes123112)
+			retRes123312 := (<-this.LoadMarkets())
+			PanicOnError(retRes123312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1488,8 +1720,8 @@ func (this *ModetradeCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes128912 := (<-this.LoadMarkets())
-			PanicOnError(retRes128912)
+			retRes129112 := (<-this.LoadMarkets())
+			PanicOnError(retRes129112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1837,8 +2069,8 @@ func (this *ModetradeCore) CreateOrder(symbol any, typeVar any, side any, amount
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes162012 := (<-this.LoadMarkets())
-			PanicOnError(retRes162012)
+			retRes162212 := (<-this.LoadMarkets())
+			PanicOnError(retRes162212)
 		}
 		var market any = this.Market(symbol)
 		var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -1886,8 +2118,8 @@ func (this *ModetradeCore) CreateOrders(orders any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes167912 := (<-this.LoadMarkets())
-			PanicOnError(retRes167912)
+			retRes168112 := (<-this.LoadMarkets())
+			PanicOnError(retRes168112)
 		}
 		var ordersRequests any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
@@ -1975,8 +2207,8 @@ func (this *ModetradeCore) EditOrder(id any, symbol any, typeVar any, side any, 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes174912 := (<-this.LoadMarkets())
-			PanicOnError(retRes174912)
+			retRes175112 := (<-this.LoadMarkets())
+			PanicOnError(retRes175112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2080,8 +2312,8 @@ func (this *ModetradeCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes183512 := (<-this.LoadMarkets())
-			PanicOnError(retRes183512)
+			retRes183712 := (<-this.LoadMarkets())
+			PanicOnError(retRes183712)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2181,8 +2413,8 @@ func (this *ModetradeCore) CancelOrders(ids any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes190912 := (<-this.LoadMarkets())
-			PanicOnError(retRes190912)
+			retRes191112 := (<-this.LoadMarkets())
+			PanicOnError(retRes191112)
 		}
 		var clientOrderIds any = this.SafeListN(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
 		params = this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
@@ -2240,8 +2472,8 @@ func (this *ModetradeCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes194912 := (<-this.LoadMarkets())
-			PanicOnError(retRes194912)
+			retRes195112 := (<-this.LoadMarkets())
+			PanicOnError(retRes195112)
 		}
 		var trigger any = this.SafeBool2(params, "stop", "trigger")
 		params = this.Omit(params, []any{"stop", "trigger"})
@@ -2311,8 +2543,8 @@ func (this *ModetradeCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes200312 := (<-this.LoadMarkets())
-			PanicOnError(retRes200312)
+			retRes200512 := (<-this.LoadMarkets())
+			PanicOnError(retRes200512)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2416,8 +2648,8 @@ func (this *ModetradeCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes208112 := (<-this.LoadMarkets())
-			PanicOnError(retRes208112)
+			retRes208312 := (<-this.LoadMarkets())
+			PanicOnError(retRes208312)
 		}
 		var paginate any = false
 		var isTrigger any = this.SafeBool2(params, "stop", "trigger", false)
@@ -2427,9 +2659,9 @@ func (this *ModetradeCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes208819 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", maxLimit))
-			PanicOnError(retRes208819)
-			ch <- retRes208819
+			retRes209019 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", maxLimit))
+			PanicOnError(retRes209019)
+			ch <- retRes209019
 			return nil
 		}
 		var request any = map[string]any{}
@@ -2539,16 +2771,16 @@ func (this *ModetradeCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes217312 := (<-this.LoadMarkets())
-			PanicOnError(retRes217312)
+			retRes217512 := (<-this.LoadMarkets())
+			PanicOnError(retRes217512)
 		}
 		var extendedParams any = this.Extend(params, map[string]any{
 			"status": "INCOMPLETE",
 		})
 
-		retRes217615 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes217615)
-		ch <- retRes217615
+		retRes217815 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+		PanicOnError(retRes217815)
+		ch <- retRes217815
 		return nil
 
 	}()
@@ -2587,16 +2819,16 @@ func (this *ModetradeCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes219812 := (<-this.LoadMarkets())
-			PanicOnError(retRes219812)
+			retRes220012 := (<-this.LoadMarkets())
+			PanicOnError(retRes220012)
 		}
 		var extendedParams any = this.Extend(params, map[string]any{
 			"status": "COMPLETED",
 		})
 
-		retRes220115 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes220115)
-		ch <- retRes220115
+		retRes220315 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+		PanicOnError(retRes220315)
+		ch <- retRes220315
 		return nil
 
 	}()
@@ -2630,8 +2862,8 @@ func (this *ModetradeCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes221812 := (<-this.LoadMarkets())
-			PanicOnError(retRes221812)
+			retRes222012 := (<-this.LoadMarkets())
+			PanicOnError(retRes222012)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2702,8 +2934,8 @@ func (this *ModetradeCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes226912 := (<-this.LoadMarkets())
-			PanicOnError(retRes226912)
+			retRes227112 := (<-this.LoadMarkets())
+			PanicOnError(retRes227112)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -2711,9 +2943,9 @@ func (this *ModetradeCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes227419 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes227419)
-			ch <- retRes227419
+			retRes227619 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes227619)
+			ch <- retRes227619
 			return nil
 		}
 		var request any = map[string]any{}
@@ -2806,8 +3038,8 @@ func (this *ModetradeCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes235112 := (<-this.LoadMarkets())
-			PanicOnError(retRes235112)
+			retRes235312 := (<-this.LoadMarkets())
+			PanicOnError(retRes235312)
 		}
 
 		response := (<-this.V1PrivateGetClientHolding(params))
@@ -2850,8 +3082,8 @@ func (this *ModetradeCore) GetAssetHistoryRows(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes237512 := (<-this.LoadMarkets())
-			PanicOnError(retRes237512)
+			retRes237712 := (<-this.LoadMarkets())
+			PanicOnError(retRes237712)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -3057,9 +3289,9 @@ func (this *ModetradeCore) FetchDeposits(optionalArgs ...any) <-chan any {
 			"side": "DEPOSIT",
 		}
 
-		retRes254215 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes254215)
-		ch <- retRes254215
+		retRes254415 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes254415)
+		ch <- retRes254415
 		return nil
 
 	}()
@@ -3094,9 +3326,9 @@ func (this *ModetradeCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 			"side": "WITHDRAW",
 		}
 
-		retRes256015 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes256015)
-		ch <- retRes256015
+		retRes256215 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes256215)
+		ch <- retRes256215
 		return nil
 
 	}()
@@ -3215,8 +3447,8 @@ func (this *ModetradeCore) Withdraw(code any, amount any, address any, optionalA
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes263812 := (<-this.LoadMarkets())
-			PanicOnError(retRes263812)
+			retRes264012 := (<-this.LoadMarkets())
+			PanicOnError(retRes264012)
 		}
 		this.CheckAddress(address)
 		if IsTrue(!IsEqual(code, nil)) {
@@ -3337,8 +3569,8 @@ func (this *ModetradeCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes272912 := (<-this.LoadMarkets())
-			PanicOnError(retRes272912)
+			retRes273112 := (<-this.LoadMarkets())
+			PanicOnError(retRes273112)
 		}
 		var market any = this.Market(symbol)
 
@@ -3401,8 +3633,8 @@ func (this *ModetradeCore) SetLeverage(leverage any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes277612 := (<-this.LoadMarkets())
-			PanicOnError(retRes277612)
+			retRes277812 := (<-this.LoadMarkets())
+			PanicOnError(retRes277812)
 		}
 		var isMinLeverage any = IsLessThan(leverage, 1)
 		var isMaxLeverage any = IsGreaterThan(leverage, 50)
@@ -3413,9 +3645,9 @@ func (this *ModetradeCore) SetLeverage(leverage any, optionalArgs ...any) <-chan
 			"leverage": leverage,
 		}
 
-		retRes278615 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params)))
-		PanicOnError(retRes278615)
-		ch <- retRes278615
+		retRes278815 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params)))
+		PanicOnError(retRes278815)
+		ch <- retRes278815
 		return nil
 
 	}()
@@ -3512,8 +3744,8 @@ func (this *ModetradeCore) FetchPosition(symbol any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes287112 := (<-this.LoadMarkets())
-			PanicOnError(retRes287112)
+			retRes287312 := (<-this.LoadMarkets())
+			PanicOnError(retRes287312)
 		}
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchPosition() requires a symbol argument")))
@@ -3580,8 +3812,8 @@ func (this *ModetradeCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes292212 := (<-this.LoadMarkets())
-			PanicOnError(retRes292212)
+			retRes292412 := (<-this.LoadMarkets())
+			PanicOnError(retRes292412)
 		}
 
 		response := (<-this.V1PrivateGetPositions(params))

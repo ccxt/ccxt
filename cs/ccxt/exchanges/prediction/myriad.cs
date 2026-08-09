@@ -25,6 +25,7 @@ public partial class myriad : PredictionExchange
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
+                { "createMarketBuyOrderWithCost", true },
                 { "createOrder", true },
                 { "createOrders", true },
                 { "editOrder", true },
@@ -81,46 +82,110 @@ public partial class myriad : PredictionExchange
                 { "myriad", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "questions", 1 },
-                            { "questions/{id}", 1 },
-                            { "markets", 1 },
-                            { "markets/{id}", 1 },
-                            { "markets/{networkId}/{id}", 1 },
-                            { "markets/{id}/events", 1 },
-                            { "markets/{id}/orderbook", 1 },
-                            { "markets/{id}/trades", 1 },
-                            { "markets/{id}/holders", 1 },
-                            { "markets/{id}/referrals", 1 },
-                            { "events", 1 },
-                            { "orders", 1 },
-                            { "orders/{hash}", 1 },
-                            { "users/{address}/events", 1 },
-                            { "users/{address}/referrals", 1 },
-                            { "users/{address}/portfolio", 1 },
-                            { "users/{address}/markets", 1 },
-                            { "tags", 1 },
-                            { "topics", 1 },
+                            { "questions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "questions/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{networkId}/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{id}/events", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{id}/orderbook", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{id}/trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{id}/holders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{id}/referrals", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "events", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/{hash}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "users/{address}/events", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "users/{address}/referrals", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "users/{address}/portfolio", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "users/{address}/markets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "tags", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "topics", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "markets/quote", 1 },
-                            { "markets/claim", 1 },
-                            { "orders", 1 },
-                            { "orders/cancel-batch", 1 },
-                            { "orders/cancel-all", 1 },
-                            { "positions/split", 1 },
-                            { "positions/merge", 1 },
-                            { "positions/redeem", 1 },
-                            { "positions/redeem-voided", 1 },
-                            { "positions/neg-risk/split", 1 },
-                            { "positions/neg-risk/merge", 1 },
+                            { "markets/quote", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/claim", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/cancel-batch", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/cancel-all", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "positions/split", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "positions/merge", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "positions/redeem", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "positions/redeem-voided", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "positions/neg-risk/split", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "positions/neg-risk/merge", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "delete", new Dictionary<string, object>() {
-                            { "orders/{hash}", 1 },
+                            { "orders/{hash}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
-                            { "markets/quote_with_fee", 1 },
+                            { "markets/quote_with_fee", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
@@ -268,7 +333,8 @@ public partial class myriad : PredictionExchange
                 { "state", state },
                 { "limit", limit },
             }, rest));
-            object foundList = this.safeList(response, "data", response);
+            object responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+            object foundList = ((bool) isTrue((responseIsArray))) ? response : this.safeList(response, "data", new List<object>() {});
             object found = ((bool) isTrue((!isEqual(foundList, null)))) ? foundList : new List<object>() {};
             for (object j = 0; isLessThan(j, getArrayLength(found)); postFixIncrement(ref j))
             {
@@ -320,7 +386,8 @@ public partial class myriad : PredictionExchange
                 { "page", page },
                 { "trading_model", tradingModel },
             }, rest));
-            object rawMarketsList = this.safeList(response, "data", response);
+            object responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+            object rawMarketsList = ((bool) isTrue((responseIsArray))) ? response : this.safeList(response, "data", new List<object>() {});
             object rawMarkets = ((bool) isTrue((!isEqual(rawMarketsList, null)))) ? rawMarketsList : new List<object>() {};
             object rawMarketsLength = getArrayLength(rawMarkets);
             if (isTrue(isEqual(rawMarketsLength, 0)))
@@ -470,7 +537,8 @@ public partial class myriad : PredictionExchange
                 { "keyword", q },
                 { "limit", limit },
             }, rest));
-            object foundList = this.safeList(response, "data", response);
+            object responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+            object foundList = ((bool) isTrue((responseIsArray))) ? response : this.safeList(response, "data", new List<object>() {});
             object found = ((bool) isTrue((!isEqual(foundList, null)))) ? foundList : new List<object>() {};
             for (object j = 0; isLessThan(j, getArrayLength(found)); postFixIncrement(ref j))
             {
@@ -517,7 +585,8 @@ public partial class myriad : PredictionExchange
                 ((IDictionary<string,object>)request)["state"] = state;
             }
             object response = await this.myriadPublicGetQuestions(this.extend(request, rest));
-            object rawQuestionsList = this.safeList(response, "data", response);
+            object responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+            object rawQuestionsList = ((bool) isTrue((responseIsArray))) ? response : this.safeList(response, "data", new List<object>() {});
             object rawQuestions = ((bool) isTrue((!isEqual(rawQuestionsList, null)))) ? rawQuestionsList : new List<object>() {};
             object rawQuestionsLength = getArrayLength(rawQuestions);
             if (isTrue(isEqual(rawQuestionsLength, 0)))
@@ -3242,7 +3311,8 @@ public partial class myriad : PredictionExchange
         //         ]
         //     }
         //
-        object rowsList = this.safeList(response, "data", response);
+        object responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        object rowsList = ((bool) isTrue((responseIsArray))) ? response : this.safeList(response, "data", new List<object>() {});
         object rows = ((bool) isTrue((!isEqual(rowsList, null)))) ? rowsList : new List<object>() {};
         object trades = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))

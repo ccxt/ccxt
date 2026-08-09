@@ -5,32 +5,32 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    v3PublicGetCurrencies (params?: {}): Promise<implicitReturnType>;
-    v3PublicGetMarkets (params?: {}): Promise<implicitReturnType>;
-    v3PublicGetMarketsTicker24hr (params?: {}): Promise<implicitReturnType>;
-    v3PublicGetMarketsMarketOrderbook (params?: {}): Promise<implicitReturnType>;
-    v3PublicGetMarketsMarketCandlesticks (params?: {}): Promise<implicitReturnType>;
-    v3PublicGetMarketsMarketTradesHistory (params?: {}): Promise<implicitReturnType>;
-    v3PublicGetMarketsMarketTicker24hr (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetAccounts (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetAccountsSymbolTransactions (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetOrders (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetOrdersByOrderIdId (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetTrades (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetDepositsAddress (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetDeposits (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetWithdrawals (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetMeFeesTrading (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePostOrders (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePostOrdersBatch (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePostOrdersCancelReplace (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePostWithdrawals (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePutOrdersCancel (params?: {}): Promise<implicitReturnType>;
-    statusPublicGetStatus (params?: {}): Promise<implicitReturnType>;
+    v3PublicGetCurrencies (params?: {}): Promise<Dict>;
+    v3PublicGetMarkets (params?: {}): Promise<Dict>;
+    v3PublicGetMarketsTicker24hr (params?: {}): Promise<Dict>;
+    v3PublicGetMarketsMarketOrderbook (params?: {}): Promise<Dict>;
+    v3PublicGetMarketsMarketCandlesticks (params?: {}): Promise<List>;
+    v3PublicGetMarketsMarketTradesHistory (params?: {}): Promise<Dict>;
+    v3PublicGetMarketsMarketTicker24hr (params?: {}): Promise<Dict>;
+    v3PrivateGetAccounts (params?: {}): Promise<Dict>;
+    v3PrivateGetAccountsSymbolTransactions (params?: {}): Promise<Dict>;
+    v3PrivateGetOrders (params?: {}): Promise<Dict>;
+    v3PrivateGetOrdersByOrderIdId (params?: {}): Promise<Dict>;
+    v3PrivateGetTrades (params?: {}): Promise<Dict>;
+    v3PrivateGetDepositsAddress (params?: {}): Promise<Dict>;
+    v3PrivateGetDeposits (params?: {}): Promise<Dict>;
+    v3PrivateGetWithdrawals (params?: {}): Promise<Dict>;
+    v3PrivateGetMeFeesTrading (params?: {}): Promise<Dict>;
+    v3PrivatePostOrders (params?: {}): Promise<Dict>;
+    v3PrivatePostOrdersBatch (params?: {}): Promise<Dict>;
+    v3PrivatePostOrdersCancelReplace (params?: {}): Promise<Dict>;
+    v3PrivatePostWithdrawals (params?: {}): Promise<Dict>;
+    v3PrivatePutOrdersCancel (params?: {}): Promise<Dict>;
+    statusPublicGetStatus (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

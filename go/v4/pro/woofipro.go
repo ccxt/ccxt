@@ -112,7 +112,7 @@ func (this *WoofiproCore) WatchPublic(messageHash any, message any) <-chan any {
 /**
  * @method
  * @name woofipro#watchOrderBook
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/orderbook
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/orderbook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
@@ -191,7 +191,7 @@ func (this *WoofiproCore) HandleOrderBook(client any, message any) {
 /**
  * @method
  * @name woofipro#watchTicker
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/24-hour-ticker
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-ticker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -298,7 +298,7 @@ func (this *WoofiproCore) HandleTicker(client any, message any) any {
 /**
  * @method
  * @name woofipro#watchTickers
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/24-hour-tickers
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-tickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -375,7 +375,7 @@ func (this *WoofiproCore) HandleTickers(client any, message any) {
 /**
  * @method
  * @name woofipro#watchBidsAsks
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/bbos
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/bbos
  * @description watches best bid & ask for symbols
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -467,7 +467,7 @@ func (this *WoofiproCore) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
  * @method
  * @name woofipro#watchOHLCV
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/k-line
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/k-line
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -562,7 +562,7 @@ func (this *WoofiproCore) HandleOHLCV(client any, message any) {
  * @method
  * @name woofipro#watchTrades
  * @description watches information on multiple trades made in a market
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/trade
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/trade
  * @param {string} symbol unified market symbol of the market trades were made in
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -835,8 +835,8 @@ func (this *WoofiproCore) WatchPrivateMultiple(messageHashes any, message any, o
  * @method
  * @name woofipro#watchOrders
  * @description watches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/execution-report
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/algo-execution-report
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -894,8 +894,8 @@ func (this *WoofiproCore) WatchOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name woofipro#watchMyTrades
  * @description watches information on multiple trades made by the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/execution-report
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/algo-execution-report
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1200,7 +1200,7 @@ func (this *WoofiproCore) HandleMyTrade(client any, message any) {
 /**
  * @method
  * @name woofipro#watchPositions
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/position-push
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/position-push
  * @description watch all open positions
  * @param {string[]} [symbols] list of unified market symbols
  * @param {int} [since] timestamp in ms of the earliest position to fetch
@@ -1274,7 +1274,7 @@ func (this *WoofiproCore) WatchPositions(optionalArgs ...any) <-chan any {
 	}()
 	return ch
 }
-func (this *WoofiproCore) SetPositionsCache(client any, typeVar any, optionalArgs ...any) {
+func (this *WoofiproCore) SetPositionsCache(client any, optionalArgs ...any) {
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbols
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
@@ -1446,7 +1446,7 @@ func (this *WoofiproCore) ParseWsPosition(position any, optionalArgs ...any) any
  * @method
  * @name woofipro#watchBalance
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/balance
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */

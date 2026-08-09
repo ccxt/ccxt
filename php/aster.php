@@ -62,7 +62,7 @@ class aster extends Exchange {
                 'createMarketSellOrder' => false,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
-                'createOrders' => false,
+                'createOrders' => true,
                 'createOrderWithTakeProfitAndStopLoss' => false,
                 'createPostOnlyOrder' => false,
                 'createReduceOnlyOrder' => false,
@@ -77,7 +77,7 @@ class aster extends Exchange {
                 'editOrders' => false,
                 'fetchAccounts' => null,
                 'fetchBalance' => true,
-                'fetchBidsAsks' => false,
+                'fetchBidsAsks' => true,
                 'fetchBorrowInterest' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
@@ -111,7 +111,7 @@ class aster extends Exchange {
                 'fetchIsolatedBorrowRate' => 'emulated',
                 'fetchIsolatedBorrowRates' => false,
                 'fetchL3OrderBook' => false,
-                'fetchLastPrices' => false,
+                'fetchLastPrices' => true,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => false,
                 'fetchLeverage' => 'emulated',
@@ -185,209 +185,209 @@ class aster extends Exchange {
             'api' => array(
                 'fapiPublic' => array(
                     'get' => array(
-                        'v1/ping' => 1,
-                        'v3/ping' => 1,
-                        'v1/time' => 1,
-                        'v3/time' => 1,
-                        'v1/exchangeInfo' => 1,
-                        'v3/exchangeInfo' => 1,
-                        'v1/depth' => 1,
-                        'v3/depth' => 2, // dynamic => 5, 10, 20, 50->2, 100->5, 500->10, 1000->20
-                        'v1/trades' => 1,
-                        'v3/trades' => 1,
-                        'v1/historicalTrades' => 1,
-                        'v3/historicalTrades' => 20,
-                        'v1/aggTrades' => 1,
-                        'v3/aggTrades' => 20,
-                        'v1/klines' => 1,
-                        'v3/klines' => 1, // dynamic [1,100) ->1,  [100, 500)->2, [500, 1000]->5, [1000 -> 10
-                        'v1/indexPriceKlines' => 1,
-                        'v3/indexPriceKlines' => 1, // same
-                        'v1/markPriceKlines' => 1,
-                        'v3/markPriceKlines' => 1, // same
-                        'v1/premiumIndex' => 1,
-                        'v3/premiumIndex' => 1,
-                        'v1/fundingRate' => 1,
-                        'v3/fundingRate' => 1,
-                        'v1/fundingInfo' => 1,
-                        'v3/fundingInfo' => 1,
-                        'v1/ticker/24hr' => 1,
-                        'v3/ticker/24hr' => 1, // 1 single-symbol, otherwise 40
-                        'v1/ticker/price' => 1,
-                        'v3/ticker/price' => 1, // 1 single-symbol, otherwise 2
-                        'v1/ticker/bookTicker' => 1,
-                        'v3/ticker/bookTicker' => 1, // 1 single-symbol, otherwise 2
+                        'v1/ping' => array( 'cost' => 1 ),
+                        'v3/ping' => array( 'cost' => 1 ),
+                        'v1/time' => array( 'cost' => 1 ),
+                        'v3/time' => array( 'cost' => 1 ),
+                        'v1/exchangeInfo' => array( 'cost' => 1 ),
+                        'v3/exchangeInfo' => array( 'cost' => 1 ),
+                        'v1/depth' => array( 'cost' => 1 ),
+                        'v3/depth' => array( 'cost' => 2 ), // dynamic => 5, 10, 20, 50->2, 100->5, 500->10, 1000->20
+                        'v1/trades' => array( 'cost' => 1 ),
+                        'v3/trades' => array( 'cost' => 1 ),
+                        'v1/historicalTrades' => array( 'cost' => 1 ),
+                        'v3/historicalTrades' => array( 'cost' => 20 ),
+                        'v1/aggTrades' => array( 'cost' => 1 ),
+                        'v3/aggTrades' => array( 'cost' => 20 ),
+                        'v1/klines' => array( 'cost' => 1 ),
+                        'v3/klines' => array( 'cost' => 1 ), // dynamic [1,100) ->1,  [100, 500)->2, [500, 1000]->5, [1000 -> 10
+                        'v1/indexPriceKlines' => array( 'cost' => 1 ),
+                        'v3/indexPriceKlines' => array( 'cost' => 1 ), // same
+                        'v1/markPriceKlines' => array( 'cost' => 1 ),
+                        'v3/markPriceKlines' => array( 'cost' => 1 ), // same
+                        'v1/premiumIndex' => array( 'cost' => 1 ),
+                        'v3/premiumIndex' => array( 'cost' => 1 ),
+                        'v1/fundingRate' => array( 'cost' => 1 ),
+                        'v3/fundingRate' => array( 'cost' => 1 ),
+                        'v1/fundingInfo' => array( 'cost' => 1 ),
+                        'v3/fundingInfo' => array( 'cost' => 1 ),
+                        'v1/ticker/24hr' => array( 'cost' => 1 ),
+                        'v3/ticker/24hr' => array( 'cost' => 1 ), // 1 single-symbol, otherwise 40
+                        'v1/ticker/price' => array( 'cost' => 1 ),
+                        'v3/ticker/price' => array( 'cost' => 1 ), // 1 single-symbol, otherwise 2
+                        'v1/ticker/bookTicker' => array( 'cost' => 1 ),
+                        'v3/ticker/bookTicker' => array( 'cost' => 1 ), // 1 single-symbol, otherwise 2
                         // different endpoints
-                        'v1/adlQuantile' => 1,
-                        'v1/forceOrders' => 1,
-                        'v3/indexreferences' => 1,
+                        'v1/adlQuantile' => array( 'cost' => 1 ),
+                        'v1/forceOrders' => array( 'cost' => 1 ),
+                        'v3/indexreferences' => array( 'cost' => 1 ),
                     ),
                 ),
                 'fapiPrivate' => array(
                     'get' => array(
-                        'v1/positionSide/dual' => 1,
-                        'v3/positionSide/dual' => 30,
-                        'v1/multiAssetsMargin' => 1,
-                        'v3/multiAssetsMargin' => 1,
-                        'v1/order' => 1,
-                        'v3/order' => 1,
-                        'v1/openOrder' => 1,
-                        'v3/openOrder' => 1,
-                        'v1/openOrders' => 1,
-                        'v3/openOrders' => 1,
-                        'v1/allOrders' => 1,
-                        'v3/allOrders' => 1,
-                        'v2/balance' => 1,
-                        'v3/balance' => 1,
-                        'v3/account' => 1,
-                        'v1/positionMargin/history' => 1,
-                        'v3/positionMargin/history' => 1,
-                        'v2/positionRisk' => 1,
-                        'v3/positionRisk' => 1,
-                        'v1/userTrades' => 1,
-                        'v3/userTrades' => 5,
-                        'v1/income' => 1,
-                        'v3/income' => 1,
-                        'v1/leverageBracket' => 1,
-                        'v3/leverageBracket' => 1,
-                        'v1/commissionRate' => 1,
-                        'v3/commissionRate' => 1,
+                        'v1/positionSide/dual' => array( 'cost' => 1 ),
+                        'v3/positionSide/dual' => array( 'cost' => 30 ),
+                        'v1/multiAssetsMargin' => array( 'cost' => 1 ),
+                        'v3/multiAssetsMargin' => array( 'cost' => 1 ),
+                        'v1/order' => array( 'cost' => 1 ),
+                        'v3/order' => array( 'cost' => 1 ),
+                        'v1/openOrder' => array( 'cost' => 1 ),
+                        'v3/openOrder' => array( 'cost' => 1 ),
+                        'v1/openOrders' => array( 'cost' => 1 ),
+                        'v3/openOrders' => array( 'cost' => 1 ),
+                        'v1/allOrders' => array( 'cost' => 1 ),
+                        'v3/allOrders' => array( 'cost' => 1 ),
+                        'v2/balance' => array( 'cost' => 1 ),
+                        'v3/balance' => array( 'cost' => 1 ),
+                        'v3/account' => array( 'cost' => 1 ),
+                        'v1/positionMargin/history' => array( 'cost' => 1 ),
+                        'v3/positionMargin/history' => array( 'cost' => 1 ),
+                        'v2/positionRisk' => array( 'cost' => 1 ),
+                        'v3/positionRisk' => array( 'cost' => 1 ),
+                        'v1/userTrades' => array( 'cost' => 1 ),
+                        'v3/userTrades' => array( 'cost' => 5 ),
+                        'v1/income' => array( 'cost' => 1 ),
+                        'v3/income' => array( 'cost' => 1 ),
+                        'v1/leverageBracket' => array( 'cost' => 1 ),
+                        'v3/leverageBracket' => array( 'cost' => 1 ),
+                        'v1/commissionRate' => array( 'cost' => 1 ),
+                        'v3/commissionRate' => array( 'cost' => 1 ),
                         // others
-                        'v3/adlQuantile' => 1,
-                        'v3/forceOrders' => 1,
-                        'v3/mmp' => 1,
-                        'v3/accountWithJoinMargin' => 1,
-                        'v4/account' => 1,
+                        'v3/adlQuantile' => array( 'cost' => 1 ),
+                        'v3/forceOrders' => array( 'cost' => 1 ),
+                        'v3/mmp' => array( 'cost' => 1 ),
+                        'v3/accountWithJoinMargin' => array( 'cost' => 1 ),
+                        'v4/account' => array( 'cost' => 1 ),
                         // builder
-                        'v3/agent' => 1,
-                        'v3/builder' => 1,
+                        'v3/agent' => array( 'cost' => 1 ),
+                        'v3/builder' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'v1/positionSide/dual' => 1,
-                        'v3/positionSide/dual' => 1,
-                        'v1/multiAssetsMargin' => 1,
-                        'v3/multiAssetsMargin' => 1,
-                        'v1/order' => 1,
-                        'v3/order' => 1,
-                        'v1/order/test' => 1,
-                        'v3/order/test' => 1,
-                        'v1/batchOrders' => 1,
-                        'v3/batchOrders' => 1,
-                        'v1/asset/wallet/transfer' => 1,
-                        'v3/asset/wallet/transfer' => 1,
-                        'v1/countdownCancelAll' => 1,
-                        'v3/countdownCancelAll' => 1,
-                        'v1/leverage' => 1,
-                        'v3/leverage' => 1,
-                        'v1/marginType' => 1,
-                        'v3/marginType' => 1,
-                        'v1/positionMargin' => 1,
-                        'v3/positionMargin' => 1,
-                        'v1/listenKey' => 1,
-                        'v3/listenKey' => 1,
+                        'v1/positionSide/dual' => array( 'cost' => 1 ),
+                        'v3/positionSide/dual' => array( 'cost' => 1 ),
+                        'v1/multiAssetsMargin' => array( 'cost' => 1 ),
+                        'v3/multiAssetsMargin' => array( 'cost' => 1 ),
+                        'v1/order' => array( 'cost' => 1 ),
+                        'v3/order' => array( 'cost' => 1 ),
+                        'v1/order/test' => array( 'cost' => 1 ),
+                        'v3/order/test' => array( 'cost' => 1 ),
+                        'v1/batchOrders' => array( 'cost' => 1 ),
+                        'v3/batchOrders' => array( 'cost' => 1 ),
+                        'v1/asset/wallet/transfer' => array( 'cost' => 1 ),
+                        'v3/asset/wallet/transfer' => array( 'cost' => 1 ),
+                        'v1/countdownCancelAll' => array( 'cost' => 1 ),
+                        'v3/countdownCancelAll' => array( 'cost' => 1 ),
+                        'v1/leverage' => array( 'cost' => 1 ),
+                        'v3/leverage' => array( 'cost' => 1 ),
+                        'v1/marginType' => array( 'cost' => 1 ),
+                        'v3/marginType' => array( 'cost' => 1 ),
+                        'v1/positionMargin' => array( 'cost' => 1 ),
+                        'v3/positionMargin' => array( 'cost' => 1 ),
+                        'v1/listenKey' => array( 'cost' => 1 ),
+                        'v3/listenKey' => array( 'cost' => 1 ),
                         // others
-                        'v3/mmp' => 1,
-                        'v3/mmpReset' => 1,
-                        'v3/noop' => 1,
+                        'v3/mmp' => array( 'cost' => 1 ),
+                        'v3/mmpReset' => array( 'cost' => 1 ),
+                        'v3/noop' => array( 'cost' => 1 ),
                         // builder
-                        'v3/approveAgent' => 1,
-                        'v3/updateAgent' => 1,
-                        'v3/approveBuilder' => 1,
-                        'v3/updateBuilder' => 1,
+                        'v3/approveAgent' => array( 'cost' => 1 ),
+                        'v3/updateAgent' => array( 'cost' => 1 ),
+                        'v3/approveBuilder' => array( 'cost' => 1 ),
+                        'v3/updateBuilder' => array( 'cost' => 1 ),
                     ),
                     'put' => array(
-                        'v1/listenKey' => 1,
-                        'v3/listenKey' => 1,
+                        'v1/listenKey' => array( 'cost' => 1 ),
+                        'v3/listenKey' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'v1/order' => 1,
-                        'v3/order' => 1,
-                        'v1/allOpenOrders' => 1,
-                        'v3/allOpenOrders' => 1,
-                        'v1/batchOrders' => 1,
-                        'v3/batchOrders' => 1,
-                        'v3/mmp' => 1,
-                        'v1/listenKey' => 1,
-                        'v3/listenKey' => 1,
+                        'v1/order' => array( 'cost' => 1 ),
+                        'v3/order' => array( 'cost' => 1 ),
+                        'v1/allOpenOrders' => array( 'cost' => 1 ),
+                        'v3/allOpenOrders' => array( 'cost' => 1 ),
+                        'v1/batchOrders' => array( 'cost' => 1 ),
+                        'v3/batchOrders' => array( 'cost' => 1 ),
+                        'v3/mmp' => array( 'cost' => 1 ),
+                        'v1/listenKey' => array( 'cost' => 1 ),
+                        'v3/listenKey' => array( 'cost' => 1 ),
                         // builder
-                        'v3/agent' => 1,
-                        'v3/builder' => 1,
+                        'v3/agent' => array( 'cost' => 1 ),
+                        'v3/builder' => array( 'cost' => 1 ),
                     ),
                 ),
                 'sapiPublic' => array(
                     'get' => array(
                         // v1
-                        'v1/ping' => 1,
-                        'v1/time' => 1,
-                        'v1/exchangeInfo' => 1,
-                        'v1/depth' => 1,
-                        'v1/trades' => 1,
-                        'v1/historicalTrades' => 1,
-                        'v1/aggTrades' => 1,
-                        'v1/klines' => 1,
-                        'v1/ticker/24hr' => 1,
-                        'v1/ticker/price' => 1,
-                        'v1/ticker/bookTicker' => 1,
-                        'v1/aster/withdraw/estimateFee' => 1,
+                        'v1/ping' => array( 'cost' => 1 ),
+                        'v1/time' => array( 'cost' => 1 ),
+                        'v1/exchangeInfo' => array( 'cost' => 1 ),
+                        'v1/depth' => array( 'cost' => 1 ),
+                        'v1/trades' => array( 'cost' => 1 ),
+                        'v1/historicalTrades' => array( 'cost' => 1 ),
+                        'v1/aggTrades' => array( 'cost' => 1 ),
+                        'v1/klines' => array( 'cost' => 1 ),
+                        'v1/ticker/24hr' => array( 'cost' => 1 ),
+                        'v1/ticker/price' => array( 'cost' => 1 ),
+                        'v1/ticker/bookTicker' => array( 'cost' => 1 ),
+                        'v1/aster/withdraw/estimateFee' => array( 'cost' => 1 ),
                         // v3
-                        'v3/ping' => 1,
-                        'v3/time' => 1,
-                        'v3/exchangeInfo' => 1,
+                        'v3/ping' => array( 'cost' => 1 ),
+                        'v3/time' => array( 'cost' => 1 ),
+                        'v3/exchangeInfo' => array( 'cost' => 1 ),
                         'v3/depth' => array( 'cost' => 2, 'byLimit' => array( array( 50, 2 ), array( 100, 5 ), array( 500, 10 ), array( 1000, 20 ) ) ),
-                        'v3/trades' => 1,
-                        'v3/historicalTrades' => 20,
-                        'v3/aggTrades' => 20,
+                        'v3/trades' => array( 'cost' => 1 ),
+                        'v3/historicalTrades' => array( 'cost' => 20 ),
+                        'v3/aggTrades' => array( 'cost' => 20 ),
                         'v3/klines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ), // todo => not specified in docs
                         'v3/ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'v3/ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
                         'v3/ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
-                        'v3/aster/withdraw/estimateFee' => 1,
+                        'v3/aster/withdraw/estimateFee' => array( 'cost' => 1 ),
                     ),
                 ),
                 'sapiPrivate' => array(
                     'get' => array(
                         // v1
-                        'v1/commissionRate' => 1,
-                        'v1/order' => 1,
-                        'v1/openOrders' => 1,
-                        'v1/allOrders' => 1,
-                        'v1/transactionHistory' => 1,
-                        'v1/account' => 1,
-                        'v1/userTrades' => 1,
+                        'v1/commissionRate' => array( 'cost' => 1 ),
+                        'v1/order' => array( 'cost' => 1 ),
+                        'v1/openOrders' => array( 'cost' => 1 ),
+                        'v1/allOrders' => array( 'cost' => 1 ),
+                        'v1/transactionHistory' => array( 'cost' => 1 ),
+                        'v1/account' => array( 'cost' => 1 ),
+                        'v1/userTrades' => array( 'cost' => 1 ),
                         // v3
                         'v3/commissionRate' => array( 'cost' => 1, 'noSymbol' => 2 ),
-                        'v3/order' => 1,
-                        'v3/openOrders' => 1, // with symbol 1, otherwise 40
-                        'v3/allOrders' => 5,
-                        'v3/account' => 5,
-                        'v3/userTrades' => 5,
-                        'v3/openOrder' => 1,
+                        'v3/order' => array( 'cost' => 1 ),
+                        'v3/openOrders' => array( 'cost' => 1 ), // with symbol 1, otherwise 40
+                        'v3/allOrders' => array( 'cost' => 5 ),
+                        'v3/account' => array( 'cost' => 5 ),
+                        'v3/userTrades' => array( 'cost' => 5 ),
+                        'v3/openOrder' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         // v1
-                        'v1/order' => 1,
-                        'v1/asset/wallet/transfer' => 5,
-                        'v1/asset/sendToAddress' => 1, // inexistent in v3
-                        'v1/listenKey' => 1,
+                        'v1/order' => array( 'cost' => 1 ),
+                        'v1/asset/wallet/transfer' => array( 'cost' => 5 ),
+                        'v1/asset/sendToAddress' => array( 'cost' => 1 ), // inexistent in v3
+                        'v1/listenKey' => array( 'cost' => 1 ),
                         // v3
-                        'v3/order' => 1,
-                        'v3/asset/wallet/transfer' => 5,
-                        'v3/aster/user-withdraw' => 1,
-                        'v3/listenKey' => 1,
+                        'v3/order' => array( 'cost' => 1 ),
+                        'v3/asset/wallet/transfer' => array( 'cost' => 5 ),
+                        'v3/aster/user-withdraw' => array( 'cost' => 1 ),
+                        'v3/listenKey' => array( 'cost' => 1 ),
                     ),
                     'put' => array(
-                        'v1/listenKey',
-                        'v3/listenKey',
+                        'v1/listenKey' => array( 'cost' => 1 ),
+                        'v3/listenKey' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
                         // v1
-                        'v1/order' => 1,
-                        'v1/allOpenOrders' => 1,
-                        'v1/listenKey' => 1,
+                        'v1/order' => array( 'cost' => 1 ),
+                        'v1/allOpenOrders' => array( 'cost' => 1 ),
+                        'v1/listenKey' => array( 'cost' => 1 ),
                         // v3
-                        'v3/allOpenOrders' => 1,
-                        'v3/order' => 1,
-                        'v3/listenKey' => 1,
+                        'v3/allOpenOrders' => array( 'cost' => 1 ),
+                        'v3/order' => array( 'cost' => 1 ),
+                        'v3/listenKey' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -570,7 +570,7 @@ class aster extends Exchange {
                 'networks' => array(
                     'ERC20' => 'ETH',
                     'BEP20' => 'BSC',
-                    'ARBONE' => 'Arbitrum',
+                    'ARBITRUM' => 'Arbitrum',
                 ),
                 'networksToChainId' => array(
                     'ETH' => 1,
@@ -1186,7 +1186,7 @@ class aster extends Exchange {
             //  )
             //
         }
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1386,7 +1386,7 @@ class aster extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         if ($since !== null) {
             $request['startTime'] = $since;
         }
@@ -1714,11 +1714,12 @@ class aster extends Exchange {
         if ($response === null) {
             throw new NullResponse($this->id . ' fetchLastPrices() returned empty response');
         }
+        $rows = $this->to_array($response);
         $results = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $marketId = $this->safe_string($response[$i], 'symbol');
+        for ($i = 0; $i < count($rows); $i++) {
+            $marketId = $this->safe_string($rows[$i], 'symbol');
             $safeMarket = $this->safe_market($marketId, null, null, $marketType);
-            $priceData = $this->extend($this->parse_last_price($response[$i], $safeMarket), $params);
+            $priceData = $this->extend($this->parse_last_price($rows[$i], $safeMarket), $params);
             $results[] = $priceData;
         }
         $symbols = $this->market_symbols($symbols);
@@ -2104,7 +2105,7 @@ class aster extends Exchange {
         return $response;
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): array {
         /**
          * fetchs the position mode, hedged or one way, hedged for aster is set identically for all linear markets or all inverse markets
          *
@@ -2378,7 +2379,7 @@ class aster extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetch an open order by the $id
          *
@@ -3103,7 +3104,7 @@ class aster extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_leverages($response, $symbols, 'symbol');
+        return $this->parse_leverages($this->to_array($response), $symbols, 'symbol');
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
@@ -3184,7 +3185,7 @@ class aster extends Exchange {
         //     )
         //
         //
-        return $this->parse_margin_modes($response, $symbols, 'symbol', 'swap');
+        return $this->parse_margin_modes($this->to_array($response), $symbols, 'symbol', 'swap');
     }
 
     public function parse_margin_mode(array $marginMode, ?array $market = null): array {
@@ -3265,7 +3266,7 @@ class aster extends Exchange {
         //         }
         //     )
         //
-        $modifications = $this->parse_margin_modifications($response);
+        $modifications = $this->parse_margin_modifications($this->to_array($response));
         return $this->filter_by_symbol_since_limit($modifications, $symbol, $since, $limit);
     }
 
@@ -3734,12 +3735,13 @@ class aster extends Exchange {
         //         }
         //     )
         //
+        $rawPositions = $this->to_array($response);
         $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $rawPosition = $response[$i];
+        for ($i = 0; $i < count($rawPositions); $i++) {
+            $rawPosition = $rawPositions[$i];
             $entryPriceString = $this->safe_string($rawPosition, 'entryPrice');
             if (Precise::string_gt($entryPriceString, '0')) {
-                $result[] = $this->parse_position_risk($response[$i]);
+                $result[] = $this->parse_position_risk($rawPosition);
             }
         }
         $symbols = $this->market_symbols($symbols);
@@ -4040,8 +4042,9 @@ class aster extends Exchange {
             //                ...
             //
             $this->options['leverageBrackets'] = $this->create_safe_dictionary();
-            for ($i = 0; $i < count($response); $i++) {
-                $entry = $response[$i];
+            $entries = $this->to_array($response);
+            for ($i = 0; $i < count($entries); $i++) {
+                $entry = $entries[$i];
                 $marketId = $this->safe_string($entry, 'symbol');
                 $symbol = $this->safe_symbol($marketId, null, null, 'contract');
                 $brackets = $this->safe_list($entry, 'brackets', array());

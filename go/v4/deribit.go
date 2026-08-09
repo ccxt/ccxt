@@ -133,132 +133,376 @@ func (this *DeribitCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"auth":                                   1,
-					"exchange_token":                         1,
-					"fork_token":                             1,
-					"set_heartbeat":                          1,
-					"disable_heartbeat":                      1,
-					"get_time":                               1,
-					"hello":                                  1,
-					"status":                                 1,
-					"test":                                   1,
-					"subscribe":                              1,
-					"unsubscribe":                            1,
-					"unsubscribe_all":                        1,
-					"get_announcements":                      1,
-					"get_book_summary_by_currency":           1,
-					"get_book_summary_by_instrument":         1,
-					"get_contract_size":                      1,
-					"get_currencies":                         1,
-					"get_delivery_prices":                    1,
-					"get_funding_chart_data":                 1,
-					"get_funding_rate_history":               1,
-					"get_funding_rate_value":                 1,
-					"get_historical_volatility":              1,
-					"get_index":                              1,
-					"get_index_price":                        1,
-					"get_index_price_names":                  1,
-					"get_instrument":                         1,
-					"get_instruments":                        1,
-					"get_last_settlements_by_currency":       1,
-					"get_last_settlements_by_instrument":     1,
-					"get_last_trades_by_currency":            1,
-					"get_last_trades_by_currency_and_time":   1,
-					"get_last_trades_by_instrument":          1,
-					"get_last_trades_by_instrument_and_time": 1,
-					"get_mark_price_history":                 1,
-					"get_order_book":                         1,
-					"get_trade_volumes":                      1,
-					"get_tradingview_chart_data":             1,
-					"get_volatility_index_data":              1,
-					"ticker":                                 1,
+					"auth": map[string]any{
+						"cost": 1,
+					},
+					"exchange_token": map[string]any{
+						"cost": 1,
+					},
+					"fork_token": map[string]any{
+						"cost": 1,
+					},
+					"set_heartbeat": map[string]any{
+						"cost": 1,
+					},
+					"disable_heartbeat": map[string]any{
+						"cost": 1,
+					},
+					"get_time": map[string]any{
+						"cost": 1,
+					},
+					"hello": map[string]any{
+						"cost": 1,
+					},
+					"status": map[string]any{
+						"cost": 1,
+					},
+					"test": map[string]any{
+						"cost": 1,
+					},
+					"subscribe": map[string]any{
+						"cost": 1,
+					},
+					"unsubscribe": map[string]any{
+						"cost": 1,
+					},
+					"unsubscribe_all": map[string]any{
+						"cost": 1,
+					},
+					"get_announcements": map[string]any{
+						"cost": 1,
+					},
+					"get_book_summary_by_currency": map[string]any{
+						"cost": 1,
+					},
+					"get_book_summary_by_instrument": map[string]any{
+						"cost": 1,
+					},
+					"get_contract_size": map[string]any{
+						"cost": 1,
+					},
+					"get_currencies": map[string]any{
+						"cost": 1,
+					},
+					"get_delivery_prices": map[string]any{
+						"cost": 1,
+					},
+					"get_funding_chart_data": map[string]any{
+						"cost": 1,
+					},
+					"get_funding_rate_history": map[string]any{
+						"cost": 1,
+					},
+					"get_funding_rate_value": map[string]any{
+						"cost": 1,
+					},
+					"get_historical_volatility": map[string]any{
+						"cost": 1,
+					},
+					"get_index": map[string]any{
+						"cost": 1,
+					},
+					"get_index_price": map[string]any{
+						"cost": 1,
+					},
+					"get_index_price_names": map[string]any{
+						"cost": 1,
+					},
+					"get_instrument": map[string]any{
+						"cost": 1,
+					},
+					"get_instruments": map[string]any{
+						"cost": 1,
+					},
+					"get_last_settlements_by_currency": map[string]any{
+						"cost": 1,
+					},
+					"get_last_settlements_by_instrument": map[string]any{
+						"cost": 1,
+					},
+					"get_last_trades_by_currency": map[string]any{
+						"cost": 1,
+					},
+					"get_last_trades_by_currency_and_time": map[string]any{
+						"cost": 1,
+					},
+					"get_last_trades_by_instrument": map[string]any{
+						"cost": 1,
+					},
+					"get_last_trades_by_instrument_and_time": map[string]any{
+						"cost": 1,
+					},
+					"get_mark_price_history": map[string]any{
+						"cost": 1,
+					},
+					"get_order_book": map[string]any{
+						"cost": 1,
+					},
+					"get_trade_volumes": map[string]any{
+						"cost": 1,
+					},
+					"get_tradingview_chart_data": map[string]any{
+						"cost": 1,
+					},
+					"get_volatility_index_data": map[string]any{
+						"cost": 1,
+					},
+					"ticker": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"logout":                                 1,
-					"enable_cancel_on_disconnect":            1,
-					"disable_cancel_on_disconnect":           1,
-					"get_cancel_on_disconnect":               1,
-					"subscribe":                              1,
-					"unsubscribe":                            1,
-					"unsubscribe_all":                        1,
-					"change_api_key_name":                    1,
-					"change_scope_in_api_key":                1,
-					"change_subaccount_name":                 1,
-					"create_api_key":                         1,
-					"create_subaccount":                      1,
-					"disable_api_key":                        1,
-					"disable_tfa_for_subaccount":             1,
-					"enable_affiliate_program":               1,
-					"enable_api_key":                         1,
-					"get_access_log":                         1,
-					"get_account_summary":                    1,
-					"get_account_summaries":                  1,
-					"get_affiliate_program_info":             1,
-					"get_email_language":                     1,
-					"get_new_announcements":                  1,
-					"get_portfolio_margins":                  1,
-					"get_position":                           1,
-					"get_positions":                          1,
-					"get_subaccounts":                        1,
-					"get_subaccounts_details":                1,
-					"get_transaction_log":                    1,
-					"list_api_keys":                          1,
-					"remove_api_key":                         1,
-					"remove_subaccount":                      1,
-					"reset_api_key":                          1,
-					"set_announcement_as_read":               1,
-					"set_api_key_as_default":                 1,
-					"set_email_for_subaccount":               1,
-					"set_email_language":                     1,
-					"set_password_for_subaccount":            1,
-					"toggle_notifications_from_subaccount":   1,
-					"toggle_subaccount_login":                1,
-					"execute_block_trade":                    4,
-					"get_block_trade":                        1,
-					"get_last_block_trades_by_currency":      1,
-					"invalidate_block_trade_signature":       1,
-					"verify_block_trade":                     4,
-					"buy":                                    4,
-					"sell":                                   4,
-					"edit":                                   4,
-					"edit_by_label":                          4,
-					"cancel":                                 4,
-					"cancel_all":                             4,
-					"cancel_all_by_currency":                 4,
-					"cancel_all_by_instrument":               4,
-					"cancel_by_label":                        4,
-					"close_position":                         4,
-					"get_margins":                            1,
-					"get_mmp_config":                         1,
-					"get_open_orders_by_currency":            1,
-					"get_open_orders_by_instrument":          1,
-					"get_order_history_by_currency":          1,
-					"get_order_history_by_instrument":        1,
-					"get_order_margin_by_ids":                1,
-					"get_order_state":                        1,
-					"get_stop_order_history":                 1,
-					"get_trigger_order_history":              1,
-					"get_user_trades_by_currency":            1,
-					"get_user_trades_by_currency_and_time":   1,
-					"get_user_trades_by_instrument":          1,
-					"get_user_trades_by_instrument_and_time": 1,
-					"get_user_trades_by_order":               1,
-					"reset_mmp":                              1,
-					"set_mmp_config":                         1,
-					"get_settlement_history_by_instrument":   1,
-					"get_settlement_history_by_currency":     1,
-					"cancel_transfer_by_id":                  1,
-					"cancel_withdrawal":                      1,
-					"create_deposit_address":                 1,
-					"get_current_deposit_address":            1,
-					"get_deposits":                           1,
-					"get_transfers":                          1,
-					"get_withdrawals":                        1,
-					"submit_transfer_to_subaccount":          1,
-					"submit_transfer_to_user":                1,
-					"withdraw":                               1,
+					"logout": map[string]any{
+						"cost": 1,
+					},
+					"enable_cancel_on_disconnect": map[string]any{
+						"cost": 1,
+					},
+					"disable_cancel_on_disconnect": map[string]any{
+						"cost": 1,
+					},
+					"get_cancel_on_disconnect": map[string]any{
+						"cost": 1,
+					},
+					"subscribe": map[string]any{
+						"cost": 1,
+					},
+					"unsubscribe": map[string]any{
+						"cost": 1,
+					},
+					"unsubscribe_all": map[string]any{
+						"cost": 1,
+					},
+					"change_api_key_name": map[string]any{
+						"cost": 1,
+					},
+					"change_scope_in_api_key": map[string]any{
+						"cost": 1,
+					},
+					"change_subaccount_name": map[string]any{
+						"cost": 1,
+					},
+					"create_api_key": map[string]any{
+						"cost": 1,
+					},
+					"create_subaccount": map[string]any{
+						"cost": 1,
+					},
+					"disable_api_key": map[string]any{
+						"cost": 1,
+					},
+					"disable_tfa_for_subaccount": map[string]any{
+						"cost": 1,
+					},
+					"enable_affiliate_program": map[string]any{
+						"cost": 1,
+					},
+					"enable_api_key": map[string]any{
+						"cost": 1,
+					},
+					"get_access_log": map[string]any{
+						"cost": 1,
+					},
+					"get_account_summary": map[string]any{
+						"cost": 1,
+					},
+					"get_account_summaries": map[string]any{
+						"cost": 1,
+					},
+					"get_affiliate_program_info": map[string]any{
+						"cost": 1,
+					},
+					"get_email_language": map[string]any{
+						"cost": 1,
+					},
+					"get_new_announcements": map[string]any{
+						"cost": 1,
+					},
+					"get_portfolio_margins": map[string]any{
+						"cost": 1,
+					},
+					"get_position": map[string]any{
+						"cost": 1,
+					},
+					"get_positions": map[string]any{
+						"cost": 1,
+					},
+					"get_subaccounts": map[string]any{
+						"cost": 1,
+					},
+					"get_subaccounts_details": map[string]any{
+						"cost": 1,
+					},
+					"get_transaction_log": map[string]any{
+						"cost": 1,
+					},
+					"list_api_keys": map[string]any{
+						"cost": 1,
+					},
+					"remove_api_key": map[string]any{
+						"cost": 1,
+					},
+					"remove_subaccount": map[string]any{
+						"cost": 1,
+					},
+					"reset_api_key": map[string]any{
+						"cost": 1,
+					},
+					"set_announcement_as_read": map[string]any{
+						"cost": 1,
+					},
+					"set_api_key_as_default": map[string]any{
+						"cost": 1,
+					},
+					"set_email_for_subaccount": map[string]any{
+						"cost": 1,
+					},
+					"set_email_language": map[string]any{
+						"cost": 1,
+					},
+					"set_password_for_subaccount": map[string]any{
+						"cost": 1,
+					},
+					"toggle_notifications_from_subaccount": map[string]any{
+						"cost": 1,
+					},
+					"toggle_subaccount_login": map[string]any{
+						"cost": 1,
+					},
+					"execute_block_trade": map[string]any{
+						"cost": 4,
+					},
+					"get_block_trade": map[string]any{
+						"cost": 1,
+					},
+					"get_last_block_trades_by_currency": map[string]any{
+						"cost": 1,
+					},
+					"invalidate_block_trade_signature": map[string]any{
+						"cost": 1,
+					},
+					"verify_block_trade": map[string]any{
+						"cost": 4,
+					},
+					"buy": map[string]any{
+						"cost": 4,
+					},
+					"sell": map[string]any{
+						"cost": 4,
+					},
+					"edit": map[string]any{
+						"cost": 4,
+					},
+					"edit_by_label": map[string]any{
+						"cost": 4,
+					},
+					"cancel": map[string]any{
+						"cost": 4,
+					},
+					"cancel_all": map[string]any{
+						"cost": 4,
+					},
+					"cancel_all_by_currency": map[string]any{
+						"cost": 4,
+					},
+					"cancel_all_by_instrument": map[string]any{
+						"cost": 4,
+					},
+					"cancel_by_label": map[string]any{
+						"cost": 4,
+					},
+					"close_position": map[string]any{
+						"cost": 4,
+					},
+					"get_margins": map[string]any{
+						"cost": 1,
+					},
+					"get_mmp_config": map[string]any{
+						"cost": 1,
+					},
+					"get_open_orders_by_currency": map[string]any{
+						"cost": 1,
+					},
+					"get_open_orders_by_instrument": map[string]any{
+						"cost": 1,
+					},
+					"get_order_history_by_currency": map[string]any{
+						"cost": 1,
+					},
+					"get_order_history_by_instrument": map[string]any{
+						"cost": 1,
+					},
+					"get_order_margin_by_ids": map[string]any{
+						"cost": 1,
+					},
+					"get_order_state": map[string]any{
+						"cost": 1,
+					},
+					"get_stop_order_history": map[string]any{
+						"cost": 1,
+					},
+					"get_trigger_order_history": map[string]any{
+						"cost": 1,
+					},
+					"get_user_trades_by_currency": map[string]any{
+						"cost": 1,
+					},
+					"get_user_trades_by_currency_and_time": map[string]any{
+						"cost": 1,
+					},
+					"get_user_trades_by_instrument": map[string]any{
+						"cost": 1,
+					},
+					"get_user_trades_by_instrument_and_time": map[string]any{
+						"cost": 1,
+					},
+					"get_user_trades_by_order": map[string]any{
+						"cost": 1,
+					},
+					"reset_mmp": map[string]any{
+						"cost": 1,
+					},
+					"set_mmp_config": map[string]any{
+						"cost": 1,
+					},
+					"get_settlement_history_by_instrument": map[string]any{
+						"cost": 1,
+					},
+					"get_settlement_history_by_currency": map[string]any{
+						"cost": 1,
+					},
+					"cancel_transfer_by_id": map[string]any{
+						"cost": 1,
+					},
+					"cancel_withdrawal": map[string]any{
+						"cost": 1,
+					},
+					"create_deposit_address": map[string]any{
+						"cost": 1,
+					},
+					"get_current_deposit_address": map[string]any{
+						"cost": 1,
+					},
+					"get_deposits": map[string]any{
+						"cost": 1,
+					},
+					"get_transfers": map[string]any{
+						"cost": 1,
+					},
+					"get_withdrawals": map[string]any{
+						"cost": 1,
+					},
+					"submit_transfer_to_subaccount": map[string]any{
+						"cost": 1,
+					},
+					"submit_transfer_to_user": map[string]any{
+						"cost": 1,
+					},
+					"withdraw": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},

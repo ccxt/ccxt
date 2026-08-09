@@ -101,38 +101,38 @@ class blockchaincom(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'tickers': 1,  # fetchTickers
-                        'tickers/{symbol}': 1,  # fetchTicker
-                        'symbols': 1,  # fetchMarkets
-                        'symbols/{symbol}': 1,  # fetchMarket
-                        'l2/{symbol}': 1,  # fetchL2OrderBook
-                        'l3/{symbol}': 1,  # fetchL3OrderBook
+                        'tickers': {'cost': 1},  # fetchTickers
+                        'tickers/{symbol}': {'cost': 1},  # fetchTicker
+                        'symbols': {'cost': 1},  # fetchMarkets
+                        'symbols/{symbol}': {'cost': 1},  # fetchMarket
+                        'l2/{symbol}': {'cost': 1},  # fetchL2OrderBook
+                        'l3/{symbol}': {'cost': 1},  # fetchL3OrderBook
                     },
                 },
                 'private': {
                     'get': {
-                        'fees': 1,  # fetchFees
-                        'orders': 1,  # fetchOpenOrders, fetchClosedOrders
-                        'orders/{orderId}': 1,  # fetchOrder(id)
-                        'trades': 1,
-                        'fills': 1,  # fetchMyTrades
-                        'deposits': 1,  # fetchDeposits
-                        'deposits/{depositId}': 1,  # fetchDeposit
-                        'accounts': 1,  # fetchBalance
-                        'accounts/{account}/{currency}': 1,
-                        'whitelist': 1,  # fetchWithdrawalWhitelist
-                        'whitelist/{currency}': 1,  # fetchWithdrawalWhitelistByCurrency
-                        'withdrawals': 1,  # fetchWithdrawalWhitelist
-                        'withdrawals/{withdrawalId}': 1,  # fetchWithdrawalById
+                        'fees': {'cost': 1},  # fetchFees
+                        'orders': {'cost': 1},  # fetchOpenOrders, fetchClosedOrders
+                        'orders/{orderId}': {'cost': 1},  # fetchOrder(id)
+                        'trades': {'cost': 1},
+                        'fills': {'cost': 1},  # fetchMyTrades
+                        'deposits': {'cost': 1},  # fetchDeposits
+                        'deposits/{depositId}': {'cost': 1},  # fetchDeposit
+                        'accounts': {'cost': 1},  # fetchBalance
+                        'accounts/{account}/{currency}': {'cost': 1},
+                        'whitelist': {'cost': 1},  # fetchWithdrawalWhitelist
+                        'whitelist/{currency}': {'cost': 1},  # fetchWithdrawalWhitelistByCurrency
+                        'withdrawals': {'cost': 1},  # fetchWithdrawalWhitelist
+                        'withdrawals/{withdrawalId}': {'cost': 1},  # fetchWithdrawalById
                     },
                     'post': {
-                        'orders': 1,  # createOrder
-                        'deposits/{currency}': 1,  # fetchDepositAddress by currency(only crypto supported)
-                        'withdrawals': 1,  # withdraw
+                        'orders': {'cost': 1},  # createOrder
+                        'deposits/{currency}': {'cost': 1},  # fetchDepositAddress by currency(only crypto supported)
+                        'withdrawals': {'cost': 1},  # withdraw
                     },
                     'delete': {
-                        'orders': 1,  # cancelOrders
-                        'orders/{orderId}': 1,  # cancelOrder
+                        'orders': {'cost': 1},  # cancelOrders
+                        'orders/{orderId}': {'cost': 1},  # cancelOrder
                     },
                 },
             },

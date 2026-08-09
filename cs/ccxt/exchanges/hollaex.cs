@@ -45,6 +45,7 @@ public partial class hollaex : Exchange
                 { "fetchDepositAddresses", true },
                 { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
+                { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
@@ -117,43 +118,101 @@ public partial class hollaex : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "health", 1 },
-                        { "constants", 1 },
-                        { "kit", 1 },
-                        { "tiers", 1 },
-                        { "ticker", 1 },
-                        { "tickers", 1 },
-                        { "orderbook", 1 },
-                        { "orderbooks", 1 },
-                        { "trades", 1 },
-                        { "chart", 1 },
-                        { "charts", 1 },
-                        { "minicharts", 1 },
-                        { "oracle/prices", 1 },
-                        { "quick-trade", 1 },
-                        { "udf/config", 1 },
-                        { "udf/history", 1 },
-                        { "udf/symbols", 1 },
+                        { "health", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "constants", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "kit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tiers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbooks", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "chart", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "charts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "minicharts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "oracle/prices", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quick-trade", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "udf/config", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "udf/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "udf/symbols", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "user", 1 },
-                        { "user/balance", 1 },
-                        { "user/deposits", 1 },
-                        { "user/withdrawals", 1 },
-                        { "user/withdrawal/fee", 1 },
-                        { "user/trades", 1 },
-                        { "orders", 1 },
-                        { "order", 1 },
+                        { "user", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/deposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/withdrawal/fee", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "user/withdrawal", 1 },
-                        { "order", 1 },
+                        { "user/withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "order/all", 1 },
-                        { "order", 1 },
+                        { "order/all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -574,10 +633,10 @@ public partial class hollaex : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
-            object orderbook = getValue(response, marketId);
+            object orderbook = this.safeDict(response, marketId, new Dictionary<string, object>() {});
             object symbol = this.safeSymbol(marketId, null, "-");
             object timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
-            ((IDictionary<string,object>)result)[(string)symbol] = this.parseOrderBook(getValue(response, marketId), symbol, timestamp);
+            ((IDictionary<string,object>)result)[(string)symbol] = this.parseOrderBook(orderbook, symbol, timestamp);
         }
         return result;
     }
@@ -1004,7 +1063,7 @@ public partial class hollaex : Exchange
         //         },
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)

@@ -79,48 +79,76 @@ public partial class nado : Exchange
                 { "gateway", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "symbols", 2 },
-                            { "query", 1 },
-                            { "edge/query", 1 },
+                            { "symbols", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "query", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "edge/query", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "query", 1 },
+                            { "query", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
-                            { "execute", 1 },
+                            { "execute", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
                 { "gatewayV2", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "assets", 2 },
-                            { "pairs", 1 },
-                            { "orderbook", 1 },
+                            { "assets", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "pairs", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orderbook", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
                 { "archive", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "", 1 },
+                        { "", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "archiveV2", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "tickers", 1 },
-                            { "contracts", 1 },
-                            { "trades", 1 },
+                            { "tickers", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "contracts", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
                 { "trigger", new Dictionary<string, object>() {
                     { "private", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
-                            { "execute", 1 },
-                            { "query", 1 },
+                            { "execute", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "query", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
@@ -973,7 +1001,7 @@ public partial class nado : Exchange
             ((IList<object>)productIds).Add(this.parseToInt(getValue(market, "id")));
         }
         object subaccount = null;
-        var subaccountparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "subaccount", "default");
+        var subaccountparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "subaccount", "default");
         subaccount = ((IList<object>)subaccountparametersVariable)[0];
         parameters = ((IList<object>)subaccountparametersVariable)[1];
         object sender = this.createSubaccount(this.walletAddress, subaccount);
@@ -1843,9 +1871,10 @@ public partial class nado : Exchange
         parameters ??= new Dictionary<string, object>();
         object response = await this.gatewayV2PublicGetAssets(parameters);
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object assets = this.toArray(response);
+        for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
         {
-            object currency = getValue(response, i);
+            object currency = getValue(assets, i);
             object parsed = this.parseCurrency(currency);
             object code = this.safeString(parsed, "code");
             if (isTrue(isEqual(code, null)))
@@ -2087,7 +2116,7 @@ public partial class nado : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
             object ticker = getValue(tickers, i);
-            ((IList<object>)rates).Add(getValue(response, ticker));
+            ((IList<object>)rates).Add(this.safeDict(response, ticker, new Dictionary<string, object>() {}));
         }
         return this.parseFundingRates(rates, symbols);
     }
@@ -2184,7 +2213,7 @@ public partial class nado : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
             object ticker = getValue(tickers, i);
-            ((IList<object>)interests).Add(getValue(response, ticker));
+            ((IList<object>)interests).Add(this.safeDict(response, ticker, new Dictionary<string, object>() {}));
         }
         return this.parseOpenInterests(interests, symbols);
     }

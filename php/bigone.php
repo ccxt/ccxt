@@ -117,71 +117,71 @@ class bigone extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'ping',
-                        'asset_pairs',
-                        'asset_pairs/{asset_pair_name}/depth',
-                        'asset_pairs/{asset_pair_name}/trades',
-                        'asset_pairs/{asset_pair_name}/ticker',
-                        'asset_pairs/{asset_pair_name}/candles',
-                        'asset_pairs/tickers',
+                        'ping' => array( 'cost' => 1 ),
+                        'asset_pairs' => array( 'cost' => 1 ),
+                        'asset_pairs/{asset_pair_name}/depth' => array( 'cost' => 1 ),
+                        'asset_pairs/{asset_pair_name}/trades' => array( 'cost' => 1 ),
+                        'asset_pairs/{asset_pair_name}/ticker' => array( 'cost' => 1 ),
+                        'asset_pairs/{asset_pair_name}/candles' => array( 'cost' => 1 ),
+                        'asset_pairs/tickers' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'accounts',
-                        'fund/accounts',
-                        'assets/{asset_symbol}/address',
-                        'orders',
-                        'orders/{id}',
-                        'orders/multi',
-                        'trades',
-                        'withdrawals',
-                        'deposits',
+                        'accounts' => array( 'cost' => 1 ),
+                        'fund/accounts' => array( 'cost' => 1 ),
+                        'assets/{asset_symbol}/address' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/{id}' => array( 'cost' => 1 ),
+                        'orders/multi' => array( 'cost' => 1 ),
+                        'trades' => array( 'cost' => 1 ),
+                        'withdrawals' => array( 'cost' => 1 ),
+                        'deposits' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'orders',
-                        'orders/{id}/cancel',
-                        'orders/cancel',
-                        'withdrawals',
-                        'transfer',
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/{id}/cancel' => array( 'cost' => 1 ),
+                        'orders/cancel' => array( 'cost' => 1 ),
+                        'withdrawals' => array( 'cost' => 1 ),
+                        'transfer' => array( 'cost' => 1 ),
                     ),
                 ),
                 'contractPublic' => array(
                     'get' => array(
-                        'symbols',
-                        'instruments',
-                        'depth@{symbol}/snapshot',
-                        'instruments/difference',
-                        'instruments/prices',
+                        'symbols' => array( 'cost' => 1 ),
+                        'instruments' => array( 'cost' => 1 ),
+                        'depth@{symbol}/snapshot' => array( 'cost' => 1 ),
+                        'instruments/difference' => array( 'cost' => 1 ),
+                        'instruments/prices' => array( 'cost' => 1 ),
                     ),
                 ),
                 'contractPrivate' => array(
                     'get' => array(
-                        'accounts',
-                        'orders/{id}',
-                        'orders',
-                        'orders/opening',
-                        'orders/count',
-                        'orders/opening/count',
-                        'trades',
-                        'trades/count',
+                        'accounts' => array( 'cost' => 1 ),
+                        'orders/{id}' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/opening' => array( 'cost' => 1 ),
+                        'orders/count' => array( 'cost' => 1 ),
+                        'orders/opening/count' => array( 'cost' => 1 ),
+                        'trades' => array( 'cost' => 1 ),
+                        'trades/count' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'orders',
-                        'orders/batch',
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/batch' => array( 'cost' => 1 ),
                     ),
                     'put' => array(
-                        'positions/{symbol}/margin',
-                        'positions/{symbol}/risk-limit',
+                        'positions/{symbol}/margin' => array( 'cost' => 1 ),
+                        'positions/{symbol}/risk-limit' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'orders/{id}',
-                        'orders/batch',
+                        'orders/{id}' => array( 'cost' => 1 ),
+                        'orders/batch' => array( 'cost' => 1 ),
                     ),
                 ),
                 'webExchange' => array(
                     'get' => array(
-                        'v3/assets',
+                        'v3/assets' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -724,8 +724,9 @@ class bigone extends Exchange {
                 'info' => $market,
             ));
         }
-        for ($i = 0; $i < count($contractResponse); $i++) {
-            $market = $contractResponse[$i];
+        $contractMarkets = $this->to_array($contractResponse);
+        for ($i = 0; $i < count($contractMarkets); $i++) {
+            $market = $contractMarkets[$i];
             $baseId = $this->safe_string($market, 'baseCurrency');
             $quoteId = $this->safe_string($market, 'quoteCurrency');
             $settleId = $this->safe_string($market, 'settleCurrency');
@@ -969,7 +970,8 @@ class bigone extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
         } else {
-            $data = $this->contractPublicGetInstruments($params);
+            $instruments = $this->contractPublicGetInstruments($params);
+            $data = $this->to_array($instruments);
             //
             //    array(
             //        {

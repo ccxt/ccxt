@@ -109,7 +109,7 @@ class htx extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => true,
                 'fetchSettlementHistory' => true,
-                'fetchStatus' => false, // none of `summary.json` endpoint work atm. revise in near future
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -200,131 +200,131 @@ class htx extends Exchange {
                 // old api definitions
                 'v2Public' => array(
                     'get' => array(
-                        'reference/currencies' => 1, // 币链参考信息
-                        'market-status' => 1, // 获取当前市场状态
+                        'reference/currencies' => array( 'cost' => 1 ), // 币链参考信息
+                        'market-status' => array( 'cost' => 1 ), // 获取当前市场状态
                     ),
                 ),
                 'v2Private' => array(
                     'get' => array(
-                        'account/ledger' => 1,
-                        'account/withdraw/quota' => 1,
-                        'account/withdraw/address' => 1, // 提币地址查询(限母用户可用)
-                        'account/deposit/address' => 1,
-                        'account/repayment' => 5, // 还币交易记录查询
-                        'reference/transact-fee-rate' => 1,
-                        'account/asset-valuation' => 0.2, // 获取账户资产估值
-                        'point/account' => 5, // 点卡余额查询
-                        'sub-user/user-list' => 1, // 获取子用户列表
-                        'sub-user/user-state' => 1, // 获取特定子用户的用户状态
-                        'sub-user/account-list' => 1, // 获取特定子用户的账户列表
-                        'sub-user/deposit-address' => 1, // 子用户充币地址查询
-                        'sub-user/query-deposit' => 1, // 子用户充币记录查询
-                        'user/api-key' => 1, // 母子用户API key信息查询
-                        'user/uid' => 1, // 母子用户获取用户UID
-                        'algo-orders/opening' => 1, // 查询未触发OPEN策略委托
-                        'algo-orders/history' => 1, // 查询策略委托历史
-                        'algo-orders/specific' => 1, // 查询特定策略委托
-                        'c2c/offers' => 1, // 查询借入借出订单
-                        'c2c/offer' => 1, // 查询特定借入借出订单及其交易记录
-                        'c2c/transactions' => 1, // 查询借入借出交易记录
-                        'c2c/repayment' => 1, // 查询还币交易记录
-                        'c2c/account' => 1, // 查询账户余额
-                        'etp/reference' => 1, // 基础参考信息
-                        'etp/transactions' => 5, // 获取杠杆ETP申赎记录
-                        'etp/transaction' => 5, // 获取特定杠杆ETP申赎记录
-                        'etp/rebalance' => 1, // 获取杠杆ETP调仓记录
-                        'etp/limit' => 1, // 获取ETP持仓限额
+                        'account/ledger' => array( 'cost' => 1 ),
+                        'account/withdraw/quota' => array( 'cost' => 1 ),
+                        'account/withdraw/address' => array( 'cost' => 1 ), // 提币地址查询(限母用户可用)
+                        'account/deposit/address' => array( 'cost' => 1 ),
+                        'account/repayment' => array( 'cost' => 5 ), // 还币交易记录查询
+                        'reference/transact-fee-rate' => array( 'cost' => 1 ),
+                        'account/asset-valuation' => array( 'cost' => 0.2 ), // 获取账户资产估值
+                        'point/account' => array( 'cost' => 5 ), // 点卡余额查询
+                        'sub-user/user-list' => array( 'cost' => 1 ), // 获取子用户列表
+                        'sub-user/user-state' => array( 'cost' => 1 ), // 获取特定子用户的用户状态
+                        'sub-user/account-list' => array( 'cost' => 1 ), // 获取特定子用户的账户列表
+                        'sub-user/deposit-address' => array( 'cost' => 1 ), // 子用户充币地址查询
+                        'sub-user/query-deposit' => array( 'cost' => 1 ), // 子用户充币记录查询
+                        'user/api-key' => array( 'cost' => 1 ), // 母子用户API key信息查询
+                        'user/uid' => array( 'cost' => 1 ), // 母子用户获取用户UID
+                        'algo-orders/opening' => array( 'cost' => 1 ), // 查询未触发OPEN策略委托
+                        'algo-orders/history' => array( 'cost' => 1 ), // 查询策略委托历史
+                        'algo-orders/specific' => array( 'cost' => 1 ), // 查询特定策略委托
+                        'c2c/offers' => array( 'cost' => 1 ), // 查询借入借出订单
+                        'c2c/offer' => array( 'cost' => 1 ), // 查询特定借入借出订单及其交易记录
+                        'c2c/transactions' => array( 'cost' => 1 ), // 查询借入借出交易记录
+                        'c2c/repayment' => array( 'cost' => 1 ), // 查询还币交易记录
+                        'c2c/account' => array( 'cost' => 1 ), // 查询账户余额
+                        'etp/reference' => array( 'cost' => 1 ), // 基础参考信息
+                        'etp/transactions' => array( 'cost' => 5 ), // 获取杠杆ETP申赎记录
+                        'etp/transaction' => array( 'cost' => 5 ), // 获取特定杠杆ETP申赎记录
+                        'etp/rebalance' => array( 'cost' => 1 ), // 获取杠杆ETP调仓记录
+                        'etp/limit' => array( 'cost' => 1 ), // 获取ETP持仓限额
                     ),
                     'post' => array(
-                        'account/transfer' => 1,
-                        'account/repayment' => 5, // 归还借币（全仓逐仓通用）
-                        'point/transfer' => 5, // 点卡划转
-                        'sub-user/management' => 1, // 冻结/解冻子用户
-                        'sub-user/creation' => 1, // 子用户创建
-                        'sub-user/tradable-market' => 1, // 设置子用户交易权限
-                        'sub-user/transferability' => 1, // 设置子用户资产转出权限
-                        'sub-user/api-key-generation' => 1, // 子用户API key创建
-                        'sub-user/api-key-modification' => 1, // 修改子用户API key
-                        'sub-user/api-key-deletion' => 1, // 删除子用户API key
-                        'sub-user/deduct-mode' => 1, // 设置子用户手续费抵扣模式
-                        'algo-orders' => 1, // 策略委托下单
-                        'algo-orders/cancel-all-after' => 1, // 自动撤销订单
-                        'algo-orders/cancellation' => 1, // 策略委托（触发前）撤单
-                        'c2c/offer' => 1, // 借入借出下单
-                        'c2c/cancellation' => 1, // 借入借出撤单
-                        'c2c/cancel-all' => 1, // 撤销所有借入借出订单
-                        'c2c/repayment' => 1, // 还币
-                        'c2c/transfer' => 1, // 资产划转
-                        'etp/creation' => 5, // 杠杆ETP换入
-                        'etp/redemption' => 5, // 杠杆ETP换出
-                        'etp/{transactId}/cancel' => 10, // 杠杆ETP单个撤单
-                        'etp/batch-cancel' => 50, // 杠杆ETP批量撤单
+                        'account/transfer' => array( 'cost' => 1 ),
+                        'account/repayment' => array( 'cost' => 5 ), // 归还借币（全仓逐仓通用）
+                        'point/transfer' => array( 'cost' => 5 ), // 点卡划转
+                        'sub-user/management' => array( 'cost' => 1 ), // 冻结/解冻子用户
+                        'sub-user/creation' => array( 'cost' => 1 ), // 子用户创建
+                        'sub-user/tradable-market' => array( 'cost' => 1 ), // 设置子用户交易权限
+                        'sub-user/transferability' => array( 'cost' => 1 ), // 设置子用户资产转出权限
+                        'sub-user/api-key-generation' => array( 'cost' => 1 ), // 子用户API key创建
+                        'sub-user/api-key-modification' => array( 'cost' => 1 ), // 修改子用户API key
+                        'sub-user/api-key-deletion' => array( 'cost' => 1 ), // 删除子用户API key
+                        'sub-user/deduct-mode' => array( 'cost' => 1 ), // 设置子用户手续费抵扣模式
+                        'algo-orders' => array( 'cost' => 1 ), // 策略委托下单
+                        'algo-orders/cancel-all-after' => array( 'cost' => 1 ), // 自动撤销订单
+                        'algo-orders/cancellation' => array( 'cost' => 1 ), // 策略委托（触发前）撤单
+                        'c2c/offer' => array( 'cost' => 1 ), // 借入借出下单
+                        'c2c/cancellation' => array( 'cost' => 1 ), // 借入借出撤单
+                        'c2c/cancel-all' => array( 'cost' => 1 ), // 撤销所有借入借出订单
+                        'c2c/repayment' => array( 'cost' => 1 ), // 还币
+                        'c2c/transfer' => array( 'cost' => 1 ), // 资产划转
+                        'etp/creation' => array( 'cost' => 5 ), // 杠杆ETP换入
+                        'etp/redemption' => array( 'cost' => 5 ), // 杠杆ETP换出
+                        'etp/{transactId}/cancel' => array( 'cost' => 10 ), // 杠杆ETP单个撤单
+                        'etp/batch-cancel' => array( 'cost' => 50 ), // 杠杆ETP批量撤单
                     ),
                 ),
                 'public' => array(
                     'get' => array(
-                        'common/symbols' => 1, // 查询系统支持的所有交易对
-                        'common/currencys' => 1, // 查询系统支持的所有币种
-                        'common/timestamp' => 1, // 查询系统当前时间
-                        'common/exchange' => 1, // order limits
-                        'settings/currencys' => 1, // ?language=en-US
+                        'common/symbols' => array( 'cost' => 1 ), // 查询系统支持的所有交易对
+                        'common/currencys' => array( 'cost' => 1 ), // 查询系统支持的所有币种
+                        'common/timestamp' => array( 'cost' => 1 ), // 查询系统当前时间
+                        'common/exchange' => array( 'cost' => 1 ), // order limits
+                        'settings/currencys' => array( 'cost' => 1 ), // ?language=en-US
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'account/accounts' => 0.2, // 查询当前用户的所有账户(即account-id)
-                        'account/accounts/{id}/balance' => 0.2, // 查询指定账户的余额
-                        'account/accounts/{sub-uid}' => 1,
-                        'account/history' => 4,
-                        'cross-margin/loan-info' => 1,
-                        'margin/loan-info' => 1, // 查询借币币息率及额度
-                        'fee/fee-rate/get' => 1,
-                        'order/openOrders' => 0.4,
-                        'order/orders' => 0.4,
-                        'order/orders/{id}' => 0.4, // 查询某个订单详情
-                        'order/orders/{id}/matchresults' => 0.4, // 查询某个订单的成交明细
-                        'order/orders/getClientOrder' => 0.4,
-                        'order/history' => 1, // 查询当前委托、历史委托
-                        'order/matchresults' => 1, // 查询当前成交、历史成交
+                        'account/accounts' => array( 'cost' => 0.2 ), // 查询当前用户的所有账户(即account-id)
+                        'account/accounts/{id}/balance' => array( 'cost' => 0.2 ), // 查询指定账户的余额
+                        'account/accounts/{sub-uid}' => array( 'cost' => 1 ),
+                        'account/history' => array( 'cost' => 4 ),
+                        'cross-margin/loan-info' => array( 'cost' => 1 ),
+                        'margin/loan-info' => array( 'cost' => 1 ), // 查询借币币息率及额度
+                        'fee/fee-rate/get' => array( 'cost' => 1 ),
+                        'order/openOrders' => array( 'cost' => 0.4 ),
+                        'order/orders' => array( 'cost' => 0.4 ),
+                        'order/orders/{id}' => array( 'cost' => 0.4 ), // 查询某个订单详情
+                        'order/orders/{id}/matchresults' => array( 'cost' => 0.4 ), // 查询某个订单的成交明细
+                        'order/orders/getClientOrder' => array( 'cost' => 0.4 ),
+                        'order/history' => array( 'cost' => 1 ), // 查询当前委托、历史委托
+                        'order/matchresults' => array( 'cost' => 1 ), // 查询当前成交、历史成交
                         // 'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址（Deprecated）
-                        'query/deposit-withdraw' => 1,
+                        'query/deposit-withdraw' => array( 'cost' => 1 ),
                         // 'margin/loan-info', // duplicate
-                        'margin/loan-orders' => 0.2, // 借贷订单
-                        'margin/accounts/balance' => 0.2, // 借贷账户详情
-                        'cross-margin/loan-orders' => 1, // 查询借币订单
-                        'cross-margin/accounts/balance' => 1, // 借币账户详情
-                        'points/actions' => 1,
-                        'points/orders' => 1,
-                        'subuser/aggregate-balance' => 10,
-                        'stable-coin/exchange_rate' => 1,
-                        'stable-coin/quote' => 1,
+                        'margin/loan-orders' => array( 'cost' => 0.2 ), // 借贷订单
+                        'margin/accounts/balance' => array( 'cost' => 0.2 ), // 借贷账户详情
+                        'cross-margin/loan-orders' => array( 'cost' => 1 ), // 查询借币订单
+                        'cross-margin/accounts/balance' => array( 'cost' => 1 ), // 借币账户详情
+                        'points/actions' => array( 'cost' => 1 ),
+                        'points/orders' => array( 'cost' => 1 ),
+                        'subuser/aggregate-balance' => array( 'cost' => 10 ),
+                        'stable-coin/exchange_rate' => array( 'cost' => 1 ),
+                        'stable-coin/quote' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'account/transfer' => 1, // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
-                        'futures/transfer' => 1,
-                        'order/batch-orders' => 0.4,
-                        'order/orders/place' => 0.2, // 创建并执行一个新订单 (一步下单， 推荐使用)
-                        'order/orders/submitCancelClientOrder' => 0.2,
-                        'order/orders/batchCancelOpenOrders' => 0.4,
+                        'account/transfer' => array( 'cost' => 1 ), // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
+                        'futures/transfer' => array( 'cost' => 1 ),
+                        'order/batch-orders' => array( 'cost' => 0.4 ),
+                        'order/orders/place' => array( 'cost' => 0.2 ), // 创建并执行一个新订单 (一步下单， 推荐使用)
+                        'order/orders/submitCancelClientOrder' => array( 'cost' => 0.2 ),
+                        'order/orders/batchCancelOpenOrders' => array( 'cost' => 0.4 ),
                         // 'order/orders', // 创建一个新的订单请求 （仅创建订单，不执行下单）
                         // 'order/orders/{id}/place', // 执行一个订单 （仅执行已创建的订单）
-                        'order/orders/{id}/submitcancel' => 0.2, // 申请撤销一个订单请求
-                        'order/orders/batchcancel' => 0.4, // 批量撤销订单
+                        'order/orders/{id}/submitcancel' => array( 'cost' => 0.2 ), // 申请撤销一个订单请求
+                        'order/orders/batchcancel' => array( 'cost' => 0.4 ), // 批量撤销订单
                         // 'dw/balance/transfer', // 资产划转
-                        'dw/withdraw/api/create' => 1, // 申请提现虚拟币
+                        'dw/withdraw/api/create' => array( 'cost' => 1 ), // 申请提现虚拟币
                         // 'dw/withdraw-virtual/create', // 申请提现虚拟币
                         // 'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现（Deprecated）
-                        'dw/withdraw-virtual/{id}/cancel' => 1, // 申请取消提现虚拟币
-                        'dw/transfer-in/margin' => 10, // 现货账户划入至借贷账户
-                        'dw/transfer-out/margin' => 10, // 借贷账户划出至现货账户
-                        'margin/orders' => 10, // 申请借贷
-                        'margin/orders/{id}/repay' => 10, // 归还借贷
-                        'cross-margin/transfer-in' => 1, // 资产划转
-                        'cross-margin/transfer-out' => 1, // 资产划转
-                        'cross-margin/orders' => 1, // 申请借币
-                        'cross-margin/orders/{id}/repay' => 1, // 归还借币
-                        'stable-coin/exchange' => 1,
-                        'subuser/transfer' => 10,
+                        'dw/withdraw-virtual/{id}/cancel' => array( 'cost' => 1 ), // 申请取消提现虚拟币
+                        'dw/transfer-in/margin' => array( 'cost' => 10 ), // 现货账户划入至借贷账户
+                        'dw/transfer-out/margin' => array( 'cost' => 10 ), // 借贷账户划出至现货账户
+                        'margin/orders' => array( 'cost' => 10 ), // 申请借贷
+                        'margin/orders/{id}/repay' => array( 'cost' => 10 ), // 归还借贷
+                        'cross-margin/transfer-in' => array( 'cost' => 1 ), // 资产划转
+                        'cross-margin/transfer-out' => array( 'cost' => 1 ), // 资产划转
+                        'cross-margin/orders' => array( 'cost' => 1 ), // 申请借币
+                        'cross-margin/orders/{id}/repay' => array( 'cost' => 1 ), // 归还借币
+                        'stable-coin/exchange' => array( 'cost' => 1 ),
+                        'subuser/transfer' => array( 'cost' => 10 ),
                     ),
                 ),
                 // ------------------------------------------------------------
@@ -337,30 +337,30 @@ class htx extends Exchange {
                     'public' => array(
                         'spot' => array(
                             'get' => array(
-                                'api/v2/summary.json' => 1,
+                                'api/v2/summary.json' => array( 'cost' => 1 ),
                             ),
                         ),
                         'future' => array(
                             'inverse' => array(
                                 'get' => array(
-                                    'api/v2/summary.json' => 1,
+                                    'api/v2/summary.json' => array( 'cost' => 1 ),
                                 ),
                             ),
                             'linear' => array(
                                 'get' => array(
-                                    'api/v2/summary.json' => 1,
+                                    'api/v2/summary.json' => array( 'cost' => 1 ),
                                 ),
                             ),
                         ),
                         'swap' => array(
                             'inverse' => array(
                                 'get' => array(
-                                    'api/v2/summary.json' => 1,
+                                    'api/v2/summary.json' => array( 'cost' => 1 ),
                                 ),
                             ),
                             'linear' => array(
                                 'get' => array(
-                                    'api/v2/summary.json' => 1,
+                                    'api/v2/summary.json' => array( 'cost' => 1 ),
                                 ),
                             ),
                         ),
@@ -369,414 +369,414 @@ class htx extends Exchange {
                 'spot' => array(
                     'public' => array(
                         'get' => array(
-                            'v2/market-status' => 1,
-                            'v1/common/symbols' => 1,
-                            'v1/common/currencys' => 1,
-                            'v2/settings/common/currencies' => 1,
-                            'v2/reference/currencies' => 1,
-                            'v1/common/timestamp' => 1,
-                            'v1/common/exchange' => 1, // order limits
-                            'v1/settings/common/chains' => 1,
-                            'v1/settings/common/currencys' => 1,
-                            'v1/settings/common/symbols' => 1,
-                            'v2/settings/common/symbols' => 1,
-                            'v1/settings/common/market-symbols' => 1,
+                            'v2/market-status' => array( 'cost' => 1 ),
+                            'v1/common/symbols' => array( 'cost' => 1 ),
+                            'v1/common/currencys' => array( 'cost' => 1 ),
+                            'v2/settings/common/currencies' => array( 'cost' => 1 ),
+                            'v2/reference/currencies' => array( 'cost' => 1 ),
+                            'v1/common/timestamp' => array( 'cost' => 1 ),
+                            'v1/common/exchange' => array( 'cost' => 1 ), // order limits
+                            'v1/settings/common/chains' => array( 'cost' => 1 ),
+                            'v1/settings/common/currencys' => array( 'cost' => 1 ),
+                            'v1/settings/common/symbols' => array( 'cost' => 1 ),
+                            'v2/settings/common/symbols' => array( 'cost' => 1 ),
+                            'v1/settings/common/market-symbols' => array( 'cost' => 1 ),
                             // Market Data
-                            'market/history/candles' => 1,
-                            'market/history/kline' => 1,
-                            'market/detail/merged' => 1,
-                            'market/tickers' => 1,
-                            'market/detail' => 1,
-                            'market/depth' => 1,
-                            'market/trade' => 1,
-                            'market/history/trade' => 1,
-                            'market/etp' => 1, // Get real-time equity of leveraged ETP
+                            'market/history/candles' => array( 'cost' => 1 ),
+                            'market/history/kline' => array( 'cost' => 1 ),
+                            'market/detail/merged' => array( 'cost' => 1 ),
+                            'market/tickers' => array( 'cost' => 1 ),
+                            'market/detail' => array( 'cost' => 1 ),
+                            'market/depth' => array( 'cost' => 1 ),
+                            'market/trade' => array( 'cost' => 1 ),
+                            'market/history/trade' => array( 'cost' => 1 ),
+                            'market/etp' => array( 'cost' => 1 ), // Get real-time equity of leveraged ETP
                             // ETP
-                            'v2/etp/reference' => 1,
-                            'v2/etp/rebalance' => 1,
+                            'v2/etp/reference' => array( 'cost' => 1 ),
+                            'v2/etp/rebalance' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'get' => array(
                             // Account
-                            'v1/account/accounts' => 0.2,
-                            'v1/account/accounts/{account-id}/balance' => 0.2,
-                            'v2/account/valuation' => 1,
-                            'v2/account/asset-valuation' => 0.2,
-                            'v1/account/history' => 4,
-                            'v2/account/ledger' => 1,
-                            'v2/point/account' => 5,
+                            'v1/account/accounts' => array( 'cost' => 0.2 ),
+                            'v1/account/accounts/{account-id}/balance' => array( 'cost' => 0.2 ),
+                            'v2/account/valuation' => array( 'cost' => 1 ),
+                            'v2/account/asset-valuation' => array( 'cost' => 0.2 ),
+                            'v1/account/history' => array( 'cost' => 4 ),
+                            'v2/account/ledger' => array( 'cost' => 1 ),
+                            'v2/point/account' => array( 'cost' => 5 ),
                             // Wallet (Deposit and Withdraw)
-                            'v2/account/deposit/address' => 1,
-                            'v2/account/withdraw/quota' => 1,
-                            'v2/account/withdraw/address' => 1,
-                            'v2/reference/currencies' => 1,
-                            'v1/query/deposit-withdraw' => 1,
-                            'v1/query/withdraw/client-order-id' => 1,
+                            'v2/account/deposit/address' => array( 'cost' => 1 ),
+                            'v2/account/withdraw/quota' => array( 'cost' => 1 ),
+                            'v2/account/withdraw/address' => array( 'cost' => 1 ),
+                            'v2/reference/currencies' => array( 'cost' => 1 ),
+                            'v1/query/deposit-withdraw' => array( 'cost' => 1 ),
+                            'v1/query/withdraw/client-order-id' => array( 'cost' => 1 ),
                             // Sub user management
-                            'v2/user/api-key' => 1,
-                            'v2/user/uid' => 1,
-                            'v2/sub-user/user-list' => 1,
-                            'v2/sub-user/user-state' => 1,
-                            'v2/sub-user/account-list' => 1,
-                            'v2/sub-user/deposit-address' => 1,
-                            'v2/sub-user/query-deposit' => 1,
-                            'v1/subuser/aggregate-balance' => 10,
-                            'v1/account/accounts/{sub-uid}' => 1,
+                            'v2/user/api-key' => array( 'cost' => 1 ),
+                            'v2/user/uid' => array( 'cost' => 1 ),
+                            'v2/sub-user/user-list' => array( 'cost' => 1 ),
+                            'v2/sub-user/user-state' => array( 'cost' => 1 ),
+                            'v2/sub-user/account-list' => array( 'cost' => 1 ),
+                            'v2/sub-user/deposit-address' => array( 'cost' => 1 ),
+                            'v2/sub-user/query-deposit' => array( 'cost' => 1 ),
+                            'v1/subuser/aggregate-balance' => array( 'cost' => 10 ),
+                            'v1/account/accounts/{sub-uid}' => array( 'cost' => 1 ),
                             // Trading
-                            'v1/order/openOrders' => 0.4,
-                            'v1/order/orders/{order-id}' => 0.4,
-                            'v1/order/orders/getClientOrder' => 0.4,
-                            'v1/order/orders/{order-id}/matchresult' => 0.4,
-                            'v1/order/orders/{order-id}/matchresults' => 0.4,
-                            'v1/order/orders' => 0.4,
-                            'v1/order/history' => 1,
-                            'v1/order/matchresults' => 1,
-                            'v2/reference/transact-fee-rate' => 1,
+                            'v1/order/openOrders' => array( 'cost' => 0.4 ),
+                            'v1/order/orders/{order-id}' => array( 'cost' => 0.4 ),
+                            'v1/order/orders/getClientOrder' => array( 'cost' => 0.4 ),
+                            'v1/order/orders/{order-id}/matchresult' => array( 'cost' => 0.4 ),
+                            'v1/order/orders/{order-id}/matchresults' => array( 'cost' => 0.4 ),
+                            'v1/order/orders' => array( 'cost' => 0.4 ),
+                            'v1/order/history' => array( 'cost' => 1 ),
+                            'v1/order/matchresults' => array( 'cost' => 1 ),
+                            'v2/reference/transact-fee-rate' => array( 'cost' => 1 ),
                             // Conditional Order
-                            'v2/algo-orders/opening' => 1,
-                            'v2/algo-orders/history' => 1,
-                            'v2/algo-orders/specific' => 1,
+                            'v2/algo-orders/opening' => array( 'cost' => 1 ),
+                            'v2/algo-orders/history' => array( 'cost' => 1 ),
+                            'v2/algo-orders/specific' => array( 'cost' => 1 ),
                             // Margin Loan (Cross/Isolated)
-                            'v1/margin/loan-info' => 1,
-                            'v1/margin/loan-orders' => 0.2,
-                            'v1/margin/accounts/balance' => 0.2,
-                            'v1/cross-margin/loan-info' => 1,
-                            'v1/cross-margin/loan-orders' => 1,
-                            'v1/cross-margin/accounts/balance' => 1,
-                            'v2/account/repayment' => 5,
+                            'v1/margin/loan-info' => array( 'cost' => 1 ),
+                            'v1/margin/loan-orders' => array( 'cost' => 0.2 ),
+                            'v1/margin/accounts/balance' => array( 'cost' => 0.2 ),
+                            'v1/cross-margin/loan-info' => array( 'cost' => 1 ),
+                            'v1/cross-margin/loan-orders' => array( 'cost' => 1 ),
+                            'v1/cross-margin/accounts/balance' => array( 'cost' => 1 ),
+                            'v2/account/repayment' => array( 'cost' => 5 ),
                             // Universal Transfer
-                            'v5/account/universal_transfer_records' => 4, // 5 requests per 2 seconds
+                            'v5/account/universal_transfer_records' => array( 'cost' => 4 ), // 5 requests per 2 seconds
                             // Stable Coin Exchange
-                            'v1/stable-coin/quote' => 1,
-                            'v1/stable_coin/exchange_rate' => 1,
+                            'v1/stable-coin/quote' => array( 'cost' => 1 ),
+                            'v1/stable_coin/exchange_rate' => array( 'cost' => 1 ),
                             // ETP
-                            'v2/etp/transactions' => 5,
-                            'v2/etp/transaction' => 5,
-                            'v2/etp/limit' => 1,
+                            'v2/etp/transactions' => array( 'cost' => 5 ),
+                            'v2/etp/transaction' => array( 'cost' => 5 ),
+                            'v2/etp/limit' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
                             // Account
-                            'v1/account/transfer' => 1,
-                            'v1/futures/transfer' => 1, // future transfers
-                            'v2/point/transfer' => 5,
-                            'v2/account/transfer' => 1, // swap transfers
+                            'v1/account/transfer' => array( 'cost' => 1 ),
+                            'v1/futures/transfer' => array( 'cost' => 1 ), // future transfers
+                            'v2/point/transfer' => array( 'cost' => 5 ),
+                            'v2/account/transfer' => array( 'cost' => 1 ), // swap transfers
                             // Wallet (Deposit and Withdraw)
-                            'v1/dw/withdraw/api/create' => 1,
-                            'v1/dw/withdraw-virtual/{withdraw-id}/cancel' => 1,
+                            'v1/dw/withdraw/api/create' => array( 'cost' => 1 ),
+                            'v1/dw/withdraw-virtual/{withdraw-id}/cancel' => array( 'cost' => 1 ),
                             // Sub user management
-                            'v2/sub-user/deduct-mode' => 1,
-                            'v2/sub-user/creation' => 1,
-                            'v2/sub-user/management' => 1,
-                            'v2/sub-user/tradable-market' => 1,
-                            'v2/sub-user/transferability' => 1,
-                            'v2/sub-user/api-key-generation' => 1,
-                            'v2/sub-user/api-key-modification' => 1,
-                            'v2/sub-user/api-key-deletion' => 1,
-                            'v1/subuser/transfer' => 10,
-                            'v1/trust/user/active/credit' => 10,
+                            'v2/sub-user/deduct-mode' => array( 'cost' => 1 ),
+                            'v2/sub-user/creation' => array( 'cost' => 1 ),
+                            'v2/sub-user/management' => array( 'cost' => 1 ),
+                            'v2/sub-user/tradable-market' => array( 'cost' => 1 ),
+                            'v2/sub-user/transferability' => array( 'cost' => 1 ),
+                            'v2/sub-user/api-key-generation' => array( 'cost' => 1 ),
+                            'v2/sub-user/api-key-modification' => array( 'cost' => 1 ),
+                            'v2/sub-user/api-key-deletion' => array( 'cost' => 1 ),
+                            'v1/subuser/transfer' => array( 'cost' => 10 ),
+                            'v1/trust/user/active/credit' => array( 'cost' => 10 ),
                             // Trading
-                            'v1/order/orders/place' => 0.2,
-                            'v1/order/batch-orders' => 0.4,
-                            'v1/order/auto/place' => 0.2,
-                            'v1/order/orders/{order-id}/submitcancel' => 0.2,
-                            'v1/order/orders/submitCancelClientOrder' => 0.2,
-                            'v1/order/orders/batchCancelOpenOrders' => 0.4,
-                            'v1/order/orders/batchcancel' => 0.4,
-                            'v2/algo-orders/cancel-all-after' => 1,
+                            'v1/order/orders/place' => array( 'cost' => 0.2 ),
+                            'v1/order/batch-orders' => array( 'cost' => 0.4 ),
+                            'v1/order/auto/place' => array( 'cost' => 0.2 ),
+                            'v1/order/orders/{order-id}/submitcancel' => array( 'cost' => 0.2 ),
+                            'v1/order/orders/submitCancelClientOrder' => array( 'cost' => 0.2 ),
+                            'v1/order/orders/batchCancelOpenOrders' => array( 'cost' => 0.4 ),
+                            'v1/order/orders/batchcancel' => array( 'cost' => 0.4 ),
+                            'v2/algo-orders/cancel-all-after' => array( 'cost' => 1 ),
                             // Conditional Order
-                            'v2/algo-orders' => 1,
-                            'v2/algo-orders/cancellation' => 1,
+                            'v2/algo-orders' => array( 'cost' => 1 ),
+                            'v2/algo-orders/cancellation' => array( 'cost' => 1 ),
                             // Margin Loan (Cross/Isolated)
-                            'v2/account/repayment' => 5,
-                            'v1/dw/transfer-in/margin' => 10,
-                            'v1/dw/transfer-out/margin' => 10,
-                            'v1/margin/orders' => 10,
-                            'v1/margin/orders/{order-id}/repay' => 10,
-                            'v1/cross-margin/transfer-in' => 1,
-                            'v1/cross-margin/transfer-out' => 1,
-                            'v1/cross-margin/orders' => 1,
-                            'v1/cross-margin/orders/{order-id}/repay' => 1,
+                            'v2/account/repayment' => array( 'cost' => 5 ),
+                            'v1/dw/transfer-in/margin' => array( 'cost' => 10 ),
+                            'v1/dw/transfer-out/margin' => array( 'cost' => 10 ),
+                            'v1/margin/orders' => array( 'cost' => 10 ),
+                            'v1/margin/orders/{order-id}/repay' => array( 'cost' => 10 ),
+                            'v1/cross-margin/transfer-in' => array( 'cost' => 1 ),
+                            'v1/cross-margin/transfer-out' => array( 'cost' => 1 ),
+                            'v1/cross-margin/orders' => array( 'cost' => 1 ),
+                            'v1/cross-margin/orders/{order-id}/repay' => array( 'cost' => 1 ),
                             // Stable Coin Exchange
-                            'v1/stable-coin/exchange' => 1,
+                            'v1/stable-coin/exchange' => array( 'cost' => 1 ),
                             // ETP
-                            'v2/etp/creation' => 5,
-                            'v2/etp/redemption' => 5,
-                            'v2/etp/{transactId}/cancel' => 10,
-                            'v2/etp/batch-cancel' => 50,
+                            'v2/etp/creation' => array( 'cost' => 5 ),
+                            'v2/etp/redemption' => array( 'cost' => 5 ),
+                            'v2/etp/{transactId}/cancel' => array( 'cost' => 10 ),
+                            'v2/etp/batch-cancel' => array( 'cost' => 50 ),
                         ),
                     ),
                 ),
                 'contract' => array(
                     'public' => array(
                         'get' => array(
-                            'api/v1/timestamp' => 1,
-                            'heartbeat/' => 1, // backslash is not a typo
+                            'api/v1/timestamp' => array( 'cost' => 1 ),
+                            'heartbeat/' => array( 'cost' => 1 ), // backslash is not a typo
                             // Future Market Data interface
-                            'api/v1/contract_contract_info' => 1,
-                            'api/v1/contract_index' => 1,
-                            'api/v1/contract_query_elements' => 1,
-                            'api/v1/contract_price_limit' => 1,
-                            'api/v1/contract_open_interest' => 1,
-                            'api/v1/contract_delivery_price' => 1,
-                            'market/depth' => 1,
-                            'market/bbo' => 1,
-                            'market/history/kline' => 1,
-                            'index/market/history/mark_price_kline' => 1,
-                            'market/detail/merged' => 1,
-                            'market/detail/batch_merged' => 1,
-                            'v2/market/detail/batch_merged' => 1,
-                            'market/trade' => 1,
-                            'market/history/trade' => 1,
-                            'api/v1/contract_risk_info' => 1,
-                            'api/v1/contract_insurance_fund' => 1,
-                            'api/v1/contract_adjustfactor' => 1,
-                            'api/v1/contract_his_open_interest' => 1,
-                            'api/v1/contract_ladder_margin' => 1,
-                            'api/v1/contract_api_state' => 1,
-                            'api/v1/contract_elite_account_ratio' => 1,
-                            'api/v1/contract_elite_position_ratio' => 1,
-                            'api/v1/contract_liquidation_orders' => 1,
-                            'api/v1/contract_settlement_records' => 1,
-                            'index/market/history/index' => 1,
-                            'index/market/history/basis' => 1,
-                            'api/v1/contract_estimated_settlement_price' => 1,
-                            'api/v3/contract_liquidation_orders' => 1,
+                            'api/v1/contract_contract_info' => array( 'cost' => 1 ),
+                            'api/v1/contract_index' => array( 'cost' => 1 ),
+                            'api/v1/contract_query_elements' => array( 'cost' => 1 ),
+                            'api/v1/contract_price_limit' => array( 'cost' => 1 ),
+                            'api/v1/contract_open_interest' => array( 'cost' => 1 ),
+                            'api/v1/contract_delivery_price' => array( 'cost' => 1 ),
+                            'market/depth' => array( 'cost' => 1 ),
+                            'market/bbo' => array( 'cost' => 1 ),
+                            'market/history/kline' => array( 'cost' => 1 ),
+                            'index/market/history/mark_price_kline' => array( 'cost' => 1 ),
+                            'market/detail/merged' => array( 'cost' => 1 ),
+                            'market/detail/batch_merged' => array( 'cost' => 1 ),
+                            'v2/market/detail/batch_merged' => array( 'cost' => 1 ),
+                            'market/trade' => array( 'cost' => 1 ),
+                            'market/history/trade' => array( 'cost' => 1 ),
+                            'api/v1/contract_risk_info' => array( 'cost' => 1 ),
+                            'api/v1/contract_insurance_fund' => array( 'cost' => 1 ),
+                            'api/v1/contract_adjustfactor' => array( 'cost' => 1 ),
+                            'api/v1/contract_his_open_interest' => array( 'cost' => 1 ),
+                            'api/v1/contract_ladder_margin' => array( 'cost' => 1 ),
+                            'api/v1/contract_api_state' => array( 'cost' => 1 ),
+                            'api/v1/contract_elite_account_ratio' => array( 'cost' => 1 ),
+                            'api/v1/contract_elite_position_ratio' => array( 'cost' => 1 ),
+                            'api/v1/contract_liquidation_orders' => array( 'cost' => 1 ),
+                            'api/v1/contract_settlement_records' => array( 'cost' => 1 ),
+                            'index/market/history/index' => array( 'cost' => 1 ),
+                            'index/market/history/basis' => array( 'cost' => 1 ),
+                            'api/v1/contract_estimated_settlement_price' => array( 'cost' => 1 ),
+                            'api/v3/contract_liquidation_orders' => array( 'cost' => 1 ),
                             // Swap Market Data interface
-                            'swap-api/v1/swap_contract_info' => 1,
-                            'swap-api/v1/swap_index' => 1,
-                            'swap-api/v1/swap_query_elements' => 1,
-                            'swap-api/v1/swap_price_limit' => 1,
-                            'swap-api/v1/swap_open_interest' => 1,
-                            'swap-ex/market/depth' => 1,
-                            'swap-ex/market/bbo' => 1,
-                            'swap-ex/market/history/kline' => 1,
-                            'index/market/history/swap_mark_price_kline' => 1,
-                            'swap-ex/market/detail/merged' => 1,
-                            'v2/swap-ex/market/detail/batch_merged' => 1,
-                            'index/market/history/swap_premium_index_kline' => 1,
-                            'swap-ex/market/detail/batch_merged' => 1,
-                            'swap-ex/market/trade' => 1,
-                            'swap-ex/market/history/trade' => 1,
-                            'swap-api/v1/swap_risk_info' => 1,
-                            'swap-api/v1/swap_insurance_fund' => 1,
-                            'swap-api/v1/swap_adjustfactor' => 1,
-                            'swap-api/v1/swap_his_open_interest' => 1,
-                            'swap-api/v1/swap_ladder_margin' => 1,
-                            'swap-api/v1/swap_api_state' => 1,
-                            'swap-api/v1/swap_elite_account_ratio' => 1,
-                            'swap-api/v1/swap_elite_position_ratio' => 1,
-                            'swap-api/v1/swap_estimated_settlement_price' => 1,
-                            'swap-api/v1/swap_liquidation_orders' => 1,
-                            'swap-api/v1/swap_settlement_records' => 1,
-                            'swap-api/v1/swap_funding_rate' => 1,
-                            'swap-api/v1/swap_batch_funding_rate' => 1,
-                            'swap-api/v1/swap_historical_funding_rate' => 1,
-                            'swap-api/v3/swap_liquidation_orders' => 1,
-                            'index/market/history/swap_estimated_rate_kline' => 1,
-                            'index/market/history/swap_basis' => 1,
+                            'swap-api/v1/swap_contract_info' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_index' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_query_elements' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_price_limit' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_open_interest' => array( 'cost' => 1 ),
+                            'swap-ex/market/depth' => array( 'cost' => 1 ),
+                            'swap-ex/market/bbo' => array( 'cost' => 1 ),
+                            'swap-ex/market/history/kline' => array( 'cost' => 1 ),
+                            'index/market/history/swap_mark_price_kline' => array( 'cost' => 1 ),
+                            'swap-ex/market/detail/merged' => array( 'cost' => 1 ),
+                            'v2/swap-ex/market/detail/batch_merged' => array( 'cost' => 1 ),
+                            'index/market/history/swap_premium_index_kline' => array( 'cost' => 1 ),
+                            'swap-ex/market/detail/batch_merged' => array( 'cost' => 1 ),
+                            'swap-ex/market/trade' => array( 'cost' => 1 ),
+                            'swap-ex/market/history/trade' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_risk_info' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_insurance_fund' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_adjustfactor' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_his_open_interest' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_ladder_margin' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_api_state' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_elite_account_ratio' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_elite_position_ratio' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_estimated_settlement_price' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_liquidation_orders' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_settlement_records' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_funding_rate' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_batch_funding_rate' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_historical_funding_rate' => array( 'cost' => 1 ),
+                            'swap-api/v3/swap_liquidation_orders' => array( 'cost' => 1 ),
+                            'index/market/history/swap_estimated_rate_kline' => array( 'cost' => 1 ),
+                            'index/market/history/swap_basis' => array( 'cost' => 1 ),
                             // Linear Swap Market Data interface
-                            'linear-swap-api/v1/swap_contract_info' => 1,
-                            'linear-swap-api/v1/swap_index' => 1,
-                            'linear-swap-api/v1/swap_query_elements' => 1,
-                            'linear-swap-api/v1/swap_price_limit' => 1,
-                            'linear-swap-ex/market/depth' => 1,
-                            'linear-swap-ex/market/bbo' => 1,
-                            'linear-swap-ex/market/history/kline' => 1,
-                            'index/market/history/linear_swap_mark_price_kline' => 1,
-                            'linear-swap-ex/market/detail/merged' => 1,
-                            'linear-swap-ex/market/detail/batch_merged' => 1,
-                            'v2/linear-swap-ex/market/detail/batch_merged' => 1,
-                            'linear-swap-ex/market/trade' => 1,
-                            'linear-swap-ex/market/history/trade' => 1,
-                            'swap-api/v1/linear-swap-api/v1/swap_insurance_fund' => 1,
-                            'linear-swap-api/v1/swap_adjustfactor' => 1,
-                            'linear-swap-api/v1/swap_cross_adjustfactor' => 1,
-                            'linear-swap-api/v1/swap_his_open_interest' => 1,
-                            'linear-swap-api/v1/swap_ladder_margin' => 1,
-                            'linear-swap-api/v1/swap_cross_ladder_margin' => 1,
-                            'linear-swap-api/v1/swap_api_state' => 1,
-                            'linear-swap-api/v1/swap_elite_account_ratio' => 1,
-                            'linear-swap-api/v1/swap_elite_position_ratio' => 1,
-                            'linear-swap-api/v1/swap_settlement_records' => 1,
-                            'linear-swap-api/v3/swap_liquidation_orders' => 1,
-                            'index/market/history/linear_swap_premium_index_kline' => 1,
-                            'index/market/history/linear_swap_estimated_rate_kline' => 1,
-                            'index/market/history/linear_swap_basis' => 1,
-                            'linear-swap-api/v1/swap_estimated_settlement_price' => 1,
-                            'v5/market/funding_rate' => 0.125, // 80 requests per second = 1000ms / ( 100 * 0.125)
-                            'v5/market/funding_rate_history' => 0.125,
-                            'v5/market/open_interest' => 0.125,
-                            'v5/market/liquidation_orders' => 0.125,
-                            'v5/market/settlement_history' => 0.125,
-                            'v5/market/elite_account_ratio' => 0.125,
-                            'v5/market/elite_position_ratio' => 0.125,
-                            'v5/market/estimated_settlement_price' => 0.125,
-                            'v5/market/price_limit' => 0.125,
+                            'linear-swap-api/v1/swap_contract_info' => array( 'cost' => 1 ),
+                            'linear-swap-api/v1/swap_index' => array( 'cost' => 1 ),
+                            'linear-swap-api/v1/swap_query_elements' => array( 'cost' => 1 ),
+                            'linear-swap-api/v1/swap_price_limit' => array( 'cost' => 1 ),
+                            'linear-swap-ex/market/depth' => array( 'cost' => 1 ),
+                            'linear-swap-ex/market/bbo' => array( 'cost' => 1 ),
+                            'linear-swap-ex/market/history/kline' => array( 'cost' => 1 ),
+                            'index/market/history/linear_swap_mark_price_kline' => array( 'cost' => 1 ),
+                            'linear-swap-ex/market/detail/merged' => array( 'cost' => 1 ),
+                            'linear-swap-ex/market/detail/batch_merged' => array( 'cost' => 1 ),
+                            'v2/linear-swap-ex/market/detail/batch_merged' => array( 'cost' => 1 ),
+                            'linear-swap-ex/market/trade' => array( 'cost' => 1 ),
+                            'linear-swap-ex/market/history/trade' => array( 'cost' => 1 ),
+                            'swap-api/v1/linear-swap-api/v1/swap_insurance_fund' => array( 'cost' => 1 ),
+                            'linear-swap-api/v1/swap_adjustfactor' => array( 'cost' => 1 ),
+                            'linear-swap-api/v1/swap_cross_adjustfactor' => array( 'cost' => 1 ),
+                            'linear-swap-api/v1/swap_his_open_interest' => array( 'cost' => 1 ),
+                            'linear-swap-api/v1/swap_ladder_margin' => array( 'cost' => 1 ),
+                            'linear-swap-api/v1/swap_cross_ladder_margin' => array( 'cost' => 1 ),
+                            'linear-swap-api/v1/swap_api_state' => array( 'cost' => 1 ),
+                            'linear-swap-api/v1/swap_elite_account_ratio' => array( 'cost' => 1 ),
+                            'linear-swap-api/v1/swap_elite_position_ratio' => array( 'cost' => 1 ),
+                            'linear-swap-api/v1/swap_settlement_records' => array( 'cost' => 1 ),
+                            'linear-swap-api/v3/swap_liquidation_orders' => array( 'cost' => 1 ),
+                            'index/market/history/linear_swap_premium_index_kline' => array( 'cost' => 1 ),
+                            'index/market/history/linear_swap_estimated_rate_kline' => array( 'cost' => 1 ),
+                            'index/market/history/linear_swap_basis' => array( 'cost' => 1 ),
+                            'linear-swap-api/v1/swap_estimated_settlement_price' => array( 'cost' => 1 ),
+                            'v5/market/funding_rate' => array( 'cost' => 0.125 ), // 80 requests per second = 1000ms / ( 100 * 0.125)
+                            'v5/market/funding_rate_history' => array( 'cost' => 0.125 ),
+                            'v5/market/open_interest' => array( 'cost' => 0.125 ),
+                            'v5/market/liquidation_orders' => array( 'cost' => 0.125 ),
+                            'v5/market/settlement_history' => array( 'cost' => 0.125 ),
+                            'v5/market/elite_account_ratio' => array( 'cost' => 0.125 ),
+                            'v5/market/elite_position_ratio' => array( 'cost' => 0.125 ),
+                            'v5/market/estimated_settlement_price' => array( 'cost' => 0.125 ),
+                            'v5/market/price_limit' => array( 'cost' => 0.125 ),
                         ),
                     ),
                     'private' => array(
                         'get' => array(
                             // Future Account Interface
-                            'api/v1/contract_sub_auth_list' => 1,
-                            'api/v1/contract_api_trading_status' => 1,
+                            'api/v1/contract_sub_auth_list' => array( 'cost' => 1 ),
+                            'api/v1/contract_api_trading_status' => array( 'cost' => 1 ),
                             // Swap Account Interface
-                            'swap-api/v1/swap_sub_auth_list' => 1,
-                            'swap-api/v1/swap_api_trading_status' => 1,
+                            'swap-api/v1/swap_sub_auth_list' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_api_trading_status' => array( 'cost' => 1 ),
                             // Linear Swap Interface
-                            'v5/account/asset_mode' => 0.20834, // 48 requests per second = 1000ms / ( 100 * 0.20834)
-                            'v5/account/balance' => 0.20834,
-                            'v5/account/bills' => 0.20834,
-                            'v5/account/fee_deduction_currency' => 0.20834,
-                            'v5/trade/position/opens' => 0.41679, // 24 requests per second = 1000ms / ( 100 * 0.41679)
-                            'v5/trade/order/opens' => 0.41679,
-                            'v5/trade/order/details' => 0.41679,
-                            'v5/trade/order/history' => 0.41679,
-                            'v5/trade/order' => 0.41679,
-                            'v5/position/lever' => 0.20834,
-                            'v5/position/mode' => 0.20834,
-                            'v5/position/risk/limit' => 0.20834,
-                            'v5/position/risk/limit_tier' => 0.20834,
-                            'v5/market/risk/limit' => 0.125,
-                            'v5/market/assets_deduction_currency' => 0.125,
-                            'v5/market/multi_assets_margin' => 0.125,
-                            'v5/algo/order/opens' => 0.41679,
-                            'v5/algo/order' => 0.41679,
-                            'v5/algo/order/history' => 0.41679,
+                            'v5/account/asset_mode' => array( 'cost' => 0.20834 ), // 48 requests per second = 1000ms / ( 100 * 0.20834)
+                            'v5/account/balance' => array( 'cost' => 0.20834 ),
+                            'v5/account/bills' => array( 'cost' => 0.20834 ),
+                            'v5/account/fee_deduction_currency' => array( 'cost' => 0.20834 ),
+                            'v5/trade/position/opens' => array( 'cost' => 0.41679 ), // 24 requests per second = 1000ms / ( 100 * 0.41679)
+                            'v5/trade/order/opens' => array( 'cost' => 0.41679 ),
+                            'v5/trade/order/details' => array( 'cost' => 0.41679 ),
+                            'v5/trade/order/history' => array( 'cost' => 0.41679 ),
+                            'v5/trade/order' => array( 'cost' => 0.41679 ),
+                            'v5/position/lever' => array( 'cost' => 0.20834 ),
+                            'v5/position/mode' => array( 'cost' => 0.20834 ),
+                            'v5/position/risk/limit' => array( 'cost' => 0.20834 ),
+                            'v5/position/risk/limit_tier' => array( 'cost' => 0.20834 ),
+                            'v5/market/risk/limit' => array( 'cost' => 0.125 ),
+                            'v5/market/assets_deduction_currency' => array( 'cost' => 0.125 ),
+                            'v5/market/multi_assets_margin' => array( 'cost' => 0.125 ),
+                            'v5/algo/order/opens' => array( 'cost' => 0.41679 ),
+                            'v5/algo/order' => array( 'cost' => 0.41679 ),
+                            'v5/algo/order/history' => array( 'cost' => 0.41679 ),
                         ),
                         'post' => array(
                             // Future Account Interface
-                            'api/v1/contract_balance_valuation' => 1,
-                            'api/v1/contract_account_info' => 1,
-                            'api/v1/contract_position_info' => 1,
-                            'api/v1/contract_sub_auth' => 1,
-                            'api/v1/contract_sub_account_list' => 1,
-                            'api/v1/contract_sub_account_info_list' => 1,
-                            'api/v1/contract_sub_account_info' => 1,
-                            'api/v1/contract_sub_position_info' => 1,
-                            'api/v1/contract_financial_record' => 1,
-                            'api/v1/contract_financial_record_exact' => 1,
-                            'api/v1/contract_user_settlement_records' => 1,
-                            'api/v1/contract_order_limit' => 1,
-                            'api/v1/contract_fee' => 1,
-                            'api/v1/contract_transfer_limit' => 1,
-                            'api/v1/contract_position_limit' => 1,
-                            'api/v1/contract_account_position_info' => 1,
-                            'api/v1/contract_master_sub_transfer' => 1,
-                            'api/v1/contract_master_sub_transfer_record' => 1,
-                            'api/v1/contract_available_level_rate' => 1,
-                            'api/v3/contract_financial_record' => 1,
-                            'api/v3/contract_financial_record_exact' => 1,
+                            'api/v1/contract_balance_valuation' => array( 'cost' => 1 ),
+                            'api/v1/contract_account_info' => array( 'cost' => 1 ),
+                            'api/v1/contract_position_info' => array( 'cost' => 1 ),
+                            'api/v1/contract_sub_auth' => array( 'cost' => 1 ),
+                            'api/v1/contract_sub_account_list' => array( 'cost' => 1 ),
+                            'api/v1/contract_sub_account_info_list' => array( 'cost' => 1 ),
+                            'api/v1/contract_sub_account_info' => array( 'cost' => 1 ),
+                            'api/v1/contract_sub_position_info' => array( 'cost' => 1 ),
+                            'api/v1/contract_financial_record' => array( 'cost' => 1 ),
+                            'api/v1/contract_financial_record_exact' => array( 'cost' => 1 ),
+                            'api/v1/contract_user_settlement_records' => array( 'cost' => 1 ),
+                            'api/v1/contract_order_limit' => array( 'cost' => 1 ),
+                            'api/v1/contract_fee' => array( 'cost' => 1 ),
+                            'api/v1/contract_transfer_limit' => array( 'cost' => 1 ),
+                            'api/v1/contract_position_limit' => array( 'cost' => 1 ),
+                            'api/v1/contract_account_position_info' => array( 'cost' => 1 ),
+                            'api/v1/contract_master_sub_transfer' => array( 'cost' => 1 ),
+                            'api/v1/contract_master_sub_transfer_record' => array( 'cost' => 1 ),
+                            'api/v1/contract_available_level_rate' => array( 'cost' => 1 ),
+                            'api/v3/contract_financial_record' => array( 'cost' => 1 ),
+                            'api/v3/contract_financial_record_exact' => array( 'cost' => 1 ),
                             // Future Trade Interface
-                            'api/v1/contract-cancel-after' => 1,
-                            'api/v1/contract_order' => 1,
-                            'api/v1/contract_batchorder' => 1,
-                            'api/v1/contract_cancel' => 1,
-                            'api/v1/contract_cancelall' => 1,
-                            'api/v1/contract_switch_lever_rate' => 30,
-                            'api/v1/lightning_close_position' => 1,
-                            'api/v1/contract_order_info' => 1,
-                            'api/v1/contract_order_detail' => 1,
-                            'api/v1/contract_openorders' => 1,
-                            'api/v1/contract_hisorders' => 1,
-                            'api/v1/contract_hisorders_exact' => 1,
-                            'api/v1/contract_matchresults' => 1,
-                            'api/v1/contract_matchresults_exact' => 1,
-                            'api/v3/contract_hisorders' => 1,
-                            'api/v3/contract_hisorders_exact' => 1,
-                            'api/v3/contract_matchresults' => 1,
-                            'api/v3/contract_matchresults_exact' => 1,
+                            'api/v1/contract-cancel-after' => array( 'cost' => 1 ),
+                            'api/v1/contract_order' => array( 'cost' => 1 ),
+                            'api/v1/contract_batchorder' => array( 'cost' => 1 ),
+                            'api/v1/contract_cancel' => array( 'cost' => 1 ),
+                            'api/v1/contract_cancelall' => array( 'cost' => 1 ),
+                            'api/v1/contract_switch_lever_rate' => array( 'cost' => 30 ),
+                            'api/v1/lightning_close_position' => array( 'cost' => 1 ),
+                            'api/v1/contract_order_info' => array( 'cost' => 1 ),
+                            'api/v1/contract_order_detail' => array( 'cost' => 1 ),
+                            'api/v1/contract_openorders' => array( 'cost' => 1 ),
+                            'api/v1/contract_hisorders' => array( 'cost' => 1 ),
+                            'api/v1/contract_hisorders_exact' => array( 'cost' => 1 ),
+                            'api/v1/contract_matchresults' => array( 'cost' => 1 ),
+                            'api/v1/contract_matchresults_exact' => array( 'cost' => 1 ),
+                            'api/v3/contract_hisorders' => array( 'cost' => 1 ),
+                            'api/v3/contract_hisorders_exact' => array( 'cost' => 1 ),
+                            'api/v3/contract_matchresults' => array( 'cost' => 1 ),
+                            'api/v3/contract_matchresults_exact' => array( 'cost' => 1 ),
                             // Contract Strategy Order Interface
-                            'api/v1/contract_trigger_order' => 1,
-                            'api/v1/contract_trigger_cancel' => 1,
-                            'api/v1/contract_trigger_cancelall' => 1,
-                            'api/v1/contract_trigger_openorders' => 1,
-                            'api/v1/contract_trigger_hisorders' => 1,
-                            'api/v1/contract_tpsl_order' => 1,
-                            'api/v1/contract_tpsl_cancel' => 1,
-                            'api/v1/contract_tpsl_cancelall' => 1,
-                            'api/v1/contract_tpsl_openorders' => 1,
-                            'api/v1/contract_tpsl_hisorders' => 1,
-                            'api/v1/contract_relation_tpsl_order' => 1,
-                            'api/v1/contract_track_order' => 1,
-                            'api/v1/contract_track_cancel' => 1,
-                            'api/v1/contract_track_cancelall' => 1,
-                            'api/v1/contract_track_openorders' => 1,
-                            'api/v1/contract_track_hisorders' => 1,
+                            'api/v1/contract_trigger_order' => array( 'cost' => 1 ),
+                            'api/v1/contract_trigger_cancel' => array( 'cost' => 1 ),
+                            'api/v1/contract_trigger_cancelall' => array( 'cost' => 1 ),
+                            'api/v1/contract_trigger_openorders' => array( 'cost' => 1 ),
+                            'api/v1/contract_trigger_hisorders' => array( 'cost' => 1 ),
+                            'api/v1/contract_tpsl_order' => array( 'cost' => 1 ),
+                            'api/v1/contract_tpsl_cancel' => array( 'cost' => 1 ),
+                            'api/v1/contract_tpsl_cancelall' => array( 'cost' => 1 ),
+                            'api/v1/contract_tpsl_openorders' => array( 'cost' => 1 ),
+                            'api/v1/contract_tpsl_hisorders' => array( 'cost' => 1 ),
+                            'api/v1/contract_relation_tpsl_order' => array( 'cost' => 1 ),
+                            'api/v1/contract_track_order' => array( 'cost' => 1 ),
+                            'api/v1/contract_track_cancel' => array( 'cost' => 1 ),
+                            'api/v1/contract_track_cancelall' => array( 'cost' => 1 ),
+                            'api/v1/contract_track_openorders' => array( 'cost' => 1 ),
+                            'api/v1/contract_track_hisorders' => array( 'cost' => 1 ),
                             // Swap Account Interface
-                            'swap-api/v1/swap_balance_valuation' => 1,
-                            'swap-api/v1/swap_account_info' => 1,
-                            'swap-api/v1/swap_position_info' => 1,
-                            'swap-api/v1/swap_account_position_info' => 1,
-                            'swap-api/v1/swap_sub_auth' => 1,
-                            'swap-api/v1/swap_sub_account_list' => 1,
-                            'swap-api/v1/swap_sub_account_info_list' => 1,
-                            'swap-api/v1/swap_sub_account_info' => 1,
-                            'swap-api/v1/swap_sub_position_info' => 1,
-                            'swap-api/v1/swap_financial_record' => 1,
-                            'swap-api/v1/swap_financial_record_exact' => 1,
-                            'swap-api/v1/swap_user_settlement_records' => 1,
-                            'swap-api/v1/swap_available_level_rate' => 1,
-                            'swap-api/v1/swap_order_limit' => 1,
-                            'swap-api/v1/swap_fee' => 1,
-                            'swap-api/v1/swap_transfer_limit' => 1,
-                            'swap-api/v1/swap_position_limit' => 1,
-                            'swap-api/v1/swap_master_sub_transfer' => 1,
-                            'swap-api/v1/swap_master_sub_transfer_record' => 1,
-                            'swap-api/v3/swap_financial_record' => 1,
-                            'swap-api/v3/swap_financial_record_exact' => 1,
+                            'swap-api/v1/swap_balance_valuation' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_account_info' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_position_info' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_account_position_info' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_sub_auth' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_sub_account_list' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_sub_account_info_list' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_sub_account_info' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_sub_position_info' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_financial_record' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_financial_record_exact' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_user_settlement_records' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_available_level_rate' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_order_limit' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_fee' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_transfer_limit' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_position_limit' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_master_sub_transfer' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_master_sub_transfer_record' => array( 'cost' => 1 ),
+                            'swap-api/v3/swap_financial_record' => array( 'cost' => 1 ),
+                            'swap-api/v3/swap_financial_record_exact' => array( 'cost' => 1 ),
                             // Swap Trade Interface
-                            'swap-api/v1/swap-cancel-after' => 1,
-                            'swap-api/v1/swap_order' => 1,
-                            'swap-api/v1/swap_batchorder' => 1,
-                            'swap-api/v1/swap_cancel' => 1,
-                            'swap-api/v1/swap_cancelall' => 1,
-                            'swap-api/v1/swap_lightning_close_position' => 1,
-                            'swap-api/v1/swap_switch_lever_rate' => 30,
-                            'swap-api/v1/swap_order_info' => 1,
-                            'swap-api/v1/swap_order_detail' => 1,
-                            'swap-api/v1/swap_openorders' => 1,
-                            'swap-api/v1/swap_hisorders' => 1,
-                            'swap-api/v1/swap_hisorders_exact' => 1,
-                            'swap-api/v1/swap_matchresults' => 1,
-                            'swap-api/v1/swap_matchresults_exact' => 1,
-                            'swap-api/v3/swap_matchresults' => 1,
-                            'swap-api/v3/swap_matchresults_exact' => 1,
-                            'swap-api/v3/swap_hisorders' => 1,
-                            'swap-api/v3/swap_hisorders_exact' => 1,
+                            'swap-api/v1/swap-cancel-after' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_order' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_batchorder' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_cancel' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_cancelall' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_lightning_close_position' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_switch_lever_rate' => array( 'cost' => 30 ),
+                            'swap-api/v1/swap_order_info' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_order_detail' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_openorders' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_hisorders' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_hisorders_exact' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_matchresults' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_matchresults_exact' => array( 'cost' => 1 ),
+                            'swap-api/v3/swap_matchresults' => array( 'cost' => 1 ),
+                            'swap-api/v3/swap_matchresults_exact' => array( 'cost' => 1 ),
+                            'swap-api/v3/swap_hisorders' => array( 'cost' => 1 ),
+                            'swap-api/v3/swap_hisorders_exact' => array( 'cost' => 1 ),
                             // Swap Strategy Order Interface
-                            'swap-api/v1/swap_trigger_order' => 1,
-                            'swap-api/v1/swap_trigger_cancel' => 1,
-                            'swap-api/v1/swap_trigger_cancelall' => 1,
-                            'swap-api/v1/swap_trigger_openorders' => 1,
-                            'swap-api/v1/swap_trigger_hisorders' => 1,
-                            'swap-api/v1/swap_tpsl_order' => 1,
-                            'swap-api/v1/swap_tpsl_cancel' => 1,
-                            'swap-api/v1/swap_tpsl_cancelall' => 1,
-                            'swap-api/v1/swap_tpsl_openorders' => 1,
-                            'swap-api/v1/swap_tpsl_hisorders' => 1,
-                            'swap-api/v1/swap_relation_tpsl_order' => 1,
-                            'swap-api/v1/swap_track_order' => 1,
-                            'swap-api/v1/swap_track_cancel' => 1,
-                            'swap-api/v1/swap_track_cancelall' => 1,
-                            'swap-api/v1/swap_track_openorders' => 1,
-                            'swap-api/v1/swap_track_hisorders' => 1,
+                            'swap-api/v1/swap_trigger_order' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_trigger_cancel' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_trigger_cancelall' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_trigger_openorders' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_trigger_hisorders' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_tpsl_order' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_tpsl_cancel' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_tpsl_cancelall' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_tpsl_openorders' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_tpsl_hisorders' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_relation_tpsl_order' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_track_order' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_track_cancel' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_track_cancelall' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_track_openorders' => array( 'cost' => 1 ),
+                            'swap-api/v1/swap_track_hisorders' => array( 'cost' => 1 ),
                             // Linear Swap Interface
-                            'v5/account/asset_mode' => 100, // 0.1 requests per second = 1000ms / (100 * 100)
-                            'v5/trade/order' => 0.41679,
-                            'v5/trade/batch_orders' => 0.41679,
-                            'v5/trade/cancel_order' => 0.41679,
-                            'v5/trade/cancel_batch_orders' => 0.41679,
-                            'v5/trade/cancel_all_orders' => 0.41679,
-                            'v5/trade/cancel-after' => 0.41679,
-                            'v5/trade/position' => 0.41679,
-                            'v5/trade/position_all' => 0.41679,
-                            'v5/position/lever' => 0.20834,
-                            'v5/position/mode' => 0.20834,
-                            'v5/position/margin' => 0.20834,
-                            'v5/account/fee_deduction_currency' => 0.20834,
-                            'v5/algo/order' => 0.41679,
-                            'v5/algo/cancel_orders' => 0.41679,
+                            'v5/account/asset_mode' => array( 'cost' => 100 ), // 0.1 requests per second = 1000ms / (100 * 100)
+                            'v5/trade/order' => array( 'cost' => 0.41679 ),
+                            'v5/trade/batch_orders' => array( 'cost' => 0.41679 ),
+                            'v5/trade/cancel_order' => array( 'cost' => 0.41679 ),
+                            'v5/trade/cancel_batch_orders' => array( 'cost' => 0.41679 ),
+                            'v5/trade/cancel_all_orders' => array( 'cost' => 0.41679 ),
+                            'v5/trade/cancel-after' => array( 'cost' => 0.41679 ),
+                            'v5/trade/position' => array( 'cost' => 0.41679 ),
+                            'v5/trade/position_all' => array( 'cost' => 0.41679 ),
+                            'v5/position/lever' => array( 'cost' => 0.20834 ),
+                            'v5/position/mode' => array( 'cost' => 0.20834 ),
+                            'v5/position/margin' => array( 'cost' => 0.20834 ),
+                            'v5/account/fee_deduction_currency' => array( 'cost' => 0.20834 ),
+                            'v5/algo/order' => array( 'cost' => 0.41679 ),
+                            'v5/algo/cancel_orders' => array( 'cost' => 0.41679 ),
                         ),
                     ),
                 ),
@@ -1299,7 +1299,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -1510,7 +1510,7 @@ class htx extends Exchange {
             } else {
                 $status = ($statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
             }
-            $updated = $this->safe_string($response, 'ts');
+            $updated = $this->safe_integer($response, 'ts');
         } else {
             $statusData = $this->safe_value($response, 'status', array());
             $statusRaw = $this->safe_string($statusData, 'indicator');
@@ -2838,7 +2838,8 @@ class htx extends Exchange {
             'order-id' => $id,
         );
         $response = $this->spotPrivateGetV1OrderOrdersOrderIdMatchresults($this->extend($request, $params));
-        return $this->parse_trades($response['data'], null, $since, $limit);
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_trades($data, null, $since, $limit);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -6643,7 +6644,7 @@ class htx extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $allAddresses = $this->parse_deposit_addresses($data, array( $currency['code'] ), false); // cjg => to do remove this weird object or array ambiguity
+        $allAddresses = $this->parse_deposit_addresses($data, array( $currency['code'] ), false);
         $addresses = array();
         for ($i = 0; $i < count($allAddresses); $i++) {
             $address = $allAddresses[$i];
@@ -6716,7 +6717,8 @@ class htx extends Exchange {
         //         )
         //     }
         //
-        return $this->parse_transactions($response['data'], $currency, $since, $limit);
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -6777,7 +6779,8 @@ class htx extends Exchange {
         //         )
         //     }
         //
-        return $this->parse_transactions($response['data'], $currency, $since, $limit);
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -9178,7 +9181,7 @@ class htx extends Exchange {
         ), $market);
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()): array {
         /**
          * create a loan to borrow margin
          *
@@ -9216,7 +9219,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function borrow_cross_margin(string $code, float $amount, $params = array()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * create a loan to borrow margin
          *
@@ -9251,7 +9254,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()): array {
         /**
          * repay borrowed margin and interest
          *
@@ -9294,7 +9297,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function repay_cross_margin(string $code, float $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * repay borrowed margin and interest
          *
@@ -9335,7 +9338,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function parse_margin_loan(mixed $info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
         //
         // borrowMargin cross
         //
@@ -9369,7 +9372,7 @@ class htx extends Exchange {
         );
     }
 
-    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * Fetches historical settlement records
          *

@@ -162,116 +162,324 @@ func (this *NdaxCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"Activate2FA":                     1,
-					"Authenticate2FA":                 1,
-					"AuthenticateUser":                1,
-					"EnableXP2FA":                     1,
-					"GetL2Snapshot":                   1,
-					"GetLevel1":                       1,
-					"GetValidate2FARequiredEndpoints": 1,
-					"LogOut":                          1,
-					"GetTickerHistory":                1,
-					"GetProduct":                      1,
-					"GetProducts":                     1,
-					"GetInstrument":                   1,
-					"GetInstruments":                  1,
-					"GetEarliestTickTime":             1,
-					"Ping":                            1,
-					"assets":                          1,
-					"orderbook":                       1,
-					"ticker":                          1,
-					"summary":                         1,
-					"trades":                          1,
-					"GetLastTrades":                   1,
-					"ConfirmWithdraw":                 1,
-					"SubscribeLevel1":                 1,
-					"SubscribeLevel2":                 1,
-					"SubscribeTicker":                 1,
-					"SubscribeTrades":                 1,
-					"SubscribeBlockTrades":            1,
-					"UnsubscribeBlockTrades":          1,
-					"UnsubscribeLevel1":               1,
-					"UnsubscribeLevel2":               1,
-					"UnsubscribeTicker":               1,
-					"UnsubscribeTrades":               1,
-					"Authenticate":                    1,
+					"Activate2FA": map[string]any{
+						"cost": 1,
+					},
+					"Authenticate2FA": map[string]any{
+						"cost": 1,
+					},
+					"AuthenticateUser": map[string]any{
+						"cost": 1,
+					},
+					"EnableXP2FA": map[string]any{
+						"cost": 1,
+					},
+					"GetL2Snapshot": map[string]any{
+						"cost": 1,
+					},
+					"GetLevel1": map[string]any{
+						"cost": 1,
+					},
+					"GetValidate2FARequiredEndpoints": map[string]any{
+						"cost": 1,
+					},
+					"LogOut": map[string]any{
+						"cost": 1,
+					},
+					"GetTickerHistory": map[string]any{
+						"cost": 1,
+					},
+					"GetProduct": map[string]any{
+						"cost": 1,
+					},
+					"GetProducts": map[string]any{
+						"cost": 1,
+					},
+					"GetInstrument": map[string]any{
+						"cost": 1,
+					},
+					"GetInstruments": map[string]any{
+						"cost": 1,
+					},
+					"GetEarliestTickTime": map[string]any{
+						"cost": 1,
+					},
+					"Ping": map[string]any{
+						"cost": 1,
+					},
+					"assets": map[string]any{
+						"cost": 1,
+					},
+					"orderbook": map[string]any{
+						"cost": 1,
+					},
+					"ticker": map[string]any{
+						"cost": 1,
+					},
+					"summary": map[string]any{
+						"cost": 1,
+					},
+					"trades": map[string]any{
+						"cost": 1,
+					},
+					"GetLastTrades": map[string]any{
+						"cost": 1,
+					},
+					"ConfirmWithdraw": map[string]any{
+						"cost": 1,
+					},
+					"SubscribeLevel1": map[string]any{
+						"cost": 1,
+					},
+					"SubscribeLevel2": map[string]any{
+						"cost": 1,
+					},
+					"SubscribeTicker": map[string]any{
+						"cost": 1,
+					},
+					"SubscribeTrades": map[string]any{
+						"cost": 1,
+					},
+					"SubscribeBlockTrades": map[string]any{
+						"cost": 1,
+					},
+					"UnsubscribeBlockTrades": map[string]any{
+						"cost": 1,
+					},
+					"UnsubscribeLevel1": map[string]any{
+						"cost": 1,
+					},
+					"UnsubscribeLevel2": map[string]any{
+						"cost": 1,
+					},
+					"UnsubscribeTicker": map[string]any{
+						"cost": 1,
+					},
+					"UnsubscribeTrades": map[string]any{
+						"cost": 1,
+					},
+					"Authenticate": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"GetUserAccountInfos":                1,
-					"GetUserAccounts":                    1,
-					"GetUserAffiliateCount":              1,
-					"GetUserAffiliateTag":                1,
-					"GetUserConfig":                      1,
-					"GetAllUnredactedUserConfigsForUser": 1,
-					"GetUnredactedUserConfigByKey":       1,
-					"GetUserDevices":                     1,
-					"GetUserReportTickets":               1,
-					"GetUserReportWriterResultRecords":   1,
-					"GetAccountInfo":                     1,
-					"GetAccountPositions":                1,
-					"GetAllAccountConfigs":               1,
-					"GetTreasuryProductsForAccount":      1,
-					"GetAccountTrades":                   1,
-					"GetAccountTransactions":             1,
-					"GetOpenTradeReports":                1,
-					"GetAllOpenTradeReports":             1,
-					"GetTradesHistory":                   1,
-					"GetOpenOrders":                      1,
-					"GetOpenQuotes":                      1,
-					"GetOrderFee":                        1,
-					"GetOrderHistory":                    1,
-					"GetOrdersHistory":                   1,
-					"GetOrderStatus":                     1,
-					"GetOmsFeeTiers":                     1,
-					"GetAccountDepositTransactions":      1,
-					"GetAccountWithdrawTransactions":     1,
-					"GetAllDepositRequestInfoTemplates":  1,
-					"GetDepositInfo":                     1,
-					"GetDepositRequestInfoTemplate":      1,
-					"GetDeposits":                        1,
-					"GetDepositTicket":                   1,
-					"GetDepositTickets":                  1,
-					"GetOMSWithdrawFees":                 1,
-					"GetWithdrawFee":                     1,
-					"GetWithdraws":                       1,
-					"GetWithdrawTemplate":                1,
-					"GetWithdrawTemplateTypes":           1,
-					"GetWithdrawTicket":                  1,
-					"GetWithdrawTicketAttachment":        1,
-					"GetWithdrawTickets":                 1,
-					"GetDepositTicketAttachment":         1,
+					"GetUserAccountInfos": map[string]any{
+						"cost": 1,
+					},
+					"GetUserAccounts": map[string]any{
+						"cost": 1,
+					},
+					"GetUserAffiliateCount": map[string]any{
+						"cost": 1,
+					},
+					"GetUserAffiliateTag": map[string]any{
+						"cost": 1,
+					},
+					"GetUserConfig": map[string]any{
+						"cost": 1,
+					},
+					"GetAllUnredactedUserConfigsForUser": map[string]any{
+						"cost": 1,
+					},
+					"GetUnredactedUserConfigByKey": map[string]any{
+						"cost": 1,
+					},
+					"GetUserDevices": map[string]any{
+						"cost": 1,
+					},
+					"GetUserReportTickets": map[string]any{
+						"cost": 1,
+					},
+					"GetUserReportWriterResultRecords": map[string]any{
+						"cost": 1,
+					},
+					"GetAccountInfo": map[string]any{
+						"cost": 1,
+					},
+					"GetAccountPositions": map[string]any{
+						"cost": 1,
+					},
+					"GetAllAccountConfigs": map[string]any{
+						"cost": 1,
+					},
+					"GetTreasuryProductsForAccount": map[string]any{
+						"cost": 1,
+					},
+					"GetAccountTrades": map[string]any{
+						"cost": 1,
+					},
+					"GetAccountTransactions": map[string]any{
+						"cost": 1,
+					},
+					"GetOpenTradeReports": map[string]any{
+						"cost": 1,
+					},
+					"GetAllOpenTradeReports": map[string]any{
+						"cost": 1,
+					},
+					"GetTradesHistory": map[string]any{
+						"cost": 1,
+					},
+					"GetOpenOrders": map[string]any{
+						"cost": 1,
+					},
+					"GetOpenQuotes": map[string]any{
+						"cost": 1,
+					},
+					"GetOrderFee": map[string]any{
+						"cost": 1,
+					},
+					"GetOrderHistory": map[string]any{
+						"cost": 1,
+					},
+					"GetOrdersHistory": map[string]any{
+						"cost": 1,
+					},
+					"GetOrderStatus": map[string]any{
+						"cost": 1,
+					},
+					"GetOmsFeeTiers": map[string]any{
+						"cost": 1,
+					},
+					"GetAccountDepositTransactions": map[string]any{
+						"cost": 1,
+					},
+					"GetAccountWithdrawTransactions": map[string]any{
+						"cost": 1,
+					},
+					"GetAllDepositRequestInfoTemplates": map[string]any{
+						"cost": 1,
+					},
+					"GetDepositInfo": map[string]any{
+						"cost": 1,
+					},
+					"GetDepositRequestInfoTemplate": map[string]any{
+						"cost": 1,
+					},
+					"GetDeposits": map[string]any{
+						"cost": 1,
+					},
+					"GetDepositTicket": map[string]any{
+						"cost": 1,
+					},
+					"GetDepositTickets": map[string]any{
+						"cost": 1,
+					},
+					"GetOMSWithdrawFees": map[string]any{
+						"cost": 1,
+					},
+					"GetWithdrawFee": map[string]any{
+						"cost": 1,
+					},
+					"GetWithdraws": map[string]any{
+						"cost": 1,
+					},
+					"GetWithdrawTemplate": map[string]any{
+						"cost": 1,
+					},
+					"GetWithdrawTemplateTypes": map[string]any{
+						"cost": 1,
+					},
+					"GetWithdrawTicket": map[string]any{
+						"cost": 1,
+					},
+					"GetWithdrawTicketAttachment": map[string]any{
+						"cost": 1,
+					},
+					"GetWithdrawTickets": map[string]any{
+						"cost": 1,
+					},
+					"GetDepositTicketAttachment": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"AddUserAffiliateTag":               1,
-					"AddDepositTicketAttachment":        1,
-					"AddWithdrawTicketAttachment":       1,
-					"CancelUserReport":                  1,
-					"RegisterNewDevice":                 1,
-					"SubscribeAccountEvents":            1,
-					"UpdateUserAffiliateTag":            1,
-					"GenerateTradeActivityReport":       1,
-					"GenerateTransactionActivityReport": 1,
-					"GenerateTreasuryActivityReport":    1,
-					"ScheduleTradeActivityReport":       1,
-					"ScheduleTransactionActivityReport": 1,
-					"ScheduleTreasuryActivityReport":    1,
-					"CancelAllOrders":                   1,
-					"CancelOrder":                       1,
-					"CancelQuote":                       1,
-					"CancelReplaceOrder":                1,
-					"CreateQuote":                       1,
-					"ModifyOrder":                       1,
-					"SendOrder":                         1,
-					"SubmitBlockTrade":                  1,
-					"UpdateQuote":                       1,
-					"CancelWithdraw":                    1,
-					"CreateDepositTicket":               1,
-					"CreateWithdrawTicket":              1,
-					"SubmitDepositTicketComment":        1,
-					"SubmitWithdrawTicketComment":       1,
-					"GetOrderHistoryByOrderId":          1,
+					"AddUserAffiliateTag": map[string]any{
+						"cost": 1,
+					},
+					"AddDepositTicketAttachment": map[string]any{
+						"cost": 1,
+					},
+					"AddWithdrawTicketAttachment": map[string]any{
+						"cost": 1,
+					},
+					"CancelUserReport": map[string]any{
+						"cost": 1,
+					},
+					"RegisterNewDevice": map[string]any{
+						"cost": 1,
+					},
+					"SubscribeAccountEvents": map[string]any{
+						"cost": 1,
+					},
+					"UpdateUserAffiliateTag": map[string]any{
+						"cost": 1,
+					},
+					"GenerateTradeActivityReport": map[string]any{
+						"cost": 1,
+					},
+					"GenerateTransactionActivityReport": map[string]any{
+						"cost": 1,
+					},
+					"GenerateTreasuryActivityReport": map[string]any{
+						"cost": 1,
+					},
+					"ScheduleTradeActivityReport": map[string]any{
+						"cost": 1,
+					},
+					"ScheduleTransactionActivityReport": map[string]any{
+						"cost": 1,
+					},
+					"ScheduleTreasuryActivityReport": map[string]any{
+						"cost": 1,
+					},
+					"CancelAllOrders": map[string]any{
+						"cost": 1,
+					},
+					"CancelOrder": map[string]any{
+						"cost": 1,
+					},
+					"CancelQuote": map[string]any{
+						"cost": 1,
+					},
+					"CancelReplaceOrder": map[string]any{
+						"cost": 1,
+					},
+					"CreateQuote": map[string]any{
+						"cost": 1,
+					},
+					"ModifyOrder": map[string]any{
+						"cost": 1,
+					},
+					"SendOrder": map[string]any{
+						"cost": 1,
+					},
+					"SubmitBlockTrade": map[string]any{
+						"cost": 1,
+					},
+					"UpdateQuote": map[string]any{
+						"cost": 1,
+					},
+					"CancelWithdraw": map[string]any{
+						"cost": 1,
+					},
+					"CreateDepositTicket": map[string]any{
+						"cost": 1,
+					},
+					"CreateWithdrawTicket": map[string]any{
+						"cost": 1,
+					},
+					"SubmitDepositTicketComment": map[string]any{
+						"cost": 1,
+					},
+					"SubmitWithdrawTicketComment": map[string]any{
+						"cost": 1,
+					},
+					"GetOrderHistoryByOrderId": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -1123,7 +1331,6 @@ func (this *NdaxCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 
 		response := (<-this.PublicGetGetTickerHistory(this.Extend(request, params)))
 		PanicOnError(response)
-
 		//
 		//     [
 		//         [1607299260000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299200000],
@@ -1131,7 +1338,12 @@ func (this *NdaxCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		//         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
 		//     ]
 		//
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		var candles any = []any{}
+		if IsTrue(IsArray(response)) {
+			candles = response
+		}
+
+		ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
 		return nil
 
 	}()
@@ -1331,8 +1543,8 @@ func (this *NdaxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes119612 := (<-this.LoadMarkets())
-			PanicOnError(retRes119612)
+			retRes120012 := (<-this.LoadMarkets())
+			PanicOnError(retRes120012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1448,12 +1660,12 @@ func (this *NdaxCore) FetchBalance(optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes128612 := (<-this.LoadMarkets())
-			PanicOnError(retRes128612)
+			retRes129012 := (<-this.LoadMarkets())
+			PanicOnError(retRes129012)
 		}
 
-		retRes12888 := (<-this.LoadAccounts())
-		PanicOnError(retRes12888)
+		retRes12928 := (<-this.LoadAccounts())
+		PanicOnError(retRes12928)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId")
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		if IsTrue(IsEqual(accountId, nil)) {
@@ -1609,12 +1821,12 @@ func (this *NdaxCore) FetchLedger(optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes142412 := (<-this.LoadMarkets())
-			PanicOnError(retRes142412)
+			retRes142812 := (<-this.LoadMarkets())
+			PanicOnError(retRes142812)
 		}
 
-		retRes14268 := (<-this.LoadAccounts())
-		PanicOnError(retRes14268)
+		retRes14308 := (<-this.LoadAccounts())
+		PanicOnError(retRes14308)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -1795,12 +2007,12 @@ func (this *NdaxCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes159112 := (<-this.LoadMarkets())
-			PanicOnError(retRes159112)
+			retRes159512 := (<-this.LoadMarkets())
+			PanicOnError(retRes159512)
 		}
 
-		retRes15938 := (<-this.LoadAccounts())
-		PanicOnError(retRes15938)
+		retRes15978 := (<-this.LoadAccounts())
+		PanicOnError(retRes15978)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		var clientOrderId any = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
@@ -1886,12 +2098,12 @@ func (this *NdaxCore) EditOrder(id any, symbol any, typeVar any, side any, optio
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes167012 := (<-this.LoadMarkets())
-			PanicOnError(retRes167012)
+			retRes167412 := (<-this.LoadMarkets())
+			PanicOnError(retRes167412)
 		}
 
-		retRes16728 := (<-this.LoadAccounts())
-		PanicOnError(retRes16728)
+		retRes16768 := (<-this.LoadAccounts())
+		PanicOnError(retRes16768)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		var clientOrderId any = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
@@ -1966,12 +2178,12 @@ func (this *NdaxCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes173612 := (<-this.LoadMarkets())
-			PanicOnError(retRes173612)
+			retRes174012 := (<-this.LoadMarkets())
+			PanicOnError(retRes174012)
 		}
 
-		retRes17388 := (<-this.LoadAccounts())
-		PanicOnError(retRes17388)
+		retRes17428 := (<-this.LoadAccounts())
+		PanicOnError(retRes17428)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -2065,12 +2277,12 @@ func (this *NdaxCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes182512 := (<-this.LoadMarkets())
-			PanicOnError(retRes182512)
+			retRes182912 := (<-this.LoadMarkets())
+			PanicOnError(retRes182912)
 		}
 
-		retRes18278 := (<-this.LoadAccounts())
-		PanicOnError(retRes18278)
+		retRes18318 := (<-this.LoadAccounts())
+		PanicOnError(retRes18318)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -2126,12 +2338,12 @@ func (this *NdaxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes186912 := (<-this.LoadMarkets())
-			PanicOnError(retRes186912)
+			retRes187312 := (<-this.LoadMarkets())
+			PanicOnError(retRes187312)
 		}
 
-		retRes18718 := (<-this.LoadAccounts())
-		PanicOnError(retRes18718)
+		retRes18758 := (<-this.LoadAccounts())
+		PanicOnError(retRes18758)
 		// const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
 		// const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
 		// params = this.omit (params, [ 'accountId', 'AccountId' ]);
@@ -2191,12 +2403,12 @@ func (this *NdaxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes191212 := (<-this.LoadMarkets())
-			PanicOnError(retRes191212)
+			retRes191612 := (<-this.LoadMarkets())
+			PanicOnError(retRes191612)
 		}
 
-		retRes19148 := (<-this.LoadAccounts())
-		PanicOnError(retRes19148)
+		retRes19188 := (<-this.LoadAccounts())
+		PanicOnError(retRes19188)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -2296,12 +2508,12 @@ func (this *NdaxCore) FetchOrders(optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes199412 := (<-this.LoadMarkets())
-			PanicOnError(retRes199412)
+			retRes199812 := (<-this.LoadMarkets())
+			PanicOnError(retRes199812)
 		}
 
-		retRes19968 := (<-this.LoadAccounts())
-		PanicOnError(retRes19968)
+		retRes20008 := (<-this.LoadAccounts())
+		PanicOnError(retRes20008)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -2403,12 +2615,12 @@ func (this *NdaxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes209112 := (<-this.LoadMarkets())
-			PanicOnError(retRes209112)
+			retRes209512 := (<-this.LoadMarkets())
+			PanicOnError(retRes209512)
 		}
 
-		retRes20938 := (<-this.LoadAccounts())
-		PanicOnError(retRes20938)
+		retRes20978 := (<-this.LoadAccounts())
+		PanicOnError(retRes20978)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -2508,12 +2720,12 @@ func (this *NdaxCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes217312 := (<-this.LoadMarkets())
-			PanicOnError(retRes217312)
+			retRes217712 := (<-this.LoadMarkets())
+			PanicOnError(retRes217712)
 		}
 
-		retRes21758 := (<-this.LoadAccounts())
-		PanicOnError(retRes21758)
+		retRes21798 := (<-this.LoadAccounts())
+		PanicOnError(retRes21798)
 		// const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
 		// const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
 		// params = this.omit (params, [ 'accountId', 'AccountId' ]);
@@ -2606,12 +2818,12 @@ func (this *NdaxCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan 
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes225512 := (<-this.LoadMarkets())
-			PanicOnError(retRes225512)
+			retRes225912 := (<-this.LoadMarkets())
+			PanicOnError(retRes225912)
 		}
 
-		retRes22578 := (<-this.LoadAccounts())
-		PanicOnError(retRes22578)
+		retRes22618 := (<-this.LoadAccounts())
+		PanicOnError(retRes22618)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -2701,9 +2913,9 @@ func (this *NdaxCore) CreateDepositAddress(code any, optionalArgs ...any) <-chan
 			"GenerateNewKey": true,
 		}
 
-		retRes233215 := (<-this.FetchDepositAddress(code, this.Extend(request, params)))
-		PanicOnError(retRes233215)
-		ch <- retRes233215
+		retRes233615 := (<-this.FetchDepositAddress(code, this.Extend(request, params)))
+		PanicOnError(retRes233615)
+		ch <- retRes233615
 		return nil
 
 	}()
@@ -2737,12 +2949,12 @@ func (this *NdaxCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes234912 := (<-this.LoadMarkets())
-			PanicOnError(retRes234912)
+			retRes235312 := (<-this.LoadMarkets())
+			PanicOnError(retRes235312)
 		}
 
-		retRes23518 := (<-this.LoadAccounts())
-		PanicOnError(retRes23518)
+		retRes23558 := (<-this.LoadAccounts())
+		PanicOnError(retRes23558)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -2825,12 +3037,12 @@ func (this *NdaxCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes241212 := (<-this.LoadMarkets())
-			PanicOnError(retRes241212)
+			retRes241612 := (<-this.LoadMarkets())
+			PanicOnError(retRes241612)
 		}
 
-		retRes24148 := (<-this.LoadAccounts())
-		PanicOnError(retRes24148)
+		retRes24188 := (<-this.LoadAccounts())
+		PanicOnError(retRes24188)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -3070,12 +3282,12 @@ func (this *NdaxCore) Withdraw(code any, amount any, address any, optionalArgs .
 		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes262912 := (<-this.LoadMarkets())
-			PanicOnError(retRes262912)
+			retRes263312 := (<-this.LoadMarkets())
+			PanicOnError(retRes263312)
 		}
 
-		retRes26318 := (<-this.LoadAccounts())
-		PanicOnError(retRes26318)
+		retRes26358 := (<-this.LoadAccounts())
+		PanicOnError(retRes26358)
 		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 		params = this.Omit(params, []any{"accountId", "AccountId"})

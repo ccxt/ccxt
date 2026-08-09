@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bydfi import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, Int, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Any, Balances, Currency, Int, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, FundingRateHistory, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -140,7 +140,7 @@ class bydfi(Exchange, ImplicitAPI):
                 'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenInterests': False,
-                'fetchOpenOrder': False,
+                'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
                 'fetchOption': False,
                 'fetchOptionChain': False,
@@ -207,57 +207,57 @@ class bydfi(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'v1/public/api_limits': 1,  # https://developers.bydfi.com/en/public#inquiry-into-api-rate-limit-configuration
-                        'v1/fapi/market/exchange_info': 1,
-                        'v1/fapi/market/depth': 1,
-                        'v1/fapi/market/trades': 1,
-                        'v1/fapi/market/klines': 1,
-                        'v1/fapi/market/ticker/24hr': 1,
-                        'v1/fapi/market/ticker/price': 1,  # https://developers.bydfi.com/en/futures/market#latest-price
-                        'v1/fapi/market/mark_price': 1,  # https://developers.bydfi.com/en/futures/market#mark-price
-                        'v1/fapi/market/funding_rate': 1,
-                        'v1/fapi/market/funding_rate_history': 1,
-                        'v1/fapi/market/risk_limit': 1,  # https://developers.bydfi.com/en/futures/market#risk-limit
+                        'v1/public/api_limits': {'cost': 1},  # https://developers.bydfi.com/en/public#inquiry-into-api-rate-limit-configuration
+                        'v1/fapi/market/exchange_info': {'cost': 1},
+                        'v1/fapi/market/depth': {'cost': 1},
+                        'v1/fapi/market/trades': {'cost': 1},
+                        'v1/fapi/market/klines': {'cost': 1},
+                        'v1/fapi/market/ticker/24hr': {'cost': 1},
+                        'v1/fapi/market/ticker/price': {'cost': 1},  # https://developers.bydfi.com/en/futures/market#latest-price
+                        'v1/fapi/market/mark_price': {'cost': 1},  # https://developers.bydfi.com/en/futures/market#mark-price
+                        'v1/fapi/market/funding_rate': {'cost': 1},
+                        'v1/fapi/market/funding_rate_history': {'cost': 1},
+                        'v1/fapi/market/risk_limit': {'cost': 1},  # https://developers.bydfi.com/en/futures/market#risk-limit
                     },
                 },
                 'private': {
                     'get': {
-                        'v1/account/assets': 1,
-                        'v1/account/transfer_records': 1,
-                        'v1/spot/deposit_records': 1,
-                        'v1/spot/withdraw_records': 1,
-                        'v1/fapi/trade/open_order': 1,
-                        'v1/fapi/trade/plan_order': 1,
-                        'v1/fapi/trade/leverage': 1,
-                        'v1/fapi/trade/history_order': 1,
-                        'v1/fapi/trade/history_trade': 1,
-                        'v1/fapi/trade/position_history': 1,
-                        'v1/fapi/trade/positions': 1,
-                        'v1/fapi/account/balance': 1,
-                        'v1/fapi/user_data/assets_margin': 1,
-                        'v1/fapi/user_data/position_side/dual': 1,
-                        'v1/agent/teams': 1,  # https://developers.bydfi.com/en/agent/#query-kol-subordinate-team-information
-                        'v1/agent/agent_links': 1,  # https://developers.bydfi.com/en/agent/#query-kol-invitation-code-list
-                        'v1/agent/regular_overview': 1,  # https://developers.bydfi.com/en/agent/#query-kol-direct-client-data-list
-                        'v1/agent/agent_sub_overview': 1,  # https://developers.bydfi.com/en/agent/#query-kol-subordinate-affiliate-list
-                        'v1/agent/partener_user_deposit': 1,  # https://developers.bydfi.com/en/agent/#check-the-recharge-amount-of-kol-within-one-year
-                        'v1/agent/partener_users_data': 1,  # https://developers.bydfi.com/en/agent/#query-kol-subordinate-deposit-and-trading-data
-                        'v1/agent/affiliate_uids': 1,  # https://developers.bydfi.com/en/agent/#get-affiliate-uids
-                        'v1/agent/affiliate_commission': 1,  # https://developers.bydfi.com/en/agent/#get-affiliate-commission
-                        'v1/agent/internal_withdrawal_status': 1,  # https://developers.bydfi.com/en/agent/#get-internal-withdrawal-status
+                        'v1/account/assets': {'cost': 1},
+                        'v1/account/transfer_records': {'cost': 1},
+                        'v1/spot/deposit_records': {'cost': 1},
+                        'v1/spot/withdraw_records': {'cost': 1},
+                        'v1/fapi/trade/open_order': {'cost': 1},
+                        'v1/fapi/trade/plan_order': {'cost': 1},
+                        'v1/fapi/trade/leverage': {'cost': 1},
+                        'v1/fapi/trade/history_order': {'cost': 1},
+                        'v1/fapi/trade/history_trade': {'cost': 1},
+                        'v1/fapi/trade/position_history': {'cost': 1},
+                        'v1/fapi/trade/positions': {'cost': 1},
+                        'v1/fapi/account/balance': {'cost': 1},
+                        'v1/fapi/user_data/assets_margin': {'cost': 1},
+                        'v1/fapi/user_data/position_side/dual': {'cost': 1},
+                        'v1/agent/teams': {'cost': 1},  # https://developers.bydfi.com/en/agent/#query-kol-subordinate-team-information
+                        'v1/agent/agent_links': {'cost': 1},  # https://developers.bydfi.com/en/agent/#query-kol-invitation-code-list
+                        'v1/agent/regular_overview': {'cost': 1},  # https://developers.bydfi.com/en/agent/#query-kol-direct-client-data-list
+                        'v1/agent/agent_sub_overview': {'cost': 1},  # https://developers.bydfi.com/en/agent/#query-kol-subordinate-affiliate-list
+                        'v1/agent/partener_user_deposit': {'cost': 1},  # https://developers.bydfi.com/en/agent/#check-the-recharge-amount-of-kol-within-one-year
+                        'v1/agent/partener_users_data': {'cost': 1},  # https://developers.bydfi.com/en/agent/#query-kol-subordinate-deposit-and-trading-data
+                        'v1/agent/affiliate_uids': {'cost': 1},  # https://developers.bydfi.com/en/agent/#get-affiliate-uids
+                        'v1/agent/affiliate_commission': {'cost': 1},  # https://developers.bydfi.com/en/agent/#get-affiliate-commission
+                        'v1/agent/internal_withdrawal_status': {'cost': 1},  # https://developers.bydfi.com/en/agent/#get-internal-withdrawal-status
                     },
                     'post': {
-                        'v1/account/transfer': 1,
-                        'v1/fapi/trade/place_order': 1,
-                        'v1/fapi/trade/batch_place_order': 1,
-                        'v1/fapi/trade/edit_order': 1,
-                        'v1/fapi/trade/batch_edit_order': 1,
-                        'v1/fapi/trade/cancel_all_order': 1,
-                        'v1/fapi/trade/leverage': 1,
-                        'v1/fapi/trade/batch_leverage_margin': 1,  # https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
-                        'v1/fapi/user_data/margin_type': 1,
-                        'v1/fapi/user_data/position_side/dual': 1,
-                        'v1/agent/internal_withdrawal': 1,  # https://developers.bydfi.com/en/agent/#internal-withdrawal
+                        'v1/account/transfer': {'cost': 1},
+                        'v1/fapi/trade/place_order': {'cost': 1},
+                        'v1/fapi/trade/batch_place_order': {'cost': 1},
+                        'v1/fapi/trade/edit_order': {'cost': 1},
+                        'v1/fapi/trade/batch_edit_order': {'cost': 1},
+                        'v1/fapi/trade/cancel_all_order': {'cost': 1},
+                        'v1/fapi/trade/leverage': {'cost': 1},
+                        'v1/fapi/trade/batch_leverage_margin': {'cost': 1},  # https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
+                        'v1/fapi/user_data/margin_type': {'cost': 1},
+                        'v1/fapi/user_data/position_side/dual': {'cost': 1},
+                        'v1/agent/internal_withdrawal': {'cost': 1},  # https://developers.bydfi.com/en/agent/#internal-withdrawal
                     },
                 },
             },
@@ -1542,7 +1542,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch an open order by the id
 
@@ -2116,7 +2116,7 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         contractType = 'FUTURE'
-        contractType, params = self.handle_option_and_params(params, 'fetchPositionsHistory', 'contractType', contractType)
+        contractType, params = self.handle_option_and_params(params, 'fetchPositionHistory', 'contractType', contractType)
         request = {
             'symbol': market['id'],
             'contractType': contractType,
@@ -2273,9 +2273,9 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         contractType = 'FUTURE'
-        contractType, params = self.handle_option_and_params(params, 'fetchMarginMode', 'contractType', contractType)
+        contractType, params = self.handle_option_and_params(params, 'setMarginMode', 'contractType', contractType)
         wallet = 'W001'
-        wallet, params = self.handle_option_and_params(params, 'fetchMarginMode', 'wallet', wallet)
+        wallet, params = self.handle_option_and_params(params, 'setMarginMode', 'wallet', wallet)
         request = {
             'contractType': contractType,
             'symbol': market['id'],
@@ -2324,7 +2324,7 @@ class bydfi(Exchange, ImplicitAPI):
         #
         return await self.privatePostV1FapiUserDataPositionSideDual(self.extend(request, params))
 
-    async def fetch_position_mode(self, symbol: Str = None, params={}):
+    async def fetch_position_mode(self, symbol: Str = None, params={}) -> PositionModeInfo:
         """
         fetchs the position mode, hedged or one way, hedged for bydfi is set identically for all markets with same settle currency
 
@@ -2657,7 +2657,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         return await self.fetch_transactions_helper('withdrawal', code, since, limit, params)
 
-    async def fetch_transactions_helper(self, type: Any, code: Any, since: Any, limit: Any, params: Any):
+    async def fetch_transactions_helper(self, type: Any, code: Any, since: Any, limit: Any, params: Any) -> List[Transaction]:
         methodName = 'fetchDeposits' if (type == 'deposit') else 'fetchWithdrawals'
         if code is None:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a code argument')

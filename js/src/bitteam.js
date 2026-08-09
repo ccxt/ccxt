@@ -177,41 +177,41 @@ export default class bitteam extends Exchange {
             'api': {
                 'history': {
                     'get': {
-                        'api/tw/history/{pairName}/{resolution}': 1,
+                        'api/tw/history/{pairName}/{resolution}': { 'cost': 1 },
                     },
                 },
                 'public': {
                     'get': {
-                        'trade/api/asset': 1, // not unified
-                        'trade/api/currencies': 1,
-                        'trade/api/orderbooks/{symbol}': 1, // not unified
-                        'trade/api/orders': 1, // not unified
-                        'trade/api/pair/{name}': 1,
-                        'trade/api/pairs': 1, // not unified
-                        'trade/api/pairs/precisions': 1, // not unified
-                        'trade/api/rates': 1, // not unified
-                        'trade/api/trade/{id}': 1, // not unified
-                        'trade/api/trades': 1, // not unified
-                        'trade/api/ccxt/pairs': 1,
-                        'trade/api/cmc/assets': 1,
-                        'trade/api/cmc/orderbook/{pair}': 1,
-                        'trade/api/cmc/summary': 1,
-                        'trade/api/cmc/ticker': 1, // not unified
-                        'trade/api/cmc/trades/{pair}': 1,
+                        'trade/api/asset': { 'cost': 1 }, // not unified
+                        'trade/api/currencies': { 'cost': 1 },
+                        'trade/api/orderbooks/{symbol}': { 'cost': 1 }, // not unified
+                        'trade/api/orders': { 'cost': 1 }, // not unified
+                        'trade/api/pair/{name}': { 'cost': 1 },
+                        'trade/api/pairs': { 'cost': 1 }, // not unified
+                        'trade/api/pairs/precisions': { 'cost': 1 }, // not unified
+                        'trade/api/rates': { 'cost': 1 }, // not unified
+                        'trade/api/trade/{id}': { 'cost': 1 }, // not unified
+                        'trade/api/trades': { 'cost': 1 }, // not unified
+                        'trade/api/ccxt/pairs': { 'cost': 1 },
+                        'trade/api/cmc/assets': { 'cost': 1 },
+                        'trade/api/cmc/orderbook/{pair}': { 'cost': 1 },
+                        'trade/api/cmc/summary': { 'cost': 1 },
+                        'trade/api/cmc/ticker': { 'cost': 1 }, // not unified
+                        'trade/api/cmc/trades/{pair}': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'trade/api/ccxt/balance': 1,
-                        'trade/api/ccxt/order/{id}': 1,
-                        'trade/api/ccxt/ordersOfUser': 1,
-                        'trade/api/ccxt/tradesOfUser': 1,
-                        'trade/api/transactionsOfUser': 1,
+                        'trade/api/ccxt/balance': { 'cost': 1 },
+                        'trade/api/ccxt/order/{id}': { 'cost': 1 },
+                        'trade/api/ccxt/ordersOfUser': { 'cost': 1 },
+                        'trade/api/ccxt/tradesOfUser': { 'cost': 1 },
+                        'trade/api/transactionsOfUser': { 'cost': 1 },
                     },
                     'post': {
-                        'trade/api/ccxt/cancel-all-order': 1,
-                        'trade/api/ccxt/cancelorder': 1,
-                        'trade/api/ccxt/ordercreate': 1,
+                        'trade/api/ccxt/cancel-all-order': { 'cost': 1 },
+                        'trade/api/ccxt/cancelorder': { 'cost': 1 },
+                        'trade/api/ccxt/ordercreate': { 'cost': 1 },
                     },
                 },
             },
@@ -1412,7 +1412,7 @@ export default class bitteam extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let response = await this.publicGetTradeApiCmcSummary();
+        const response = await this.publicGetTradeApiCmcSummary();
         //
         //     [
         //         {
@@ -1445,11 +1445,12 @@ export default class bitteam extends Exchange {
         //     ]
         //
         const tickers = [];
-        if (!Array.isArray(response)) {
-            response = [];
+        let rawTickers = [];
+        if (Array.isArray(response)) {
+            rawTickers = response;
         }
-        for (let i = 0; i < response.length; i++) {
-            const rawTicker = response[i];
+        for (let i = 0; i < rawTickers.length; i++) {
+            const rawTicker = rawTickers[i];
             const ticker = this.parseTicker(rawTicker);
             tickers.push(ticker);
         }

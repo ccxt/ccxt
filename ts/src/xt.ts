@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/xt.js';
-import type { Bool, Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, List, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, SubType, Tickers, Transaction, TransferEntry, int, NullableDict } from './base/types.js';
+import type { Bool, Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, List, MarginModification, Market, Num, OHLCV, OpenInterest, Order, OrderSide, OrderType, Position, Str, Strings, SubType, Tickers, Transaction, TransferEntry, int, NullableDict, Endpoint } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout, NullResponse } from './base/errors.js';
@@ -85,7 +85,7 @@ export default class xt extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenInterest': false,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOption': false,
@@ -148,204 +148,206 @@ export default class xt extends Exchange {
                 'public': {
                     'spot': {
                         'get': {
-                            'currencies': 1,
-                            'depth': 10,
-                            'kline': 1,
-                            'symbol': 1, // 1 for a single symbol
-                            'ticker': 1, // 1 for a single symbol
-                            'ticker/book': 1, // 1 for a single symbol
-                            'ticker/price': 1, // 1 for a single symbol
-                            'ticker/24h': 1, // 1 for a single symbol
-                            'time': 1,
-                            'trade/history': 1,
-                            'trade/recent': 1,
-                            'wallet/support/currency': 1,
+                            'currencies': { 'cost': 1 } as Endpoint<Dict>,
+                            'depth': { 'cost': 10 } as Endpoint<Dict>,
+                            'kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'symbol': { 'cost': 1 } as Endpoint<Dict>, // 1 for a single symbol
+                            'ticker': { 'cost': 1 } as Endpoint<Dict>, // 1 for a single symbol
+                            'ticker/book': { 'cost': 1 } as Endpoint<Dict>, // 1 for a single symbol
+                            'ticker/price': { 'cost': 1 } as Endpoint<Dict>, // 1 for a single symbol
+                            'ticker/24h': { 'cost': 1 } as Endpoint<Dict>, // 1 for a single symbol
+                            'time': { 'cost': 1 } as Endpoint<Dict>,
+                            'trade/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'trade/recent': { 'cost': 1 } as Endpoint<Dict>,
+                            'wallet/support/currency': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'linear': {
                         'get': {
-                            'future/market/v1/public/contract/risk-balance': 1,
-                            'future/market/v1/public/contract/open-interest': 1,
-                            'future/market/v1/public/leverage/bracket/detail': 1,
-                            'future/market/v1/public/leverage/bracket/list': 1,
-                            'future/market/v1/public/q/agg-ticker': 1,
-                            'future/market/v1/public/q/agg-tickers': 1,
-                            'future/market/v1/public/q/deal': 1,
-                            'future/market/v1/public/q/depth': 1,
-                            'future/market/v1/public/q/funding-rate': 1,
-                            'future/market/v1/public/q/funding-rate-record': 1,
-                            'future/market/v1/public/q/index-price': 1,
-                            'future/market/v1/public/q/kline': 1,
-                            'future/market/v1/public/q/mark-price': 1,
-                            'future/market/v1/public/q/symbol-index-price': 1,
-                            'future/market/v1/public/q/symbol-mark-price': 1,
-                            'future/market/v1/public/q/ticker': 1,
-                            'future/market/v1/public/q/tickers': 1,
-                            'future/market/v1/public/symbol/coins': 3.33,
-                            'future/market/v1/public/symbol/detail': 3.33,
-                            'future/market/v1/public/symbol/list': 1,
+                            'future/market/v1/public/contract/risk-balance': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/contract/open-interest': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/leverage/bracket/detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/leverage/bracket/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/agg-ticker': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/agg-tickers': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/deal': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/funding-rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/funding-rate-record': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/index-price': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/mark-price': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/symbol-index-price': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/symbol-mark-price': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/ticker/books': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/symbol/coins': { 'cost': 3.33 } as Endpoint<Dict>,
+                            'future/market/v1/public/symbol/detail': { 'cost': 3.33 } as Endpoint<Dict>,
+                            'future/market/v1/public/symbol/list': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'inverse': {
                         'get': {
-                            'future/market/v1/public/contract/risk-balance': 1,
-                            'future/market/v1/public/contract/open-interest': 1,
-                            'future/market/v1/public/leverage/bracket/detail': 1,
-                            'future/market/v1/public/leverage/bracket/list': 1,
-                            'future/market/v1/public/q/agg-ticker': 1,
-                            'future/market/v1/public/q/agg-tickers': 1,
-                            'future/market/v1/public/q/deal': 1,
-                            'future/market/v1/public/q/depth': 1,
-                            'future/market/v1/public/q/funding-rate': 1,
-                            'future/market/v1/public/q/funding-rate-record': 1,
-                            'future/market/v1/public/q/index-price': 1,
-                            'future/market/v1/public/q/kline': 1,
-                            'future/market/v1/public/q/mark-price': 1,
-                            'future/market/v1/public/q/symbol-index-price': 1,
-                            'future/market/v1/public/q/symbol-mark-price': 1,
-                            'future/market/v1/public/q/ticker': 1,
-                            'future/market/v1/public/q/tickers': 1,
-                            'future/market/v1/public/symbol/coins': 3.33,
-                            'future/market/v1/public/symbol/detail': 3.33,
-                            'future/market/v1/public/symbol/list': 1,
+                            'future/market/v1/public/contract/risk-balance': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/contract/open-interest': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/leverage/bracket/detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/leverage/bracket/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/agg-ticker': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/agg-tickers': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/deal': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/funding-rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/funding-rate-record': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/index-price': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/mark-price': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/symbol-index-price': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/symbol-mark-price': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/ticker/books': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/q/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/market/v1/public/symbol/coins': { 'cost': 3.33 } as Endpoint<Dict>,
+                            'future/market/v1/public/symbol/detail': { 'cost': 3.33 } as Endpoint<Dict>,
+                            'future/market/v1/public/symbol/list': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'private': {
                     'spot': {
                         'get': {
-                            'balance': 1,
-                            'balances': 1,
-                            'batch-order': 1,
-                            'deposit/address': 1,
-                            'deposit/history': 1,
-                            'history-order': 1,
-                            'open-order': 1,
-                            'order': 1,
-                            'order/{orderId}': 1,
-                            'trade': 1,
-                            'withdraw/history': 1,
+                            'balance': { 'cost': 1 } as Endpoint<Dict>,
+                            'balances': { 'cost': 1 } as Endpoint<Dict>,
+                            'batch-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'deposit/address': { 'cost': 1 } as Endpoint<Dict>,
+                            'deposit/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'history-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'open-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'order': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/{orderId}': { 'cost': 1 } as Endpoint<Dict>,
+                            'trade': { 'cost': 1 } as Endpoint<Dict>,
+                            'withdraw/history': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'order': 0.2,
-                            'withdraw': 10,
-                            'balance/transfer': 1,
-                            'balance/account/transfer': 1,
-                            'ws-token': 1,
+                            'order': { 'cost': 0.2 } as Endpoint<Dict>,
+                            'withdraw': { 'cost': 10 } as Endpoint<Dict>,
+                            'balance/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                            'balance/account/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                            'ws-token': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'delete': {
-                            'batch-order': 1,
-                            'open-order': 1,
-                            'order/{orderId}': 1,
+                            'batch-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'open-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/{orderId}': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'put': {
-                            'order/{orderId}': 1,
+                            'order/{orderId}': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'linear': {
                         'get': {
-                            'future/trade/v1/entrust/plan-detail': 1,
-                            'future/trade/v1/entrust/plan-list': 1,
-                            'future/trade/v1/entrust/plan-list-history': 1,
-                            'future/trade/v1/entrust/profit-detail': 1,
-                            'future/trade/v1/entrust/profit-list': 1,
-                            'future/trade/v1/order/detail': 1,
-                            'future/trade/v1/order/list': 1,
-                            'future/trade/v1/order/list-history': 1,
-                            'future/trade/v1/order/trade-list': 1,
-                            'future/user/v1/account/info': 1,
-                            'future/user/v1/balance/bills': 1,
-                            'future/user/v1/balance/detail': 1,
-                            'future/user/v1/balance/funding-rate-list': 1,
-                            'future/user/v1/balance/list': 1,
-                            'future/user/v1/position/adl': 1,
-                            'future/user/v1/position/break-list': 1,
-                            'future/user/v1/position/list': 1,
-                            'future/user/v1/user/collection/list': 1,
-                            'future/user/v1/user/listen-key': 1,
+                            'future/trade/v1/entrust/plan-detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/plan-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/plan-list-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/profit-detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/profit-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/list-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/trade-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/account/info': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/balance/bills': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/balance/detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/balance/funding-rate-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/balance/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/position/adl': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/position/break-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/position/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/user/collection/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/user/listen-key': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'future/trade/v1/entrust/cancel-all-plan': 1,
-                            'future/trade/v1/entrust/cancel-all-profit-stop': 1,
-                            'future/trade/v1/entrust/cancel-plan': 1,
-                            'future/trade/v1/entrust/cancel-profit-stop': 1,
-                            'future/trade/v1/entrust/create-plan': 1,
-                            'future/trade/v1/entrust/create-profit': 1,
-                            'future/trade/v1/entrust/update-profit-stop': 1,
-                            'future/trade/v1/order/cancel': 1,
-                            'future/trade/v1/order/cancel-all': 1,
-                            'future/trade/v1/order/create': 1,
-                            'future/trade/v1/order/create-batch': 1,
-                            'future/trade/v1/order/update': 1,
-                            'future/user/v1/account/open': 1,
-                            'future/user/v1/position/adjust-leverage': 1,
-                            'future/user/v1/position/auto-margin': 1,
-                            'future/user/v1/position/close-all': 1,
-                            'future/user/v1/position/margin': 1,
-                            'future/user/v1/user/collection/add': 1,
-                            'future/user/v1/user/collection/cancel': 1,
-                            'future/user/v1/position/change-type': 1,
+                            'future/trade/v1/entrust/cancel-all-plan': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/cancel-all-profit-stop': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/cancel-plan': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/cancel-profit-stop': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/create-plan': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/create-profit': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/update-profit-stop': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/cancel-all': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/create': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/create-batch': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/update': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/account/open': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/position/adjust-leverage': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/position/auto-margin': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/position/close-all': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/position/margin': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/user/collection/add': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/user/collection/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/position/change-type': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'inverse': {
                         'get': {
-                            'future/trade/v1/entrust/plan-detail': 1,
-                            'future/trade/v1/entrust/plan-list': 1,
-                            'future/trade/v1/entrust/plan-list-history': 1,
-                            'future/trade/v1/entrust/profit-detail': 1,
-                            'future/trade/v1/entrust/profit-list': 1,
-                            'future/trade/v1/order/detail': 1,
-                            'future/trade/v1/order/list': 1,
-                            'future/trade/v1/order/list-history': 1,
-                            'future/trade/v1/order/trade-list': 1,
-                            'future/user/v1/account/info': 1,
-                            'future/user/v1/balance/bills': 1,
-                            'future/user/v1/balance/detail': 1,
-                            'future/user/v1/balance/funding-rate-list': 1,
-                            'future/user/v1/balance/list': 1,
-                            'future/user/v1/position/adl': 1,
-                            'future/user/v1/position/break-list': 1,
-                            'future/user/v1/position/list': 1,
-                            'future/user/v1/user/collection/list': 1,
-                            'future/user/v1/user/listen-key': 1,
+                            'future/trade/v1/entrust/plan-detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/plan-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/plan-list-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/profit-detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/profit-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/list-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/trade-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/account/info': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/balance/bills': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/balance/detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/balance/funding-rate-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/balance/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/position/adl': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/position/break-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/position/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/user/collection/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/user/listen-key': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'future/trade/v1/entrust/cancel-all-plan': 1,
-                            'future/trade/v1/entrust/cancel-all-profit-stop': 1,
-                            'future/trade/v1/entrust/cancel-plan': 1,
-                            'future/trade/v1/entrust/cancel-profit-stop': 1,
-                            'future/trade/v1/entrust/create-plan': 1,
-                            'future/trade/v1/entrust/create-profit': 1,
-                            'future/trade/v1/entrust/update-profit-stop': 1,
-                            'future/trade/v1/order/cancel': 1,
-                            'future/trade/v1/order/cancel-all': 1,
-                            'future/trade/v1/order/create': 1,
-                            'future/trade/v1/order/create-batch': 1,
-                            'future/trade/v1/order/update': 1,
-                            'future/user/v1/account/open': 1,
-                            'future/user/v1/position/adjust-leverage': 1,
-                            'future/user/v1/position/auto-margin': 1,
-                            'future/user/v1/position/close-all': 1,
-                            'future/user/v1/position/margin': 1,
-                            'future/user/v1/user/collection/add': 1,
-                            'future/user/v1/user/collection/cancel': 1,
-                            'future/user/v1/position/change-type': 1,
+                            'future/trade/v1/entrust/cancel-all-plan': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/cancel-all-profit-stop': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/cancel-plan': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/cancel-profit-stop': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/create-plan': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/create-profit': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/update-profit-stop': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/cancel-all': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/create': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/create-batch': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/update': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/account/open': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/position/adjust-leverage': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/position/auto-margin': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/position/close-all': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/position/margin': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/user/collection/add': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/user/collection/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/position/change-type': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'user': {
                         'get': {
-                            'user/account': 1,
-                            'user/account/api-key': 1,
+                            'user/account': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/account/api-key': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'user/account': 1,
-                            'user/account/api-key': 1,
+                            'user/account': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/account/api-key': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'put': {
-                            'user/account/api-key': 1,
+                            'user/account/api-key': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'delete': {
-                            'user/account/{apiKeyId}': 1,
+                            'user/account/{apiKeyId}': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -1008,7 +1010,7 @@ export default class xt extends Exchange {
         return this.arrayConcat (spotMarkets, swapAndFutureMarkets);
     }
 
-    async fetchSpotMarkets (params: any = {}) {
+    async fetchSpotMarkets (params: any = {}): Promise<Market[]> {
         const response = await this.publicSpotGetSymbol (params);
         //
         //     {
@@ -1814,11 +1816,12 @@ export default class xt extends Exchange {
      * @name xt#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
      * @see https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
-     * @param {string} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @see https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    override async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
+    override async fetchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1828,12 +1831,23 @@ export default class xt extends Exchange {
         if (symbols !== undefined) {
             market = this.market (symbols[0]);
         }
+        let type: Str = undefined;
         let subType: SubType = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
-        if (subType !== undefined) {
-            throw new NotSupported (this.id + ' fetchBidsAsks() is not available for swap and future markets, only spot markets are supported');
+        const isInverse = (subType === 'inverse');
+        const isLinear = (subType === 'linear') || (type === 'swap') || (type === 'future');
+        const isContract = isInverse || isLinear;
+        let response = undefined;
+        if (isInverse) {
+            response = await this.publicInverseGetFutureMarketV1PublicQTickerBooks (this.extend (request, params));
+        } else if (isLinear) {
+            response = await this.publicLinearGetFutureMarketV1PublicQTickerBooks (this.extend (request, params));
+        } else {
+            response = await this.publicSpotGetTickerBook (this.extend (request, params));
         }
-        const response = await this.publicSpotGetTickerBook (this.extend (request, params));
+        //
+        // spot
         //
         //     {
         //         "rc": 0,
@@ -1851,8 +1865,40 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        const tickers = this.safeValue (response, 'result', []);
-        return this.parseTickers (tickers, symbols);
+        // swap and future
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": [
+        //             {
+        //                 "s": "btc_usdt",
+        //                 "t": 1785928174370,
+        //                 "ap": "64085.5",
+        //                 "aq": "101843",
+        //                 "bp": "64085.3",
+        //                 "bq": "121042"
+        //             },
+        //         ]
+        //     }
+        //
+        const tickers = this.safeList (response, 'result', []);
+        const result: Dict = {};
+        for (let i = 0; i < tickers.length; i++) {
+            const rawTicker = tickers[i];
+            // the spot and contract payloads share the same field names, so
+            // the market type cannot be inferred from the entry itself
+            const marketId = this.safeString (rawTicker, 's');
+            const marketType = isContract ? 'contract' : 'spot';
+            const marketInner = this.safeMarket (marketId, market, '_', marketType);
+            const ticker = this.parseTicker (rawTicker, marketInner);
+            const symbol = ticker['symbol'];
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
+        }
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     override parseTicker (ticker: any, market: Market = undefined) {
@@ -2570,7 +2616,7 @@ export default class xt extends Exchange {
             const requestType = (reduceOnly) ? 'LONG' : 'SHORT';
             request['positionSide'] = requestType;
         }
-        let response = undefined;
+        let response: Dict = {};
         const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeNumber2 (params, 'stopLoss', 'triggerStopPrice');
         const takeProfit = this.safeNumber2 (params, 'takeProfit', 'triggerProfitPrice');
@@ -2976,7 +3022,7 @@ export default class xt extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3475,7 +3521,7 @@ export default class xt extends Exchange {
         //     }
         //
         return [
-            this.safeOrder (response as any),
+            this.safeOrder (response),
         ];
     }
 
@@ -3517,7 +3563,7 @@ export default class xt extends Exchange {
         //     }
         //
         return [
-            this.safeOrder (response as any),
+            this.safeOrder (response),
         ];
     }
 
@@ -4237,7 +4283,8 @@ export default class xt extends Exchange {
 
     async modifyMarginHelper (symbol: string, amount: any, addOrReduce: any, params = {}): Promise<MarginModification> {
         const positionSide = this.safeString (params, 'positionSide');
-        this.checkRequiredArgument ('setLeverage', positionSide, 'positionSide', [ 'LONG', 'SHORT' ]);
+        const methodName = (addOrReduce === 'ADD') ? 'addMargin' : 'reduceMargin';
+        this.checkRequiredArgument (methodName, positionSide, 'positionSide', [ 'LONG', 'SHORT' ]);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4635,6 +4682,71 @@ export default class xt extends Exchange {
             'previousFundingDatetime': undefined,
             'interval': interval,
         } as FundingRate;
+    }
+
+    /**
+     * @method
+     * @name xt#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    override async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new NotSupported (this.id + ' fetchOpenInterest() supports swap contracts only');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        let subType: SubType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenInterest', market, params);
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.publicInverseGetFutureMarketV1PublicContractOpenInterest (this.extend (request, params));
+        } else {
+            response = await this.publicLinearGetFutureMarketV1PublicContractOpenInterest (this.extend (request, params));
+        }
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "symbol": "btc_usdt",
+        //             "openInterest": "21005.8646",
+        //             "openInterestUsd": "1120726916.46709",
+        //             "time": 1785925443734
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        return this.parseOpenInterest (result, market);
+    }
+
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+        //
+        //     {
+        //         "symbol": "btc_usdt",
+        //         "openInterest": "21005.8646",
+        //         "openInterestUsd": "1120726916.46709",
+        //         "time": 1785925443734
+        //     }
+        //
+        const marketId = this.safeString (interest, 'symbol');
+        market = this.safeMarket (marketId, market, undefined, 'contract');
+        const timestamp = this.safeInteger (interest, 'time');
+        return this.safeOpenInterest ({
+            'symbol': market['symbol'],
+            'openInterestAmount': this.safeNumber (interest, 'openInterest'),
+            'openInterestValue': this.safeNumber (interest, 'openInterestUsd'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        }, market);
     }
 
     /**

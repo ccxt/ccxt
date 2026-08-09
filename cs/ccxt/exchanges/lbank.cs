@@ -42,10 +42,11 @@ public partial class lbank : Exchange
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", false },
+                { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
-                { "fetchFundingRate", false },
+                { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
@@ -72,8 +73,10 @@ public partial class lbank : Exchange
                 { "fetchTickers", true },
                 { "fetchTime", true },
                 { "fetchTrades", true },
+                { "fetchTradingFee", true },
                 { "fetchTradingFees", true },
                 { "fetchTransactionFees", true },
+                { "fetchWithdrawals", true },
                 { "reduceMargin", false },
                 { "setLeverage", false },
                 { "setMarginMode", false },
@@ -110,76 +113,192 @@ public partial class lbank : Exchange
                 { "spot", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "currencyPairs", 2.5 },
-                            { "accuracy", 2.5 },
-                            { "usdToCny", 2.5 },
-                            { "assetConfigs", 2.5 },
-                            { "withdrawConfigs", multiply(2.5, 1.5) },
-                            { "timestamp", 2.5 },
-                            { "ticker/24hr", 2.5 },
-                            { "ticker", 2.5 },
-                            { "depth", 2.5 },
-                            { "incrDepth", 2.5 },
-                            { "trades", 2.5 },
-                            { "kline", 2.5 },
-                            { "supplement/system_ping", 2.5 },
-                            { "supplement/incrDepth", 2.5 },
-                            { "supplement/trades", 2.5 },
-                            { "supplement/ticker/price", 2.5 },
-                            { "supplement/ticker/bookTicker", 2.5 },
+                            { "currencyPairs", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "accuracy", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "usdToCny", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "assetConfigs", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "withdrawConfigs", new Dictionary<string, object>() {
+                                { "cost", multiply(2.5, 1.5) },
+                            } },
+                            { "timestamp", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "ticker/24hr", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "ticker", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "depth", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "incrDepth", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "trades", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "kline", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "supplement/system_ping", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "supplement/incrDepth", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "supplement/trades", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "supplement/ticker/price", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "supplement/ticker/bookTicker", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "supplement/system_status", 2.5 },
+                            { "supplement/system_status", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
-                            { "user_info", 2.5 },
-                            { "subscribe/get_key", 2.5 },
-                            { "subscribe/refresh_key", 2.5 },
-                            { "subscribe/destroy_key", 2.5 },
-                            { "get_deposit_address", 2.5 },
-                            { "deposit_history", 2.5 },
-                            { "create_order", 1 },
-                            { "batch_create_order", 1 },
-                            { "cancel_order", 1 },
-                            { "cancel_clientOrders", 1 },
-                            { "orders_info", 2.5 },
-                            { "orders_info_history", 2.5 },
-                            { "order_transaction_detail", 2.5 },
-                            { "transaction_history", 2.5 },
-                            { "orders_info_no_deal", 2.5 },
-                            { "withdraw", 2.5 },
-                            { "withdrawCancel", 2.5 },
-                            { "withdraws", 2.5 },
-                            { "supplement/user_info", 2.5 },
-                            { "supplement/withdraw", 2.5 },
-                            { "supplement/deposit_history", 2.5 },
-                            { "supplement/withdraws", 2.5 },
-                            { "supplement/get_deposit_address", 2.5 },
-                            { "supplement/asset_detail", 2.5 },
-                            { "supplement/customer_trade_fee", 2.5 },
-                            { "supplement/api_Restrictions", 2.5 },
-                            { "supplement/system_ping", 2.5 },
-                            { "supplement/create_order_test", 1 },
-                            { "supplement/create_order", 1 },
-                            { "supplement/cancel_order", 1 },
-                            { "supplement/cancel_order_by_symbol", 1 },
-                            { "supplement/orders_info", 2.5 },
-                            { "supplement/orders_info_no_deal", 2.5 },
-                            { "supplement/orders_info_history", 2.5 },
-                            { "supplement/user_info_account", 2.5 },
-                            { "supplement/transaction_history", 2.5 },
+                            { "user_info", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "subscribe/get_key", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "subscribe/refresh_key", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "subscribe/destroy_key", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "get_deposit_address", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "deposit_history", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "create_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "batch_create_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "cancel_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "cancel_clientOrders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders_info", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "orders_info_history", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "order_transaction_detail", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "transaction_history", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "orders_info_no_deal", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "withdraw", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "withdrawCancel", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "withdraws", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "supplement/user_info", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "supplement/withdraw", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "supplement/deposit_history", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "supplement/withdraws", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "supplement/get_deposit_address", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "supplement/asset_detail", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "supplement/customer_trade_fee", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "supplement/api_Restrictions", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "supplement/system_ping", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "supplement/create_order_test", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "supplement/create_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "supplement/cancel_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "supplement/cancel_order_by_symbol", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "supplement/orders_info", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "supplement/orders_info_no_deal", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "supplement/orders_info_history", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "supplement/user_info_account", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "supplement/transaction_history", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
                         } },
                     } },
                 } },
                 { "contract", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "cfd/openApi/v1/pub/getTime", 2.5 },
-                            { "cfd/openApi/v1/pub/instrument", 2.5 },
-                            { "cfd/openApi/v1/pub/marketData", 2.5 },
-                            { "cfd/openApi/v1/pub/marketOrder", 2.5 },
+                            { "cfd/openApi/v1/pub/getTime", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "cfd/openApi/v1/pub/instrument", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "cfd/openApi/v1/pub/marketData", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "cfd/openApi/v1/pub/marketOrder", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
                         } },
                     } },
                 } },
@@ -1410,7 +1529,7 @@ public partial class lbank : Exchange
             }
             return this.safeBalance(result);
         }
-        return ((object)null);
+        return this.safeBalance(result);
     }
 
     public override object parseFundingRate(object ticker, object market = null)

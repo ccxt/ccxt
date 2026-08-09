@@ -90,6 +90,7 @@ export default class phemex extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPositionADLRank': true,
+                'fetchPositionHistory': true,
                 'fetchPositions': true,
                 'fetchPositionsADLRank': true,
                 'fetchPositionsRisk': false,
@@ -156,154 +157,154 @@ export default class phemex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'cfg/v2/products': 5, // spot + contracts
-                        'cfg/fundingRates': 5,
-                        'products': 5, // contracts only
-                        'nomics/trades': 5, // ?market=<symbol>&since=<since>
-                        'md/kline': 5, // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
-                        'md/v2/kline/list': 5, // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
-                        'md/v2/kline': 5, // ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
-                        'md/v2/kline/last': 5, // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
-                        'md/orderbook': 5, // ?symbol=<symbol>
-                        'md/trade': 5, // ?symbol=<symbol>
-                        'md/spot/ticker/24hr': 5, // ?symbol=<symbol>
-                        'exchange/public/cfg/chain-settings': 5, // ?currency=<currency>
+                        'cfg/v2/products': { 'cost': 5 }, // spot + contracts
+                        'cfg/fundingRates': { 'cost': 5 },
+                        'products': { 'cost': 5 }, // contracts only
+                        'nomics/trades': { 'cost': 5 }, // ?market=<symbol>&since=<since>
+                        'md/kline': { 'cost': 5 }, // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
+                        'md/v2/kline/list': { 'cost': 5 }, // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
+                        'md/v2/kline': { 'cost': 5 }, // ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                        'md/v2/kline/last': { 'cost': 5 }, // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                        'md/orderbook': { 'cost': 5 }, // ?symbol=<symbol>
+                        'md/trade': { 'cost': 5 }, // ?symbol=<symbol>
+                        'md/spot/ticker/24hr': { 'cost': 5 }, // ?symbol=<symbol>
+                        'exchange/public/cfg/chain-settings': { 'cost': 5 }, // ?currency=<currency>
                     },
                 },
                 'v1': {
                     'get': {
-                        'md/fullbook': 5, // ?symbol=<symbol>
-                        'md/orderbook': 5, // ?symbol=<symbol>
-                        'md/trade': 5, // ?symbol=<symbol>&id=<id>
-                        'md/ticker/24hr': 5, // ?symbol=<symbol>&id=<id>
-                        'md/ticker/24hr/all': 5, // ?id=<id>
-                        'md/spot/ticker/24hr': 5, // ?symbol=<symbol>&id=<id>
-                        'md/spot/ticker/24hr/all': 5, // ?symbol=<symbol>&id=<id>
-                        'exchange/public/products': 5, // contracts only
-                        'api-data/public/data/funding-rate-history': 5,
+                        'md/fullbook': { 'cost': 5 }, // ?symbol=<symbol>
+                        'md/orderbook': { 'cost': 5 }, // ?symbol=<symbol>
+                        'md/trade': { 'cost': 5 }, // ?symbol=<symbol>&id=<id>
+                        'md/ticker/24hr': { 'cost': 5 }, // ?symbol=<symbol>&id=<id>
+                        'md/ticker/24hr/all': { 'cost': 5 }, // ?id=<id>
+                        'md/spot/ticker/24hr': { 'cost': 5 }, // ?symbol=<symbol>&id=<id>
+                        'md/spot/ticker/24hr/all': { 'cost': 5 }, // ?symbol=<symbol>&id=<id>
+                        'exchange/public/products': { 'cost': 5 }, // contracts only
+                        'api-data/public/data/funding-rate-history': { 'cost': 5 },
                     },
                 },
                 'v2': {
                     'get': {
-                        'public/products': 5,
-                        'public/products-plus': 5,
-                        'md/v2/orderbook': 5, // ?symbol=<symbol>&id=<id>
-                        'md/v2/trade': 5, // ?symbol=<symbol>&id=<id>
-                        'md/v2/ticker/24hr': 5, // ?symbol=<symbol>&id=<id>
-                        'md/v2/ticker/24hr/all': 5, // ?id=<id>
-                        'api-data/public/data/funding-rate-history': 5,
+                        'public/products': { 'cost': 5 },
+                        'public/products-plus': { 'cost': 5 },
+                        'md/v2/orderbook': { 'cost': 5 }, // ?symbol=<symbol>&id=<id>
+                        'md/v2/trade': { 'cost': 5 }, // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr': { 'cost': 5 }, // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr/all': { 'cost': 5 }, // ?id=<id>
+                        'api-data/public/data/funding-rate-history': { 'cost': 5 },
                     },
                 },
                 'private': {
                     'get': {
                         // spot
-                        'spot/orders/active': 1, // ?symbol=<symbol>&orderID=<orderID>
+                        'spot/orders/active': { 'cost': 1 }, // ?symbol=<symbol>&orderID=<orderID>
                         // 'spot/orders/active': 5, // ?symbol=<symbol>&clOrDID=<clOrdID>
-                        'spot/orders': 1, // ?symbol=<symbol>
-                        'spot/wallets': 5, // ?currency=<currency>
-                        'exchange/spot/order': 5, // ?symbol=<symbol>&ordStatus=<ordStatus5,orderStatus2>ordType=<ordType5,orderType2>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'exchange/spot/order/trades': 5, // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'exchange/order/v2/orderList': 5, // ?symbol=<symbol>&currency=<currency>&ordStatus=<ordStatus>&ordType=<ordType>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount></withCount>
-                        'exchange/order/v2/tradingList': 5, // ?symbol=<symbol>&currency=<currency>&execType=<execType>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'spot/orders': { 'cost': 1 }, // ?symbol=<symbol>
+                        'spot/wallets': { 'cost': 5 }, // ?currency=<currency>
+                        'exchange/spot/order': { 'cost': 5 }, // ?symbol=<symbol>&ordStatus=<ordStatus5,orderStatus2>ordType=<ordType5,orderType2>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'exchange/spot/order/trades': { 'cost': 5 }, // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'exchange/order/v2/orderList': { 'cost': 5 }, // ?symbol=<symbol>&currency=<currency>&ordStatus=<ordStatus>&ordType=<ordType>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount></withCount>
+                        'exchange/order/v2/tradingList': { 'cost': 5 }, // ?symbol=<symbol>&currency=<currency>&execType=<execType>&offset=<offset>&limit=<limit>&withCount=<withCount>
                         // swap
-                        'accounts/accountPositions': 1, // ?currency=<currency>
-                        'g-accounts/accountPositions': 1, // ?currency=<currency>
-                        'g-accounts/positions': 25, // ?currency=<currency>
-                        'g-accounts/risk-unit': 1,
-                        'api-data/futures/funding-fees': 5, // ?symbol=<symbol>
-                        'api-data/g-futures/funding-fees': 5, // ?symbol=<symbol>
-                        'api-data/futures/orders': 5, // ?symbol=<symbol>
-                        'api-data/g-futures/orders': 5, // ?symbol=<symbol>
-                        'api-data/futures/orders/by-order-id': 5, // ?symbol=<symbol>
-                        'api-data/g-futures/orders/by-order-id': 5, // ?symbol=<symbol>
-                        'api-data/futures/trades': 5, // ?symbol=<symbol>
-                        'api-data/g-futures/trades': 5, // ?symbol=<symbol>
-                        'api-data/futures/trading-fees': 5, // ?symbol=<symbol>
-                        'api-data/g-futures/trading-fees': 5, // ?symbol=<symbol>
-                        'api-data/futures/v2/tradeAccountDetail': 5, // ?currency=<currency>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
-                        'api-data/g-futures/closedPosition': 5,
-                        'g-orders/activeList': 1, // ?symbol=<symbol>
-                        'orders/activeList': 1, // ?symbol=<symbol>
-                        'exchange/order/list': 5, // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
-                        'exchange/order': 5, // ?symbol=<symbol>&orderID=<orderID5,orderID2>
+                        'accounts/accountPositions': { 'cost': 1 }, // ?currency=<currency>
+                        'g-accounts/accountPositions': { 'cost': 1 }, // ?currency=<currency>
+                        'g-accounts/positions': { 'cost': 25 }, // ?currency=<currency>
+                        'g-accounts/risk-unit': { 'cost': 1 },
+                        'api-data/futures/funding-fees': { 'cost': 5 }, // ?symbol=<symbol>
+                        'api-data/g-futures/funding-fees': { 'cost': 5 }, // ?symbol=<symbol>
+                        'api-data/futures/orders': { 'cost': 5 }, // ?symbol=<symbol>
+                        'api-data/g-futures/orders': { 'cost': 5 }, // ?symbol=<symbol>
+                        'api-data/futures/orders/by-order-id': { 'cost': 5 }, // ?symbol=<symbol>
+                        'api-data/g-futures/orders/by-order-id': { 'cost': 5 }, // ?symbol=<symbol>
+                        'api-data/futures/trades': { 'cost': 5 }, // ?symbol=<symbol>
+                        'api-data/g-futures/trades': { 'cost': 5 }, // ?symbol=<symbol>
+                        'api-data/futures/trading-fees': { 'cost': 5 }, // ?symbol=<symbol>
+                        'api-data/g-futures/trading-fees': { 'cost': 5 }, // ?symbol=<symbol>
+                        'api-data/futures/v2/tradeAccountDetail': { 'cost': 5 }, // ?currency=<currency>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
+                        'api-data/g-futures/closedPosition': { 'cost': 5 },
+                        'g-orders/activeList': { 'cost': 1 }, // ?symbol=<symbol>
+                        'orders/activeList': { 'cost': 1 }, // ?symbol=<symbol>
+                        'exchange/order/list': { 'cost': 5 }, // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
+                        'exchange/order': { 'cost': 5 }, // ?symbol=<symbol>&orderID=<orderID5,orderID2>
                         // 'exchange/order': 5, // ?symbol=<symbol>&clOrdID=<clOrdID5,clOrdID2>
-                        'exchange/order/trade': 5, // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>&withCount=<withCount>
-                        'phemex-user/users/children': 5, // ?offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'phemex-user/wallets/v2/depositAddress': 5, // ?_t=1592722635531&currency=USDT
-                        'phemex-user/wallets/tradeAccountDetail': 5, // ?bizCode=&currency=&end=1642443347321&limit=10&offset=0&side=&start=1&type=4&withCount=true
-                        'phemex-deposit/wallets/api/depositAddress': 5, // ?currency=<currency>&chainName=<chainName>
-                        'phemex-deposit/wallets/api/depositHist': 5, // ?currency=<currency>&offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'phemex-deposit/wallets/api/chainCfg': 5, // ?currency=<currency>
-                        'phemex-withdraw/wallets/api/withdrawHist': 5, // ?currency=<currency>&chainName=<chainNameList>&offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'phemex-withdraw/wallets/api/asset/info': 5, // ?currency=<currency>&amount=<amount>
-                        'phemex-user/order/closedPositionList': 5, // ?currency=USD&limit=10&offset=0&symbol=&withCount=true
-                        'exchange/margins/transfer': 5, // ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'exchange/wallets/confirm/withdraw': 5, // ?code=<withdrawConfirmCode>
-                        'exchange/wallets/withdrawList': 5, // ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
-                        'exchange/wallets/depositList': 5, // ?currency=<currency>&offset=<offset>&limit=<limit>
-                        'exchange/wallets/v2/depositAddress': 5, // ?currency=<currency>
-                        'api-data/spots/funds': 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'api-data/spots/orders': 5, // ?symbol=<symbol>
-                        'api-data/spots/orders/by-order-id': 5, // ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
-                        'api-data/spots/pnls': 5,
-                        'api-data/spots/trades': 5, // ?symbol=<symbol>
-                        'api-data/spots/trades/by-order-id': 5, // ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
-                        'assets/convert': 5, // ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
+                        'exchange/order/trade': { 'cost': 5 }, // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>&withCount=<withCount>
+                        'phemex-user/users/children': { 'cost': 5 }, // ?offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-user/wallets/v2/depositAddress': { 'cost': 5 }, // ?_t=1592722635531&currency=USDT
+                        'phemex-user/wallets/tradeAccountDetail': { 'cost': 5 }, // ?bizCode=&currency=&end=1642443347321&limit=10&offset=0&side=&start=1&type=4&withCount=true
+                        'phemex-deposit/wallets/api/depositAddress': { 'cost': 5 }, // ?currency=<currency>&chainName=<chainName>
+                        'phemex-deposit/wallets/api/depositHist': { 'cost': 5 }, // ?currency=<currency>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-deposit/wallets/api/chainCfg': { 'cost': 5 }, // ?currency=<currency>
+                        'phemex-withdraw/wallets/api/withdrawHist': { 'cost': 5 }, // ?currency=<currency>&chainName=<chainNameList>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-withdraw/wallets/api/asset/info': { 'cost': 5 }, // ?currency=<currency>&amount=<amount>
+                        'phemex-user/order/closedPositionList': { 'cost': 5 }, // ?currency=USD&limit=10&offset=0&symbol=&withCount=true
+                        'exchange/margins/transfer': { 'cost': 5 }, // ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'exchange/wallets/confirm/withdraw': { 'cost': 5 }, // ?code=<withdrawConfirmCode>
+                        'exchange/wallets/withdrawList': { 'cost': 5 }, // ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
+                        'exchange/wallets/depositList': { 'cost': 5 }, // ?currency=<currency>&offset=<offset>&limit=<limit>
+                        'exchange/wallets/v2/depositAddress': { 'cost': 5 }, // ?currency=<currency>
+                        'api-data/spots/funds': { 'cost': 5 }, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'api-data/spots/orders': { 'cost': 5 }, // ?symbol=<symbol>
+                        'api-data/spots/orders/by-order-id': { 'cost': 5 }, // ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
+                        'api-data/spots/pnls': { 'cost': 5 },
+                        'api-data/spots/trades': { 'cost': 5 }, // ?symbol=<symbol>
+                        'api-data/spots/trades/by-order-id': { 'cost': 5 }, // ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
+                        'assets/convert': { 'cost': 5 }, // ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
                         // transfer
-                        'assets/transfer': 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/spots/sub-accounts/transfer': 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/futures/sub-accounts/transfer': 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/quote': 5, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
+                        'assets/transfer': { 'cost': 5 }, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/spots/sub-accounts/transfer': { 'cost': 5 }, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/futures/sub-accounts/transfer': { 'cost': 5 }, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/quote': { 'cost': 5 }, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
                         // deposit/withdraw
                     },
                     'post': {
                         // spot
-                        'spot/orders': 1,
+                        'spot/orders': { 'cost': 1 },
                         // swap
-                        'orders': 1,
-                        'g-orders': 1,
-                        'positions/assign': 5, // ?symbol=<symbol>&posBalance=<posBalance>&posBalanceEv=<posBalanceEv>
-                        'exchange/wallets/transferOut': 5,
-                        'exchange/wallets/transferIn': 5,
-                        'exchange/margins': 5,
-                        'exchange/wallets/createWithdraw': 5, // ?otpCode=<otpCode>
-                        'exchange/wallets/cancelWithdraw': 5,
-                        'exchange/wallets/createWithdrawAddress': 5, // ?otpCode={optCode}
+                        'orders': { 'cost': 1 },
+                        'g-orders': { 'cost': 1 },
+                        'positions/assign': { 'cost': 5 }, // ?symbol=<symbol>&posBalance=<posBalance>&posBalanceEv=<posBalanceEv>
+                        'exchange/wallets/transferOut': { 'cost': 5 },
+                        'exchange/wallets/transferIn': { 'cost': 5 },
+                        'exchange/margins': { 'cost': 5 },
+                        'exchange/wallets/createWithdraw': { 'cost': 5 }, // ?otpCode=<otpCode>
+                        'exchange/wallets/cancelWithdraw': { 'cost': 5 },
+                        'exchange/wallets/createWithdrawAddress': { 'cost': 5 }, // ?otpCode={optCode}
                         // transfer
-                        'assets/transfer': 5,
-                        'assets/spots/sub-accounts/transfer': 5, // for sub-account only
-                        'assets/futures/sub-accounts/transfer': 5, // for sub-account only
-                        'assets/universal-transfer': 5, // for Main account only
-                        'assets/convert': 5,
+                        'assets/transfer': { 'cost': 5 },
+                        'assets/spots/sub-accounts/transfer': { 'cost': 5 }, // for sub-account only
+                        'assets/futures/sub-accounts/transfer': { 'cost': 5 }, // for sub-account only
+                        'assets/universal-transfer': { 'cost': 5 }, // for Main account only
+                        'assets/convert': { 'cost': 5 },
                         // withdraw
-                        'phemex-withdraw/wallets/api/createWithdraw': 5, // ?currency=<currency>&address=<address>&amount=<amount>&addressTag=<addressTag>&chainName=<chainName>
-                        'phemex-withdraw/wallets/api/cancelWithdraw': 5, // ?id=<id>
+                        'phemex-withdraw/wallets/api/createWithdraw': { 'cost': 5 }, // ?currency=<currency>&address=<address>&amount=<amount>&addressTag=<addressTag>&chainName=<chainName>
+                        'phemex-withdraw/wallets/api/cancelWithdraw': { 'cost': 5 }, // ?id=<id>
                     },
                     'put': {
                         // spot
-                        'spot/orders/create': 1, // ?symbol=<symbol>&trigger=<trigger>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEv=<baseQtyEv>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>&text=<text>&side=<side>&qtyType=<qtyType>&ordType=<ordType>&timeInForce=<timeInForce>&execInst=<execInst>
-                        'spot/orders': 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
+                        'spot/orders/create': { 'cost': 1 }, // ?symbol=<symbol>&trigger=<trigger>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEv=<baseQtyEv>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>&text=<text>&side=<side>&qtyType=<qtyType>&ordType=<ordType>&timeInForce=<timeInForce>&execInst=<execInst>
+                        'spot/orders': { 'cost': 1 }, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
                         // swap
-                        'orders/replace': 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
-                        'g-orders/replace': 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
-                        'g-orders/create': 1,
-                        'positions/leverage': 5, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
-                        'g-positions/leverage': 5, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
-                        'g-positions/switch-pos-mode-sync': 5, // ?symbol=<symbol>&targetPosMode=<targetPosMode>
-                        'positions/riskLimit': 5, // ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
+                        'orders/replace': { 'cost': 1 }, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'g-orders/replace': { 'cost': 1 }, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'g-orders/create': { 'cost': 1 },
+                        'positions/leverage': { 'cost': 5 }, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
+                        'g-positions/leverage': { 'cost': 5 }, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
+                        'g-positions/switch-pos-mode-sync': { 'cost': 5 }, // ?symbol=<symbol>&targetPosMode=<targetPosMode>
+                        'positions/riskLimit': { 'cost': 5 }, // ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
                     },
                     'delete': {
                         // spot
-                        'spot/orders': 2, // ?symbol=<symbol>&orderID=<orderID>
-                        'spot/orders/all': 2, // ?symbol=<symbol>&untriggered=<untriggered>
+                        'spot/orders': { 'cost': 2 }, // ?symbol=<symbol>&orderID=<orderID>
+                        'spot/orders/all': { 'cost': 2 }, // ?symbol=<symbol>&untriggered=<untriggered>
                         // 'spot/orders': 5, // ?symbol=<symbol>&clOrdID=<clOrdID>
                         // swap
-                        'orders/cancel': 1, // ?symbol=<symbol>&orderID=<orderID>
-                        'orders': 1, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
-                        'orders/all': 3, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
-                        'g-orders/cancel': 1, // ?symbol=<symbol>&orderID=<orderID>
-                        'g-orders': 1, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
-                        'g-orders/all': 3, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                        'orders/cancel': { 'cost': 1 }, // ?symbol=<symbol>&orderID=<orderID>
+                        'orders': { 'cost': 1 }, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'orders/all': { 'cost': 3 }, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                        'g-orders/cancel': { 'cost': 1 }, // ?symbol=<symbol>&orderID=<orderID>
+                        'g-orders': { 'cost': 1 }, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'g-orders/all': { 'cost': 3 }, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
                     },
                 },
             },

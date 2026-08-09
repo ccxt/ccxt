@@ -439,7 +439,7 @@ export default class bitget extends bitgetRest {
         const market = this.market (symbols[0]);
         let instType: Str = undefined;
         let uta: Bool = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'watchTickers', 'uta', false);
+        [ uta, params ] = this.handleOptionAndParams (params, 'watchBidsAsks', 'uta', false);
         [ instType, params ] = this.getInstType ('watchBidsAsks', market, uta, params);
         const topics: Dict[] = [];
         const messageHashes: string[] = [];
@@ -2473,6 +2473,9 @@ export default class bitget extends bitgetRest {
                 }
             }
         }
+        // REST parseBalance sets info, keep the ws structure at parity,
+        // see https://github.com/ccxt/ccxt/issues/21973
+        this.balance['info'] = message;
         this.balance = this.safeBalance (this.balance);
         const messageHash = 'balance:' + instType;
         client.resolve (this.balance, messageHash);

@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.zebpay import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Any, Balances, Currencies, CurrencyInterface, Int, Leverage, Leverages, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees
+from ccxt.base.types import Any, Balances, Currencies, CurrencyInterface, Int, Leverage, Leverages, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -72,10 +72,13 @@ class zebpay(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
                 'fetchPositions': True,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
+                'fetchTradingFees': True,
                 'reduceMargin': True,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
@@ -111,72 +114,72 @@ class zebpay(Exchange, ImplicitAPI):
                 'public': {
                     'spot': {
                         'get': {
-                            'v2/system/time': 10,
-                            'v2/system/status': 10,
-                            'v2/market/orderbook': 10,
-                            'v2/market/trades': 10,
-                            'v2/market/ticker': 10,
-                            'v2/market/allTickers': 10,
-                            'v2/ex/exchangeInfo': 10,
-                            'v2/ex/currencies': 10,
-                            'v2/market/klines': 10,
-                            'v2/ex/tradefees': 10,
+                            'v2/system/time': {'cost': 10},
+                            'v2/system/status': {'cost': 10},
+                            'v2/market/orderbook': {'cost': 10},
+                            'v2/market/trades': {'cost': 10},
+                            'v2/market/ticker': {'cost': 10},
+                            'v2/market/allTickers': {'cost': 10},
+                            'v2/ex/exchangeInfo': {'cost': 10},
+                            'v2/ex/currencies': {'cost': 10},
+                            'v2/market/klines': {'cost': 10},
+                            'v2/ex/tradefees': {'cost': 10},
                         },
                     },
                     'swap': {
                         'get': {
-                            'v1/system/time': 10,
-                            'v1/system/status': 10,
-                            'v1/exchange/tradefee': 10,
-                            'v1/exchange/tradefees': 10,
-                            'v1/market/orderBook': 10,
-                            'v1/market/ticker24Hr': 10,
-                            'v1/market/markets': 10,
-                            'v1/market/aggTrade': 10,
+                            'v1/system/time': {'cost': 10},
+                            'v1/system/status': {'cost': 10},
+                            'v1/exchange/tradefee': {'cost': 10},
+                            'v1/exchange/tradefees': {'cost': 10},
+                            'v1/market/orderBook': {'cost': 10},
+                            'v1/market/ticker24Hr': {'cost': 10},
+                            'v1/market/markets': {'cost': 10},
+                            'v1/market/aggTrade': {'cost': 10},
                         },
                         'post': {
-                            'v1/market/klines': 10,
+                            'v1/market/klines': {'cost': 10},
                         },
                     },
                 },
                 'private': {
                     'spot': {
                         'post': {
-                            'v2/ex/orders': 10,
+                            'v2/ex/orders': {'cost': 10},
                         },
                         'get': {
-                            'v2/ex/orders': 10,
-                            'v2/account/balance': 10,
-                            'v2/ex/tradefee': 10,
-                            'v2/ex/order': 10,
-                            'v2/ex/order/fills': 10,
+                            'v2/ex/orders': {'cost': 10},
+                            'v2/account/balance': {'cost': 10},
+                            'v2/ex/tradefee': {'cost': 10},
+                            'v2/ex/order': {'cost': 10},
+                            'v2/ex/order/fills': {'cost': 10},
                         },
                         'delete': {
-                            'v2/ex/order': 10,
-                            'v2/ex/orders': 10,
-                            'v2/ex/orders/cancelAll': 10,
+                            'v2/ex/order': {'cost': 10},
+                            'v2/ex/orders': {'cost': 10},
+                            'v2/ex/orders/cancelAll': {'cost': 10},
                         },
                     },
                     'swap': {
                         'get': {
-                            'v1/wallet/balance': 10,
-                            'v1/trade/order': 10,
-                            'v1/trade/order/open-orders': 10,
-                            'v1/trade/userLeverages': 10,
-                            'v1/trade/userLeverage': 10,
-                            'v1/trade/positions': 10,
-                            'v1/trade/history': 10,
+                            'v1/wallet/balance': {'cost': 10},
+                            'v1/trade/order': {'cost': 10},
+                            'v1/trade/order/open-orders': {'cost': 10},
+                            'v1/trade/userLeverages': {'cost': 10},
+                            'v1/trade/userLeverage': {'cost': 10},
+                            'v1/trade/positions': {'cost': 10},
+                            'v1/trade/history': {'cost': 10},
                         },
                         'post': {
-                            'v1/trade/order': 10,
-                            'v1/trade/order/addTPSL': 10,
-                            'v1/trade/addMargin': 10,
-                            'v1/trade/reduceMargin': 10,
-                            'v1/trade/position/close': 10,
-                            'v1/trade/update/userLeverage': 10,
+                            'v1/trade/order': {'cost': 10},
+                            'v1/trade/order/addTPSL': {'cost': 10},
+                            'v1/trade/addMargin': {'cost': 10},
+                            'v1/trade/reduceMargin': {'cost': 10},
+                            'v1/trade/position/close': {'cost': 10},
+                            'v1/trade/update/userLeverage': {'cost': 10},
                         },
                         'delete': {
-                            'v1/trade/order': 10,
+                            'v1/trade/order': {'cost': 10},
                         },
                     },
                 },
@@ -226,7 +229,7 @@ class zebpay(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_status(self, params={}):
+    def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 

@@ -47,6 +47,7 @@ func (this *WoofiproCore) Describe() any {
 			"createMarketOrderWithCost":            false,
 			"createMarketSellOrderWithCost":        false,
 			"createOrder":                          true,
+			"createOrders":                         true,
 			"createOrderWithTakeProfitAndStopLoss": true,
 			"createReduceOnlyOrder":                true,
 			"createStopLimitOrder":                 false,
@@ -57,6 +58,7 @@ func (this *WoofiproCore) Describe() any {
 			"createTrailingAmountOrder":            false,
 			"createTrailingPercentOrder":           false,
 			"createTriggerOrder":                   true,
+			"editOrder":                            true,
 			"fetchAccounts":                        false,
 			"fetchAllGreeks":                       false,
 			"fetchBalance":                         true,
@@ -152,7 +154,7 @@ func (this *WoofiproCore) Describe() any {
 				"private": "https://testnet-api-evm.orderly.org",
 			},
 			"www":  "https://dex.woo.org",
-			"doc":  []any{"https://orderly.network/docs/build-on-omnichain/building-on-evm"},
+			"doc":  []any{"https://orderly.network/docs/build-on-omnichain/building-on-omnichain"},
 			"fees": []any{"https://dex.woo.org/en/orderly"},
 			"referral": map[string]any{
 				"url":      "https://dex.woo.org/en/trade?ref=CCXT",
@@ -163,133 +165,363 @@ func (this *WoofiproCore) Describe() any {
 			"v1": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"public/volume/stats":             1,
-						"public/broker/name":              1,
-						"public/chain_info/{broker_id}":   1,
-						"public/system_info":              1,
-						"public/vault_balance":            1,
-						"public/insurancefund":            1,
-						"public/chain_info":               1,
-						"faucet/usdc":                     1,
-						"public/account":                  1,
-						"get_account":                     1,
-						"registration_nonce":              1,
-						"get_orderly_key":                 1,
-						"public/liquidation":              1,
-						"public/liquidated_positions":     1,
-						"public/config":                   1,
-						"public/campaign/ranking":         10,
-						"public/campaign/stats":           10,
-						"public/campaign/user":            10,
-						"public/campaign/stats/details":   10,
-						"public/campaigns":                10,
-						"public/points/leaderboard":       1,
-						"client/points":                   1,
-						"public/points/epoch":             1,
-						"public/points/epoch_dates":       1,
-						"public/referral/check_ref_code":  1,
-						"public/referral/verify_ref_code": 1,
-						"referral/admin_info":             1,
-						"referral/info":                   1,
-						"referral/referee_info":           1,
-						"referral/referee_rebate_summary": 1,
-						"referral/referee_history":        1,
-						"referral/referral_history":       1,
-						"referral/rebate_summary":         1,
-						"client/distribution_history":     1,
-						"tv/config":                       1,
-						"tv/history":                      1,
-						"tv/symbol_info":                  1,
-						"public/funding_rate_history":     1,
-						"public/funding_rate/{symbol}":    0.33,
-						"public/funding_rates":            1,
-						"public/info":                     1,
-						"public/info/{symbol}":            1,
-						"public/market_trades":            1,
-						"public/token":                    1,
-						"public/futures":                  1,
-						"public/futures/{symbol}":         1,
+						"public/volume/stats": map[string]any{
+							"cost": 1,
+						},
+						"public/broker/name": map[string]any{
+							"cost": 1,
+						},
+						"public/chain_info/{broker_id}": map[string]any{
+							"cost": 1,
+						},
+						"public/system_info": map[string]any{
+							"cost": 1,
+						},
+						"public/vault_balance": map[string]any{
+							"cost": 1,
+						},
+						"public/insurancefund": map[string]any{
+							"cost": 1,
+						},
+						"public/chain_info": map[string]any{
+							"cost": 1,
+						},
+						"faucet/usdc": map[string]any{
+							"cost": 1,
+						},
+						"public/account": map[string]any{
+							"cost": 1,
+						},
+						"get_account": map[string]any{
+							"cost": 1,
+						},
+						"registration_nonce": map[string]any{
+							"cost": 1,
+						},
+						"get_orderly_key": map[string]any{
+							"cost": 1,
+						},
+						"public/liquidation": map[string]any{
+							"cost": 1,
+						},
+						"public/liquidated_positions": map[string]any{
+							"cost": 1,
+						},
+						"public/config": map[string]any{
+							"cost": 1,
+						},
+						"public/campaign/ranking": map[string]any{
+							"cost": 10,
+						},
+						"public/campaign/stats": map[string]any{
+							"cost": 10,
+						},
+						"public/campaign/user": map[string]any{
+							"cost": 10,
+						},
+						"public/campaign/stats/details": map[string]any{
+							"cost": 10,
+						},
+						"public/campaigns": map[string]any{
+							"cost": 10,
+						},
+						"public/points/leaderboard": map[string]any{
+							"cost": 1,
+						},
+						"client/points": map[string]any{
+							"cost": 1,
+						},
+						"public/points/epoch": map[string]any{
+							"cost": 1,
+						},
+						"public/points/epoch_dates": map[string]any{
+							"cost": 1,
+						},
+						"public/referral/check_ref_code": map[string]any{
+							"cost": 1,
+						},
+						"public/referral/verify_ref_code": map[string]any{
+							"cost": 1,
+						},
+						"referral/admin_info": map[string]any{
+							"cost": 1,
+						},
+						"referral/info": map[string]any{
+							"cost": 1,
+						},
+						"referral/referee_info": map[string]any{
+							"cost": 1,
+						},
+						"referral/referee_rebate_summary": map[string]any{
+							"cost": 1,
+						},
+						"referral/referee_history": map[string]any{
+							"cost": 1,
+						},
+						"referral/referral_history": map[string]any{
+							"cost": 1,
+						},
+						"referral/rebate_summary": map[string]any{
+							"cost": 1,
+						},
+						"client/distribution_history": map[string]any{
+							"cost": 1,
+						},
+						"tv/config": map[string]any{
+							"cost": 1,
+						},
+						"tv/history": map[string]any{
+							"cost": 1,
+						},
+						"tv/symbol_info": map[string]any{
+							"cost": 1,
+						},
+						"public/funding_rate_history": map[string]any{
+							"cost": 1,
+						},
+						"public/funding_rate/{symbol}": map[string]any{
+							"cost": 0.33,
+						},
+						"public/funding_rates": map[string]any{
+							"cost": 1,
+						},
+						"public/info": map[string]any{
+							"cost": 1,
+						},
+						"public/info/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"public/market_trades": map[string]any{
+							"cost": 1,
+						},
+						"public/token": map[string]any{
+							"cost": 1,
+						},
+						"public/futures": map[string]any{
+							"cost": 1,
+						},
+						"public/futures/{symbol}": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"register_account": 1,
+						"register_account": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"client/key_info":                     6,
-						"client/orderly_key_ip_restriction":   6,
-						"order/{oid}":                         1,
-						"client/order/{client_order_id}":      1,
-						"algo/order/{oid}":                    1,
-						"algo/client/order/{client_order_id}": 1,
-						"orders":                              1,
-						"algo/orders":                         1,
-						"trade/{tid}":                         1,
-						"trades":                              1,
-						"order/{oid}/trades":                  1,
-						"client/liquidator_liquidations":      1,
-						"liquidations":                        1,
-						"asset/history":                       60,
-						"client/holding":                      1,
-						"withdraw_nonce":                      1,
-						"settle_nonce":                        1,
-						"pnl_settlement/history":              1,
-						"volume/user/daily":                   60,
-						"volume/user/stats":                   60,
-						"client/statistics":                   60,
-						"client/info":                         60,
-						"client/statistics/daily":             60,
-						"positions":                           3.33,
-						"position/{symbol}":                   3.33,
-						"funding_fee/history":                 30,
-						"notification/inbox/notifications":    60,
-						"notification/inbox/unread":           60,
-						"volume/broker/daily":                 60,
-						"broker/fee_rate/default":             10,
-						"broker/user_info":                    10,
-						"orderbook/{symbol}":                  1,
-						"kline":                               1,
+						"client/key_info": map[string]any{
+							"cost": 6,
+						},
+						"client/orderly_key_ip_restriction": map[string]any{
+							"cost": 6,
+						},
+						"order/{oid}": map[string]any{
+							"cost": 1,
+						},
+						"client/order/{client_order_id}": map[string]any{
+							"cost": 1,
+						},
+						"algo/order/{oid}": map[string]any{
+							"cost": 1,
+						},
+						"algo/client/order/{client_order_id}": map[string]any{
+							"cost": 1,
+						},
+						"orders": map[string]any{
+							"cost": 1,
+						},
+						"algo/orders": map[string]any{
+							"cost": 1,
+						},
+						"trade/{tid}": map[string]any{
+							"cost": 1,
+						},
+						"trades": map[string]any{
+							"cost": 1,
+						},
+						"order/{oid}/trades": map[string]any{
+							"cost": 1,
+						},
+						"client/liquidator_liquidations": map[string]any{
+							"cost": 1,
+						},
+						"liquidations": map[string]any{
+							"cost": 1,
+						},
+						"asset/history": map[string]any{
+							"cost": 60,
+						},
+						"client/holding": map[string]any{
+							"cost": 1,
+						},
+						"withdraw_nonce": map[string]any{
+							"cost": 1,
+						},
+						"settle_nonce": map[string]any{
+							"cost": 1,
+						},
+						"pnl_settlement/history": map[string]any{
+							"cost": 1,
+						},
+						"volume/user/daily": map[string]any{
+							"cost": 60,
+						},
+						"volume/user/stats": map[string]any{
+							"cost": 60,
+						},
+						"client/statistics": map[string]any{
+							"cost": 60,
+						},
+						"client/info": map[string]any{
+							"cost": 60,
+						},
+						"client/statistics/daily": map[string]any{
+							"cost": 60,
+						},
+						"positions": map[string]any{
+							"cost": 3.33,
+						},
+						"position/{symbol}": map[string]any{
+							"cost": 3.33,
+						},
+						"funding_fee/history": map[string]any{
+							"cost": 30,
+						},
+						"notification/inbox/notifications": map[string]any{
+							"cost": 60,
+						},
+						"notification/inbox/unread": map[string]any{
+							"cost": 60,
+						},
+						"volume/broker/daily": map[string]any{
+							"cost": 60,
+						},
+						"broker/fee_rate/default": map[string]any{
+							"cost": 10,
+						},
+						"broker/user_info": map[string]any{
+							"cost": 10,
+						},
+						"orderbook/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"kline": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"orderly_key":                             1,
-						"client/set_orderly_key_ip_restriction":   6,
-						"client/reset_orderly_key_ip_restriction": 6,
-						"order":                            1,
-						"batch-order":                      10,
-						"algo/order":                       1,
-						"liquidation":                      1,
-						"claim_insurance_fund":             1,
-						"withdraw_request":                 1,
-						"settle_pnl":                       1,
-						"notification/inbox/mark_read":     60,
-						"notification/inbox/mark_read_all": 60,
-						"client/leverage":                  120,
-						"client/maintenance_config":        60,
-						"delegate_signer":                  10,
-						"delegate_orderly_key":             10,
-						"delegate_settle_pnl":              10,
-						"delegate_withdraw_request":        10,
-						"broker/fee_rate/set":              10,
-						"broker/fee_rate/set_default":      10,
-						"broker/fee_rate/default":          10,
-						"referral/create":                  10,
-						"referral/update":                  10,
-						"referral/bind":                    10,
-						"referral/edit_split":              10,
+						"orderly_key": map[string]any{
+							"cost": 1,
+						},
+						"client/set_orderly_key_ip_restriction": map[string]any{
+							"cost": 6,
+						},
+						"client/reset_orderly_key_ip_restriction": map[string]any{
+							"cost": 6,
+						},
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"batch-order": map[string]any{
+							"cost": 10,
+						},
+						"algo/order": map[string]any{
+							"cost": 1,
+						},
+						"liquidation": map[string]any{
+							"cost": 1,
+						},
+						"claim_insurance_fund": map[string]any{
+							"cost": 1,
+						},
+						"withdraw_request": map[string]any{
+							"cost": 1,
+						},
+						"settle_pnl": map[string]any{
+							"cost": 1,
+						},
+						"notification/inbox/mark_read": map[string]any{
+							"cost": 60,
+						},
+						"notification/inbox/mark_read_all": map[string]any{
+							"cost": 60,
+						},
+						"client/leverage": map[string]any{
+							"cost": 120,
+						},
+						"client/maintenance_config": map[string]any{
+							"cost": 60,
+						},
+						"delegate_signer": map[string]any{
+							"cost": 10,
+						},
+						"delegate_orderly_key": map[string]any{
+							"cost": 10,
+						},
+						"delegate_settle_pnl": map[string]any{
+							"cost": 10,
+						},
+						"delegate_withdraw_request": map[string]any{
+							"cost": 10,
+						},
+						"broker/fee_rate/set": map[string]any{
+							"cost": 10,
+						},
+						"broker/fee_rate/set_default": map[string]any{
+							"cost": 10,
+						},
+						"broker/fee_rate/default": map[string]any{
+							"cost": 10,
+						},
+						"referral/create": map[string]any{
+							"cost": 10,
+						},
+						"referral/update": map[string]any{
+							"cost": 10,
+						},
+						"referral/bind": map[string]any{
+							"cost": 10,
+						},
+						"referral/edit_split": map[string]any{
+							"cost": 10,
+						},
 					},
 					"put": map[string]any{
-						"order":      1,
-						"algo/order": 1,
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"algo/order": map[string]any{
+							"cost": 1,
+						},
 					},
 					"delete": map[string]any{
-						"order":              1,
-						"algo/order":         1,
-						"client/order":       1,
-						"algo/client/order":  1,
-						"algo/orders":        1,
-						"orders":             1,
-						"batch-order":        1,
-						"client/batch-order": 1,
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"algo/order": map[string]any{
+							"cost": 1,
+						},
+						"client/order": map[string]any{
+							"cost": 1,
+						},
+						"algo/client/order": map[string]any{
+							"cost": 1,
+						},
+						"algo/orders": map[string]any{
+							"cost": 1,
+						},
+						"orders": map[string]any{
+							"cost": 1,
+						},
+						"batch-order": map[string]any{
+							"cost": 1,
+						},
+						"client/batch-order": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
@@ -442,7 +674,7 @@ func (this *WoofiproCore) SetSandboxMode(enable any) {
  * @method
  * @name woofipro#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
@@ -493,7 +725,7 @@ func (this *WoofiproCore) FetchStatus(optionalArgs ...any) <-chan any {
  * @method
  * @name woofipro#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -620,7 +852,7 @@ func (this *WoofiproCore) ParseMarket(market any) any {
  * @method
  * @name woofipro#fetchMarkets
  * @description retrieves data on all markets for woofipro
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-available-symbols
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -683,8 +915,8 @@ func (this *WoofiproCore) FetchMarkets(optionalArgs ...any) <-chan any {
  * @method
  * @name woofipro#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -893,7 +1125,7 @@ func (this *WoofiproCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @method
  * @name woofipro#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-market-trades
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-trades
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -913,8 +1145,8 @@ func (this *WoofiproCore) FetchTrades(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes86112 := (<-this.LoadMarkets())
-			PanicOnError(retRes86112)
+			retRes86312 := (<-this.LoadMarkets())
+			PanicOnError(retRes86312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1008,7 +1240,7 @@ func (this *WoofiproCore) ParseFundingInterval(interval any) any {
  * @method
  * @name woofipro#fetchFundingInterval
  * @description fetch the current funding rate interval
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1021,9 +1253,9 @@ func (this *WoofiproCore) FetchFundingInterval(symbol any, optionalArgs ...any) 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes95415 := (<-this.FetchFundingRate(symbol, params))
-		PanicOnError(retRes95415)
-		ch <- retRes95415
+		retRes95615 := (<-this.FetchFundingRate(symbol, params))
+		PanicOnError(retRes95615)
+		ch <- retRes95615
 		return nil
 
 	}()
@@ -1034,7 +1266,7 @@ func (this *WoofiproCore) FetchFundingInterval(symbol any, optionalArgs ...any) 
  * @method
  * @name woofipro#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1048,8 +1280,8 @@ func (this *WoofiproCore) FetchFundingRate(symbol any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes96812 := (<-this.LoadMarkets())
-			PanicOnError(retRes96812)
+			retRes97012 := (<-this.LoadMarkets())
+			PanicOnError(retRes97012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1086,7 +1318,7 @@ func (this *WoofiproCore) FetchFundingRate(symbol any, optionalArgs ...any) <-ch
  * @method
  * @name woofipro#fetchFundingRates
  * @description fetch the current funding rate for multiple markets
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
  * @param {string[]} symbols unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1102,8 +1334,8 @@ func (this *WoofiproCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes100512 := (<-this.LoadMarkets())
-			PanicOnError(retRes100512)
+			retRes100712 := (<-this.LoadMarkets())
+			PanicOnError(retRes100712)
 		}
 		symbols = this.MarketSymbols(symbols)
 
@@ -1140,7 +1372,7 @@ func (this *WoofiproCore) FetchFundingRates(optionalArgs ...any) <-chan any {
  * @method
  * @name woofipro#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-funding-rate-history-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-market
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -1164,8 +1396,8 @@ func (this *WoofiproCore) FetchFundingRateHistory(optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes104612 := (<-this.LoadMarkets())
-			PanicOnError(retRes104612)
+			retRes104812 := (<-this.LoadMarkets())
+			PanicOnError(retRes104812)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -1173,9 +1405,9 @@ func (this *WoofiproCore) FetchFundingRateHistory(optionalArgs ...any) <-chan an
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes105119 := (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
-			PanicOnError(retRes105119)
-			ch <- retRes105119
+			retRes105319 := (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
+			PanicOnError(retRes105319)
+			ch <- retRes105319
 			return nil
 		}
 		var request any = map[string]any{}
@@ -1274,7 +1506,7 @@ func (this *WoofiproCore) ParseIncome(income any, optionalArgs ...any) any {
  * @method
  * @name woofipro#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -1297,8 +1529,8 @@ func (this *WoofiproCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes114912 := (<-this.LoadMarkets())
-			PanicOnError(retRes114912)
+			retRes115112 := (<-this.LoadMarkets())
+			PanicOnError(retRes115112)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
@@ -1306,9 +1538,9 @@ func (this *WoofiproCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes115419 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes115419)
-			ch <- retRes115419
+			retRes115619 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes115619)
+			ch <- retRes115619
 			return nil
 		}
 		var request any = map[string]any{}
@@ -1368,7 +1600,7 @@ func (this *WoofiproCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
  * @method
  * @name woofipro#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
@@ -1381,8 +1613,8 @@ func (this *WoofiproCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes121212 := (<-this.LoadMarkets())
-			PanicOnError(retRes121212)
+			retRes121412 := (<-this.LoadMarkets())
+			PanicOnError(retRes121412)
 		}
 
 		response := (<-this.V1PrivateGetClientInfo(params))
@@ -1442,7 +1674,7 @@ func (this *WoofiproCore) FetchTradingFees(optionalArgs ...any) <-chan any {
  * @method
  * @name woofipro#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/orderbook-snapshot
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1459,8 +1691,8 @@ func (this *WoofiproCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes127312 := (<-this.LoadMarkets())
-			PanicOnError(retRes127312)
+			retRes127512 := (<-this.LoadMarkets())
+			PanicOnError(retRes127512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1508,7 +1740,7 @@ func (this *WoofiproCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 /**
  * @method
  * @name woofipro#fetchOHLCV
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-kline
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -1532,8 +1764,8 @@ func (this *WoofiproCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes133112 := (<-this.LoadMarkets())
-			PanicOnError(retRes133112)
+			retRes133312 := (<-this.LoadMarkets())
+			PanicOnError(retRes133312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1803,16 +2035,10 @@ func (this *WoofiproCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 		AddElementToObject(request, "algo_type", "STOP")
 	} else if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
 		AddElementToObject(request, "algo_type", "TP_SL")
-		var outterOrder any = map[string]any{
-			"symbol":       GetValue(market, "id"),
-			"reduce_only":  false,
-			"algo_type":    "POSITIONAL_TP_SL",
-			"child_orders": []any{},
-		}
-		var childOrders any = GetValue(outterOrder, "child_orders")
+		var childOrders any = []any{}
 		var closeSide any = Ternary(IsTrue((IsEqual(orderSide, "BUY"))), "SELL", "BUY")
 		if IsTrue(hasStopLoss) {
-			var stopLossPrice any = this.SafeNumber2(stopLoss, "triggerPrice", "price", stopLoss)
+			var stopLossPrice any = this.SafeValue2(stopLoss, "triggerPrice", "price", stopLoss)
 			var stopLossOrder any = map[string]any{
 				"side":          closeSide,
 				"algo_type":     "TP_SL",
@@ -1823,7 +2049,7 @@ func (this *WoofiproCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 			AppendToArray(&childOrders, stopLossOrder)
 		}
 		if IsTrue(hasTakeProfit) {
-			var takeProfitPrice any = this.SafeNumber2(takeProfit, "triggerPrice", "price", takeProfit)
+			var takeProfitPrice any = this.SafeValue2(takeProfit, "triggerPrice", "price", takeProfit)
 			var takeProfitOrder any = map[string]any{
 				"side":          closeSide,
 				"algo_type":     "TP_SL",
@@ -1832,6 +2058,12 @@ func (this *WoofiproCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 				"reduce_only":   true,
 			}
 			AppendToArray(&childOrders, takeProfitOrder)
+		}
+		var outterOrder any = map[string]any{
+			"symbol":       GetValue(market, "id"),
+			"reduce_only":  false,
+			"algo_type":    "POSITIONAL_TP_SL",
+			"child_orders": childOrders,
 		}
 		AddElementToObject(request, "child_orders", []any{outterOrder})
 	}
@@ -1843,8 +2075,8 @@ func (this *WoofiproCore) CreateOrderRequest(symbol any, typeVar any, side any, 
  * @method
  * @name woofipro#createOrder
  * @description create a trade order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -1872,8 +2104,8 @@ func (this *WoofiproCore) CreateOrder(symbol any, typeVar any, side any, amount 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes165312 := (<-this.LoadMarkets())
-			PanicOnError(retRes165312)
+			retRes165512 := (<-this.LoadMarkets())
+			PanicOnError(retRes165512)
 		}
 		var market any = this.Market(symbol)
 		var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -1907,7 +2139,7 @@ func (this *WoofiproCore) CreateOrder(symbol any, typeVar any, side any, amount 
  * @method
  * @name woofipro#createOrders
  * @description *contract only* create a list of trade orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-create-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1921,8 +2153,8 @@ func (this *WoofiproCore) CreateOrders(orders any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes171212 := (<-this.LoadMarkets())
-			PanicOnError(retRes171212)
+			retRes171412 := (<-this.LoadMarkets())
+			PanicOnError(retRes171412)
 		}
 		var ordersRequests any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
@@ -1980,8 +2212,8 @@ func (this *WoofiproCore) CreateOrders(orders any, optionalArgs ...any) <-chan a
  * @method
  * @name woofipro#editOrder
  * @description edit a trade order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -2007,8 +2239,8 @@ func (this *WoofiproCore) EditOrder(id any, symbol any, typeVar any, side any, o
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes177912 := (<-this.LoadMarkets())
-			PanicOnError(retRes177912)
+			retRes178112 := (<-this.LoadMarkets())
+			PanicOnError(retRes178112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2085,10 +2317,10 @@ func (this *WoofiproCore) EditOrder(id any, symbol any, typeVar any, side any, o
 /**
  * @method
  * @name woofipro#cancelOrder
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order-by-client_order_id
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
  * @description cancels an open order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
@@ -2113,8 +2345,8 @@ func (this *WoofiproCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes186612 := (<-this.LoadMarkets())
-			PanicOnError(retRes186612)
+			retRes186812 := (<-this.LoadMarkets())
+			PanicOnError(retRes186812)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2196,8 +2428,8 @@ func (this *WoofiproCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @method
  * @name woofipro#cancelOrders
  * @description cancel multiple orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2215,8 +2447,8 @@ func (this *WoofiproCore) CancelOrders(ids any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes194112 := (<-this.LoadMarkets())
-			PanicOnError(retRes194112)
+			retRes194312 := (<-this.LoadMarkets())
+			PanicOnError(retRes194312)
 		}
 		var clientOrderIds any = this.SafeListN(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
 		params = this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
@@ -2255,8 +2487,8 @@ func (this *WoofiproCore) CancelOrders(ids any, optionalArgs ...any) <-chan any 
 /**
  * @method
  * @name woofipro#cancelAllOrders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-all-pending-algo-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
  * @description cancel all open orders in a market
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2274,8 +2506,8 @@ func (this *WoofiproCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes198112 := (<-this.LoadMarkets())
-			PanicOnError(retRes198112)
+			retRes198312 := (<-this.LoadMarkets())
+			PanicOnError(retRes198312)
 		}
 		var trigger any = this.SafeBool2(params, "stop", "trigger")
 		params = this.Omit(params, []any{"stop", "trigger"})
@@ -2322,10 +2554,10 @@ func (this *WoofiproCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 /**
  * @method
  * @name woofipro#fetchOrder
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-order_id
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-client_order_id
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-order_id
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
  * @description fetches information on an order made by the user
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
@@ -2345,8 +2577,8 @@ func (this *WoofiproCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes203512 := (<-this.LoadMarkets())
-			PanicOnError(retRes203512)
+			retRes203712 := (<-this.LoadMarkets())
+			PanicOnError(retRes203712)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2423,8 +2655,8 @@ func (this *WoofiproCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @method
  * @name woofipro#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2451,8 +2683,8 @@ func (this *WoofiproCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes211412 := (<-this.LoadMarkets())
-			PanicOnError(retRes211412)
+			retRes211612 := (<-this.LoadMarkets())
+			PanicOnError(retRes211612)
 		}
 		var paginate any = false
 		var isTrigger any = this.SafeBool2(params, "stop", "trigger", false)
@@ -2462,9 +2694,9 @@ func (this *WoofiproCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes212119 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", maxLimit))
-			PanicOnError(retRes212119)
-			ch <- retRes212119
+			retRes212319 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", maxLimit))
+			PanicOnError(retRes212319)
+			ch <- retRes212319
 			return nil
 		}
 		var request any = map[string]any{}
@@ -2546,8 +2778,8 @@ func (this *WoofiproCore) FetchOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name woofipro#fetchOpenOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2574,16 +2806,16 @@ func (this *WoofiproCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes220612 := (<-this.LoadMarkets())
-			PanicOnError(retRes220612)
+			retRes220812 := (<-this.LoadMarkets())
+			PanicOnError(retRes220812)
 		}
 		var extendedParams any = this.Extend(params, map[string]any{
 			"status": "INCOMPLETE",
 		})
 
-		retRes220915 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes220915)
-		ch <- retRes220915
+		retRes221115 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+		PanicOnError(retRes221115)
+		ch <- retRes221115
 		return nil
 
 	}()
@@ -2594,8 +2826,8 @@ func (this *WoofiproCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name woofipro#fetchClosedOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2622,16 +2854,16 @@ func (this *WoofiproCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes223112 := (<-this.LoadMarkets())
-			PanicOnError(retRes223112)
+			retRes223312 := (<-this.LoadMarkets())
+			PanicOnError(retRes223312)
 		}
 		var extendedParams any = this.Extend(params, map[string]any{
 			"status": "COMPLETED",
 		})
 
-		retRes223415 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes223415)
-		ch <- retRes223415
+		retRes223615 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+		PanicOnError(retRes223615)
+		ch <- retRes223615
 		return nil
 
 	}()
@@ -2642,7 +2874,7 @@ func (this *WoofiproCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name woofipro#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-trades-of-specific-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-trades-of-specific-order
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2665,8 +2897,8 @@ func (this *WoofiproCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes225112 := (<-this.LoadMarkets())
-			PanicOnError(retRes225112)
+			retRes225312 := (<-this.LoadMarkets())
+			PanicOnError(retRes225312)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2712,7 +2944,7 @@ func (this *WoofiproCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan a
 /**
  * @method
  * @name woofipro#fetchMyTrades
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-trades
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-trades
  * @description fetch all trades made by the user
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2737,8 +2969,8 @@ func (this *WoofiproCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes230212 := (<-this.LoadMarkets())
-			PanicOnError(retRes230212)
+			retRes230412 := (<-this.LoadMarkets())
+			PanicOnError(retRes230412)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -2746,9 +2978,9 @@ func (this *WoofiproCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes230719 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes230719)
-			ch <- retRes230719
+			retRes230919 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes230919)
+			ch <- retRes230919
 			return nil
 		}
 		var request any = map[string]any{}
@@ -2816,7 +3048,7 @@ func (this *WoofiproCore) ParseBalance(response any) any {
 		var code any = this.SafeCurrencyCode(this.SafeString(balance, "token"))
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "holding"))
-		AddElementToObject(account, "frozen", this.SafeString(balance, "frozen"))
+		AddElementToObject(account, "used", this.SafeString(balance, "frozen"))
 		if IsTrue(!IsEqual(code, nil)) {
 			AddElementToObject(result, code, account)
 		}
@@ -2828,7 +3060,7 @@ func (this *WoofiproCore) ParseBalance(response any) any {
  * @method
  * @name woofipro#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-current-holding
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
@@ -2841,8 +3073,8 @@ func (this *WoofiproCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes238412 := (<-this.LoadMarkets())
-			PanicOnError(retRes238412)
+			retRes238612 := (<-this.LoadMarkets())
+			PanicOnError(retRes238612)
 		}
 
 		response := (<-this.V1PrivateGetClientHolding(params))
@@ -2885,8 +3117,8 @@ func (this *WoofiproCore) GetAssetHistoryRows(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes240812 := (<-this.LoadMarkets())
-			PanicOnError(retRes240812)
+			retRes241012 := (<-this.LoadMarkets())
+			PanicOnError(retRes241012)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -2982,7 +3214,7 @@ func (this *WoofiproCore) ParseLedgerEntryType(typeVar any) any {
  * @method
  * @name woofipro#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -3065,7 +3297,7 @@ func (this *WoofiproCore) ParseTransactionStatus(status any) any {
  * @method
  * @name woofipro#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -3089,9 +3321,9 @@ func (this *WoofiproCore) FetchDeposits(optionalArgs ...any) <-chan any {
 			"side": "DEPOSIT",
 		}
 
-		retRes257215 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes257215)
-		ch <- retRes257215
+		retRes257415 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes257415)
+		ch <- retRes257415
 		return nil
 
 	}()
@@ -3102,7 +3334,7 @@ func (this *WoofiproCore) FetchDeposits(optionalArgs ...any) <-chan any {
  * @method
  * @name woofipro#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -3126,9 +3358,9 @@ func (this *WoofiproCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 			"side": "WITHDRAW",
 		}
 
-		retRes259015 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes259015)
-		ch <- retRes259015
+		retRes259215 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes259215)
+		ch <- retRes259215
 		return nil
 
 	}()
@@ -3139,7 +3371,7 @@ func (this *WoofiproCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
  * @method
  * @name woofipro#fetchDepositsWithdrawals
  * @description fetch history of deposits and withdrawals
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
  * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -3232,7 +3464,7 @@ func (this *WoofiproCore) SignMessage(message any, privateKey any) any {
  * @method
  * @name woofipro#withdraw
  * @description make a withdrawal
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-withdraw-request
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-request
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
@@ -3251,8 +3483,8 @@ func (this *WoofiproCore) Withdraw(code any, amount any, address any, optionalAr
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes267212 := (<-this.LoadMarkets())
-			PanicOnError(retRes267212)
+			retRes267412 := (<-this.LoadMarkets())
+			PanicOnError(retRes267412)
 		}
 		this.CheckAddress(address)
 		if IsTrue(!IsEqual(code, nil)) {
@@ -3359,7 +3591,7 @@ func (this *WoofiproCore) ParseLeverage(leverage any, optionalArgs ...any) any {
  * @method
  * @name woofipro#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
@@ -3373,8 +3605,8 @@ func (this *WoofiproCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes276312 := (<-this.LoadMarkets())
-			PanicOnError(retRes276312)
+			retRes276512 := (<-this.LoadMarkets())
+			PanicOnError(retRes276512)
 		}
 		var market any = this.Market(symbol)
 
@@ -3420,7 +3652,7 @@ func (this *WoofiproCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan 
  * @method
  * @name woofipro#setLeverage
  * @description set the level of leverage for a market
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/update-leverage-setting
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-leverage-setting
  * @param {int} [leverage] the rate of leverage
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3437,8 +3669,8 @@ func (this *WoofiproCore) SetLeverage(leverage any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes281012 := (<-this.LoadMarkets())
-			PanicOnError(retRes281012)
+			retRes281212 := (<-this.LoadMarkets())
+			PanicOnError(retRes281212)
 		}
 		if IsTrue(IsTrue((IsLessThan(leverage, 1))) || IsTrue((IsGreaterThan(leverage, 50)))) {
 			panic(BadRequest(Add(this.Id, " leverage should be between 1 and 50")))
@@ -3447,9 +3679,9 @@ func (this *WoofiproCore) SetLeverage(leverage any, optionalArgs ...any) <-chan 
 			"leverage": leverage,
 		}
 
-		retRes281815 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params)))
-		PanicOnError(retRes281815)
-		ch <- retRes281815
+		retRes282015 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params)))
+		PanicOnError(retRes282015)
+		ch <- retRes282015
 		return nil
 
 	}()
@@ -3531,7 +3763,7 @@ func (this *WoofiproCore) ParsePosition(position any, optionalArgs ...any) any {
 /**
  * @method
  * @name woofipro#fetchPosition
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
  * @description fetch data on an open position
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3546,8 +3778,8 @@ func (this *WoofiproCore) FetchPosition(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes290312 := (<-this.LoadMarkets())
-			PanicOnError(retRes290312)
+			retRes290512 := (<-this.LoadMarkets())
+			PanicOnError(retRes290512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -3595,7 +3827,7 @@ func (this *WoofiproCore) FetchPosition(symbol any, optionalArgs ...any) <-chan 
  * @method
  * @name woofipro#fetchPositions
  * @description fetch all open positions
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-positions-info
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-positions-info
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -3611,8 +3843,8 @@ func (this *WoofiproCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes295112 := (<-this.LoadMarkets())
-			PanicOnError(retRes295112)
+			retRes295312 := (<-this.LoadMarkets())
+			PanicOnError(retRes295312)
 		}
 
 		response := (<-this.V1PrivateGetPositions(params))

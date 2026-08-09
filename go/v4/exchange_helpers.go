@@ -1228,6 +1228,21 @@ func InOp(dict any, key any) bool {
 				return true
 			}
 		}
+	case OrderBookInterface:
+		// WsOrderBook is a typed struct, not a map - without this case every key-presence
+		// check on ws orderbooks is false and shared structure tests fail with
+		// "key is missing from structure", see the java twin
+		// https://github.com/ccxt/ccxt/pull/29596
+		if keyStr, ok := key.(string); ok {
+			switch keyStr {
+			case "asks", "bids", "timestamp", "datetime", "nonce":
+				return true
+			case "outcome", "outcomeId", "market":
+				return v.GetValue("outcome", nil) != nil
+			case "symbol":
+				return v.GetValue("outcome", nil) == nil
+			}
+		}
 	case map[string]map[string]*ArrayCacheByTimestamp:
 		if keyStr, ok2 := key.(string); ok2 {
 			addElementMu.Lock()

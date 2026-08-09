@@ -128,7 +128,7 @@ public class ApexCore extends ApexApi
                 put( "setLeverage", true );
                 put( "setMarginMode", false );
                 put( "setPositionMode", false );
-                put( "transfer", false );
+                put( "transfer", true );
                 put( "withdraw", false );
             }} );
             put( "timeframes", new java.util.HashMap<String, Object>() {{
@@ -164,39 +164,93 @@ public class ApexCore extends ApexApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "v3/symbols", 1 );
-                        put( "v3/history-funding", 1 );
-                        put( "v3/ticker", 1 );
-                        put( "v3/klines", 1 );
-                        put( "v3/trades", 1 );
-                        put( "v3/depth", 1 );
-                        put( "v3/time", 1 );
-                        put( "v3/data/all-ticker-info", 1 );
+                        put( "v3/symbols", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/history-funding", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/ticker", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/klines", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/depth", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/time", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/data/all-ticker-info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "v3/account", 1 );
-                        put( "v3/account-balance", 1 );
-                        put( "v3/fills", 1 );
-                        put( "v3/order-fills", 1 );
-                        put( "v3/order", 1 );
-                        put( "v3/history-orders", 1 );
-                        put( "v3/order-by-client-order-id", 1 );
-                        put( "v3/funding", 1 );
-                        put( "v3/historical-pnl", 1 );
-                        put( "v3/open-orders", 1 );
-                        put( "v3/transfers", 1 );
-                        put( "v3/transfer", 1 );
+                        put( "v3/account", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/account-balance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/fills", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/order-fills", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/history-orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/order-by-client-order-id", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/funding", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/historical-pnl", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/open-orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/transfers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/transfer", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "v3/delete-open-orders", 1 );
-                        put( "v3/delete-client-order-id", 1 );
-                        put( "v3/delete-order", 1 );
-                        put( "v3/order", 1 );
-                        put( "v3/set-initial-margin-rate", 1 );
-                        put( "v3/transfer-out", 1 );
-                        put( "v3/contract-transfer-out", 1 );
+                        put( "v3/delete-open-orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/delete-client-order-id", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/delete-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/set-initial-margin-rate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/transfer-out", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/contract-transfer-out", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
             }} );

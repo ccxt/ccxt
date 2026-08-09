@@ -164,36 +164,36 @@ export default class onetrading extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'currencies',
-                        'candlesticks/{instrument_code}',
-                        'fees',
-                        'instruments',
-                        'order-book/{instrument_code}',
-                        'market-ticker',
-                        'market-ticker/{instrument_code}',
-                        'time',
-                    ],
+                    'get': {
+                        'currencies': { 'cost': 1 },
+                        'candlesticks/{instrument_code}': { 'cost': 1 },
+                        'fees': { 'cost': 1 },
+                        'instruments': { 'cost': 1 },
+                        'order-book/{instrument_code}': { 'cost': 1 },
+                        'market-ticker': { 'cost': 1 },
+                        'market-ticker/{instrument_code}': { 'cost': 1 },
+                        'time': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'get': [
-                        'account/balances',
-                        'account/fees',
-                        'account/orders',
-                        'account/orders/{order_id}',
-                        'account/orders/client/{client_id}',
-                        'account/orders/{order_id}/trades',
-                        'account/trades',
-                        'account/trade/{trade_id}',
-                    ],
-                    'post': [
-                        'account/orders',
-                    ],
-                    'delete': [
-                        'account/orders',
-                        'account/orders/{order_id}',
-                        'account/orders/client/{client_id}',
-                    ],
+                    'get': {
+                        'account/balances': { 'cost': 1 },
+                        'account/fees': { 'cost': 1 },
+                        'account/orders': { 'cost': 1 },
+                        'account/orders/{order_id}': { 'cost': 1 },
+                        'account/orders/client/{client_id}': { 'cost': 1 },
+                        'account/orders/{order_id}/trades': { 'cost': 1 },
+                        'account/trades': { 'cost': 1 },
+                        'account/trade/{trade_id}': { 'cost': 1 },
+                    },
+                    'post': {
+                        'account/orders': { 'cost': 1 },
+                    },
+                    'delete': {
+                        'account/orders': { 'cost': 1 },
+                        'account/orders/{order_id}': { 'cost': 1 },
+                        'account/orders/client/{client_id}': { 'cost': 1 },
+                    },
                 },
             },
             'fees': {
@@ -901,8 +901,9 @@ export default class onetrading extends Exchange {
         //     ]
         //
         const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const ticker = this.parseTicker(response[i]);
+        const rawTickers = this.toArray(response);
+        for (let i = 0; i < rawTickers.length; i++) {
+            const ticker = this.parseTicker(rawTickers[i]);
             const symbol = ticker['symbol'];
             if (symbol !== undefined) {
                 result[symbol] = ticker;

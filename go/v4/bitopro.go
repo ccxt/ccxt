@@ -96,7 +96,7 @@ func (this *BitoproCore) Describe() any {
 			"fetchOptionChain":                       false,
 			"fetchOrder":                             true,
 			"fetchOrderBook":                         true,
-			"fetchOrders":                            false,
+			"fetchOrders":                            true,
 			"fetchOrderTrades":                       false,
 			"fetchPosition":                          false,
 			"fetchPositionHistory":                   false,
@@ -159,42 +159,94 @@ func (this *BitoproCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"order-book/{pair}":                 1,
-					"tickers":                           1,
-					"tickers/{pair}":                    1,
-					"trades/{pair}":                     1,
-					"provisioning/currencies":           1,
-					"provisioning/trading-pairs":        1,
-					"provisioning/limitations-and-fees": 1,
-					"trading-history/{pair}":            1,
-					"price/otc/{currency}":              1,
+					"order-book/{pair}": map[string]any{
+						"cost": 1,
+					},
+					"tickers": map[string]any{
+						"cost": 1,
+					},
+					"tickers/{pair}": map[string]any{
+						"cost": 1,
+					},
+					"trades/{pair}": map[string]any{
+						"cost": 1,
+					},
+					"provisioning/currencies": map[string]any{
+						"cost": 1,
+					},
+					"provisioning/trading-pairs": map[string]any{
+						"cost": 1,
+					},
+					"provisioning/limitations-and-fees": map[string]any{
+						"cost": 1,
+					},
+					"trading-history/{pair}": map[string]any{
+						"cost": 1,
+					},
+					"price/otc/{currency}": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"accounts/balance":                    1,
-					"orders/history":                      1,
-					"orders/all/{pair}":                   1,
-					"orders/trades/{pair}":                1,
-					"orders/{pair}/{orderId}":             1,
-					"wallet/withdraw/{currency}/{serial}": 1,
-					"wallet/withdraw/{currency}/id/{id}":  1,
-					"wallet/depositHistory/{currency}":    1,
-					"wallet/withdrawHistory/{currency}":   1,
-					"orders/open":                         1,
+					"accounts/balance": map[string]any{
+						"cost": 1,
+					},
+					"orders/history": map[string]any{
+						"cost": 1,
+					},
+					"orders/all/{pair}": map[string]any{
+						"cost": 1,
+					},
+					"orders/trades/{pair}": map[string]any{
+						"cost": 1,
+					},
+					"orders/{pair}/{orderId}": map[string]any{
+						"cost": 1,
+					},
+					"wallet/withdraw/{currency}/{serial}": map[string]any{
+						"cost": 1,
+					},
+					"wallet/withdraw/{currency}/id/{id}": map[string]any{
+						"cost": 1,
+					},
+					"wallet/depositHistory/{currency}": map[string]any{
+						"cost": 1,
+					},
+					"wallet/withdrawHistory/{currency}": map[string]any{
+						"cost": 1,
+					},
+					"orders/open": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"orders/{pair}":              Divide(1, 2),
-					"orders/batch":               Divide(20, 3),
-					"wallet/withdraw/{currency}": 10,
+					"orders/{pair}": map[string]any{
+						"cost": Divide(1, 2),
+					},
+					"orders/batch": map[string]any{
+						"cost": Divide(20, 3),
+					},
+					"wallet/withdraw/{currency}": map[string]any{
+						"cost": 10,
+					},
 				},
 				"put": map[string]any{
-					"orders": 5,
+					"orders": map[string]any{
+						"cost": 5,
+					},
 				},
 				"delete": map[string]any{
-					"orders/{pair}/{id}": Divide(2, 3),
-					"orders/all":         5,
-					"orders/{pair}":      5,
+					"orders/{pair}/{id}": map[string]any{
+						"cost": Divide(2, 3),
+					},
+					"orders/all": map[string]any{
+						"cost": 5,
+					},
+					"orders/{pair}": map[string]any{
+						"cost": 5,
+					},
 				},
 			},
 		},

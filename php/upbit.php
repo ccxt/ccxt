@@ -102,67 +102,67 @@ class upbit extends Exchange {
                 // cost = 1000 / (rateLimit * RPS)
                 'public' => array(
                     'get' => array(
-                        'market/all' => 2, // RPS => 10
-                        'candles/{timeframe}' => 2,
-                        'candles/{timeframe}/{unit}' => 2,
-                        'candles/seconds' => 2,
-                        'candles/minutes/{unit}' => 2,
-                        'candles/minutes/1' => 2,
-                        'candles/minutes/3' => 2,
-                        'candles/minutes/5' => 2,
-                        'candles/minutes/10' => 2,
-                        'candles/minutes/15' => 2,
-                        'candles/minutes/30' => 2,
-                        'candles/minutes/60' => 2,
-                        'candles/minutes/240' => 2,
-                        'candles/days' => 2,
-                        'candles/weeks' => 2,
-                        'candles/months' => 2,
-                        'candles/years' => 2,
-                        'trades/ticks' => 2,
-                        'ticker' => 2,
-                        'ticker/all' => 2,
-                        'orderbook' => 2,
-                        'orderbook/instruments' => 2,
+                        'market/all' => array( 'cost' => 2 ), // RPS => 10
+                        'candles/{timeframe}' => array( 'cost' => 2 ),
+                        'candles/{timeframe}/{unit}' => array( 'cost' => 2 ),
+                        'candles/seconds' => array( 'cost' => 2 ),
+                        'candles/minutes/{unit}' => array( 'cost' => 2 ),
+                        'candles/minutes/1' => array( 'cost' => 2 ),
+                        'candles/minutes/3' => array( 'cost' => 2 ),
+                        'candles/minutes/5' => array( 'cost' => 2 ),
+                        'candles/minutes/10' => array( 'cost' => 2 ),
+                        'candles/minutes/15' => array( 'cost' => 2 ),
+                        'candles/minutes/30' => array( 'cost' => 2 ),
+                        'candles/minutes/60' => array( 'cost' => 2 ),
+                        'candles/minutes/240' => array( 'cost' => 2 ),
+                        'candles/days' => array( 'cost' => 2 ),
+                        'candles/weeks' => array( 'cost' => 2 ),
+                        'candles/months' => array( 'cost' => 2 ),
+                        'candles/years' => array( 'cost' => 2 ),
+                        'trades/ticks' => array( 'cost' => 2 ),
+                        'ticker' => array( 'cost' => 2 ),
+                        'ticker/all' => array( 'cost' => 2 ),
+                        'orderbook' => array( 'cost' => 2 ),
+                        'orderbook/instruments' => array( 'cost' => 2 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'accounts' => 0.67, // RPS => 30
-                        'orders/chance' => 0.67,
-                        'order' => 0.67,
-                        'orders/closed' => 0.67,
-                        'orders/open' => 0.67,
-                        'orders/uuids' => 0.67,
-                        'withdraws' => 0.67,
-                        'withdraw' => 0.67,
-                        'withdraws/chance' => 0.67,
-                        'withdraws/coin_addresses' => 0.67,
-                        'deposits' => 0.67,
-                        'deposits/chance/coin' => 0.67,
-                        'deposit' => 0.67,
-                        'deposits/coin_addresses' => 0.67,
-                        'deposits/coin_address' => 0.67,
-                        'travel_rule/vasps' => 0.67,
-                        'status/wallet' => 0.67,
-                        'api_keys' => 0.67, // Upbit KR only
+                        'accounts' => array( 'cost' => 0.67 ), // RPS => 30
+                        'orders/chance' => array( 'cost' => 0.67 ),
+                        'order' => array( 'cost' => 0.67 ),
+                        'orders/closed' => array( 'cost' => 0.67 ),
+                        'orders/open' => array( 'cost' => 0.67 ),
+                        'orders/uuids' => array( 'cost' => 0.67 ),
+                        'withdraws' => array( 'cost' => 0.67 ),
+                        'withdraw' => array( 'cost' => 0.67 ),
+                        'withdraws/chance' => array( 'cost' => 0.67 ),
+                        'withdraws/coin_addresses' => array( 'cost' => 0.67 ),
+                        'deposits' => array( 'cost' => 0.67 ),
+                        'deposits/chance/coin' => array( 'cost' => 0.67 ),
+                        'deposit' => array( 'cost' => 0.67 ),
+                        'deposits/coin_addresses' => array( 'cost' => 0.67 ),
+                        'deposits/coin_address' => array( 'cost' => 0.67 ),
+                        'travel_rule/vasps' => array( 'cost' => 0.67 ),
+                        'status/wallet' => array( 'cost' => 0.67 ),
+                        'api_keys' => array( 'cost' => 0.67 ), // Upbit KR only
                     ),
                     'post' => array(
-                        'orders' => 2.5, // RPS => 8
-                        'orders/test' => 2.5, // RPS => 8
-                        'orders/cancel_and_new' => 2.5, // RPS => 8
-                        'withdraws/coin' => 0.67,
-                        'withdraws/krw' => 0.67, // Upbit KR only.
-                        'deposits/krw' => 0.67, // Upbit KR only.
-                        'deposits/generate_coin_address' => 0.67,
-                        'travel_rule/deposit/uuid' => 0.67, // RPS => 30, but each deposit can only be queried once every 10 minutes
-                        'travel_rule/deposit/txid' => 0.67, // RPS => 30, but each deposit can only be queried once every 10 minutes
+                        'orders' => array( 'cost' => 2.5 ), // RPS => 8
+                        'orders/test' => array( 'cost' => 2.5 ), // RPS => 8
+                        'orders/cancel_and_new' => array( 'cost' => 2.5 ), // RPS => 8
+                        'withdraws/coin' => array( 'cost' => 0.67 ),
+                        'withdraws/krw' => array( 'cost' => 0.67 ), // Upbit KR only.
+                        'deposits/krw' => array( 'cost' => 0.67 ), // Upbit KR only.
+                        'deposits/generate_coin_address' => array( 'cost' => 0.67 ),
+                        'travel_rule/deposit/uuid' => array( 'cost' => 0.67 ), // RPS => 30, but each deposit can only be queried once every 10 minutes
+                        'travel_rule/deposit/txid' => array( 'cost' => 0.67 ), // RPS => 30, but each deposit can only be queried once every 10 minutes
                     ),
                     'delete' => array(
-                        'order' => 0.67,
-                        'orders/open' => 40, // RPS => 0.5
-                        'orders/uuids' => 0.67,
-                        'withdraws/coin' => 0.67,
+                        'order' => array( 'cost' => 0.67 ),
+                        'orders/open' => array( 'cost' => 40 ), // RPS => 0.5
+                        'orders/uuids' => array( 'cost' => 0.67 ),
+                        'withdraws/coin' => array( 'cost' => 0.67 ),
                     ),
                 ),
             ),
@@ -626,8 +626,8 @@ class upbit extends Exchange {
     public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array()): array {
         /**
          *
-         * @see https://docs.upbit.com/kr/reference/list-orderbooks
-         * @see https://global-docs.upbit.com/reference/list-orderbooks
+         * @see https://docs.upbit.com/kr/reference/list-$orderbooks
+         * @see https://global-docs.upbit.com/reference/list-$orderbooks
          *
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
          * @param {string[]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
@@ -685,8 +685,9 @@ class upbit extends Exchange {
         //                               "bid_size" => 0.4650305 }    ) }   )
         //
         $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $orderbook = $response[$i];
+        $orderbooks = $this->to_array($response);
+        for ($i = 0; $i < count($orderbooks); $i++) {
+            $orderbook = $orderbooks[$i];
             $marketId = $this->safe_string($orderbook, 'market');
             $symbol = $this->safe_symbol($marketId, null, '-');
             $timestamp = $this->safe_integer($orderbook, 'timestamp');
@@ -1181,7 +1182,8 @@ class upbit extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        $ohlcvs = $this->to_array($response);
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
     public function calc_order_price(string $symbol, ?float $amount, ?float $price = null, $params = array()): ?string {

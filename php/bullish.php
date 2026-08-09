@@ -23,7 +23,7 @@ class bullish extends Exchange {
                 'margin' => false,
                 'swap' => true,
                 'future' => true,
-                'option' => false,
+                'option' => true,
                 'addMargin' => false,
                 'borrowMargin' => false,
                 'cancelAllOrders' => true,
@@ -150,70 +150,70 @@ class bullish extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'v1/nonce' => 1,
-                        'v1/time' => 1,
-                        'v1/assets' => 1,
-                        'v1/assets/{symbol}' => 1,
-                        'v1/markets' => 1,
-                        'v1/markets/{symbol}' => 1,
-                        'v1/history/markets/{symbol}' => 1,
-                        'v1/markets/{symbol}/orderbook/hybrid' => 1,
-                        'v1/markets/{symbol}/trades' => 1,
-                        'v1/markets/{symbol}/tick' => 1,
-                        'v1/markets/{symbol}/candle' => 1,
-                        'v1/history/markets/{symbol}/trades' => 1,
-                        'v1/history/markets/{symbol}/funding-rate' => 1,
-                        'v1/index-prices' => 1,
-                        'v1/index-prices/{assetSymbol}' => 1,
-                        'v1/expiry-prices/{symbol}' => 1,
-                        'v1/option-ladder' => 1,
-                        'v1/option-ladder/{symbol}' => 1,
+                        'v1/nonce' => array( 'cost' => 1 ),
+                        'v1/time' => array( 'cost' => 1 ),
+                        'v1/assets' => array( 'cost' => 1 ),
+                        'v1/assets/{symbol}' => array( 'cost' => 1 ),
+                        'v1/markets' => array( 'cost' => 1 ),
+                        'v1/markets/{symbol}' => array( 'cost' => 1 ),
+                        'v1/history/markets/{symbol}' => array( 'cost' => 1 ),
+                        'v1/markets/{symbol}/orderbook/hybrid' => array( 'cost' => 1 ),
+                        'v1/markets/{symbol}/trades' => array( 'cost' => 1 ),
+                        'v1/markets/{symbol}/tick' => array( 'cost' => 1 ),
+                        'v1/markets/{symbol}/candle' => array( 'cost' => 1 ),
+                        'v1/history/markets/{symbol}/trades' => array( 'cost' => 1 ),
+                        'v1/history/markets/{symbol}/funding-rate' => array( 'cost' => 1 ),
+                        'v1/index-prices' => array( 'cost' => 1 ),
+                        'v1/index-prices/{assetSymbol}' => array( 'cost' => 1 ),
+                        'v1/expiry-prices/{symbol}' => array( 'cost' => 1 ),
+                        'v1/option-ladder' => array( 'cost' => 1 ),
+                        'v1/option-ladder/{symbol}' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'v2/orders' => 1,
-                        'v2/history/orders' => 1,
-                        'v2/orders/{orderId}' => 1,
-                        'v2/amm-instructions' => 1,
-                        'v2/amm-instructions/{instructionId}' => 1,
-                        'v1/wallets/transactions' => 1,
-                        'v1/wallets/limits/{symbol}' => 1,
-                        'v1/wallets/deposit-instructions/crypto/{symbol}' => 1,
-                        'v1/wallets/withdrawal-instructions/crypto/{symbol}' => 1,
-                        'v1/wallets/deposit-instructions/fiat/{symbol}' => 1,
-                        'v1/wallets/withdrawal-instructions/fiat/{symbol}' => 1,
-                        'v1/wallets/self-hosted/verification-attempts' => 1,
-                        'v1/trades' => 5,
-                        'v1/history/trades' => 5,
-                        'v1/trades/{tradeId}' => 5,
-                        'v1/trades/client-order-id/{clientOrderId}' => 1,
-                        'v1/accounts/asset' => 1,
-                        'v1/accounts/asset/{symbol}' => 1,
-                        'v1/users/logout' => 1,
-                        'v1/users/hmac/login' => 1,
-                        'v1/accounts/trading-accounts' => 1,
-                        'v1/accounts/trading-accounts/{tradingAccountId}' => 1,
-                        'v1/derivatives-positions' => 1,
-                        'v1/history/derivatives-settlement' => 1,
-                        'v1/history/transfer' => 1,
-                        'v1/history/borrow-interest' => 1,
-                        'v2/mmp-configuration' => 1,
-                        'v2/otc-trades' => 1,
-                        'v2/otc-trades/{otcTradeId}' => 1,
-                        'v2/otc-trades/unconfirmed-trade' => 1,
+                        'v2/orders' => array( 'cost' => 1 ),
+                        'v2/history/orders' => array( 'cost' => 1 ),
+                        'v2/orders/{orderId}' => array( 'cost' => 1 ),
+                        'v2/amm-instructions' => array( 'cost' => 1 ),
+                        'v2/amm-instructions/{instructionId}' => array( 'cost' => 1 ),
+                        'v1/wallets/transactions' => array( 'cost' => 1 ),
+                        'v1/wallets/limits/{symbol}' => array( 'cost' => 1 ),
+                        'v1/wallets/deposit-instructions/crypto/{symbol}' => array( 'cost' => 1 ),
+                        'v1/wallets/withdrawal-instructions/crypto/{symbol}' => array( 'cost' => 1 ),
+                        'v1/wallets/deposit-instructions/fiat/{symbol}' => array( 'cost' => 1 ),
+                        'v1/wallets/withdrawal-instructions/fiat/{symbol}' => array( 'cost' => 1 ),
+                        'v1/wallets/self-hosted/verification-attempts' => array( 'cost' => 1 ),
+                        'v1/trades' => array( 'cost' => 5 ),
+                        'v1/history/trades' => array( 'cost' => 5 ),
+                        'v1/trades/{tradeId}' => array( 'cost' => 5 ),
+                        'v1/trades/client-order-id/{clientOrderId}' => array( 'cost' => 1 ),
+                        'v1/accounts/asset' => array( 'cost' => 1 ),
+                        'v1/accounts/asset/{symbol}' => array( 'cost' => 1 ),
+                        'v1/users/logout' => array( 'cost' => 1 ),
+                        'v1/users/hmac/login' => array( 'cost' => 1 ),
+                        'v1/accounts/trading-accounts' => array( 'cost' => 1 ),
+                        'v1/accounts/trading-accounts/{tradingAccountId}' => array( 'cost' => 1 ),
+                        'v1/derivatives-positions' => array( 'cost' => 1 ),
+                        'v1/history/derivatives-settlement' => array( 'cost' => 1 ),
+                        'v1/history/transfer' => array( 'cost' => 1 ),
+                        'v1/history/borrow-interest' => array( 'cost' => 1 ),
+                        'v2/mmp-configuration' => array( 'cost' => 1 ),
+                        'v2/otc-trades' => array( 'cost' => 1 ),
+                        'v2/otc-trades/{otcTradeId}' => array( 'cost' => 1 ),
+                        'v2/otc-trades/unconfirmed-trade' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'v2/orders' => 5,
-                        'v2/command' => 5,
-                        'v2/amm-instructions' => 1,
-                        'v1/wallets/withdrawal' => 1,
-                        'v2/users/login' => 1,
-                        'v1/simulate-portfolio-margin' => 1,
-                        'v1/wallets/self-hosted/initiate' => 1,
-                        'v2/mmp-configuration' => 1,
-                        'v2/otc-trades' => 1,
-                        'v2/otc-command' => 1,
+                        'v2/orders' => array( 'cost' => 5 ),
+                        'v2/command' => array( 'cost' => 5 ),
+                        'v2/amm-instructions' => array( 'cost' => 1 ),
+                        'v1/wallets/withdrawal' => array( 'cost' => 1 ),
+                        'v2/users/login' => array( 'cost' => 1 ),
+                        'v1/simulate-portfolio-margin' => array( 'cost' => 1 ),
+                        'v1/wallets/self-hosted/initiate' => array( 'cost' => 1 ),
+                        'v2/mmp-configuration' => array( 'cost' => 1 ),
+                        'v2/otc-trades' => array( 'cost' => 1 ),
+                        'v2/otc-command' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -956,7 +956,7 @@ class bullish extends Exchange {
         }
         $maxLimit = 100;
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
         if ($paginate) {
             $params = $this->handle_pagination_params('fetchTrades', $since, $params);
             return $this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $params, $maxLimit);
@@ -1380,7 +1380,8 @@ class bullish extends Exchange {
         //         ), ...
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        $ohlcvs = $this->to_array($response);
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -2238,11 +2239,12 @@ class bullish extends Exchange {
 
     public function load_account($params = array()) {
         $tradingAccountId = null;
-        list($tradingAccountId, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'tradingAccountId');
+        list($tradingAccountId, $params) = $this->handle_option_and_params($params, 'loadAccount', 'tradingAccountId');
         if ($tradingAccountId === null) {
             $response = $this->privateGetV1AccountsTradingAccounts($params);
-            for ($i = 0; $i < count($response); $i++) {
-                $account = $response[$i];
+            $accounts = $this->to_array($response);
+            for ($i = 0; $i < count($accounts); $i++) {
+                $account = $accounts[$i];
                 $name = $this->safe_string($account, 'tradingAccountName');
                 if ($name === 'Primary Account') {
                     $tradingAccountId = $this->safe_string($account, 'tradingAccountId');

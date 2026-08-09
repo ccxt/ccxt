@@ -35,6 +35,8 @@ class foxbit extends Exchange {
                 'createMarketBuyOrder' => true,
                 'createMarketSellOrder' => true,
                 'createOrder' => true,
+                'createOrders' => true,
+                'editOrder' => true,
                 'fecthOrderBook' => true,
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => true,
@@ -49,7 +51,10 @@ class foxbit extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchOrdersByStatus' => true,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -134,42 +139,42 @@ class foxbit extends Exchange {
                 'v3' => array(
                     'public' => array(
                         'get' => array(
-                            'currencies' => 5, // 6 requests per second
-                            'markets' => 5, // 6 requests per second
-                            'markets/ticker/24hr' => 60, // 1 request per 2 seconds
-                            'markets/{market}/orderbook' => 6, // 10 requests per 2 seconds
-                            'markets/{market}/candlesticks' => 12, // 5 requests per 2 seconds
-                            'markets/{market}/trades/history' => 12, // 5 requests per 2 seconds
-                            'markets/{market}/ticker/24hr' => 15, // 4 requests per 2 seconds
+                            'currencies' => array( 'cost' => 5 ), // 6 requests per second
+                            'markets' => array( 'cost' => 5 ), // 6 requests per second
+                            'markets/ticker/24hr' => array( 'cost' => 60 ), // 1 request per 2 seconds
+                            'markets/{market}/orderbook' => array( 'cost' => 6 ), // 10 requests per 2 seconds
+                            'markets/{market}/candlesticks' => array( 'cost' => 12 ), // 5 requests per 2 seconds
+                            'markets/{market}/trades/history' => array( 'cost' => 12 ), // 5 requests per 2 seconds
+                            'markets/{market}/ticker/24hr' => array( 'cost' => 15 ), // 4 requests per 2 seconds
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'accounts' => 2, // 15 requests per second
-                            'accounts/{symbol}/transactions' => 60, // 1 requests per 2 seconds
-                            'orders' => 2, // 30 requests per 2 seconds
-                            'orders/by-order-id/{id}' => 2, // 30 requests per 2 seconds
-                            'trades' => 6, // 5 orders per second
-                            'deposits/address' => 10, // 3 requests per second
-                            'deposits' => 10, // 3 requests per second
-                            'withdrawals' => 10, // 3 requests per second
-                            'me/fees/trading' => 60, // 1 requests per 2 seconds
+                            'accounts' => array( 'cost' => 2 ), // 15 requests per second
+                            'accounts/{symbol}/transactions' => array( 'cost' => 60 ), // 1 requests per 2 seconds
+                            'orders' => array( 'cost' => 2 ), // 30 requests per 2 seconds
+                            'orders/by-order-id/{id}' => array( 'cost' => 2 ), // 30 requests per 2 seconds
+                            'trades' => array( 'cost' => 6 ), // 5 orders per second
+                            'deposits/address' => array( 'cost' => 10 ), // 3 requests per second
+                            'deposits' => array( 'cost' => 10 ), // 3 requests per second
+                            'withdrawals' => array( 'cost' => 10 ), // 3 requests per second
+                            'me/fees/trading' => array( 'cost' => 60 ), // 1 requests per 2 seconds
                         ),
                         'post' => array(
-                            'orders' => 2, // 30 requests per 2 seconds
-                            'orders/batch' => 7.5, // 8 requests per 2 seconds
-                            'orders/cancel-replace' => 3, // 20 requests per 2 seconds
-                            'withdrawals' => 10, // 3 requests per second
+                            'orders' => array( 'cost' => 2 ), // 30 requests per 2 seconds
+                            'orders/batch' => array( 'cost' => 7.5 ), // 8 requests per 2 seconds
+                            'orders/cancel-replace' => array( 'cost' => 3 ), // 20 requests per 2 seconds
+                            'withdrawals' => array( 'cost' => 10 ), // 3 requests per second
                         ),
                         'put' => array(
-                            'orders/cancel' => 2, // 30 requests per 2 seconds
+                            'orders/cancel' => array( 'cost' => 2 ), // 30 requests per 2 seconds
                         ),
                     ),
                 ),
                 'status' => array(
                     'public' => array(
                         'get' => array(
-                            'status' => 30, // 1 request per second
+                            'status' => array( 'cost' => 30 ), // 1 request per second
                         ),
                     ),
                 ),
@@ -809,7 +814,7 @@ class foxbit extends Exchange {
         //         "15466.34096391" // taker buy quote volume
         //     )
         // )
-        return $this->parse_ohlcvs($response, $market, $interval, $since, $limit);
+        return $this->parse_ohlcvs($this->to_array($response), $market, $interval, $since, $limit);
     }
 
     public function fetch_balance($params = array()): array {
@@ -1466,7 +1471,7 @@ class foxbit extends Exchange {
         return $result;
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * The latest known information on the availability of the exchange API.
          *
@@ -1499,7 +1504,7 @@ class foxbit extends Exchange {
         );
         return array(
             'status' => $this->safe_string($statusMap, $statusRaw, $statusRaw),
-            'updated' => $this->safe_string($attributes, 'updatedAt'),
+            'updated' => $this->parse8601($this->safe_string($attributes, 'updatedAt')),
             'eta' => null,
             'url' => null,
             'info' => $response,
@@ -1570,7 +1575,8 @@ class foxbit extends Exchange {
         //         "client_order_id" => "451637946501"
         //     }
         // }
-        return $this->parse_order($response['create'], $market);
+        $created = $this->safe_dict($response, 'create', array());
+        return $this->parse_order($created, $market);
     }
 
     public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
@@ -2070,6 +2076,8 @@ class foxbit extends Exchange {
         }
         $headers = array(
             'Content-Type' => 'application/json',
+            'X-FB-CLIENT' => 'ccxt',
+            'X-FB-CLIENT-VERSION' => $this->get_ccxt_version(),
         );
         if ($urlPath === 'private') {
             $this->check_required_credentials();

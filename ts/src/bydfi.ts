@@ -6,7 +6,7 @@ import Exchange from './abstract/bydfi.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, InsufficientFunds, NotSupported, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Currency, Dict, Fee, FeeString, FundingRate, FundingRateHistory, Int, int, Leverage, List, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, Ticker, Tickers } from './base/types.js';
+import type { Balances, Bool, Currency, Dict, Fee, FeeString, FundingRate, FundingRateHistory, Int, int, Leverage, List, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, Ticker, Tickers, PositionModeInfo, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -133,7 +133,7 @@ export default class bydfi extends Exchange {
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
-                'fetchOpenOrder': false,
+                'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOption': false,
                 'fetchOptionChain': false,
@@ -200,57 +200,57 @@ export default class bydfi extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'v1/public/api_limits': 1, // https://developers.bydfi.com/en/public#inquiry-into-api-rate-limit-configuration
-                        'v1/fapi/market/exchange_info': 1,
-                        'v1/fapi/market/depth': 1,
-                        'v1/fapi/market/trades': 1,
-                        'v1/fapi/market/klines': 1,
-                        'v1/fapi/market/ticker/24hr': 1,
-                        'v1/fapi/market/ticker/price': 1, // https://developers.bydfi.com/en/futures/market#latest-price
-                        'v1/fapi/market/mark_price': 1, // https://developers.bydfi.com/en/futures/market#mark-price
-                        'v1/fapi/market/funding_rate': 1,
-                        'v1/fapi/market/funding_rate_history': 1,
-                        'v1/fapi/market/risk_limit': 1, // https://developers.bydfi.com/en/futures/market#risk-limit
+                        'v1/public/api_limits': { 'cost': 1 } as Endpoint<Dict>, // https://developers.bydfi.com/en/public#inquiry-into-api-rate-limit-configuration
+                        'v1/fapi/market/exchange_info': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/market/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/market/klines': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/market/ticker/24hr': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/market/ticker/price': { 'cost': 1 } as Endpoint<Dict>, // https://developers.bydfi.com/en/futures/market#latest-price
+                        'v1/fapi/market/mark_price': { 'cost': 1 } as Endpoint<Dict>, // https://developers.bydfi.com/en/futures/market#mark-price
+                        'v1/fapi/market/funding_rate': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/market/funding_rate_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/market/risk_limit': { 'cost': 1 } as Endpoint<Dict>, // https://developers.bydfi.com/en/futures/market#risk-limit
                     },
                 },
                 'private': {
                     'get': {
-                        'v1/account/assets': 1,
-                        'v1/account/transfer_records': 1,
-                        'v1/spot/deposit_records': 1,
-                        'v1/spot/withdraw_records': 1,
-                        'v1/fapi/trade/open_order': 1,
-                        'v1/fapi/trade/plan_order': 1,
-                        'v1/fapi/trade/leverage': 1,
-                        'v1/fapi/trade/history_order': 1,
-                        'v1/fapi/trade/history_trade': 1,
-                        'v1/fapi/trade/position_history': 1,
-                        'v1/fapi/trade/positions': 1,
-                        'v1/fapi/account/balance': 1,
-                        'v1/fapi/user_data/assets_margin': 1,
-                        'v1/fapi/user_data/position_side/dual': 1,
-                        'v1/agent/teams': 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-team-information
-                        'v1/agent/agent_links': 1, // https://developers.bydfi.com/en/agent/#query-kol-invitation-code-list
-                        'v1/agent/regular_overview': 1, // https://developers.bydfi.com/en/agent/#query-kol-direct-client-data-list
-                        'v1/agent/agent_sub_overview': 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-affiliate-list
-                        'v1/agent/partener_user_deposit': 1, // https://developers.bydfi.com/en/agent/#check-the-recharge-amount-of-kol-within-one-year
-                        'v1/agent/partener_users_data': 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-deposit-and-trading-data
-                        'v1/agent/affiliate_uids': 1, // https://developers.bydfi.com/en/agent/#get-affiliate-uids
-                        'v1/agent/affiliate_commission': 1, // https://developers.bydfi.com/en/agent/#get-affiliate-commission
-                        'v1/agent/internal_withdrawal_status': 1, // https://developers.bydfi.com/en/agent/#get-internal-withdrawal-status
+                        'v1/account/assets': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/account/transfer_records': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/spot/deposit_records': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/spot/withdraw_records': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/trade/open_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/trade/plan_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/trade/leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/trade/history_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/trade/history_trade': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/trade/position_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/trade/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/account/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/user_data/assets_margin': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/user_data/position_side/dual': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/agent/teams': { 'cost': 1 } as Endpoint<Dict>, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-team-information
+                        'v1/agent/agent_links': { 'cost': 1 } as Endpoint<Dict>, // https://developers.bydfi.com/en/agent/#query-kol-invitation-code-list
+                        'v1/agent/regular_overview': { 'cost': 1 } as Endpoint<Dict>, // https://developers.bydfi.com/en/agent/#query-kol-direct-client-data-list
+                        'v1/agent/agent_sub_overview': { 'cost': 1 } as Endpoint<Dict>, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-affiliate-list
+                        'v1/agent/partener_user_deposit': { 'cost': 1 } as Endpoint<Dict>, // https://developers.bydfi.com/en/agent/#check-the-recharge-amount-of-kol-within-one-year
+                        'v1/agent/partener_users_data': { 'cost': 1 } as Endpoint<Dict>, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-deposit-and-trading-data
+                        'v1/agent/affiliate_uids': { 'cost': 1 } as Endpoint<Dict>, // https://developers.bydfi.com/en/agent/#get-affiliate-uids
+                        'v1/agent/affiliate_commission': { 'cost': 1 } as Endpoint<Dict>, // https://developers.bydfi.com/en/agent/#get-affiliate-commission
+                        'v1/agent/internal_withdrawal_status': { 'cost': 1 } as Endpoint<Dict>, // https://developers.bydfi.com/en/agent/#get-internal-withdrawal-status
                     },
                     'post': {
-                        'v1/account/transfer': 1,
-                        'v1/fapi/trade/place_order': 1,
-                        'v1/fapi/trade/batch_place_order': 1,
-                        'v1/fapi/trade/edit_order': 1,
-                        'v1/fapi/trade/batch_edit_order': 1,
-                        'v1/fapi/trade/cancel_all_order': 1,
-                        'v1/fapi/trade/leverage': 1,
-                        'v1/fapi/trade/batch_leverage_margin': 1, // https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
-                        'v1/fapi/user_data/margin_type': 1,
-                        'v1/fapi/user_data/position_side/dual': 1,
-                        'v1/agent/internal_withdrawal': 1, // https://developers.bydfi.com/en/agent/#internal-withdrawal
+                        'v1/account/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/trade/place_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/trade/batch_place_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/trade/edit_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/trade/batch_edit_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/trade/cancel_all_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/trade/leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/trade/batch_leverage_margin': { 'cost': 1 } as Endpoint<Dict>, // https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
+                        'v1/fapi/user_data/margin_type': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/fapi/user_data/position_side/dual': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/agent/internal_withdrawal': { 'cost': 1 } as Endpoint<Dict>, // https://developers.bydfi.com/en/agent/#internal-withdrawal
                     },
                 },
             },
@@ -1636,7 +1636,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrder() requires a symbol argument');
         }
@@ -2233,7 +2233,7 @@ export default class bydfi extends Exchange {
         }
         const market = this.market (symbol);
         let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchPositionsHistory', 'contractType', contractType);
+        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchPositionHistory', 'contractType', contractType);
         const request: Dict = {
             'symbol': market['id'],
             'contractType': contractType,
@@ -2401,9 +2401,9 @@ export default class bydfi extends Exchange {
         }
         const market = this.market (symbol);
         let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchMarginMode', 'contractType', contractType);
+        [ contractType, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'contractType', contractType);
         let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionAndParams (params, 'fetchMarginMode', 'wallet', wallet);
+        [ wallet, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'wallet', wallet);
         const request: Dict = {
             'contractType': contractType,
             'symbol': market['id'],
@@ -2468,7 +2468,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.settleCoin] The settlement currency - USDT or USDC or USD (default is USDT or settle currency of the market if market is provided)
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    override async fetchPositionMode (symbol: Str = undefined, params = {}) {
+    override async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<PositionModeInfo> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2812,7 +2812,7 @@ export default class bydfi extends Exchange {
         return await this.fetchTransactionsHelper ('withdrawal', code, since, limit, params);
     }
 
-    async fetchTransactionsHelper (type: any, code: any, since: any, limit: any, params: any) {
+    async fetchTransactionsHelper (type: any, code: any, since: any, limit: any, params: any): Promise<Transaction[]> {
         const methodName = (type === 'deposit') ? 'fetchDeposits' : 'fetchWithdrawals';
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a code argument');

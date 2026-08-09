@@ -74,6 +74,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDeposits': True,
+                'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': True,
@@ -119,6 +120,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'setMargin': True,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'urls': {
@@ -146,53 +148,53 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'api': {
                 'v1': {
                     'public': {
-                        'get': [
-                            'assets',
-                            'assets/{assets}',
-                            'assets/{asset}/networks',
-                            'instruments',
-                            'instruments/{instrument}',
-                            'instruments/{instrument}/quote',
-                            'instruments/{instrument}/funding',
-                            'instruments/{instrument}/candles',
-                        ],
+                        'get': {
+                            'assets': {'cost': 1},
+                            'assets/{assets}': {'cost': 1},
+                            'assets/{asset}/networks': {'cost': 1},
+                            'instruments': {'cost': 1},
+                            'instruments/{instrument}': {'cost': 1},
+                            'instruments/{instrument}/quote': {'cost': 1},
+                            'instruments/{instrument}/funding': {'cost': 1},
+                            'instruments/{instrument}/candles': {'cost': 1},
+                        },
                     },
                     'private': {
-                        'get': [
-                            'orders',
-                            'orders/{id}',
-                            'portfolios',
-                            'portfolios/{portfolio}',
-                            'portfolios/{portfolio}/detail',
-                            'portfolios/{portfolio}/summary',
-                            'portfolios/{portfolio}/balances',
-                            'portfolios/{portfolio}/balances/{asset}',
-                            'portfolios/{portfolio}/positions',
-                            'portfolios/{portfolio}/positions/{instrument}',
-                            'portfolios/fills',
-                            'portfolios/{portfolio}/fills',
-                            'transfers',
-                            'transfers/{transfer_uuid}',
-                        ],
-                        'post': [
-                            'orders',
-                            'portfolios',
-                            'portfolios/margin',
-                            'portfolios/transfer',
-                            'transfers/withdraw',
-                            'transfers/address',
-                            'transfers/create-counterparty-id',
-                            'transfers/validate-counterparty-id',
-                            'transfers/withdraw/counterparty',
-                        ],
-                        'put': [
-                            'orders/{id}',
-                            'portfolios/{portfolio}',
-                        ],
-                        'delete': [
-                            'orders',
-                            'orders/{id}',
-                        ],
+                        'get': {
+                            'orders': {'cost': 1},
+                            'orders/{id}': {'cost': 1},
+                            'portfolios': {'cost': 1},
+                            'portfolios/{portfolio}': {'cost': 1},
+                            'portfolios/{portfolio}/detail': {'cost': 1},
+                            'portfolios/{portfolio}/summary': {'cost': 1},
+                            'portfolios/{portfolio}/balances': {'cost': 1},
+                            'portfolios/{portfolio}/balances/{asset}': {'cost': 1},
+                            'portfolios/{portfolio}/positions': {'cost': 1},
+                            'portfolios/{portfolio}/positions/{instrument}': {'cost': 1},
+                            'portfolios/fills': {'cost': 1},
+                            'portfolios/{portfolio}/fills': {'cost': 1},
+                            'transfers': {'cost': 1},
+                            'transfers/{transfer_uuid}': {'cost': 1},
+                        },
+                        'post': {
+                            'orders': {'cost': 1},
+                            'portfolios': {'cost': 1},
+                            'portfolios/margin': {'cost': 1},
+                            'portfolios/transfer': {'cost': 1},
+                            'transfers/withdraw': {'cost': 1},
+                            'transfers/address': {'cost': 1},
+                            'transfers/create-counterparty-id': {'cost': 1},
+                            'transfers/validate-counterparty-id': {'cost': 1},
+                            'transfers/withdraw/counterparty': {'cost': 1},
+                        },
+                        'put': {
+                            'orders/{id}': {'cost': 1},
+                            'portfolios/{portfolio}': {'cost': 1},
+                        },
+                        'delete': {
+                            'orders': {'cost': 1},
+                            'orders/{id}': {'cost': 1},
+                        },
                     },
                 },
             },
@@ -905,7 +907,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'portfolio': portfolio,
             'margin_override': amount,
         }
-        return await self.v1PrivatePostPortfoliosMargin(self.extend(request, params))
+        response = await self.v1PrivatePostPortfoliosMargin(self.extend(request, params))
+        return response
 
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
@@ -1494,8 +1497,11 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         instruments = await self.v1PublicGetInstruments(params)
         tickers = {}
-        for i in range(0, len(instruments)):
-            instrument = instruments[i]
+        rows = []
+        if isinstance(instruments, list):
+            rows = instruments
+        for i in range(0, len(rows)):
+            instrument = rows[i]
             marketId = self.safe_string(instrument, 'symbol')
             symbol = self.safe_symbol(marketId)
             quote = self.safe_dict(instrument, 'quote', {})

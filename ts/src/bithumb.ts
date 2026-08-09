@@ -6,7 +6,7 @@ import Exchange from './abstract/bithumb.js';
 import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, NullableDict, FeeString } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, NullableDict, FeeString, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -124,40 +124,40 @@ export default class bithumb extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'ticker/ALL_{quoteId}',
-                        'ticker/{baseId}_{quoteId}',
-                        'orderbook/ALL_{quoteId}',
-                        'orderbook/{baseId}_{quoteId}',
-                        'transaction_history/{baseId}_{quoteId}',
-                        'network-info',
-                        'assetsstatus/multichain/ALL',
-                        'assetsstatus/multichain/{currency}',
-                        'withdraw/minimum/ALL',
-                        'withdraw/minimum/{currency}',
-                        'assetsstatus/ALL',
-                        'assetsstatus/{baseId}',
-                        'candlestick/{baseId}_{quoteId}/{interval}',
-                    ],
+                    'get': {
+                        'ticker/ALL_{quoteId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker/{baseId}_{quoteId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderbook/ALL_{quoteId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderbook/{baseId}_{quoteId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction_history/{baseId}_{quoteId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'network-info': { 'cost': 1 } as Endpoint<Dict>,
+                        'assetsstatus/multichain/ALL': { 'cost': 1 } as Endpoint<Dict>,
+                        'assetsstatus/multichain/{currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdraw/minimum/ALL': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdraw/minimum/{currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'assetsstatus/ALL': { 'cost': 1 } as Endpoint<Dict>,
+                        'assetsstatus/{baseId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'candlestick/{baseId}_{quoteId}/{interval}': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'info/account',
-                        'info/balance',
-                        'info/wallet_address',
-                        'info/ticker',
-                        'info/orders',
-                        'info/user_transactions',
-                        'info/order_detail',
-                        'trade/place',
-                        'trade/cancel',
-                        'trade/btc_withdrawal',
-                        'trade/krw_deposit',
-                        'trade/krw_withdrawal',
-                        'trade/market_buy',
-                        'trade/market_sell',
-                        'trade/stop_limit',
-                    ],
+                    'post': {
+                        'info/account': { 'cost': 1 } as Endpoint<Dict>,
+                        'info/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'info/wallet_address': { 'cost': 1 } as Endpoint<Dict>,
+                        'info/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'info/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'info/user_transactions': { 'cost': 1 } as Endpoint<Dict>,
+                        'info/order_detail': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/place': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/btc_withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/krw_deposit': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/krw_withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/market_buy': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/market_sell': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/stop_limit': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -302,7 +302,7 @@ export default class bithumb extends Exchange {
         const result: Market[] = [];
         const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
         const quotes = Object.keys (quoteCurrencies);
-        const promises: any[] = [];
+        const promises: Promise<any>[] = [];
         for (let i = 0; i < quotes.length; i++) {
             const request = {
                 'quoteId': quotes[i],
@@ -567,7 +567,7 @@ export default class bithumb extends Exchange {
         const result: Dict = {};
         const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
         const quotes = Object.keys (quoteCurrencies);
-        const promises: any[] = [];
+        const promises: Promise<any>[] = [];
         for (let i = 0; i < quotes.length; i++) {
             const request: Dict = {
                 'quoteId': quotes[i],
@@ -1149,7 +1149,7 @@ export default class bithumb extends Exchange {
         });
     }
 
-    override async cancelUnifiedOrder (order: Order, params = {}) {
+    override async cancelUnifiedOrder (order: Order, params = {}): Promise<Order> {
         const request: Dict = {
             'side': order['side'],
         };

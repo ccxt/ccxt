@@ -90,8 +90,12 @@ public partial class mudrex : Exchange
             { "api", new Dictionary<string, object>() {
                 { "market", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "price/kline", 1 },
-                        { "price/mark-kline", 1 },
+                        { "price/kline", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "price/mark-kline", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "public", new Dictionary<string, object>() {
@@ -99,36 +103,84 @@ public partial class mudrex : Exchange
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "futures", 1 },
-                        { "futures/{asset_id}", 1 },
-                        { "wallet/funds", 5 },
-                        { "futures/funds", 5 },
-                        { "futures/orders", 1 },
-                        { "futures/orders/history", 1 },
-                        { "futures/orders/{order_id}", 1 },
-                        { "futures/positions", 1 },
-                        { "futures/positions/history", 1 },
-                        { "futures/fee/history", 1 },
-                        { "futures/{asset_id}/leverage", 2 },
-                        { "futures/positions/{position_id}/liq-price", 1 },
+                        { "futures", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "futures/{asset_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallet/funds", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "futures/funds", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "futures/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "futures/orders/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "futures/orders/{order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "futures/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "futures/positions/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "futures/fee/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "futures/{asset_id}/leverage", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "futures/positions/{position_id}/liq-price", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "wallet/futures/transfer", 5 },
-                        { "futures/transfers/inr", 5 },
-                        { "futures/{asset_id}/order", 2 },
-                        { "futures/positions/{position_id}/close", 2 },
-                        { "futures/positions/{position_id}/close/partial", 2 },
-                        { "futures/positions/{position_id}/reverse", 2 },
-                        { "futures/positions/{position_id}/add-margin", 2 },
-                        { "futures/positions/{position_id}/riskorder", 2 },
-                        { "futures/{asset_id}/leverage", 2 },
+                        { "wallet/futures/transfer", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "futures/transfers/inr", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "futures/{asset_id}/order", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "futures/positions/{position_id}/close", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "futures/positions/{position_id}/close/partial", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "futures/positions/{position_id}/reverse", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "futures/positions/{position_id}/add-margin", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "futures/positions/{position_id}/riskorder", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "futures/{asset_id}/leverage", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
                     } },
                     { "patch", new Dictionary<string, object>() {
-                        { "futures/orders/{order_id}", 1 },
-                        { "futures/positions/{position_id}/riskorder", 2 },
+                        { "futures/orders/{order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "futures/positions/{position_id}/riskorder", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "futures/orders/{order_id}", 2 },
+                        { "futures/orders/{order_id}", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
                     } },
                 } },
             } },
@@ -520,11 +572,14 @@ public partial class mudrex : Exchange
             if (isTrue(isTrue((data is IDictionary<string, object>)) && !isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
             {
                 items = this.safeList(data, "items", new List<object>() {});
-                if (!isTrue(getArrayLength(items)))
+                // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
+                object itemsLength = getArrayLength(items);
+                if (!isTrue(itemsLength))
                 {
                     items = this.safeList(data, "results", new List<object>() {});
+                    itemsLength = getArrayLength(items);
                 }
-                if (isTrue(!isTrue(getArrayLength(items)) && isTrue((inOp(data, "symbol")))))
+                if (isTrue(!isTrue(itemsLength) && isTrue((inOp(data, "symbol")))))
                 {
                     items = new List<object>() {data};
                 }
@@ -532,21 +587,23 @@ public partial class mudrex : Exchange
             {
                 items = this.toArray(data);
             }
-            if (!isTrue(getArrayLength(items)))
+            object numItems = getArrayLength(items);
+            if (!isTrue(numItems))
             {
                 paging = false;
                 break;
             }
-            for (object i = 0; isLessThan(i, getArrayLength(items)); postFixIncrement(ref i))
+            for (object i = 0; isLessThan(i, numItems); postFixIncrement(ref i))
             {
                 ((IList<object>)aggregated).Add(getValue(items, i));
             }
-            if (isTrue(isLessThan(getArrayLength(items), pageLimit)))
+            if (isTrue(isLessThan(numItems, pageLimit)))
             {
                 paging = false;
             } else
             {
-                offset = add(offset, pageLimit);
+                // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                offset = this.sum(offset, pageLimit);
             }
         }
         object result = new List<object>() {};
@@ -1350,10 +1407,12 @@ public partial class mudrex : Exchange
                 ((IDictionary<string,object>)request)["limit_price"] = lp;
             }
             parameters = this.omit(parameters, new List<object>() {"order_type", "limit_price", "amount", "position_id"});
-            return await this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, parameters));
+            object partialResponse = await this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, parameters));
+            return partialResponse;
         }
         parameters = this.omit(parameters, new List<object>() {"position_id"});
-        return await this.privatePostFuturesPositionsPositionIdClose(this.extend(request, parameters));
+        object response = await this.privatePostFuturesPositionsPositionIdClose(this.extend(request, parameters));
+        return response;
     }
 
     /**
@@ -1397,7 +1456,8 @@ public partial class mudrex : Exchange
             { "margin", this.costToPrecision(symbol, amount) },
         };
         parameters = this.omit(parameters, new List<object>() {"position_id"});
-        return await this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, parameters));
+        object response = await this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, parameters));
+        return response;
     }
 
     /**

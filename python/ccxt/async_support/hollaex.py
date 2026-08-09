@@ -63,6 +63,7 @@ class hollaex(Exchange, ImplicitAPI):
                 'fetchDepositAddresses': True,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -135,44 +136,44 @@ class hollaex(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'health': 1,
-                        'constants': 1,
-                        'kit': 1,
-                        'tiers': 1,
-                        'ticker': 1,
-                        'tickers': 1,
-                        'orderbook': 1,
-                        'orderbooks': 1,
-                        'trades': 1,
-                        'chart': 1,
-                        'charts': 1,
-                        'minicharts': 1,
-                        'oracle/prices': 1,
-                        'quick-trade': 1,
+                        'health': {'cost': 1},
+                        'constants': {'cost': 1},
+                        'kit': {'cost': 1},
+                        'tiers': {'cost': 1},
+                        'ticker': {'cost': 1},
+                        'tickers': {'cost': 1},
+                        'orderbook': {'cost': 1},
+                        'orderbooks': {'cost': 1},
+                        'trades': {'cost': 1},
+                        'chart': {'cost': 1},
+                        'charts': {'cost': 1},
+                        'minicharts': {'cost': 1},
+                        'oracle/prices': {'cost': 1},
+                        'quick-trade': {'cost': 1},
                         # TradingView
-                        'udf/config': 1,
-                        'udf/history': 1,
-                        'udf/symbols': 1,
+                        'udf/config': {'cost': 1},
+                        'udf/history': {'cost': 1},
+                        'udf/symbols': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
-                        'user': 1,
-                        'user/balance': 1,
-                        'user/deposits': 1,
-                        'user/withdrawals': 1,
-                        'user/withdrawal/fee': 1,
-                        'user/trades': 1,
-                        'orders': 1,
-                        'order': 1,
+                        'user': {'cost': 1},
+                        'user/balance': {'cost': 1},
+                        'user/deposits': {'cost': 1},
+                        'user/withdrawals': {'cost': 1},
+                        'user/withdrawal/fee': {'cost': 1},
+                        'user/trades': {'cost': 1},
+                        'orders': {'cost': 1},
+                        'order': {'cost': 1},
                     },
                     'post': {
-                        'user/withdrawal': 1,
-                        'order': 1,
+                        'user/withdrawal': {'cost': 1},
+                        'order': {'cost': 1},
                     },
                     'delete': {
-                        'order/all': 1,
-                        'order': 1,
+                        'order/all': {'cost': 1},
+                        'order': {'cost': 1},
                     },
                 },
             },
@@ -574,10 +575,10 @@ class hollaex(Exchange, ImplicitAPI):
         marketIds = list(response.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            orderbook = response[marketId]
+            orderbook = self.safe_dict(response, marketId, {})
             symbol = self.safe_symbol(marketId, None, '-')
             timestamp = self.parse8601(self.safe_string(orderbook, 'timestamp'))
-            result[symbol] = self.parse_order_book(response[marketId], symbol, timestamp)
+            result[symbol] = self.parse_order_book(orderbook, symbol, timestamp)
         return result
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -951,7 +952,7 @@ class hollaex(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
@@ -1021,7 +1022,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch an open order by it's id
 

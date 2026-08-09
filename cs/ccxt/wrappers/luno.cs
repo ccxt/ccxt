@@ -543,4 +543,24 @@ public partial class luno
         var res = await this.fetchDepositAddress(code, parameters);
         return new DepositAddress(res);
     }
+    /// <summary>
+    /// fetch the fee for sending (withdrawing) a currency to a specific address; luno quotes the network fee per destination, so an address is required, see https://github.com/ccxt/ccxt/issues/25830
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Send/operation/SendFee"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
+    public async Task<DepositWithdrawFee> FetchDepositWithdrawFee(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositWithdrawFee(code, parameters);
+        return new DepositWithdrawFee(res);
+    }
 }

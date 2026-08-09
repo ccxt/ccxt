@@ -164,30 +164,30 @@ class cryptomus extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'v2/user-api/exchange/markets' => 1, // done
-                        'v2/user-api/exchange/market/price' => 1, // not used
-                        'v1/exchange/market/assets' => 1, // done
-                        'v1/exchange/market/order-book/{currencyPair}' => 1, // done
-                        'v1/exchange/market/tickers' => 1, // done
-                        'v1/exchange/market/trades/{currencyPair}' => 1, // done
+                        'v2/user-api/exchange/markets' => array( 'cost' => 1 ), // done
+                        'v2/user-api/exchange/market/price' => array( 'cost' => 1 ), // not used
+                        'v1/exchange/market/assets' => array( 'cost' => 1 ), // done
+                        'v1/exchange/market/order-book/{currencyPair}' => array( 'cost' => 1 ), // done
+                        'v1/exchange/market/tickers' => array( 'cost' => 1 ), // done
+                        'v1/exchange/market/trades/{currencyPair}' => array( 'cost' => 1 ), // done
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'v2/user-api/exchange/orders' => 1, // done
-                        'v2/user-api/exchange/orders/history' => 1, // done
-                        'v2/user-api/exchange/account/balance' => 1, // done
-                        'v2/user-api/exchange/account/tariffs' => 1, // done
-                        'v2/user-api/payment/services' => 1,
-                        'v2/user-api/payout/services' => 1,
-                        'v2/user-api/transaction/list' => 1,
+                        'v2/user-api/exchange/orders' => array( 'cost' => 1 ), // done
+                        'v2/user-api/exchange/orders/history' => array( 'cost' => 1 ), // done
+                        'v2/user-api/exchange/account/balance' => array( 'cost' => 1 ), // done
+                        'v2/user-api/exchange/account/tariffs' => array( 'cost' => 1 ), // done
+                        'v2/user-api/payment/services' => array( 'cost' => 1 ),
+                        'v2/user-api/payout/services' => array( 'cost' => 1 ),
+                        'v2/user-api/transaction/list' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'v2/user-api/exchange/orders' => 1, // done
-                        'v2/user-api/exchange/orders/market' => 1, // done
+                        'v2/user-api/exchange/orders' => array( 'cost' => 1 ), // done
+                        'v2/user-api/exchange/orders/market' => array( 'cost' => 1 ), // done
                     ),
                     'delete' => array(
-                        'v2/user-api/exchange/orders/{orderId}' => 1, // done
+                        'v2/user-api/exchange/orders/{orderId}' => array( 'cost' => 1 ), // done
                     ),
                 ),
             ),
@@ -205,7 +205,7 @@ class cryptomus extends Exchange {
                     'BEP20' => 'bsc',
                     'DASH' => 'dash',
                     'POLYGON' => 'polygon',
-                    'ARB' => 'arbitrum',
+                    'ARBITRUM' => 'arbitrum',
                     'SOL' => 'sol',
                     'TON' => 'ton',
                     'ERC20' => 'eth',
@@ -222,7 +222,7 @@ class cryptomus extends Exchange {
                     'bsc' => 'BEP20',
                     'dash' => 'DASH',
                     'polygon' => 'POLYGON',
-                    'arbitrum' => 'ARB',
+                    'arbitrum' => 'ARBITRUM',
                     'sol' => 'SOL',
                     'ton' => 'TON',
                     'eth' => 'ERC20',

@@ -123,7 +123,7 @@ func (this *ApexCore) Describe() any {
 			"setLeverage":                   true,
 			"setMarginMode":                 false,
 			"setPositionMode":               false,
-			"transfer":                      false,
+			"transfer":                      true,
 			"withdraw":                      false,
 		},
 		"timeframes": map[string]any{
@@ -159,39 +159,93 @@ func (this *ApexCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"v3/symbols":              1,
-					"v3/history-funding":      1,
-					"v3/ticker":               1,
-					"v3/klines":               1,
-					"v3/trades":               1,
-					"v3/depth":                1,
-					"v3/time":                 1,
-					"v3/data/all-ticker-info": 1,
+					"v3/symbols": map[string]any{
+						"cost": 1,
+					},
+					"v3/history-funding": map[string]any{
+						"cost": 1,
+					},
+					"v3/ticker": map[string]any{
+						"cost": 1,
+					},
+					"v3/klines": map[string]any{
+						"cost": 1,
+					},
+					"v3/trades": map[string]any{
+						"cost": 1,
+					},
+					"v3/depth": map[string]any{
+						"cost": 1,
+					},
+					"v3/time": map[string]any{
+						"cost": 1,
+					},
+					"v3/data/all-ticker-info": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"v3/account":                  1,
-					"v3/account-balance":          1,
-					"v3/fills":                    1,
-					"v3/order-fills":              1,
-					"v3/order":                    1,
-					"v3/history-orders":           1,
-					"v3/order-by-client-order-id": 1,
-					"v3/funding":                  1,
-					"v3/historical-pnl":           1,
-					"v3/open-orders":              1,
-					"v3/transfers":                1,
-					"v3/transfer":                 1,
+					"v3/account": map[string]any{
+						"cost": 1,
+					},
+					"v3/account-balance": map[string]any{
+						"cost": 1,
+					},
+					"v3/fills": map[string]any{
+						"cost": 1,
+					},
+					"v3/order-fills": map[string]any{
+						"cost": 1,
+					},
+					"v3/order": map[string]any{
+						"cost": 1,
+					},
+					"v3/history-orders": map[string]any{
+						"cost": 1,
+					},
+					"v3/order-by-client-order-id": map[string]any{
+						"cost": 1,
+					},
+					"v3/funding": map[string]any{
+						"cost": 1,
+					},
+					"v3/historical-pnl": map[string]any{
+						"cost": 1,
+					},
+					"v3/open-orders": map[string]any{
+						"cost": 1,
+					},
+					"v3/transfers": map[string]any{
+						"cost": 1,
+					},
+					"v3/transfer": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"v3/delete-open-orders":      1,
-					"v3/delete-client-order-id":  1,
-					"v3/delete-order":            1,
-					"v3/order":                   1,
-					"v3/set-initial-margin-rate": 1,
-					"v3/transfer-out":            1,
-					"v3/contract-transfer-out":   1,
+					"v3/delete-open-orders": map[string]any{
+						"cost": 1,
+					},
+					"v3/delete-client-order-id": map[string]any{
+						"cost": 1,
+					},
+					"v3/delete-order": map[string]any{
+						"cost": 1,
+					},
+					"v3/order": map[string]any{
+						"cost": 1,
+					},
+					"v3/set-initial-margin-rate": map[string]any{
+						"cost": 1,
+					},
+					"v3/transfer-out": map[string]any{
+						"cost": 1,
+					},
+					"v3/contract-transfer-out": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},

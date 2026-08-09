@@ -1426,7 +1426,7 @@ func (this *Hibachi) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Hibachi) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Hibachi) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Hibachi) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Hibachi) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1441,7 +1441,7 @@ func (this *Hibachi) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Hibachi) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Hibachi) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Hibachi) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Hibachi) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
@@ -1558,7 +1558,7 @@ func (this *Hibachi) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Hibachi) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Hibachi) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Hibachi) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Hibachi) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1603,7 +1603,7 @@ func (this *Hibachi) FetchTradesWs(symbol string, options ...FetchTradesWsOption
 func (this *Hibachi) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Hibachi) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Hibachi) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Hibachi) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

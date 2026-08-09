@@ -107,103 +107,277 @@ public class ToobitCore extends ToobitApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "common", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "api/v1/time", 1 );
-                        put( "api/v1/ping", 1 );
-                        put( "api/v1/exchangeInfo", 1 );
-                        put( "quote/v1/depth", 1 );
-                        put( "quote/v1/depth/merged", 1 );
-                        put( "quote/v1/trades", 1 );
-                        put( "quote/v1/klines", 1 );
-                        put( "quote/v1/index/klines", 1 );
-                        put( "quote/v1/indexPriceComponents", 1 );
-                        put( "quote/v1/markPrice/klines", 1 );
-                        put( "quote/v1/markPrice", 10 );
-                        put( "quote/v1/index", 1 );
-                        put( "quote/v1/ticker/24hr", 40 );
-                        put( "quote/v1/contract/ticker/24hr", 40 );
-                        put( "quote/v1/ticker/price", 1 );
-                        put( "quote/v1/contract/ticker/price", 1 );
-                        put( "quote/v1/ticker/bookTicker", 1 );
-                        put( "quote/v1/contract/ticker/bookTicker", 1 );
-                        put( "api/v1/futures/fundingRate", 1 );
-                        put( "api/v1/futures/historyFundingRate", 1 );
-                        put( "api/v1/futures/riskLimits", 1 );
+                        put( "api/v1/time", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/ping", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/exchangeInfo", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "quote/v1/depth", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "quote/v1/depth/merged", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "quote/v1/trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "quote/v1/klines", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "quote/v1/index/klines", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "quote/v1/indexPriceComponents", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "quote/v1/markPrice/klines", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "quote/v1/markPrice", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
+                        put( "quote/v1/index", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "quote/v1/ticker/24hr", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 40 );
+                        }} );
+                        put( "quote/v1/contract/ticker/24hr", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 40 );
+                        }} );
+                        put( "quote/v1/ticker/price", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "quote/v1/contract/ticker/price", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "quote/v1/ticker/bookTicker", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "quote/v1/contract/ticker/bookTicker", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/futures/fundingRate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/futures/historyFundingRate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/futures/riskLimits", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "api/v1/account", 5 );
-                        put( "api/v1/account/checkApiKey", 1 );
-                        put( "api/v1/spot/order", Helpers.multiply(1, 1.67) );
-                        put( "api/v1/spot/openOrders", Helpers.multiply(1, 1.67) );
-                        put( "api/v1/futures/openOrders", Helpers.multiply(1, 1.67) );
-                        put( "api/v1/spot/tradeOrders", Helpers.multiply(5, 1.67) );
-                        put( "api/v1/futures/historyOrders", Helpers.multiply(5, 1.67) );
-                        put( "api/v1/account/trades", Helpers.multiply(5, 1.67) );
-                        put( "api/v1/account/balanceFlow", 5 );
-                        put( "api/v1/account/depositOrders", 5 );
-                        put( "api/v1/account/withdrawOrders", 5 );
-                        put( "api/v1/account/deposit/address", 1 );
-                        put( "api/v1/subAccount", 5 );
-                        put( "api/v1/account/subAccount", 5 );
-                        put( "api/v1/subAccount/list", 5 );
-                        put( "api/v1/futures/accountLeverage", 1 );
-                        put( "api/v1/futures/order", Helpers.multiply(1, 1.67) );
-                        put( "api/v1/futures/positions", Helpers.multiply(5, 1.67) );
-                        put( "api/v1/futures/historyPositions", 5 );
-                        put( "api/v1/futures/balance", 5 );
-                        put( "api/v1/futures/userTrades", Helpers.multiply(5, 1.67) );
-                        put( "api/v1/futures/balanceFlow", 5 );
-                        put( "api/v1/futures/commissionRate", 5 );
-                        put( "api/v1/futures/todayPnl", 5 );
-                        put( "api/v1/account/download/detail", 10 );
-                        put( "api/v1/agent/inviteUserList", 1 );
-                        put( "api/v1/agent/commissionDataList", 1 );
-                        put( "api/v1/agent/commissionDataInfo", 1 );
-                        put( "api/v1/agent/inviteRelationCheck", 1 );
-                        put( "api/v1/agent/depositDetailList", 1 );
-                        put( "api/v1/agent/querySubAgentData", 1 );
-                        put( "api/v1/agent/spotOrdersList", 1 );
-                        put( "api/v1/agent/futuresOrdersList", 1 );
-                        put( "api/v1/agent/futuresPositionsList", 1 );
-                        put( "api/v1/agent/invite-commission-detail", 1 );
-                        put( "api/v1/agent/user/export", 1 );
-                        put( "api/v1/agent/export-list", 1 );
-                        put( "api/v1/agent/export-url", 1 );
+                        put( "api/v1/account", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/v1/account/checkApiKey", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/spot/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(1, 1.67) );
+                        }} );
+                        put( "api/v1/spot/openOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(1, 1.67) );
+                        }} );
+                        put( "api/v1/futures/openOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(1, 1.67) );
+                        }} );
+                        put( "api/v1/spot/tradeOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(5, 1.67) );
+                        }} );
+                        put( "api/v1/futures/historyOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(5, 1.67) );
+                        }} );
+                        put( "api/v1/account/trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(5, 1.67) );
+                        }} );
+                        put( "api/v1/account/balanceFlow", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/v1/account/depositOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/v1/account/withdrawOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/v1/account/deposit/address", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/subAccount", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/v1/account/subAccount", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/v1/subAccount/list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/v1/futures/accountLeverage", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/futures/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(1, 1.67) );
+                        }} );
+                        put( "api/v1/futures/positions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(5, 1.67) );
+                        }} );
+                        put( "api/v1/futures/historyPositions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/v1/futures/balance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/v1/futures/userTrades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(5, 1.67) );
+                        }} );
+                        put( "api/v1/futures/balanceFlow", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/v1/futures/commissionRate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/v1/futures/todayPnl", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/v1/account/download/detail", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
+                        put( "api/v1/agent/inviteUserList", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/agent/commissionDataList", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/agent/commissionDataInfo", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/agent/inviteRelationCheck", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/agent/depositDetailList", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/agent/querySubAgentData", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/agent/spotOrdersList", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/agent/futuresOrdersList", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/agent/futuresPositionsList", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/agent/invite-commission-detail", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/agent/user/export", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/agent/export-list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/agent/export-url", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "api/v1/spot/orderTest", Helpers.multiply(1, 1.67) );
-                        put( "api/v1/spot/order", Helpers.multiply(1, 1.67) );
-                        put( "api/v1/futures/order", Helpers.multiply(1, 1.67) );
-                        put( "api/v1/spot/batchOrders", Helpers.multiply(2, 1.67) );
-                        put( "api/v1/subAccount/transfer", 1 );
-                        put( "api/v1/account/withdraw", 1 );
-                        put( "api/v1/futures/marginType", 1 );
-                        put( "api/v1/futures/leverage", 1 );
-                        put( "api/v1/futures/batchOrders", Helpers.multiply(2, 1.67) );
-                        put( "api/v1/futures/position/trading-stop", Helpers.multiply(3, 1.67) );
-                        put( "api/v1/futures/positionMargin", 1 );
-                        put( "api/v1/futures/order/update", Helpers.multiply(2, 1.67) );
-                        put( "api/v1/futures/autoAddMargin", 1 );
-                        put( "api/v1/futures/flashClose", 1 );
-                        put( "api/v1/futures/reversePosition", 5 );
-                        put( "api/v1/account/download/apply", 1000 );
-                        put( "api/v1/userDataStream", 1 );
-                        put( "api/v1/listenKey", 1 );
+                        put( "api/v1/spot/orderTest", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(1, 1.67) );
+                        }} );
+                        put( "api/v1/spot/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(1, 1.67) );
+                        }} );
+                        put( "api/v1/futures/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(1, 1.67) );
+                        }} );
+                        put( "api/v1/spot/batchOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(2, 1.67) );
+                        }} );
+                        put( "api/v1/subAccount/transfer", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/account/withdraw", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/futures/marginType", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/futures/leverage", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/futures/batchOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(2, 1.67) );
+                        }} );
+                        put( "api/v1/futures/position/trading-stop", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(3, 1.67) );
+                        }} );
+                        put( "api/v1/futures/positionMargin", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/futures/order/update", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(2, 1.67) );
+                        }} );
+                        put( "api/v1/futures/autoAddMargin", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/futures/flashClose", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/futures/reversePosition", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/v1/account/download/apply", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1000 );
+                        }} );
+                        put( "api/v1/userDataStream", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/listenKey", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "delete", new java.util.HashMap<String, Object>() {{
-                        put( "api/v1/spot/order", Helpers.multiply(1, 1.67) );
-                        put( "api/v1/futures/order", Helpers.multiply(1, 1.67) );
-                        put( "api/v1/spot/openOrders", Helpers.multiply(5, 1.67) );
-                        put( "api/v1/futures/batchOrders", Helpers.multiply(3, 1.67) );
-                        put( "api/v1/spot/cancelOrderByIds", Helpers.multiply(5, 1.67) );
-                        put( "api/v1/futures/cancelOrderByIds", Helpers.multiply(3, 1.67) );
-                        put( "api/v1/userDataStream", 1 );
-                        put( "api/v1/listenKey", 1 );
+                        put( "api/v1/spot/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(1, 1.67) );
+                        }} );
+                        put( "api/v1/futures/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(1, 1.67) );
+                        }} );
+                        put( "api/v1/spot/openOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(5, 1.67) );
+                        }} );
+                        put( "api/v1/futures/batchOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(3, 1.67) );
+                        }} );
+                        put( "api/v1/spot/cancelOrderByIds", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(5, 1.67) );
+                        }} );
+                        put( "api/v1/futures/cancelOrderByIds", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(3, 1.67) );
+                        }} );
+                        put( "api/v1/userDataStream", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/listenKey", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "put", new java.util.HashMap<String, Object>() {{
-                        put( "api/v1/userDataStream", 1 );
-                        put( "api/v1/listenKey", 1 );
+                        put( "api/v1/userDataStream", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/listenKey", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -444,7 +618,7 @@ public class ToobitCore extends ToobitApi
                     put( "TRC20", "TRX" );
                     put( "SOL", "SOL" );
                     put( "MATIC", "MATIC" );
-                    put( "ARBONE", "ARBITRUM" );
+                    put( "ARBITRUM", "ARBITRUM" );
                     put( "BASE", "BASE" );
                     put( "TON", "TON" );
                     put( "AVAXC", "AVAXC" );
@@ -1356,7 +1530,12 @@ public class ToobitCore extends ToobitApi
             {
                 response = (this.commonGetQuoteV1Klines(this.extend(request, parameters))).join();
             }
-            return this.parseOHLCVs(response, market, timeframe, since, limit);
+            Object candles = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(response)))
+            {
+                candles = response;
+            }
+            return this.parseOHLCVs(candles, market, timeframe, since, limit);
         });
 
     }
@@ -2449,7 +2628,7 @@ public class ToobitCore extends ToobitApi
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
+            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2576,12 +2755,17 @@ public class ToobitCore extends ToobitApi
                 response = (this.privateGetApiV1FuturesHistoryOrders(request)).join();
             }
             Object ordersList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+            Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(response)))
             {
-    final Object finalResponse = response;
+                responseList = response;
+            }
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(responseList)); i++)
+            {
+    final Object finalResponseList = responseList;
                 final Object finalI = i;
                             ((java.util.List<Object>)ordersList).add(new java.util.HashMap<String, Object>() {{
-                    put( "result", Helpers.GetValue(finalResponse, finalI) );
+                    put( "result", Helpers.GetValue(finalResponseList, finalI) );
                 }});
             }
             return this.parseOrders(ordersList, market, since, limit);
@@ -2761,7 +2945,7 @@ public class ToobitCore extends ToobitApi
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", null, parameters);
+            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchLedger", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;

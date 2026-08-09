@@ -71,6 +71,7 @@ func (this *BtcboxCore) Describe() any {
 			"fetchMarginMode":                        false,
 			"fetchMarginModes":                       false,
 			"fetchMarketLeverageTiers":               false,
+			"fetchMarkets":                           true,
 			"fetchMarkOHLCV":                         false,
 			"fetchMarkPrices":                        false,
 			"fetchMyLiquidations":                    false,
@@ -124,13 +125,49 @@ func (this *BtcboxCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"depth", "orders", "ticker", "tickers"},
+				"get": map[string]any{
+					"depth": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"ticker": map[string]any{
+						"cost": 1,
+					},
+					"tickers": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"post": []any{"balance", "trade_add", "trade_cancel", "trade_list", "trade_view", "wallet"},
+				"post": map[string]any{
+					"balance": map[string]any{
+						"cost": 1,
+					},
+					"trade_add": map[string]any{
+						"cost": 1,
+					},
+					"trade_cancel": map[string]any{
+						"cost": 1,
+					},
+					"trade_list": map[string]any{
+						"cost": 1,
+					},
+					"trade_view": map[string]any{
+						"cost": 1,
+					},
+					"wallet": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"webApi": map[string]any{
-				"get": []any{"ajax/coin/coinInfo"},
+				"get": map[string]any{
+					"ajax/coin/coinInfo": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"options": map[string]any{
@@ -246,7 +283,7 @@ func (this *BtcboxCore) FetchMarkets(optionalArgs ...any) <-chan any {
 			var quote any = this.SafeString(symbolParts, 1, "")
 			var quoteId any = ToLower(quote)
 			var id any = ToLower(baseCurr)
-			var res any = GetValue(response1, marketId)
+			var res any = this.SafeDict(response1, marketId, map[string]any{})
 			var symbol any = Add(Add(baseCurr, "/"), quote)
 			var fee any = Ternary(IsTrue((IsEqual(id, "BTC"))), this.ParseNumber("0.0005"), this.ParseNumber("0.0010"))
 			var details any = this.SafeDict(result2Data, id, map[string]any{})
@@ -406,8 +443,8 @@ func (this *BtcboxCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes40512 := (<-this.LoadMarkets())
-			PanicOnError(retRes40512)
+			retRes40612 := (<-this.LoadMarkets())
+			PanicOnError(retRes40612)
 		}
 
 		response := (<-this.PrivatePostBalance(params))
@@ -441,8 +478,8 @@ func (this *BtcboxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes42312 := (<-this.LoadMarkets())
-			PanicOnError(retRes42312)
+			retRes42412 := (<-this.LoadMarkets())
+			PanicOnError(retRes42412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
@@ -507,8 +544,8 @@ func (this *BtcboxCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes47312 := (<-this.LoadMarkets())
-			PanicOnError(retRes47312)
+			retRes47412 := (<-this.LoadMarkets())
+			PanicOnError(retRes47412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
@@ -546,8 +583,8 @@ func (this *BtcboxCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes49512 := (<-this.LoadMarkets())
-			PanicOnError(retRes49512)
+			retRes49612 := (<-this.LoadMarkets())
+			PanicOnError(retRes49612)
 		}
 
 		response := (<-this.PublicGetTickers(params))
@@ -621,8 +658,8 @@ func (this *BtcboxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes55012 := (<-this.LoadMarkets())
-			PanicOnError(retRes55012)
+			retRes55112 := (<-this.LoadMarkets())
+			PanicOnError(retRes55112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
@@ -676,8 +713,8 @@ func (this *BtcboxCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes58812 := (<-this.LoadMarkets())
-			PanicOnError(retRes58812)
+			retRes58912 := (<-this.LoadMarkets())
+			PanicOnError(retRes58912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -724,8 +761,8 @@ func (this *BtcboxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes61912 := (<-this.LoadMarkets())
-			PanicOnError(retRes61912)
+			retRes62012 := (<-this.LoadMarkets())
+			PanicOnError(retRes62012)
 		}
 		// a special case for btcbox – default symbol is BTC/JPY
 		if IsTrue(IsEqual(symbol, nil)) {
@@ -843,8 +880,8 @@ func (this *BtcboxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes72212 := (<-this.LoadMarkets())
-			PanicOnError(retRes72212)
+			retRes72312 := (<-this.LoadMarkets())
+			PanicOnError(retRes72312)
 		}
 		// a special case for btcbox – default symbol is BTC/JPY
 		if IsTrue(IsEqual(symbol, nil)) {
@@ -892,8 +929,8 @@ func (this *BtcboxCore) FetchOrdersByType(typeVar any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes75112 := (<-this.LoadMarkets())
-			PanicOnError(retRes75112)
+			retRes75212 := (<-this.LoadMarkets())
+			PanicOnError(retRes75212)
 		}
 		// a special case for btcbox – default symbol is BTC/JPY
 		if IsTrue(IsEqual(symbol, nil)) {
@@ -960,9 +997,9 @@ func (this *BtcboxCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes79815 := (<-this.FetchOrdersByType("all", symbol, since, limit, params))
-		PanicOnError(retRes79815)
-		ch <- retRes79815
+		retRes79915 := (<-this.FetchOrdersByType("all", symbol, since, limit, params))
+		PanicOnError(retRes79915)
+		ch <- retRes79915
 		return nil
 
 	}()
@@ -994,9 +1031,9 @@ func (this *BtcboxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes81315 := (<-this.FetchOrdersByType("open", symbol, since, limit, params))
-		PanicOnError(retRes81315)
-		ch <- retRes81315
+		retRes81415 := (<-this.FetchOrdersByType("open", symbol, since, limit, params))
+		PanicOnError(retRes81415)
+		ch <- retRes81415
 		return nil
 
 	}()

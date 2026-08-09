@@ -43,7 +43,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook
 // ----------------------------------------------------------------------------
 //
 // import types
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, NullableList } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, List, NullableList, Status, PositionModeInfo, MarginLoan } from './types.js';
 // ----------------------------------------------------------------------------
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
@@ -674,6 +674,17 @@ export class BaseExchange {
         return encodeURIComponent (...args);
     }
 
+    /**
+     * @method
+     * @name Exchange#getCcxtVersion
+     * @description returns the version of the ccxt library, e.g. "4.5.54", or "unknown" when the version constant is not initialized (e.g. when an exchange module is imported directly, bypassing the ccxt entry point)
+     * @returns {string} the semver version of the ccxt library, or "unknown" when unavailable
+     */
+    getCcxtVersion (): string {
+        const staticVersion = (Exchange as any).ccxtVersion;
+        return (staticVersion === undefined) ? 'unknown' : staticVersion;
+    }
+
     throttle (cost: Num = undefined) {
         return this.throttler.throttle (cost);
     }
@@ -1241,7 +1252,10 @@ export class BaseExchange {
             await this.loadProxyModules ();
         }
         // user-agent
-        const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
+        let userAgent: any = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
+        if ((userAgent === undefined) && isNode) {
+            userAgent = this.userAgents['chrome'];
+        }
         if (userAgent && isNode) {
             if (typeof userAgent === 'string') {
                 headers = this.extend ({ 'User-Agent': userAgent }, headers);
@@ -1634,6 +1648,11 @@ export class BaseExchange {
 
     spawn (method: any, ...args: any[]) {
         const future = Future ();
+        // spawned tasks are fire-and-forget - when the caller does not await the
+        // returned future, a rejection (e.g. a keepalive pong sent after the test
+        // harness closed the socket) must not escalate to unhandledRejection and
+        // crash the process, see https://github.com/ccxt/ccxt/actions/runs/31173661492
+        future.catch (() => {});
         // using setTimeout 0 to force the execution to run after the future is returned
         setTimeout (() => {
             method.apply (this, args).then (future.resolve).catch (future.reject);
@@ -1707,6 +1726,46 @@ export class BaseExchange {
         return this.clients[url];
     }
 
+    calculateWsBackoffDelay (url: string): number {
+        // exponential reconnect backoff with rng-free jitter, verified behaviorally,
+        // replaces the long-standing hardcoded 0, see https://github.com/ccxt/ccxt/issues/23525
+        const wsOptions = this.safeDict (this.options, 'ws', {});
+        const backoff = this.safeDict (wsOptions, 'backoff', {});
+        const base = this.safeInteger (backoff, 'base', 1000);
+        const factor = this.safeInteger (backoff, 'factor', 2);
+        const maxDelay = this.safeInteger (backoff, 'max', 60000);
+        const stableAfter = this.safeInteger (backoff, 'stableAfter', 30000);
+        let state = this.safeDict (wsOptions, 'backoffState');
+        if (state === undefined) {
+            state = {};
+        }
+        const nowMillis = this.milliseconds ();
+        const urlState = this.safeDict (state, url, {});
+        const lastAttempt = this.safeInteger (urlState, 'lastAttempt', 0);
+        let attempts = this.safeInteger (urlState, 'attempts', 0);
+        if ((lastAttempt > 0) && ((nowMillis - lastAttempt) > stableAfter)) {
+            attempts = 0; // the previous connection was healthy long enough, start fresh
+        }
+        urlState['attempts'] = attempts + 1;
+        urlState['lastAttempt'] = nowMillis;
+        state[url] = urlState;
+        // write back unconditionally - transpiled php copies arrays by value, so
+        // mutations only persist through an explicit re-assignment into options
+        wsOptions['backoffState'] = state;
+        this.options['ws'] = wsOptions;
+        if (attempts === 0) {
+            return 0; // first dial or recovered, connect immediately
+        }
+        let delay = base;
+        const capped = Math.min (attempts, 20); // overflow guard
+        for (let i = 1; i < capped; i++) {
+            delay = delay * factor;
+        }
+        const jitterMillis = nowMillis % 1000; // rng-free jitter, transpile-safe
+        const jittered = this.parseToInt (delay * (0.8 + (jitterMillis / 2500))); // 0.8x .. 1.2x
+        return Math.min (jittered, maxDelay); // the ceiling holds regardless of jitter
+    }
+
     watchMultiple (url: Str, messageHashes: string[], message: any = undefined, subscribeHashes: Strings = undefined, subscription: any = undefined) {
         //
         // Without comments the code of this method is short and easy:
@@ -1728,9 +1787,8 @@ export class BaseExchange {
         if (url === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMultiple() requires a url argument');
         }
+        const clientExisted = (url in this.clients);
         const client = this.client (url) as WsClient;
-        // todo: calculate the backoff using the clients cache
-        const backoffDelay = 0;
         //
         //  watchOrderBook ---- future ----+---------------+----→ user
         //                                 |               |
@@ -1759,6 +1817,12 @@ export class BaseExchange {
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
         //  a proper exception class instance
+        let backoffDelay = 0;
+        if (!clientExisted) {
+            // count real dials only - re-entrant watch calls for live or in-flight
+            // connections must not touch the backoff state, see https://github.com/ccxt/ccxt/pull/29627
+            backoffDelay = this.calculateWsBackoffDelay (url);
+        }
         const connected = client.connect (backoffDelay);
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
@@ -1827,9 +1891,8 @@ export class BaseExchange {
         if (messageHash === undefined) {
             throw new ArgumentsRequired (this.id + ' watch() requires a messageHash argument');
         }
+        const clientExisted = (url in this.clients);
         const client = this.client (url) as WsClient;
-        // todo: calculate the backoff using the clients cache
-        const backoffDelay = 0;
         //
         //  watchOrderBook ---- future ----+---------------+----→ user
         //                                 |               |
@@ -1855,6 +1918,12 @@ export class BaseExchange {
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
         //  a proper exception class instance
+        let backoffDelay = 0;
+        if (!clientExisted) {
+            // count real dials only - re-entrant watch calls for live or in-flight
+            // connections must not touch the backoff state, see https://github.com/ccxt/ccxt/pull/29627
+            backoffDelay = this.calculateWsBackoffDelay (url);
+        }
         const connected = client.connect (backoffDelay);
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
@@ -2696,6 +2765,7 @@ export class BaseExchange {
                 'swap': undefined,
                 'future': undefined,
                 'option': undefined,
+                'index': undefined,
                 'addMargin': undefined,
                 'borrowCrossMargin': undefined,
                 'borrowIsolatedMargin': undefined,
@@ -3808,7 +3878,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' unWatchFundingRates() is not supported yet');
     }
 
-    async watchFundingRatesForSymbols (symbols: string[], params = {}): Promise<{}> {
+    async watchFundingRatesForSymbols (symbols: string[], params = {}): Promise<FundingRates> {
         return await this.watchFundingRates (symbols, params);
     }
 
@@ -4196,6 +4266,11 @@ export class BaseExchange {
                 'CRO': { 'primary': 'CRONOS', 'secondary': 'CRC20', 'default': 'secondary' },
                 'TRX': { 'primary': 'TRX', 'secondary': 'TRC20', 'default': 'secondary' },
                 'BTC': { 'primary': 'BTC', 'secondary': 'BRC20', 'default': 'primary' },
+            },
+            'backwardSupportedNetworkCodes': {
+                'ARB': 'ARBITRUM',
+                'ARBONE': 'ARBITRUM',
+                'ARBNOVA': 'ARBITRUM_NOVA',
             },
         };
     }
@@ -5363,27 +5438,27 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead');
     }
 
-    async repayCrossMargin (code: string, amount: number, params = {}): Promise<{}> {
+    async repayCrossMargin (code: string, amount: number, params = {}): Promise<MarginLoan> {
         throw new NotSupported (this.id + ' repayCrossMargin is not support yet');
     }
 
-    async repayIsolatedMargin (symbol: string, code: string, amount: number, params = {}): Promise<{}> {
+    async repayIsolatedMargin (symbol: string, code: string, amount: number, params = {}): Promise<MarginLoan> {
         throw new NotSupported (this.id + ' repayIsolatedMargin is not support yet');
     }
 
-    async borrowCrossMargin (code: string, amount: number, params = {}): Promise<{}> {
+    async borrowCrossMargin (code: string, amount: number, params = {}): Promise<MarginLoan> {
         throw new NotSupported (this.id + ' borrowCrossMargin is not support yet');
     }
 
-    async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}): Promise<{}> {
+    async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}): Promise<MarginLoan> {
         throw new NotSupported (this.id + ' borrowIsolatedMargin is not support yet');
     }
 
-    async borrowMargin (code: string, amount: number, symbol: Str = undefined, params = {}): Promise<{}> {
+    async borrowMargin (code: string, amount: number, symbol: Str = undefined, params = {}): Promise<MarginLoan> {
         throw new NotSupported (this.id + ' borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead');
     }
 
-    async repayMargin (code: string, amount: number, symbol: Str = undefined, params = {}): Promise<{}> {
+    async repayMargin (code: string, amount: number, symbol: Str = undefined, params = {}): Promise<MarginLoan> {
         throw new NotSupported (this.id + ' repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead');
     }
 
@@ -5794,6 +5869,11 @@ export class BaseExchange {
                 return this.safeString (networks[networkCode], 'id');
             }
         }
+        // before returning the original input, try to match if it's backward-maintained networkCode
+        const oldCodes = this.safeDict (this.options, 'backwardSupportedNetworkCodes', {});
+        if (networkCode in oldCodes) {
+            return this.networkCodeToId (oldCodes[networkCode], currencyCode);
+        }
         return networkCode;
     }
 
@@ -6013,12 +6093,12 @@ export class BaseExchange {
         return position as Position;
     }
 
-    parsePositions (positions: any[], symbols: Strings = undefined, params = {}): Position[] {
+    parsePositions (positions: List, symbols: Strings = undefined, params = {}): Position[] {
         symbols = this.marketSymbols (symbols);
-        positions = this.toArray (positions);
+        const positionsArray = this.toArray (positions);
         const result: Position[] = [];
-        for (let i = 0; i < positions.length; i++) {
-            const position = this.extend (this.parsePosition (positions[i]), params);
+        for (let i = 0; i < positionsArray.length; i++) {
+            const position = this.extend (this.parsePosition (positionsArray[i]), params);
             result.push (position);
         }
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
@@ -6031,36 +6111,36 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseADLRank() is not supported yet');
     }
 
-    parseADLRanks (ranks: any[], symbols: Strings = undefined, params = {}): ADL[] {
+    parseADLRanks (ranks: List, symbols: Strings = undefined, params = {}): ADL[] {
         symbols = this.marketSymbols (symbols);
-        ranks = this.toArray (ranks);
+        const ranksArray = this.toArray (ranks);
         const result: ADL[] = [];
-        for (let i = 0; i < ranks.length; i++) {
-            const rank = this.extend (this.parseADLRank (ranks[i]), params);
+        for (let i = 0; i < ranksArray.length; i++) {
+            const rank = this.extend (this.parseADLRank (ranksArray[i]), params);
             result.push (rank);
         }
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parseAccounts (accounts: any[], params = {}): Account[] {
-        accounts = this.toArray (accounts);
+    parseAccounts (accounts: List, params = {}): Account[] {
+        const accountsArray = this.toArray (accounts);
         const result: Account[] = [];
-        for (let i = 0; i < accounts.length; i++) {
-            const account = this.extend (this.parseAccount (accounts[i]), params);
+        for (let i = 0; i < accountsArray.length; i++) {
+            const account = this.extend (this.parseAccount (accountsArray[i]), params);
             result.push (account);
         }
         return result;
     }
 
-    parseTradesHelper (isWs: boolean, trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
-        trades = this.toArray (trades);
+    parseTradesHelper (isWs: boolean, trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+        const tradesArray = this.toArray (trades);
         let result: Trade[] = [];
-        for (let i = 0; i < trades.length; i++) {
+        for (let i = 0; i < tradesArray.length; i++) {
             let parsed: NullableDict = undefined;
             if (isWs) {
-                parsed = this.parseWsTrade (trades[i], market);
+                parsed = this.parseWsTrade (tradesArray[i], market);
             } else {
-                parsed = this.parseTrade (trades[i], market);
+                parsed = this.parseTrade (tradesArray[i], market);
             }
             const trade = this.extend (parsed, params);
             result.push (trade);
@@ -6070,19 +6150,19 @@ export class BaseExchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
     }
 
-    parseTrades (trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+    parseTrades (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
         return this.parseTradesHelper (false, trades, market, since, limit, params);
     }
 
-    parseWsTrades (trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+    parseWsTrades (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
         return this.parseTradesHelper (true, trades, market, since, limit, params);
     }
 
-    parseTransactions (transactions: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
-        transactions = this.toArray (transactions);
+    parseTransactions (transactions: List, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
+        const transactionsArray = this.toArray (transactions);
         let result: Transaction[] = [];
-        for (let i = 0; i < transactions.length; i++) {
-            const transaction = this.extend (this.parseTransaction (transactions[i], currency), params);
+        for (let i = 0; i < transactionsArray.length; i++) {
+            const transaction = this.extend (this.parseTransaction (transactionsArray[i], currency), params);
             result.push (transaction);
         }
         result = this.sortBy (result, 'timestamp');
@@ -6090,11 +6170,11 @@ export class BaseExchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseTransfers (transfers: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): TransferEntry[] {
-        transfers = this.toArray (transfers);
+    parseTransfers (transfers: List, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): TransferEntry[] {
+        const transfersArray = this.toArray (transfers);
         let result: TransferEntry[] = [];
-        for (let i = 0; i < transfers.length; i++) {
-            const transfer = this.extend (this.parseTransfer (transfers[i], currency), params);
+        for (let i = 0; i < transfersArray.length; i++) {
+            const transfer = this.extend (this.parseTransfer (transfersArray[i], currency), params);
             result.push (transfer);
         }
         result = this.sortBy (result, 'timestamp');
@@ -6637,7 +6717,7 @@ export class BaseExchange {
         return await this.fetchPartialBalance ('total', params);
     }
 
-    async fetchStatus (params = {}): Promise<any> {
+    async fetchStatus (params = {}): Promise<Status> {
         throw new NotSupported (this.id + ' fetchStatus() is not supported yet');
     }
 
@@ -6918,7 +6998,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchConvertTradeHistory() is not supported yet');
     }
 
-    async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<{}> {
+    async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<PositionModeInfo> {
         throw new NotSupported (this.id + ' fetchPositionMode() is not supported yet');
     }
 
@@ -7079,11 +7159,11 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
     }
 
-    async fetchDepositsWs (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<{}> {
+    async fetchDepositsWs (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         throw new NotSupported (this.id + ' fetchDepositsWs() is not supported yet');
     }
 
-    async fetchWithdrawalsWs (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<{}> {
+    async fetchWithdrawalsWs (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         throw new NotSupported (this.id + ' fetchWithdrawalsWs() is not supported yet');
     }
 
@@ -8334,7 +8414,9 @@ export class BaseExchange {
         return this.filterBySinceLimit (uniqueResults, since, limit, key);
     }
 
-    async fetchPaginatedCallCursor (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, cursorReceived: Str = undefined, cursorSent: Str = undefined, cursorIncrement: Int = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
+    // the 'symbol' slot is forwarded to `this[method]` untouched and is only compared against
+    // undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
+    async fetchPaginatedCallCursor (method: string, symbol: Str | Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, cursorReceived: Str = undefined, cursorSent: Str = undefined, cursorIncrement: Int = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
         let maxCalls = 10;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
         let maxRetries = 3;
@@ -8360,7 +8442,8 @@ export class BaseExchange {
                 } else if (method === 'getLeverageTiersPaginated' || method === 'fetchPositions') {
                     response = await this[method] (symbol, params);
                 } else if (method === 'fetchOpenInterestHistory') {
-                    if (symbol === undefined) {
+                    if (typeof symbol !== 'string') {
+                        // fetchOpenInterestHistory takes a single symbol, never a list
                         throw new ArgumentsRequired (this.id + ' fetchPaginatedCallCursor() requires a symbol argument');
                     }
                     if (timeframe === undefined) {
@@ -8665,13 +8748,13 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseLeverage () is not supported yet');
     }
 
-    parseConversions (conversions: any[], code: Str = undefined, fromCurrencyKey: Str = undefined, toCurrencyKey: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Conversion[] {
-        conversions = this.toArray (conversions);
+    parseConversions (conversions: List, code: Str = undefined, fromCurrencyKey: Str = undefined, toCurrencyKey: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Conversion[] {
+        const conversionsArray = this.toArray (conversions);
         const result: Dict[] = [];
         let fromCurrency: Currency = undefined;
         let toCurrency: Currency = undefined;
-        for (let i = 0; i < conversions.length; i++) {
-            const entry = conversions[i];
+        for (let i = 0; i < conversionsArray.length; i++) {
+            const entry = conversionsArray[i];
             const fromId = (fromCurrencyKey === undefined) ? undefined : this.safeString (entry, fromCurrencyKey);
             const toId = (toCurrencyKey === undefined) ? undefined : this.safeString (entry, toCurrencyKey);
             if (fromId !== undefined) {
@@ -8856,7 +8939,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' unWatchOHLCV () is not supported yet');
     }
 
-    async withdrawWs (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<{}> {
+    async withdrawWs (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name exchange#withdrawWs
@@ -9986,7 +10069,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported (this.id + ' cancelAllOrders() is not supported yet');
     }
 
-    async cancelUnifiedOrder (order: Order, params = {}): Promise<{}> {
+    async cancelUnifiedOrder (order: Order, params = {}): Promise<Order> {
         return this.cancelOrder (this.safeString (order, 'id') as string, this.safeString (order, 'symbol'), params);
     }
 

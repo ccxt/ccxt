@@ -91,48 +91,76 @@ public class NadoCore extends NadoApi
                 put( "gateway", new java.util.HashMap<String, Object>() {{
                     put( "public", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "symbols", 2 );
-                            put( "query", 1 );
-                            put( "edge/query", 1 );
+                            put( "symbols", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "query", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "edge/query", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "query", 1 );
+                            put( "query", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                     put( "private", new java.util.HashMap<String, Object>() {{
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "execute", 1 );
+                            put( "execute", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                 }} );
                 put( "gatewayV2", new java.util.HashMap<String, Object>() {{
                     put( "public", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "assets", 2 );
-                            put( "pairs", 1 );
-                            put( "orderbook", 1 );
+                            put( "assets", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "pairs", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orderbook", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                 }} );
                 put( "archive", new java.util.HashMap<String, Object>() {{
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "", 1 );
+                        put( "", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "archiveV2", new java.util.HashMap<String, Object>() {{
                     put( "public", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "tickers", 1 );
-                            put( "contracts", 1 );
-                            put( "trades", 1 );
+                            put( "tickers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "contracts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                 }} );
                 put( "trigger", new java.util.HashMap<String, Object>() {{
                     put( "private", new java.util.HashMap<String, Object>() {{
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "execute", 1 );
-                            put( "query", 1 );
+                            put( "execute", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "query", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                 }} );
@@ -1062,7 +1090,7 @@ public class NadoCore extends NadoApi
                 ((java.util.List<Object>)productIds).add(this.parseToInt(Helpers.GetValue(market, "id")));
             }
             Object subaccount = null;
-            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "subaccount", "default");
+            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount(this.walletAddress, subaccount);
@@ -2042,9 +2070,10 @@ public class NadoCore extends NadoApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object response = (this.gatewayV2PublicGetAssets(parameters)).join();
             Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+            Object assets = this.toArray(response);
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
             {
-                Object currency = Helpers.GetValue(response, i);
+                Object currency = Helpers.GetValue(assets, i);
                 Object parsed = this.parseCurrency(currency);
                 Object code = this.safeString(parsed, "code");
                 if (Helpers.isTrue(Helpers.isEqual(code, null)))
@@ -2318,7 +2347,7 @@ public class NadoCore extends NadoApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
                 Object ticker = Helpers.GetValue(tickers, i);
-                ((java.util.List<Object>)rates).add(Helpers.GetValue(response, ticker));
+                ((java.util.List<Object>)rates).add(this.safeDict(response, ticker, new java.util.HashMap<String, Object>() {{}}));
             }
             return this.parseFundingRates(rates, symbols);
         });
@@ -2426,7 +2455,7 @@ public class NadoCore extends NadoApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
                 Object ticker = Helpers.GetValue(tickers, i);
-                ((java.util.List<Object>)interests).add(Helpers.GetValue(response, ticker));
+                ((java.util.List<Object>)interests).add(this.safeDict(response, ticker, new java.util.HashMap<String, Object>() {{}}));
             }
             return this.parseOpenInterests(interests, symbols);
         });

@@ -61,6 +61,7 @@ class coinbaseinternational extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
@@ -106,6 +107,7 @@ class coinbaseinternational extends Exchange {
                 'setMargin' => true,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -134,51 +136,51 @@ class coinbaseinternational extends Exchange {
                 'v1' => array(
                     'public' => array(
                         'get' => array(
-                            'assets',
-                            'assets/{assets}',
-                            'assets/{asset}/networks',
-                            'instruments',
-                            'instruments/{instrument}',
-                            'instruments/{instrument}/quote',
-                            'instruments/{instrument}/funding',
-                            'instruments/{instrument}/candles',
+                            'assets' => array( 'cost' => 1 ),
+                            'assets/{assets}' => array( 'cost' => 1 ),
+                            'assets/{asset}/networks' => array( 'cost' => 1 ),
+                            'instruments' => array( 'cost' => 1 ),
+                            'instruments/{instrument}' => array( 'cost' => 1 ),
+                            'instruments/{instrument}/quote' => array( 'cost' => 1 ),
+                            'instruments/{instrument}/funding' => array( 'cost' => 1 ),
+                            'instruments/{instrument}/candles' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'orders',
-                            'orders/{id}',
-                            'portfolios',
-                            'portfolios/{portfolio}',
-                            'portfolios/{portfolio}/detail',
-                            'portfolios/{portfolio}/summary',
-                            'portfolios/{portfolio}/balances',
-                            'portfolios/{portfolio}/balances/{asset}',
-                            'portfolios/{portfolio}/positions',
-                            'portfolios/{portfolio}/positions/{instrument}',
-                            'portfolios/fills',
-                            'portfolios/{portfolio}/fills',
-                            'transfers',
-                            'transfers/{transfer_uuid}',
+                            'orders' => array( 'cost' => 1 ),
+                            'orders/{id}' => array( 'cost' => 1 ),
+                            'portfolios' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/detail' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/summary' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/balances' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/balances/{asset}' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/positions' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/positions/{instrument}' => array( 'cost' => 1 ),
+                            'portfolios/fills' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/fills' => array( 'cost' => 1 ),
+                            'transfers' => array( 'cost' => 1 ),
+                            'transfers/{transfer_uuid}' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'orders',
-                            'portfolios',
-                            'portfolios/margin',
-                            'portfolios/transfer',
-                            'transfers/withdraw',
-                            'transfers/address',
-                            'transfers/create-counterparty-id',
-                            'transfers/validate-counterparty-id',
-                            'transfers/withdraw/counterparty',
+                            'orders' => array( 'cost' => 1 ),
+                            'portfolios' => array( 'cost' => 1 ),
+                            'portfolios/margin' => array( 'cost' => 1 ),
+                            'portfolios/transfer' => array( 'cost' => 1 ),
+                            'transfers/withdraw' => array( 'cost' => 1 ),
+                            'transfers/address' => array( 'cost' => 1 ),
+                            'transfers/create-counterparty-id' => array( 'cost' => 1 ),
+                            'transfers/validate-counterparty-id' => array( 'cost' => 1 ),
+                            'transfers/withdraw/counterparty' => array( 'cost' => 1 ),
                         ),
                         'put' => array(
-                            'orders/{id}',
-                            'portfolios/{portfolio}',
+                            'orders/{id}' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}' => array( 'cost' => 1 ),
                         ),
                         'delete' => array(
-                            'orders',
-                            'orders/{id}',
+                            'orders' => array( 'cost' => 1 ),
+                            'orders/{id}' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
@@ -946,7 +948,8 @@ class coinbaseinternational extends Exchange {
             'portfolio' => $portfolio,
             'margin_override' => $amount,
         );
-        return $this->v1PrivatePostPortfoliosMargin($this->extend($request, $params));
+        $response = $this->v1PrivatePostPortfoliosMargin($this->extend($request, $params));
+        return $response;
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1564,8 +1567,12 @@ class coinbaseinternational extends Exchange {
         $symbols = $this->market_symbols($symbols);
         $instruments = $this->v1PublicGetInstruments($params);
         $tickers = array();
-        for ($i = 0; $i < count($instruments); $i++) {
-            $instrument = $instruments[$i];
+        $rows = array();
+        if ((gettype($instruments) === 'array' && array_keys($instruments) === array_keys(array_keys($instruments)))) {
+            $rows = $instruments;
+        }
+        for ($i = 0; $i < count($rows); $i++) {
+            $instrument = $rows[$i];
             $marketId = $this->safe_string($instrument, 'symbol');
             $symbol = $this->safe_symbol($marketId);
             $quote = $this->safe_dict($instrument, 'quote', array());

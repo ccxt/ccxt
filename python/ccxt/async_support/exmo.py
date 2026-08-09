@@ -47,6 +47,7 @@ class exmo(Exchange, ImplicitAPI):
                 'createMarketBuyOrder': True,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrderWithCost': True,
+                'createMarketSellOrderWithCost': True,
                 'createOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
@@ -133,67 +134,67 @@ class exmo(Exchange, ImplicitAPI):
             },
             'api': {
                 'web': {
-                    'get': [
-                        'ctrl/feesAndLimits',
-                        'en/docs/fees',
-                    ],
+                    'get': {
+                        'ctrl/feesAndLimits': {'cost': 1},
+                        'en/docs/fees': {'cost': 1},
+                    },
                 },
                 'public': {
-                    'get': [
-                        'currency',
-                        'currency/list/extended',
-                        'order_book',
-                        'pair_settings',
-                        'ticker',
-                        'trades',
-                        'candles_history',
-                        'required_amount',
-                        'payments/providers/crypto/list',
-                    ],
+                    'get': {
+                        'currency': {'cost': 1},
+                        'currency/list/extended': {'cost': 1},
+                        'order_book': {'cost': 1},
+                        'pair_settings': {'cost': 1},
+                        'ticker': {'cost': 1},
+                        'trades': {'cost': 1},
+                        'candles_history': {'cost': 1},
+                        'required_amount': {'cost': 1},
+                        'payments/providers/crypto/list': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'post': [
-                        'user_info',
-                        'order_create',
-                        'order_cancel',
-                        'stop_market_order_create',
-                        'stop_market_order_cancel',
-                        'user_open_orders',
-                        'user_trades',
-                        'user_cancelled_orders',
-                        'order_trades',
-                        'deposit_address',
-                        'withdraw_crypt',
-                        'withdraw_get_txid',
-                        'excode_create',
-                        'excode_load',
-                        'code_check',
-                        'wallet_history',
-                        'wallet_operations',
-                        'margin/user/order/create',
-                        'margin/user/order/update',
-                        'margin/user/order/cancel',
-                        'margin/user/position/close',
-                        'margin/user/position/margin_add',
-                        'margin/user/position/margin_remove',
-                        'margin/currency/list',
-                        'margin/pair/list',
-                        'margin/settings',
-                        'margin/funding/list',
-                        'margin/user/info',
-                        'margin/user/order/list',
-                        'margin/user/order/history',
-                        'margin/user/order/trades',
-                        'margin/user/order/max_quantity',
-                        'margin/user/position/list',
-                        'margin/user/position/margin_remove_info',
-                        'margin/user/position/margin_add_info',
-                        'margin/user/wallet/list',
-                        'margin/user/wallet/history',
-                        'margin/user/trade/list',
-                        'margin/trades',
-                        'margin/liquidation/feed',
-                    ],
+                    'post': {
+                        'user_info': {'cost': 1},
+                        'order_create': {'cost': 1},
+                        'order_cancel': {'cost': 1},
+                        'stop_market_order_create': {'cost': 1},
+                        'stop_market_order_cancel': {'cost': 1},
+                        'user_open_orders': {'cost': 1},
+                        'user_trades': {'cost': 1},
+                        'user_cancelled_orders': {'cost': 1},
+                        'order_trades': {'cost': 1},
+                        'deposit_address': {'cost': 1},
+                        'withdraw_crypt': {'cost': 1},
+                        'withdraw_get_txid': {'cost': 1},
+                        'excode_create': {'cost': 1},
+                        'excode_load': {'cost': 1},
+                        'code_check': {'cost': 1},
+                        'wallet_history': {'cost': 1},
+                        'wallet_operations': {'cost': 1},
+                        'margin/user/order/create': {'cost': 1},
+                        'margin/user/order/update': {'cost': 1},
+                        'margin/user/order/cancel': {'cost': 1},
+                        'margin/user/position/close': {'cost': 1},
+                        'margin/user/position/margin_add': {'cost': 1},
+                        'margin/user/position/margin_remove': {'cost': 1},
+                        'margin/currency/list': {'cost': 1},
+                        'margin/pair/list': {'cost': 1},
+                        'margin/settings': {'cost': 1},
+                        'margin/funding/list': {'cost': 1},
+                        'margin/user/info': {'cost': 1},
+                        'margin/user/order/list': {'cost': 1},
+                        'margin/user/order/history': {'cost': 1},
+                        'margin/user/order/trades': {'cost': 1},
+                        'margin/user/order/max_quantity': {'cost': 1},
+                        'margin/user/position/list': {'cost': 1},
+                        'margin/user/position/margin_remove_info': {'cost': 1},
+                        'margin/user/position/margin_add_info': {'cost': 1},
+                        'margin/user/wallet/list': {'cost': 1},
+                        'margin/user/wallet/history': {'cost': 1},
+                        'margin/user/trade/list': {'cost': 1},
+                        'margin/trades': {'cost': 1},
+                        'margin/liquidation/feed': {'cost': 1},
+                    },
                 },
             },
             'fees': {
@@ -1160,7 +1161,8 @@ class exmo(Exchange, ImplicitAPI):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             symbol = self.safe_symbol(marketId)
-            result[symbol] = self.parse_order_book(response[marketId], symbol, None, 'bid', 'ask')
+            rawOrderBook = self.safe_dict(response, marketId, {})
+            result[symbol] = self.parse_order_book(rawOrderBook, symbol, None, 'bid', 'ask')
         return result
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
@@ -2071,7 +2073,7 @@ class exmo(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchOrders', params)
+        marginMode, params = self.handle_margin_mode_and_params('fetchCanceledOrders', params)
         if marginMode == 'cross':
             raise BadRequest(self.id + ' only supports isolated margin')
         if limit is None:
@@ -2426,7 +2428,8 @@ class exmo(Exchange, ImplicitAPI):
         #       ],
         #     }
         #
-        return self.parse_transactions(response['history'], currency, since, limit)
+        history = self.safe_list(response, 'history', [])
+        return self.parse_transactions(history, currency, since, limit)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """

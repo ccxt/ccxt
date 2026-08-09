@@ -30,6 +30,7 @@ class exmo extends Exchange {
                 'createMarketBuyOrder' => true,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => true,
+                'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
@@ -117,65 +118,65 @@ class exmo extends Exchange {
             'api' => array(
                 'web' => array(
                     'get' => array(
-                        'ctrl/feesAndLimits',
-                        'en/docs/fees',
+                        'ctrl/feesAndLimits' => array( 'cost' => 1 ),
+                        'en/docs/fees' => array( 'cost' => 1 ),
                     ),
                 ),
                 'public' => array(
                     'get' => array(
-                        'currency',
-                        'currency/list/extended',
-                        'order_book',
-                        'pair_settings',
-                        'ticker',
-                        'trades',
-                        'candles_history',
-                        'required_amount',
-                        'payments/providers/crypto/list',
+                        'currency' => array( 'cost' => 1 ),
+                        'currency/list/extended' => array( 'cost' => 1 ),
+                        'order_book' => array( 'cost' => 1 ),
+                        'pair_settings' => array( 'cost' => 1 ),
+                        'ticker' => array( 'cost' => 1 ),
+                        'trades' => array( 'cost' => 1 ),
+                        'candles_history' => array( 'cost' => 1 ),
+                        'required_amount' => array( 'cost' => 1 ),
+                        'payments/providers/crypto/list' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'user_info',
-                        'order_create',
-                        'order_cancel',
-                        'stop_market_order_create',
-                        'stop_market_order_cancel',
-                        'user_open_orders',
-                        'user_trades',
-                        'user_cancelled_orders',
-                        'order_trades',
-                        'deposit_address',
-                        'withdraw_crypt',
-                        'withdraw_get_txid',
-                        'excode_create',
-                        'excode_load',
-                        'code_check',
-                        'wallet_history',
-                        'wallet_operations',
-                        'margin/user/order/create',
-                        'margin/user/order/update',
-                        'margin/user/order/cancel',
-                        'margin/user/position/close',
-                        'margin/user/position/margin_add',
-                        'margin/user/position/margin_remove',
-                        'margin/currency/list',
-                        'margin/pair/list',
-                        'margin/settings',
-                        'margin/funding/list',
-                        'margin/user/info',
-                        'margin/user/order/list',
-                        'margin/user/order/history',
-                        'margin/user/order/trades',
-                        'margin/user/order/max_quantity',
-                        'margin/user/position/list',
-                        'margin/user/position/margin_remove_info',
-                        'margin/user/position/margin_add_info',
-                        'margin/user/wallet/list',
-                        'margin/user/wallet/history',
-                        'margin/user/trade/list',
-                        'margin/trades',
-                        'margin/liquidation/feed',
+                        'user_info' => array( 'cost' => 1 ),
+                        'order_create' => array( 'cost' => 1 ),
+                        'order_cancel' => array( 'cost' => 1 ),
+                        'stop_market_order_create' => array( 'cost' => 1 ),
+                        'stop_market_order_cancel' => array( 'cost' => 1 ),
+                        'user_open_orders' => array( 'cost' => 1 ),
+                        'user_trades' => array( 'cost' => 1 ),
+                        'user_cancelled_orders' => array( 'cost' => 1 ),
+                        'order_trades' => array( 'cost' => 1 ),
+                        'deposit_address' => array( 'cost' => 1 ),
+                        'withdraw_crypt' => array( 'cost' => 1 ),
+                        'withdraw_get_txid' => array( 'cost' => 1 ),
+                        'excode_create' => array( 'cost' => 1 ),
+                        'excode_load' => array( 'cost' => 1 ),
+                        'code_check' => array( 'cost' => 1 ),
+                        'wallet_history' => array( 'cost' => 1 ),
+                        'wallet_operations' => array( 'cost' => 1 ),
+                        'margin/user/order/create' => array( 'cost' => 1 ),
+                        'margin/user/order/update' => array( 'cost' => 1 ),
+                        'margin/user/order/cancel' => array( 'cost' => 1 ),
+                        'margin/user/position/close' => array( 'cost' => 1 ),
+                        'margin/user/position/margin_add' => array( 'cost' => 1 ),
+                        'margin/user/position/margin_remove' => array( 'cost' => 1 ),
+                        'margin/currency/list' => array( 'cost' => 1 ),
+                        'margin/pair/list' => array( 'cost' => 1 ),
+                        'margin/settings' => array( 'cost' => 1 ),
+                        'margin/funding/list' => array( 'cost' => 1 ),
+                        'margin/user/info' => array( 'cost' => 1 ),
+                        'margin/user/order/list' => array( 'cost' => 1 ),
+                        'margin/user/order/history' => array( 'cost' => 1 ),
+                        'margin/user/order/trades' => array( 'cost' => 1 ),
+                        'margin/user/order/max_quantity' => array( 'cost' => 1 ),
+                        'margin/user/position/list' => array( 'cost' => 1 ),
+                        'margin/user/position/margin_remove_info' => array( 'cost' => 1 ),
+                        'margin/user/position/margin_add_info' => array( 'cost' => 1 ),
+                        'margin/user/wallet/list' => array( 'cost' => 1 ),
+                        'margin/user/wallet/history' => array( 'cost' => 1 ),
+                        'margin/user/trade/list' => array( 'cost' => 1 ),
+                        'margin/trades' => array( 'cost' => 1 ),
+                        'margin/liquidation/feed' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -1217,7 +1218,8 @@ class exmo extends Exchange {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $symbol = $this->safe_symbol($marketId);
-            $result[$symbol] = $this->parse_order_book($response[$marketId], $symbol, null, 'bid', 'ask');
+            $rawOrderBook = $this->safe_dict($response, $marketId, array());
+            $result[$symbol] = $this->parse_order_book($rawOrderBook, $symbol, null, 'bid', 'ask');
         }
         return $result;
     }
@@ -2196,7 +2198,7 @@ class exmo extends Exchange {
             $this->load_markets();
         }
         $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrders', $params);
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchCanceledOrders', $params);
         if ($marginMode === 'cross') {
             throw new BadRequest($this->id . ' only supports isolated margin');
         }
@@ -2539,7 +2541,7 @@ class exmo extends Exchange {
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
-         * fetch history of deposits and withdrawals
+         * fetch $history of deposits and withdrawals
          *
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#31e69a33-4849-4e6a-b4b4-6d574238f6a7
          *
@@ -2591,7 +2593,8 @@ class exmo extends Exchange {
         //       ),
         //     }
         //
-        return $this->parse_transactions($response['history'], $currency, $since, $limit);
+        $history = $this->safe_list($response, 'history', array());
+        return $this->parse_transactions($history, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {

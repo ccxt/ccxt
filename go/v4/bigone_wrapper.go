@@ -1087,7 +1087,7 @@ func (this *Bigone) FetchPosition(symbol string, options ...FetchPositionOptions
 func (this *Bigone) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bigone) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bigone) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bigone) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1105,7 +1105,7 @@ func (this *Bigone) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Bigone) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bigone) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bigone) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bigone) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
@@ -1219,7 +1219,7 @@ func (this *Bigone) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Bigone) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Bigone) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Bigone) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Bigone) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1264,7 +1264,7 @@ func (this *Bigone) FetchTradesWs(symbol string, options ...FetchTradesWsOptions
 func (this *Bigone) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Bigone) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Bigone) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Bigone) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

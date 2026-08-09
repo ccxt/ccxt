@@ -40,6 +40,7 @@ public partial class hashkey : Exchange
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "createOrders", true },
                 { "createOrderWithTakeProfitAndStopLoss", false },
                 { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },
@@ -86,6 +87,7 @@ public partial class hashkey : Exchange
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchIsolatedPositions", false },
+                { "fetchLastPrices", true },
                 { "fetchLedger", true },
                 { "fetchLeverage", true },
                 { "fetchLeverages", false },
@@ -182,83 +184,217 @@ public partial class hashkey : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "api/v1/exchangeInfo", 5 },
-                        { "quote/v1/depth", 1 },
-                        { "quote/v1/trades", 1 },
-                        { "quote/v1/klines", 1 },
-                        { "quote/v1/ticker/24hr", 1 },
-                        { "quote/v1/ticker/price", 1 },
-                        { "quote/v1/ticker/bookTicker", 1 },
-                        { "quote/v1/depth/merged", 1 },
-                        { "quote/v1/markPrice", 1 },
-                        { "quote/v1/index", 1 },
-                        { "api/v1/futures/fundingRate", 1 },
-                        { "api/v1/futures/historyFundingRate", 1 },
-                        { "api/v1/ping", 1 },
-                        { "api/v1/time", 1 },
+                        { "api/v1/exchangeInfo", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "quote/v1/depth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quote/v1/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quote/v1/klines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quote/v1/ticker/24hr", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quote/v1/ticker/price", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quote/v1/ticker/bookTicker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quote/v1/depth/merged", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quote/v1/markPrice", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quote/v1/index", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/fundingRate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/historyFundingRate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/ping", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "api/v1/spot/order", 1 },
-                        { "api/v1/spot/openOrders", 1 },
-                        { "api/v1/spot/tradeOrders", 5 },
-                        { "api/v1/futures/leverage", 1 },
-                        { "api/v1/futures/order", 1 },
-                        { "api/v1/futures/openOrders", 1 },
-                        { "api/v1/futures/userTrades", 1 },
-                        { "api/v1/futures/positions", 1 },
-                        { "api/v1/futures/historyOrders", 1 },
-                        { "api/v1/futures/balance", 1 },
-                        { "api/v1/futures/liquidationAssignStatus", 1 },
-                        { "api/v1/futures/riskLimit", 1 },
-                        { "api/v1/futures/commissionRate", 1 },
-                        { "api/v1/futures/getBestOrder", 1 },
-                        { "api/v1/coinInfo", 1 },
-                        { "api/v1/account/vipInfo", 1 },
-                        { "api/v1/account", 1 },
-                        { "api/v1/account/trades", 5 },
-                        { "api/v1/account/type", 5 },
-                        { "api/v1/account/chainType", 1 },
-                        { "api/v1/account/checkApiKey", 1 },
-                        { "api/v1/account/balanceFlow", 5 },
-                        { "api/v1/spot/subAccount/openOrders", 1 },
-                        { "api/v1/spot/subAccount/tradeOrders", 1 },
-                        { "api/v1/subAccount/trades", 1 },
-                        { "api/v1/futures/subAccount/openOrders", 1 },
-                        { "api/v1/futures/subAccount/historyOrders", 1 },
-                        { "api/v1/futures/subAccount/userTrades", 1 },
-                        { "api/v1/account/deposit/address", 1 },
-                        { "api/v1/account/depositOrders", 1 },
-                        { "api/v1/account/withdrawOrders", 1 },
+                        { "api/v1/spot/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/spot/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/spot/tradeOrders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/v1/futures/leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/userTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/historyOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/liquidationAssignStatus", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/riskLimit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/commissionRate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/getBestOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/coinInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/vipInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/trades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/v1/account/type", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/v1/account/chainType", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/checkApiKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/balanceFlow", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/v1/spot/subAccount/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/spot/subAccount/tradeOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/subAccount/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/subAccount/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/subAccount/historyOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/subAccount/userTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/deposit/address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/depositOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/withdrawOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "api/v1/userDataStream", 1 },
-                        { "api/v1/spot/orderTest", 1 },
-                        { "api/v1/spot/order", 1 },
-                        { "api/v1.1/spot/order", 1 },
-                        { "api/v1/spot/batchOrders", 5 },
-                        { "api/v1/futures/leverage", 1 },
-                        { "api/v1/futures/order", 1 },
-                        { "api/v1/futures/marginType", 1 },
-                        { "api/v1/futures/positionMargin", 1 },
-                        { "api/v1/futures/position/trading-stop", 3 },
-                        { "api/v1/futures/batchOrders", 5 },
-                        { "api/v1/account/assetTransfer", 1 },
-                        { "api/v1/account/authAddress", 1 },
-                        { "api/v1/account/withdraw", 1 },
+                        { "api/v1/userDataStream", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/spot/orderTest", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/spot/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1.1/spot/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/spot/batchOrders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/v1/futures/leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/marginType", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/positionMargin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/position/trading-stop", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "api/v1/futures/batchOrders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/v1/account/assetTransfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/authAddress", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
-                        { "api/v1/userDataStream", 1 },
+                        { "api/v1/userDataStream", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "api/v1/spot/order", 1 },
-                        { "api/v1/spot/openOrders", 5 },
-                        { "api/v1/spot/cancelOrderByIds", 5 },
-                        { "api/v1/futures/order", 1 },
-                        { "api/v1/futures/batchOrders", 1 },
-                        { "api/v1/futures/cancelOrderByIds", 1 },
-                        { "api/v1/userDataStream", 1 },
+                        { "api/v1/spot/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/spot/openOrders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/v1/spot/cancelOrderByIds", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/v1/futures/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/batchOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/cancelOrderByIds", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/userDataStream", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -302,7 +438,7 @@ public partial class hashkey : Exchange
                     { "DOT", "Polkadot" },
                     { "LTC", "LTC" },
                     { "OPTIMISM", "Optimism" },
-                    { "ARB", "Arbitrum" },
+                    { "ARBITRUM", "Arbitrum" },
                     { "DOGE", "Dogecoin" },
                     { "TRC20", "Tron" },
                     { "ZKSYNC", "zkSync" },
@@ -319,7 +455,7 @@ public partial class hashkey : Exchange
                     { "AVAX C-Chain", "AVAX" },
                     { "Solana", "SOL" },
                     { "Cosmos", "ATOM" },
-                    { "Arbitrum", "ARB" },
+                    { "Arbitrum", "ARBITRUM" },
                     { "Polygon", "MATIC" },
                     { "Optimism", "OPTIMISM" },
                     { "Polkadot", "DOT" },
@@ -985,7 +1121,7 @@ public partial class hashkey : Exchange
         object settleId = this.safeString(market, "marginToken");
         object settle = this.safeCurrencyCode(settleId);
         object baseId = this.safeString(market, "baseAsset");
-        object marketType = ((object)"spot");
+        object marketType = "spot";
         object isSpot = true;
         object isSwap = false;
         object suffix = "";
@@ -1578,7 +1714,8 @@ public partial class hashkey : Exchange
         //         ...
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        object ohlcvs = this.toArray(response);
+        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -3892,9 +4029,10 @@ public partial class hashkey : Exchange
         //     ]
         //
         object rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object rows = this.toArray(response);
+        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
-            object entry = getValue(response, i);
+            object entry = getValue(rows, i);
             object timestamp = this.safeInteger(entry, "settleTime");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
                 { "info", entry },

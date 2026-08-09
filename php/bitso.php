@@ -161,54 +161,54 @@ class bitso extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'available_books',
-                        'catalogues',
-                        'ticker',
-                        'order_book',
-                        'trades',
-                        'ohlc',
+                        'available_books' => array( 'cost' => 1 ),
+                        'catalogues' => array( 'cost' => 1 ),
+                        'ticker' => array( 'cost' => 1 ),
+                        'order_book' => array( 'cost' => 1 ),
+                        'trades' => array( 'cost' => 1 ),
+                        'ohlc' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'account_status',
-                        'balance',
-                        'fees',
-                        'fundings',
-                        'fundings/{fid}',
-                        'funding_destination',
-                        'kyc_documents',
-                        'ledger',
-                        'ledger/trades',
-                        'ledger/fees',
-                        'ledger/fundings',
-                        'ledger/withdrawals',
-                        'mx_bank_codes',
-                        'open_orders',
-                        'order_trades/{oid}',
-                        'orders/{oid}',
-                        'user_trades',
-                        'user_trades/{tid}',
-                        'withdrawals/',
-                        'withdrawals/{wid}',
+                        'account_status' => array( 'cost' => 1 ),
+                        'balance' => array( 'cost' => 1 ),
+                        'fees' => array( 'cost' => 1 ),
+                        'fundings' => array( 'cost' => 1 ),
+                        'fundings/{fid}' => array( 'cost' => 1 ),
+                        'funding_destination' => array( 'cost' => 1 ),
+                        'kyc_documents' => array( 'cost' => 1 ),
+                        'ledger' => array( 'cost' => 1 ),
+                        'ledger/trades' => array( 'cost' => 1 ),
+                        'ledger/fees' => array( 'cost' => 1 ),
+                        'ledger/fundings' => array( 'cost' => 1 ),
+                        'ledger/withdrawals' => array( 'cost' => 1 ),
+                        'mx_bank_codes' => array( 'cost' => 1 ),
+                        'open_orders' => array( 'cost' => 1 ),
+                        'order_trades/{oid}' => array( 'cost' => 1 ),
+                        'orders/{oid}' => array( 'cost' => 1 ),
+                        'user_trades' => array( 'cost' => 1 ),
+                        'user_trades/{tid}' => array( 'cost' => 1 ),
+                        'withdrawals/' => array( 'cost' => 1 ),
+                        'withdrawals/{wid}' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'bitcoin_withdrawal',
-                        'debit_card_withdrawal',
-                        'ether_withdrawal',
-                        'orders',
-                        'phone_number',
-                        'phone_verification',
-                        'phone_withdrawal',
-                        'spei_withdrawal',
-                        'ripple_withdrawal',
-                        'bcash_withdrawal',
-                        'litecoin_withdrawal',
+                        'bitcoin_withdrawal' => array( 'cost' => 1 ),
+                        'debit_card_withdrawal' => array( 'cost' => 1 ),
+                        'ether_withdrawal' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'phone_number' => array( 'cost' => 1 ),
+                        'phone_verification' => array( 'cost' => 1 ),
+                        'phone_withdrawal' => array( 'cost' => 1 ),
+                        'spei_withdrawal' => array( 'cost' => 1 ),
+                        'ripple_withdrawal' => array( 'cost' => 1 ),
+                        'bcash_withdrawal' => array( 'cost' => 1 ),
+                        'litecoin_withdrawal' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'orders',
-                        'orders/{oid}',
-                        'orders/all',
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/{oid}' => array( 'cost' => 1 ),
+                        'orders/all' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -1026,7 +1026,8 @@ class bitso extends Exchange {
             'book' => $market['id'],
         );
         $response = $this->publicGetTrades($this->extend($request, $params));
-        return $this->parse_trades($response['payload'], $market, $since, $limit);
+        $payload = $this->safe_list($response, 'payload', array());
+        return $this->parse_trades($payload, $market, $since, $limit);
     }
 
     public function fetch_trading_fees($params = array()): array {
@@ -1143,7 +1144,8 @@ class bitso extends Exchange {
             // 'marker' => id, // integer id to start from
         );
         $response = $this->privateGetUserTrades($this->extend($request, $params));
-        return $this->parse_trades($response['payload'], $market, $since, $limit);
+        $payload = $this->safe_list($response, 'payload', array());
+        return $this->parse_trades($payload, $market, $since, $limit);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
@@ -1174,7 +1176,8 @@ class bitso extends Exchange {
             $request['price'] = $this->price_to_precision($market['symbol'], $price);
         }
         $response = $this->privatePostOrders($this->extend($request, $params));
-        $id = $this->safe_string($response['payload'], 'oid');
+        $payload = $this->safe_dict($response, 'payload', array());
+        $id = $this->safe_string($payload, 'oid');
         return $this->safe_order(array(
             'info' => $response,
             'id' => $id,
@@ -1376,7 +1379,8 @@ class bitso extends Exchange {
             // 'marker' => id, // integer id to start from
         );
         $response = $this->privateGetOpenOrders($this->extend($request, $params));
-        $orders = $this->parse_orders($response['payload'], $market, $since, $limit);
+        $payload = $this->safe_list($response, 'payload', array());
+        $orders = $this->parse_orders($payload, $market, $since, $limit);
         return $orders;
     }
 
@@ -1399,7 +1403,7 @@ class bitso extends Exchange {
         ));
         $payload = $this->safe_value($response, 'payload');
         if ((gettype($payload) === 'array' && array_keys($payload) === array_keys(array_keys($payload)))) {
-            $numOrders = count($response['payload']);
+            $numOrders = count($payload);
             if ($numOrders === 1) {
                 return $this->parse_order($payload[0]);
             }
@@ -1428,7 +1432,8 @@ class bitso extends Exchange {
             'oid' => $id,
         );
         $response = $this->privateGetOrderTradesOid($this->extend($request, $params));
-        return $this->parse_trades($response['payload'], $market);
+        $payload = $this->safe_list($response, 'payload', array());
+        return $this->parse_trades($payload, $market);
     }
 
     public function fetch_deposit(string $id, ?string $code = null, $params = array()) {
@@ -1539,7 +1544,8 @@ class bitso extends Exchange {
             'fund_currency' => $currency['id'],
         );
         $response = $this->privateGetFundingDestination($this->extend($request, $params));
-        $address = $this->safe_string($response['payload'], 'account_identifier');
+        $payload = $this->safe_dict($response, 'payload', array());
+        $address = $this->safe_string($payload, 'account_identifier');
         $tag = null;
         if (mb_strpos($address, '?dt=') !== false) {
             $parts = explode('?dt=', $address);

@@ -181,9 +181,15 @@ public partial class coinsph : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "openapi/v1/ping", 1 },
-                        { "openapi/v1/time", 1 },
-                        { "openapi/v1/user/ip", 1 },
+                        { "openapi/v1/ping", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v1/time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v1/user/ip", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "openapi/quote/v1/ticker/24hr", new Dictionary<string, object>() {
                             { "cost", 1 },
                             { "noSymbolAndNoSymbols", 40 },
@@ -197,97 +203,235 @@ public partial class coinsph : Exchange
                             { "cost", 1 },
                             { "noSymbol", 2 },
                         } },
-                        { "openapi/v1/exchangeInfo", 10 },
+                        { "openapi/v1/exchangeInfo", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
                         { "openapi/quote/v1/depth", new Dictionary<string, object>() {
                             { "cost", 1 },
                             { "byLimit", new List<object>() {new List<object>() {101, 5}, new List<object>() {0, 1}} },
                         } },
-                        { "openapi/quote/v1/klines", 1 },
-                        { "openapi/quote/v1/trades", 1 },
-                        { "openapi/v1/pairs", 1 },
-                        { "openapi/quote/v1/avgPrice", 1 },
+                        { "openapi/quote/v1/klines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/quote/v1/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v1/pairs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/quote/v1/avgPrice", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "openapi/v1/check-sys-status", 1 },
-                        { "openapi/wallet/v1/config/getall", 10 },
-                        { "openapi/wallet/v1/deposit/address", 10 },
-                        { "openapi/wallet/v1/deposit/history", 1 },
-                        { "openapi/wallet/v1/withdraw/history", 1 },
-                        { "openapi/wallet/v1/withdraw/address-whitelist", 1 },
-                        { "openapi/v1/account", 10 },
-                        { "openapi/v1/api-keys", 1 },
+                        { "openapi/v1/check-sys-status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/wallet/v1/config/getall", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "openapi/wallet/v1/deposit/address", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "openapi/wallet/v1/deposit/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/wallet/v1/withdraw/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/wallet/v1/withdraw/address-whitelist", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v1/account", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "openapi/v1/api-keys", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "openapi/v1/openOrders", new Dictionary<string, object>() {
                             { "cost", 3 },
                             { "noSymbol", 40 },
                         } },
-                        { "openapi/v1/asset/tradeFee", 1 },
-                        { "openapi/v1/order", 2 },
+                        { "openapi/v1/asset/tradeFee", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v1/order", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
                         { "openapi/v1/historyOrders", new Dictionary<string, object>() {
                             { "cost", 10 },
                             { "noSymbol", 40 },
                         } },
-                        { "openapi/v1/myTrades", 10 },
-                        { "openapi/v1/capital/deposit/history", 1 },
-                        { "openapi/v1/capital/withdraw/history", 1 },
-                        { "openapi/v3/payment-request/get-payment-request", 1 },
-                        { "merchant-api/v1/get-invoices", 1 },
-                        { "openapi/account/v3/crypto-accounts", 1 },
-                        { "openapi/transfer/v3/transfers/{id}", 1 },
-                        { "openapi/v1/sub-account/list", 10 },
-                        { "openapi/v1/sub-account/asset", 10 },
-                        { "openapi/v1/sub-account/transfer/universal-transfer-history", 10 },
-                        { "openapi/v1/sub-account/transfer/sub-history", 10 },
-                        { "openapi/v1/sub-account/apikey/ip-restriction", 10 },
-                        { "openapi/v1/sub-account/wallet/deposit/address", 1 },
-                        { "openapi/v1/sub-account/wallet/deposit/history", 1 },
-                        { "openapi/v1/fund-collect/get-fund-record", 1 },
-                        { "openapi/v1/asset/transaction/history", 20 },
+                        { "openapi/v1/myTrades", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "openapi/v1/capital/deposit/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v1/capital/withdraw/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v3/payment-request/get-payment-request", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "merchant-api/v1/get-invoices", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/account/v3/crypto-accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/transfer/v3/transfers/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v1/sub-account/list", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "openapi/v1/sub-account/asset", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "openapi/v1/sub-account/transfer/universal-transfer-history", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "openapi/v1/sub-account/transfer/sub-history", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "openapi/v1/sub-account/apikey/ip-restriction", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "openapi/v1/sub-account/wallet/deposit/address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v1/sub-account/wallet/deposit/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v1/fund-collect/get-fund-record", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v1/asset/transaction/history", new Dictionary<string, object>() {
+                            { "cost", 20 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "openapi/wallet/v1/withdraw/apply", 600 },
-                        { "openapi/v1/order/test", 1 },
-                        { "openapi/v1/order", 1 },
-                        { "openapi/v1/order/cancelReplace", 1 },
-                        { "openapi/v1/capital/withdraw/apply", 1 },
-                        { "openapi/v1/capital/deposit/apply", 1 },
-                        { "openapi/v3/payment-request/payment-requests", 1 },
-                        { "openapi/v3/payment-request/delete-payment-request", 1 },
-                        { "openapi/v3/payment-request/payment-request-reminder", 1 },
-                        { "openapi/v1/userDataStream", 1 },
-                        { "merchant-api/v1/invoices", 1 },
-                        { "merchant-api/v1/invoices-cancel", 1 },
-                        { "openapi/convert/v1/get-supported-trading-pairs", 1 },
-                        { "openapi/convert/v1/get-quote", 1 },
-                        { "openapi/convert/v1/accept-quote", 1 },
-                        { "openapi/convert/v1/query-order-history", 1 },
-                        { "openapi/otc-trade/v1/get-supported-trading-pairs", 1 },
-                        { "openapi/otc-trade/v1/create-rfq", 1 },
-                        { "openapi/otc-trade/v1/accept-rfq", 1 },
-                        { "openapi/otc-trade/v1/manual-settle", 1 },
-                        { "openapi/otc-trade/v1/query-order-history", 1 },
-                        { "openapi/fiat/v1/support-channel", 1 },
-                        { "openapi/fiat/v1/cash-out", 1 },
-                        { "openapi/fiat/v1/history", 1 },
-                        { "openapi/migration/v4/sellorder", 1 },
-                        { "openapi/migration/v4/validate-field", 1 },
-                        { "openapi/transfer/v3/transfers", 1 },
-                        { "openapi/transfer/v4/transfers", 1 },
-                        { "openapi/v1/sub-account/create", 30 },
-                        { "openapi/v1/sub-account/transfer/universal-transfer", 100 },
-                        { "openapi/v1/sub-account/transfer/sub-to-master", 100 },
-                        { "openapi/v1/sub-account/apikey/add-ip-restriction", 30 },
-                        { "openapi/v1/sub-account/apikey/delete-ip-restriction", 30 },
-                        { "openapi/v1/fund-collect/collect-from-sub-account", 1 },
+                        { "openapi/wallet/v1/withdraw/apply", new Dictionary<string, object>() {
+                            { "cost", 600 },
+                        } },
+                        { "openapi/v1/order/test", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v1/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v1/order/cancelReplace", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v1/capital/withdraw/apply", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v1/capital/deposit/apply", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v3/payment-request/payment-requests", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v3/payment-request/delete-payment-request", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v3/payment-request/payment-request-reminder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v1/userDataStream", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "merchant-api/v1/invoices", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "merchant-api/v1/invoices-cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/convert/v1/get-supported-trading-pairs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/convert/v1/get-quote", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/convert/v1/accept-quote", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/convert/v1/query-order-history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/otc-trade/v1/get-supported-trading-pairs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/otc-trade/v1/create-rfq", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/otc-trade/v1/accept-rfq", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/otc-trade/v1/manual-settle", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/otc-trade/v1/query-order-history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/fiat/v1/support-channel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/fiat/v1/cash-out", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/fiat/v1/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/migration/v4/sellorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/migration/v4/validate-field", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/transfer/v3/transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/transfer/v4/transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v1/sub-account/create", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "openapi/v1/sub-account/transfer/universal-transfer", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "openapi/v1/sub-account/transfer/sub-to-master", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "openapi/v1/sub-account/apikey/add-ip-restriction", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "openapi/v1/sub-account/apikey/delete-ip-restriction", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "openapi/v1/fund-collect/collect-from-sub-account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
-                        { "openapi/v1/userDataStream", 1 },
+                        { "openapi/v1/userDataStream", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "openapi/v1/order", 1 },
-                        { "openapi/v1/openOrders", 1 },
-                        { "openapi/v1/userDataStream", 1 },
+                        { "openapi/v1/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v1/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/v1/userDataStream", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -330,7 +474,7 @@ public partial class coinsph : Exchange
                     { "TRC20", "TRX" },
                     { "ERC20", "ETH" },
                     { "BEP20", "BSC" },
-                    { "ARB", "ARBITRUM" },
+                    { "ARBITRUM", "ARBITRUM" },
                 } },
             } },
             { "features", new Dictionary<string, object>() {
@@ -670,7 +814,7 @@ public partial class coinsph : Exchange
         {
             object symbols = getValue(parameters, "symbols");
             object symbolsAmount = getArrayLength(symbols);
-            object byNumberOfSymbols = ((object)getValue(config, "byNumberOfSymbols"));
+            object byNumberOfSymbols = this.safeList(config, "byNumberOfSymbols", new List<object>() {});
             for (object i = 0; isLessThan(i, getArrayLength(byNumberOfSymbols)); postFixIncrement(ref i))
             {
                 object entry = getValue(byNumberOfSymbols, i);
@@ -682,7 +826,7 @@ public partial class coinsph : Exchange
         } else if (isTrue(isTrue((inOp(config, "byLimit"))) && isTrue((inOp(parameters, "limit")))))
         {
             object limit = getValue(parameters, "limit");
-            object byLimit = ((object)getValue(config, "byLimit"));
+            object byLimit = this.safeList(config, "byLimit", new List<object>() {});
             for (object i = 0; isLessThan(i, getArrayLength(byLimit)); postFixIncrement(ref i))
             {
                 object entry = getValue(byLimit, i);
@@ -1158,7 +1302,8 @@ public partial class coinsph : Exchange
         //         ]
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        object ohlcvs = this.toArray(response);
+        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1997,9 +2142,10 @@ public partial class coinsph : Exchange
         //     ]
         //
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object fees = this.toArray(response);
+        for (object i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
         {
-            object fee = this.parseTradingFee(getValue(response, i));
+            object fee = this.parseTradingFee(getValue(fees, i));
             object symbol = getValue(fee, "symbol");
             if (isTrue(!isEqual(symbol, null)))
             {

@@ -57,6 +57,7 @@ public class HollaexCore extends HollaexApi
                 put( "fetchDepositAddresses", true );
                 put( "fetchDepositAddressesByNetwork", false );
                 put( "fetchDeposits", true );
+                put( "fetchDepositWithdrawFees", true );
                 put( "fetchFundingHistory", false );
                 put( "fetchFundingRate", false );
                 put( "fetchFundingRateHistory", false );
@@ -129,43 +130,101 @@ public class HollaexCore extends HollaexApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "health", 1 );
-                        put( "constants", 1 );
-                        put( "kit", 1 );
-                        put( "tiers", 1 );
-                        put( "ticker", 1 );
-                        put( "tickers", 1 );
-                        put( "orderbook", 1 );
-                        put( "orderbooks", 1 );
-                        put( "trades", 1 );
-                        put( "chart", 1 );
-                        put( "charts", 1 );
-                        put( "minicharts", 1 );
-                        put( "oracle/prices", 1 );
-                        put( "quick-trade", 1 );
-                        put( "udf/config", 1 );
-                        put( "udf/history", 1 );
-                        put( "udf/symbols", 1 );
+                        put( "health", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "constants", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "kit", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "tiers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "ticker", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "tickers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orderbook", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orderbooks", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "chart", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "charts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "minicharts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "oracle/prices", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "quick-trade", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "udf/config", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "udf/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "udf/symbols", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "user", 1 );
-                        put( "user/balance", 1 );
-                        put( "user/deposits", 1 );
-                        put( "user/withdrawals", 1 );
-                        put( "user/withdrawal/fee", 1 );
-                        put( "user/trades", 1 );
-                        put( "orders", 1 );
-                        put( "order", 1 );
+                        put( "user", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "user/balance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "user/deposits", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "user/withdrawals", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "user/withdrawal/fee", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "user/trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "user/withdrawal", 1 );
-                        put( "order", 1 );
+                        put( "user/withdrawal", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "delete", new java.util.HashMap<String, Object>() {{
-                        put( "order/all", 1 );
-                        put( "order", 1 );
+                        put( "order/all", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -603,10 +662,10 @@ public class HollaexCore extends HollaexApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
-                Object orderbook = Helpers.GetValue(response, marketId);
+                Object orderbook = this.safeDict(response, marketId, new java.util.HashMap<String, Object>() {{}});
                 Object symbol = this.safeSymbol(marketId, null, "-");
                 Object timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
-                Helpers.addElementToObject(result, symbol, this.parseOrderBook(Helpers.GetValue(response, marketId), symbol, timestamp));
+                Helpers.addElementToObject(result, symbol, this.parseOrderBook(orderbook, symbol, timestamp));
             }
             return result;
         });
@@ -1074,7 +1133,7 @@ public class HollaexCore extends HollaexApi
             //         },
             //     ]
             //
-            return this.parseOHLCVs(response, market, timeframe, since, limit);
+            return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
         });
 
     }

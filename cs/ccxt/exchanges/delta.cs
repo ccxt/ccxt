@@ -118,13 +118,174 @@ public partial class delta : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"assets", "indices", "products", "products/{symbol}", "tickers", "tickers/{symbol}", "l2orderbook/{symbol}", "trades/{symbol}", "stats", "history/candles", "history/sparklines", "settings"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "indices", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "products", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "products/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "l2orderbook/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "stats", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "history/candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "history/sparklines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "settings", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"orders", "orders/{order_id}", "orders/client_order_id/{client_oid}", "products/{product_id}/orders/leverage", "positions/margined", "positions", "orders/history", "fills", "fills/history/download/csv", "wallet/balances", "wallet/transactions", "wallet/transactions/download", "wallets/sub_accounts_transfer_history", "users/trading_preferences", "sub_accounts", "profile", "rate_limits/quota", "heartbeat", "deposits/address"} },
-                    { "post", new List<object>() {"orders", "orders/bracket", "orders/batch", "products/{product_id}/orders/leverage", "positions/change_margin", "positions/close_all", "wallets/sub_account_balance_transfer", "heartbeat/create", "heartbeat", "orders/cancel_after", "orders/leverage"} },
-                    { "put", new List<object>() {"orders", "orders/bracket", "orders/batch", "positions/auto_topup", "users/update_mmp", "users/reset_mmp", "users/margin_mode"} },
-                    { "delete", new List<object>() {"orders", "orders/all", "orders/batch"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/client_order_id/{client_oid}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "products/{product_id}/orders/leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions/margined", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fills", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fills/history/download/csv", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallet/balances", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallet/transactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallet/transactions/download", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallets/sub_accounts_transfer_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/trading_preferences", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sub_accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "profile", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rate_limits/quota", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "heartbeat", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deposits/address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/bracket", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/batch", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "products/{product_id}/orders/leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions/change_margin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions/close_all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallets/sub_account_balance_transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "heartbeat/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "heartbeat", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/cancel_after", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "put", new Dictionary<string, object>() {
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/bracket", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/batch", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions/auto_topup", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/update_mmp", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/reset_mmp", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/margin_mode", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "delete", new Dictionary<string, object>() {
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/batch", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {

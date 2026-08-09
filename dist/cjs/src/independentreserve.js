@@ -129,51 +129,51 @@ class independentreserve extends independentreserve$1["default"] {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'GetValidPrimaryCurrencyCodes',
-                        'GetValidSecondaryCurrencyCodes',
-                        'GetValidLimitOrderTypes',
-                        'GetValidMarketOrderTypes',
-                        'GetValidOrderTypes',
-                        'GetValidTransactionTypes',
-                        'GetMarketSummary',
-                        'GetOrderBook',
-                        'GetAllOrders',
-                        'GetTradeHistorySummary',
-                        'GetRecentTrades',
-                        'GetFxRates',
-                        'GetOrderMinimumVolumes',
-                        'GetCryptoWithdrawalFees', // deprecated - replaced by GetCryptoWithdrawalFees2 (docs removed)
-                        'GetCryptoWithdrawalFees2',
-                        'GetNetworks',
-                        'GetPrimaryCurrencyConfig2',
-                    ],
+                    'get': {
+                        'GetValidPrimaryCurrencyCodes': { 'cost': 1 },
+                        'GetValidSecondaryCurrencyCodes': { 'cost': 1 },
+                        'GetValidLimitOrderTypes': { 'cost': 1 },
+                        'GetValidMarketOrderTypes': { 'cost': 1 },
+                        'GetValidOrderTypes': { 'cost': 1 },
+                        'GetValidTransactionTypes': { 'cost': 1 },
+                        'GetMarketSummary': { 'cost': 1 },
+                        'GetOrderBook': { 'cost': 1 },
+                        'GetAllOrders': { 'cost': 1 },
+                        'GetTradeHistorySummary': { 'cost': 1 },
+                        'GetRecentTrades': { 'cost': 1 },
+                        'GetFxRates': { 'cost': 1 },
+                        'GetOrderMinimumVolumes': { 'cost': 1 },
+                        'GetCryptoWithdrawalFees': { 'cost': 1 },
+                        'GetCryptoWithdrawalFees2': { 'cost': 1 },
+                        'GetNetworks': { 'cost': 1 },
+                        'GetPrimaryCurrencyConfig2': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'post': [
-                        'GetOpenOrders',
-                        'GetClosedOrders',
-                        'GetClosedFilledOrders',
-                        'GetOrderDetails',
-                        'GetAccounts',
-                        'GetTransactions',
-                        'GetFiatBankAccounts',
-                        'GetDigitalCurrencyDepositAddress', // deprecated - replaced by GetDigitalCurrencyDepositAddress2 (docs removed)
-                        'GetDigitalCurrencyDepositAddress2',
-                        'GetDigitalCurrencyDepositAddresses', // deprecated - replaced by GetDigitalCurrencyDepositAddresses2 (docs removed)
-                        'GetDigitalCurrencyDepositAddresses2',
-                        'GetTrades',
-                        'GetBrokerageFees',
-                        'GetDigitalCurrencyWithdrawal',
-                        'PlaceLimitOrder',
-                        'PlaceMarketOrder',
-                        'CancelOrder',
-                        'SynchDigitalCurrencyDepositAddressWithBlockchain',
-                        'RequestFiatWithdrawal',
-                        'WithdrawFiatCurrency',
-                        'WithdrawDigitalCurrency', // deprecated - replaced by WithdrawCrypto (docs removed)
-                        'WithdrawCrypto',
-                    ],
+                    'post': {
+                        'GetOpenOrders': { 'cost': 1 },
+                        'GetClosedOrders': { 'cost': 1 },
+                        'GetClosedFilledOrders': { 'cost': 1 },
+                        'GetOrderDetails': { 'cost': 1 },
+                        'GetAccounts': { 'cost': 1 },
+                        'GetTransactions': { 'cost': 1 },
+                        'GetFiatBankAccounts': { 'cost': 1 },
+                        'GetDigitalCurrencyDepositAddress': { 'cost': 1 },
+                        'GetDigitalCurrencyDepositAddress2': { 'cost': 1 },
+                        'GetDigitalCurrencyDepositAddresses': { 'cost': 1 },
+                        'GetDigitalCurrencyDepositAddresses2': { 'cost': 1 },
+                        'GetTrades': { 'cost': 1 },
+                        'GetBrokerageFees': { 'cost': 1 },
+                        'GetDigitalCurrencyWithdrawal': { 'cost': 1 },
+                        'PlaceLimitOrder': { 'cost': 1 },
+                        'PlaceMarketOrder': { 'cost': 1 },
+                        'CancelOrder': { 'cost': 1 },
+                        'SynchDigitalCurrencyDepositAddressWithBlockchain': { 'cost': 1 },
+                        'RequestFiatWithdrawal': { 'cost': 1 },
+                        'WithdrawFiatCurrency': { 'cost': 1 },
+                        'WithdrawDigitalCurrency': { 'cost': 1 },
+                        'WithdrawCrypto': { 'cost': 1 },
+                    },
                 },
             },
             'fees': {
@@ -336,12 +336,14 @@ class independentreserve extends independentreserve$1["default"] {
         //     }
         //
         const result = [];
-        for (let i = 0; i < baseCurrencies.length; i++) {
-            const baseId = baseCurrencies[i];
+        const baseCurrencyIds = this.toArray(baseCurrencies);
+        const quoteCurrencyIds = this.toArray(quoteCurrencies);
+        for (let i = 0; i < baseCurrencyIds.length; i++) {
+            const baseId = baseCurrencyIds[i];
             const base = this.safeCurrencyCode(baseId);
             const minAmount = this.safeNumber(limits, baseId);
-            for (let j = 0; j < quoteCurrencies.length; j++) {
-                const quoteId = quoteCurrencies[j];
+            for (let j = 0; j < quoteCurrencyIds.length; j++) {
+                const quoteId = quoteCurrencyIds[j];
                 const quote = this.safeCurrencyCode(quoteId);
                 const id = baseId + '/' + quoteId;
                 result.push({
@@ -775,7 +777,8 @@ class independentreserve extends independentreserve$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        return this.parseTrades(response['Data'], market, since, limit);
+        const data = this.safeList(response, 'Data', []);
+        return this.parseTrades(data, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
         const timestamp = this.parse8601(trade['TradeTimestampUtc']);
@@ -839,7 +842,8 @@ class independentreserve extends independentreserve$1["default"] {
             'numberOfRecentTradesToRetrieve': 50, // max = 50
         };
         const response = await this.publicGetGetRecentTrades(this.extend(request, params));
-        return this.parseTrades(response['Trades'], market, since, limit);
+        const trades = this.safeList(response, 'Trades', []);
+        return this.parseTrades(trades, market, since, limit);
     }
     /**
      * @method
@@ -863,8 +867,9 @@ class independentreserve extends independentreserve$1["default"] {
         //     ]
         //
         const fees = {};
-        for (let i = 0; i < response.length; i++) {
-            const fee = response[i];
+        const rows = this.toArray(response);
+        for (let i = 0; i < rows.length; i++) {
+            const fee = rows[i];
             const currencyId = this.safeString(fee, 'CurrencyCode');
             const code = this.safeCurrencyCode(currencyId);
             const tradingFee = this.safeNumber(fee, 'Fee');

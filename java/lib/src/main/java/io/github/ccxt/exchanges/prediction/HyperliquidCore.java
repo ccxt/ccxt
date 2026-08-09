@@ -103,7 +103,9 @@ public class HyperliquidCore extends HyperliquidApi
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "exchange", 1 );
+                        put( "exchange", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -778,7 +780,12 @@ public class HyperliquidCore extends HyperliquidApi
             //
             // { "mids": { "#10": "0.45", "#11": "0.55", ... } }
             //
-            Object mids = this.safeDict(response, "mids", response);
+            Object allMids = new java.util.HashMap<String, Object>() {{}};
+            if (Helpers.isTrue(Helpers.isTrue((!(response instanceof String))) && !Helpers.isTrue(Helpers.isArray(response))))
+            {
+                allMids = response;
+            }
+            Object mids = this.safeDict(allMids, "mids", allMids);
             Object tickers = new java.util.HashMap<String, Object>() {{}};
             Object outcomesMap = ((Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))))) ? this.outcomes : new java.util.HashMap<String, Object>() {{}};
             Object outcomeHandles = Helpers.objectKeys(outcomesMap);
@@ -1020,7 +1027,12 @@ public class HyperliquidCore extends HyperliquidApi
             //         }
             //     ]
             //
-            return this.parseOHLCVs(response, market, timeframe, since, limit);
+            Object candles = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(response)))
+            {
+                candles = response;
+            }
+            return this.parseOHLCVs(candles, market, timeframe, since, limit);
         });
 
     }
@@ -1165,7 +1177,12 @@ public class HyperliquidCore extends HyperliquidApi
             Object response = Helpers.GetValue(results, 0);
             Object midsResponse = Helpers.GetValue(results, 1);
             Object balances = this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object mids = this.safeDict(midsResponse, "mids", midsResponse);
+            Object allMids = new java.util.HashMap<String, Object>() {{}};
+            if (Helpers.isTrue(Helpers.isTrue((!(midsResponse instanceof String))) && !Helpers.isTrue(Helpers.isArray(midsResponse))))
+            {
+                allMids = midsResponse;
+            }
+            Object mids = this.safeDict(allMids, "mids", allMids);
             Object positions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
             {
@@ -1760,9 +1777,14 @@ public class HyperliquidCore extends HyperliquidApi
             }};
             Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
             Object ordersWithStatus = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+            Object rawOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(response)))
             {
-                Object order = Helpers.GetValue(response, i);
+                rawOrders = response;
+            }
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawOrders)); i++)
+            {
+                Object order = Helpers.GetValue(rawOrders, i);
                 ((java.util.List<Object>)ordersWithStatus).add(this.extend(order, new java.util.HashMap<String, Object>() {{
                     put( "ccxtStatus", "open" );
                 }}));
@@ -1813,9 +1835,14 @@ public class HyperliquidCore extends HyperliquidApi
             Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
             // Deduplicate by oid keeping most recent statusTimestamp
             Object deduped = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+            Object historicalOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(response)))
             {
-                Object raw = Helpers.GetValue(response, i);
+                historicalOrders = response;
+            }
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(historicalOrders)); i++)
+            {
+                Object raw = Helpers.GetValue(historicalOrders, i);
                 Object entry = this.safeDict(raw, "order");
                 if (Helpers.isTrue(Helpers.isEqual(entry, null)))
                 {
@@ -1891,8 +1918,13 @@ public class HyperliquidCore extends HyperliquidApi
                 Helpers.addElementToObject(request, "oid", ((Helpers.isTrue(isCloid))) ? id : this.parseToNumeric(id));
             }
             Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
-            Object orderWrapper = this.safeDict(response, "order", response);
-            Object parsed = this.parsePredictionOrder(orderWrapper, null);
+            Object orderStatus = new java.util.HashMap<String, Object>() {{}};
+            if (Helpers.isTrue(Helpers.isTrue((!(response instanceof String))) && !Helpers.isTrue(Helpers.isArray(response))))
+            {
+                orderStatus = response;
+            }
+            Object orderWrapper = this.safeDict(orderStatus, "order", orderStatus);
+            Object parsed = this.parsePredictionOrder(orderWrapper);
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 (this.loadOutcome(outcome)).join();
@@ -2066,7 +2098,14 @@ public class HyperliquidCore extends HyperliquidApi
             }};
             // recentTrades returns the coin's most recent public trades (newest first)
             Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
-            Object trades = ((Helpers.isTrue((response)))) ? response : new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(response)))
+            {
+                trades = response;
+            } else if (Helpers.isTrue(!(response instanceof String)))
+            {
+                trades = this.toArray(response);
+            }
             return this.parsePredictionTrades(trades, outcomeObj, since, limit);
         });
 
@@ -2128,10 +2167,17 @@ public class HyperliquidCore extends HyperliquidApi
                 Helpers.addElementToObject(request, "endTime", until);
             }
             Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
-            Object fills = ((Helpers.isTrue((response)))) ? response : new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object fills = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(response)))
+            {
+                fills = response;
+            } else if (Helpers.isTrue(!(response instanceof String)))
+            {
+                fills = this.toArray(response);
+            }
             // parse without an outcome fallback — fills span every market the wallet traded, so a
             // requested-outcome fallback would mislabel fills whose market is no longer listed
-            Object parsedTrades = this.parsePredictionTrades(fills, null);
+            Object parsedTrades = this.parsePredictionTrades(fills);
             return this.filterByOutcomeSinceLimit(parsedTrades, outcomeHandle, since, limit);
         });
 

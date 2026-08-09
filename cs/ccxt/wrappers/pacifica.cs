@@ -1363,9 +1363,9 @@ public partial class pacifica
         var res = await this.fetchApiKeys(parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, object>> FetchBuilderApprovals(string address)
+    public async Task<List<Dictionary<string, object>>> FetchBuilderApprovals(string address)
     {
         var res = await this.fetchBuilderApprovals(address);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
 }

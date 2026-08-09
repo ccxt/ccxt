@@ -6,7 +6,7 @@ import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/grvt.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, OperationFailed, OperationRejected } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type{ Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, List, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int, Fee } from './base/types.js';
+import type{ Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, List, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int, Fee, Endpoint } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
@@ -106,64 +106,64 @@ export default class grvt extends Exchange {
                 // RL : https://help.grvt.io/en/articles/9636566-what-are-the-rate-limitations-on-grvt
                 'privateEdge': {
                     'post': {
-                        'auth/api_key/login': 100,
-                        'auth/wallet/login': 100,
+                        'auth/api_key/login': { 'cost': 100 } as Endpoint<Dict>,
+                        'auth/wallet/login': { 'cost': 100 } as Endpoint<Dict>,
                     },
                 },
                 'publicMarket': {
                     'post': {
-                        'full/v1/instrument': 4,
-                        'full/v1/all_instruments': 4,
-                        'full/v1/instruments': 4,
-                        'full/v1/currency': 12,
-                        'full/v1/margin_rules': 12,
-                        'full/v1/mini': 4,
-                        'full/v1/ticker': 4,
-                        'full/v1/book': 12,
-                        'full/v1/trade': 12,
-                        'full/v1/trade_history': 12,
-                        'full/v1/kline': 12,
-                        'full/v1/funding': 12,
+                        'full/v1/instrument': { 'cost': 4 } as Endpoint<Dict>,
+                        'full/v1/all_instruments': { 'cost': 4 } as Endpoint<Dict>,
+                        'full/v1/instruments': { 'cost': 4 } as Endpoint<Dict>,
+                        'full/v1/currency': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/margin_rules': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/mini': { 'cost': 4 } as Endpoint<Dict>,
+                        'full/v1/ticker': { 'cost': 4 } as Endpoint<Dict>,
+                        'full/v1/book': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/trade': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/trade_history': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/kline': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/funding': { 'cost': 12 } as Endpoint<Dict>,
                     },
                 },
                 'privateTrading': {
                     'post': {
-                        'full/v1/create_order': 5,
-                        'full/v1/cancel_order': 5,
-                        'full/v1/cancel_on_disconnect': 100,
-                        'full/v1/cancel_all_orders': 50,
-                        'full/v1/order': rlOrders,
-                        'full/v1/order_history': rlOrders,
-                        'full/v1/open_orders': rlOrders,
-                        'full/v1/fill_history': rlOrders,
-                        'full/v1/positions': rlOrders,
-                        'full/v1/funding_payment_history': rlOthers,
-                        'full/v1/get_sub_accounts': rlOthers,
-                        'full/v1/account_summary': rlOthers,
-                        'full/v1/account_history': rlOthers,
-                        'full/v1/aggregated_account_summary': rlOthers,
-                        'full/v1/funding_account_summary': rlOthers,
-                        'full/v1/transfer': 100,
-                        'full/v1/deposit_history': 100,
-                        'full/v1/transfer_history': 100,
-                        'full/v1/withdrawal': 100,
-                        'full/v1/withdrawal_history': 100,
-                        'full/v1/add_position_margin': rlOthers, // addMargin
-                        'full/v1/get_position_margin_limits': rlOthers,
-                        'full/v1/set_position_config': rlOthers,  // setPositionMode/setMarginMode
-                        'full/v1/set_initial_leverage': rlOthers,
-                        'full/v1/get_all_initial_leverage': rlOthers,
-                        'full/v1/set_derisk_mm_ratio': rlOthers,
-                        'full/v1/vault_burn_tokens': rlOthers,
-                        'full/v1/vault_invest': rlOthers,
-                        'full/v1/vault_investor_summary': rlOthers,
-                        'full/v1/vault_redeem': rlOthers,
-                        'full/v1/vault_redeem_cancel': rlOthers,
-                        'full/v1/vault_view_redemption_queue': rlOthers,
-                        'full/v1/vault_manager_investor_history': rlOthers,
-                        'full/v1/authorize_builder': rlOthers, // https://pastebin(dot)com/0Mb8cFhN
-                        'full/v1/get_authorized_builders': rlOthers,
-                        'full/v1/builder_fill_history': rlOthers,
+                        'full/v1/create_order': { 'cost': 5 } as Endpoint<Dict>,
+                        'full/v1/cancel_order': { 'cost': 5 } as Endpoint<Dict>,
+                        'full/v1/cancel_on_disconnect': { 'cost': 100 } as Endpoint<Dict>,
+                        'full/v1/cancel_all_orders': { 'cost': 50 } as Endpoint<Dict>,
+                        'full/v1/order': { 'cost': rlOrders } as Endpoint<Dict>,
+                        'full/v1/order_history': { 'cost': rlOrders } as Endpoint<Dict>,
+                        'full/v1/open_orders': { 'cost': rlOrders } as Endpoint<Dict>,
+                        'full/v1/fill_history': { 'cost': rlOrders } as Endpoint<Dict>,
+                        'full/v1/positions': { 'cost': rlOrders } as Endpoint<Dict>,
+                        'full/v1/funding_payment_history': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/get_sub_accounts': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/account_summary': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/account_history': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/aggregated_account_summary': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/funding_account_summary': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/transfer': { 'cost': 100 } as Endpoint<Dict>,
+                        'full/v1/deposit_history': { 'cost': 100 } as Endpoint<Dict>,
+                        'full/v1/transfer_history': { 'cost': 100 } as Endpoint<Dict>,
+                        'full/v1/withdrawal': { 'cost': 100 } as Endpoint<Dict>,
+                        'full/v1/withdrawal_history': { 'cost': 100 } as Endpoint<Dict>,
+                        'full/v1/add_position_margin': { 'cost': rlOthers } as Endpoint<Dict>, // addMargin
+                        'full/v1/get_position_margin_limits': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/set_position_config': { 'cost': rlOthers } as Endpoint<Dict>,  // setPositionMode/setMarginMode
+                        'full/v1/set_initial_leverage': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/get_all_initial_leverage': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/set_derisk_mm_ratio': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/vault_burn_tokens': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/vault_invest': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/vault_investor_summary': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/vault_redeem': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/vault_redeem_cancel': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/vault_view_redemption_queue': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/vault_manager_investor_history': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/authorize_builder': { 'cost': rlOthers } as Endpoint<Dict>, // https://pastebin(dot)com/0Mb8cFhN
+                        'full/v1/get_authorized_builders': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/builder_fill_history': { 'cost': rlOthers } as Endpoint<Dict>,
                     },
                 },
             },
@@ -172,7 +172,7 @@ export default class grvt extends Exchange {
                 'accountId': undefined, // needs to be set manually by user
                 // https://api.rhino.fi/bridge/configs
                 'networks': {
-                    'ARBONE': '42161',
+                    'ARBITRUM': '42161',
                     'AVAXC': '43114',
                     'BASE': '8453',
                     'BSC': '56',
@@ -655,7 +655,7 @@ export default class grvt extends Exchange {
         //            },
         //            ...
         //
-        const promises = [ marketsPromise ];
+        const promises: Promise<any>[] = [ marketsPromise ];
         if (!this.isEmptyString (this.apiKey) || !this.isEmptyString (this.privateKey)) {
             promises.push (this.signIn ());
         }
@@ -2465,7 +2465,7 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }

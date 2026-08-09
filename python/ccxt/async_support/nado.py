@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.nado import ImplicitAPI
 import asyncio
-from ccxt.base.types import Any, Balances, Currencies, Currency, FundingHistory, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, FundingHistory, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -109,48 +109,48 @@ class nado(Exchange, ImplicitAPI):
                 'gateway': {
                     'public': {
                         'get': {
-                            'symbols': 2,
-                            'query': 1,
-                            'edge/query': 1,
+                            'symbols': {'cost': 2},
+                            'query': {'cost': 1},
+                            'edge/query': {'cost': 1},
                         },
                         'post': {
-                            'query': 1,
+                            'query': {'cost': 1},
                         },
                     },
                     'private': {
                         'post': {
-                            'execute': 1,
+                            'execute': {'cost': 1},
                         },
                     },
                 },
                 'gatewayV2': {
                     'public': {
                         'get': {
-                            'assets': 2,
-                            'pairs': 1,
-                            'orderbook': 1,
+                            'assets': {'cost': 2},
+                            'pairs': {'cost': 1},
+                            'orderbook': {'cost': 1},
                         },
                     },
                 },
                 'archive': {
                     'post': {
-                        '': 1,
+                        '': {'cost': 1},
                     },
                 },
                 'archiveV2': {
                     'public': {
                         'get': {
-                            'tickers': 1,
-                            'contracts': 1,
-                            'trades': 1,
+                            'tickers': {'cost': 1},
+                            'contracts': {'cost': 1},
+                            'trades': {'cost': 1},
                         },
                     },
                 },
                 'trigger': {
                     'private': {
                         'post': {
-                            'execute': 1,
-                            'query': 1,
+                            'execute': {'cost': 1},
+                            'query': {'cost': 1},
                         },
                     },
                 },
@@ -926,7 +926,7 @@ class nado(Exchange, ImplicitAPI):
             market = self.market(symbol)
             productIds.append(self.parse_to_int(market['id']))
         subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'subaccount', 'default')
+        subaccount, params = self.handle_option_and_params(params, 'fetchOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
@@ -1485,7 +1485,7 @@ class nado(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'server_time')
 
-    async def fetch_status(self, params={}):
+    async def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -1663,8 +1663,9 @@ class nado(Exchange, ImplicitAPI):
         """
         response = await self.gatewayV2PublicGetAssets(params)
         result = {}
-        for i in range(0, len(response)):
-            currency = response[i]
+        assets = self.to_array(response)
+        for i in range(0, len(assets)):
+            currency = assets[i]
             parsed = self.parse_currency(currency)
             code = self.safe_string(parsed, 'code')
             if code is None:
@@ -1870,7 +1871,7 @@ class nado(Exchange, ImplicitAPI):
         rates = []
         for i in range(0, len(tickers)):
             ticker = tickers[i]
-            rates.append(response[ticker])
+            rates.append(self.safe_dict(response, ticker, {}))
         return self.parse_funding_rates(rates, symbols)
 
     async def fetch_open_interest(self, symbol: str, params={}):
@@ -1957,7 +1958,7 @@ class nado(Exchange, ImplicitAPI):
         interests = []
         for i in range(0, len(tickers)):
             ticker = tickers[i]
-            interests.append(response[ticker])
+            interests.append(self.safe_dict(response, ticker, {}))
         return self.parse_open_interests(interests, symbols)
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:

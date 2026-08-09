@@ -58,6 +58,18 @@ public class Bybiteu extends BybiteuCore {
     public CompletableFuture<Currencies> fetchCurrenciesAsync() { return fetchCurrenciesAsync((Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
+    public List<MarketInterface> fetchMarkets(Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.fetchMarkets(params));
+        return toTypedList(res, MarketInterface::new);
+    }
+    public List<MarketInterface> fetchMarkets() { return fetchMarkets((Map<String, Object>) null); }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<List<MarketInterface>> fetchMarketsAsync(Map<String, Object> params) {
+        return super.fetchMarkets(params).thenApply(res -> toTypedList(res, MarketInterface::new));
+    }
+    public CompletableFuture<List<MarketInterface>> fetchMarketsAsync() { return fetchMarketsAsync((Map<String, Object>) null); }
+
+    @SuppressWarnings("unchecked")
     public List<Account> fetchAccounts(Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchAccounts(params));
         return toTypedList(res, Account::new);
@@ -466,6 +478,18 @@ public class Bybiteu extends BybiteuCore {
     }
 
     @SuppressWarnings("unchecked")
+    public Status fetchStatus(Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.fetchStatus(params));
+        return new Status(res);
+    }
+    public Status fetchStatus() { return fetchStatus((Map<String, Object>) null); }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<Status> fetchStatusAsync(Map<String, Object> params) {
+        return super.fetchStatus(params).thenApply(Status::new);
+    }
+    public CompletableFuture<Status> fetchStatusAsync() { return fetchStatusAsync((Map<String, Object>) null); }
+
+    @SuppressWarnings("unchecked")
     public DepositWithdrawFees fetchDepositWithdrawFees(List<String> codes, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchDepositWithdrawFees(codes, params));
         return new DepositWithdrawFees(res);
@@ -538,6 +562,18 @@ public class Bybiteu extends BybiteuCore {
     public CompletableFuture<Tickers> fetchContractTickersAsync(String[] symbols, Map<String, Object> params) { return fetchContractTickersAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
+    public OrderBooks fetchOrderBooks(List<String> symbols, Long limit, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.fetchOrderBooks(symbols, limit, params));
+        return new OrderBooks(res);
+    }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<OrderBooks> fetchOrderBooksAsync(List<String> symbols, Long limit, Map<String, Object> params) {
+        return super.fetchOrderBooks(symbols, limit, params).thenApply(OrderBooks::new);
+    }
+    public OrderBooks fetchOrderBooks(String[] symbols, Long limit, Map<String, Object> params) { return fetchOrderBooks(symbols == null ? null : java.util.Arrays.asList(symbols), limit, params); }
+    public CompletableFuture<OrderBooks> fetchOrderBooksAsync(String[] symbols, Long limit, Map<String, Object> params) { return fetchOrderBooksAsync(symbols == null ? null : java.util.Arrays.asList(symbols), limit, params); }
+
+    @SuppressWarnings("unchecked")
     public Order createTwapOrder(String symbol, String side, Double amount, Double duration, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.createTwapOrder(symbol, side, amount, duration, params));
         return new Order(res);
@@ -585,6 +621,16 @@ public class Bybiteu extends BybiteuCore {
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<Conversion>> fetchConvertTradeHistoryAsync(String code, Long since, Long limit, Map<String, Object> params) {
         return super.fetchConvertTradeHistory(code, since, limit, params).thenApply(res -> toTypedList(res, Conversion::new));
+    }
+
+    @SuppressWarnings("unchecked")
+    public PositionModeInfo fetchPositionMode(String symbol, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.fetchPositionMode(symbol, params));
+        return new PositionModeInfo(res);
+    }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<PositionModeInfo> fetchPositionModeAsync(String symbol, Map<String, Object> params) {
+        return super.fetchPositionMode(symbol, params).thenApply(PositionModeInfo::new);
     }
 
     @SuppressWarnings("unchecked")
@@ -1632,6 +1678,18 @@ public class Bybiteu extends BybiteuCore {
     public CompletableFuture<List<Order>> cancelAllOrdersAsync(String symbol, Map<String, Object> params) {
         return super.cancelAllOrders(symbol, params).thenApply(res -> toTypedList(res, Order::new));
     }
+
+    @SuppressWarnings("unchecked")
+    public Order cancelUnifiedOrder(Order order, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.cancelUnifiedOrder(order, params));
+        return new Order(res);
+    }
+    public Order cancelUnifiedOrder(Order order) { return cancelUnifiedOrder(order, (Map<String, Object>) null); }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<Order> cancelUnifiedOrderAsync(Order order, Map<String, Object> params) {
+        return super.cancelUnifiedOrder(order, params).thenApply(Order::new);
+    }
+    public CompletableFuture<Order> cancelUnifiedOrderAsync(Order order) { return cancelUnifiedOrderAsync(order, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public List<Order> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> params) {

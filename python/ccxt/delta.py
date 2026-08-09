@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.delta import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, ADL, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, MarketInterface
+from ccxt.base.types import Any, ADL, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, MarketInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -138,70 +138,70 @@ class delta(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'assets',
-                        'indices',
-                        'products',
-                        'products/{symbol}',
-                        'tickers',
-                        'tickers/{symbol}',
-                        'l2orderbook/{symbol}',
-                        'trades/{symbol}',
-                        'stats',
-                        'history/candles',
-                        'history/sparklines',
-                        'settings',
-                    ],
+                    'get': {
+                        'assets': {'cost': 1},
+                        'indices': {'cost': 1},
+                        'products': {'cost': 1},
+                        'products/{symbol}': {'cost': 1},
+                        'tickers': {'cost': 1},
+                        'tickers/{symbol}': {'cost': 1},
+                        'l2orderbook/{symbol}': {'cost': 1},
+                        'trades/{symbol}': {'cost': 1},
+                        'stats': {'cost': 1},
+                        'history/candles': {'cost': 1},
+                        'history/sparklines': {'cost': 1},
+                        'settings': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'get': [
-                        'orders',
-                        'orders/{order_id}',
-                        'orders/client_order_id/{client_oid}',
-                        'products/{product_id}/orders/leverage',
-                        'positions/margined',
-                        'positions',
-                        'orders/history',
-                        'fills',
-                        'fills/history/download/csv',
-                        'wallet/balances',
-                        'wallet/transactions',
-                        'wallet/transactions/download',
-                        'wallets/sub_accounts_transfer_history',
-                        'users/trading_preferences',
-                        'sub_accounts',
-                        'profile',
-                        'rate_limits/quota',
-                        'heartbeat',
-                        'deposits/address',
-                    ],
-                    'post': [
-                        'orders',
-                        'orders/bracket',
-                        'orders/batch',
-                        'products/{product_id}/orders/leverage',
-                        'positions/change_margin',
-                        'positions/close_all',
-                        'wallets/sub_account_balance_transfer',
-                        'heartbeat/create',
-                        'heartbeat',
-                        'orders/cancel_after',
-                        'orders/leverage',
-                    ],
-                    'put': [
-                        'orders',
-                        'orders/bracket',
-                        'orders/batch',
-                        'positions/auto_topup',
-                        'users/update_mmp',
-                        'users/reset_mmp',
-                        'users/margin_mode',
-                    ],
-                    'delete': [
-                        'orders',
-                        'orders/all',
-                        'orders/batch',
-                    ],
+                    'get': {
+                        'orders': {'cost': 1},
+                        'orders/{order_id}': {'cost': 1},
+                        'orders/client_order_id/{client_oid}': {'cost': 1},
+                        'products/{product_id}/orders/leverage': {'cost': 1},
+                        'positions/margined': {'cost': 1},
+                        'positions': {'cost': 1},
+                        'orders/history': {'cost': 1},
+                        'fills': {'cost': 1},
+                        'fills/history/download/csv': {'cost': 1},
+                        'wallet/balances': {'cost': 1},
+                        'wallet/transactions': {'cost': 1},
+                        'wallet/transactions/download': {'cost': 1},
+                        'wallets/sub_accounts_transfer_history': {'cost': 1},
+                        'users/trading_preferences': {'cost': 1},
+                        'sub_accounts': {'cost': 1},
+                        'profile': {'cost': 1},
+                        'rate_limits/quota': {'cost': 1},
+                        'heartbeat': {'cost': 1},
+                        'deposits/address': {'cost': 1},
+                    },
+                    'post': {
+                        'orders': {'cost': 1},
+                        'orders/bracket': {'cost': 1},
+                        'orders/batch': {'cost': 1},
+                        'products/{product_id}/orders/leverage': {'cost': 1},
+                        'positions/change_margin': {'cost': 1},
+                        'positions/close_all': {'cost': 1},
+                        'wallets/sub_account_balance_transfer': {'cost': 1},
+                        'heartbeat/create': {'cost': 1},
+                        'heartbeat': {'cost': 1},
+                        'orders/cancel_after': {'cost': 1},
+                        'orders/leverage': {'cost': 1},
+                    },
+                    'put': {
+                        'orders': {'cost': 1},
+                        'orders/bracket': {'cost': 1},
+                        'orders/batch': {'cost': 1},
+                        'positions/auto_topup': {'cost': 1},
+                        'users/update_mmp': {'cost': 1},
+                        'users/reset_mmp': {'cost': 1},
+                        'users/margin_mode': {'cost': 1},
+                    },
+                    'delete': {
+                        'orders': {'cost': 1},
+                        'orders/all': {'cost': 1},
+                        'orders/batch': {'cost': 1},
+                    },
                 },
             },
             'fees': {
@@ -437,7 +437,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.safe_integer_product(result, 'server_time', 0.001)
 
-    def fetch_status(self, params={}):
+    def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3078,7 +3078,7 @@ class delta(Exchange, ImplicitAPI):
         #
         return self.privatePostProductsProductIdOrdersLeverage(self.extend(request, params))
 
-    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[dict]:
         """
         fetches historical settlement records
 

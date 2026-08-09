@@ -6,7 +6,7 @@ import Exchange from './abstract/kucoin.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import type { ADL, Account, Balances, Bool, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FeeString, FeeStringInterface, FundingHistory, FundingRate, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, List, MarginMode, MarginModification, Market, NullableDict, NullableList, Num, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, DepositWithdrawFee, DepositWithdrawFees } from './base/types.js';
+import type { ADL, Account, Balances, Bool, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FeeString, FeeStringInterface, FundingHistory, FundingRate, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, List, MarginMode, MarginModification, Market, NullableDict, NullableList, Num, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, DepositWithdrawFee, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -82,7 +82,7 @@ export default class kucoin extends Exchange {
                 'fetchL3OrderBook': true,
                 'fetchLedger': true,
                 'fetchLeverage': true,
-                'fetchLeverageTiers': false,
+                'fetchLeverageTiers': true,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': true,
@@ -162,440 +162,440 @@ export default class kucoin extends Exchange {
                 'public': {
                     'get': {
                         // spot trading
-                        'currencies': 3,
-                        'currencies/{currency}': 3,
-                        'symbols': 4,
-                        'market/orderbook/level1': 2,
-                        'market/allTickers': 15,
-                        'market/stats': 15,
-                        'markets': 3,
-                        'market/orderbook/level{level}_{limit}': 4,
-                        'market/orderbook/level2_20': 2,
-                        'market/orderbook/level2_100': 4,
-                        'market/histories': 3,
-                        'market/candles': 3,
-                        'prices': 3,
-                        'timestamp': 3,
-                        'status': 3,
+                        'currencies': { 'cost': 3 } as Endpoint<Dict>,
+                        'currencies/{currency}': { 'cost': 3 } as Endpoint<Dict>,
+                        'symbols': { 'cost': 4 } as Endpoint<Dict>,
+                        'market/orderbook/level1': { 'cost': 2 } as Endpoint<Dict>,
+                        'market/allTickers': { 'cost': 15 } as Endpoint<Dict>,
+                        'market/stats': { 'cost': 15 } as Endpoint<Dict>,
+                        'markets': { 'cost': 3 } as Endpoint<Dict>,
+                        'market/orderbook/level{level}_{limit}': { 'cost': 4 } as Endpoint<Dict>,
+                        'market/orderbook/level2_20': { 'cost': 2 } as Endpoint<Dict>,
+                        'market/orderbook/level2_100': { 'cost': 4 } as Endpoint<Dict>,
+                        'market/histories': { 'cost': 3 } as Endpoint<Dict>,
+                        'market/candles': { 'cost': 3 } as Endpoint<Dict>,
+                        'prices': { 'cost': 3 } as Endpoint<Dict>,
+                        'timestamp': { 'cost': 3 } as Endpoint<Dict>,
+                        'status': { 'cost': 3 } as Endpoint<Dict>,
                         // margin trading
-                        'mark-price/{symbol}/current': 2,
-                        'mark-price/all-symbols': 10,
-                        'margin/config': 25,
-                        'announcements': 20,
-                        'margin/collateralRatio': 10,
+                        'mark-price/{symbol}/current': { 'cost': 2 } as Endpoint<Dict>,
+                        'mark-price/all-symbols': { 'cost': 10 } as Endpoint<Dict>,
+                        'margin/config': { 'cost': 25 } as Endpoint<Dict>,
+                        'announcements': { 'cost': 20 } as Endpoint<Dict>,
+                        'margin/collateralRatio': { 'cost': 10 } as Endpoint<Dict>,
                         // convert
-                        'convert/symbol': 5,
-                        'convert/currencies': 5,
+                        'convert/symbol': { 'cost': 5 } as Endpoint<Dict>,
+                        'convert/currencies': { 'cost': 5 } as Endpoint<Dict>,
                     },
                     'post': {
                         // ws
-                        'bullet-public': 10,
+                        'bullet-public': { 'cost': 10 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
                         // account
-                        'user-info': 20,
-                        'user/api-key': 20,
-                        'accounts': 5,
-                        'accounts/{accountId}': 5,
-                        'accounts/ledgers': 2,
-                        'hf/accounts/ledgers': 2,
-                        'hf/margin/account/ledgers': 2,
-                        'transaction-history': 2,
-                        'sub/user': 20,
-                        'sub-accounts/{subUserId}': 15,
-                        'sub-accounts': 20,
-                        'sub/api-key': 20,
+                        'user-info': { 'cost': 20 } as Endpoint<Dict>,
+                        'user/api-key': { 'cost': 20 } as Endpoint<Dict>,
+                        'accounts': { 'cost': 5 } as Endpoint<Dict>,
+                        'accounts/{accountId}': { 'cost': 5 } as Endpoint<Dict>,
+                        'accounts/ledgers': { 'cost': 2 } as Endpoint<Dict>,
+                        'hf/accounts/ledgers': { 'cost': 2 } as Endpoint<Dict>,
+                        'hf/margin/account/ledgers': { 'cost': 2 } as Endpoint<Dict>,
+                        'transaction-history': { 'cost': 2 } as Endpoint<Dict>,
+                        'sub/user': { 'cost': 20 } as Endpoint<Dict>,
+                        'sub-accounts/{subUserId}': { 'cost': 15 } as Endpoint<Dict>,
+                        'sub-accounts': { 'cost': 20 } as Endpoint<Dict>,
+                        'sub/api-key': { 'cost': 20 } as Endpoint<Dict>,
                         // funding
-                        'margin/account': 40,
-                        'margin/accounts': 15,
-                        'isolated/accounts': 15,
-                        'deposit-addresses': 5,
-                        'deposits': 5,
-                        'hist-deposits': 5,
-                        'withdrawals': 20,
-                        'hist-withdrawals': 20,
-                        'withdrawals/quotas': 20,
-                        'accounts/transferable': 20,
-                        'transfer-list': 20,
-                        'base-fee': 3,
-                        'trade-fees': 3,
+                        'margin/account': { 'cost': 40 } as Endpoint<Dict>,
+                        'margin/accounts': { 'cost': 15 } as Endpoint<Dict>,
+                        'isolated/accounts': { 'cost': 15 } as Endpoint<Dict>,
+                        'deposit-addresses': { 'cost': 5 } as Endpoint<Dict>,
+                        'deposits': { 'cost': 5 } as Endpoint<Dict>,
+                        'hist-deposits': { 'cost': 5 } as Endpoint<Dict>,
+                        'withdrawals': { 'cost': 20 } as Endpoint<Dict>,
+                        'hist-withdrawals': { 'cost': 20 } as Endpoint<Dict>,
+                        'withdrawals/quotas': { 'cost': 20 } as Endpoint<Dict>,
+                        'accounts/transferable': { 'cost': 20 } as Endpoint<Dict>,
+                        'transfer-list': { 'cost': 20 } as Endpoint<Dict>,
+                        'base-fee': { 'cost': 3 } as Endpoint<Dict>,
+                        'trade-fees': { 'cost': 3 } as Endpoint<Dict>,
                         // spot trading
-                        'market/orderbook/level{level}': 3,
-                        'market/orderbook/level2': 3,
-                        'market/orderbook/level3': 3,
-                        'hf/accounts/opened': 2,
-                        'hf/orders/active': 2,
-                        'hf/orders/active/symbols': 2,
-                        'hf/margin/order/active/symbols': 2,
-                        'hf/orders/done': 2,
-                        'hf/orders/{orderId}': 2,
-                        'hf/orders/client-order/{clientOid}': 2,
-                        'hf/orders/dead-cancel-all/query': 2,
-                        'hf/fills': 2,
-                        'orders': 2,
-                        'limit/orders': 3,
-                        'orders/{orderId}': 2,
-                        'order/client-order/{clientOid}': 2,
-                        'fills': 10,
-                        'limit/fills': 20,
-                        'stop-order': 8,
-                        'stop-order/{orderId}': 3,
-                        'stop-order/queryOrderByClientOid': 3,
-                        'oco/order/{orderId}': 2,
-                        'oco/order/details/{orderId}': 2,
-                        'oco/client-order/{clientOid}': 2,
-                        'oco/orders': 2,
+                        'market/orderbook/level{level}': { 'cost': 3 } as Endpoint<Dict>,
+                        'market/orderbook/level2': { 'cost': 3 } as Endpoint<Dict>,
+                        'market/orderbook/level3': { 'cost': 3 } as Endpoint<Dict>,
+                        'hf/accounts/opened': { 'cost': 2 } as Endpoint<Dict>,
+                        'hf/orders/active': { 'cost': 2 } as Endpoint<Dict>,
+                        'hf/orders/active/symbols': { 'cost': 2 } as Endpoint<Dict>,
+                        'hf/margin/order/active/symbols': { 'cost': 2 } as Endpoint<Dict>,
+                        'hf/orders/done': { 'cost': 2 } as Endpoint<Dict>,
+                        'hf/orders/{orderId}': { 'cost': 2 } as Endpoint<Dict>,
+                        'hf/orders/client-order/{clientOid}': { 'cost': 2 } as Endpoint<Dict>,
+                        'hf/orders/dead-cancel-all/query': { 'cost': 2 } as Endpoint<Dict>,
+                        'hf/fills': { 'cost': 2 } as Endpoint<Dict>,
+                        'orders': { 'cost': 2 } as Endpoint<Dict>,
+                        'limit/orders': { 'cost': 3 } as Endpoint<Dict>,
+                        'orders/{orderId}': { 'cost': 2 } as Endpoint<Dict>,
+                        'order/client-order/{clientOid}': { 'cost': 2 } as Endpoint<Dict>,
+                        'fills': { 'cost': 10 } as Endpoint<Dict>,
+                        'limit/fills': { 'cost': 20 } as Endpoint<Dict>,
+                        'stop-order': { 'cost': 8 } as Endpoint<Dict>,
+                        'stop-order/{orderId}': { 'cost': 3 } as Endpoint<Dict>,
+                        'stop-order/queryOrderByClientOid': { 'cost': 3 } as Endpoint<Dict>,
+                        'oco/order/{orderId}': { 'cost': 2 } as Endpoint<Dict>,
+                        'oco/order/details/{orderId}': { 'cost': 2 } as Endpoint<Dict>,
+                        'oco/client-order/{clientOid}': { 'cost': 2 } as Endpoint<Dict>,
+                        'oco/orders': { 'cost': 2 } as Endpoint<Dict>,
                         // margin trading
-                        'hf/margin/orders/active': 4,
-                        'hf/margin/orders/done': 10,
-                        'hf/margin/orders/{orderId}': 4,
-                        'hf/margin/orders/client-order/{clientOid}': 5,
-                        'hf/margin/fills': 5,
-                        'hf/margin/stop-orders': 8,
-                        'hf/margin/stop-order/orderId': 3,
-                        'hf/margin/stop-order/clientOid': 3,
-                        'hf/margin/oco-order/orderId': 2,
-                        'hf/margin/oco-order/clientOid': 2,
-                        'hf/margin/oco-order/detail/orderId': 2,
-                        'hf/margin/oco-orders': 2,
-                        'etf/info': 25,
-                        'margin/currencies': 20,
-                        'risk/limit/strategy': 20, // Deprecate
-                        'isolated/symbols': 3,
-                        'margin/symbols': 3,
-                        'isolated/account/{symbol}': 50,
-                        'margin/borrow': 15,
-                        'margin/repay': 15,
-                        'margin/interest': 20,
-                        'project/list': 10,
-                        'project/marketInterestRate': 5,
-                        'redeem/orders': 10,
-                        'purchase/orders': 10,
+                        'hf/margin/orders/active': { 'cost': 4 } as Endpoint<Dict>,
+                        'hf/margin/orders/done': { 'cost': 10 } as Endpoint<Dict>,
+                        'hf/margin/orders/{orderId}': { 'cost': 4 } as Endpoint<Dict>,
+                        'hf/margin/orders/client-order/{clientOid}': { 'cost': 5 } as Endpoint<Dict>,
+                        'hf/margin/fills': { 'cost': 5 } as Endpoint<Dict>,
+                        'hf/margin/stop-orders': { 'cost': 8 } as Endpoint<Dict>,
+                        'hf/margin/stop-order/orderId': { 'cost': 3 } as Endpoint<Dict>,
+                        'hf/margin/stop-order/clientOid': { 'cost': 3 } as Endpoint<Dict>,
+                        'hf/margin/oco-order/orderId': { 'cost': 2 } as Endpoint<Dict>,
+                        'hf/margin/oco-order/clientOid': { 'cost': 2 } as Endpoint<Dict>,
+                        'hf/margin/oco-order/detail/orderId': { 'cost': 2 } as Endpoint<Dict>,
+                        'hf/margin/oco-orders': { 'cost': 2 } as Endpoint<Dict>,
+                        'etf/info': { 'cost': 25 } as Endpoint<Dict>,
+                        'margin/currencies': { 'cost': 20 } as Endpoint<Dict>,
+                        'risk/limit/strategy': { 'cost': 20 } as Endpoint<Dict>, // Deprecate
+                        'isolated/symbols': { 'cost': 3 } as Endpoint<Dict>,
+                        'margin/symbols': { 'cost': 3 } as Endpoint<Dict>,
+                        'isolated/account/{symbol}': { 'cost': 50 } as Endpoint<Dict>,
+                        'margin/borrow': { 'cost': 15 } as Endpoint<Dict>,
+                        'margin/repay': { 'cost': 15 } as Endpoint<Dict>,
+                        'margin/interest': { 'cost': 20 } as Endpoint<Dict>,
+                        'project/list': { 'cost': 10 } as Endpoint<Dict>,
+                        'project/marketInterestRate': { 'cost': 5 } as Endpoint<Dict>,
+                        'redeem/orders': { 'cost': 10 } as Endpoint<Dict>,
+                        'purchase/orders': { 'cost': 10 } as Endpoint<Dict>,
                         // broker
-                        'broker/api/rebase/download': 3,
-                        'broker/queryMyCommission': 3,
-                        'broker/queryUser': 3,
-                        'broker/queryDetailByUid': 3,
-                        'migrate/user/account/status': 3,
+                        'broker/api/rebase/download': { 'cost': 3 } as Endpoint<Dict>,
+                        'broker/queryMyCommission': { 'cost': 3 } as Endpoint<Dict>,
+                        'broker/queryUser': { 'cost': 3 } as Endpoint<Dict>,
+                        'broker/queryDetailByUid': { 'cost': 3 } as Endpoint<Dict>,
+                        'migrate/user/account/status': { 'cost': 3 } as Endpoint<Dict>,
                         // convert
-                        'convert/quote': 20,
-                        'convert/order/detail': 5,
-                        'convert/order/history': 5,
-                        'convert/limit/quote': 20,
-                        'convert/limit/order/detail': 5,
-                        'convert/limit/orders': 5,
+                        'convert/quote': { 'cost': 20 } as Endpoint<Dict>,
+                        'convert/order/detail': { 'cost': 5 } as Endpoint<Dict>,
+                        'convert/order/history': { 'cost': 5 } as Endpoint<Dict>,
+                        'convert/limit/quote': { 'cost': 20 } as Endpoint<Dict>,
+                        'convert/limit/order/detail': { 'cost': 5 } as Endpoint<Dict>,
+                        'convert/limit/orders': { 'cost': 5 } as Endpoint<Dict>,
                         // affiliate
-                        'affiliate/inviter/statistics': 30,
+                        'affiliate/inviter/statistics': { 'cost': 30 } as Endpoint<Dict>,
                     },
                     'post': {
                         // account
-                        'sub/user/created': 15,
-                        'sub/api-key': 20,
-                        'sub/api-key/update': 30,
+                        'sub/user/created': { 'cost': 15 } as Endpoint<Dict>,
+                        'sub/api-key': { 'cost': 20 } as Endpoint<Dict>,
+                        'sub/api-key/update': { 'cost': 30 } as Endpoint<Dict>,
                         // funding
-                        'deposit-addresses': 20,
-                        'withdrawals': 5,
-                        'accounts/universal-transfer': 4,
-                        'accounts/sub-transfer': 30,
-                        'accounts/inner-transfer': 15,
-                        'transfer-out': 20,
-                        'transfer-in': 20,
+                        'deposit-addresses': { 'cost': 20 } as Endpoint<Dict>,
+                        'withdrawals': { 'cost': 5 } as Endpoint<Dict>,
+                        'accounts/universal-transfer': { 'cost': 4 } as Endpoint<Dict>,
+                        'accounts/sub-transfer': { 'cost': 30 } as Endpoint<Dict>,
+                        'accounts/inner-transfer': { 'cost': 15 } as Endpoint<Dict>,
+                        'transfer-out': { 'cost': 20 } as Endpoint<Dict>,
+                        'transfer-in': { 'cost': 20 } as Endpoint<Dict>,
                         // spot trading
-                        'hf/orders': 1,
-                        'hf/orders/test': 1,
-                        'hf/orders/sync': 1,
-                        'hf/orders/multi': 1,
-                        'hf/orders/multi/sync': 1,
-                        'hf/orders/alter': 1,
-                        'hf/orders/dead-cancel-all': 2,
-                        'orders': 2,
-                        'orders/test': 2,
-                        'orders/multi': 3,
-                        'stop-order': 2,
-                        'oco/order': 2,
+                        'hf/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'hf/orders/test': { 'cost': 1 } as Endpoint<Dict>,
+                        'hf/orders/sync': { 'cost': 1 } as Endpoint<Dict>,
+                        'hf/orders/multi': { 'cost': 1 } as Endpoint<Dict>,
+                        'hf/orders/multi/sync': { 'cost': 1 } as Endpoint<Dict>,
+                        'hf/orders/alter': { 'cost': 1 } as Endpoint<Dict>,
+                        'hf/orders/dead-cancel-all': { 'cost': 2 } as Endpoint<Dict>,
+                        'orders': { 'cost': 2 } as Endpoint<Dict>,
+                        'orders/test': { 'cost': 2 } as Endpoint<Dict>,
+                        'orders/multi': { 'cost': 3 } as Endpoint<Dict>,
+                        'stop-order': { 'cost': 2 } as Endpoint<Dict>,
+                        'oco/order': { 'cost': 2 } as Endpoint<Dict>,
                         // margin trading
-                        'hf/margin/order': 2,
-                        'hf/margin/order/test': 2,
-                        'hf/margin/stop-order': 3,
-                        'margin/order': 5,
-                        'margin/order/test': 5,
-                        'hf/margin/oco-order': 2,
-                        'margin/borrow': 15,
-                        'margin/repay': 10,
-                        'purchase': 15,
-                        'redeem': 15,
-                        'lend/purchase/update': 10,
+                        'hf/margin/order': { 'cost': 2 } as Endpoint<Dict>,
+                        'hf/margin/order/test': { 'cost': 2 } as Endpoint<Dict>,
+                        'hf/margin/stop-order': { 'cost': 3 } as Endpoint<Dict>,
+                        'margin/order': { 'cost': 5 } as Endpoint<Dict>,
+                        'margin/order/test': { 'cost': 5 } as Endpoint<Dict>,
+                        'hf/margin/oco-order': { 'cost': 2 } as Endpoint<Dict>,
+                        'margin/borrow': { 'cost': 15 } as Endpoint<Dict>,
+                        'margin/repay': { 'cost': 10 } as Endpoint<Dict>,
+                        'purchase': { 'cost': 15 } as Endpoint<Dict>,
+                        'redeem': { 'cost': 15 } as Endpoint<Dict>,
+                        'lend/purchase/update': { 'cost': 10 } as Endpoint<Dict>,
                         // convert
-                        'convert/order': 20,
-                        'convert/limit/order': 20,
+                        'convert/order': { 'cost': 20 } as Endpoint<Dict>,
+                        'convert/limit/order': { 'cost': 20 } as Endpoint<Dict>,
                         // ws
-                        'bullet-private': 10,
-                        'position/update-user-leverage': 5,
-                        'deposit-address/create': 20,
+                        'bullet-private': { 'cost': 10 } as Endpoint<Dict>,
+                        'position/update-user-leverage': { 'cost': 5 } as Endpoint<Dict>,
+                        'deposit-address/create': { 'cost': 20 } as Endpoint<Dict>,
                     },
                     'delete': {
                         // account
-                        'sub/api-key': 30,
+                        'sub/api-key': { 'cost': 30 } as Endpoint<Dict>,
                         // funding
-                        'withdrawals/{withdrawalId}': 20,
+                        'withdrawals/{withdrawalId}': { 'cost': 20 } as Endpoint<Dict>,
                         // spot trading
-                        'hf/orders/{orderId}': 1,
-                        'hf/orders/sync/{orderId}': 1,
-                        'hf/orders/client-order/{clientOid}': 1,
-                        'hf/orders/sync/client-order/{clientOid}': 1,
-                        'hf/orders/cancel/{orderId}': 1,
-                        'hf/orders': 2,
-                        'hf/orders/cancelAll': 30,
-                        'orders/{orderId}': 3,
-                        'order/client-order/{clientOid}': 5,
-                        'orders': 20,
-                        'stop-order/{orderId}': 3,
-                        'stop-order/cancelOrderByClientOid': 5,
-                        'stop-order/cancel': 3,
-                        'oco/order/{orderId}': 3,
-                        'oco/client-order/{clientOid}': 3,
-                        'oco/orders': 3,
+                        'hf/orders/{orderId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'hf/orders/sync/{orderId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'hf/orders/client-order/{clientOid}': { 'cost': 1 } as Endpoint<Dict>,
+                        'hf/orders/sync/client-order/{clientOid}': { 'cost': 1 } as Endpoint<Dict>,
+                        'hf/orders/cancel/{orderId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'hf/orders': { 'cost': 2 } as Endpoint<Dict>,
+                        'hf/orders/cancelAll': { 'cost': 30 } as Endpoint<Dict>,
+                        'orders/{orderId}': { 'cost': 3 } as Endpoint<Dict>,
+                        'order/client-order/{clientOid}': { 'cost': 5 } as Endpoint<Dict>,
+                        'orders': { 'cost': 20 } as Endpoint<Dict>,
+                        'stop-order/{orderId}': { 'cost': 3 } as Endpoint<Dict>,
+                        'stop-order/cancelOrderByClientOid': { 'cost': 5 } as Endpoint<Dict>,
+                        'stop-order/cancel': { 'cost': 3 } as Endpoint<Dict>,
+                        'oco/order/{orderId}': { 'cost': 3 } as Endpoint<Dict>,
+                        'oco/client-order/{clientOid}': { 'cost': 3 } as Endpoint<Dict>,
+                        'oco/orders': { 'cost': 3 } as Endpoint<Dict>,
                         // margin trading
-                        'hf/margin/orders/{orderId}': 2,
-                        'hf/margin/orders/client-order/{clientOid}': 2,
-                        'hf/margin/orders': 5,
-                        'hf/margin/stop-order/cancel-by-id': 3,
-                        'hf/margin/stop-order/cancel-by-clientOid': 5,
-                        'hf/margin/stop-order/cancel': 3,
-                        'hf/margin/oco-order/cancel-by-id': 3,
-                        'hf/margin/oco-order/cancel-by-clientOid': 3,
-                        'hf/margin/oco-order/cancel': 3,
+                        'hf/margin/orders/{orderId}': { 'cost': 2 } as Endpoint<Dict>,
+                        'hf/margin/orders/client-order/{clientOid}': { 'cost': 2 } as Endpoint<Dict>,
+                        'hf/margin/orders': { 'cost': 5 } as Endpoint<Dict>,
+                        'hf/margin/stop-order/cancel-by-id': { 'cost': 3 } as Endpoint<Dict>,
+                        'hf/margin/stop-order/cancel-by-clientOid': { 'cost': 5 } as Endpoint<Dict>,
+                        'hf/margin/stop-order/cancel': { 'cost': 3 } as Endpoint<Dict>,
+                        'hf/margin/oco-order/cancel-by-id': { 'cost': 3 } as Endpoint<Dict>,
+                        'hf/margin/oco-order/cancel-by-clientOid': { 'cost': 3 } as Endpoint<Dict>,
+                        'hf/margin/oco-order/cancel': { 'cost': 3 } as Endpoint<Dict>,
                         // convert
-                        'convert/limit/order/cancel': 5,
+                        'convert/limit/order/cancel': { 'cost': 5 } as Endpoint<Dict>,
                     },
                 },
                 'futuresPublic': {
                     'get': {
-                        'contracts/active': 6,
-                        'contracts/{symbol}': 6, // 3PW
-                        'ticker': 4, // 2PW
-                        'allTickers': 10, // 5PW
-                        'level2/snapshot': 6, // 3PW
-                        'level2/depth20': 10, // 5PW
-                        'level2/depth100': 20, // 10PW
-                        'trade/history': 10, // 5PW
-                        'kline/query': 6, // 3PW
-                        'interest/query': 10, // 5PW
-                        'index/query': 4, // 2PW
-                        'mark-price/{symbol}/current': 6, // 3PW
-                        'premium/query': 6, // 3PW
-                        'trade-statistics': 6, // 3PW
-                        'funding-rate/{symbol}/current': 4, // 2PW
-                        'contract/funding-rates': 10, // 5PW
-                        'timestamp': 4, // 2PW
-                        'status': 8, // 4PW
+                        'contracts/active': { 'cost': 6 } as Endpoint<Dict>,
+                        'contracts/{symbol}': { 'cost': 6 } as Endpoint<Dict>, // 3PW
+                        'ticker': { 'cost': 4 } as Endpoint<Dict>, // 2PW
+                        'allTickers': { 'cost': 10 } as Endpoint<Dict>, // 5PW
+                        'level2/snapshot': { 'cost': 6 } as Endpoint<Dict>, // 3PW
+                        'level2/depth20': { 'cost': 10 } as Endpoint<Dict>, // 5PW
+                        'level2/depth100': { 'cost': 20 } as Endpoint<Dict>, // 10PW
+                        'trade/history': { 'cost': 10 } as Endpoint<Dict>, // 5PW
+                        'kline/query': { 'cost': 6 } as Endpoint<Dict>, // 3PW
+                        'interest/query': { 'cost': 10 } as Endpoint<Dict>, // 5PW
+                        'index/query': { 'cost': 4 } as Endpoint<Dict>, // 2PW
+                        'mark-price/{symbol}/current': { 'cost': 6 } as Endpoint<Dict>, // 3PW
+                        'premium/query': { 'cost': 6 } as Endpoint<Dict>, // 3PW
+                        'trade-statistics': { 'cost': 6 } as Endpoint<Dict>, // 3PW
+                        'funding-rate/{symbol}/current': { 'cost': 4 } as Endpoint<Dict>, // 2PW
+                        'contract/funding-rates': { 'cost': 10 } as Endpoint<Dict>, // 5PW
+                        'timestamp': { 'cost': 4 } as Endpoint<Dict>, // 2PW
+                        'status': { 'cost': 8 } as Endpoint<Dict>, // 4PW
                         // ?
-                        'level2/message/query': 1.3953,
-                        'contracts/risk-limit/{symbol}': 3,
-                        'level3/message/query': 3, // deprecated，level3/snapshot is suggested
-                        'level3/snapshot': 3, // v2
+                        'level2/message/query': { 'cost': 1.3953 } as Endpoint<Dict>,
+                        'contracts/risk-limit/{symbol}': { 'cost': 3 } as Endpoint<Dict>,
+                        'level3/message/query': { 'cost': 3 } as Endpoint<Dict>, // deprecated，level3/snapshot is suggested
+                        'level3/snapshot': { 'cost': 3 } as Endpoint<Dict>, // v2
                     },
                     'post': {
                         // ws
-                        'bullet-public': 20, // 10PW
+                        'bullet-public': { 'cost': 20 } as Endpoint<Dict>, // 10PW
                     },
                 },
                 'futuresPrivate': {
                     'get': {
                         // account
-                        'transaction-history': 4, // 2MW
+                        'transaction-history': { 'cost': 4 } as Endpoint<Dict>, // 2MW
                         // funding
-                        'account-overview': 10, // 5FW
-                        'account-overview-all': 12, // 6FW
-                        'transfer-list': 20,
+                        'account-overview': { 'cost': 10 } as Endpoint<Dict>, // 5FW
+                        'account-overview-all': { 'cost': 12 } as Endpoint<Dict>, // 6FW
+                        'transfer-list': { 'cost': 20 } as Endpoint<Dict>,
                         // futures
-                        'orders': 4, // 2FW
-                        'stopOrders': 12, // 6FW
-                        'recentDoneOrders': 10, // 5FW
-                        'orders/{orderId}': 10, // 5FW
-                        'orders/byClientOid': 10, // 5FW
-                        'fills': 10, // 5FW
-                        'recentFills': 6, // 3FW
-                        'trade-fees': 6,
-                        'openOrderStatistics': 20, // 10FW
-                        'position': 4, // 2FW
-                        'positions': 4, // 2FW
-                        'margin/maxWithdrawMargin': 20, // 10FW
-                        'contracts/risk-limit/{symbol}': 10, // 5FW
-                        'funding-history': 10, // 5FW
-                        'copy-trade/futures/get-max-open-size': 8, // 4FW
-                        'copy-trade/futures/position/margin/max-withdraw-margin': 20, // 10FW
-                        'history-positions': 4,
-                        'position/getMarginMode': 4,
-                        'position/getPositionMode': 4,
-                        'deposit-address': 4,
-                        'deposit-list': 4,
-                        'withdrawals/quotas': 4,
-                        'withdrawal-list': 4,
-                        'sub/api-key': 4,
-                        'trade-statistics': 4,
-                        'getMaxOpenSize': 4,
-                        'getCrossUserLeverage': 4,
+                        'orders': { 'cost': 4 } as Endpoint<Dict>, // 2FW
+                        'stopOrders': { 'cost': 12 } as Endpoint<Dict>, // 6FW
+                        'recentDoneOrders': { 'cost': 10 } as Endpoint<Dict>, // 5FW
+                        'orders/{orderId}': { 'cost': 10 } as Endpoint<Dict>, // 5FW
+                        'orders/byClientOid': { 'cost': 10 } as Endpoint<Dict>, // 5FW
+                        'fills': { 'cost': 10 } as Endpoint<Dict>, // 5FW
+                        'recentFills': { 'cost': 6 } as Endpoint<Dict>, // 3FW
+                        'trade-fees': { 'cost': 6 } as Endpoint<Dict>,
+                        'openOrderStatistics': { 'cost': 20 } as Endpoint<Dict>, // 10FW
+                        'position': { 'cost': 4 } as Endpoint<Dict>, // 2FW
+                        'positions': { 'cost': 4 } as Endpoint<Dict>, // 2FW
+                        'margin/maxWithdrawMargin': { 'cost': 20 } as Endpoint<Dict>, // 10FW
+                        'contracts/risk-limit/{symbol}': { 'cost': 10 } as Endpoint<Dict>, // 5FW
+                        'funding-history': { 'cost': 10 } as Endpoint<Dict>, // 5FW
+                        'copy-trade/futures/get-max-open-size': { 'cost': 8 } as Endpoint<Dict>, // 4FW
+                        'copy-trade/futures/position/margin/max-withdraw-margin': { 'cost': 20 } as Endpoint<Dict>, // 10FW
+                        'history-positions': { 'cost': 4 } as Endpoint<Dict>,
+                        'position/getMarginMode': { 'cost': 4 } as Endpoint<Dict>,
+                        'position/getPositionMode': { 'cost': 4 } as Endpoint<Dict>,
+                        'deposit-address': { 'cost': 4 } as Endpoint<Dict>,
+                        'deposit-list': { 'cost': 4 } as Endpoint<Dict>,
+                        'withdrawals/quotas': { 'cost': 4 } as Endpoint<Dict>,
+                        'withdrawal-list': { 'cost': 4 } as Endpoint<Dict>,
+                        'sub/api-key': { 'cost': 4 } as Endpoint<Dict>,
+                        'trade-statistics': { 'cost': 4 } as Endpoint<Dict>,
+                        'getMaxOpenSize': { 'cost': 4 } as Endpoint<Dict>,
+                        'getCrossUserLeverage': { 'cost': 4 } as Endpoint<Dict>,
                     },
                     'post': {
                         // funding
-                        'transfer-out': 20,
-                        'transfer-in': 20,
+                        'transfer-out': { 'cost': 20 } as Endpoint<Dict>,
+                        'transfer-in': { 'cost': 20 } as Endpoint<Dict>,
                         // futures
-                        'orders': 4, // 2FW
-                        'st-orders': 4,
-                        'orders/test': 4, // 2FW
-                        'orders/multi': 6, // 3FW
-                        'position/margin/auto-deposit-status': 8, // 4FW
-                        'margin/withdrawMargin': 10, // 10FW
-                        'position/margin/deposit-margin': 8, // 4FW
-                        'position/risk-limit-level/change': 8, // 4FW
-                        'copy-trade/futures/orders': 4, // 2FW
-                        'copy-trade/futures/orders/test': 4, // 2FW
-                        'copy-trade/futures/st-orders': 4, // 2FW
-                        'copy-trade/futures/position/margin/deposit-margin': 8, // 4FW
-                        'copy-trade/futures/position/margin/withdraw-margin': 20, // 10FW
-                        'copy-trade/futures/position/risk-limit-level/change': 4, // 2FW
-                        'copy-trade/futures/position/margin/auto-deposit-status': 8, // 4FW
-                        'copy-trade/futures/position/changeMarginMode': 4, // 2FW
-                        'copy-trade/futures/position/changeCrossUserLeverage': 4, // 2FW
-                        'copy-trade/getCrossModeMarginRequirement': 6, // 3FW
-                        'copy-trade/position/switchPositionMode': 4, // 2FW
-                        'changeCrossUserLeverage': 4,
-                        'withdrawals': 4,
-                        'sub/api-key': 4,
-                        'sub/api-key/update': 4,
-                        'position/changeMarginMode': 4,
-                        'position/switchPositionMode': 4,
+                        'orders': { 'cost': 4 } as Endpoint<Dict>, // 2FW
+                        'st-orders': { 'cost': 4 } as Endpoint<Dict>,
+                        'orders/test': { 'cost': 4 } as Endpoint<Dict>, // 2FW
+                        'orders/multi': { 'cost': 6 } as Endpoint<Dict>, // 3FW
+                        'position/margin/auto-deposit-status': { 'cost': 8 } as Endpoint<Dict>, // 4FW
+                        'margin/withdrawMargin': { 'cost': 10 } as Endpoint<Dict>, // 10FW
+                        'position/margin/deposit-margin': { 'cost': 8 } as Endpoint<Dict>, // 4FW
+                        'position/risk-limit-level/change': { 'cost': 8 } as Endpoint<Dict>, // 4FW
+                        'copy-trade/futures/orders': { 'cost': 4 } as Endpoint<Dict>, // 2FW
+                        'copy-trade/futures/orders/test': { 'cost': 4 } as Endpoint<Dict>, // 2FW
+                        'copy-trade/futures/st-orders': { 'cost': 4 } as Endpoint<Dict>, // 2FW
+                        'copy-trade/futures/position/margin/deposit-margin': { 'cost': 8 } as Endpoint<Dict>, // 4FW
+                        'copy-trade/futures/position/margin/withdraw-margin': { 'cost': 20 } as Endpoint<Dict>, // 10FW
+                        'copy-trade/futures/position/risk-limit-level/change': { 'cost': 4 } as Endpoint<Dict>, // 2FW
+                        'copy-trade/futures/position/margin/auto-deposit-status': { 'cost': 8 } as Endpoint<Dict>, // 4FW
+                        'copy-trade/futures/position/changeMarginMode': { 'cost': 4 } as Endpoint<Dict>, // 2FW
+                        'copy-trade/futures/position/changeCrossUserLeverage': { 'cost': 4 } as Endpoint<Dict>, // 2FW
+                        'copy-trade/getCrossModeMarginRequirement': { 'cost': 6 } as Endpoint<Dict>, // 3FW
+                        'copy-trade/position/switchPositionMode': { 'cost': 4 } as Endpoint<Dict>, // 2FW
+                        'changeCrossUserLeverage': { 'cost': 4 } as Endpoint<Dict>,
+                        'withdrawals': { 'cost': 4 } as Endpoint<Dict>,
+                        'sub/api-key': { 'cost': 4 } as Endpoint<Dict>,
+                        'sub/api-key/update': { 'cost': 4 } as Endpoint<Dict>,
+                        'position/changeMarginMode': { 'cost': 4 } as Endpoint<Dict>,
+                        'position/switchPositionMode': { 'cost': 4 } as Endpoint<Dict>,
                         // ws
-                        'bullet-private': 20, // 10FW
+                        'bullet-private': { 'cost': 20 } as Endpoint<Dict>, // 10FW
                     },
                     'delete': {
-                        'orders/{orderId}': 2, // 1FW
-                        'orders/client-order/{clientOid}': 2, // 1FW
-                        'orders': 20, // 10FW
-                        'stopOrders': 30, // 15FW
-                        'copy-trade/futures/orders': 1.5, // 1FW
-                        'copy-trade/futures/orders/client-order': 1.5, // 1FW
-                        'orders/multi-cancel': 40, // 20FW
-                        'withdrawals/{withdrawalId}': 10,
-                        'cancel/transfer-out': 10,
-                        'sub/api-key': 10,
+                        'orders/{orderId}': { 'cost': 2 } as Endpoint<Dict>, // 1FW
+                        'orders/client-order/{clientOid}': { 'cost': 2 } as Endpoint<Dict>, // 1FW
+                        'orders': { 'cost': 20 } as Endpoint<Dict>, // 10FW
+                        'stopOrders': { 'cost': 30 } as Endpoint<Dict>, // 15FW
+                        'copy-trade/futures/orders': { 'cost': 1.5 } as Endpoint<Dict>, // 1FW
+                        'copy-trade/futures/orders/client-order': { 'cost': 1.5 } as Endpoint<Dict>, // 1FW
+                        'orders/multi-cancel': { 'cost': 40 } as Endpoint<Dict>, // 20FW
+                        'withdrawals/{withdrawalId}': { 'cost': 10 } as Endpoint<Dict>,
+                        'cancel/transfer-out': { 'cost': 10 } as Endpoint<Dict>,
+                        'sub/api-key': { 'cost': 10 } as Endpoint<Dict>,
                     },
                 },
                 'webExchange': {
                     'get': {
-                        'currency/currency/chain-info': 1, // this is temporary from webApi
-                        'contract/{symbol}/funding-rates': 2,
+                        'currency/currency/chain-info': { 'cost': 1 } as Endpoint<Dict>, // this is temporary from webApi
+                        'contract/{symbol}/funding-rates': { 'cost': 2 } as Endpoint<Dict>,
                     },
                 },
                 'broker': {
                     'get': {
-                        'broker/nd/info': 4,
-                        'broker/nd/account': 4,
-                        'broker/nd/account/apikey': 4,
-                        'broker/nd/rebase/download': 4,
-                        'asset/ndbroker/deposit/list': 2,
-                        'broker/nd/transfer/detail': 2,
-                        'broker/nd/deposit/detail': 2,
-                        'broker/nd/withdraw/detail': 2,
+                        'broker/nd/info': { 'cost': 4 } as Endpoint<Dict>,
+                        'broker/nd/account': { 'cost': 4 } as Endpoint<Dict>,
+                        'broker/nd/account/apikey': { 'cost': 4 } as Endpoint<Dict>,
+                        'broker/nd/rebase/download': { 'cost': 4 } as Endpoint<Dict>,
+                        'asset/ndbroker/deposit/list': { 'cost': 2 } as Endpoint<Dict>,
+                        'broker/nd/transfer/detail': { 'cost': 2 } as Endpoint<Dict>,
+                        'broker/nd/deposit/detail': { 'cost': 2 } as Endpoint<Dict>,
+                        'broker/nd/withdraw/detail': { 'cost': 2 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'broker/nd/transfer': 2,
-                        'broker/nd/account': 6,
-                        'broker/nd/account/apikey': 6,
-                        'broker/nd/account/update-apikey': 6,
+                        'broker/nd/transfer': { 'cost': 2 } as Endpoint<Dict>,
+                        'broker/nd/account': { 'cost': 6 } as Endpoint<Dict>,
+                        'broker/nd/account/apikey': { 'cost': 6 } as Endpoint<Dict>,
+                        'broker/nd/account/update-apikey': { 'cost': 6 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'broker/nd/account/apikey': 6,
+                        'broker/nd/account/apikey': { 'cost': 6 } as Endpoint<Dict>,
                     },
                 },
                 'earn': {
                     'get': {
-                        'otc-loan/discount-rate-configs': 20,
-                        'otc-loan/loan': 2,
-                        'otc-loan/accounts': 2,
-                        'earn/redeem-preview': 10, // 5EW
-                        'earn/saving/products': 10, // 5EW
-                        'earn/hold-assets': 10, // 5EW
-                        'earn/promotion/products': 10, // 5EW
-                        'earn/kcs-staking/products': 10, // 5EW
-                        'earn/staking/products': 10, // 5EW
-                        'earn/eth-staking/products': 10, // 5EW
-                        'struct-earn/dual/products': 6,
-                        'struct-earn/orders': 10,
+                        'otc-loan/discount-rate-configs': { 'cost': 20 } as Endpoint<Dict>,
+                        'otc-loan/loan': { 'cost': 2 } as Endpoint<Dict>,
+                        'otc-loan/accounts': { 'cost': 2 } as Endpoint<Dict>,
+                        'earn/redeem-preview': { 'cost': 10 } as Endpoint<Dict>, // 5EW
+                        'earn/saving/products': { 'cost': 10 } as Endpoint<Dict>, // 5EW
+                        'earn/hold-assets': { 'cost': 10 } as Endpoint<Dict>, // 5EW
+                        'earn/promotion/products': { 'cost': 10 } as Endpoint<Dict>, // 5EW
+                        'earn/kcs-staking/products': { 'cost': 10 } as Endpoint<Dict>, // 5EW
+                        'earn/staking/products': { 'cost': 10 } as Endpoint<Dict>, // 5EW
+                        'earn/eth-staking/products': { 'cost': 10 } as Endpoint<Dict>, // 5EW
+                        'struct-earn/dual/products': { 'cost': 6 } as Endpoint<Dict>,
+                        'struct-earn/orders': { 'cost': 10 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'earn/orders': 10, // 5EW
-                        'struct-earn/orders': 10,
+                        'earn/orders': { 'cost': 10 } as Endpoint<Dict>, // 5EW
+                        'struct-earn/orders': { 'cost': 10 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'earn/orders': 10, // 5EW
+                        'earn/orders': { 'cost': 10 } as Endpoint<Dict>, // 5EW
                     },
                 },
                 'uta': {
                     'get': {
-                        'market/announcement': 40,
-                        'market/currency': 6,
-                        'asset/currencies': 6,
-                        'market/instrument': 8,
-                        'market/ticker': 30,
-                        'market/trade': 6,
-                        'market/kline': 6,
-                        'market/funding-rate': 4,
-                        'market/funding-rate-history': 10,
-                        'market/cross-config': 50,
-                        'market/collateral-discount-ratio': 20,
-                        'market/index-price': 20,
-                        'market/position-tiers': 40,
-                        'market/open-interest': 20,
-                        'server/status': 6,
-                        'market/borrowable-currency': 30,
-                        'user/my-ip': 20,
-                        'market/fiat-price': 6,
+                        'market/announcement': { 'cost': 40 } as Endpoint<Dict>,
+                        'market/currency': { 'cost': 6 } as Endpoint<Dict>,
+                        'asset/currencies': { 'cost': 6 } as Endpoint<Dict>,
+                        'market/instrument': { 'cost': 8 } as Endpoint<Dict>,
+                        'market/ticker': { 'cost': 30 } as Endpoint<Dict>,
+                        'market/trade': { 'cost': 6 } as Endpoint<Dict>,
+                        'market/kline': { 'cost': 6 } as Endpoint<Dict>,
+                        'market/funding-rate': { 'cost': 4 } as Endpoint<Dict>,
+                        'market/funding-rate-history': { 'cost': 10 } as Endpoint<Dict>,
+                        'market/cross-config': { 'cost': 50 } as Endpoint<Dict>,
+                        'market/collateral-discount-ratio': { 'cost': 20 } as Endpoint<Dict>,
+                        'market/index-price': { 'cost': 20 } as Endpoint<Dict>,
+                        'market/position-tiers': { 'cost': 40 } as Endpoint<Dict>,
+                        'market/open-interest': { 'cost': 20 } as Endpoint<Dict>,
+                        'server/status': { 'cost': 6 } as Endpoint<Dict>,
+                        'market/borrowable-currency': { 'cost': 30 } as Endpoint<Dict>,
+                        'user/my-ip': { 'cost': 20 } as Endpoint<Dict>,
+                        'market/fiat-price': { 'cost': 6 } as Endpoint<Dict>,
                     },
                 },
                 'utaPrivate': {
                     'get': {
-                        'market/orderbook': 6,
-                        'account/balance': 10,
-                        'account/transfer-quota': 40,
-                        'account/mode': 60,
-                        'account/ledger': 4,
-                        'account/interest-history': 30,
-                        'asset/deposit/address': 10,
-                        'account/deposit/address': 5,
-                        '{accountMode}/account/balance': 10,
-                        '{accountMode}/account/overview': 10,
-                        '{accountMode}/order/detail': 8,
-                        '{accountMode}/order/open-list': 8,
-                        '{accountMode}/order/history': 8,
-                        '{accountMode}/order/execution': 8,
-                        '{accountMode}/position/open-list': 6,
-                        '{accountMode}/position/history': 4,
-                        'position/history': 4,
-                        '{accountMode}/position/tiers': 40,
-                        'sub-account/balance': 10,
-                        'user/fee-rate': 6,
-                        'dcp/query': 4,
-                        'unified/account/leverage': 20, // returns {"code":"404","msg":"Not Found","retry":false,"success":false}
-                        'position/funding-history': 30,
-                        'account/interest-limits': 20,
+                        'market/orderbook': { 'cost': 6 } as Endpoint<Dict>,
+                        'account/balance': { 'cost': 10 } as Endpoint<Dict>,
+                        'account/transfer-quota': { 'cost': 40 } as Endpoint<Dict>,
+                        'account/mode': { 'cost': 60 } as Endpoint<Dict>,
+                        'account/ledger': { 'cost': 4 } as Endpoint<Dict>,
+                        'account/interest-history': { 'cost': 30 } as Endpoint<Dict>,
+                        'asset/deposit/address': { 'cost': 10 } as Endpoint<Dict>,
+                        'account/deposit/address': { 'cost': 5 } as Endpoint<Dict>,
+                        '{accountMode}/account/balance': { 'cost': 10 } as Endpoint<Dict>,
+                        '{accountMode}/account/overview': { 'cost': 10 } as Endpoint<Dict>,
+                        '{accountMode}/order/detail': { 'cost': 8 } as Endpoint<Dict>,
+                        '{accountMode}/order/open-list': { 'cost': 8 } as Endpoint<Dict>,
+                        '{accountMode}/order/history': { 'cost': 8 } as Endpoint<Dict>,
+                        '{accountMode}/order/execution': { 'cost': 8 } as Endpoint<Dict>,
+                        '{accountMode}/position/open-list': { 'cost': 6 } as Endpoint<Dict>,
+                        '{accountMode}/position/history': { 'cost': 4 } as Endpoint<Dict>,
+                        'position/history': { 'cost': 4 } as Endpoint<Dict>,
+                        '{accountMode}/position/tiers': { 'cost': 40 } as Endpoint<Dict>,
+                        'sub-account/balance': { 'cost': 10 } as Endpoint<Dict>,
+                        'user/fee-rate': { 'cost': 6 } as Endpoint<Dict>,
+                        'dcp/query': { 'cost': 4 } as Endpoint<Dict>,
+                        'unified/account/leverage': { 'cost': 20 } as Endpoint<Dict>, // returns {"code":"404","msg":"Not Found","retry":false,"success":false}
+                        'position/funding-history': { 'cost': 30 } as Endpoint<Dict>,
+                        'account/interest-limits': { 'cost': 20 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'account/transfer': 8,
-                        'account/mode': 60,
-                        '{accountMode}/account/modify-leverage': 40,
-                        '{accountMode}/order/place': 2,
-                        '{accountMode}/order/place-batch': 8,
-                        '{accountMode}/order/cancel': 2,
-                        '{accountMode}/order/cancel-batch': 8,
-                        '{accountMode}/order/cancel-all': 40,
-                        'sub-account/canTransferOut': 10,
-                        'dcp/set': 4,
-                        '{accountMode}/account/modify-leverage-margin-cross': 40,
+                        'account/transfer': { 'cost': 8 } as Endpoint<Dict>,
+                        'account/mode': { 'cost': 60 } as Endpoint<Dict>,
+                        '{accountMode}/account/modify-leverage': { 'cost': 40 } as Endpoint<Dict>,
+                        '{accountMode}/order/place': { 'cost': 2 } as Endpoint<Dict>,
+                        '{accountMode}/order/place-batch': { 'cost': 8 } as Endpoint<Dict>,
+                        '{accountMode}/order/cancel': { 'cost': 2 } as Endpoint<Dict>,
+                        '{accountMode}/order/cancel-batch': { 'cost': 8 } as Endpoint<Dict>,
+                        '{accountMode}/order/cancel-all': { 'cost': 40 } as Endpoint<Dict>,
+                        'sub-account/canTransferOut': { 'cost': 10 } as Endpoint<Dict>,
+                        'dcp/set': { 'cost': 4 } as Endpoint<Dict>,
+                        '{accountMode}/account/modify-leverage-margin-cross': { 'cost': 40 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -1123,7 +1123,7 @@ export default class kucoin extends Exchange {
                     'EOS': 'eos',
                     'BEP20': 'bsc',
                     'BEP2': 'bnb',
-                    'ARBONE': 'arbitrum',
+                    'ARBITRUM': 'arbitrum',
                     'AVAXX': 'avax',
                     'AVAXC': 'avaxc',
                     'TLOS': 'tlos', // tlosevm is different
@@ -1542,7 +1542,7 @@ export default class kucoin extends Exchange {
      * @param {string} [params.tradeType] *uta only* set to SPOT or FUTURES
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         let uta = false;
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchStatus', 'uta', uta);
         let type: Str = undefined;
@@ -2529,7 +2529,7 @@ export default class kucoin extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'data');
-        return this.parseDepositWithdrawFee (data, currency) as any;
+        return this.parseDepositWithdrawFee (data, currency) as DepositWithdrawFee;
     }
 
     override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
@@ -3840,7 +3840,12 @@ export default class kucoin extends Exchange {
             if (level !== 2 && level !== undefined) {
                 throw new BadRequest (this.id + ' fetchOrderBook() can only return level 2');
             }
-            if ((limit === undefined) || limit === 20) {
+            if (limit === undefined) {
+                // full L2 snapshot - required for correct ws diff-sync: the futures delta
+                // stream covers the whole book while depth20/depth100 truncate the snapshot,
+                // see https://github.com/ccxt/ccxt/issues/22063
+                response = await this.futuresPublicGetLevel2Snapshot (this.extend (request, params));
+            } else if (limit === 20) {
                 //
                 //     {
                 //         "code": "200000",
@@ -4966,7 +4971,7 @@ export default class kucoin extends Exchange {
         let useSync = false;
         [ useSync, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'sync', false);
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
         const tradeType = this.safeString (params, 'tradeType'); // keep it for backward compatibility
         const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
         if (hf || useSync || isMarginOrder) {
@@ -5165,10 +5170,10 @@ export default class kucoin extends Exchange {
         const market = this.market (symbol);
         request['symbol'] = market['id'];
         let accountMode = 'unified';
-        [ accountMode, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'accountMode', accountMode);
+        [ accountMode, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'accountMode', accountMode);
         request['accountMode'] = accountMode;
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
         const isUnified = (accountMode === 'unified');
         const tradeType = this.handleTradeType (market['contract'], marginMode, isUnified, params);
         request['tradeType'] = tradeType;
@@ -5222,7 +5227,7 @@ export default class kucoin extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if ((marketType === 'spot') || (marketType === 'margin')) {
             return await this.cancelAllSpotOrders (symbol, params);
         } else {
@@ -5404,7 +5409,7 @@ export default class kucoin extends Exchange {
      * Check fetchSpotOrdersByStatus(), fetchContractOrdersByStatus() and fetchUtaOrdersByStatus() for more details on the extra parameters that can be used in params
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6867,15 +6872,17 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        let trades: any = undefined;
+        // v1 (historical) returns the trade list directly under 'data', v2 nests it under 'items'
+        let trades: NullableDict | NullableList = undefined;
         if (parseResponseData) {
             trades = data;
         } else {
             trades = this.safeList (data, 'items', []);
         }
-        let tradesList: any[] = [];
+        // v1 may put a bare list or dict under data; normalize once for parseTrades
+        let tradesList: List = [];
         if (trades !== undefined) {
-            tradesList = trades;
+            tradesList = this.toArray (trades);
         }
         return this.parseTrades (tradesList, market, since, limit);
     }
@@ -6958,7 +6965,7 @@ export default class kucoin extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const trades = this.safeList (data, 'items', []);
-        let tradesList: any[] = [];
+        let tradesList: Dict[] = [];
         if (trades !== undefined) {
             tradesList = trades;
         }
@@ -7051,7 +7058,7 @@ export default class kucoin extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const trades = this.safeList (data, 'items', []);
-        let tradesList: any[] = [];
+        let tradesList: Dict[] = [];
         if (trades !== undefined) {
             tradesList = trades;
         }
@@ -7158,7 +7165,7 @@ export default class kucoin extends Exchange {
             //
             trades = this.safeList (response, 'data', []);
         }
-        let tradesList: any[] = [];
+        let tradesList: Dict[] = [];
         if (trades !== undefined) {
             tradesList = trades;
         }
@@ -7930,7 +7937,8 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        const responseData = response['data']['items'];
+        const data = this.safeDict (response, 'data', {});
+        const responseData = this.safeList (data, 'items', []);
         return this.parseTransactions (responseData, currency, since, limit, { 'type': 'deposit' });
     }
 
@@ -8085,7 +8093,8 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        const responseData = response['data']['items'];
+        const data = this.safeDict (response, 'data', {});
+        const responseData = this.safeList (data, 'items', []);
         return this.parseTransactions (responseData, currency, since, limit, { 'type': 'withdrawal' });
     }
 
@@ -9637,7 +9646,7 @@ export default class kucoin extends Exchange {
      * @param {string} [params.timeInForce] either IOC or FOK
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async borrowCrossMargin (code: string, amount: number, params = {}) {
+    override async borrowCrossMargin (code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9676,7 +9685,7 @@ export default class kucoin extends Exchange {
      * @param {string} [params.timeInForce] either IOC or FOK
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
+    override async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9716,7 +9725,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoints
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async repayCrossMargin (code: string, amount: number, params = {}) {
+    override async repayCrossMargin (code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9753,7 +9762,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoints
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async repayIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
+    override async repayIsolatedMargin (symbol: string, code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9782,7 +9791,7 @@ export default class kucoin extends Exchange {
         return this.parseMarginLoan (data, currency);
     }
 
-    parseMarginLoan (info: any, currency: Currency = undefined) {
+    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
         //
         //     {
         //         "orderNo": "5da6dba0f943c0c81f5d5db5",
@@ -10906,7 +10915,7 @@ export default class kucoin extends Exchange {
             [ accountMode, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'accountMode', accountMode);
             request['accountMode'] = accountMode;
             let marginMode: Str = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
+            [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrders', params);
             const isUnified = (accountMode === 'unified');
             const tradeType = this.handleTradeType (isContractMarket, marginMode, isUnified, params);
             request['tradeType'] = tradeType;
@@ -11211,7 +11220,7 @@ export default class kucoin extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'data', {}) as Dict;
-        return this.parseMarginMode (data, market) as any;
+        return this.parseMarginMode (data, market) as Dict; // widened to Dict to match the base setMarginMode return ({}) — narrowing it to MarginMode breaks the Go IExchange interface
     }
 
     /**
@@ -11253,7 +11262,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    override async fetchPositionMode (symbol: Str = undefined, params = {}) {
+    override async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<PositionModeInfo> {
         const response = await this.futuresPrivateGetPositionGetPositionMode (params);
         const data = this.safeDict (response, 'data', {});
         const positionMode = this.safeInteger (data, 'positionMode');

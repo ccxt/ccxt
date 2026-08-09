@@ -54,6 +54,7 @@ func (this *WooCore) Describe() any {
 			"createTrailingAmountOrder":            true,
 			"createTrailingPercentOrder":           true,
 			"createTriggerOrder":                   true,
+			"editOrder":                            true,
 			"fetchAccounts":                        true,
 			"fetchBalance":                         true,
 			"fetchCanceledOrders":                  false,
@@ -109,7 +110,7 @@ func (this *WooCore) Describe() any {
 			"fetchTransactions":                    "emulated",
 			"fetchTransfers":                       true,
 			"fetchWithdrawals":                     true,
-			"reduceMargin":                         false,
+			"reduceMargin":                         true,
 			"sandbox":                              true,
 			"setLeverage":                          true,
 			"setMargin":                            false,
@@ -154,174 +155,442 @@ func (this *WooCore) Describe() any {
 			"v1": map[string]any{
 				"pub": map[string]any{
 					"get": map[string]any{
-						"hist/kline":  10,
-						"hist/trades": 10,
+						"hist/kline": map[string]any{
+							"cost": 10,
+						},
+						"hist/trades": map[string]any{
+							"cost": 10,
+						},
 					},
 				},
 				"public": map[string]any{
 					"get": map[string]any{
-						"info":                  1,
-						"info/{symbol}":         1,
-						"system_info":           1,
-						"market_trades":         1,
-						"token":                 1,
-						"token_network":         1,
-						"funding_rates":         1,
-						"funding_rate/{symbol}": 1,
-						"funding_rate_history":  1,
-						"futures":               1,
-						"futures/{symbol}":      1,
-						"orderbook/{symbol}":    1,
-						"kline":                 1,
+						"info": map[string]any{
+							"cost": 1,
+						},
+						"info/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"system_info": map[string]any{
+							"cost": 1,
+						},
+						"market_trades": map[string]any{
+							"cost": 1,
+						},
+						"token": map[string]any{
+							"cost": 1,
+						},
+						"token_network": map[string]any{
+							"cost": 1,
+						},
+						"funding_rates": map[string]any{
+							"cost": 1,
+						},
+						"funding_rate/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"funding_rate_history": map[string]any{
+							"cost": 1,
+						},
+						"futures": map[string]any{
+							"cost": 1,
+						},
+						"futures/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"orderbook/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"kline": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"client/token":                    1,
-						"order/{oid}":                     1,
-						"client/order/{client_order_id}":  1,
-						"orders":                          1,
-						"client/trade/{tid}":              1,
-						"order/{oid}/trades":              1,
-						"client/trades":                   1,
-						"client/hist_trades":              1,
-						"staking/yield_history":           1,
-						"client/holding":                  1,
-						"asset/deposit":                   10,
-						"asset/history":                   60,
-						"sub_account/all":                 60,
-						"sub_account/assets":              60,
-						"sub_account/asset_detail":        60,
-						"sub_account/ip_restriction":      10,
-						"asset/main_sub_transfer_history": 30,
-						"token_interest":                  60,
-						"token_interest/{token}":          60,
-						"interest/history":                60,
-						"interest/repay":                  60,
-						"funding_fee/history":             30,
-						"positions":                       3.33,
-						"position/{symbol}":               3.33,
-						"client/transaction_history":      60,
-						"client/futures_leverage":         60,
+						"client/token": map[string]any{
+							"cost": 1,
+						},
+						"order/{oid}": map[string]any{
+							"cost": 1,
+						},
+						"client/order/{client_order_id}": map[string]any{
+							"cost": 1,
+						},
+						"orders": map[string]any{
+							"cost": 1,
+						},
+						"client/trade/{tid}": map[string]any{
+							"cost": 1,
+						},
+						"order/{oid}/trades": map[string]any{
+							"cost": 1,
+						},
+						"client/trades": map[string]any{
+							"cost": 1,
+						},
+						"client/hist_trades": map[string]any{
+							"cost": 1,
+						},
+						"staking/yield_history": map[string]any{
+							"cost": 1,
+						},
+						"client/holding": map[string]any{
+							"cost": 1,
+						},
+						"asset/deposit": map[string]any{
+							"cost": 10,
+						},
+						"asset/history": map[string]any{
+							"cost": 60,
+						},
+						"sub_account/all": map[string]any{
+							"cost": 60,
+						},
+						"sub_account/assets": map[string]any{
+							"cost": 60,
+						},
+						"sub_account/asset_detail": map[string]any{
+							"cost": 60,
+						},
+						"sub_account/ip_restriction": map[string]any{
+							"cost": 10,
+						},
+						"asset/main_sub_transfer_history": map[string]any{
+							"cost": 30,
+						},
+						"token_interest": map[string]any{
+							"cost": 60,
+						},
+						"token_interest/{token}": map[string]any{
+							"cost": 60,
+						},
+						"interest/history": map[string]any{
+							"cost": 60,
+						},
+						"interest/repay": map[string]any{
+							"cost": 60,
+						},
+						"funding_fee/history": map[string]any{
+							"cost": 30,
+						},
+						"positions": map[string]any{
+							"cost": 3.33,
+						},
+						"position/{symbol}": map[string]any{
+							"cost": 3.33,
+						},
+						"client/transaction_history": map[string]any{
+							"cost": 60,
+						},
+						"client/futures_leverage": map[string]any{
+							"cost": 60,
+						},
 					},
 					"post": map[string]any{
-						"order":                   1,
-						"order/cancel_all_after":  1,
-						"asset/ltv":               30,
-						"asset/internal_withdraw": 30,
-						"interest/repay":          60,
-						"client/account_mode":     120,
-						"client/position_mode":    5,
-						"client/leverage":         120,
-						"client/futures_leverage": 30,
-						"client/isolated_margin":  30,
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"order/cancel_all_after": map[string]any{
+							"cost": 1,
+						},
+						"asset/ltv": map[string]any{
+							"cost": 30,
+						},
+						"asset/internal_withdraw": map[string]any{
+							"cost": 30,
+						},
+						"interest/repay": map[string]any{
+							"cost": 60,
+						},
+						"client/account_mode": map[string]any{
+							"cost": 120,
+						},
+						"client/position_mode": map[string]any{
+							"cost": 5,
+						},
+						"client/leverage": map[string]any{
+							"cost": 120,
+						},
+						"client/futures_leverage": map[string]any{
+							"cost": 30,
+						},
+						"client/isolated_margin": map[string]any{
+							"cost": 30,
+						},
 					},
 					"delete": map[string]any{
-						"order":          1,
-						"client/order":   1,
-						"orders":         1,
-						"asset/withdraw": 120,
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"client/order": map[string]any{
+							"cost": 1,
+						},
+						"orders": map[string]any{
+							"cost": 1,
+						},
+						"asset/withdraw": map[string]any{
+							"cost": 120,
+						},
 					},
 				},
 			},
 			"v2": map[string]any{
 				"private": map[string]any{
 					"get": map[string]any{
-						"client/holding": 1,
+						"client/holding": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
 			"v3": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"systemInfo":          1,
-						"instruments":         1,
-						"token":               1,
-						"tokenNetwork":        1,
-						"tokenInfo":           1,
-						"marketTrades":        1,
-						"marketTradesHistory": 1,
-						"orderbook":           1,
-						"kline":               1,
-						"klineHistory":        1,
-						"futures":             1,
-						"fundingRate":         1,
-						"fundingRateHistory":  1,
-						"insuranceFund":       1,
+						"systemInfo": map[string]any{
+							"cost": 1,
+						},
+						"instruments": map[string]any{
+							"cost": 1,
+						},
+						"token": map[string]any{
+							"cost": 1,
+						},
+						"tokenNetwork": map[string]any{
+							"cost": 1,
+						},
+						"tokenInfo": map[string]any{
+							"cost": 1,
+						},
+						"marketTrades": map[string]any{
+							"cost": 1,
+						},
+						"marketTradesHistory": map[string]any{
+							"cost": 1,
+						},
+						"orderbook": map[string]any{
+							"cost": 1,
+						},
+						"kline": map[string]any{
+							"cost": 1,
+						},
+						"klineHistory": map[string]any{
+							"cost": 1,
+						},
+						"futures": map[string]any{
+							"cost": 1,
+						},
+						"fundingRate": map[string]any{
+							"cost": 1,
+						},
+						"fundingRateHistory": map[string]any{
+							"cost": 1,
+						},
+						"insuranceFund": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"trade/order":                    2,
-						"trade/orders":                   1,
-						"trade/algoOrder":                1,
-						"trade/algoOrders":               1,
-						"trade/transaction":              1,
-						"trade/transactionHistory":       5,
-						"trade/tradingFee":               5,
-						"account/info":                   60,
-						"account/tokenConfig":            1,
-						"account/symbolConfig":           1,
-						"account/subAccounts/all":        60,
-						"account/referral/summary":       60,
-						"account/referral/rewardHistory": 60,
-						"account/credentials":            60,
-						"asset/balances":                 1,
-						"asset/token/history":            60,
-						"asset/transfer/history":         30,
-						"asset/wallet/history":           60,
-						"asset/wallet/deposit":           60,
-						"asset/staking/yieldHistory":     60,
-						"futures/positions":              3.33,
-						"futures/leverage":               60,
-						"futures/defaultMarginMode":      60,
-						"futures/fundingFee/history":     30,
-						"spotMargin/interestRate":        60,
-						"spotMargin/interestHistory":     60,
-						"spotMargin/maxMargin":           60,
-						"algo/order/{oid}":               1,
-						"algo/orders":                    1,
-						"positions":                      3.33,
-						"buypower":                       1,
-						"convert/exchangeInfo":           1,
-						"convert/assetInfo":              1,
-						"convert/rfq":                    60,
-						"convert/trade":                  1,
-						"convert/trades":                 1,
+						"trade/order": map[string]any{
+							"cost": 2,
+						},
+						"trade/orders": map[string]any{
+							"cost": 1,
+						},
+						"trade/algoOrder": map[string]any{
+							"cost": 1,
+						},
+						"trade/algoOrders": map[string]any{
+							"cost": 1,
+						},
+						"trade/transaction": map[string]any{
+							"cost": 1,
+						},
+						"trade/transactionHistory": map[string]any{
+							"cost": 5,
+						},
+						"trade/tradingFee": map[string]any{
+							"cost": 5,
+						},
+						"account/info": map[string]any{
+							"cost": 60,
+						},
+						"account/tokenConfig": map[string]any{
+							"cost": 1,
+						},
+						"account/symbolConfig": map[string]any{
+							"cost": 1,
+						},
+						"account/subAccounts/all": map[string]any{
+							"cost": 60,
+						},
+						"account/referral/summary": map[string]any{
+							"cost": 60,
+						},
+						"account/referral/rewardHistory": map[string]any{
+							"cost": 60,
+						},
+						"account/credentials": map[string]any{
+							"cost": 60,
+						},
+						"asset/balances": map[string]any{
+							"cost": 1,
+						},
+						"asset/token/history": map[string]any{
+							"cost": 60,
+						},
+						"asset/transfer/history": map[string]any{
+							"cost": 30,
+						},
+						"asset/wallet/history": map[string]any{
+							"cost": 60,
+						},
+						"asset/wallet/deposit": map[string]any{
+							"cost": 60,
+						},
+						"asset/staking/yieldHistory": map[string]any{
+							"cost": 60,
+						},
+						"futures/positions": map[string]any{
+							"cost": 3.33,
+						},
+						"futures/leverage": map[string]any{
+							"cost": 60,
+						},
+						"futures/defaultMarginMode": map[string]any{
+							"cost": 60,
+						},
+						"futures/fundingFee/history": map[string]any{
+							"cost": 30,
+						},
+						"spotMargin/interestRate": map[string]any{
+							"cost": 60,
+						},
+						"spotMargin/interestHistory": map[string]any{
+							"cost": 60,
+						},
+						"spotMargin/maxMargin": map[string]any{
+							"cost": 60,
+						},
+						"algo/order/{oid}": map[string]any{
+							"cost": 1,
+						},
+						"algo/orders": map[string]any{
+							"cost": 1,
+						},
+						"positions": map[string]any{
+							"cost": 3.33,
+						},
+						"buypower": map[string]any{
+							"cost": 1,
+						},
+						"convert/exchangeInfo": map[string]any{
+							"cost": 1,
+						},
+						"convert/assetInfo": map[string]any{
+							"cost": 1,
+						},
+						"convert/rfq": map[string]any{
+							"cost": 60,
+						},
+						"convert/trade": map[string]any{
+							"cost": 1,
+						},
+						"convert/trades": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"trade/order":              2,
-						"trade/algoOrder":          5,
-						"trade/cancelAllAfter":     1,
-						"account/tradingMode":      120,
-						"account/listenKey":        20,
-						"asset/transfer":           30,
-						"asset/wallet/withdraw":    60,
-						"spotMargin/leverage":      120,
-						"spotMargin/interestRepay": 60,
-						"algo/order":               5,
-						"convert/rft":              60,
+						"trade/order": map[string]any{
+							"cost": 2,
+						},
+						"trade/algoOrder": map[string]any{
+							"cost": 5,
+						},
+						"trade/cancelAllAfter": map[string]any{
+							"cost": 1,
+						},
+						"account/tradingMode": map[string]any{
+							"cost": 120,
+						},
+						"account/listenKey": map[string]any{
+							"cost": 20,
+						},
+						"asset/transfer": map[string]any{
+							"cost": 30,
+						},
+						"asset/wallet/withdraw": map[string]any{
+							"cost": 60,
+						},
+						"spotMargin/leverage": map[string]any{
+							"cost": 120,
+						},
+						"spotMargin/interestRepay": map[string]any{
+							"cost": 60,
+						},
+						"algo/order": map[string]any{
+							"cost": 5,
+						},
+						"convert/rft": map[string]any{
+							"cost": 60,
+						},
 					},
 					"put": map[string]any{
-						"trade/order":                         2,
-						"trade/algoOrder":                     2,
-						"futures/leverage":                    60,
-						"futures/positionMode":                120,
-						"order/{oid}":                         2,
-						"order/client/{client_order_id}":      2,
-						"algo/order/{oid}":                    2,
-						"algo/order/client/{client_order_id}": 2,
+						"trade/order": map[string]any{
+							"cost": 2,
+						},
+						"trade/algoOrder": map[string]any{
+							"cost": 2,
+						},
+						"futures/leverage": map[string]any{
+							"cost": 60,
+						},
+						"futures/positionMode": map[string]any{
+							"cost": 120,
+						},
+						"order/{oid}": map[string]any{
+							"cost": 2,
+						},
+						"order/client/{client_order_id}": map[string]any{
+							"cost": 2,
+						},
+						"algo/order/{oid}": map[string]any{
+							"cost": 2,
+						},
+						"algo/order/client/{client_order_id}": map[string]any{
+							"cost": 2,
+						},
 					},
 					"delete": map[string]any{
-						"trade/order":                  1,
-						"trade/orders":                 1,
-						"trade/algoOrder":              1,
-						"trade/algoOrders":             1,
-						"trade/allOrders":              1,
-						"algo/order/{order_id}":        1,
-						"algo/orders/pending":          1,
-						"algo/orders/pending/{symbol}": 1,
-						"orders/pending":               1,
+						"trade/order": map[string]any{
+							"cost": 1,
+						},
+						"trade/orders": map[string]any{
+							"cost": 1,
+						},
+						"trade/algoOrder": map[string]any{
+							"cost": 1,
+						},
+						"trade/algoOrders": map[string]any{
+							"cost": 1,
+						},
+						"trade/allOrders": map[string]any{
+							"cost": 1,
+						},
+						"algo/order/{order_id}": map[string]any{
+							"cost": 1,
+						},
+						"algo/orders/pending": map[string]any{
+							"cost": 1,
+						},
+						"algo/orders/pending/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"orders/pending": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
@@ -346,11 +615,11 @@ func (this *WooCore) Describe() any {
 				"ZRX":   "ZRX",
 			},
 			"networks": map[string]any{
-				"TRX":   "TRON",
-				"TRC20": "TRON",
-				"ERC20": "ETH",
-				"BEP20": "BSC",
-				"ARB":   "Arbitrum",
+				"TRX":      "TRON",
+				"TRC20":    "TRON",
+				"ERC20":    "ETH",
+				"BEP20":    "BSC",
+				"ARBITRUM": "Arbitrum",
 			},
 			"networksById": map[string]any{
 				"TRX":  "TRC20",
@@ -739,8 +1008,8 @@ func (this *WooCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes71912 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes71912)
+			retRes72012 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes72012)
 		}
 
 		response := (<-this.V3PublicGetInstruments(params))
@@ -897,8 +1166,8 @@ func (this *WooCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes85912 := (<-this.LoadMarkets())
-			PanicOnError(retRes85912)
+			retRes86012 := (<-this.LoadMarkets())
+			PanicOnError(retRes86012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1062,8 +1331,8 @@ func (this *WooCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes100812 := (<-this.LoadMarkets())
-			PanicOnError(retRes100812)
+			retRes100912 := (<-this.LoadMarkets())
+			PanicOnError(retRes100912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1109,8 +1378,8 @@ func (this *WooCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes104012 := (<-this.LoadMarkets())
-			PanicOnError(retRes104012)
+			retRes104112 := (<-this.LoadMarkets())
+			PanicOnError(retRes104112)
 		}
 
 		response := (<-this.V3PrivateGetAccountInfo(params))
@@ -1378,17 +1647,17 @@ func (this *WooCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optional
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes127712 := (<-this.LoadMarkets())
-			PanicOnError(retRes127712)
+			retRes127812 := (<-this.LoadMarkets())
+			PanicOnError(retRes127812)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
 		}
 
-		retRes128315 := (<-this.CreateOrder(symbol, "market", "buy", cost, 1, params))
-		PanicOnError(retRes128315)
-		ch <- retRes128315
+		retRes128415 := (<-this.CreateOrder(symbol, "market", "buy", cost, 1, params))
+		PanicOnError(retRes128415)
+		ch <- retRes128415
 		return nil
 
 	}()
@@ -1414,17 +1683,17 @@ func (this *WooCore) CreateMarketSellOrderWithCost(symbol any, cost any, optiona
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes129812 := (<-this.LoadMarkets())
-			PanicOnError(retRes129812)
+			retRes129912 := (<-this.LoadMarkets())
+			PanicOnError(retRes129912)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketSellOrderWithCost() supports spot orders only")))
 		}
 
-		retRes130415 := (<-this.CreateOrder(symbol, "market", "sell", cost, 1, params))
-		PanicOnError(retRes130415)
-		ch <- retRes130415
+		retRes130515 := (<-this.CreateOrder(symbol, "market", "sell", cost, 1, params))
+		PanicOnError(retRes130515)
+		ch <- retRes130515
 		return nil
 
 	}()
@@ -1468,9 +1737,9 @@ func (this *WooCore) CreateTrailingAmountOrder(symbol any, typeVar any, side any
 		AddElementToObject(params, "trailingAmount", trailingAmount)
 		AddElementToObject(params, "trailingTriggerPrice", trailingTriggerPrice)
 
-		retRes133115 := (<-this.CreateOrder(symbol, typeVar, side, amount, price, params))
-		PanicOnError(retRes133115)
-		ch <- retRes133115
+		retRes133215 := (<-this.CreateOrder(symbol, typeVar, side, amount, price, params))
+		PanicOnError(retRes133215)
+		ch <- retRes133215
 		return nil
 
 	}()
@@ -1514,9 +1783,9 @@ func (this *WooCore) CreateTrailingPercentOrder(symbol any, typeVar any, side an
 		AddElementToObject(params, "trailingPercent", trailingPercent)
 		AddElementToObject(params, "trailingTriggerPrice", trailingTriggerPrice)
 
-		retRes135815 := (<-this.CreateOrder(symbol, typeVar, side, amount, price, params))
-		PanicOnError(retRes135815)
-		ch <- retRes135815
+		retRes135915 := (<-this.CreateOrder(symbol, typeVar, side, amount, price, params))
+		PanicOnError(retRes135915)
+		ch <- retRes135915
 		return nil
 
 	}()
@@ -1563,8 +1832,8 @@ func (this *WooCore) CreateOrder(symbol any, typeVar any, side any, amount any, 
 		var orderType any = ToUpper(typeVar)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes139212 := (<-this.LoadMarkets())
-			PanicOnError(retRes139212)
+			retRes139312 := (<-this.LoadMarkets())
+			PanicOnError(retRes139312)
 		}
 		var market any = this.Market(symbol)
 		var orderSide any = ToUpper(side)
@@ -1722,10 +1991,8 @@ func (this *WooCore) EncodeMarginMode(mode any) any {
  * @method
  * @name woo#editOrder
  * @description edit a trade order
- * @see https://docs.woox.io/#edit-order
- * @see https://docs.woox.io/#edit-order-by-client_order_id
- * @see https://docs.woox.io/#edit-algo-order
- * @see https://docs.woox.io/#edit-algo-order-by-client_order_id
+ * @see https://developer.woox.io/api-reference/endpoint/trading/edit_order
+ * @see https://developer.woox.io/api-reference/endpoint/trading/edit_algo_order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -1733,6 +2000,8 @@ func (this *WooCore) EncodeMarginMode(mode any) any {
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.clientOrderId] client order id of the order to edit, used instead of the id argument
+ * @param {boolean} [params.trigger] whether the order is a trigger/algo order, set to true to edit an algo order without passing trigger parameters
  * @param {float} [params.triggerPrice] The price a trigger order is triggered at
  * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
  * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
@@ -1754,8 +2023,8 @@ func (this *WooCore) EditOrder(id any, symbol any, typeVar any, side any, option
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes159212 := (<-this.LoadMarkets())
-			PanicOnError(retRes159212)
+			retRes159312 := (<-this.LoadMarkets())
+			PanicOnError(retRes159312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
@@ -1789,47 +2058,47 @@ func (this *WooCore) EditOrder(id any, symbol any, typeVar any, side any, option
 				AddElementToObject(request, "callbackRate", convertedTrailingPercent)
 			}
 		}
-		params = this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"})
-		var isConditional any = IsTrue(IsTrue(isTrailing) || IsTrue((!IsEqual(triggerPrice, nil)))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
+		var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
+		params = this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent", "trigger", "stop"})
+		var isConditional any = IsTrue(IsTrue(IsTrue(isTrigger) || IsTrue(isTrailing)) || IsTrue((!IsEqual(triggerPrice, nil)))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
 		var response any = nil
-		if IsTrue(isByClientOrder) {
-			AddElementToObject(request, "client_order_id", clientOrderIdExchangeSpecific)
-			if IsTrue(isConditional) {
-
-				response = (<-this.V3PrivatePutAlgoOrderClientClientOrderId(this.Extend(request, params)))
-				PanicOnError(response)
+		if IsTrue(isConditional) {
+			if IsTrue(isByClientOrder) {
+				AddElementToObject(request, "clientAlgoOrderId", clientOrderIdExchangeSpecific)
 			} else {
-
-				response = (<-this.V3PrivatePutOrderClientClientOrderId(this.Extend(request, params)))
-				PanicOnError(response)
+				AddElementToObject(request, "algoOrderId", id)
 			}
+
+			response = (<-this.V3PrivatePutTradeAlgoOrder(this.Extend(request, params)))
+			PanicOnError(response)
 		} else {
-			AddElementToObject(request, "oid", id)
-			if IsTrue(isConditional) {
-
-				response = (<-this.V3PrivatePutAlgoOrderOid(this.Extend(request, params)))
-				PanicOnError(response)
+			if IsTrue(isByClientOrder) {
+				AddElementToObject(request, "clientOrderId", clientOrderIdExchangeSpecific)
 			} else {
-
-				response = (<-this.V3PrivatePutOrderOid(this.Extend(request, params)))
-				PanicOnError(response)
+				AddElementToObject(request, "orderId", id)
 			}
+
+			response = (<-this.V3PrivatePutTradeOrder(this.Extend(request, params)))
+			PanicOnError(response)
 		}
 		//
 		//     {
-		//         "code": 0,
-		//         "data": {
-		//             "status": "string",
-		//             "success": true
-		//         },
-		//         "message": "string",
 		//         "success": true,
-		//         "timestamp": 0
+		//         "data": {
+		//             "status": "EDIT_SENT"
+		//         },
+		//         "timestamp": 1786038156772
 		//     }
 		//
 		var data any = this.SafeDict(response, "data", map[string]any{})
+		var order any = this.Extend(response, data)
+		if IsTrue(isByClientOrder) {
+			AddElementToObject(order, "clientOrderId", clientOrderIdExchangeSpecific)
+		} else {
+			AddElementToObject(order, "orderId", id)
+		}
 
-		ch <- this.ParseOrder(data, market)
+		ch <- this.ParseOrder(order, market)
 		return nil
 
 	}()
@@ -1864,8 +2133,8 @@ func (this *WooCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes168212 := (<-this.LoadMarkets())
-			PanicOnError(retRes168212)
+			retRes168712 := (<-this.LoadMarkets())
+			PanicOnError(retRes168712)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1943,8 +2212,8 @@ func (this *WooCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes174212 := (<-this.LoadMarkets())
-			PanicOnError(retRes174212)
+			retRes174712 := (<-this.LoadMarkets())
+			PanicOnError(retRes174712)
 		}
 		var trigger any = this.SafeBool2(params, "stop", "trigger")
 		params = this.Omit(params, []any{"stop", "trigger"})
@@ -2001,8 +2270,8 @@ func (this *WooCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes178112 := (<-this.LoadMarkets())
-			PanicOnError(retRes178112)
+			retRes178612 := (<-this.LoadMarkets())
+			PanicOnError(retRes178612)
 		}
 		var request any = map[string]any{
 			"triggerAfter": Ternary(IsTrue((IsGreaterThan(timeout, 0))), mathMin(timeout, 900000), 0),
@@ -2050,8 +2319,8 @@ func (this *WooCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes181312 := (<-this.LoadMarkets())
-			PanicOnError(retRes181312)
+			retRes181812 := (<-this.LoadMarkets())
+			PanicOnError(retRes181812)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2121,8 +2390,8 @@ func (this *WooCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes192812 := (<-this.LoadMarkets())
-			PanicOnError(retRes192812)
+			retRes193312 := (<-this.LoadMarkets())
+			PanicOnError(retRes193312)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
@@ -2130,9 +2399,9 @@ func (this *WooCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes193319 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes193319)
-			ch <- retRes193319
+			retRes193819 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes193819)
+			ch <- retRes193819
 			return nil
 		}
 		var request any = map[string]any{}
@@ -2206,16 +2475,16 @@ func (this *WooCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes206912 := (<-this.LoadMarkets())
-			PanicOnError(retRes206912)
+			retRes207412 := (<-this.LoadMarkets())
+			PanicOnError(retRes207412)
 		}
 		var extendedParams any = this.Extend(params, map[string]any{
 			"status": "INCOMPLETE",
 		})
 
-		retRes207215 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes207215)
-		ch <- retRes207215
+		retRes207715 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+		PanicOnError(retRes207715)
+		ch <- retRes207715
 		return nil
 
 	}()
@@ -2254,16 +2523,16 @@ func (this *WooCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes209412 := (<-this.LoadMarkets())
-			PanicOnError(retRes209412)
+			retRes209912 := (<-this.LoadMarkets())
+			PanicOnError(retRes209912)
 		}
 		var extendedParams any = this.Extend(params, map[string]any{
 			"status": "COMPLETED",
 		})
 
-		retRes209715 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes209715)
-		ch <- retRes209715
+		retRes210215 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+		PanicOnError(retRes210215)
+		ch <- retRes210215
 		return nil
 
 	}()
@@ -2435,6 +2704,7 @@ func (this *WooCore) ParseOrderStatus(status any) any {
 		var statuses any = map[string]any{
 			"NEW":             "open",
 			"FILLED":          "closed",
+			"EDIT_SENT":       "open",
 			"CANCEL_SENT":     "canceled",
 			"CANCEL_ALL_SENT": "canceled",
 			"CANCELLED":       "canceled",
@@ -2469,8 +2739,8 @@ func (this *WooCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes229112 := (<-this.LoadMarkets())
-			PanicOnError(retRes229112)
+			retRes229712 := (<-this.LoadMarkets())
+			PanicOnError(retRes229712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2541,8 +2811,8 @@ func (this *WooCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes234212 := (<-this.LoadMarkets())
-			PanicOnError(retRes234212)
+			retRes234812 := (<-this.LoadMarkets())
+			PanicOnError(retRes234812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2627,8 +2897,8 @@ func (this *WooCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes241312 := (<-this.LoadMarkets())
-			PanicOnError(retRes241312)
+			retRes241912 := (<-this.LoadMarkets())
+			PanicOnError(retRes241912)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2694,8 +2964,8 @@ func (this *WooCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes245912 := (<-this.LoadMarkets())
-			PanicOnError(retRes245912)
+			retRes246512 := (<-this.LoadMarkets())
+			PanicOnError(retRes246512)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -2703,9 +2973,9 @@ func (this *WooCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes246419 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes246419)
-			ch <- retRes246419
+			retRes247019 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes247019)
+			ch <- retRes247019
 			return nil
 		}
 		var request any = map[string]any{}
@@ -2902,8 +3172,8 @@ func (this *WooCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes263412 := (<-this.LoadMarkets())
-			PanicOnError(retRes263412)
+			retRes264012 := (<-this.LoadMarkets())
+			PanicOnError(retRes264012)
 		}
 
 		response := (<-this.V3PrivateGetAssetBalances(params))
@@ -2976,8 +3246,8 @@ func (this *WooCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes269412 := (<-this.LoadMarkets())
-			PanicOnError(retRes269412)
+			retRes270012 := (<-this.LoadMarkets())
+			PanicOnError(retRes270012)
 		}
 		var currency any = this.Currency(code)
 		var networkCode any = nil
@@ -3051,8 +3321,8 @@ func (this *WooCore) GetAssetHistoryRows(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes274512 := (<-this.LoadMarkets())
-			PanicOnError(retRes274512)
+			retRes275112 := (<-this.LoadMarkets())
+			PanicOnError(retRes275112)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -3263,9 +3533,9 @@ func (this *WooCore) FetchDeposits(optionalArgs ...any) <-chan any {
 			"tokenSide": "DEPOSIT",
 		}
 
-		retRes291615 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes291615)
-		ch <- retRes291615
+		retRes292215 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes292215)
+		ch <- retRes292215
 		return nil
 
 	}()
@@ -3300,9 +3570,9 @@ func (this *WooCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 			"tokenSide": "WITHDRAW",
 		}
 
-		retRes293415 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes293415)
-		ch <- retRes293415
+		retRes294015 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes294015)
+		ch <- retRes294015
 		return nil
 
 	}()
@@ -3439,8 +3709,8 @@ func (this *WooCore) Transfer(code any, amount any, fromAccount any, toAccount a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes304112 := (<-this.LoadMarkets())
-			PanicOnError(retRes304112)
+			retRes304712 := (<-this.LoadMarkets())
+			PanicOnError(retRes304712)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -3664,8 +3934,8 @@ func (this *WooCore) Withdraw(code any, amount any, address any, optionalArgs ..
 		params = GetValue(tagparamsVariable, 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes322812 := (<-this.LoadMarkets())
-			PanicOnError(retRes322812)
+			retRes323412 := (<-this.LoadMarkets())
+			PanicOnError(retRes323412)
 		}
 		this.CheckAddress(address)
 		var currency any = this.Currency(code)
@@ -3734,8 +4004,8 @@ func (this *WooCore) RepayMargin(code any, amount any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes328112 := (<-this.LoadMarkets())
-			PanicOnError(retRes328112)
+			retRes328712 := (<-this.LoadMarkets())
+			PanicOnError(retRes328712)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -3954,8 +4224,8 @@ func (this *WooCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes346612 := (<-this.LoadMarkets())
-			PanicOnError(retRes346612)
+			retRes347212 := (<-this.LoadMarkets())
+			PanicOnError(retRes347212)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
@@ -3963,9 +4233,9 @@ func (this *WooCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes347119 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes347119)
-			ch <- retRes347119
+			retRes347719 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes347719)
+			ch <- retRes347719
 			return nil
 		}
 		var request any = map[string]any{}
@@ -4096,9 +4366,9 @@ func (this *WooCore) FetchFundingInterval(symbol any, optionalArgs ...any) <-cha
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes358615 := (<-this.FetchFundingRate(symbol, params))
-		PanicOnError(retRes358615)
-		ch <- retRes358615
+		retRes359215 := (<-this.FetchFundingRate(symbol, params))
+		PanicOnError(retRes359215)
+		ch <- retRes359215
 		return nil
 
 	}()
@@ -4123,8 +4393,8 @@ func (this *WooCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes360012 := (<-this.LoadMarkets())
-			PanicOnError(retRes360012)
+			retRes360612 := (<-this.LoadMarkets())
+			PanicOnError(retRes360612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -4184,8 +4454,8 @@ func (this *WooCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes364412 := (<-this.LoadMarkets())
-			PanicOnError(retRes364412)
+			retRes365012 := (<-this.LoadMarkets())
+			PanicOnError(retRes365012)
 		}
 		symbols = this.MarketSymbols(symbols)
 
@@ -4249,8 +4519,8 @@ func (this *WooCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes368812 := (<-this.LoadMarkets())
-			PanicOnError(retRes368812)
+			retRes369412 := (<-this.LoadMarkets())
+			PanicOnError(retRes369412)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -4258,9 +4528,9 @@ func (this *WooCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes369319 := (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
-			PanicOnError(retRes369319)
-			ch <- retRes369319
+			retRes369919 := (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
+			PanicOnError(retRes369919)
+			ch <- retRes369919
 			return nil
 		}
 		if IsTrue(IsEqual(symbol, nil)) {
@@ -4392,8 +4662,8 @@ func (this *WooCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes379312 := (<-this.LoadMarkets())
-			PanicOnError(retRes379312)
+			retRes379912 := (<-this.LoadMarkets())
+			PanicOnError(retRes379912)
 		}
 		var market any = this.Market(symbol)
 		var response any = nil
@@ -4483,8 +4753,8 @@ func (this *WooCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes393112 := (<-this.LoadMarkets())
-			PanicOnError(retRes393112)
+			retRes393712 := (<-this.LoadMarkets())
+			PanicOnError(retRes393712)
 		}
 		var request any = map[string]any{
 			"leverage": leverage,
@@ -4495,21 +4765,21 @@ func (this *WooCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsTrue((IsEqual(symbol, nil))) || IsTrue(this.SafeBool(market, "spot"))) {
 
-			retRes394119 := (<-this.V3PrivatePostSpotMarginLeverage(this.Extend(request, params)))
-			PanicOnError(retRes394119)
-			ch <- retRes394119
+			retRes394719 := (<-this.V3PrivatePostSpotMarginLeverage(this.Extend(request, params)))
+			PanicOnError(retRes394719)
+			ch <- retRes394719
 			return nil
 		} else if IsTrue(this.SafeBool(market, "swap")) {
 			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 			var marginMode any = nil
-			marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLeverage", params, "cross")
+			marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params, "cross")
 			marginMode = GetValue(marginModeparamsVariable, 0)
 			params = GetValue(marginModeparamsVariable, 1)
 			AddElementToObject(request, "marginMode", this.EncodeMarginMode(marginMode))
 
-			retRes394719 := (<-this.V3PrivatePutFuturesLeverage(this.Extend(request, params)))
-			PanicOnError(retRes394719)
-			ch <- retRes394719
+			retRes395319 := (<-this.V3PrivatePutFuturesLeverage(this.Extend(request, params)))
+			PanicOnError(retRes395319)
+			ch <- retRes395319
 			return nil
 		} else {
 			panic(NotSupported(Add(Add(Add(this.Id, " fetchLeverage() is not supported for "), this.SafeString(market, "type")), " markets")))
@@ -4538,9 +4808,9 @@ func (this *WooCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-ch
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes396515 := (<-this.ModifyMarginHelper(symbol, amount, "ADD", params))
-		PanicOnError(retRes396515)
-		ch <- retRes396515
+		retRes397115 := (<-this.ModifyMarginHelper(symbol, amount, "ADD", params))
+		PanicOnError(retRes397115)
+		ch <- retRes397115
 		return nil
 
 	}()
@@ -4566,9 +4836,9 @@ func (this *WooCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) <
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes398015 := (<-this.ModifyMarginHelper(symbol, amount, "REDUCE", params))
-		PanicOnError(retRes398015)
-		ch <- retRes398015
+		retRes398615 := (<-this.ModifyMarginHelper(symbol, amount, "REDUCE", params))
+		PanicOnError(retRes398615)
+		ch <- retRes398615
 		return nil
 
 	}()
@@ -4583,8 +4853,8 @@ func (this *WooCore) ModifyMarginHelper(symbol any, amount any, typeVar any, opt
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes398512 := (<-this.LoadMarkets())
-			PanicOnError(retRes398512)
+			retRes399112 := (<-this.LoadMarkets())
+			PanicOnError(retRes399112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -4594,9 +4864,9 @@ func (this *WooCore) ModifyMarginHelper(symbol any, amount any, typeVar any, opt
 			"action":        typeVar,
 		}
 
-		retRes399415 := (<-this.V1PrivatePostClientIsolatedMargin(this.Extend(request, params)))
-		PanicOnError(retRes399415)
-		ch <- retRes399415
+		retRes400015 := (<-this.V1PrivatePostClientIsolatedMargin(this.Extend(request, params)))
+		PanicOnError(retRes400015)
+		ch <- retRes400015
 		return nil
 
 	}()
@@ -4621,8 +4891,8 @@ func (this *WooCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes400812 := (<-this.LoadMarkets())
-			PanicOnError(retRes400812)
+			retRes401412 := (<-this.LoadMarkets())
+			PanicOnError(retRes401412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -4693,8 +4963,8 @@ func (this *WooCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes406312 := (<-this.LoadMarkets())
-			PanicOnError(retRes406312)
+			retRes406912 := (<-this.LoadMarkets())
+			PanicOnError(retRes406912)
 		}
 
 		response := (<-this.V3PrivateGetFuturesPositions(params))
@@ -4869,8 +5139,8 @@ func (this *WooCore) FetchConvertQuote(fromCode any, toCode any, optionalArgs ..
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes422112 := (<-this.LoadMarkets())
-			PanicOnError(retRes422112)
+			retRes422712 := (<-this.LoadMarkets())
+			PanicOnError(retRes422712)
 		}
 		var request any = map[string]any{
 			"sellToken":    ToUpper(fromCode),
@@ -4932,8 +5202,8 @@ func (this *WooCore) CreateConvertTrade(id any, fromCode any, toCode any, option
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes426712 := (<-this.LoadMarkets())
-			PanicOnError(retRes426712)
+			retRes427312 := (<-this.LoadMarkets())
+			PanicOnError(retRes427312)
 		}
 		var request any = map[string]any{
 			"quoteId": id,
@@ -4981,8 +5251,8 @@ func (this *WooCore) FetchConvertTrade(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes429912 := (<-this.LoadMarkets())
-			PanicOnError(retRes429912)
+			retRes430512 := (<-this.LoadMarkets())
+			PanicOnError(retRes430512)
 		}
 		var request any = map[string]any{
 			"quoteId": id,
@@ -5050,8 +5320,8 @@ func (this *WooCore) FetchConvertTradeHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes434712 := (<-this.LoadMarkets())
-			PanicOnError(retRes434712)
+			retRes435312 := (<-this.LoadMarkets())
+			PanicOnError(retRes435312)
 		}
 		var request any = map[string]any{}
 		requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -5171,8 +5441,8 @@ func (this *WooCore) FetchConvertCurrencies(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes444812 := (<-this.LoadMarkets())
-			PanicOnError(retRes444812)
+			retRes445412 := (<-this.LoadMarkets())
+			PanicOnError(retRes445412)
 		}
 
 		response := (<-this.V3PrivateGetConvertAssetInfo(params))
@@ -5255,8 +5525,8 @@ func (this *WooCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes451512 := (<-this.LoadMarkets())
-			PanicOnError(retRes451512)
+			retRes452112 := (<-this.LoadMarkets())
+			PanicOnError(retRes452112)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 

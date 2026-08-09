@@ -4,7 +4,7 @@
 import Exchange from './abstract/mudrex.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, OrderNotFound, RateLimitExceeded, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Dict, Int, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, Fee } from './base/types.js';
+import type { Balances, Dict, Int, NullableDict, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, Fee, Endpoint } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -97,8 +97,8 @@ export default class mudrex extends Exchange {
             'api': {
                 'market': {
                     'get': {
-                        'price/kline': 1,
-                        'price/mark-kline': 1,
+                        'price/kline': { 'cost': 1 } as Endpoint<Dict>,
+                        'price/mark-kline': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'public': {
@@ -107,36 +107,36 @@ export default class mudrex extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'futures': 1,
-                        'futures/{asset_id}': 1,
-                        'wallet/funds': 5,
-                        'futures/funds': 5,
-                        'futures/orders': 1,
-                        'futures/orders/history': 1,
-                        'futures/orders/{order_id}': 1,
-                        'futures/positions': 1,
-                        'futures/positions/history': 1,
-                        'futures/fee/history': 1,
-                        'futures/{asset_id}/leverage': 2,
-                        'futures/positions/{position_id}/liq-price': 1,
+                        'futures': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/{asset_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallet/funds': { 'cost': 5 } as Endpoint<Dict>,
+                        'futures/funds': { 'cost': 5 } as Endpoint<Dict>,
+                        'futures/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/orders/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/positions/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/fee/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/{asset_id}/leverage': { 'cost': 2 } as Endpoint<Dict>,
+                        'futures/positions/{position_id}/liq-price': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'wallet/futures/transfer': 5,
-                        'futures/transfers/inr': 5,
-                        'futures/{asset_id}/order': 2,
-                        'futures/positions/{position_id}/close': 2,
-                        'futures/positions/{position_id}/close/partial': 2,
-                        'futures/positions/{position_id}/reverse': 2,
-                        'futures/positions/{position_id}/add-margin': 2,
-                        'futures/positions/{position_id}/riskorder': 2,
-                        'futures/{asset_id}/leverage': 2,
+                        'wallet/futures/transfer': { 'cost': 5 } as Endpoint<Dict>,
+                        'futures/transfers/inr': { 'cost': 5 } as Endpoint<Dict>,
+                        'futures/{asset_id}/order': { 'cost': 2 } as Endpoint<Dict>,
+                        'futures/positions/{position_id}/close': { 'cost': 2 } as Endpoint<Dict>,
+                        'futures/positions/{position_id}/close/partial': { 'cost': 2 } as Endpoint<Dict>,
+                        'futures/positions/{position_id}/reverse': { 'cost': 2 } as Endpoint<Dict>,
+                        'futures/positions/{position_id}/add-margin': { 'cost': 2 } as Endpoint<Dict>,
+                        'futures/positions/{position_id}/riskorder': { 'cost': 2 } as Endpoint<Dict>,
+                        'futures/{asset_id}/leverage': { 'cost': 2 } as Endpoint<Dict>,
                     },
                     'patch': {
-                        'futures/orders/{order_id}': 1,
-                        'futures/positions/{position_id}/riskorder': 2,
+                        'futures/orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/positions/{position_id}/riskorder': { 'cost': 2 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'futures/orders/{order_id}': 2,
+                        'futures/orders/{order_id}': { 'cost': 2 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -464,26 +464,31 @@ export default class mudrex extends Exchange {
             let items: Dict[] = [];
             if (typeof data === 'object' && !Array.isArray (data)) {
                 items = this.safeList (data, 'items', []);
-                if (!items.length) {
+                // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
+                let itemsLength = items.length;
+                if (!itemsLength) {
                     items = this.safeList (data, 'results', []);
+                    itemsLength = items.length;
                 }
-                if (!items.length && ('symbol' in data)) {
+                if (!itemsLength && ('symbol' in data)) {
                     items = [ data ];
                 }
             } else {
                 items = this.toArray (data);
             }
-            if (!items.length) {
+            const numItems = items.length;
+            if (!numItems) {
                 paging = false;
                 break;
             }
-            for (let i = 0; i < items.length; i++) {
+            for (let i = 0; i < numItems; i++) {
                 aggregated.push (items[i]);
             }
-            if (items.length < pageLimit) {
+            if (numItems < pageLimit) {
                 paging = false;
             } else {
-                offset += pageLimit;
+                // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                offset = this.sum (offset, pageLimit);
             }
         }
         const result: Market[] = [];
@@ -576,7 +581,7 @@ export default class mudrex extends Exchange {
         const requested = this.safeStringN (params, [ 'trade_currency', 'tradeCurrency', 'currency' ]);
         params = this.omit (params, [ 'trade_currency', 'tradeCurrency', 'currency' ]);
         const request: Dict = {};
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         if (type === 'spot') {
             if (requested !== undefined) {
                 request['currency'] = requested;
@@ -1193,10 +1198,12 @@ export default class mudrex extends Exchange {
                 request['limit_price'] = lp;
             }
             params = this.omit (params, [ 'order_type', 'limit_price', 'amount', 'position_id' ]);
-            return await this.privatePostFuturesPositionsPositionIdClosePartial (this.extend (request, params));
+            const partialResponse: Dict = await this.privatePostFuturesPositionsPositionIdClosePartial (this.extend (request, params));
+            return partialResponse as Order;
         }
         params = this.omit (params, [ 'position_id' ]);
-        return await this.privatePostFuturesPositionsPositionIdClose (this.extend (request, params));
+        const response: Dict = await this.privatePostFuturesPositionsPositionIdClose (this.extend (request, params));
+        return response as Order;
     }
 
     /**
@@ -1233,7 +1240,8 @@ export default class mudrex extends Exchange {
             'margin': this.costToPrecision (symbol, amount),
         };
         params = this.omit (params, [ 'position_id' ]);
-        return await this.privatePostFuturesPositionsPositionIdAddMargin (this.extend (request, params));
+        const response: Dict = await this.privatePostFuturesPositionsPositionIdAddMargin (this.extend (request, params));
+        return response as MarginModification;
     }
 
     /**

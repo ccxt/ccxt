@@ -127,6 +127,7 @@ class coinbase extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchOrdersByStatus' => true,
                 'fetchPosition' => true,
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
@@ -179,124 +180,124 @@ class coinbase extends Exchange {
                 'v2' => array(
                     'public' => array(
                         'get' => array(
-                            'currencies' => 10.6,
-                            'currencies/crypto' => 10.6,
-                            'time' => 10.6,
-                            'exchange-rates' => 10.6,
-                            'users/{user_id}' => 10.6,
-                            'prices/{symbol}/buy' => 10.6,
-                            'prices/{symbol}/sell' => 10.6,
-                            'prices/{symbol}/spot' => 10.6,
+                            'currencies' => array( 'cost' => 10.6 ),
+                            'currencies/crypto' => array( 'cost' => 10.6 ),
+                            'time' => array( 'cost' => 10.6 ),
+                            'exchange-rates' => array( 'cost' => 10.6 ),
+                            'users/{user_id}' => array( 'cost' => 10.6 ),
+                            'prices/{symbol}/buy' => array( 'cost' => 10.6 ),
+                            'prices/{symbol}/sell' => array( 'cost' => 10.6 ),
+                            'prices/{symbol}/spot' => array( 'cost' => 10.6 ),
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'accounts' => 10.6,
-                            'accounts/{account_id}' => 10.6,
-                            'accounts/{account_id}/addresses' => 10.6,
-                            'accounts/{account_id}/addresses/{address_id}' => 10.6,
-                            'accounts/{account_id}/addresses/{address_id}/transactions' => 10.6,
-                            'accounts/{account_id}/transactions' => 10.6,
-                            'accounts/{account_id}/transactions/{transaction_id}' => 10.6,
-                            'accounts/{account_id}/buys' => 10.6,
-                            'accounts/{account_id}/buys/{buy_id}' => 10.6,
-                            'accounts/{account_id}/sells' => 10.6,
-                            'accounts/{account_id}/sells/{sell_id}' => 10.6,
-                            'accounts/{account_id}/deposits' => 10.6,
-                            'accounts/{account_id}/deposits/{deposit_id}' => 10.6,
-                            'accounts/{account_id}/withdrawals' => 10.6,
-                            'accounts/{account_id}/withdrawals/{withdrawal_id}' => 10.6,
-                            'payment-methods' => 10.6,
-                            'payment-methods/{payment_method_id}' => 10.6,
-                            'user' => 10.6,
-                            'user/auth' => 10.6,
+                            'accounts' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/addresses' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/addresses/{address_id}' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/addresses/{address_id}/transactions' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/transactions' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/transactions/{transaction_id}' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/buys' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/buys/{buy_id}' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/sells' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/sells/{sell_id}' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/deposits' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/deposits/{deposit_id}' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/withdrawals' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/withdrawals/{withdrawal_id}' => array( 'cost' => 10.6 ),
+                            'payment-methods' => array( 'cost' => 10.6 ),
+                            'payment-methods/{payment_method_id}' => array( 'cost' => 10.6 ),
+                            'user' => array( 'cost' => 10.6 ),
+                            'user/auth' => array( 'cost' => 10.6 ),
                         ),
                         'post' => array(
-                            'accounts' => 10.6,
-                            'accounts/{account_id}/primary' => 10.6,
-                            'accounts/{account_id}/addresses' => 10.6,
-                            'accounts/{account_id}/transactions' => 10.6,
-                            'accounts/{account_id}/transactions/{transaction_id}/complete' => 10.6,
-                            'accounts/{account_id}/transactions/{transaction_id}/resend' => 10.6,
-                            'accounts/{account_id}/buys' => 10.6,
-                            'accounts/{account_id}/buys/{buy_id}/commit' => 10.6,
-                            'accounts/{account_id}/sells' => 10.6,
-                            'accounts/{account_id}/sells/{sell_id}/commit' => 10.6,
-                            'accounts/{account_id}/deposits' => 10.6,
-                            'accounts/{account_id}/deposits/{deposit_id}/commit' => 10.6,
-                            'accounts/{account_id}/withdrawals' => 10.6,
-                            'accounts/{account_id}/withdrawals/{withdrawal_id}/commit' => 10.6,
+                            'accounts' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/primary' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/addresses' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/transactions' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/transactions/{transaction_id}/complete' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/transactions/{transaction_id}/resend' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/buys' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/buys/{buy_id}/commit' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/sells' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/sells/{sell_id}/commit' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/deposits' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/deposits/{deposit_id}/commit' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/withdrawals' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/withdrawals/{withdrawal_id}/commit' => array( 'cost' => 10.6 ),
                         ),
                         'put' => array(
-                            'accounts/{account_id}' => 10.6,
-                            'user' => 10.6,
+                            'accounts/{account_id}' => array( 'cost' => 10.6 ),
+                            'user' => array( 'cost' => 10.6 ),
                         ),
                         'delete' => array(
-                            'accounts/{id}' => 10.6,
-                            'accounts/{account_id}/transactions/{transaction_id}' => 10.6,
+                            'accounts/{id}' => array( 'cost' => 10.6 ),
+                            'accounts/{account_id}/transactions/{transaction_id}' => array( 'cost' => 10.6 ),
                         ),
                     ),
                 ),
                 'v3' => array(
                     'public' => array(
                         'get' => array(
-                            'brokerage/time' => 3,
-                            'brokerage/market/product_book' => 3,
-                            'brokerage/market/products' => 3,
-                            'brokerage/market/products/{product_id}' => 3,
-                            'brokerage/market/products/{product_id}/candles' => 3,
-                            'brokerage/market/products/{product_id}/ticker' => 3,
+                            'brokerage/time' => array( 'cost' => 3 ),
+                            'brokerage/market/product_book' => array( 'cost' => 3 ),
+                            'brokerage/market/products' => array( 'cost' => 3 ),
+                            'brokerage/market/products/{product_id}' => array( 'cost' => 3 ),
+                            'brokerage/market/products/{product_id}/candles' => array( 'cost' => 3 ),
+                            'brokerage/market/products/{product_id}/ticker' => array( 'cost' => 3 ),
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'brokerage/accounts' => 1,
-                            'brokerage/accounts/{account_uuid}' => 1,
-                            'brokerage/orders/historical/batch' => 1,
-                            'brokerage/orders/historical/fills' => 1,
-                            'brokerage/orders/historical/{order_id}' => 1,
-                            'brokerage/products' => 3,
-                            'brokerage/products/{product_id}' => 3,
-                            'brokerage/products/{product_id}/candles' => 3,
-                            'brokerage/products/{product_id}/ticker' => 3,
-                            'brokerage/best_bid_ask' => 3,
-                            'brokerage/product_book' => 3,
-                            'brokerage/transaction_summary' => 3,
-                            'brokerage/portfolios' => 1,
-                            'brokerage/portfolios/{portfolio_uuid}' => 1,
-                            'brokerage/convert/trade/{trade_id}' => 1,
-                            'brokerage/cfm/balance_summary' => 1,
-                            'brokerage/cfm/positions' => 1,
-                            'brokerage/cfm/positions/{product_id}' => 1,
-                            'brokerage/cfm/sweeps' => 1,
-                            'brokerage/intx/portfolio/{portfolio_uuid}' => 1,
-                            'brokerage/intx/positions/{portfolio_uuid}' => 1,
-                            'brokerage/intx/positions/{portfolio_uuid}/{symbol}' => 1,
-                            'brokerage/payment_methods' => 1,
-                            'brokerage/payment_methods/{payment_method_id}' => 1,
-                            'brokerage/key_permissions' => 1,
+                            'brokerage/accounts' => array( 'cost' => 1 ),
+                            'brokerage/accounts/{account_uuid}' => array( 'cost' => 1 ),
+                            'brokerage/orders/historical/batch' => array( 'cost' => 1 ),
+                            'brokerage/orders/historical/fills' => array( 'cost' => 1 ),
+                            'brokerage/orders/historical/{order_id}' => array( 'cost' => 1 ),
+                            'brokerage/products' => array( 'cost' => 3 ),
+                            'brokerage/products/{product_id}' => array( 'cost' => 3 ),
+                            'brokerage/products/{product_id}/candles' => array( 'cost' => 3 ),
+                            'brokerage/products/{product_id}/ticker' => array( 'cost' => 3 ),
+                            'brokerage/best_bid_ask' => array( 'cost' => 3 ),
+                            'brokerage/product_book' => array( 'cost' => 3 ),
+                            'brokerage/transaction_summary' => array( 'cost' => 3 ),
+                            'brokerage/portfolios' => array( 'cost' => 1 ),
+                            'brokerage/portfolios/{portfolio_uuid}' => array( 'cost' => 1 ),
+                            'brokerage/convert/trade/{trade_id}' => array( 'cost' => 1 ),
+                            'brokerage/cfm/balance_summary' => array( 'cost' => 1 ),
+                            'brokerage/cfm/positions' => array( 'cost' => 1 ),
+                            'brokerage/cfm/positions/{product_id}' => array( 'cost' => 1 ),
+                            'brokerage/cfm/sweeps' => array( 'cost' => 1 ),
+                            'brokerage/intx/portfolio/{portfolio_uuid}' => array( 'cost' => 1 ),
+                            'brokerage/intx/positions/{portfolio_uuid}' => array( 'cost' => 1 ),
+                            'brokerage/intx/positions/{portfolio_uuid}/{symbol}' => array( 'cost' => 1 ),
+                            'brokerage/payment_methods' => array( 'cost' => 1 ),
+                            'brokerage/payment_methods/{payment_method_id}' => array( 'cost' => 1 ),
+                            'brokerage/key_permissions' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'brokerage/orders' => 1,
-                            'brokerage/orders/batch_cancel' => 1,
-                            'brokerage/orders/edit' => 1,
-                            'brokerage/orders/edit_preview' => 1,
-                            'brokerage/orders/preview' => 1,
-                            'brokerage/portfolios' => 1,
-                            'brokerage/portfolios/move_funds' => 1,
-                            'brokerage/convert/quote' => 1,
-                            'brokerage/convert/trade/{trade_id}' => 1,
-                            'brokerage/cfm/sweeps/schedule' => 1,
-                            'brokerage/intx/allocate' => 1,
+                            'brokerage/orders' => array( 'cost' => 1 ),
+                            'brokerage/orders/batch_cancel' => array( 'cost' => 1 ),
+                            'brokerage/orders/edit' => array( 'cost' => 1 ),
+                            'brokerage/orders/edit_preview' => array( 'cost' => 1 ),
+                            'brokerage/orders/preview' => array( 'cost' => 1 ),
+                            'brokerage/portfolios' => array( 'cost' => 1 ),
+                            'brokerage/portfolios/move_funds' => array( 'cost' => 1 ),
+                            'brokerage/convert/quote' => array( 'cost' => 1 ),
+                            'brokerage/convert/trade/{trade_id}' => array( 'cost' => 1 ),
+                            'brokerage/cfm/sweeps/schedule' => array( 'cost' => 1 ),
+                            'brokerage/intx/allocate' => array( 'cost' => 1 ),
                             // futures
-                            'brokerage/orders/close_position' => 1,
+                            'brokerage/orders/close_position' => array( 'cost' => 1 ),
                         ),
                         'put' => array(
-                            'brokerage/portfolios/{portfolio_uuid}' => 1,
+                            'brokerage/portfolios/{portfolio_uuid}' => array( 'cost' => 1 ),
                         ),
                         'delete' => array(
-                            'brokerage/portfolios/{portfolio_uuid}' => 1,
-                            'brokerage/cfm/sweeps' => 1,
+                            'brokerage/portfolios/{portfolio_uuid}' => array( 'cost' => 1 ),
+                            'brokerage/cfm/sweeps' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
@@ -878,7 +879,8 @@ class coinbase extends Exchange {
         }
         $query = $this->omit($params, array( 'account_id', 'accountId' ));
         $sells = $this->v2PrivateGetAccountsAccountIdSells($this->extend($request, $query));
-        return $this->parse_trades($sells['data'], null, $since, $limit);
+        $sellsData = $this->safe_list($sells, 'data', array());
+        return $this->parse_trades($sellsData, null, $since, $limit);
     }
 
     public function fetch_my_buys(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -901,7 +903,8 @@ class coinbase extends Exchange {
         }
         $query = $this->omit($params, array( 'account_id', 'accountId' ));
         $buys = $this->v2PrivateGetAccountsAccountIdBuys($this->extend($request, $query));
-        return $this->parse_trades($buys['data'], null, $since, $limit);
+        $buysData = $this->safe_list($buys, 'data', array());
+        return $this->parse_trades($buysData, null, $since, $limit);
     }
 
     public function fetch_transactions_with_method(mixed $method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -952,7 +955,7 @@ class coinbase extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $currencyType = null;
-        list($currencyType, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'currencyType');
+        list($currencyType, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'currencyType');
         if ($currencyType === 'crypto') {
             $results = $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', $code, $since, $limit, $params);
             return $this->filter_by_array($results, 'type', 'deposit', false);
@@ -2598,7 +2601,8 @@ class coinbase extends Exchange {
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg => instance.last_http_response -> $pagination->next_starting_after
         $response = $this->v2PrivateGetAccountsAccountIdTransactions($this->extend($request, $params));
-        $ledger = $this->parse_ledger($response['data'], $currency, $since, $limit);
+        $data = $this->safe_list($response, 'data', array());
+        $ledger = $this->parse_ledger($data, $currency, $since, $limit);
         $length = count($ledger);
         if ($length === 0) {
             return $ledger;
@@ -3707,7 +3711,7 @@ class coinbase extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }

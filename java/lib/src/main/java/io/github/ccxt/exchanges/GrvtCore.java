@@ -104,71 +104,171 @@ public class GrvtCore extends GrvtApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "privateEdge", new java.util.HashMap<String, Object>() {{
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "auth/api_key/login", 100 );
-                        put( "auth/wallet/login", 100 );
+                        put( "auth/api_key/login", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 100 );
+                        }} );
+                        put( "auth/wallet/login", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 100 );
+                        }} );
                     }} );
                 }} );
                 put( "publicMarket", new java.util.HashMap<String, Object>() {{
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "full/v1/instrument", 4 );
-                        put( "full/v1/all_instruments", 4 );
-                        put( "full/v1/instruments", 4 );
-                        put( "full/v1/currency", 12 );
-                        put( "full/v1/margin_rules", 12 );
-                        put( "full/v1/mini", 4 );
-                        put( "full/v1/ticker", 4 );
-                        put( "full/v1/book", 12 );
-                        put( "full/v1/trade", 12 );
-                        put( "full/v1/trade_history", 12 );
-                        put( "full/v1/kline", 12 );
-                        put( "full/v1/funding", 12 );
+                        put( "full/v1/instrument", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "full/v1/all_instruments", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "full/v1/instruments", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "full/v1/currency", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 12 );
+                        }} );
+                        put( "full/v1/margin_rules", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 12 );
+                        }} );
+                        put( "full/v1/mini", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "full/v1/ticker", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "full/v1/book", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 12 );
+                        }} );
+                        put( "full/v1/trade", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 12 );
+                        }} );
+                        put( "full/v1/trade_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 12 );
+                        }} );
+                        put( "full/v1/kline", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 12 );
+                        }} );
+                        put( "full/v1/funding", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 12 );
+                        }} );
                     }} );
                 }} );
                 put( "privateTrading", new java.util.HashMap<String, Object>() {{
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "full/v1/create_order", 5 );
-                        put( "full/v1/cancel_order", 5 );
-                        put( "full/v1/cancel_on_disconnect", 100 );
-                        put( "full/v1/cancel_all_orders", 50 );
-                        put( "full/v1/order", rlOrders );
-                        put( "full/v1/order_history", rlOrders );
-                        put( "full/v1/open_orders", rlOrders );
-                        put( "full/v1/fill_history", rlOrders );
-                        put( "full/v1/positions", rlOrders );
-                        put( "full/v1/funding_payment_history", rlOthers );
-                        put( "full/v1/get_sub_accounts", rlOthers );
-                        put( "full/v1/account_summary", rlOthers );
-                        put( "full/v1/account_history", rlOthers );
-                        put( "full/v1/aggregated_account_summary", rlOthers );
-                        put( "full/v1/funding_account_summary", rlOthers );
-                        put( "full/v1/transfer", 100 );
-                        put( "full/v1/deposit_history", 100 );
-                        put( "full/v1/transfer_history", 100 );
-                        put( "full/v1/withdrawal", 100 );
-                        put( "full/v1/withdrawal_history", 100 );
-                        put( "full/v1/add_position_margin", rlOthers );
-                        put( "full/v1/get_position_margin_limits", rlOthers );
-                        put( "full/v1/set_position_config", rlOthers );
-                        put( "full/v1/set_initial_leverage", rlOthers );
-                        put( "full/v1/get_all_initial_leverage", rlOthers );
-                        put( "full/v1/set_derisk_mm_ratio", rlOthers );
-                        put( "full/v1/vault_burn_tokens", rlOthers );
-                        put( "full/v1/vault_invest", rlOthers );
-                        put( "full/v1/vault_investor_summary", rlOthers );
-                        put( "full/v1/vault_redeem", rlOthers );
-                        put( "full/v1/vault_redeem_cancel", rlOthers );
-                        put( "full/v1/vault_view_redemption_queue", rlOthers );
-                        put( "full/v1/vault_manager_investor_history", rlOthers );
-                        put( "full/v1/authorize_builder", rlOthers );
-                        put( "full/v1/get_authorized_builders", rlOthers );
-                        put( "full/v1/builder_fill_history", rlOthers );
+                        put( "full/v1/create_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "full/v1/cancel_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "full/v1/cancel_on_disconnect", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 100 );
+                        }} );
+                        put( "full/v1/cancel_all_orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 50 );
+                        }} );
+                        put( "full/v1/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOrders );
+                        }} );
+                        put( "full/v1/order_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOrders );
+                        }} );
+                        put( "full/v1/open_orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOrders );
+                        }} );
+                        put( "full/v1/fill_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOrders );
+                        }} );
+                        put( "full/v1/positions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOrders );
+                        }} );
+                        put( "full/v1/funding_payment_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/get_sub_accounts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/account_summary", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/account_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/aggregated_account_summary", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/funding_account_summary", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/transfer", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 100 );
+                        }} );
+                        put( "full/v1/deposit_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 100 );
+                        }} );
+                        put( "full/v1/transfer_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 100 );
+                        }} );
+                        put( "full/v1/withdrawal", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 100 );
+                        }} );
+                        put( "full/v1/withdrawal_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 100 );
+                        }} );
+                        put( "full/v1/add_position_margin", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/get_position_margin_limits", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/set_position_config", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/set_initial_leverage", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/get_all_initial_leverage", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/set_derisk_mm_ratio", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/vault_burn_tokens", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/vault_invest", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/vault_investor_summary", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/vault_redeem", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/vault_redeem_cancel", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/vault_view_redemption_queue", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/vault_manager_investor_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/authorize_builder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/get_authorized_builders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/builder_fill_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
                     }} );
                 }} );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
                 put( "accountId", null );
                 put( "networks", new java.util.HashMap<String, Object>() {{
-                    put( "ARBONE", "42161" );
+                    put( "ARBITRUM", "42161" );
                     put( "AVAXC", "43114" );
                     put( "BASE", "8453" );
                     put( "BSC", "56" );

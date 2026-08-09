@@ -129,11 +129,83 @@ public class Bit2cCore extends Bit2cApi
             }} );
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "public", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("Exchanges/{pair}/Ticker", "Exchanges/{pair}/orderbook", "Exchanges/{pair}/trades", "Exchanges/{pair}/lasttrades")) );
+                    put( "get", new java.util.HashMap<String, Object>() {{
+                        put( "Exchanges/{pair}/Ticker", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Exchanges/{pair}/orderbook", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Exchanges/{pair}/trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Exchanges/{pair}/lasttrades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
-                    put( "post", new java.util.ArrayList<Object>(java.util.Arrays.asList("Merchant/CreateCheckout", "Funds/AddCoinFundsRequest", "Order/AddFund", "Order/AddOrder", "Order/GetById", "Order/AddOrderMarketPriceBuy", "Order/AddOrderMarketPriceSell", "Order/CancelOrder", "Order/AddCoinFundsRequest", "Order/AddStopOrder", "Payment/GetMyId", "Payment/Send", "Payment/Pay")) );
-                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("Account/Balance", "Account/Balance/v2", "Order/MyOrders", "Order/GetById", "Order/AccountHistory", "Order/OrderHistory")) );
+                    put( "post", new java.util.HashMap<String, Object>() {{
+                        put( "Merchant/CreateCheckout", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Funds/AddCoinFundsRequest", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Order/AddFund", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Order/AddOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Order/GetById", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Order/AddOrderMarketPriceBuy", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Order/AddOrderMarketPriceSell", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Order/CancelOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Order/AddCoinFundsRequest", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Order/AddStopOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Payment/GetMyId", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Payment/Send", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Payment/Pay", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
+                    put( "get", new java.util.HashMap<String, Object>() {{
+                        put( "Account/Balance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Account/Balance/v2", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Order/MyOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Order/GetById", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Order/AccountHistory", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Order/OrderHistory", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
                 }} );
             }} );
             put( "markets", new java.util.HashMap<String, Object>() {{
@@ -487,29 +559,30 @@ public class Bit2cCore extends Bit2cApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // max 100000
             }
-            Object response = null;
+            Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(method, "public_get_exchanges_pair_trades")))
             {
-                response = (this.publicGetExchangesPairTrades(this.extend(request, parameters))).join();
+                Object response = (this.publicGetExchangesPairTrades(this.extend(request, parameters))).join();
+                //
+                //     [
+                //         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
+                //         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
+                //         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
+                //     ]
+                //
+                if (Helpers.isTrue((response instanceof String)))
+                {
+                    throw new ExchangeError((String)response) ;
+                }
+                responseList = this.toArray(response);
             } else
             {
-                response = (this.publicGetExchangesPairLasttrades(this.extend(request, parameters))).join();
-            }
-            //
-            //     [
-            //         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
-            //         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
-            //         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
-            //     ]
-            //
-            if (Helpers.isTrue((response instanceof String)))
-            {
-                throw new ExchangeError((String)response) ;
-            }
-            Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            if (Helpers.isTrue(!Helpers.isEqual(response, null)))
-            {
-                responseList = response;
+                Object response = (this.publicGetExchangesPairLasttrades(this.extend(request, parameters))).join();
+                if (Helpers.isTrue((response instanceof String)))
+                {
+                    throw new ExchangeError((String)response) ;
+                }
+                responseList = this.toArray(response);
             }
             return this.parseTrades(responseList, market, since, limit);
         });
@@ -956,7 +1029,7 @@ public class Bit2cCore extends Bit2cApi
             Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(response, null)))
             {
-                responseList = response;
+                responseList = this.toArray(response);
             }
             return this.parseTrades(responseList, market, since, limit);
         });

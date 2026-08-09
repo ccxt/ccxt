@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.xt import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Any, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Tickers, FundingRate, Transaction, TransferEntry
+from ccxt.base.types import Any, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Tickers, FundingRate, OpenInterest, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -99,7 +99,7 @@ class xt(Exchange, ImplicitAPI):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
-                'fetchOpenInterest': False,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOption': False,
@@ -162,204 +162,206 @@ class xt(Exchange, ImplicitAPI):
                 'public': {
                     'spot': {
                         'get': {
-                            'currencies': 1,
-                            'depth': 10,
-                            'kline': 1,
-                            'symbol': 1,  # 1 for a single symbol
-                            'ticker': 1,  # 1 for a single symbol
-                            'ticker/book': 1,  # 1 for a single symbol
-                            'ticker/price': 1,  # 1 for a single symbol
-                            'ticker/24h': 1,  # 1 for a single symbol
-                            'time': 1,
-                            'trade/history': 1,
-                            'trade/recent': 1,
-                            'wallet/support/currency': 1,
+                            'currencies': {'cost': 1},
+                            'depth': {'cost': 10},
+                            'kline': {'cost': 1},
+                            'symbol': {'cost': 1},  # 1 for a single symbol
+                            'ticker': {'cost': 1},  # 1 for a single symbol
+                            'ticker/book': {'cost': 1},  # 1 for a single symbol
+                            'ticker/price': {'cost': 1},  # 1 for a single symbol
+                            'ticker/24h': {'cost': 1},  # 1 for a single symbol
+                            'time': {'cost': 1},
+                            'trade/history': {'cost': 1},
+                            'trade/recent': {'cost': 1},
+                            'wallet/support/currency': {'cost': 1},
                         },
                     },
                     'linear': {
                         'get': {
-                            'future/market/v1/public/contract/risk-balance': 1,
-                            'future/market/v1/public/contract/open-interest': 1,
-                            'future/market/v1/public/leverage/bracket/detail': 1,
-                            'future/market/v1/public/leverage/bracket/list': 1,
-                            'future/market/v1/public/q/agg-ticker': 1,
-                            'future/market/v1/public/q/agg-tickers': 1,
-                            'future/market/v1/public/q/deal': 1,
-                            'future/market/v1/public/q/depth': 1,
-                            'future/market/v1/public/q/funding-rate': 1,
-                            'future/market/v1/public/q/funding-rate-record': 1,
-                            'future/market/v1/public/q/index-price': 1,
-                            'future/market/v1/public/q/kline': 1,
-                            'future/market/v1/public/q/mark-price': 1,
-                            'future/market/v1/public/q/symbol-index-price': 1,
-                            'future/market/v1/public/q/symbol-mark-price': 1,
-                            'future/market/v1/public/q/ticker': 1,
-                            'future/market/v1/public/q/tickers': 1,
-                            'future/market/v1/public/symbol/coins': 3.33,
-                            'future/market/v1/public/symbol/detail': 3.33,
-                            'future/market/v1/public/symbol/list': 1,
+                            'future/market/v1/public/contract/risk-balance': {'cost': 1},
+                            'future/market/v1/public/contract/open-interest': {'cost': 1},
+                            'future/market/v1/public/leverage/bracket/detail': {'cost': 1},
+                            'future/market/v1/public/leverage/bracket/list': {'cost': 1},
+                            'future/market/v1/public/q/agg-ticker': {'cost': 1},
+                            'future/market/v1/public/q/agg-tickers': {'cost': 1},
+                            'future/market/v1/public/q/deal': {'cost': 1},
+                            'future/market/v1/public/q/depth': {'cost': 1},
+                            'future/market/v1/public/q/funding-rate': {'cost': 1},
+                            'future/market/v1/public/q/funding-rate-record': {'cost': 1},
+                            'future/market/v1/public/q/index-price': {'cost': 1},
+                            'future/market/v1/public/q/kline': {'cost': 1},
+                            'future/market/v1/public/q/mark-price': {'cost': 1},
+                            'future/market/v1/public/q/symbol-index-price': {'cost': 1},
+                            'future/market/v1/public/q/symbol-mark-price': {'cost': 1},
+                            'future/market/v1/public/q/ticker': {'cost': 1},
+                            'future/market/v1/public/q/ticker/books': {'cost': 1},
+                            'future/market/v1/public/q/tickers': {'cost': 1},
+                            'future/market/v1/public/symbol/coins': {'cost': 3.33},
+                            'future/market/v1/public/symbol/detail': {'cost': 3.33},
+                            'future/market/v1/public/symbol/list': {'cost': 1},
                         },
                     },
                     'inverse': {
                         'get': {
-                            'future/market/v1/public/contract/risk-balance': 1,
-                            'future/market/v1/public/contract/open-interest': 1,
-                            'future/market/v1/public/leverage/bracket/detail': 1,
-                            'future/market/v1/public/leverage/bracket/list': 1,
-                            'future/market/v1/public/q/agg-ticker': 1,
-                            'future/market/v1/public/q/agg-tickers': 1,
-                            'future/market/v1/public/q/deal': 1,
-                            'future/market/v1/public/q/depth': 1,
-                            'future/market/v1/public/q/funding-rate': 1,
-                            'future/market/v1/public/q/funding-rate-record': 1,
-                            'future/market/v1/public/q/index-price': 1,
-                            'future/market/v1/public/q/kline': 1,
-                            'future/market/v1/public/q/mark-price': 1,
-                            'future/market/v1/public/q/symbol-index-price': 1,
-                            'future/market/v1/public/q/symbol-mark-price': 1,
-                            'future/market/v1/public/q/ticker': 1,
-                            'future/market/v1/public/q/tickers': 1,
-                            'future/market/v1/public/symbol/coins': 3.33,
-                            'future/market/v1/public/symbol/detail': 3.33,
-                            'future/market/v1/public/symbol/list': 1,
+                            'future/market/v1/public/contract/risk-balance': {'cost': 1},
+                            'future/market/v1/public/contract/open-interest': {'cost': 1},
+                            'future/market/v1/public/leverage/bracket/detail': {'cost': 1},
+                            'future/market/v1/public/leverage/bracket/list': {'cost': 1},
+                            'future/market/v1/public/q/agg-ticker': {'cost': 1},
+                            'future/market/v1/public/q/agg-tickers': {'cost': 1},
+                            'future/market/v1/public/q/deal': {'cost': 1},
+                            'future/market/v1/public/q/depth': {'cost': 1},
+                            'future/market/v1/public/q/funding-rate': {'cost': 1},
+                            'future/market/v1/public/q/funding-rate-record': {'cost': 1},
+                            'future/market/v1/public/q/index-price': {'cost': 1},
+                            'future/market/v1/public/q/kline': {'cost': 1},
+                            'future/market/v1/public/q/mark-price': {'cost': 1},
+                            'future/market/v1/public/q/symbol-index-price': {'cost': 1},
+                            'future/market/v1/public/q/symbol-mark-price': {'cost': 1},
+                            'future/market/v1/public/q/ticker': {'cost': 1},
+                            'future/market/v1/public/q/ticker/books': {'cost': 1},
+                            'future/market/v1/public/q/tickers': {'cost': 1},
+                            'future/market/v1/public/symbol/coins': {'cost': 3.33},
+                            'future/market/v1/public/symbol/detail': {'cost': 3.33},
+                            'future/market/v1/public/symbol/list': {'cost': 1},
                         },
                     },
                 },
                 'private': {
                     'spot': {
                         'get': {
-                            'balance': 1,
-                            'balances': 1,
-                            'batch-order': 1,
-                            'deposit/address': 1,
-                            'deposit/history': 1,
-                            'history-order': 1,
-                            'open-order': 1,
-                            'order': 1,
-                            'order/{orderId}': 1,
-                            'trade': 1,
-                            'withdraw/history': 1,
+                            'balance': {'cost': 1},
+                            'balances': {'cost': 1},
+                            'batch-order': {'cost': 1},
+                            'deposit/address': {'cost': 1},
+                            'deposit/history': {'cost': 1},
+                            'history-order': {'cost': 1},
+                            'open-order': {'cost': 1},
+                            'order': {'cost': 1},
+                            'order/{orderId}': {'cost': 1},
+                            'trade': {'cost': 1},
+                            'withdraw/history': {'cost': 1},
                         },
                         'post': {
-                            'order': 0.2,
-                            'withdraw': 10,
-                            'balance/transfer': 1,
-                            'balance/account/transfer': 1,
-                            'ws-token': 1,
+                            'order': {'cost': 0.2},
+                            'withdraw': {'cost': 10},
+                            'balance/transfer': {'cost': 1},
+                            'balance/account/transfer': {'cost': 1},
+                            'ws-token': {'cost': 1},
                         },
                         'delete': {
-                            'batch-order': 1,
-                            'open-order': 1,
-                            'order/{orderId}': 1,
+                            'batch-order': {'cost': 1},
+                            'open-order': {'cost': 1},
+                            'order/{orderId}': {'cost': 1},
                         },
                         'put': {
-                            'order/{orderId}': 1,
+                            'order/{orderId}': {'cost': 1},
                         },
                     },
                     'linear': {
                         'get': {
-                            'future/trade/v1/entrust/plan-detail': 1,
-                            'future/trade/v1/entrust/plan-list': 1,
-                            'future/trade/v1/entrust/plan-list-history': 1,
-                            'future/trade/v1/entrust/profit-detail': 1,
-                            'future/trade/v1/entrust/profit-list': 1,
-                            'future/trade/v1/order/detail': 1,
-                            'future/trade/v1/order/list': 1,
-                            'future/trade/v1/order/list-history': 1,
-                            'future/trade/v1/order/trade-list': 1,
-                            'future/user/v1/account/info': 1,
-                            'future/user/v1/balance/bills': 1,
-                            'future/user/v1/balance/detail': 1,
-                            'future/user/v1/balance/funding-rate-list': 1,
-                            'future/user/v1/balance/list': 1,
-                            'future/user/v1/position/adl': 1,
-                            'future/user/v1/position/break-list': 1,
-                            'future/user/v1/position/list': 1,
-                            'future/user/v1/user/collection/list': 1,
-                            'future/user/v1/user/listen-key': 1,
+                            'future/trade/v1/entrust/plan-detail': {'cost': 1},
+                            'future/trade/v1/entrust/plan-list': {'cost': 1},
+                            'future/trade/v1/entrust/plan-list-history': {'cost': 1},
+                            'future/trade/v1/entrust/profit-detail': {'cost': 1},
+                            'future/trade/v1/entrust/profit-list': {'cost': 1},
+                            'future/trade/v1/order/detail': {'cost': 1},
+                            'future/trade/v1/order/list': {'cost': 1},
+                            'future/trade/v1/order/list-history': {'cost': 1},
+                            'future/trade/v1/order/trade-list': {'cost': 1},
+                            'future/user/v1/account/info': {'cost': 1},
+                            'future/user/v1/balance/bills': {'cost': 1},
+                            'future/user/v1/balance/detail': {'cost': 1},
+                            'future/user/v1/balance/funding-rate-list': {'cost': 1},
+                            'future/user/v1/balance/list': {'cost': 1},
+                            'future/user/v1/position/adl': {'cost': 1},
+                            'future/user/v1/position/break-list': {'cost': 1},
+                            'future/user/v1/position/list': {'cost': 1},
+                            'future/user/v1/user/collection/list': {'cost': 1},
+                            'future/user/v1/user/listen-key': {'cost': 1},
                         },
                         'post': {
-                            'future/trade/v1/entrust/cancel-all-plan': 1,
-                            'future/trade/v1/entrust/cancel-all-profit-stop': 1,
-                            'future/trade/v1/entrust/cancel-plan': 1,
-                            'future/trade/v1/entrust/cancel-profit-stop': 1,
-                            'future/trade/v1/entrust/create-plan': 1,
-                            'future/trade/v1/entrust/create-profit': 1,
-                            'future/trade/v1/entrust/update-profit-stop': 1,
-                            'future/trade/v1/order/cancel': 1,
-                            'future/trade/v1/order/cancel-all': 1,
-                            'future/trade/v1/order/create': 1,
-                            'future/trade/v1/order/create-batch': 1,
-                            'future/trade/v1/order/update': 1,
-                            'future/user/v1/account/open': 1,
-                            'future/user/v1/position/adjust-leverage': 1,
-                            'future/user/v1/position/auto-margin': 1,
-                            'future/user/v1/position/close-all': 1,
-                            'future/user/v1/position/margin': 1,
-                            'future/user/v1/user/collection/add': 1,
-                            'future/user/v1/user/collection/cancel': 1,
-                            'future/user/v1/position/change-type': 1,
+                            'future/trade/v1/entrust/cancel-all-plan': {'cost': 1},
+                            'future/trade/v1/entrust/cancel-all-profit-stop': {'cost': 1},
+                            'future/trade/v1/entrust/cancel-plan': {'cost': 1},
+                            'future/trade/v1/entrust/cancel-profit-stop': {'cost': 1},
+                            'future/trade/v1/entrust/create-plan': {'cost': 1},
+                            'future/trade/v1/entrust/create-profit': {'cost': 1},
+                            'future/trade/v1/entrust/update-profit-stop': {'cost': 1},
+                            'future/trade/v1/order/cancel': {'cost': 1},
+                            'future/trade/v1/order/cancel-all': {'cost': 1},
+                            'future/trade/v1/order/create': {'cost': 1},
+                            'future/trade/v1/order/create-batch': {'cost': 1},
+                            'future/trade/v1/order/update': {'cost': 1},
+                            'future/user/v1/account/open': {'cost': 1},
+                            'future/user/v1/position/adjust-leverage': {'cost': 1},
+                            'future/user/v1/position/auto-margin': {'cost': 1},
+                            'future/user/v1/position/close-all': {'cost': 1},
+                            'future/user/v1/position/margin': {'cost': 1},
+                            'future/user/v1/user/collection/add': {'cost': 1},
+                            'future/user/v1/user/collection/cancel': {'cost': 1},
+                            'future/user/v1/position/change-type': {'cost': 1},
                         },
                     },
                     'inverse': {
                         'get': {
-                            'future/trade/v1/entrust/plan-detail': 1,
-                            'future/trade/v1/entrust/plan-list': 1,
-                            'future/trade/v1/entrust/plan-list-history': 1,
-                            'future/trade/v1/entrust/profit-detail': 1,
-                            'future/trade/v1/entrust/profit-list': 1,
-                            'future/trade/v1/order/detail': 1,
-                            'future/trade/v1/order/list': 1,
-                            'future/trade/v1/order/list-history': 1,
-                            'future/trade/v1/order/trade-list': 1,
-                            'future/user/v1/account/info': 1,
-                            'future/user/v1/balance/bills': 1,
-                            'future/user/v1/balance/detail': 1,
-                            'future/user/v1/balance/funding-rate-list': 1,
-                            'future/user/v1/balance/list': 1,
-                            'future/user/v1/position/adl': 1,
-                            'future/user/v1/position/break-list': 1,
-                            'future/user/v1/position/list': 1,
-                            'future/user/v1/user/collection/list': 1,
-                            'future/user/v1/user/listen-key': 1,
+                            'future/trade/v1/entrust/plan-detail': {'cost': 1},
+                            'future/trade/v1/entrust/plan-list': {'cost': 1},
+                            'future/trade/v1/entrust/plan-list-history': {'cost': 1},
+                            'future/trade/v1/entrust/profit-detail': {'cost': 1},
+                            'future/trade/v1/entrust/profit-list': {'cost': 1},
+                            'future/trade/v1/order/detail': {'cost': 1},
+                            'future/trade/v1/order/list': {'cost': 1},
+                            'future/trade/v1/order/list-history': {'cost': 1},
+                            'future/trade/v1/order/trade-list': {'cost': 1},
+                            'future/user/v1/account/info': {'cost': 1},
+                            'future/user/v1/balance/bills': {'cost': 1},
+                            'future/user/v1/balance/detail': {'cost': 1},
+                            'future/user/v1/balance/funding-rate-list': {'cost': 1},
+                            'future/user/v1/balance/list': {'cost': 1},
+                            'future/user/v1/position/adl': {'cost': 1},
+                            'future/user/v1/position/break-list': {'cost': 1},
+                            'future/user/v1/position/list': {'cost': 1},
+                            'future/user/v1/user/collection/list': {'cost': 1},
+                            'future/user/v1/user/listen-key': {'cost': 1},
                         },
                         'post': {
-                            'future/trade/v1/entrust/cancel-all-plan': 1,
-                            'future/trade/v1/entrust/cancel-all-profit-stop': 1,
-                            'future/trade/v1/entrust/cancel-plan': 1,
-                            'future/trade/v1/entrust/cancel-profit-stop': 1,
-                            'future/trade/v1/entrust/create-plan': 1,
-                            'future/trade/v1/entrust/create-profit': 1,
-                            'future/trade/v1/entrust/update-profit-stop': 1,
-                            'future/trade/v1/order/cancel': 1,
-                            'future/trade/v1/order/cancel-all': 1,
-                            'future/trade/v1/order/create': 1,
-                            'future/trade/v1/order/create-batch': 1,
-                            'future/trade/v1/order/update': 1,
-                            'future/user/v1/account/open': 1,
-                            'future/user/v1/position/adjust-leverage': 1,
-                            'future/user/v1/position/auto-margin': 1,
-                            'future/user/v1/position/close-all': 1,
-                            'future/user/v1/position/margin': 1,
-                            'future/user/v1/user/collection/add': 1,
-                            'future/user/v1/user/collection/cancel': 1,
-                            'future/user/v1/position/change-type': 1,
+                            'future/trade/v1/entrust/cancel-all-plan': {'cost': 1},
+                            'future/trade/v1/entrust/cancel-all-profit-stop': {'cost': 1},
+                            'future/trade/v1/entrust/cancel-plan': {'cost': 1},
+                            'future/trade/v1/entrust/cancel-profit-stop': {'cost': 1},
+                            'future/trade/v1/entrust/create-plan': {'cost': 1},
+                            'future/trade/v1/entrust/create-profit': {'cost': 1},
+                            'future/trade/v1/entrust/update-profit-stop': {'cost': 1},
+                            'future/trade/v1/order/cancel': {'cost': 1},
+                            'future/trade/v1/order/cancel-all': {'cost': 1},
+                            'future/trade/v1/order/create': {'cost': 1},
+                            'future/trade/v1/order/create-batch': {'cost': 1},
+                            'future/trade/v1/order/update': {'cost': 1},
+                            'future/user/v1/account/open': {'cost': 1},
+                            'future/user/v1/position/adjust-leverage': {'cost': 1},
+                            'future/user/v1/position/auto-margin': {'cost': 1},
+                            'future/user/v1/position/close-all': {'cost': 1},
+                            'future/user/v1/position/margin': {'cost': 1},
+                            'future/user/v1/user/collection/add': {'cost': 1},
+                            'future/user/v1/user/collection/cancel': {'cost': 1},
+                            'future/user/v1/position/change-type': {'cost': 1},
                         },
                     },
                     'user': {
                         'get': {
-                            'user/account': 1,
-                            'user/account/api-key': 1,
+                            'user/account': {'cost': 1},
+                            'user/account/api-key': {'cost': 1},
                         },
                         'post': {
-                            'user/account': 1,
-                            'user/account/api-key': 1,
+                            'user/account': {'cost': 1},
+                            'user/account/api-key': {'cost': 1},
                         },
                         'put': {
-                            'user/account/api-key': 1,
+                            'user/account/api-key': {'cost': 1},
                         },
                         'delete': {
-                            'user/account/{apiKeyId}': 1,
+                            'user/account/{apiKeyId}': {'cost': 1},
                         },
                     },
                 },
@@ -1011,7 +1013,7 @@ class xt(Exchange, ImplicitAPI):
         swapAndFutureMarkets = promises[1]
         return self.array_concat(spotMarkets, swapAndFutureMarkets)
 
-    def fetch_spot_markets(self, params: Any = {}):
+    def fetch_spot_markets(self, params: Any = {}) -> List[Market]:
         response = self.publicSpotGetSymbol(params)
         #
         #     {
@@ -1771,13 +1773,14 @@ class xt(Exchange, ImplicitAPI):
                 result[symbol] = ticker
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def fetch_bids_asks(self, symbols: Strings = None, params={}):
+    def fetch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches the bid and ask price and volume for multiple markets
 
         https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
+        https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs
 
-        :param str [symbols]: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param str[] [symbols]: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
@@ -1788,11 +1791,22 @@ class xt(Exchange, ImplicitAPI):
         market = None
         if symbols is not None:
             market = self.market(symbols[0])
+        type = None
         subType = None
+        type, params = self.handle_market_type_and_params('fetchBidsAsks', market, params)
         subType, params = self.handle_sub_type_and_params('fetchBidsAsks', market, params)
-        if subType is not None:
-            raise NotSupported(self.id + ' fetchBidsAsks() is not available for swap and future markets, only spot markets are supported')
-        response = self.publicSpotGetTickerBook(self.extend(request, params))
+        isInverse = (subType == 'inverse')
+        isLinear = (subType == 'linear') or (type == 'swap') or (type == 'future')
+        isContract = isInverse or isLinear
+        response = None
+        if isInverse:
+            response = self.publicInverseGetFutureMarketV1PublicQTickerBooks(self.extend(request, params))
+        elif isLinear:
+            response = self.publicLinearGetFutureMarketV1PublicQTickerBooks(self.extend(request, params))
+        else:
+            response = self.publicSpotGetTickerBook(self.extend(request, params))
+        #
+        # spot
         #
         #     {
         #         "rc": 0,
@@ -1810,8 +1824,38 @@ class xt(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        tickers = self.safe_value(response, 'result', [])
-        return self.parse_tickers(tickers, symbols)
+        # swap and future
+        #
+        #     {
+        #         "returnCode": 0,
+        #         "msgInfo": "success",
+        #         "error": null,
+        #         "result": [
+        #             {
+        #                 "s": "btc_usdt",
+        #                 "t": 1785928174370,
+        #                 "ap": "64085.5",
+        #                 "aq": "101843",
+        #                 "bp": "64085.3",
+        #                 "bq": "121042"
+        #             },
+        #         ]
+        #     }
+        #
+        tickers = self.safe_list(response, 'result', [])
+        result = {}
+        for i in range(0, len(tickers)):
+            rawTicker = tickers[i]
+            # the spot and contract payloads share the same field names, so
+            # the market type cannot be inferred from the entry itself
+            marketId = self.safe_string(rawTicker, 's')
+            marketType = 'contract' if isContract else 'spot'
+            marketInner = self.safe_market(marketId, market, '_', marketType)
+            ticker = self.parse_ticker(rawTicker, marketInner)
+            symbol = ticker['symbol']
+            if symbol is not None:
+                result[symbol] = ticker
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_ticker(self, ticker: Any, market: Market = None):
         #
@@ -2477,7 +2521,7 @@ class xt(Exchange, ImplicitAPI):
         else:
             requestType = 'LONG' if (reduceOnly) else 'SHORT'
             request['positionSide'] = requestType
-        response = None
+        response = {}
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         stopLoss = self.safe_number_2(params, 'stopLoss', 'triggerStopPrice')
         takeProfit = self.safe_number_2(params, 'takeProfit', 'triggerProfitPrice')
@@ -2861,7 +2905,7 @@ class xt(Exchange, ImplicitAPI):
         orders = self.safe_value(data, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         if self.markets is None:
             self.load_markets()
         request = {}
@@ -4043,7 +4087,8 @@ class xt(Exchange, ImplicitAPI):
 
     def modify_margin_helper(self, symbol: str, amount: Any, addOrReduce: Any, params={}) -> MarginModification:
         positionSide = self.safe_string(params, 'positionSide')
-        self.check_required_argument('setLeverage', positionSide, 'positionSide', ['LONG', 'SHORT'])
+        methodName = 'addMargin' if (addOrReduce == 'ADD') else 'reduceMargin'
+        self.check_required_argument(methodName, positionSide, 'positionSide', ['LONG', 'SHORT'])
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -4411,6 +4456,67 @@ class xt(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
             'interval': interval,
         }
+
+    def fetch_open_interest(self, symbol: str, params={}) -> OpenInterest:
+        """
+        retrieves the open interest of a contract trading pair
+
+        https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `open interest structure <https://docs.ccxt.com/?id=open-interest-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise NotSupported(self.id + ' fetchOpenInterest() supports swap contracts only')
+        request = {
+            'symbol': market['id'],
+        }
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchOpenInterest', market, params)
+        response = None
+        if subType == 'inverse':
+            response = self.publicInverseGetFutureMarketV1PublicContractOpenInterest(self.extend(request, params))
+        else:
+            response = self.publicLinearGetFutureMarketV1PublicContractOpenInterest(self.extend(request, params))
+        #
+        #     {
+        #         "returnCode": 0,
+        #         "msgInfo": "success",
+        #         "error": null,
+        #         "result": {
+        #             "symbol": "btc_usdt",
+        #             "openInterest": "21005.8646",
+        #             "openInterestUsd": "1120726916.46709",
+        #             "time": 1785925443734
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_open_interest(result, market)
+
+    def parse_open_interest(self, interest: Any, market: Market = None) -> OpenInterest:
+        #
+        #     {
+        #         "symbol": "btc_usdt",
+        #         "openInterest": "21005.8646",
+        #         "openInterestUsd": "1120726916.46709",
+        #         "time": 1785925443734
+        #     }
+        #
+        marketId = self.safe_string(interest, 'symbol')
+        market = self.safe_market(marketId, market, None, 'contract')
+        timestamp = self.safe_integer(interest, 'time')
+        return self.safe_open_interest({
+            'symbol': market['symbol'],
+            'openInterestAmount': self.safe_number(interest, 'openInterest'),
+            'openInterestValue': self.safe_number(interest, 'openInterestUsd'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
+        }, market)
 
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """

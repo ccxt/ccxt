@@ -498,6 +498,61 @@ public struct MarginModification
     }
 }
 
+public struct MarginLoan
+{
+    public string? id;
+    public string? currency;
+    public double? amount;
+    public string? symbol;
+    public Int64? timestamp;
+    public string? datetime;
+    public Dictionary<string, object> info;
+
+    public MarginLoan(object marginLoan2)
+    {
+        var marginLoan3 = (Dictionary<string, object>)marginLoan2;
+        id = Exchange.SafeString(marginLoan3, "id");
+        currency = Exchange.SafeString(marginLoan3, "currency");
+        amount = Exchange.SafeFloat(marginLoan3, "amount");
+        symbol = Exchange.SafeString(marginLoan3, "symbol");
+        timestamp = Exchange.SafeInteger(marginLoan3, "timestamp");
+        datetime = Exchange.SafeString(marginLoan3, "datetime");
+        info = Helper.GetInfo(marginLoan3);
+    }
+}
+
+public struct Status
+{
+    public string? status;
+    public Int64? updated;
+    public Int64? eta;
+    public string? url;
+    public Dictionary<string, object> info;
+
+    public Status(object status2)
+    {
+        var status3 = (Dictionary<string, object>)status2;
+        status = Exchange.SafeString(status3, "status");
+        updated = Exchange.SafeInteger(status3, "updated");
+        eta = Exchange.SafeInteger(status3, "eta");
+        url = Exchange.SafeString(status3, "url");
+        info = Helper.GetInfo(status3);
+    }
+}
+
+public struct PositionModeInfo
+{
+    public Dictionary<string, object> info;
+    public bool? hedged;
+
+    public PositionModeInfo(object positionModeInfo2)
+    {
+        var positionModeInfo = (Dictionary<string, object>)positionModeInfo2;
+        info = Helper.GetInfo(positionModeInfo);
+        hedged = Exchange.SafeBool(positionModeInfo, "hedged");
+    }
+}
+
 public struct LastPrices
 {
     public Dictionary<string, object> info;

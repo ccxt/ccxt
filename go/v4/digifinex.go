@@ -121,20 +121,290 @@ func (this *DigifinexCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"spot": map[string]any{
-					"get": []any{"{market}/symbols", "kline", "margin/currencies", "margin/symbols", "markets", "order_book", "ping", "spot/symbols", "time", "trades", "trades/symbols", "ticker", "currencies"},
+					"get": map[string]any{
+						"{market}/symbols": map[string]any{
+							"cost": 1,
+						},
+						"kline": map[string]any{
+							"cost": 1,
+						},
+						"margin/currencies": map[string]any{
+							"cost": 1,
+						},
+						"margin/symbols": map[string]any{
+							"cost": 1,
+						},
+						"markets": map[string]any{
+							"cost": 1,
+						},
+						"order_book": map[string]any{
+							"cost": 1,
+						},
+						"ping": map[string]any{
+							"cost": 1,
+						},
+						"spot/symbols": map[string]any{
+							"cost": 1,
+						},
+						"time": map[string]any{
+							"cost": 1,
+						},
+						"trades": map[string]any{
+							"cost": 1,
+						},
+						"trades/symbols": map[string]any{
+							"cost": 1,
+						},
+						"ticker": map[string]any{
+							"cost": 1,
+						},
+						"currencies": map[string]any{
+							"cost": 1,
+						},
+					},
 				},
 				"swap": map[string]any{
-					"get": []any{"public/api_weight", "public/candles", "public/candles_history", "public/depth", "public/funding_rate", "public/funding_rate_history", "public/instrument", "public/instruments", "public/ticker", "public/tickers", "public/time", "public/trades"},
+					"get": map[string]any{
+						"public/api_weight": map[string]any{
+							"cost": 1,
+						},
+						"public/candles": map[string]any{
+							"cost": 1,
+						},
+						"public/candles_history": map[string]any{
+							"cost": 1,
+						},
+						"public/depth": map[string]any{
+							"cost": 1,
+						},
+						"public/funding_rate": map[string]any{
+							"cost": 1,
+						},
+						"public/funding_rate_history": map[string]any{
+							"cost": 1,
+						},
+						"public/instrument": map[string]any{
+							"cost": 1,
+						},
+						"public/instruments": map[string]any{
+							"cost": 1,
+						},
+						"public/ticker": map[string]any{
+							"cost": 1,
+						},
+						"public/tickers": map[string]any{
+							"cost": 1,
+						},
+						"public/time": map[string]any{
+							"cost": 1,
+						},
+						"public/trades": map[string]any{
+							"cost": 1,
+						},
+					},
 				},
 			},
 			"private": map[string]any{
 				"spot": map[string]any{
-					"get":  []any{"{market}/financelog", "{market}/mytrades", "{market}/order", "{market}/order/detail", "{market}/order/current", "{market}/order/history", "margin/assets", "margin/financelog", "margin/mytrades", "margin/order", "margin/order/current", "margin/order/history", "margin/positions", "otc/financelog", "spot/assets", "spot/financelog", "spot/mytrades", "spot/order", "spot/order/current", "spot/order/history", "deposit/address", "deposit/history", "withdraw/history"},
-					"post": []any{"{market}/order/cancel", "{market}/order/new", "{market}/order/batch_new", "margin/order/cancel", "margin/order/new", "margin/position/close", "spot/order/cancel", "spot/order/new", "transfer", "withdraw/new", "withdraw/cancel"},
+					"get": map[string]any{
+						"{market}/financelog": map[string]any{
+							"cost": 1,
+						},
+						"{market}/mytrades": map[string]any{
+							"cost": 1,
+						},
+						"{market}/order": map[string]any{
+							"cost": 1,
+						},
+						"{market}/order/detail": map[string]any{
+							"cost": 1,
+						},
+						"{market}/order/current": map[string]any{
+							"cost": 1,
+						},
+						"{market}/order/history": map[string]any{
+							"cost": 1,
+						},
+						"margin/assets": map[string]any{
+							"cost": 1,
+						},
+						"margin/financelog": map[string]any{
+							"cost": 1,
+						},
+						"margin/mytrades": map[string]any{
+							"cost": 1,
+						},
+						"margin/order": map[string]any{
+							"cost": 1,
+						},
+						"margin/order/current": map[string]any{
+							"cost": 1,
+						},
+						"margin/order/history": map[string]any{
+							"cost": 1,
+						},
+						"margin/positions": map[string]any{
+							"cost": 1,
+						},
+						"otc/financelog": map[string]any{
+							"cost": 1,
+						},
+						"spot/assets": map[string]any{
+							"cost": 1,
+						},
+						"spot/financelog": map[string]any{
+							"cost": 1,
+						},
+						"spot/mytrades": map[string]any{
+							"cost": 1,
+						},
+						"spot/order": map[string]any{
+							"cost": 1,
+						},
+						"spot/order/current": map[string]any{
+							"cost": 1,
+						},
+						"spot/order/history": map[string]any{
+							"cost": 1,
+						},
+						"deposit/address": map[string]any{
+							"cost": 1,
+						},
+						"deposit/history": map[string]any{
+							"cost": 1,
+						},
+						"withdraw/history": map[string]any{
+							"cost": 1,
+						},
+					},
+					"post": map[string]any{
+						"{market}/order/cancel": map[string]any{
+							"cost": 1,
+						},
+						"{market}/order/new": map[string]any{
+							"cost": 1,
+						},
+						"{market}/order/batch_new": map[string]any{
+							"cost": 1,
+						},
+						"margin/order/cancel": map[string]any{
+							"cost": 1,
+						},
+						"margin/order/new": map[string]any{
+							"cost": 1,
+						},
+						"margin/position/close": map[string]any{
+							"cost": 1,
+						},
+						"spot/order/cancel": map[string]any{
+							"cost": 1,
+						},
+						"spot/order/new": map[string]any{
+							"cost": 1,
+						},
+						"transfer": map[string]any{
+							"cost": 1,
+						},
+						"withdraw/new": map[string]any{
+							"cost": 1,
+						},
+						"withdraw/cancel": map[string]any{
+							"cost": 1,
+						},
+					},
 				},
 				"swap": map[string]any{
-					"get":  []any{"account/balance", "account/positions", "account/finance_record", "account/trading_fee_rate", "account/transfer_record", "account/funding_fee", "trade/history_orders", "trade/history_trades", "trade/open_orders", "trade/order_info"},
-					"post": []any{"account/transfer", "account/leverage", "account/position_mode", "account/position_margin", "trade/batch_cancel_order", "trade/batch_order", "trade/cancel_order", "trade/order_place", "follow/sponsor_order", "follow/close_order", "follow/cancel_order", "follow/user_center_current", "follow/user_center_history", "follow/expert_current_open_order", "follow/add_algo", "follow/cancel_algo", "follow/account_available", "follow/plan_task", "follow/instrument_list"},
+					"get": map[string]any{
+						"account/balance": map[string]any{
+							"cost": 1,
+						},
+						"account/positions": map[string]any{
+							"cost": 1,
+						},
+						"account/finance_record": map[string]any{
+							"cost": 1,
+						},
+						"account/trading_fee_rate": map[string]any{
+							"cost": 1,
+						},
+						"account/transfer_record": map[string]any{
+							"cost": 1,
+						},
+						"account/funding_fee": map[string]any{
+							"cost": 1,
+						},
+						"trade/history_orders": map[string]any{
+							"cost": 1,
+						},
+						"trade/history_trades": map[string]any{
+							"cost": 1,
+						},
+						"trade/open_orders": map[string]any{
+							"cost": 1,
+						},
+						"trade/order_info": map[string]any{
+							"cost": 1,
+						},
+					},
+					"post": map[string]any{
+						"account/transfer": map[string]any{
+							"cost": 1,
+						},
+						"account/leverage": map[string]any{
+							"cost": 1,
+						},
+						"account/position_mode": map[string]any{
+							"cost": 1,
+						},
+						"account/position_margin": map[string]any{
+							"cost": 1,
+						},
+						"trade/batch_cancel_order": map[string]any{
+							"cost": 1,
+						},
+						"trade/batch_order": map[string]any{
+							"cost": 1,
+						},
+						"trade/cancel_order": map[string]any{
+							"cost": 1,
+						},
+						"trade/order_place": map[string]any{
+							"cost": 1,
+						},
+						"follow/sponsor_order": map[string]any{
+							"cost": 1,
+						},
+						"follow/close_order": map[string]any{
+							"cost": 1,
+						},
+						"follow/cancel_order": map[string]any{
+							"cost": 1,
+						},
+						"follow/user_center_current": map[string]any{
+							"cost": 1,
+						},
+						"follow/user_center_history": map[string]any{
+							"cost": 1,
+						},
+						"follow/expert_current_open_order": map[string]any{
+							"cost": 1,
+						},
+						"follow/add_algo": map[string]any{
+							"cost": 1,
+						},
+						"follow/cancel_algo": map[string]any{
+							"cost": 1,
+						},
+						"follow/account_available": map[string]any{
+							"cost": 1,
+						},
+						"follow/plan_task": map[string]any{
+							"cost": 1,
+						},
+						"follow/instrument_list": map[string]any{
+							"cost": 1,
+						},
+					},
 				},
 			},
 		},
@@ -316,7 +586,7 @@ func (this *DigifinexCore) Describe() any {
 				"OTC":    "3",
 			},
 			"networks": map[string]any{
-				"ARBONE":       "Arbitrum",
+				"ARBITRUM":     "Arbitrum",
 				"AVALANCEC":    "AVAX-CCHAIN",
 				"AVALANCEX":    "AVAX-XCHAIN",
 				"BEP20":        "BEP20",
@@ -4616,11 +4886,11 @@ func (this *DigifinexCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		var currency any = nil
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.SafeCurrencyCode(code)
+			currency = this.Currency(code)
 			if IsTrue(IsEqual(currency, nil)) {
 				panic(ExchangeError(Add(this.Id, " fetchTransfers() could not resolve currency")))
 			}
-			AddElementToObject(request, "currency", GetValue(currency, "id"))
+			AddElementToObject(request, "currency", this.SafeString(currency, "id"))
 		}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start_timestamp", since)

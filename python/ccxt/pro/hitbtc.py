@@ -633,10 +633,10 @@ class hitbtc(ccxt.async_support.hitbtc):
         return message
 
     def parse_ws_trades(self, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}):
-        trades = self.to_array(trades)
+        tradesArray = self.to_array(trades)
         result = []
-        for i in range(0, len(trades)):
-            trade = self.extend(self.parse_ws_trade(trades[i], market), params)
+        for i in range(0, len(tradesArray)):
+            trade = self.extend(self.parse_ws_trade(tradesArray[i], market), params)
             result.append(trade)
         result = self.sort_by_2(result, 'timestamp', 'id')
         symbol = self.safe_string(market, 'symbol')

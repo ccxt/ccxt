@@ -6,7 +6,7 @@ import Exchange from './abstract/exmo.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, OnMaintenance, RateLimitExceeded, BadRequest, PermissionDenied } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, NullableDict, FeeString, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification, Currencies, TradingFees, Dictionary, int, DepositAddress, OrderBooks, Bool, List, CurrencyInterface, DepositWithdrawFees } from './base/types.js';
+import type { Dict, NullableDict, FeeString, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification, Currencies, TradingFees, Dictionary, int, DepositAddress, OrderBooks, Bool, List, CurrencyInterface, DepositWithdrawFees, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -36,6 +36,7 @@ export default class exmo extends Exchange {
                 'createMarketBuyOrder': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': true,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -122,67 +123,67 @@ export default class exmo extends Exchange {
             },
             'api': {
                 'web': {
-                    'get': [
-                        'ctrl/feesAndLimits',
-                        'en/docs/fees',
-                    ],
+                    'get': {
+                        'ctrl/feesAndLimits': { 'cost': 1 } as Endpoint<Dict>,
+                        'en/docs/fees': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'public': {
-                    'get': [
-                        'currency',
-                        'currency/list/extended',
-                        'order_book',
-                        'pair_settings',
-                        'ticker',
-                        'trades',
-                        'candles_history',
-                        'required_amount',
-                        'payments/providers/crypto/list',
-                    ],
+                    'get': {
+                        'currency': { 'cost': 1 } as Endpoint<List>,
+                        'currency/list/extended': { 'cost': 1 } as Endpoint<List>,
+                        'order_book': { 'cost': 1 } as Endpoint<Dict>,
+                        'pair_settings': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'candles_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'required_amount': { 'cost': 1 } as Endpoint<Dict>,
+                        'payments/providers/crypto/list': { 'cost': 1 } as Endpoint<Dict | List>,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'user_info',
-                        'order_create',
-                        'order_cancel',
-                        'stop_market_order_create',
-                        'stop_market_order_cancel',
-                        'user_open_orders',
-                        'user_trades',
-                        'user_cancelled_orders',
-                        'order_trades',
-                        'deposit_address',
-                        'withdraw_crypt',
-                        'withdraw_get_txid',
-                        'excode_create',
-                        'excode_load',
-                        'code_check',
-                        'wallet_history',
-                        'wallet_operations',
-                        'margin/user/order/create',
-                        'margin/user/order/update',
-                        'margin/user/order/cancel',
-                        'margin/user/position/close',
-                        'margin/user/position/margin_add',
-                        'margin/user/position/margin_remove',
-                        'margin/currency/list',
-                        'margin/pair/list',
-                        'margin/settings',
-                        'margin/funding/list',
-                        'margin/user/info',
-                        'margin/user/order/list',
-                        'margin/user/order/history',
-                        'margin/user/order/trades',
-                        'margin/user/order/max_quantity',
-                        'margin/user/position/list',
-                        'margin/user/position/margin_remove_info',
-                        'margin/user/position/margin_add_info',
-                        'margin/user/wallet/list',
-                        'margin/user/wallet/history',
-                        'margin/user/trade/list',
-                        'margin/trades',
-                        'margin/liquidation/feed',
-                    ],
+                    'post': {
+                        'user_info': { 'cost': 1 } as Endpoint<Dict>,
+                        'order_create': { 'cost': 1 } as Endpoint<Dict>,
+                        'order_cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'stop_market_order_create': { 'cost': 1 } as Endpoint<Dict>,
+                        'stop_market_order_cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'user_open_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'user_trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'user_cancelled_orders': { 'cost': 1 } as Endpoint<List>,
+                        'order_trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'deposit_address': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdraw_crypt': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdraw_get_txid': { 'cost': 1 } as Endpoint<Dict>,
+                        'excode_create': { 'cost': 1 } as Endpoint<Dict>,
+                        'excode_load': { 'cost': 1 } as Endpoint<Dict>,
+                        'code_check': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallet_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallet_operations': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/user/order/create': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/user/order/update': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/user/order/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/user/position/close': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/user/position/margin_add': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/user/position/margin_remove': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/currency/list': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/pair/list': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/settings': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/funding/list': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/user/info': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/user/order/list': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/user/order/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/user/order/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/user/order/max_quantity': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/user/position/list': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/user/position/margin_remove_info': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/user/position/margin_add_info': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/user/wallet/list': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/user/wallet/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/user/trade/list': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/liquidation/feed': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -1224,7 +1225,8 @@ export default class exmo extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const symbol = this.safeSymbol (marketId);
-            result[symbol] = this.parseOrderBook (response[marketId], symbol, undefined, 'bid', 'ask');
+            const rawOrderBook = this.safeDict (response, marketId, {});
+            result[symbol] = this.parseOrderBook (rawOrderBook, symbol, undefined, 'bid', 'ask');
         }
         return result as Dictionary<OrderBook>;
     }
@@ -1917,7 +1919,7 @@ export default class exmo extends Exchange {
             //
         }
         const trades = this.safeList (response, 'trades');
-        let tradesList: any[] = [];
+        let tradesList: Dict[] = [];
         if (trades !== undefined) {
             tradesList = trades;
         }
@@ -2208,7 +2210,7 @@ export default class exmo extends Exchange {
             await this.loadMarkets ();
         }
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrders', params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchCanceledOrders', params);
         if (marginMode === 'cross') {
             throw new BadRequest (this.id + ' only supports isolated margin');
         }
@@ -2604,7 +2606,8 @@ export default class exmo extends Exchange {
         //       ],
         //     }
         //
-        return this.parseTransactions (response['history'], currency, since, limit);
+        const history = this.safeList (response, 'history', []);
+        return this.parseTransactions (history, currency, since, limit);
     }
 
     /**

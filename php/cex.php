@@ -89,6 +89,7 @@ class cex extends Exchange {
                 'fetchOption' => false,
                 'fetchOptionChain' => false,
                 'fetchOrderBook' => true,
+                'fetchOrdersByStatus' => true,
                 'fetchPosition' => false,
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
@@ -132,39 +133,39 @@ class cex extends Exchange {
                 'public' => array(
                     'get' => array(),
                     'post' => array(
-                        'get_server_time' => 1,
-                        'get_pairs_info' => 1,
-                        'get_currencies_info' => 1,
-                        'get_processing_info' => 10,
-                        'get_ticker' => 1,
-                        'get_trade_history' => 1,
-                        'get_order_book' => 1,
-                        'get_candles' => 1,
+                        'get_server_time' => array( 'cost' => 1 ),
+                        'get_pairs_info' => array( 'cost' => 1 ),
+                        'get_currencies_info' => array( 'cost' => 1 ),
+                        'get_processing_info' => array( 'cost' => 10 ),
+                        'get_ticker' => array( 'cost' => 1 ),
+                        'get_trade_history' => array( 'cost' => 1 ),
+                        'get_order_book' => array( 'cost' => 1 ),
+                        'get_candles' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(),
                     'post' => array(
-                        'get_my_current_fee' => 5,
-                        'get_fee_strategy' => 1,
-                        'get_my_volume' => 5,
-                        'do_create_account' => 1,
-                        'get_my_account_status_v3' => 5,
-                        'get_my_wallet_balance' => 5,
-                        'get_my_orders' => 5,
-                        'do_my_new_order' => 1,
-                        'do_cancel_my_order' => 1,
-                        'do_cancel_all_orders' => 5,
-                        'get_order_book' => 1,
-                        'get_candles' => 1,
-                        'get_trade_history' => 1,
-                        'get_my_transaction_history' => 1,
-                        'get_my_funding_history' => 5,
-                        'do_my_internal_transfer' => 1,
-                        'get_processing_info' => 10,
-                        'get_deposit_address' => 5,
-                        'do_deposit_funds_from_wallet' => 1,
-                        'do_withdrawal_funds_to_wallet' => 1,
+                        'get_my_current_fee' => array( 'cost' => 5 ),
+                        'get_fee_strategy' => array( 'cost' => 1 ),
+                        'get_my_volume' => array( 'cost' => 5 ),
+                        'do_create_account' => array( 'cost' => 1 ),
+                        'get_my_account_status_v3' => array( 'cost' => 5 ),
+                        'get_my_wallet_balance' => array( 'cost' => 5 ),
+                        'get_my_orders' => array( 'cost' => 5 ),
+                        'do_my_new_order' => array( 'cost' => 1 ),
+                        'do_cancel_my_order' => array( 'cost' => 1 ),
+                        'do_cancel_all_orders' => array( 'cost' => 5 ),
+                        'get_order_book' => array( 'cost' => 1 ),
+                        'get_candles' => array( 'cost' => 1 ),
+                        'get_trade_history' => array( 'cost' => 1 ),
+                        'get_my_transaction_history' => array( 'cost' => 1 ),
+                        'get_my_funding_history' => array( 'cost' => 5 ),
+                        'do_my_internal_transfer' => array( 'cost' => 1 ),
+                        'get_processing_info' => array( 'cost' => 10 ),
+                        'get_deposit_address' => array( 'cost' => 5 ),
+                        'do_deposit_funds_from_wallet' => array( 'cost' => 1 ),
+                        'do_withdrawal_funds_to_wallet' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -281,7 +282,7 @@ class cex extends Exchange {
                     'AVALANCHEC' => 'avalanche',
                     'ETHPOW' => 'ethereumpow',
                     'NEAR' => 'near',
-                    'ARB' => 'arbitrum',
+                    'ARBITRUM' => 'arbitrum',
                     'DOT' => 'polkadot',
                     'OPT' => 'optimism',
                     'INJ' => 'injective',
@@ -1131,7 +1132,7 @@ class cex extends Exchange {
         return $this->fetch_orders_by_status('open', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an open order made by the user
          *
@@ -1152,7 +1153,7 @@ class cex extends Exchange {
         return $result[0];
     }
 
-    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an closed order made by the user
          *

@@ -260,6 +260,21 @@
                 ]
             },
             {
+                "description": "spot market sell trigger order",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?quantity=0.1&side=SELL&stopPrice=55&symbol=LTC-USDT&timestamp=1707482711763&type=TRIGGER_MARKET&signature=564862e81e0e60f6ed61c14f67380a818a57742d8abb04b55bdfc1d3095b2d3a",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    {
+                        "triggerPrice": 55
+                    }
+                ]
+            },
+            {
                 "description": "spot market sell using base amount",
                 "method": "createOrder",
                 "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?quantity=0.1&side=SELL&symbol=LTC-USDT&timestamp=1707482854356&type=MARKET&signature=0306b8e407921788c34d239e5470bba1a509312f7a5988275458e25f54c315fd",

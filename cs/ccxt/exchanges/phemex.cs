@@ -80,6 +80,7 @@ public partial class phemex : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPositionADLRank", true },
+                { "fetchPositionHistory", true },
                 { "fetchPositions", true },
                 { "fetchPositionsADLRank", true },
                 { "fetchPositionsRisk", false },
@@ -146,139 +147,369 @@ public partial class phemex : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "cfg/v2/products", 5 },
-                        { "cfg/fundingRates", 5 },
-                        { "products", 5 },
-                        { "nomics/trades", 5 },
-                        { "md/kline", 5 },
-                        { "md/v2/kline/list", 5 },
-                        { "md/v2/kline", 5 },
-                        { "md/v2/kline/last", 5 },
-                        { "md/orderbook", 5 },
-                        { "md/trade", 5 },
-                        { "md/spot/ticker/24hr", 5 },
-                        { "exchange/public/cfg/chain-settings", 5 },
+                        { "cfg/v2/products", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "cfg/fundingRates", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "products", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "nomics/trades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "md/kline", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "md/v2/kline/list", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "md/v2/kline", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "md/v2/kline/last", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "md/orderbook", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "md/trade", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "md/spot/ticker/24hr", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "exchange/public/cfg/chain-settings", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                 } },
                 { "v1", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "md/fullbook", 5 },
-                        { "md/orderbook", 5 },
-                        { "md/trade", 5 },
-                        { "md/ticker/24hr", 5 },
-                        { "md/ticker/24hr/all", 5 },
-                        { "md/spot/ticker/24hr", 5 },
-                        { "md/spot/ticker/24hr/all", 5 },
-                        { "exchange/public/products", 5 },
-                        { "api-data/public/data/funding-rate-history", 5 },
+                        { "md/fullbook", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "md/orderbook", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "md/trade", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "md/ticker/24hr", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "md/ticker/24hr/all", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "md/spot/ticker/24hr", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "md/spot/ticker/24hr/all", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "exchange/public/products", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api-data/public/data/funding-rate-history", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                 } },
                 { "v2", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "public/products", 5 },
-                        { "public/products-plus", 5 },
-                        { "md/v2/orderbook", 5 },
-                        { "md/v2/trade", 5 },
-                        { "md/v2/ticker/24hr", 5 },
-                        { "md/v2/ticker/24hr/all", 5 },
-                        { "api-data/public/data/funding-rate-history", 5 },
+                        { "public/products", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "public/products-plus", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "md/v2/orderbook", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "md/v2/trade", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "md/v2/ticker/24hr", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "md/v2/ticker/24hr/all", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api-data/public/data/funding-rate-history", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "spot/orders/active", 1 },
-                        { "spot/orders", 1 },
-                        { "spot/wallets", 5 },
-                        { "exchange/spot/order", 5 },
-                        { "exchange/spot/order/trades", 5 },
-                        { "exchange/order/v2/orderList", 5 },
-                        { "exchange/order/v2/tradingList", 5 },
-                        { "accounts/accountPositions", 1 },
-                        { "g-accounts/accountPositions", 1 },
-                        { "g-accounts/positions", 25 },
-                        { "g-accounts/risk-unit", 1 },
-                        { "api-data/futures/funding-fees", 5 },
-                        { "api-data/g-futures/funding-fees", 5 },
-                        { "api-data/futures/orders", 5 },
-                        { "api-data/g-futures/orders", 5 },
-                        { "api-data/futures/orders/by-order-id", 5 },
-                        { "api-data/g-futures/orders/by-order-id", 5 },
-                        { "api-data/futures/trades", 5 },
-                        { "api-data/g-futures/trades", 5 },
-                        { "api-data/futures/trading-fees", 5 },
-                        { "api-data/g-futures/trading-fees", 5 },
-                        { "api-data/futures/v2/tradeAccountDetail", 5 },
-                        { "api-data/g-futures/closedPosition", 5 },
-                        { "g-orders/activeList", 1 },
-                        { "orders/activeList", 1 },
-                        { "exchange/order/list", 5 },
-                        { "exchange/order", 5 },
-                        { "exchange/order/trade", 5 },
-                        { "phemex-user/users/children", 5 },
-                        { "phemex-user/wallets/v2/depositAddress", 5 },
-                        { "phemex-user/wallets/tradeAccountDetail", 5 },
-                        { "phemex-deposit/wallets/api/depositAddress", 5 },
-                        { "phemex-deposit/wallets/api/depositHist", 5 },
-                        { "phemex-deposit/wallets/api/chainCfg", 5 },
-                        { "phemex-withdraw/wallets/api/withdrawHist", 5 },
-                        { "phemex-withdraw/wallets/api/asset/info", 5 },
-                        { "phemex-user/order/closedPositionList", 5 },
-                        { "exchange/margins/transfer", 5 },
-                        { "exchange/wallets/confirm/withdraw", 5 },
-                        { "exchange/wallets/withdrawList", 5 },
-                        { "exchange/wallets/depositList", 5 },
-                        { "exchange/wallets/v2/depositAddress", 5 },
-                        { "api-data/spots/funds", 5 },
-                        { "api-data/spots/orders", 5 },
-                        { "api-data/spots/orders/by-order-id", 5 },
-                        { "api-data/spots/pnls", 5 },
-                        { "api-data/spots/trades", 5 },
-                        { "api-data/spots/trades/by-order-id", 5 },
-                        { "assets/convert", 5 },
-                        { "assets/transfer", 5 },
-                        { "assets/spots/sub-accounts/transfer", 5 },
-                        { "assets/futures/sub-accounts/transfer", 5 },
-                        { "assets/quote", 5 },
+                        { "spot/orders/active", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot/wallets", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "exchange/spot/order", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "exchange/spot/order/trades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "exchange/order/v2/orderList", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "exchange/order/v2/tradingList", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "accounts/accountPositions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "g-accounts/accountPositions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "g-accounts/positions", new Dictionary<string, object>() {
+                            { "cost", 25 },
+                        } },
+                        { "g-accounts/risk-unit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api-data/futures/funding-fees", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api-data/g-futures/funding-fees", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api-data/futures/orders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api-data/g-futures/orders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api-data/futures/orders/by-order-id", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api-data/g-futures/orders/by-order-id", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api-data/futures/trades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api-data/g-futures/trades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api-data/futures/trading-fees", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api-data/g-futures/trading-fees", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api-data/futures/v2/tradeAccountDetail", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api-data/g-futures/closedPosition", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "g-orders/activeList", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/activeList", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchange/order/list", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "exchange/order", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "exchange/order/trade", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "phemex-user/users/children", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "phemex-user/wallets/v2/depositAddress", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "phemex-user/wallets/tradeAccountDetail", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "phemex-deposit/wallets/api/depositAddress", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "phemex-deposit/wallets/api/depositHist", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "phemex-deposit/wallets/api/chainCfg", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "phemex-withdraw/wallets/api/withdrawHist", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "phemex-withdraw/wallets/api/asset/info", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "phemex-user/order/closedPositionList", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "exchange/margins/transfer", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "exchange/wallets/confirm/withdraw", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "exchange/wallets/withdrawList", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "exchange/wallets/depositList", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "exchange/wallets/v2/depositAddress", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api-data/spots/funds", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api-data/spots/orders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api-data/spots/orders/by-order-id", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api-data/spots/pnls", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api-data/spots/trades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api-data/spots/trades/by-order-id", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "assets/convert", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "assets/transfer", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "assets/spots/sub-accounts/transfer", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "assets/futures/sub-accounts/transfer", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "assets/quote", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "spot/orders", 1 },
-                        { "orders", 1 },
-                        { "g-orders", 1 },
-                        { "positions/assign", 5 },
-                        { "exchange/wallets/transferOut", 5 },
-                        { "exchange/wallets/transferIn", 5 },
-                        { "exchange/margins", 5 },
-                        { "exchange/wallets/createWithdraw", 5 },
-                        { "exchange/wallets/cancelWithdraw", 5 },
-                        { "exchange/wallets/createWithdrawAddress", 5 },
-                        { "assets/transfer", 5 },
-                        { "assets/spots/sub-accounts/transfer", 5 },
-                        { "assets/futures/sub-accounts/transfer", 5 },
-                        { "assets/universal-transfer", 5 },
-                        { "assets/convert", 5 },
-                        { "phemex-withdraw/wallets/api/createWithdraw", 5 },
-                        { "phemex-withdraw/wallets/api/cancelWithdraw", 5 },
+                        { "spot/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "g-orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions/assign", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "exchange/wallets/transferOut", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "exchange/wallets/transferIn", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "exchange/margins", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "exchange/wallets/createWithdraw", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "exchange/wallets/cancelWithdraw", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "exchange/wallets/createWithdrawAddress", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "assets/transfer", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "assets/spots/sub-accounts/transfer", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "assets/futures/sub-accounts/transfer", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "assets/universal-transfer", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "assets/convert", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "phemex-withdraw/wallets/api/createWithdraw", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "phemex-withdraw/wallets/api/cancelWithdraw", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
-                        { "spot/orders/create", 1 },
-                        { "spot/orders", 1 },
-                        { "orders/replace", 1 },
-                        { "g-orders/replace", 1 },
-                        { "g-orders/create", 1 },
-                        { "positions/leverage", 5 },
-                        { "g-positions/leverage", 5 },
-                        { "g-positions/switch-pos-mode-sync", 5 },
-                        { "positions/riskLimit", 5 },
+                        { "spot/orders/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/replace", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "g-orders/replace", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "g-orders/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions/leverage", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "g-positions/leverage", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "g-positions/switch-pos-mode-sync", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "positions/riskLimit", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "spot/orders", 2 },
-                        { "spot/orders/all", 2 },
-                        { "orders/cancel", 1 },
-                        { "orders", 1 },
-                        { "orders/all", 3 },
-                        { "g-orders/cancel", 1 },
-                        { "g-orders", 1 },
-                        { "g-orders/all", 3 },
+                        { "spot/orders", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "spot/orders/all", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "orders/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/all", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "g-orders/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "g-orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "g-orders/all", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
                     } },
                 } },
             } },
@@ -1218,7 +1449,7 @@ public partial class phemex : Exchange
         }
         ((IDictionary<string,object>)result)[(string)bidsKey] = this.sortBy(getValue(result, bidsKey), 0, true);
         ((IDictionary<string,object>)result)[(string)asksKey] = this.sortBy(getValue(result, asksKey), 0);
-        return ((object)result);
+        return result;
     }
 
     /**

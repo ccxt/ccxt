@@ -106,105 +106,105 @@ class toobit extends toobit$1["default"] {
             'api': {
                 'common': {
                     'get': {
-                        'api/v1/time': 1,
-                        'api/v1/ping': 1,
-                        'api/v1/exchangeInfo': 1,
-                        'quote/v1/depth': 1, // todo: by limit 1-10
-                        'quote/v1/depth/merged': 1,
-                        'quote/v1/trades': 1,
-                        'quote/v1/klines': 1,
-                        'quote/v1/index/klines': 1,
-                        'quote/v1/indexPriceComponents': 1,
-                        'quote/v1/markPrice/klines': 1,
-                        'quote/v1/markPrice': 10, // 5 requests per second
-                        'quote/v1/index': 1,
-                        'quote/v1/ticker/24hr': 40, // todo: 1-40 depending noSymbol
-                        'quote/v1/contract/ticker/24hr': 40, // todo: 1-40 depending noSymbol
-                        'quote/v1/ticker/price': 1,
-                        'quote/v1/contract/ticker/price': 1,
-                        'quote/v1/ticker/bookTicker': 1,
-                        'quote/v1/contract/ticker/bookTicker': 1,
-                        'api/v1/futures/fundingRate': 1,
-                        'api/v1/futures/historyFundingRate': 1,
-                        'api/v1/futures/riskLimits': 1,
+                        'api/v1/time': { 'cost': 1 },
+                        'api/v1/ping': { 'cost': 1 },
+                        'api/v1/exchangeInfo': { 'cost': 1 },
+                        'quote/v1/depth': { 'cost': 1 }, // todo: by limit 1-10
+                        'quote/v1/depth/merged': { 'cost': 1 },
+                        'quote/v1/trades': { 'cost': 1 },
+                        'quote/v1/klines': { 'cost': 1 },
+                        'quote/v1/index/klines': { 'cost': 1 },
+                        'quote/v1/indexPriceComponents': { 'cost': 1 },
+                        'quote/v1/markPrice/klines': { 'cost': 1 },
+                        'quote/v1/markPrice': { 'cost': 10 }, // 5 requests per second
+                        'quote/v1/index': { 'cost': 1 },
+                        'quote/v1/ticker/24hr': { 'cost': 40 }, // todo: 1-40 depending noSymbol
+                        'quote/v1/contract/ticker/24hr': { 'cost': 40 }, // todo: 1-40 depending noSymbol
+                        'quote/v1/ticker/price': { 'cost': 1 },
+                        'quote/v1/contract/ticker/price': { 'cost': 1 },
+                        'quote/v1/ticker/bookTicker': { 'cost': 1 },
+                        'quote/v1/contract/ticker/bookTicker': { 'cost': 1 },
+                        'api/v1/futures/fundingRate': { 'cost': 1 },
+                        'api/v1/futures/historyFundingRate': { 'cost': 1 },
+                        'api/v1/futures/riskLimits': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'api/v1/account': 5,
-                        'api/v1/account/checkApiKey': 1,
-                        'api/v1/spot/order': 1 * 1.67,
-                        'api/v1/spot/openOrders': 1 * 1.67,
-                        'api/v1/futures/openOrders': 1 * 1.67,
-                        'api/v1/spot/tradeOrders': 5 * 1.67,
-                        'api/v1/futures/historyOrders': 5 * 1.67,
-                        'api/v1/account/trades': 5 * 1.67,
-                        'api/v1/account/balanceFlow': 5,
-                        'api/v1/account/depositOrders': 5,
-                        'api/v1/account/withdrawOrders': 5,
-                        'api/v1/account/deposit/address': 1,
+                        'api/v1/account': { 'cost': 5 },
+                        'api/v1/account/checkApiKey': { 'cost': 1 },
+                        'api/v1/spot/order': { 'cost': 1 * 1.67 },
+                        'api/v1/spot/openOrders': { 'cost': 1 * 1.67 },
+                        'api/v1/futures/openOrders': { 'cost': 1 * 1.67 },
+                        'api/v1/spot/tradeOrders': { 'cost': 5 * 1.67 },
+                        'api/v1/futures/historyOrders': { 'cost': 5 * 1.67 },
+                        'api/v1/account/trades': { 'cost': 5 * 1.67 },
+                        'api/v1/account/balanceFlow': { 'cost': 5 },
+                        'api/v1/account/depositOrders': { 'cost': 5 },
+                        'api/v1/account/withdrawOrders': { 'cost': 5 },
+                        'api/v1/account/deposit/address': { 'cost': 1 },
                         // contracts
-                        'api/v1/subAccount': 5,
-                        'api/v1/account/subAccount': 5,
-                        'api/v1/subAccount/list': 5,
-                        'api/v1/futures/accountLeverage': 1,
-                        'api/v1/futures/order': 1 * 1.67,
-                        'api/v1/futures/positions': 5 * 1.67,
-                        'api/v1/futures/historyPositions': 5,
-                        'api/v1/futures/balance': 5,
-                        'api/v1/futures/userTrades': 5 * 1.67,
-                        'api/v1/futures/balanceFlow': 5,
-                        'api/v1/futures/commissionRate': 5,
-                        'api/v1/futures/todayPnl': 5,
-                        'api/v1/account/download/detail': 10,
-                        'api/v1/agent/inviteUserList': 1,
-                        'api/v1/agent/commissionDataList': 1,
-                        'api/v1/agent/commissionDataInfo': 1,
-                        'api/v1/agent/inviteRelationCheck': 1,
-                        'api/v1/agent/depositDetailList': 1,
-                        'api/v1/agent/querySubAgentData': 1,
-                        'api/v1/agent/spotOrdersList': 1,
-                        'api/v1/agent/futuresOrdersList': 1,
-                        'api/v1/agent/futuresPositionsList': 1,
-                        'api/v1/agent/invite-commission-detail': 1,
-                        'api/v1/agent/user/export': 1,
-                        'api/v1/agent/export-list': 1,
-                        'api/v1/agent/export-url': 1,
+                        'api/v1/subAccount': { 'cost': 5 },
+                        'api/v1/account/subAccount': { 'cost': 5 },
+                        'api/v1/subAccount/list': { 'cost': 5 },
+                        'api/v1/futures/accountLeverage': { 'cost': 1 },
+                        'api/v1/futures/order': { 'cost': 1 * 1.67 },
+                        'api/v1/futures/positions': { 'cost': 5 * 1.67 },
+                        'api/v1/futures/historyPositions': { 'cost': 5 },
+                        'api/v1/futures/balance': { 'cost': 5 },
+                        'api/v1/futures/userTrades': { 'cost': 5 * 1.67 },
+                        'api/v1/futures/balanceFlow': { 'cost': 5 },
+                        'api/v1/futures/commissionRate': { 'cost': 5 },
+                        'api/v1/futures/todayPnl': { 'cost': 5 },
+                        'api/v1/account/download/detail': { 'cost': 10 },
+                        'api/v1/agent/inviteUserList': { 'cost': 1 },
+                        'api/v1/agent/commissionDataList': { 'cost': 1 },
+                        'api/v1/agent/commissionDataInfo': { 'cost': 1 },
+                        'api/v1/agent/inviteRelationCheck': { 'cost': 1 },
+                        'api/v1/agent/depositDetailList': { 'cost': 1 },
+                        'api/v1/agent/querySubAgentData': { 'cost': 1 },
+                        'api/v1/agent/spotOrdersList': { 'cost': 1 },
+                        'api/v1/agent/futuresOrdersList': { 'cost': 1 },
+                        'api/v1/agent/futuresPositionsList': { 'cost': 1 },
+                        'api/v1/agent/invite-commission-detail': { 'cost': 1 },
+                        'api/v1/agent/user/export': { 'cost': 1 },
+                        'api/v1/agent/export-list': { 'cost': 1 },
+                        'api/v1/agent/export-url': { 'cost': 1 },
                     },
                     'post': {
-                        'api/v1/spot/orderTest': 1 * 1.67,
-                        'api/v1/spot/order': 1 * 1.67,
-                        'api/v1/futures/order': 1 * 1.67,
-                        'api/v1/spot/batchOrders': 2 * 1.67,
-                        'api/v1/subAccount/transfer': 1,
-                        'api/v1/account/withdraw': 1,
+                        'api/v1/spot/orderTest': { 'cost': 1 * 1.67 },
+                        'api/v1/spot/order': { 'cost': 1 * 1.67 },
+                        'api/v1/futures/order': { 'cost': 1 * 1.67 },
+                        'api/v1/spot/batchOrders': { 'cost': 2 * 1.67 },
+                        'api/v1/subAccount/transfer': { 'cost': 1 },
+                        'api/v1/account/withdraw': { 'cost': 1 },
                         // contracts
-                        'api/v1/futures/marginType': 1,
-                        'api/v1/futures/leverage': 1,
-                        'api/v1/futures/batchOrders': 2 * 1.67,
-                        'api/v1/futures/position/trading-stop': 3 * 1.67,
-                        'api/v1/futures/positionMargin': 1,
-                        'api/v1/futures/order/update': 2 * 1.67,
-                        'api/v1/futures/autoAddMargin': 1,
-                        'api/v1/futures/flashClose': 1,
-                        'api/v1/futures/reversePosition': 5,
-                        'api/v1/account/download/apply': 1000,
-                        'api/v1/userDataStream': 1,
-                        'api/v1/listenKey': 1,
+                        'api/v1/futures/marginType': { 'cost': 1 },
+                        'api/v1/futures/leverage': { 'cost': 1 },
+                        'api/v1/futures/batchOrders': { 'cost': 2 * 1.67 },
+                        'api/v1/futures/position/trading-stop': { 'cost': 3 * 1.67 },
+                        'api/v1/futures/positionMargin': { 'cost': 1 },
+                        'api/v1/futures/order/update': { 'cost': 2 * 1.67 },
+                        'api/v1/futures/autoAddMargin': { 'cost': 1 },
+                        'api/v1/futures/flashClose': { 'cost': 1 },
+                        'api/v1/futures/reversePosition': { 'cost': 5 },
+                        'api/v1/account/download/apply': { 'cost': 1000 },
+                        'api/v1/userDataStream': { 'cost': 1 },
+                        'api/v1/listenKey': { 'cost': 1 },
                     },
                     'delete': {
-                        'api/v1/spot/order': 1 * 1.67,
-                        'api/v1/futures/order': 1 * 1.67,
-                        'api/v1/spot/openOrders': 5 * 1.67,
-                        'api/v1/futures/batchOrders': 3 * 1.67,
-                        'api/v1/spot/cancelOrderByIds': 5 * 1.67,
-                        'api/v1/futures/cancelOrderByIds': 3 * 1.67,
-                        'api/v1/userDataStream': 1,
-                        'api/v1/listenKey': 1,
+                        'api/v1/spot/order': { 'cost': 1 * 1.67 },
+                        'api/v1/futures/order': { 'cost': 1 * 1.67 },
+                        'api/v1/spot/openOrders': { 'cost': 5 * 1.67 },
+                        'api/v1/futures/batchOrders': { 'cost': 3 * 1.67 },
+                        'api/v1/spot/cancelOrderByIds': { 'cost': 5 * 1.67 },
+                        'api/v1/futures/cancelOrderByIds': { 'cost': 3 * 1.67 },
+                        'api/v1/userDataStream': { 'cost': 1 },
+                        'api/v1/listenKey': { 'cost': 1 },
                     },
                     'put': {
-                        'api/v1/userDataStream': 1,
-                        'api/v1/listenKey': 1,
+                        'api/v1/userDataStream': { 'cost': 1 },
+                        'api/v1/listenKey': { 'cost': 1 },
                     },
                 },
             },
@@ -446,7 +446,7 @@ class toobit extends toobit$1["default"] {
                     'TRC20': 'TRX',
                     'SOL': 'SOL',
                     'MATIC': 'MATIC',
-                    'ARBONE': 'ARBITRUM',
+                    'ARBITRUM': 'ARBITRUM',
                     'BASE': 'BASE',
                     'TON': 'TON',
                     'AVAXC': 'AVAXC',
@@ -1320,7 +1320,11 @@ class toobit extends toobit$1["default"] {
             //        ...
             //
         }
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        let candles = [];
+        if (Array.isArray(response)) {
+            candles = response;
+        }
+        return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         return [
@@ -2227,7 +2231,7 @@ class toobit extends toobit$1["default"] {
             request['limit'] = limit;
         }
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchOrders', market, params);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
         let response = [];
         if (marketType === 'spot') {
             response = await this.privateGetApiV1SpotOpenOrders(this.extend(request, params));
@@ -2392,8 +2396,12 @@ class toobit extends toobit$1["default"] {
             //
         }
         const ordersList = [];
-        for (let i = 0; i < response.length; i++) {
-            ordersList.push({ 'result': response[i] });
+        let responseList = [];
+        if (Array.isArray(response)) {
+            responseList = response;
+        }
+        for (let i = 0; i < responseList.length; i++) {
+            ordersList.push({ 'result': responseList[i] });
         }
         return this.parseOrders(ordersList, market, since, limit);
     }
@@ -2568,7 +2576,7 @@ class toobit extends toobit$1["default"] {
             request['limit'] = limit;
         }
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('cancelAllOrders', undefined, params);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchLedger', undefined, params);
         let response = undefined;
         if (marketType === 'spot') {
             response = await this.privateGetApiV1AccountBalanceFlow(this.extend(request, params));

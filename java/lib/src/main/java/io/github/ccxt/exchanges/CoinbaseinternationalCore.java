@@ -70,6 +70,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "fetchCrossBorrowRates", false );
                 put( "fetchCurrencies", true );
                 put( "fetchDeposits", true );
+                put( "fetchDepositsWithdrawals", true );
                 put( "fetchFundingHistory", true );
                 put( "fetchFundingRate", false );
                 put( "fetchFundingRateHistory", true );
@@ -115,6 +116,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "setMargin", true );
                 put( "setMarginMode", false );
                 put( "setPositionMode", false );
+                put( "transfer", true );
                 put( "withdraw", true );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
@@ -138,13 +140,123 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "v1", new java.util.HashMap<String, Object>() {{
                     put( "public", new java.util.HashMap<String, Object>() {{
-                        put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("assets", "assets/{assets}", "assets/{asset}/networks", "instruments", "instruments/{instrument}", "instruments/{instrument}/quote", "instruments/{instrument}/funding", "instruments/{instrument}/candles")) );
+                        put( "get", new java.util.HashMap<String, Object>() {{
+                            put( "assets", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "assets/{assets}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "assets/{asset}/networks", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "instruments", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "instruments/{instrument}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "instruments/{instrument}/quote", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "instruments/{instrument}/funding", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "instruments/{instrument}/candles", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
                     }} );
                     put( "private", new java.util.HashMap<String, Object>() {{
-                        put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("orders", "orders/{id}", "portfolios", "portfolios/{portfolio}", "portfolios/{portfolio}/detail", "portfolios/{portfolio}/summary", "portfolios/{portfolio}/balances", "portfolios/{portfolio}/balances/{asset}", "portfolios/{portfolio}/positions", "portfolios/{portfolio}/positions/{instrument}", "portfolios/fills", "portfolios/{portfolio}/fills", "transfers", "transfers/{transfer_uuid}")) );
-                        put( "post", new java.util.ArrayList<Object>(java.util.Arrays.asList("orders", "portfolios", "portfolios/margin", "portfolios/transfer", "transfers/withdraw", "transfers/address", "transfers/create-counterparty-id", "transfers/validate-counterparty-id", "transfers/withdraw/counterparty")) );
-                        put( "put", new java.util.ArrayList<Object>(java.util.Arrays.asList("orders/{id}", "portfolios/{portfolio}")) );
-                        put( "delete", new java.util.ArrayList<Object>(java.util.Arrays.asList("orders", "orders/{id}")) );
+                        put( "get", new java.util.HashMap<String, Object>() {{
+                            put( "orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders/{id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolios", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolios/{portfolio}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolios/{portfolio}/detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolios/{portfolio}/summary", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolios/{portfolio}/balances", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolios/{portfolio}/balances/{asset}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolios/{portfolio}/positions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolios/{portfolio}/positions/{instrument}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolios/fills", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolios/{portfolio}/fills", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "transfers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "transfers/{transfer_uuid}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
+                        put( "post", new java.util.HashMap<String, Object>() {{
+                            put( "orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolios", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolios/margin", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolios/transfer", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "transfers/withdraw", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "transfers/address", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "transfers/create-counterparty-id", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "transfers/validate-counterparty-id", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "transfers/withdraw/counterparty", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
+                        put( "put", new java.util.HashMap<String, Object>() {{
+                            put( "orders/{id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "portfolios/{portfolio}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
+                        put( "delete", new java.util.HashMap<String, Object>() {{
+                            put( "orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders/{id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -1050,7 +1162,8 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "portfolio", finalPortfolio );
                 put( "margin_override", amount );
             }};
-            return (this.v1PrivatePostPortfoliosMargin(this.extend(request, parameters))).join();
+            Object response = (this.v1PrivatePostPortfoliosMargin(this.extend(request, parameters))).join();
+            return response;
         });
 
     }
@@ -1784,9 +1897,14 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             symbols = this.marketSymbols(symbols);
             Object instruments = (this.v1PublicGetInstruments(parameters)).join();
             Object tickers = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(instruments)); i++)
+            Object rows = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isArray(instruments)))
             {
-                Object instrument = Helpers.GetValue(instruments, i);
+                rows = instruments;
+            }
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
+            {
+                Object instrument = Helpers.GetValue(rows, i);
                 Object marketId = this.safeString(instrument, "symbol");
                 Object symbol = this.safeSymbol(marketId);
                 Object quote = this.safeDict(instrument, "quote", new java.util.HashMap<String, Object>() {{}});

@@ -52,6 +52,7 @@ func (this *HollaexCore) Describe() any {
 			"fetchDepositAddresses":          true,
 			"fetchDepositAddressesByNetwork": false,
 			"fetchDeposits":                  true,
+			"fetchDepositWithdrawFees":       true,
 			"fetchFundingHistory":            false,
 			"fetchFundingRate":               false,
 			"fetchFundingRateHistory":        false,
@@ -124,43 +125,101 @@ func (this *HollaexCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"health":        1,
-					"constants":     1,
-					"kit":           1,
-					"tiers":         1,
-					"ticker":        1,
-					"tickers":       1,
-					"orderbook":     1,
-					"orderbooks":    1,
-					"trades":        1,
-					"chart":         1,
-					"charts":        1,
-					"minicharts":    1,
-					"oracle/prices": 1,
-					"quick-trade":   1,
-					"udf/config":    1,
-					"udf/history":   1,
-					"udf/symbols":   1,
+					"health": map[string]any{
+						"cost": 1,
+					},
+					"constants": map[string]any{
+						"cost": 1,
+					},
+					"kit": map[string]any{
+						"cost": 1,
+					},
+					"tiers": map[string]any{
+						"cost": 1,
+					},
+					"ticker": map[string]any{
+						"cost": 1,
+					},
+					"tickers": map[string]any{
+						"cost": 1,
+					},
+					"orderbook": map[string]any{
+						"cost": 1,
+					},
+					"orderbooks": map[string]any{
+						"cost": 1,
+					},
+					"trades": map[string]any{
+						"cost": 1,
+					},
+					"chart": map[string]any{
+						"cost": 1,
+					},
+					"charts": map[string]any{
+						"cost": 1,
+					},
+					"minicharts": map[string]any{
+						"cost": 1,
+					},
+					"oracle/prices": map[string]any{
+						"cost": 1,
+					},
+					"quick-trade": map[string]any{
+						"cost": 1,
+					},
+					"udf/config": map[string]any{
+						"cost": 1,
+					},
+					"udf/history": map[string]any{
+						"cost": 1,
+					},
+					"udf/symbols": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"user":                1,
-					"user/balance":        1,
-					"user/deposits":       1,
-					"user/withdrawals":    1,
-					"user/withdrawal/fee": 1,
-					"user/trades":         1,
-					"orders":              1,
-					"order":               1,
+					"user": map[string]any{
+						"cost": 1,
+					},
+					"user/balance": map[string]any{
+						"cost": 1,
+					},
+					"user/deposits": map[string]any{
+						"cost": 1,
+					},
+					"user/withdrawals": map[string]any{
+						"cost": 1,
+					},
+					"user/withdrawal/fee": map[string]any{
+						"cost": 1,
+					},
+					"user/trades": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"order": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"user/withdrawal": 1,
-					"order":           1,
+					"user/withdrawal": map[string]any{
+						"cost": 1,
+					},
+					"order": map[string]any{
+						"cost": 1,
+					},
 				},
 				"delete": map[string]any{
-					"order/all": 1,
-					"order":     1,
+					"order/all": map[string]any{
+						"cost": 1,
+					},
+					"order": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -598,8 +657,8 @@ func (this *HollaexCore) FetchOrderBooks(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes56912 := (<-this.LoadMarkets())
-			PanicOnError(retRes56912)
+			retRes57012 := (<-this.LoadMarkets())
+			PanicOnError(retRes57012)
 		}
 
 		response := (<-this.PublicGetOrderbooks(params))
@@ -608,10 +667,10 @@ func (this *HollaexCore) FetchOrderBooks(optionalArgs ...any) <-chan any {
 		var marketIds any = ObjectKeys(response)
 		for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
 			var marketId any = GetValue(marketIds, i)
-			var orderbook any = GetValue(response, marketId)
+			var orderbook any = this.SafeDict(response, marketId, map[string]any{})
 			var symbol any = this.SafeSymbol(marketId, nil, "-")
 			var timestamp any = this.Parse8601(this.SafeString(orderbook, "timestamp"))
-			AddElementToObject(result, symbol, this.ParseOrderBook(GetValue(response, marketId), symbol, timestamp))
+			AddElementToObject(result, symbol, this.ParseOrderBook(orderbook, symbol, timestamp))
 		}
 
 		ch <- result
@@ -642,8 +701,8 @@ func (this *HollaexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes59612 := (<-this.LoadMarkets())
-			PanicOnError(retRes59612)
+			retRes59712 := (<-this.LoadMarkets())
+			PanicOnError(retRes59712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -699,8 +758,8 @@ func (this *HollaexCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes63812 := (<-this.LoadMarkets())
-			PanicOnError(retRes63812)
+			retRes63912 := (<-this.LoadMarkets())
+			PanicOnError(retRes63912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -748,8 +807,8 @@ func (this *HollaexCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes67012 := (<-this.LoadMarkets())
-			PanicOnError(retRes67012)
+			retRes67112 := (<-this.LoadMarkets())
+			PanicOnError(retRes67112)
 		}
 		symbols = this.MarketSymbols(symbols)
 
@@ -876,8 +935,8 @@ func (this *HollaexCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes77512 := (<-this.LoadMarkets())
-			PanicOnError(retRes77512)
+			retRes77612 := (<-this.LoadMarkets())
+			PanicOnError(retRes77612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -984,8 +1043,8 @@ func (this *HollaexCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes86712 := (<-this.LoadMarkets())
-			PanicOnError(retRes86712)
+			retRes86812 := (<-this.LoadMarkets())
+			PanicOnError(retRes86812)
 		}
 
 		response := (<-this.PublicGetTiers(params))
@@ -1073,8 +1132,8 @@ func (this *HollaexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes93512 := (<-this.LoadMarkets())
-			PanicOnError(retRes93512)
+			retRes93612 := (<-this.LoadMarkets())
+			PanicOnError(retRes93612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1088,9 +1147,9 @@ func (this *HollaexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes94619 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
-			PanicOnError(retRes94619)
-			ch <- retRes94619
+			retRes94719 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
+			PanicOnError(retRes94719)
+			ch <- retRes94719
 			return nil
 		}
 		var until any = this.SafeInteger(params, "until")
@@ -1123,7 +1182,7 @@ func (this *HollaexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		//         },
 		//     ]
 		//
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
 		return nil
 
 	}()
@@ -1187,8 +1246,8 @@ func (this *HollaexCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes103512 := (<-this.LoadMarkets())
-			PanicOnError(retRes103512)
+			retRes103612 := (<-this.LoadMarkets())
+			PanicOnError(retRes103612)
 		}
 
 		response := (<-this.PrivateGetUserBalance(params))
@@ -1234,8 +1293,8 @@ func (this *HollaexCore) FetchOpenOrder(id any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes106512 := (<-this.LoadMarkets())
-			PanicOnError(retRes106512)
+			retRes106612 := (<-this.LoadMarkets())
+			PanicOnError(retRes106612)
 		}
 		var request any = map[string]any{
 			"order_id": id,
@@ -1303,9 +1362,9 @@ func (this *HollaexCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 			"open": true,
 		}
 
-		retRes111315 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes111315)
-		ch <- retRes111315
+		retRes111415 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes111415)
+		ch <- retRes111415
 		return nil
 
 	}()
@@ -1340,9 +1399,9 @@ func (this *HollaexCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 			"open": false,
 		}
 
-		retRes113115 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes113115)
-		ch <- retRes113115
+		retRes113215 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes113215)
+		ch <- retRes113215
 		return nil
 
 	}()
@@ -1370,8 +1429,8 @@ func (this *HollaexCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes114612 := (<-this.LoadMarkets())
-			PanicOnError(retRes114612)
+			retRes114712 := (<-this.LoadMarkets())
+			PanicOnError(retRes114712)
 		}
 		var request any = map[string]any{
 			"order_id": id,
@@ -1439,8 +1498,8 @@ func (this *HollaexCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes119412 := (<-this.LoadMarkets())
-			PanicOnError(retRes119412)
+			retRes119512 := (<-this.LoadMarkets())
+			PanicOnError(retRes119512)
 		}
 		var market any = nil
 		var request any = map[string]any{}
@@ -1597,8 +1656,8 @@ func (this *HollaexCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes134612 := (<-this.LoadMarkets())
-			PanicOnError(retRes134612)
+			retRes134712 := (<-this.LoadMarkets())
+			PanicOnError(retRes134712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1679,8 +1738,8 @@ func (this *HollaexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes141112 := (<-this.LoadMarkets())
-			PanicOnError(retRes141112)
+			retRes141212 := (<-this.LoadMarkets())
+			PanicOnError(retRes141212)
 		}
 		var request any = map[string]any{
 			"order_id": id,
@@ -1732,8 +1791,8 @@ func (this *HollaexCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes144712 := (<-this.LoadMarkets())
-			PanicOnError(retRes144712)
+			retRes144812 := (<-this.LoadMarkets())
+			PanicOnError(retRes144812)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -1791,8 +1850,8 @@ func (this *HollaexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes148512 := (<-this.LoadMarkets())
-			PanicOnError(retRes148512)
+			retRes148612 := (<-this.LoadMarkets())
+			PanicOnError(retRes148612)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -1885,8 +1944,8 @@ func (this *HollaexCore) FetchDepositAddresses(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes156912 := (<-this.LoadMarkets())
-			PanicOnError(retRes156912)
+			retRes157012 := (<-this.LoadMarkets())
+			PanicOnError(retRes157012)
 		}
 		var network any = this.SafeString(params, "network")
 		params = this.Omit(params, "network")
@@ -1974,8 +2033,8 @@ func (this *HollaexCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes163712 := (<-this.LoadMarkets())
-			PanicOnError(retRes163712)
+			retRes163812 := (<-this.LoadMarkets())
+			PanicOnError(retRes163812)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -2045,8 +2104,8 @@ func (this *HollaexCore) FetchWithdrawal(id any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes169912 := (<-this.LoadMarkets())
-			PanicOnError(retRes169912)
+			retRes170012 := (<-this.LoadMarkets())
+			PanicOnError(retRes170012)
 		}
 		var request any = map[string]any{
 			"transaction_id": id,
@@ -2118,8 +2177,8 @@ func (this *HollaexCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes175112 := (<-this.LoadMarkets())
-			PanicOnError(retRes175112)
+			retRes175212 := (<-this.LoadMarkets())
+			PanicOnError(retRes175212)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -2295,8 +2354,8 @@ func (this *HollaexCore) Withdraw(code any, amount any, address any, optionalArg
 		this.CheckAddress(address)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes191612 := (<-this.LoadMarkets())
-			PanicOnError(retRes191612)
+			retRes191712 := (<-this.LoadMarkets())
+			PanicOnError(retRes191712)
 		}
 		var currency any = this.Currency(code)
 		if IsTrue(!IsEqual(tag, nil)) {

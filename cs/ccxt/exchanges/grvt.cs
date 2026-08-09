@@ -92,71 +92,171 @@ public partial class grvt : Exchange
             { "api", new Dictionary<string, object>() {
                 { "privateEdge", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "auth/api_key/login", 100 },
-                        { "auth/wallet/login", 100 },
+                        { "auth/api_key/login", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "auth/wallet/login", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
                     } },
                 } },
                 { "publicMarket", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "full/v1/instrument", 4 },
-                        { "full/v1/all_instruments", 4 },
-                        { "full/v1/instruments", 4 },
-                        { "full/v1/currency", 12 },
-                        { "full/v1/margin_rules", 12 },
-                        { "full/v1/mini", 4 },
-                        { "full/v1/ticker", 4 },
-                        { "full/v1/book", 12 },
-                        { "full/v1/trade", 12 },
-                        { "full/v1/trade_history", 12 },
-                        { "full/v1/kline", 12 },
-                        { "full/v1/funding", 12 },
+                        { "full/v1/instrument", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "full/v1/all_instruments", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "full/v1/instruments", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "full/v1/currency", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "full/v1/margin_rules", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "full/v1/mini", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "full/v1/ticker", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "full/v1/book", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "full/v1/trade", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "full/v1/trade_history", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "full/v1/kline", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "full/v1/funding", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
                     } },
                 } },
                 { "privateTrading", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "full/v1/create_order", 5 },
-                        { "full/v1/cancel_order", 5 },
-                        { "full/v1/cancel_on_disconnect", 100 },
-                        { "full/v1/cancel_all_orders", 50 },
-                        { "full/v1/order", rlOrders },
-                        { "full/v1/order_history", rlOrders },
-                        { "full/v1/open_orders", rlOrders },
-                        { "full/v1/fill_history", rlOrders },
-                        { "full/v1/positions", rlOrders },
-                        { "full/v1/funding_payment_history", rlOthers },
-                        { "full/v1/get_sub_accounts", rlOthers },
-                        { "full/v1/account_summary", rlOthers },
-                        { "full/v1/account_history", rlOthers },
-                        { "full/v1/aggregated_account_summary", rlOthers },
-                        { "full/v1/funding_account_summary", rlOthers },
-                        { "full/v1/transfer", 100 },
-                        { "full/v1/deposit_history", 100 },
-                        { "full/v1/transfer_history", 100 },
-                        { "full/v1/withdrawal", 100 },
-                        { "full/v1/withdrawal_history", 100 },
-                        { "full/v1/add_position_margin", rlOthers },
-                        { "full/v1/get_position_margin_limits", rlOthers },
-                        { "full/v1/set_position_config", rlOthers },
-                        { "full/v1/set_initial_leverage", rlOthers },
-                        { "full/v1/get_all_initial_leverage", rlOthers },
-                        { "full/v1/set_derisk_mm_ratio", rlOthers },
-                        { "full/v1/vault_burn_tokens", rlOthers },
-                        { "full/v1/vault_invest", rlOthers },
-                        { "full/v1/vault_investor_summary", rlOthers },
-                        { "full/v1/vault_redeem", rlOthers },
-                        { "full/v1/vault_redeem_cancel", rlOthers },
-                        { "full/v1/vault_view_redemption_queue", rlOthers },
-                        { "full/v1/vault_manager_investor_history", rlOthers },
-                        { "full/v1/authorize_builder", rlOthers },
-                        { "full/v1/get_authorized_builders", rlOthers },
-                        { "full/v1/builder_fill_history", rlOthers },
+                        { "full/v1/create_order", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "full/v1/cancel_order", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "full/v1/cancel_on_disconnect", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "full/v1/cancel_all_orders", new Dictionary<string, object>() {
+                            { "cost", 50 },
+                        } },
+                        { "full/v1/order", new Dictionary<string, object>() {
+                            { "cost", rlOrders },
+                        } },
+                        { "full/v1/order_history", new Dictionary<string, object>() {
+                            { "cost", rlOrders },
+                        } },
+                        { "full/v1/open_orders", new Dictionary<string, object>() {
+                            { "cost", rlOrders },
+                        } },
+                        { "full/v1/fill_history", new Dictionary<string, object>() {
+                            { "cost", rlOrders },
+                        } },
+                        { "full/v1/positions", new Dictionary<string, object>() {
+                            { "cost", rlOrders },
+                        } },
+                        { "full/v1/funding_payment_history", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/get_sub_accounts", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/account_summary", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/account_history", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/aggregated_account_summary", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/funding_account_summary", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/transfer", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "full/v1/deposit_history", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "full/v1/transfer_history", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "full/v1/withdrawal", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "full/v1/withdrawal_history", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "full/v1/add_position_margin", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/get_position_margin_limits", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/set_position_config", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/set_initial_leverage", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/get_all_initial_leverage", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/set_derisk_mm_ratio", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/vault_burn_tokens", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/vault_invest", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/vault_investor_summary", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/vault_redeem", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/vault_redeem_cancel", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/vault_view_redemption_queue", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/vault_manager_investor_history", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/authorize_builder", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/get_authorized_builders", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/builder_fill_history", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
                     } },
                 } },
             } },
             { "options", new Dictionary<string, object>() {
                 { "accountId", null },
                 { "networks", new Dictionary<string, object>() {
-                    { "ARBONE", "42161" },
+                    { "ARBITRUM", "42161" },
                     { "AVAXC", "43114" },
                     { "BASE", "8453" },
                     { "BSC", "56" },

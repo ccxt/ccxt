@@ -3,7 +3,7 @@ import Exchange from './abstract/blockchaincom.js';
 import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, List, Market, Num, NullableDict, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Fee, FeeString, Bool } from './base/types.js';
+import type { Balances, Currency, Dict, Int, List, Market, Num, NullableDict, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Fee, FeeString, Bool, Endpoint } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -95,38 +95,38 @@ export default class blockchaincom extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'tickers': 1, // fetchTickers
-                        'tickers/{symbol}': 1, // fetchTicker
-                        'symbols': 1, // fetchMarkets
-                        'symbols/{symbol}': 1, // fetchMarket
-                        'l2/{symbol}': 1, // fetchL2OrderBook
-                        'l3/{symbol}': 1, // fetchL3OrderBook
+                        'tickers': { 'cost': 1 } as Endpoint<List>, // fetchTickers
+                        'tickers/{symbol}': { 'cost': 1 } as Endpoint<Dict>, // fetchTicker
+                        'symbols': { 'cost': 1 } as Endpoint<Dict>, // fetchMarkets
+                        'symbols/{symbol}': { 'cost': 1 } as Endpoint<Dict>, // fetchMarket
+                        'l2/{symbol}': { 'cost': 1 } as Endpoint<Dict>, // fetchL2OrderBook
+                        'l3/{symbol}': { 'cost': 1 } as Endpoint<Dict>, // fetchL3OrderBook
                     },
                 },
                 'private': {
                     'get': {
-                        'fees': 1, // fetchFees
-                        'orders': 1, // fetchOpenOrders, fetchClosedOrders
-                        'orders/{orderId}': 1, // fetchOrder(id)
-                        'trades': 1,
-                        'fills': 1, // fetchMyTrades
-                        'deposits': 1, // fetchDeposits
-                        'deposits/{depositId}': 1, // fetchDeposit
-                        'accounts': 1, // fetchBalance
-                        'accounts/{account}/{currency}': 1,
-                        'whitelist': 1, // fetchWithdrawalWhitelist
-                        'whitelist/{currency}': 1, // fetchWithdrawalWhitelistByCurrency
-                        'withdrawals': 1, // fetchWithdrawalWhitelist
-                        'withdrawals/{withdrawalId}': 1, // fetchWithdrawalById
+                        'fees': { 'cost': 1 } as Endpoint<Dict>, // fetchFees
+                        'orders': { 'cost': 1 } as Endpoint<List>, // fetchOpenOrders, fetchClosedOrders
+                        'orders/{orderId}': { 'cost': 1 } as Endpoint<Dict>, // fetchOrder(id)
+                        'trades': { 'cost': 1 } as Endpoint<List>,
+                        'fills': { 'cost': 1 } as Endpoint<List>, // fetchMyTrades
+                        'deposits': { 'cost': 1 } as Endpoint<List>, // fetchDeposits
+                        'deposits/{depositId}': { 'cost': 1 } as Endpoint<Dict>, // fetchDeposit
+                        'accounts': { 'cost': 1 } as Endpoint<Dict>, // fetchBalance
+                        'accounts/{account}/{currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'whitelist': { 'cost': 1 } as Endpoint<List>, // fetchWithdrawalWhitelist
+                        'whitelist/{currency}': { 'cost': 1 } as Endpoint<List>, // fetchWithdrawalWhitelistByCurrency
+                        'withdrawals': { 'cost': 1 } as Endpoint<List>, // fetchWithdrawalWhitelist
+                        'withdrawals/{withdrawalId}': { 'cost': 1 } as Endpoint<Dict>, // fetchWithdrawalById
                     },
                     'post': {
-                        'orders': 1, // createOrder
-                        'deposits/{currency}': 1, // fetchDepositAddress by currency (only crypto supported)
-                        'withdrawals': 1, // withdraw
+                        'orders': { 'cost': 1 } as Endpoint<Dict>, // createOrder
+                        'deposits/{currency}': { 'cost': 1 } as Endpoint<Dict>, // fetchDepositAddress by currency (only crypto supported)
+                        'withdrawals': { 'cost': 1 } as Endpoint<Dict>, // withdraw
                     },
                     'delete': {
-                        'orders': 1, // cancelOrders
-                        'orders/{orderId}': 1, // cancelOrder
+                        'orders': { 'cost': 1 } as Endpoint<Dict>, // cancelOrders
+                        'orders/{orderId}': { 'cost': 1 } as Endpoint<Dict>, // cancelOrder
                     },
                 },
             },

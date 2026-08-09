@@ -49,10 +49,11 @@ func (this *LbankCore) Describe() any {
 			"fetchDepositAddress":            true,
 			"fetchDepositAddresses":          false,
 			"fetchDepositAddressesByNetwork": false,
+			"fetchDeposits":                  true,
 			"fetchDepositWithdrawFee":        "emulated",
 			"fetchDepositWithdrawFees":       true,
 			"fetchFundingHistory":            false,
-			"fetchFundingRate":               false,
+			"fetchFundingRate":               true,
 			"fetchFundingRateHistory":        false,
 			"fetchFundingRates":              true,
 			"fetchIndexOHLCV":                false,
@@ -79,8 +80,10 @@ func (this *LbankCore) Describe() any {
 			"fetchTickers":                   true,
 			"fetchTime":                      true,
 			"fetchTrades":                    true,
+			"fetchTradingFee":                true,
 			"fetchTradingFees":               true,
 			"fetchTransactionFees":           true,
+			"fetchWithdrawals":               true,
 			"reduceMargin":                   false,
 			"setLeverage":                    false,
 			"setMarginMode":                  false,
@@ -117,76 +120,192 @@ func (this *LbankCore) Describe() any {
 			"spot": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"currencyPairs":                2.5,
-						"accuracy":                     2.5,
-						"usdToCny":                     2.5,
-						"assetConfigs":                 2.5,
-						"withdrawConfigs":              Multiply(2.5, 1.5),
-						"timestamp":                    2.5,
-						"ticker/24hr":                  2.5,
-						"ticker":                       2.5,
-						"depth":                        2.5,
-						"incrDepth":                    2.5,
-						"trades":                       2.5,
-						"kline":                        2.5,
-						"supplement/system_ping":       2.5,
-						"supplement/incrDepth":         2.5,
-						"supplement/trades":            2.5,
-						"supplement/ticker/price":      2.5,
-						"supplement/ticker/bookTicker": 2.5,
+						"currencyPairs": map[string]any{
+							"cost": 2.5,
+						},
+						"accuracy": map[string]any{
+							"cost": 2.5,
+						},
+						"usdToCny": map[string]any{
+							"cost": 2.5,
+						},
+						"assetConfigs": map[string]any{
+							"cost": 2.5,
+						},
+						"withdrawConfigs": map[string]any{
+							"cost": Multiply(2.5, 1.5),
+						},
+						"timestamp": map[string]any{
+							"cost": 2.5,
+						},
+						"ticker/24hr": map[string]any{
+							"cost": 2.5,
+						},
+						"ticker": map[string]any{
+							"cost": 2.5,
+						},
+						"depth": map[string]any{
+							"cost": 2.5,
+						},
+						"incrDepth": map[string]any{
+							"cost": 2.5,
+						},
+						"trades": map[string]any{
+							"cost": 2.5,
+						},
+						"kline": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/system_ping": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/incrDepth": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/trades": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/ticker/price": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/ticker/bookTicker": map[string]any{
+							"cost": 2.5,
+						},
 					},
 					"post": map[string]any{
-						"supplement/system_status": 2.5,
+						"supplement/system_status": map[string]any{
+							"cost": 2.5,
+						},
 					},
 				},
 				"private": map[string]any{
 					"post": map[string]any{
-						"user_info":                         2.5,
-						"subscribe/get_key":                 2.5,
-						"subscribe/refresh_key":             2.5,
-						"subscribe/destroy_key":             2.5,
-						"get_deposit_address":               2.5,
-						"deposit_history":                   2.5,
-						"create_order":                      1,
-						"batch_create_order":                1,
-						"cancel_order":                      1,
-						"cancel_clientOrders":               1,
-						"orders_info":                       2.5,
-						"orders_info_history":               2.5,
-						"order_transaction_detail":          2.5,
-						"transaction_history":               2.5,
-						"orders_info_no_deal":               2.5,
-						"withdraw":                          2.5,
-						"withdrawCancel":                    2.5,
-						"withdraws":                         2.5,
-						"supplement/user_info":              2.5,
-						"supplement/withdraw":               2.5,
-						"supplement/deposit_history":        2.5,
-						"supplement/withdraws":              2.5,
-						"supplement/get_deposit_address":    2.5,
-						"supplement/asset_detail":           2.5,
-						"supplement/customer_trade_fee":     2.5,
-						"supplement/api_Restrictions":       2.5,
-						"supplement/system_ping":            2.5,
-						"supplement/create_order_test":      1,
-						"supplement/create_order":           1,
-						"supplement/cancel_order":           1,
-						"supplement/cancel_order_by_symbol": 1,
-						"supplement/orders_info":            2.5,
-						"supplement/orders_info_no_deal":    2.5,
-						"supplement/orders_info_history":    2.5,
-						"supplement/user_info_account":      2.5,
-						"supplement/transaction_history":    2.5,
+						"user_info": map[string]any{
+							"cost": 2.5,
+						},
+						"subscribe/get_key": map[string]any{
+							"cost": 2.5,
+						},
+						"subscribe/refresh_key": map[string]any{
+							"cost": 2.5,
+						},
+						"subscribe/destroy_key": map[string]any{
+							"cost": 2.5,
+						},
+						"get_deposit_address": map[string]any{
+							"cost": 2.5,
+						},
+						"deposit_history": map[string]any{
+							"cost": 2.5,
+						},
+						"create_order": map[string]any{
+							"cost": 1,
+						},
+						"batch_create_order": map[string]any{
+							"cost": 1,
+						},
+						"cancel_order": map[string]any{
+							"cost": 1,
+						},
+						"cancel_clientOrders": map[string]any{
+							"cost": 1,
+						},
+						"orders_info": map[string]any{
+							"cost": 2.5,
+						},
+						"orders_info_history": map[string]any{
+							"cost": 2.5,
+						},
+						"order_transaction_detail": map[string]any{
+							"cost": 2.5,
+						},
+						"transaction_history": map[string]any{
+							"cost": 2.5,
+						},
+						"orders_info_no_deal": map[string]any{
+							"cost": 2.5,
+						},
+						"withdraw": map[string]any{
+							"cost": 2.5,
+						},
+						"withdrawCancel": map[string]any{
+							"cost": 2.5,
+						},
+						"withdraws": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/user_info": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/withdraw": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/deposit_history": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/withdraws": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/get_deposit_address": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/asset_detail": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/customer_trade_fee": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/api_Restrictions": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/system_ping": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/create_order_test": map[string]any{
+							"cost": 1,
+						},
+						"supplement/create_order": map[string]any{
+							"cost": 1,
+						},
+						"supplement/cancel_order": map[string]any{
+							"cost": 1,
+						},
+						"supplement/cancel_order_by_symbol": map[string]any{
+							"cost": 1,
+						},
+						"supplement/orders_info": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/orders_info_no_deal": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/orders_info_history": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/user_info_account": map[string]any{
+							"cost": 2.5,
+						},
+						"supplement/transaction_history": map[string]any{
+							"cost": 2.5,
+						},
 					},
 				},
 			},
 			"contract": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"cfd/openApi/v1/pub/getTime":     2.5,
-						"cfd/openApi/v1/pub/instrument":  2.5,
-						"cfd/openApi/v1/pub/marketData":  2.5,
-						"cfd/openApi/v1/pub/marketOrder": 2.5,
+						"cfd/openApi/v1/pub/getTime": map[string]any{
+							"cost": 2.5,
+						},
+						"cfd/openApi/v1/pub/instrument": map[string]any{
+							"cost": 2.5,
+						},
+						"cfd/openApi/v1/pub/marketData": map[string]any{
+							"cost": 2.5,
+						},
+						"cfd/openApi/v1/pub/marketOrder": map[string]any{
+							"cost": 2.5,
+						},
 					},
 				},
 			},
@@ -831,8 +950,8 @@ func (this *LbankCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes79312 := (<-this.LoadMarkets())
-			PanicOnError(retRes79312)
+			retRes79612 := (<-this.LoadMarkets())
+			PanicOnError(retRes79612)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(GetValue(market, "swap")) {
@@ -901,8 +1020,8 @@ func (this *LbankCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes84212 := (<-this.LoadMarkets())
-			PanicOnError(retRes84212)
+			retRes84512 := (<-this.LoadMarkets())
+			PanicOnError(retRes84512)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -1005,8 +1124,8 @@ func (this *LbankCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes92512 := (<-this.LoadMarkets())
-			PanicOnError(retRes92512)
+			retRes92812 := (<-this.LoadMarkets())
+			PanicOnError(retRes92812)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(IsEqual(limit, nil)) {
@@ -1224,8 +1343,8 @@ func (this *LbankCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes111812 := (<-this.LoadMarkets())
-			PanicOnError(retRes111812)
+			retRes112112 := (<-this.LoadMarkets())
+			PanicOnError(retRes112112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1321,8 +1440,8 @@ func (this *LbankCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes119812 := (<-this.LoadMarkets())
-			PanicOnError(retRes119812)
+			retRes120112 := (<-this.LoadMarkets())
+			PanicOnError(retRes120112)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(IsEqual(limit, nil)) {
@@ -1509,7 +1628,7 @@ func (this *LbankCore) ParseBalance(response any) any {
 		}
 		return this.SafeBalance(result)
 	}
-	return nil
+	return this.SafeBalance(result)
 }
 func (this *LbankCore) ParseFundingRate(ticker any, optionalArgs ...any) any {
 	// {
@@ -1579,8 +1698,8 @@ func (this *LbankCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes144112 := (<-this.LoadMarkets())
-			PanicOnError(retRes144112)
+			retRes144412 := (<-this.LoadMarkets())
+			PanicOnError(retRes144412)
 		}
 		var market any = this.Market(symbol)
 
@@ -1614,8 +1733,8 @@ func (this *LbankCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes145912 := (<-this.LoadMarkets())
-			PanicOnError(retRes145912)
+			retRes146212 := (<-this.LoadMarkets())
+			PanicOnError(retRes146212)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{
@@ -1675,8 +1794,8 @@ func (this *LbankCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes150512 := (<-this.LoadMarkets())
-			PanicOnError(retRes150512)
+			retRes150812 := (<-this.LoadMarkets())
+			PanicOnError(retRes150812)
 		}
 		var options any = this.SafeValue(this.Options, "fetchBalance", map[string]any{})
 		var defaultMethod any = this.SafeString(options, "method", "spotPrivatePostSupplementUserInfo")
@@ -1806,8 +1925,8 @@ func (this *LbankCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes160112 := (<-this.LoadMarkets())
-			PanicOnError(retRes160112)
+			retRes160412 := (<-this.LoadMarkets())
+			PanicOnError(retRes160412)
 		}
 		var request any = map[string]any{}
 
@@ -1848,8 +1967,8 @@ func (this *LbankCore) CreateMarketBuyOrderWithCost(symbol any, cost any, option
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes162812 := (<-this.LoadMarkets())
-			PanicOnError(retRes162812)
+			retRes163112 := (<-this.LoadMarkets())
+			PanicOnError(retRes163112)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
@@ -1857,9 +1976,9 @@ func (this *LbankCore) CreateMarketBuyOrderWithCost(symbol any, cost any, option
 		}
 		AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-		retRes163515 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
-		PanicOnError(retRes163515)
-		ch <- retRes163515
+		retRes163815 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
+		PanicOnError(retRes163815)
+		ch <- retRes163815
 		return nil
 
 	}()
@@ -1891,8 +2010,8 @@ func (this *LbankCore) CreateOrder(symbol any, typeVar any, side any, amount any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes165412 := (<-this.LoadMarkets())
-			PanicOnError(retRes165412)
+			retRes165712 := (<-this.LoadMarkets())
+			PanicOnError(retRes165712)
 		}
 		var market any = this.Market(symbol)
 		var clientOrderId any = this.SafeString2(params, "custom_id", "clientOrderId")
@@ -2170,8 +2289,8 @@ func (this *LbankCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes191212 := (<-this.LoadMarkets())
-			PanicOnError(retRes191212)
+			retRes191512 := (<-this.LoadMarkets())
+			PanicOnError(retRes191512)
 		}
 		var method any = this.SafeString(params, "method")
 		if IsTrue(IsEqual(method, nil)) {
@@ -2180,15 +2299,15 @@ func (this *LbankCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(method, "fetchOrderSupplement")) {
 
-			retRes192019 := (<-this.FetchOrderSupplement(id, symbol, params))
-			PanicOnError(retRes192019)
-			ch <- retRes192019
+			retRes192319 := (<-this.FetchOrderSupplement(id, symbol, params))
+			PanicOnError(retRes192319)
+			ch <- retRes192319
 			return nil
 		}
 
-		retRes192215 := (<-this.FetchOrderDefault(id, symbol, params))
-		PanicOnError(retRes192215)
-		ch <- retRes192215
+		retRes192515 := (<-this.FetchOrderDefault(id, symbol, params))
+		PanicOnError(retRes192515)
+		ch <- retRes192515
 		return nil
 
 	}()
@@ -2208,8 +2327,8 @@ func (this *LbankCore) FetchOrderSupplement(id any, optionalArgs ...any) <-chan 
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes193012 := (<-this.LoadMarkets())
-			PanicOnError(retRes193012)
+			retRes193312 := (<-this.LoadMarkets())
+			PanicOnError(retRes193312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2263,8 +2382,8 @@ func (this *LbankCore) FetchOrderDefault(id any, optionalArgs ...any) <-chan any
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes196912 := (<-this.LoadMarkets())
-			PanicOnError(retRes196912)
+			retRes197212 := (<-this.LoadMarkets())
+			PanicOnError(retRes197212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2337,8 +2456,8 @@ func (this *LbankCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes202812 := (<-this.LoadMarkets())
-			PanicOnError(retRes202812)
+			retRes203112 := (<-this.LoadMarkets())
+			PanicOnError(retRes203112)
 		}
 		var market any = this.Market(symbol)
 		since = this.SafeValue(params, "start_date", since)
@@ -2416,8 +2535,8 @@ func (this *LbankCore) FetchOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes209212 := (<-this.LoadMarkets())
-			PanicOnError(retRes209212)
+			retRes209512 := (<-this.LoadMarkets())
+			PanicOnError(retRes209512)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(IsEqual(limit, nil)) {
@@ -2497,8 +2616,8 @@ func (this *LbankCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes215312 := (<-this.LoadMarkets())
-			PanicOnError(retRes215312)
+			retRes215612 := (<-this.LoadMarkets())
+			PanicOnError(retRes215612)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(IsEqual(limit, nil)) {
@@ -2573,8 +2692,8 @@ func (this *LbankCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes221212 := (<-this.LoadMarkets())
-			PanicOnError(retRes221212)
+			retRes221512 := (<-this.LoadMarkets())
+			PanicOnError(retRes221512)
 		}
 		var clientOrderId any = this.SafeString2(params, "origClientOrderId", "clientOrderId")
 		params = this.Omit(params, []any{"origClientOrderId", "clientOrderId"})
@@ -2634,8 +2753,8 @@ func (this *LbankCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes225612 := (<-this.LoadMarkets())
-			PanicOnError(retRes225612)
+			retRes225912 := (<-this.LoadMarkets())
+			PanicOnError(retRes225912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2697,8 +2816,8 @@ func (this *LbankCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes230512 := (<-this.LoadMarkets())
-			PanicOnError(retRes230512)
+			retRes230812 := (<-this.LoadMarkets())
+			PanicOnError(retRes230812)
 		}
 		var options any = this.SafeValue(this.Options, "fetchDepositAddress", map[string]any{})
 		var defaultMethod any = this.SafeString(options, "method", "fetchDepositAddressDefault")
@@ -2730,8 +2849,8 @@ func (this *LbankCore) FetchDepositAddressDefault(code any, optionalArgs ...any)
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes232212 := (<-this.LoadMarkets())
-			PanicOnError(retRes232212)
+			retRes232512 := (<-this.LoadMarkets())
+			PanicOnError(retRes232512)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -2784,8 +2903,8 @@ func (this *LbankCore) FetchDepositAddressSupplement(code any, optionalArgs ...a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes236212 := (<-this.LoadMarkets())
-			PanicOnError(retRes236212)
+			retRes236512 := (<-this.LoadMarkets())
+			PanicOnError(retRes236512)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -2857,8 +2976,8 @@ func (this *LbankCore) Withdraw(code any, amount any, address any, optionalArgs 
 		this.CheckAddress(address)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes241612 := (<-this.LoadMarkets())
-			PanicOnError(retRes241612)
+			retRes241912 := (<-this.LoadMarkets())
+			PanicOnError(retRes241912)
 		}
 		var fee any = this.SafeString(params, "fee")
 		params = this.Omit(params, "fee")
@@ -3035,8 +3154,8 @@ func (this *LbankCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes257912 := (<-this.LoadMarkets())
-			PanicOnError(retRes257912)
+			retRes258212 := (<-this.LoadMarkets())
+			PanicOnError(retRes258212)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -3109,8 +3228,8 @@ func (this *LbankCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes263512 := (<-this.LoadMarkets())
-			PanicOnError(retRes263512)
+			retRes263812 := (<-this.LoadMarkets())
+			PanicOnError(retRes263812)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -3181,8 +3300,8 @@ func (this *LbankCore) FetchTransactionFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes269412 := (<-this.LoadMarkets())
-			PanicOnError(retRes269412)
+			retRes269712 := (<-this.LoadMarkets())
+			PanicOnError(retRes269712)
 		}
 		var isAuthorized any = this.CheckRequiredCredentials(false)
 		var result any = nil
@@ -3223,8 +3342,8 @@ func (this *LbankCore) FetchPrivateTransactionFees(optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes271812 := (<-this.LoadMarkets())
-			PanicOnError(retRes271812)
+			retRes272112 := (<-this.LoadMarkets())
+			PanicOnError(retRes272112)
 		}
 
 		response := (<-this.SpotPrivatePostSupplementUserInfo())
@@ -3304,8 +3423,8 @@ func (this *LbankCore) FetchPublicTransactionFees(optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes278512 := (<-this.LoadMarkets())
-			PanicOnError(retRes278512)
+			retRes278812 := (<-this.LoadMarkets())
+			PanicOnError(retRes278812)
 		}
 		var code any = this.SafeString2(params, "coin", "assetCode")
 		params = this.Omit(params, []any{"coin", "assetCode"})
@@ -3394,8 +3513,8 @@ func (this *LbankCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes285812 := (<-this.LoadMarkets())
-			PanicOnError(retRes285812)
+			retRes286112 := (<-this.LoadMarkets())
+			PanicOnError(retRes286112)
 		}
 		var isAuthorized any = this.CheckRequiredCredentials(false)
 		var response any = nil
@@ -3438,8 +3557,8 @@ func (this *LbankCore) FetchPrivateDepositWithdrawFees(optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes288212 := (<-this.LoadMarkets())
-			PanicOnError(retRes288212)
+			retRes288512 := (<-this.LoadMarkets())
+			PanicOnError(retRes288512)
 		}
 
 		response := (<-this.SpotPrivatePostSupplementUserInfo(params))
@@ -3495,8 +3614,8 @@ func (this *LbankCore) FetchPublicDepositWithdrawFees(optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes292312 := (<-this.LoadMarkets())
-			PanicOnError(retRes292312)
+			retRes292612 := (<-this.LoadMarkets())
+			PanicOnError(retRes292612)
 		}
 		var request any = map[string]any{}
 

@@ -135,8 +135,8 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchSettlementHistory': False,
                 'fetchStatus': False,
-                'fetchTicker': False,
-                'fetchTickers': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
@@ -196,56 +196,56 @@ class tokocrypto(Exchange, ImplicitAPI):
             'api': {
                 'binance': {
                     'get': {
-                        'ping': 1,
-                        'time': 1,
+                        'ping': {'cost': 1},
+                        'time': {'cost': 1},
                         'depth': {'cost': 1, 'byLimit': [[100, 1], [500, 5], [1000, 10], [5000, 50]]},
-                        'trades': 1,
-                        'aggTrades': 1,
-                        'historicalTrades': 5,
-                        'klines': 1,
+                        'trades': {'cost': 1},
+                        'aggTrades': {'cost': 1},
+                        'historicalTrades': {'cost': 5},
+                        'klines': {'cost': 1},
                         'ticker/24hr': {'cost': 1, 'noSymbol': 40},
                         'ticker/price': {'cost': 1, 'noSymbol': 2},
                         'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
-                        'exchangeInfo': 10,
+                        'exchangeInfo': {'cost': 10},
                     },
                     'put': {
-                        'userDataStream': 1,
+                        'userDataStream': {'cost': 1},
                     },
                     'post': {
-                        'userDataStream': 1,
+                        'userDataStream': {'cost': 1},
                     },
                     'delete': {
-                        'userDataStream': 1,
+                        'userDataStream': {'cost': 1},
                     },
                 },
                 'public': {
                     'get': {
-                        'open/v1/common/time': 1,
-                        'open/v1/common/symbols': 1,
+                        'open/v1/common/time': {'cost': 1},
+                        'open/v1/common/symbols': {'cost': 1},
                         # all the actual symbols are type 1
-                        'open/v1/market/depth': 1,  # when symbol type is not 1
-                        'open/v1/market/trades': 1,  # when symbol type is not 1
-                        'open/v1/market/agg-trades': 1,  # when symbol type is not 1
-                        'open/v1/market/klines': 1,  # when symbol type is not 1
+                        'open/v1/market/depth': {'cost': 1},  # when symbol type is not 1
+                        'open/v1/market/trades': {'cost': 1},  # when symbol type is not 1
+                        'open/v1/market/agg-trades': {'cost': 1},  # when symbol type is not 1
+                        'open/v1/market/klines': {'cost': 1},  # when symbol type is not 1
                     },
                 },
                 'private': {
                     'get': {
-                        'open/v1/orders/detail': 1,
-                        'open/v1/orders': 1,
-                        'open/v1/account/spot': 1,
-                        'open/v1/account/spot/asset': 1,
-                        'open/v1/orders/trades': 1,
-                        'open/v1/withdraws': 1,
-                        'open/v1/deposits': 1,
-                        'open/v1/deposits/address': 1,
+                        'open/v1/orders/detail': {'cost': 1},
+                        'open/v1/orders': {'cost': 1},
+                        'open/v1/account/spot': {'cost': 1},
+                        'open/v1/account/spot/asset': {'cost': 1},
+                        'open/v1/orders/trades': {'cost': 1},
+                        'open/v1/withdraws': {'cost': 1},
+                        'open/v1/deposits': {'cost': 1},
+                        'open/v1/deposits/address': {'cost': 1},
                     },
                     'post': {
-                        'open/v1/orders': 1,
-                        'open/v1/orders/cancel': 1,
-                        'open/v1/orders/oco': 1,
-                        'open/v1/withdraws': 1,
-                        'open/v1/user-data-stream': 1,
+                        'open/v1/orders': {'cost': 1},
+                        'open/v1/orders/cancel': {'cost': 1},
+                        'open/v1/orders/oco': {'cost': 1},
+                        'open/v1/withdraws': {'cost': 1},
+                        'open/v1/user-data-stream': {'cost': 1},
                     },
                 },
             },
@@ -1200,9 +1200,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        responseList = []
-        if response is not None:
-            responseList = response
+        responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
@@ -1440,7 +1438,11 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         #     ]
         #
-        data = self.safe_list(response, 'data', response)
+        data = []
+        if isinstance(response, list):
+            data = response
+        else:
+            data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -2558,7 +2560,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             return config['noPoolId']
         elif ('byLimit' in config) and ('limit' in params):
             limit = params['limit']
-            byLimit = config['byLimit']
+            byLimit = self.safe_list(config, 'byLimit', [])
             for i in range(0, len(byLimit)):
                 entry = byLimit[i]
                 if limit <= entry[0]:

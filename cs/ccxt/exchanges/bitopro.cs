@@ -89,7 +89,7 @@ public partial class bitopro : Exchange
                 { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
-                { "fetchOrders", false },
+                { "fetchOrders", true },
                 { "fetchOrderTrades", false },
                 { "fetchPosition", false },
                 { "fetchPositionHistory", false },
@@ -152,42 +152,94 @@ public partial class bitopro : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "order-book/{pair}", 1 },
-                        { "tickers", 1 },
-                        { "tickers/{pair}", 1 },
-                        { "trades/{pair}", 1 },
-                        { "provisioning/currencies", 1 },
-                        { "provisioning/trading-pairs", 1 },
-                        { "provisioning/limitations-and-fees", 1 },
-                        { "trading-history/{pair}", 1 },
-                        { "price/otc/{currency}", 1 },
+                        { "order-book/{pair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers/{pair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades/{pair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "provisioning/currencies", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "provisioning/trading-pairs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "provisioning/limitations-and-fees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trading-history/{pair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "price/otc/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "accounts/balance", 1 },
-                        { "orders/history", 1 },
-                        { "orders/all/{pair}", 1 },
-                        { "orders/trades/{pair}", 1 },
-                        { "orders/{pair}/{orderId}", 1 },
-                        { "wallet/withdraw/{currency}/{serial}", 1 },
-                        { "wallet/withdraw/{currency}/id/{id}", 1 },
-                        { "wallet/depositHistory/{currency}", 1 },
-                        { "wallet/withdrawHistory/{currency}", 1 },
-                        { "orders/open", 1 },
+                        { "accounts/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/all/{pair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/trades/{pair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{pair}/{orderId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallet/withdraw/{currency}/{serial}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallet/withdraw/{currency}/id/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallet/depositHistory/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallet/withdrawHistory/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/open", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "orders/{pair}", divide(1, 2) },
-                        { "orders/batch", divide(20, 3) },
-                        { "wallet/withdraw/{currency}", 10 },
+                        { "orders/{pair}", new Dictionary<string, object>() {
+                            { "cost", divide(1, 2) },
+                        } },
+                        { "orders/batch", new Dictionary<string, object>() {
+                            { "cost", divide(20, 3) },
+                        } },
+                        { "wallet/withdraw/{currency}", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
-                        { "orders", 5 },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "orders/{pair}/{id}", divide(2, 3) },
-                        { "orders/all", 5 },
-                        { "orders/{pair}", 5 },
+                        { "orders/{pair}/{id}", new Dictionary<string, object>() {
+                            { "cost", divide(2, 3) },
+                        } },
+                        { "orders/all", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "orders/{pair}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                 } },
             } },

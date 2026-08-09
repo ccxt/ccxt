@@ -61,32 +61,32 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `publicGetExchangesPairTicker` | GET | `Exchanges/{pair}/Ticker` |  |
-| `publicGetExchangesPairOrderbook` | GET | `Exchanges/{pair}/orderbook` |  |
-| `publicGetExchangesPairTrades` | GET | `Exchanges/{pair}/trades` |  |
-| `publicGetExchangesPairLasttrades` | GET | `Exchanges/{pair}/lasttrades` |  |
+| `publicGetExchangesPairTicker` | GET | `Exchanges/{pair}/Ticker` | 1 |
+| `publicGetExchangesPairOrderbook` | GET | `Exchanges/{pair}/orderbook` | 1 |
+| `publicGetExchangesPairTrades` | GET | `Exchanges/{pair}/trades` | 1 |
+| `publicGetExchangesPairLasttrades` | GET | `Exchanges/{pair}/lasttrades` | 1 |
 
 ## private
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `privatePostMerchantCreateCheckout` | POST | `Merchant/CreateCheckout` |  |
-| `privatePostFundsAddCoinFundsRequest` | POST | `Funds/AddCoinFundsRequest` |  |
-| `privatePostOrderAddFund` | POST | `Order/AddFund` |  |
-| `privatePostOrderAddOrder` | POST | `Order/AddOrder` |  |
-| `privatePostOrderGetById` | POST | `Order/GetById` |  |
-| `privatePostOrderAddOrderMarketPriceBuy` | POST | `Order/AddOrderMarketPriceBuy` |  |
-| `privatePostOrderAddOrderMarketPriceSell` | POST | `Order/AddOrderMarketPriceSell` |  |
-| `privatePostOrderCancelOrder` | POST | `Order/CancelOrder` |  |
-| `privatePostOrderAddCoinFundsRequest` | POST | `Order/AddCoinFundsRequest` |  |
-| `privatePostOrderAddStopOrder` | POST | `Order/AddStopOrder` |  |
-| `privatePostPaymentGetMyId` | POST | `Payment/GetMyId` |  |
-| `privatePostPaymentSend` | POST | `Payment/Send` |  |
-| `privatePostPaymentPay` | POST | `Payment/Pay` |  |
-| `privateGetAccountBalance` | GET | `Account/Balance` |  |
-| `privateGetAccountBalanceV2` | GET | `Account/Balance/v2` |  |
-| `privateGetOrderMyOrders` | GET | `Order/MyOrders` |  |
-| `privateGetOrderGetById` | GET | `Order/GetById` |  |
-| `privateGetOrderAccountHistory` | GET | `Order/AccountHistory` |  |
-| `privateGetOrderOrderHistory` | GET | `Order/OrderHistory` |  |
+| `privatePostMerchantCreateCheckout` | POST | `Merchant/CreateCheckout` | 1 |
+| `privatePostFundsAddCoinFundsRequest` | POST | `Funds/AddCoinFundsRequest` | 1 |
+| `privatePostOrderAddFund` | POST | `Order/AddFund` | 1 |
+| `privatePostOrderAddOrder` | POST | `Order/AddOrder` | 1 |
+| `privatePostOrderGetById` | POST | `Order/GetById` | 1 |
+| `privatePostOrderAddOrderMarketPriceBuy` | POST | `Order/AddOrderMarketPriceBuy` | 1 |
+| `privatePostOrderAddOrderMarketPriceSell` | POST | `Order/AddOrderMarketPriceSell` | 1 |
+| `privatePostOrderCancelOrder` | POST | `Order/CancelOrder` | 1 |
+| `privatePostOrderAddCoinFundsRequest` | POST | `Order/AddCoinFundsRequest` | 1 |
+| `privatePostOrderAddStopOrder` | POST | `Order/AddStopOrder` | 1 |
+| `privatePostPaymentGetMyId` | POST | `Payment/GetMyId` | 1 |
+| `privatePostPaymentSend` | POST | `Payment/Send` | 1 |
+| `privatePostPaymentPay` | POST | `Payment/Pay` | 1 |
+| `privateGetAccountBalance` | GET | `Account/Balance` | 1 |
+| `privateGetAccountBalanceV2` | GET | `Account/Balance/v2` | 1 |
+| `privateGetOrderMyOrders` | GET | `Order/MyOrders` | 1 |
+| `privateGetOrderGetById` | GET | `Order/GetById` | 1 |
+| `privateGetOrderAccountHistory` | GET | `Order/AccountHistory` | 1 |
+| `privateGetOrderOrderHistory` | GET | `Order/OrderHistory` | 1 |
 

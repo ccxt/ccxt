@@ -5,7 +5,7 @@ import Exchange from './abstract/krakenfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, NullableDict, FeeString } from './base/types.js';
+import type { Balances, Bool, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, Leverages, LeverageTier, LeverageTiers, List, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, NullableDict, FeeString, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -36,6 +36,7 @@ export default class krakenfutures extends Exchange {
                 'cancelOrders': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createOrders': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -108,63 +109,63 @@ export default class krakenfutures extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'feeschedules', // deprecated
-                        'instruments',
-                        'orderbook',
-                        'tickers',
-                        'history',
-                        'historicalfundingrates',
-                    ],
+                    'get': {
+                        'feeschedules': { 'cost': 1 } as Endpoint<Dict>,
+                        'instruments': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                        'tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        'history': { 'cost': 1 } as Endpoint<Dict>,
+                        'historicalfundingrates': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'feeschedules/volumes', // deprecated
-                        'openpositions',
-                        'notifications',
-                        'accounts',
-                        'openorders',
-                        'recentorders',
-                        'fills',
-                        'transfers',
-                        'leveragepreferences',
-                        'pnlpreferences',
-                        'assignmentprogram/current',
-                        'assignmentprogram/history',
-                        'orders/status',
-                    ],
-                    'post': [
-                        'sendorder',
-                        'editorder',
-                        'cancelorder',
-                        'transfer',
-                        'batchorder',
-                        'cancelallorders',
-                        'cancelallordersafter',
-                        'withdrawal',                              // for futures wallet -> kraken spot wallet
-                        'assignmentprogram/add',
-                        'assignmentprogram/delete',
-                    ],
-                    'put': [
-                        'leveragepreferences',
-                        'pnlpreferences',
-                    ],
+                    'get': {
+                        'feeschedules/volumes': { 'cost': 1 } as Endpoint<Dict>,
+                        'openpositions': { 'cost': 1 } as Endpoint<List>,
+                        'notifications': { 'cost': 1 } as Endpoint<Dict>,
+                        'accounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'openorders': { 'cost': 1 } as Endpoint<Dict>,
+                        'recentorders': { 'cost': 1 } as Endpoint<Dict>,
+                        'fills': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfers': { 'cost': 1 } as Endpoint<Dict>,
+                        'leveragepreferences': { 'cost': 1 } as Endpoint<Dict>,
+                        'pnlpreferences': { 'cost': 1 } as Endpoint<Dict>,
+                        'assignmentprogram/current': { 'cost': 1 } as Endpoint<Dict>,
+                        'assignmentprogram/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/status': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'post': {
+                        'sendorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'editorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'batchorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelallorders': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelallordersafter': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'assignmentprogram/add': { 'cost': 1 } as Endpoint<Dict>,
+                        'assignmentprogram/delete': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'put': {
+                        'leveragepreferences': { 'cost': 1 } as Endpoint<Dict>,
+                        'pnlpreferences': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'charts': {
-                    'get': [
-                        '{price_type}/{symbol}/{interval}',
-                    ],
+                    'get': {
+                        '{price_type}/{symbol}/{interval}': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'history': {
-                    'get': [
-                        'orders',
-                        'executions',
-                        'triggers',
-                        'accountlogcsv',
-                        'account-log',
-                        'market/{symbol}/orders',
-                        'market/{symbol}/executions',
-                    ],
+                    'get': {
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'executions': { 'cost': 1 } as Endpoint<Dict>,
+                        'triggers': { 'cost': 1 } as Endpoint<Dict>,
+                        'accountlogcsv': { 'cost': 1 } as Endpoint<string>,
+                        'account-log': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/{symbol}/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/{symbol}/executions': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -418,7 +419,7 @@ export default class krakenfutures extends Exchange {
         //    }
         //
         const instruments = this.safeValue (response, 'instruments', []);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < instruments.length; i++) {
             const market = instruments[i];
             const id = this.safeString (market, 'symbol');
@@ -524,7 +525,7 @@ export default class krakenfutures extends Exchange {
             });
         }
         const settlementCurrencies = this.options['settlementCurrencies']['flex'];
-        const currencies: any[] = [];
+        const currencies: Dict[] = [];
         for (let i = 0; i < settlementCurrencies.length; i++) {
             const code = settlementCurrencies[i];
             currencies.push ({
@@ -587,8 +588,9 @@ export default class krakenfutures extends Exchange {
         //        },
         //    }
         //
-        const timestamp = this.parse8601 (response['serverTime']);
-        return this.parseOrderBook (response['orderBook'], symbol, timestamp);
+        const timestamp = this.parse8601 (this.safeString (response, 'serverTime'));
+        const orderBook = this.safeDict (response, 'orderBook', {});
+        return this.parseOrderBook (orderBook, symbol, timestamp);
     }
 
     /**
@@ -830,7 +832,7 @@ export default class krakenfutures extends Exchange {
         };
         let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions');
-        let rawTrades: any[] = [];
+        let rawTrades: Dict[] = [];
         const isFullHistoryEndpoint = (method === 'historyGetMarketSymbolExecutions');
         if (isFullHistoryEndpoint) {
             [ request, params ] = this.handleUntilOption ('before', request, params);
@@ -1256,7 +1258,7 @@ export default class krakenfutures extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const ordersRequests: any[] = [];
+        const ordersRequests: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
@@ -1326,9 +1328,10 @@ export default class krakenfutures extends Exchange {
             request['limitPrice'] = price;
         }
         const response = await this.privatePostEditorder (this.extend (request, params));
-        const status = this.safeString (response['editStatus'], 'status');
+        const editStatus = this.safeDict (response, 'editStatus', {});
+        const status = this.safeString (editStatus, 'status');
         this.verifyOrderActionSuccess (status, 'editOrder', [ 'filled' ]);
-        const order = this.parseOrder (response['editStatus']);
+        const order = this.parseOrder (editStatus);
         order['info'] = response;
         return order;
     }
@@ -1374,7 +1377,7 @@ export default class krakenfutures extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const orders: any[] = [];
+        const orders: Dict[] = [];
         const clientOrderIds = this.safeValue (params, 'clientOrderIds', []);
         const clientOrderIdsLength = clientOrderIds.length;
         if (clientOrderIdsLength > 0) {
@@ -1471,7 +1474,7 @@ export default class krakenfutures extends Exchange {
         //
         const cancelStatus = this.safeDict (response, 'cancelStatus');
         const orderEvents = this.safeList (cancelStatus, 'orderEvents', []);
-        const orders: any[] = [];
+        const orders: Dict[] = [];
         for (let i = 0; i < orderEvents.length; i++) {
             const orderEvent = this.safeDict (orderEvents, 0);
             const order = this.safeDict (orderEvent, 'order', {});
@@ -1620,7 +1623,7 @@ export default class krakenfutures extends Exchange {
             response = await this.historyGetOrders (this.extend (request, params));
         }
         const allOrders = this.safeList (response, 'elements', []);
-        const closedOrders: any[] = [];
+        const closedOrders: Dict[] = [];
         for (let i = 0; i < allOrders.length; i++) {
             const order = allOrders[i];
             const event = this.safeDict (order, 'event', {});
@@ -1681,7 +1684,7 @@ export default class krakenfutures extends Exchange {
             response = await this.historyGetOrders (this.extend (request, params));
         }
         const allOrders = this.safeList (response, 'elements', []);
-        const canceledAndRejected: any[] = [];
+        const canceledAndRejected: Dict[] = [];
         for (let i = 0; i < allOrders.length; i++) {
             const order = allOrders[i];
             const event = this.safeDict (order, 'event', {});
@@ -2137,7 +2140,7 @@ export default class krakenfutures extends Exchange {
         let price: Str = undefined;
         let trades: Trade[] = [];
         if (orderEventsLength) {
-            const executions: any[] = [];
+            const executions: Dict[] = [];
             for (let i = 0; i < orderEvents.length; i++) {
                 const item = orderEvents[i];
                 if (this.safeString (item, 'type') === 'EXECUTION') {
@@ -2320,7 +2323,8 @@ export default class krakenfutures extends Exchange {
         //        ]
         //    }
         //
-        return this.parseTrades (response['fills'], market, since, limit);
+        const fills = this.safeList (response, 'fills', []);
+        return this.parseTrades (fills, market, since, limit);
     }
 
     /**
@@ -2582,7 +2586,7 @@ export default class krakenfutures extends Exchange {
             const parsed = this.parseFundingRate (entry, market);
             fundingRates.push (parsed);
         }
-        return this.indexBy (fundingRates, 'symbol') as any;
+        return this.indexBy (fundingRates, 'symbol');
     }
 
     override parseFundingRate (ticker: any, market: Market = undefined): FundingRate {
@@ -2692,7 +2696,7 @@ export default class krakenfutures extends Exchange {
         //    }
         //
         const rates = this.safeValue (response, 'rates');
-        const result: any[] = [];
+        const result: FundingRateHistory[] = [];
         for (let i = 0; i < rates.length; i++) {
             const item = rates[i];
             const datetime = this.safeString (item, 'timestamp');
@@ -2916,7 +2920,7 @@ export default class krakenfutures extends Exchange {
         const marginLevels = this.safeValue (info, 'marginLevels');
         const marketId = this.safeString (info, 'symbol');
         market = this.safeMarket (marketId, market);
-        const tiers: any[] = [];
+        const tiers: LeverageTier[] = [];
         if (marginLevels === undefined) {
             return tiers;
         }

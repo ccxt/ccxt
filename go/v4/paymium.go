@@ -61,12 +61,88 @@ func (this *PaymiumCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"countries", "currencies", "data/{currency}/ticker", "data/{currency}/trades", "data/{currency}/depth", "bitcoin_charts/{id}/trades", "bitcoin_charts/{id}/depth"},
+				"get": map[string]any{
+					"countries": map[string]any{
+						"cost": 1,
+					},
+					"currencies": map[string]any{
+						"cost": 1,
+					},
+					"data/{currency}/ticker": map[string]any{
+						"cost": 1,
+					},
+					"data/{currency}/trades": map[string]any{
+						"cost": 1,
+					},
+					"data/{currency}/depth": map[string]any{
+						"cost": 1,
+					},
+					"bitcoin_charts/{id}/trades": map[string]any{
+						"cost": 1,
+					},
+					"bitcoin_charts/{id}/depth": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"get":    []any{"user", "user/addresses", "user/addresses/{address}", "user/orders", "user/orders/{uuid}", "user/price_alerts", "merchant/get_payment/{uuid}"},
-				"post":   []any{"user/addresses", "user/orders", "user/withdrawals", "user/email_transfers", "user/payment_requests", "user/price_alerts", "merchant/create_payment"},
-				"delete": []any{"user/orders/{uuid}", "user/orders/{uuid}/cancel", "user/price_alerts/{id}"},
+				"get": map[string]any{
+					"user": map[string]any{
+						"cost": 1,
+					},
+					"user/addresses": map[string]any{
+						"cost": 1,
+					},
+					"user/addresses/{address}": map[string]any{
+						"cost": 1,
+					},
+					"user/orders": map[string]any{
+						"cost": 1,
+					},
+					"user/orders/{uuid}": map[string]any{
+						"cost": 1,
+					},
+					"user/price_alerts": map[string]any{
+						"cost": 1,
+					},
+					"merchant/get_payment/{uuid}": map[string]any{
+						"cost": 1,
+					},
+				},
+				"post": map[string]any{
+					"user/addresses": map[string]any{
+						"cost": 1,
+					},
+					"user/orders": map[string]any{
+						"cost": 1,
+					},
+					"user/withdrawals": map[string]any{
+						"cost": 1,
+					},
+					"user/email_transfers": map[string]any{
+						"cost": 1,
+					},
+					"user/payment_requests": map[string]any{
+						"cost": 1,
+					},
+					"user/price_alerts": map[string]any{
+						"cost": 1,
+					},
+					"merchant/create_payment": map[string]any{
+						"cost": 1,
+					},
+				},
+				"delete": map[string]any{
+					"user/orders/{uuid}": map[string]any{
+						"cost": 1,
+					},
+					"user/orders/{uuid}/cancel": map[string]any{
+						"cost": 1,
+					},
+					"user/price_alerts/{id}": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"markets": map[string]any{
@@ -586,7 +662,7 @@ func (this *PaymiumCore) CreateOrder(symbol any, typeVar any, side any, amount a
 
 		ch <- this.SafeOrder(map[string]any{
 			"info": response,
-			"id":   GetValue(response, "uuid"),
+			"id":   this.SafeString(response, "uuid"),
 		}, market)
 		return nil
 

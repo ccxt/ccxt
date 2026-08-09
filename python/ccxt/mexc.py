@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -52,7 +52,7 @@ class mexc(Exchange, ImplicitAPI):
                 'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'cancelOrders': None,
+                'cancelOrders': True,
                 'closeAllPositions': True,
                 'closePosition': False,
                 'createDepositAddress': True,
@@ -152,7 +152,7 @@ class mexc(Exchange, ImplicitAPI):
                 'setMarginMode': True,
                 'setPositionMode': True,
                 'signIn': None,
-                'transfer': None,
+                'transfer': True,
                 'withdraw': True,
             },
             'urls': {
@@ -188,289 +188,290 @@ class mexc(Exchange, ImplicitAPI):
                 'spot': {
                     'public': {
                         'get': {
-                            'ping': 1,
-                            'time': 1,
-                            'defaultSymbols': 1,
-                            'symbol/offline': 10,
-                            'exchangeInfo': 25,
-                            'depth': 3,
-                            'trades': 5,
-                            'historicalTrades': 1,
-                            'aggTrades': 1,
-                            'klines': 1,
-                            'avgPrice': 1,
-                            'ticker/24hr': 25,
-                            'ticker/price': 10,
-                            'ticker/bookTicker': 10,
-                            'etf/info': 1,
+                            'announcements': {'cost': 8},
+                            'ping': {'cost': 1},
+                            'time': {'cost': 1},
+                            'defaultSymbols': {'cost': 1},
+                            'symbol/offline': {'cost': 10},
+                            'exchangeInfo': {'cost': 25},
+                            'depth': {'cost': 3},
+                            'trades': {'cost': 5},
+                            'historicalTrades': {'cost': 1},
+                            'aggTrades': {'cost': 1},
+                            'klines': {'cost': 1},
+                            'avgPrice': {'cost': 1},
+                            'ticker/24hr': {'cost': 25},
+                            'ticker/price': {'cost': 10},
+                            'ticker/bookTicker': {'cost': 10},
+                            'etf/info': {'cost': 1},
                         },
                     },
                     'private': {
                         'get': {
-                            'kyc/status': 1,
-                            'uid': 1,
-                            'order': 2,
-                            'openOrders': 3,
-                            'allOrders': 10,
-                            'account': 10,
-                            'myTrades': 10,
-                            'strategy/group': 20,
-                            'strategy/group/uid': 20,
-                            'tradeFee': 20,
-                            'sub-account/list': 1,
-                            'sub-account/apiKey': 1,
-                            'sub-account/asset': 1,
-                            'capital/config/getall': 10,
-                            'capital/deposit/hisrec': 10,
-                            'capital/withdraw/history': 1,
-                            'capital/withdraw/address': 10,
-                            'capital/deposit/address': 10,
-                            'capital/transfer': 1,
-                            'capital/transfer/tranId': 1,
-                            'capital/transfer/internal': 1,
-                            'capital/sub-account/universalTransfer': 1,
-                            'capital/convert': 1,
-                            'capital/convert/list': 1,
-                            'margin/loan': 1,
-                            'margin/allOrders': 1,
-                            'margin/myTrades': 1,
-                            'margin/openOrders': 1,
-                            'margin/maxTransferable': 1,
-                            'margin/priceIndex': 1,
-                            'margin/order': 1,
-                            'margin/isolated/account': 1,
-                            'margin/maxBorrowable': 1,
-                            'margin/repay': 1,
-                            'margin/isolated/pair': 1,
-                            'margin/forceLiquidationRec': 1,
-                            'margin/isolatedMarginData': 1,
-                            'margin/isolatedMarginTier': 1,
-                            'rebate/taxQuery': 1,
-                            'rebate/detail': 1,
-                            'rebate/detail/kickback': 1,
-                            'rebate/referCode': 1,
-                            'rebate/affiliate/commission': 1,
-                            'rebate/affiliate/withdraw': 1,
-                            'rebate/affiliate/commission/detail': 1,
-                            'rebate/affiliate/campaign': 1,
-                            'rebate/affiliate/referral': 1,
-                            'rebate/affiliate/subaffiliates': 1,
-                            'rebate/affiliate/list': 1,
-                            'mxDeduct/enable': 1,
-                            'userDataStream': 1,
-                            'selfSymbols': 1,
-                            'asset/internal/transfer/record': 10,
+                            'kyc/status': {'cost': 1},
+                            'uid': {'cost': 1},
+                            'order': {'cost': 2},
+                            'openOrders': {'cost': 3},
+                            'allOrders': {'cost': 10},
+                            'account': {'cost': 10},
+                            'myTrades': {'cost': 10},
+                            'strategy/group': {'cost': 20},
+                            'strategy/group/uid': {'cost': 20},
+                            'tradeFee': {'cost': 20},
+                            'sub-account/list': {'cost': 1},
+                            'sub-account/apiKey': {'cost': 1},
+                            'sub-account/asset': {'cost': 1},
+                            'capital/config/getall': {'cost': 10},
+                            'capital/deposit/hisrec': {'cost': 10},
+                            'capital/withdraw/history': {'cost': 1},
+                            'capital/withdraw/address': {'cost': 10},
+                            'capital/deposit/address': {'cost': 10},
+                            'capital/transfer': {'cost': 1},
+                            'capital/transfer/tranId': {'cost': 1},
+                            'capital/transfer/internal': {'cost': 1},
+                            'capital/sub-account/universalTransfer': {'cost': 1},
+                            'capital/convert': {'cost': 1},
+                            'capital/convert/list': {'cost': 1},
+                            'margin/loan': {'cost': 1},
+                            'margin/allOrders': {'cost': 1},
+                            'margin/myTrades': {'cost': 1},
+                            'margin/openOrders': {'cost': 1},
+                            'margin/maxTransferable': {'cost': 1},
+                            'margin/priceIndex': {'cost': 1},
+                            'margin/order': {'cost': 1},
+                            'margin/isolated/account': {'cost': 1},
+                            'margin/maxBorrowable': {'cost': 1},
+                            'margin/repay': {'cost': 1},
+                            'margin/isolated/pair': {'cost': 1},
+                            'margin/forceLiquidationRec': {'cost': 1},
+                            'margin/isolatedMarginData': {'cost': 1},
+                            'margin/isolatedMarginTier': {'cost': 1},
+                            'rebate/taxQuery': {'cost': 1},
+                            'rebate/detail': {'cost': 1},
+                            'rebate/detail/kickback': {'cost': 1},
+                            'rebate/referCode': {'cost': 1},
+                            'rebate/affiliate/commission': {'cost': 1},
+                            'rebate/affiliate/withdraw': {'cost': 1},
+                            'rebate/affiliate/commission/detail': {'cost': 1},
+                            'rebate/affiliate/campaign': {'cost': 1},
+                            'rebate/affiliate/referral': {'cost': 1},
+                            'rebate/affiliate/subaffiliates': {'cost': 1},
+                            'rebate/affiliate/list': {'cost': 1},
+                            'mxDeduct/enable': {'cost': 1},
+                            'userDataStream': {'cost': 1},
+                            'selfSymbols': {'cost': 1},
+                            'asset/internal/transfer/record': {'cost': 10},
                         },
                         'post': {
-                            'order': 1,
-                            'order/test': 1,
-                            'apiKeyInfo': 1,
-                            'sub-account/virtualSubAccount': 1,
-                            'sub-account/apiKey': 1,
-                            'sub-account/futures': 1,
-                            'sub-account/margin': 1,
-                            'batchOrders': 10,
-                            'strategy/group': 20,
-                            'capital/withdraw/apply': 1,
-                            'capital/withdraw': 1,
-                            'capital/transfer': 50,
-                            'capital/transfer/internal': 1,
-                            'capital/deposit/address': 1,
-                            'capital/sub-account/universalTransfer': 1,
-                            'capital/convert': 10,
-                            'mxDeduct/enable': 1,
-                            'userDataStream': 1,
+                            'order': {'cost': 1},
+                            'order/test': {'cost': 1},
+                            'apiKeyInfo': {'cost': 1},
+                            'sub-account/virtualSubAccount': {'cost': 1},
+                            'sub-account/apiKey': {'cost': 1},
+                            'sub-account/futures': {'cost': 1},
+                            'sub-account/margin': {'cost': 1},
+                            'batchOrders': {'cost': 10},
+                            'strategy/group': {'cost': 20},
+                            'capital/withdraw/apply': {'cost': 1},
+                            'capital/withdraw': {'cost': 1},
+                            'capital/transfer': {'cost': 50},
+                            'capital/transfer/internal': {'cost': 1},
+                            'capital/deposit/address': {'cost': 1},
+                            'capital/sub-account/universalTransfer': {'cost': 1},
+                            'capital/convert': {'cost': 10},
+                            'mxDeduct/enable': {'cost': 1},
+                            'userDataStream': {'cost': 1},
                         },
                         'put': {
-                            'userDataStream': 1,
+                            'userDataStream': {'cost': 1},
                         },
                         'delete': {
-                            'order': 1,
-                            'openOrders': 1,
-                            'order/all': 1,
-                            'sub-account/apiKey': 1,
-                            'strategy/group': 1,
-                            'strategy/group/uid': 1,
-                            'margin/order': 1,
-                            'margin/openOrders': 1,  # deprecated
-                            'userDataStream': 1,
-                            'capital/withdraw': 1,
+                            'order': {'cost': 1},
+                            'openOrders': {'cost': 1},
+                            'order/all': {'cost': 1},
+                            'sub-account/apiKey': {'cost': 1},
+                            'strategy/group': {'cost': 1},
+                            'strategy/group/uid': {'cost': 1},
+                            'margin/order': {'cost': 1},
+                            'margin/openOrders': {'cost': 1},  # deprecated
+                            'userDataStream': {'cost': 1},
+                            'capital/withdraw': {'cost': 1},
                         },
                     },
                 },
                 'contract': {
                     'public': {
                         'get': {
-                            'ping': 2,
-                            'detail': 100,
-                            'support_currencies': 2,
-                            'depth/{symbol}': 2,
-                            'depth_commits/{symbol}/{limit}': 2,
-                            'index_price/{symbol}': 2,
-                            'fair_price/{symbol}': 2,
-                            'funding_rate/{symbol}': 2,
-                            'kline/{symbol}': 2,
-                            'kline/index_price/{symbol}': 2,
-                            'kline/fair_price/{symbol}': 2,
-                            'deals/{symbol}': 2,
-                            'ticker': 2,
-                            'risk_reverse': 2,
-                            'risk_reverse/history': 2,
-                            'funding_rate/history': 2,
+                            'ping': {'cost': 2},
+                            'detail': {'cost': 100},
+                            'support_currencies': {'cost': 2},
+                            'depth/{symbol}': {'cost': 2},
+                            'depth_commits/{symbol}/{limit}': {'cost': 2},
+                            'index_price/{symbol}': {'cost': 2},
+                            'fair_price/{symbol}': {'cost': 2},
+                            'funding_rate/{symbol}': {'cost': 2},
+                            'kline/{symbol}': {'cost': 2},
+                            'kline/index_price/{symbol}': {'cost': 2},
+                            'kline/fair_price/{symbol}': {'cost': 2},
+                            'deals/{symbol}': {'cost': 2},
+                            'ticker': {'cost': 2},
+                            'risk_reverse': {'cost': 2},
+                            'risk_reverse/history': {'cost': 2},
+                            'funding_rate/history': {'cost': 2},
                         },
                     },
                     'private': {
                         'get': {
-                            'account/assets': 2,
-                            'account/asset/{currency}': 2,
-                            'account/transfer_record': 2,
-                            'account/profit_rate/{type}': 2,
-                            'account/asset/analysis/{type}': 2,
-                            'account/feeDeductConfigs': 2,
-                            'account/asset/analysis/yesterday_pnl': 2,
-                            'account/asset/analysis/today_pnl': 2,
-                            'account/config/contractFeeDiscountConfig': 2,
-                            'order/fee_details': 2,
-                            'account/discountType': 2,
-                            'account/asset/analysis/export': 2,
-                            'account/asset_book/order_deal_fee/total': 2,
-                            'account/contract/fee_rate': 2,
-                            'account/contract/zero_fee_rate': 2,  # documentation removed 2026-05-22
-                            'position/list/history_positions': 2,
-                            'position/open_positions': 2,
-                            'position/funding_records': 2,
-                            'position/position_mode': 2,
-                            'order/list/open_orders/{symbol}': 2,
-                            'order/list/open_orders': 2,
-                            'order/list/history_orders': 2,
-                            'order/list/order_deals/v3': 2,
-                            'order/external/{symbol}/{external_oid}': 2,
-                            'order/get/{order_id}': 2,
-                            'order/batch_query': 8,
-                            'order/deal_details/{order_id}': 2,
-                            'order/list/order_deals': 2,
-                            'order/list/close_orders': 2,
-                            'planorder/list/orders': 2,
-                            'stoporder/list/orders': 2,
-                            'stoporder/open_orders': 2,
-                            'stoporder/order_details/{stop_order_id}': 2,
-                            'account/risk_limit': 2,  # TO_DO: gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
-                            'account/tiered_fee_rate': 2,  # TO_DO: taker/maker fees for account
-                            'position/leverage': 2,
-                            'account/tiered_fee_rate/v2': 2,
-                            'trackorder/list/orders': 2,
-                            'market_maker/self_trade/blacklist': 2,
-                            'market_maker/self_trade/blacklist/search': 2,
+                            'account/assets': {'cost': 2},
+                            'account/asset/{currency}': {'cost': 2},
+                            'account/transfer_record': {'cost': 2},
+                            'account/profit_rate/{type}': {'cost': 2},
+                            'account/asset/analysis/{type}': {'cost': 2},
+                            'account/feeDeductConfigs': {'cost': 2},
+                            'account/asset/analysis/yesterday_pnl': {'cost': 2},
+                            'account/asset/analysis/today_pnl': {'cost': 2},
+                            'account/config/contractFeeDiscountConfig': {'cost': 2},
+                            'order/fee_details': {'cost': 2},
+                            'account/discountType': {'cost': 2},
+                            'account/asset/analysis/export': {'cost': 2},
+                            'account/asset_book/order_deal_fee/total': {'cost': 2},
+                            'account/contract/fee_rate': {'cost': 2},
+                            'account/contract/zero_fee_rate': {'cost': 2},  # documentation removed 2026-05-22
+                            'position/list/history_positions': {'cost': 2},
+                            'position/open_positions': {'cost': 2},
+                            'position/funding_records': {'cost': 2},
+                            'position/position_mode': {'cost': 2},
+                            'order/list/open_orders/{symbol}': {'cost': 2},
+                            'order/list/open_orders': {'cost': 2},
+                            'order/list/history_orders': {'cost': 2},
+                            'order/list/order_deals/v3': {'cost': 2},
+                            'order/external/{symbol}/{external_oid}': {'cost': 2},
+                            'order/get/{order_id}': {'cost': 2},
+                            'order/batch_query': {'cost': 8},
+                            'order/deal_details/{order_id}': {'cost': 2},
+                            'order/list/order_deals': {'cost': 2},
+                            'order/list/close_orders': {'cost': 2},
+                            'planorder/list/orders': {'cost': 2},
+                            'stoporder/list/orders': {'cost': 2},
+                            'stoporder/open_orders': {'cost': 2},
+                            'stoporder/order_details/{stop_order_id}': {'cost': 2},
+                            'account/risk_limit': {'cost': 2},  # TO_DO: gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
+                            'account/tiered_fee_rate': {'cost': 2},  # TO_DO: taker/maker fees for account
+                            'position/leverage': {'cost': 2},
+                            'account/tiered_fee_rate/v2': {'cost': 2},
+                            'trackorder/list/orders': {'cost': 2},
+                            'market_maker/self_trade/blacklist': {'cost': 2},
+                            'market_maker/self_trade/blacklist/search': {'cost': 2},
                         },
                         'post': {
-                            'account/asset/analysis/v3': 2,
-                            'account/asset/analysis/calendar/daily/v3': 2,
-                            'account/asset/analysis/calendar/monthly/v3': 2,
-                            'account/asset/analysis/recent/v3': 2,
-                            'position/change_margin': 2,
-                            'position/change_auto_add_im': 2,
-                            'position/change_leverage': 2,
-                            'position/change_position_mode': 2,
-                            'position/reverse': 2,
-                            'position/close_all': 10,
-                            'order/create': 2,
-                            'order/submit': 2,
-                            'order/submit_batch': 40,
-                            'order/chase_limit_order': 40,
-                            'order/change_limit_order': 40,
-                            'order/cancel': 2,
-                            'order/batch_cancel_with_external': 2,
-                            'order/cancel_with_external': 2,
-                            'order/cancel_all': 2,
-                            'order/open_order_total_count': 2,
-                            'order/batch_query_with_external': 2,
-                            'account/change_risk_level': 2,
-                            'planorder/place': 2,
-                            'planorder/place/v2': 2,
-                            'planorder/cancel': 2,
-                            'planorder/cancel_all': 2,
-                            'planorder/change_stop_order': 2,
-                            'stoporder/place': 2,
-                            'stoporder/cancel': 2,
-                            'stoporder/cancel_all': 2,
-                            'stoporder/change_price': 2,
-                            'stoporder/change_plan_price': 2,
-                            'trackorder/place': 2,
-                            'trackorder/cancel': 2,
-                            'trackorder/change_order': 2,
-                            'market_maker/self_trade/blacklist/create': 2,
-                            'market_maker/self_trade/blacklist/update': 2,
-                            'market_maker/self_trade/blacklist/delete': 2,
+                            'account/asset/analysis/v3': {'cost': 2},
+                            'account/asset/analysis/calendar/daily/v3': {'cost': 2},
+                            'account/asset/analysis/calendar/monthly/v3': {'cost': 2},
+                            'account/asset/analysis/recent/v3': {'cost': 2},
+                            'position/change_margin': {'cost': 2},
+                            'position/change_auto_add_im': {'cost': 2},
+                            'position/change_leverage': {'cost': 2},
+                            'position/change_position_mode': {'cost': 2},
+                            'position/reverse': {'cost': 2},
+                            'position/close_all': {'cost': 10},
+                            'order/create': {'cost': 2},
+                            'order/submit': {'cost': 2},
+                            'order/submit_batch': {'cost': 40},
+                            'order/chase_limit_order': {'cost': 40},
+                            'order/change_limit_order': {'cost': 40},
+                            'order/cancel': {'cost': 2},
+                            'order/batch_cancel_with_external': {'cost': 2},
+                            'order/cancel_with_external': {'cost': 2},
+                            'order/cancel_all': {'cost': 2},
+                            'order/open_order_total_count': {'cost': 2},
+                            'order/batch_query_with_external': {'cost': 2},
+                            'account/change_risk_level': {'cost': 2},
+                            'planorder/place': {'cost': 2},
+                            'planorder/place/v2': {'cost': 2},
+                            'planorder/cancel': {'cost': 2},
+                            'planorder/cancel_all': {'cost': 2},
+                            'planorder/change_stop_order': {'cost': 2},
+                            'stoporder/place': {'cost': 2},
+                            'stoporder/cancel': {'cost': 2},
+                            'stoporder/cancel_all': {'cost': 2},
+                            'stoporder/change_price': {'cost': 2},
+                            'stoporder/change_plan_price': {'cost': 2},
+                            'trackorder/place': {'cost': 2},
+                            'trackorder/cancel': {'cost': 2},
+                            'trackorder/change_order': {'cost': 2},
+                            'market_maker/self_trade/blacklist/create': {'cost': 2},
+                            'market_maker/self_trade/blacklist/update': {'cost': 2},
+                            'market_maker/self_trade/blacklist/delete': {'cost': 2},
                         },
                     },
                 },
                 'spot2': {
                     'public': {
                         'get': {
-                            'market/symbols': 1,
-                            'market/coin/list': 2,
-                            'common/timestamp': 1,
-                            'common/ping': 2,
-                            'market/ticker': 1,
-                            'market/depth': 1,
-                            'market/deals': 1,
-                            'market/kline': 1,
-                            'market/api_default_symbols': 2,
+                            'market/symbols': {'cost': 1},
+                            'market/coin/list': {'cost': 2},
+                            'common/timestamp': {'cost': 1},
+                            'common/ping': {'cost': 2},
+                            'market/ticker': {'cost': 1},
+                            'market/depth': {'cost': 1},
+                            'market/deals': {'cost': 1},
+                            'market/kline': {'cost': 1},
+                            'market/api_default_symbols': {'cost': 2},
                         },
                     },
                     'private': {
                         'get': {
-                            'account/info': 1,
-                            'order/open_orders': 1,
-                            'order/list': 1,
-                            'order/query': 1,
-                            'order/deals': 1,
-                            'order/deal_detail': 1,
-                            'asset/deposit/address/list': 2,
-                            'asset/deposit/list': 2,
-                            'asset/address/list': 2,
-                            'asset/withdraw/list': 2,
-                            'asset/internal/transfer/record': 10,
-                            'account/balance': 10,
-                            'asset/internal/transfer/info': 10,
-                            'market/api_symbols': 2,
+                            'account/info': {'cost': 1},
+                            'order/open_orders': {'cost': 1},
+                            'order/list': {'cost': 1},
+                            'order/query': {'cost': 1},
+                            'order/deals': {'cost': 1},
+                            'order/deal_detail': {'cost': 1},
+                            'asset/deposit/address/list': {'cost': 2},
+                            'asset/deposit/list': {'cost': 2},
+                            'asset/address/list': {'cost': 2},
+                            'asset/withdraw/list': {'cost': 2},
+                            'asset/internal/transfer/record': {'cost': 10},
+                            'account/balance': {'cost': 10},
+                            'asset/internal/transfer/info': {'cost': 10},
+                            'market/api_symbols': {'cost': 2},
                         },
                         'post': {
-                            'order/place': 1,
-                            'order/place_batch': 1,
-                            'order/advanced/place_batch': 1,
-                            'asset/withdraw': 2,
-                            'asset/internal/transfer': 10,
+                            'order/place': {'cost': 1},
+                            'order/place_batch': {'cost': 1},
+                            'order/advanced/place_batch': {'cost': 1},
+                            'asset/withdraw': {'cost': 2},
+                            'asset/internal/transfer': {'cost': 10},
                         },
                         'delete': {
-                            'order/cancel': 1,
-                            'order/cancel_by_symbol': 1,
-                            'asset/withdraw': 2,
+                            'order/cancel': {'cost': 1},
+                            'order/cancel_by_symbol': {'cost': 1},
+                            'asset/withdraw': {'cost': 2},
                         },
                     },
                 },
                 'broker': {
                     'private': {
                         'get': {
-                            'sub-account/universalTransfer': 1,
-                            'sub-account/list': 1,
-                            'sub-account/status': 1,
-                            'sub-account/apiKey': 1,
-                            'capital/deposit/subAddress': 1,
-                            'capital/deposit/subHisrec': 1,
-                            'capital/deposit/subHisrec/getall': 1,
-                            'rebate/taxQuery': 1,
+                            'sub-account/universalTransfer': {'cost': 1},
+                            'sub-account/list': {'cost': 1},
+                            'sub-account/status': {'cost': 1},
+                            'sub-account/apiKey': {'cost': 1},
+                            'capital/deposit/subAddress': {'cost': 1},
+                            'capital/deposit/subHisrec': {'cost': 1},
+                            'capital/deposit/subHisrec/getall': {'cost': 1},
+                            'rebate/taxQuery': {'cost': 1},
                         },
                         'post': {
-                            'sub-account/virtualSubAccount': 1,
-                            'sub-account/apiKey': 1,
-                            'capital/deposit/subAddress': 1,
-                            'capital/withdraw/apply': 1,
-                            'sub-account/universalTransfer': 1,
-                            'sub-account/futures': 1,
+                            'sub-account/virtualSubAccount': {'cost': 1},
+                            'sub-account/apiKey': {'cost': 1},
+                            'capital/deposit/subAddress': {'cost': 1},
+                            'capital/withdraw/apply': {'cost': 1},
+                            'sub-account/universalTransfer': {'cost': 1},
+                            'sub-account/futures': {'cost': 1},
                         },
                         'delete': {
-                            'sub-account/apiKey': 1,
+                            'sub-account/apiKey': {'cost': 1},
                         },
                     },
                 },
@@ -563,7 +564,7 @@ class mexc(Exchange, ImplicitAPI):
                     # 'ALGO': 'Algorand(ALGO)',
                     # 'ALPH': 'Alephium(ALPH)',
                     # 'ARB': 'Arbitrum One(ARB)',
-                    # 'ARBONE': 'ArbitrumOne(ARB)',
+                    # 'ARBITRUM': 'ArbitrumOne(ARB)',
                     'ASTR': 'ASTAR',  # ASTAREVM is different
                     # 'ATOM': 'Cosmos(ATOM)',
                     # 'AVAXC': 'Avalanche C Chain(AVAX CCHAIN)',
@@ -1071,7 +1072,7 @@ class mexc(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_status(self, params={}):
+    def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -1254,7 +1255,7 @@ class mexc(Exchange, ImplicitAPI):
         spotMarket, swapMarket = [spotMarketPromise, swapMarketPromise]
         return self.array_concat(spotMarket, swapMarket)
 
-    def fetch_spot_markets(self, params: Any = {}):
+    def fetch_spot_markets(self, params: Any = {}) -> List[Market]:
         """
  @ignore
         retrieves data on all spot markets for mexc
@@ -1378,7 +1379,7 @@ class mexc(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_swap_markets(self, params: Any = {}):
+    def fetch_swap_markets(self, params: Any = {}) -> List[Market]:
         """
  @ignore
         retrieves data on all swap markets for mexc
@@ -1669,7 +1670,7 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            trades = self.safe_value(response, 'data')
+            trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
@@ -1878,7 +1879,7 @@ class mexc(Exchange, ImplicitAPI):
             #       ],
             #     ]
             #
-            candles = response
+            candles = self.to_array(response)
         elif market['swap']:
             if since is not None:
                 request['start'] = self.parse_to_int(since / 1000)
@@ -2912,7 +2913,7 @@ class mexc(Exchange, ImplicitAPI):
             merged = self.array_concat(ordersOfTrigger, ordersOfRegular)
             return self.parse_orders(merged, market, since, limit, params)
 
-    def fetch_orders_by_ids(self, ids: Any, symbol: Str = None, params={}):
+    def fetch_orders_by_ids(self, ids: Any, symbol: Str = None, params={}) -> List[Order]:
         if self.markets is None:
             self.load_markets()
         request = {}
@@ -3776,7 +3777,7 @@ class mexc(Exchange, ImplicitAPI):
         #         "tradeEnabled": True
         #     }
         #
-        wallet = None
+        wallet: List
         if marketType == 'margin':
             wallet = self.safe_value(response, 'assets', [])
         elif marketType == 'swap':
@@ -3987,7 +3988,7 @@ class mexc(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        trades: List[Trade]
+        trades = []
         if marketType == 'spot':
             if since is not None:
                 request['startTime'] = since
@@ -4051,7 +4052,7 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            trades = self.safe_value(response, 'data')
+            trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -4075,7 +4076,7 @@ class mexc(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchOrderTrades', market, params)
-        trades: List[Trade]
+        trades = []
         if marketType == 'spot':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
@@ -4129,7 +4130,7 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            trades = self.safe_value(response, 'data')
+            trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit, query)
 
     def modify_margin_helper(self, symbol: str, amount: Any, addOrReduce: Any, params={}):
@@ -5538,7 +5539,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return response
 
-    def fetch_position_mode(self, symbol: Str = None, params={}):
+    def fetch_position_mode(self, symbol: Str = None, params={}) -> PositionModeInfo:
         """
         fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
 
@@ -5902,8 +5903,8 @@ class mexc(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_list(response, 'data')
-        positions = self.parse_positions((data), symbols, params)
+        data = self.safe_list(response, 'data', [])
+        positions = self.parse_positions(data, symbols, params)
         return self.filter_by_since_limit(positions, since, limit)
 
     def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
@@ -5944,7 +5945,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         # {success: True, code: '0'}
         #
-        return self.parse_leverage(response, market)  # tmp revert type
+        return self.parse_leverage(response, market)  # widened to Dict to match the base setMarginMode return({}) — narrowing it to Leverage breaks the Go IExchange interface
 
     def nonce(self):
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)

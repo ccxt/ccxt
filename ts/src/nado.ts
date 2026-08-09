@@ -7,7 +7,7 @@ import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OnMaintenance, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
-import type { Balances, Bool, Currencies, Currency, Dict, Fee, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, Dict, Fee, NullableDict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status, Endpoint, List } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -89,48 +89,48 @@ export default class nado extends Exchange {
                 'gateway': {
                     'public': {
                         'get': {
-                            'symbols': 2,
-                            'query': 1,
-                            'edge/query': 1,
+                            'symbols': { 'cost': 2 } as Endpoint<List>,
+                            'query': { 'cost': 1 } as Endpoint<Dict>,
+                            'edge/query': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'query': 1,
+                            'query': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'post': {
-                            'execute': 1,
+                            'execute': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'gatewayV2': {
                     'public': {
                         'get': {
-                            'assets': 2,
-                            'pairs': 1,
-                            'orderbook': 1,
+                            'assets': { 'cost': 2 } as Endpoint<List>,
+                            'pairs': { 'cost': 1 } as Endpoint<List>,
+                            'orderbook': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'archive': {
                     'post': {
-                        '': 1,
+                        '': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'archiveV2': {
                     'public': {
                         'get': {
-                            'tickers': 1,
-                            'contracts': 1,
-                            'trades': 1,
+                            'tickers': { 'cost': 1 } as Endpoint<Dict>,
+                            'contracts': { 'cost': 1 } as Endpoint<Dict>,
+                            'trades': { 'cost': 1 } as Endpoint<List>,
                         },
                     },
                 },
                 'trigger': {
                     'private': {
                         'post': {
-                            'execute': 1,
-                            'query': 1,
+                            'execute': { 'cost': 1 } as Endpoint<Dict>,
+                            'query': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -355,7 +355,7 @@ export default class nado extends Exchange {
         const request = await this.createOrderRequest (symbol, type, side, amount, price, params);
         const placeOrder = this.safeDict (request, 'place_order', {});
         const isTriggerOrder = ('trigger' in placeOrder);
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         if (isTriggerOrder) {
             response = await this.triggerPrivatePostExecute (request);
         } else {
@@ -667,7 +667,7 @@ export default class nado extends Exchange {
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         const request = await this.cancelAllOrdersRequest (symbol, params);
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         if (trigger) {
             response = await this.triggerPrivatePostExecute (request);
             //
@@ -786,7 +786,7 @@ export default class nado extends Exchange {
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         const request = await this.cancelOrdersRequest (ids, symbol, params);
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         if (trigger) {
             response = await this.triggerPrivatePostExecute (request);
             //
@@ -958,7 +958,7 @@ export default class nado extends Exchange {
             productIds.push (this.parseToInt (market['id']));
         }
         let subaccount: Str = undefined;
-        [ subaccount, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'subaccount', 'default');
+        [ subaccount, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
@@ -1161,7 +1161,7 @@ export default class nado extends Exchange {
         //         ]
         //     }
         //
-        const closedOrders: any[] = [];
+        const closedOrders: Dict[] = [];
         const orders = this.safeList (response, 'orders', []);
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
@@ -1441,7 +1441,7 @@ export default class nado extends Exchange {
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
             const submissionIdx = this.safeString (event, 'submission_idx');
-            let tx: any = {};
+            let tx: Dict = {};
             for (let j = 0; j < txs.length; j++) {
                 const rawTx = txs[j];
                 const txSubmissionIdx = this.safeString (rawTx, 'submission_idx');
@@ -1520,7 +1520,7 @@ export default class nado extends Exchange {
                 continue; // the endpoint returns an entry for every listed product - only nonzero balances are open positions
             }
             const productId = this.safeString (position, 'product_id');
-            let product: any = {};
+            let product: Dict = {};
             for (let j = 0; j < products.length; j++) {
                 const rawProduct = products[j];
                 const rawProductId = this.safeString (rawProduct, 'product_id');
@@ -1566,7 +1566,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const request: Dict = {
             'type': 'status',
         };
@@ -1749,8 +1749,9 @@ export default class nado extends Exchange {
     override async fetchCurrencies (params = {}): Promise<Currencies> {
         const response = await this.gatewayV2PublicGetAssets (params);
         const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
+        const assets = this.toArray (response);
+        for (let i = 0; i < assets.length; i++) {
+            const currency = assets[i];
             const parsed = this.parseCurrency (currency);
             const code = this.safeString (parsed, 'code');
             if (code === undefined) {
@@ -1968,10 +1969,10 @@ export default class nado extends Exchange {
         //     }
         //
         const tickers = Object.keys (response);
-        const rates: any[] = [];
+        const rates: Dict[] = [];
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
-            rates.push (response[ticker]);
+            rates.push (this.safeDict (response, ticker, {}));
         }
         return this.parseFundingRates (rates, symbols);
     }
@@ -2059,10 +2060,10 @@ export default class nado extends Exchange {
         //     }
         //
         const tickers = Object.keys (response);
-        const interests: any[] = [];
+        const interests: Dict[] = [];
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
-            interests.push (response[ticker]);
+            interests.push (this.safeDict (response, ticker, {}));
         }
         return this.parseOpenInterests (interests, symbols);
     }
@@ -2296,7 +2297,7 @@ export default class nado extends Exchange {
                 'currency': market['quote'],
             };
         }
-        let parsedAmount: any = undefined;
+        let parsedAmount: Str | Num = undefined;
         if (amountString !== undefined) {
             const absoluteAmount = Precise.stringAbs (amountString);
             if (isArchiveMatch) {
@@ -2305,7 +2306,7 @@ export default class nado extends Exchange {
                 parsedAmount = absoluteAmount;
             }
         }
-        let parsedCost: any = undefined;
+        let parsedCost: Str | Num = undefined;
         if (costString !== undefined) {
             const absoluteCost = Precise.stringAbs (costString);
             if (isArchiveMatch) {

@@ -140,109 +140,295 @@ public partial class bitmex : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "announcement", 5 },
-                        { "announcement/urgent", 5 },
-                        { "chat", 5 },
-                        { "chat/channels", 5 },
-                        { "chat/connected", 5 },
-                        { "chat/pinned", 5 },
-                        { "funding", 5 },
-                        { "guild", 5 },
-                        { "instrument", 5 },
-                        { "instrument/active", 5 },
-                        { "instrument/activeAndIndices", 5 },
-                        { "instrument/activeIntervals", 5 },
-                        { "instrument/compositeIndex", 5 },
-                        { "instrument/indices", 5 },
-                        { "instrument/usdVolume", 5 },
-                        { "insurance", 5 },
-                        { "leaderboard", 5 },
-                        { "liquidation", 5 },
-                        { "orderBook/L2", 5 },
-                        { "porl/nonce", 5 },
-                        { "quote", 5 },
-                        { "quote/bucketed", 5 },
-                        { "schema", 5 },
-                        { "schema/websocketHelp", 5 },
-                        { "settlement", 5 },
-                        { "stats", 5 },
-                        { "stats/history", 5 },
-                        { "stats/historyUSD", 5 },
-                        { "trade", 5 },
-                        { "trade/bucketed", 5 },
-                        { "wallet/assets", 5 },
-                        { "wallet/networks", 5 },
+                        { "announcement", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "announcement/urgent", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "chat", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "chat/channels", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "chat/connected", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "chat/pinned", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "funding", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "guild", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "instrument", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "instrument/active", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "instrument/activeAndIndices", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "instrument/activeIntervals", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "instrument/compositeIndex", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "instrument/indices", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "instrument/usdVolume", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "insurance", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "leaderboard", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "liquidation", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "orderBook/L2", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "porl/nonce", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "quote", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "quote/bucketed", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "schema", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "schema/websocketHelp", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "settlement", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "stats", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "stats/history", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "stats/historyUSD", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "trade", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "trade/bucketed", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "wallet/assets", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "wallet/networks", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "address", 5 },
-                        { "apiKey", 5 },
-                        { "execution", 5 },
-                        { "execution/tradeHistory", 5 },
-                        { "globalNotification", 5 },
-                        { "leaderboard/name", 5 },
-                        { "order", 5 },
-                        { "porl/snapshots", 5 },
-                        { "position", 5 },
-                        { "user", 5 },
-                        { "user/affiliateStatus", 5 },
-                        { "user/checkReferralCode", 5 },
-                        { "user/commission", 5 },
-                        { "user/csa", 5 },
-                        { "user/depositAddress", 5 },
-                        { "user/executionHistory", 5 },
-                        { "user/getWalletTransferAccounts", 5 },
-                        { "user/margin", 5 },
-                        { "user/quoteFillRatio", 5 },
-                        { "user/quoteValueRatio", 5 },
-                        { "user/staking", 5 },
-                        { "user/staking/instruments", 5 },
-                        { "user/staking/tiers", 5 },
-                        { "user/tradingVolume", 5 },
-                        { "user/unstakingRequests", 5 },
-                        { "user/wallet", 5 },
-                        { "user/walletHistory", 5 },
-                        { "user/walletSummary", 5 },
-                        { "userAffiliates", 5 },
-                        { "userEvent", 5 },
+                        { "address", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "apiKey", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "execution", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "execution/tradeHistory", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "globalNotification", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "leaderboard/name", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "porl/snapshots", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "position", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/affiliateStatus", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/checkReferralCode", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/commission", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/csa", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/depositAddress", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/executionHistory", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/getWalletTransferAccounts", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/margin", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/quoteFillRatio", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/quoteValueRatio", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/staking", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/staking/instruments", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/staking/tiers", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/tradingVolume", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/unstakingRequests", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/wallet", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/walletHistory", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/walletSummary", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "userAffiliates", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "userEvent", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "address", 5 },
-                        { "chat", 5 },
-                        { "guild", 5 },
-                        { "guild/archive", 5 },
-                        { "guild/join", 5 },
-                        { "guild/kick", 5 },
-                        { "guild/leave", 5 },
-                        { "guild/sharesTrades", 5 },
-                        { "order", 1 },
-                        { "order/cancelAllAfter", 5 },
-                        { "order/closePosition", 5 },
-                        { "position/isolate", 1 },
-                        { "position/leverage", 1 },
-                        { "position/riskLimit", 5 },
-                        { "position/transferMargin", 1 },
-                        { "user/addSubaccount", 5 },
-                        { "user/cancelWithdrawal", 5 },
-                        { "user/communicationToken", 5 },
-                        { "user/confirmEmail", 5 },
-                        { "user/confirmWithdrawal", 5 },
-                        { "user/logout", 5 },
-                        { "user/preferences", 5 },
-                        { "user/requestWithdrawal", 5 },
-                        { "user/unstakingRequests", 5 },
-                        { "user/updateSubaccount", 5 },
-                        { "user/walletTransfer", 5 },
+                        { "address", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "chat", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "guild", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "guild/archive", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "guild/join", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "guild/kick", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "guild/leave", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "guild/sharesTrades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/cancelAllAfter", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "order/closePosition", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "position/isolate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "position/leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "position/riskLimit", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "position/transferMargin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/addSubaccount", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/cancelWithdrawal", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/communicationToken", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/confirmEmail", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/confirmWithdrawal", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/logout", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/preferences", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/requestWithdrawal", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/unstakingRequests", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/updateSubaccount", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/walletTransfer", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
-                        { "guild", 5 },
-                        { "order", 1 },
+                        { "guild", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "order", 1 },
-                        { "order/all", 1 },
-                        { "user/unstakingRequests", 5 },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/unstakingRequests", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                 } },
             } },
@@ -1116,9 +1302,10 @@ public partial class bitmex : Exchange
             { "datetime", null },
             { "nonce", null },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object orders = this.toArray(response);
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object order = getValue(response, i);
+            object order = getValue(orders, i);
             object side = ((bool) isTrue((isEqual(getValue(order, "side"), "Sell")))) ? "asks" : "bids";
             object amount = this.convertFromRawQuantity(symbol, this.safeString(order, "size"));
             object price = this.safeNumber(order, "price");
@@ -1737,9 +1924,10 @@ public partial class bitmex : Exchange
         object response = await this.publicGetInstrumentActiveAndIndices(parameters);
         // same response as under "fetchMarkets"
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object rawTickers = this.toArray(response);
+        for (object i = 0; isLessThan(i, getArrayLength(rawTickers)); postFixIncrement(ref i))
         {
-            object ticker = this.parseTicker(getValue(response, i));
+            object ticker = this.parseTicker(getValue(rawTickers, i));
             object symbol = this.safeString(ticker, "symbol");
             if (isTrue(!isEqual(symbol, null)))
             {
@@ -1885,7 +2073,7 @@ public partial class bitmex : Exchange
         //         {"timestamp":"2015-09-25T13:40:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0}
         //     ]
         //
-        object result = this.parseOHLCVs(response, market, timeframe, since, limit);
+        object result = this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
         if (isTrue(useOpenTimestamp))
         {
             // bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
@@ -2376,7 +2564,7 @@ public partial class bitmex : Exchange
             object triggerAbove = (isTrue((isEqual(triggerDirection, "ascending"))) || isTrue((isEqual(triggerDirection, "above"))));
             if (isTrue(isTrue((isEqual(type, "limit"))) || isTrue((isEqual(type, "market")))))
             {
-                this.checkRequiredArgument("createOrder", triggerDirection, "triggerDirection", new List<object>() {"above", "below"});
+                this.checkRequiredArgument("editOrder", triggerDirection, "triggerDirection", new List<object>() {"above", "below"});
             }
             object orderType = null;
             if (isTrue(isEqual(type, "limit")))
@@ -2989,9 +3177,10 @@ public partial class bitmex : Exchange
         object response = await this.publicGetInstrumentActiveAndIndices(parameters);
         // same response as under "fetchMarkets"
         object filteredResponse = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object rawItems = this.toArray(response);
+        for (object i = 0; isLessThan(i, getArrayLength(rawItems)); postFixIncrement(ref i))
         {
-            object item = getValue(response, i);
+            object item = getValue(rawItems, i);
             object marketId = this.safeString(item, "symbol");
             object market = this.safeMarket(marketId);
             object swap = this.safeBool(market, "swap", false);
@@ -3530,7 +3719,7 @@ public partial class bitmex : Exchange
         //         }
         //     ]
         //
-        return this.parseLiquidations(response, market, since, limit);
+        return this.parseLiquidations(this.toArray(response), market, since, limit);
     }
 
     public override object parseLiquidation(object liquidation, object market = null)

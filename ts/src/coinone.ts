@@ -6,7 +6,7 @@ import Exchange from './abstract/coinone.js';
 import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, CurrencyInterface, DepositAddress, Dict, Int, Market, NullableDict, FeeString, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Balances, Currencies, CurrencyInterface, DepositAddress, Dict, Int, List, Market, NullableDict, FeeString, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -135,87 +135,87 @@ export default class coinone extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'orderbook',
-                        'ticker',
-                        'ticker_utc',
-                        'trades',
-                    ],
+                    'get': {
+                        'orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker_utc': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'v2Public': {
-                    'get': [
-                        'range_units',
-                        'markets/{quote_currency}',
-                        'markets/{quote_currency}/{target_currency}',
-                        'orderbook/{quote_currency}/{target_currency}',
-                        'trades/{quote_currency}/{target_currency}',
-                        'ticker_new/{quote_currency}',
-                        'ticker_new/{quote_currency}/{target_currency}',
-                        'ticker_utc_new/{quote_currency}',
-                        'ticker_utc_new/{quote_currency}/{target_currency}',
-                        'currencies',
-                        'currencies/{currency}',
-                        'chart/{quote_currency}/{target_currency}',
-                    ],
+                    'get': {
+                        'range_units': { 'cost': 1 } as Endpoint<Dict>,
+                        'markets/{quote_currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'markets/{quote_currency}/{target_currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderbook/{quote_currency}/{target_currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades/{quote_currency}/{target_currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker_new/{quote_currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker_new/{quote_currency}/{target_currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker_utc_new/{quote_currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker_utc_new/{quote_currency}/{target_currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'currencies': { 'cost': 1 } as Endpoint<Dict>,
+                        'currencies/{currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'chart/{quote_currency}/{target_currency}': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'account/deposit_address',
-                        'account/btc_deposit_address',
-                        'account/balance',
-                        'account/daily_balance',
-                        'account/user_info',
-                        'account/virtual_account',
-                        'order/cancel_all',
-                        'order/cancel',
-                        'order/limit_buy',
-                        'order/limit_sell',
-                        'order/complete_orders',
-                        'order/limit_orders',
-                        'order/order_info',
-                        'transaction/auth_number',
-                        'transaction/history',
-                        'transaction/krw/history',
-                        'transaction/btc',
-                        'transaction/coin',
-                    ],
+                    'post': {
+                        'account/deposit_address': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/btc_deposit_address': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/daily_balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/user_info': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/virtual_account': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/cancel_all': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/limit_buy': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/limit_sell': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/complete_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/limit_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/order_info': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/auth_number': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/krw/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/btc': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/coin': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'v2Private': {
-                    'post': [
-                        'account/balance',
-                        'account/deposit_address',
-                        'account/user_info',
-                        'account/virtual_account',
-                        'order/cancel',
-                        'order/limit_buy',
-                        'order/limit_sell',
-                        'order/limit_orders',
-                        'order/complete_orders',
-                        'order/query_order',
-                        'transaction/auth_number',
-                        'transaction/btc',
-                        'transaction/history',
-                        'transaction/krw/history',
-                    ],
+                    'post': {
+                        'account/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/deposit_address': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/user_info': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/virtual_account': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/limit_buy': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/limit_sell': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/limit_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/complete_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/query_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/auth_number': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/btc': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/krw/history': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'v2_1Private': {
-                    'post': [
-                        'account/balance/all',
-                        'account/balance',
-                        'account/trade_fee',
-                        'account/trade_fee/{quote_currency}/{target_currency}',
-                        'order/limit',
-                        'order/cancel',
-                        'order/cancel/all',
-                        'order/open_orders',
-                        'order/open_orders/all',
-                        'order/complete_orders',
-                        'order/complete_orders/all',
-                        'order/info',
-                        'transaction/krw/history',
-                        'transaction/coin/history',
-                        'transaction/coin/withdrawal/limit',
-                    ],
+                    'post': {
+                        'account/balance/all': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/trade_fee': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/trade_fee/{quote_currency}/{target_currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/limit': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/cancel/all': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/open_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/open_orders/all': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/complete_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/complete_orders/all': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/info': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/krw/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/coin/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/coin/withdrawal/limit': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -410,7 +410,7 @@ export default class coinone extends Exchange {
         //     }
         //
         const tickers = this.safeList (response, 'tickers', []);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = this.safeValue (tickers, i);
             const id = this.safeString (entry, 'id');

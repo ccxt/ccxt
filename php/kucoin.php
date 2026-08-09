@@ -76,7 +76,7 @@ class kucoin extends Exchange {
                 'fetchL3OrderBook' => true,
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
-                'fetchLeverageTiers' => false,
+                'fetchLeverageTiers' => true,
                 'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => true,
                 'fetchMarketLeverageTiers' => true,
@@ -156,440 +156,440 @@ class kucoin extends Exchange {
                 'public' => array(
                     'get' => array(
                         // spot trading
-                        'currencies' => 3,
-                        'currencies/{currency}' => 3,
-                        'symbols' => 4,
-                        'market/orderbook/level1' => 2,
-                        'market/allTickers' => 15,
-                        'market/stats' => 15,
-                        'markets' => 3,
-                        'market/orderbook/level{level}_{limit}' => 4,
-                        'market/orderbook/level2_20' => 2,
-                        'market/orderbook/level2_100' => 4,
-                        'market/histories' => 3,
-                        'market/candles' => 3,
-                        'prices' => 3,
-                        'timestamp' => 3,
-                        'status' => 3,
+                        'currencies' => array( 'cost' => 3 ),
+                        'currencies/{currency}' => array( 'cost' => 3 ),
+                        'symbols' => array( 'cost' => 4 ),
+                        'market/orderbook/level1' => array( 'cost' => 2 ),
+                        'market/allTickers' => array( 'cost' => 15 ),
+                        'market/stats' => array( 'cost' => 15 ),
+                        'markets' => array( 'cost' => 3 ),
+                        'market/orderbook/level{level}_{limit}' => array( 'cost' => 4 ),
+                        'market/orderbook/level2_20' => array( 'cost' => 2 ),
+                        'market/orderbook/level2_100' => array( 'cost' => 4 ),
+                        'market/histories' => array( 'cost' => 3 ),
+                        'market/candles' => array( 'cost' => 3 ),
+                        'prices' => array( 'cost' => 3 ),
+                        'timestamp' => array( 'cost' => 3 ),
+                        'status' => array( 'cost' => 3 ),
                         // margin trading
-                        'mark-price/{symbol}/current' => 2,
-                        'mark-price/all-symbols' => 10,
-                        'margin/config' => 25,
-                        'announcements' => 20,
-                        'margin/collateralRatio' => 10,
+                        'mark-price/{symbol}/current' => array( 'cost' => 2 ),
+                        'mark-price/all-symbols' => array( 'cost' => 10 ),
+                        'margin/config' => array( 'cost' => 25 ),
+                        'announcements' => array( 'cost' => 20 ),
+                        'margin/collateralRatio' => array( 'cost' => 10 ),
                         // convert
-                        'convert/symbol' => 5,
-                        'convert/currencies' => 5,
+                        'convert/symbol' => array( 'cost' => 5 ),
+                        'convert/currencies' => array( 'cost' => 5 ),
                     ),
                     'post' => array(
                         // ws
-                        'bullet-public' => 10,
+                        'bullet-public' => array( 'cost' => 10 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         // account
-                        'user-info' => 20,
-                        'user/api-key' => 20,
-                        'accounts' => 5,
-                        'accounts/{accountId}' => 5,
-                        'accounts/ledgers' => 2,
-                        'hf/accounts/ledgers' => 2,
-                        'hf/margin/account/ledgers' => 2,
-                        'transaction-history' => 2,
-                        'sub/user' => 20,
-                        'sub-accounts/{subUserId}' => 15,
-                        'sub-accounts' => 20,
-                        'sub/api-key' => 20,
+                        'user-info' => array( 'cost' => 20 ),
+                        'user/api-key' => array( 'cost' => 20 ),
+                        'accounts' => array( 'cost' => 5 ),
+                        'accounts/{accountId}' => array( 'cost' => 5 ),
+                        'accounts/ledgers' => array( 'cost' => 2 ),
+                        'hf/accounts/ledgers' => array( 'cost' => 2 ),
+                        'hf/margin/account/ledgers' => array( 'cost' => 2 ),
+                        'transaction-history' => array( 'cost' => 2 ),
+                        'sub/user' => array( 'cost' => 20 ),
+                        'sub-accounts/{subUserId}' => array( 'cost' => 15 ),
+                        'sub-accounts' => array( 'cost' => 20 ),
+                        'sub/api-key' => array( 'cost' => 20 ),
                         // funding
-                        'margin/account' => 40,
-                        'margin/accounts' => 15,
-                        'isolated/accounts' => 15,
-                        'deposit-addresses' => 5,
-                        'deposits' => 5,
-                        'hist-deposits' => 5,
-                        'withdrawals' => 20,
-                        'hist-withdrawals' => 20,
-                        'withdrawals/quotas' => 20,
-                        'accounts/transferable' => 20,
-                        'transfer-list' => 20,
-                        'base-fee' => 3,
-                        'trade-fees' => 3,
+                        'margin/account' => array( 'cost' => 40 ),
+                        'margin/accounts' => array( 'cost' => 15 ),
+                        'isolated/accounts' => array( 'cost' => 15 ),
+                        'deposit-addresses' => array( 'cost' => 5 ),
+                        'deposits' => array( 'cost' => 5 ),
+                        'hist-deposits' => array( 'cost' => 5 ),
+                        'withdrawals' => array( 'cost' => 20 ),
+                        'hist-withdrawals' => array( 'cost' => 20 ),
+                        'withdrawals/quotas' => array( 'cost' => 20 ),
+                        'accounts/transferable' => array( 'cost' => 20 ),
+                        'transfer-list' => array( 'cost' => 20 ),
+                        'base-fee' => array( 'cost' => 3 ),
+                        'trade-fees' => array( 'cost' => 3 ),
                         // spot trading
-                        'market/orderbook/level{level}' => 3,
-                        'market/orderbook/level2' => 3,
-                        'market/orderbook/level3' => 3,
-                        'hf/accounts/opened' => 2,
-                        'hf/orders/active' => 2,
-                        'hf/orders/active/symbols' => 2,
-                        'hf/margin/order/active/symbols' => 2,
-                        'hf/orders/done' => 2,
-                        'hf/orders/{orderId}' => 2,
-                        'hf/orders/client-order/{clientOid}' => 2,
-                        'hf/orders/dead-cancel-all/query' => 2,
-                        'hf/fills' => 2,
-                        'orders' => 2,
-                        'limit/orders' => 3,
-                        'orders/{orderId}' => 2,
-                        'order/client-order/{clientOid}' => 2,
-                        'fills' => 10,
-                        'limit/fills' => 20,
-                        'stop-order' => 8,
-                        'stop-order/{orderId}' => 3,
-                        'stop-order/queryOrderByClientOid' => 3,
-                        'oco/order/{orderId}' => 2,
-                        'oco/order/details/{orderId}' => 2,
-                        'oco/client-order/{clientOid}' => 2,
-                        'oco/orders' => 2,
+                        'market/orderbook/level{level}' => array( 'cost' => 3 ),
+                        'market/orderbook/level2' => array( 'cost' => 3 ),
+                        'market/orderbook/level3' => array( 'cost' => 3 ),
+                        'hf/accounts/opened' => array( 'cost' => 2 ),
+                        'hf/orders/active' => array( 'cost' => 2 ),
+                        'hf/orders/active/symbols' => array( 'cost' => 2 ),
+                        'hf/margin/order/active/symbols' => array( 'cost' => 2 ),
+                        'hf/orders/done' => array( 'cost' => 2 ),
+                        'hf/orders/{orderId}' => array( 'cost' => 2 ),
+                        'hf/orders/client-order/{clientOid}' => array( 'cost' => 2 ),
+                        'hf/orders/dead-cancel-all/query' => array( 'cost' => 2 ),
+                        'hf/fills' => array( 'cost' => 2 ),
+                        'orders' => array( 'cost' => 2 ),
+                        'limit/orders' => array( 'cost' => 3 ),
+                        'orders/{orderId}' => array( 'cost' => 2 ),
+                        'order/client-order/{clientOid}' => array( 'cost' => 2 ),
+                        'fills' => array( 'cost' => 10 ),
+                        'limit/fills' => array( 'cost' => 20 ),
+                        'stop-order' => array( 'cost' => 8 ),
+                        'stop-order/{orderId}' => array( 'cost' => 3 ),
+                        'stop-order/queryOrderByClientOid' => array( 'cost' => 3 ),
+                        'oco/order/{orderId}' => array( 'cost' => 2 ),
+                        'oco/order/details/{orderId}' => array( 'cost' => 2 ),
+                        'oco/client-order/{clientOid}' => array( 'cost' => 2 ),
+                        'oco/orders' => array( 'cost' => 2 ),
                         // margin trading
-                        'hf/margin/orders/active' => 4,
-                        'hf/margin/orders/done' => 10,
-                        'hf/margin/orders/{orderId}' => 4,
-                        'hf/margin/orders/client-order/{clientOid}' => 5,
-                        'hf/margin/fills' => 5,
-                        'hf/margin/stop-orders' => 8,
-                        'hf/margin/stop-order/orderId' => 3,
-                        'hf/margin/stop-order/clientOid' => 3,
-                        'hf/margin/oco-order/orderId' => 2,
-                        'hf/margin/oco-order/clientOid' => 2,
-                        'hf/margin/oco-order/detail/orderId' => 2,
-                        'hf/margin/oco-orders' => 2,
-                        'etf/info' => 25,
-                        'margin/currencies' => 20,
-                        'risk/limit/strategy' => 20, // Deprecate
-                        'isolated/symbols' => 3,
-                        'margin/symbols' => 3,
-                        'isolated/account/{symbol}' => 50,
-                        'margin/borrow' => 15,
-                        'margin/repay' => 15,
-                        'margin/interest' => 20,
-                        'project/list' => 10,
-                        'project/marketInterestRate' => 5,
-                        'redeem/orders' => 10,
-                        'purchase/orders' => 10,
+                        'hf/margin/orders/active' => array( 'cost' => 4 ),
+                        'hf/margin/orders/done' => array( 'cost' => 10 ),
+                        'hf/margin/orders/{orderId}' => array( 'cost' => 4 ),
+                        'hf/margin/orders/client-order/{clientOid}' => array( 'cost' => 5 ),
+                        'hf/margin/fills' => array( 'cost' => 5 ),
+                        'hf/margin/stop-orders' => array( 'cost' => 8 ),
+                        'hf/margin/stop-order/orderId' => array( 'cost' => 3 ),
+                        'hf/margin/stop-order/clientOid' => array( 'cost' => 3 ),
+                        'hf/margin/oco-order/orderId' => array( 'cost' => 2 ),
+                        'hf/margin/oco-order/clientOid' => array( 'cost' => 2 ),
+                        'hf/margin/oco-order/detail/orderId' => array( 'cost' => 2 ),
+                        'hf/margin/oco-orders' => array( 'cost' => 2 ),
+                        'etf/info' => array( 'cost' => 25 ),
+                        'margin/currencies' => array( 'cost' => 20 ),
+                        'risk/limit/strategy' => array( 'cost' => 20 ), // Deprecate
+                        'isolated/symbols' => array( 'cost' => 3 ),
+                        'margin/symbols' => array( 'cost' => 3 ),
+                        'isolated/account/{symbol}' => array( 'cost' => 50 ),
+                        'margin/borrow' => array( 'cost' => 15 ),
+                        'margin/repay' => array( 'cost' => 15 ),
+                        'margin/interest' => array( 'cost' => 20 ),
+                        'project/list' => array( 'cost' => 10 ),
+                        'project/marketInterestRate' => array( 'cost' => 5 ),
+                        'redeem/orders' => array( 'cost' => 10 ),
+                        'purchase/orders' => array( 'cost' => 10 ),
                         // broker
-                        'broker/api/rebase/download' => 3,
-                        'broker/queryMyCommission' => 3,
-                        'broker/queryUser' => 3,
-                        'broker/queryDetailByUid' => 3,
-                        'migrate/user/account/status' => 3,
+                        'broker/api/rebase/download' => array( 'cost' => 3 ),
+                        'broker/queryMyCommission' => array( 'cost' => 3 ),
+                        'broker/queryUser' => array( 'cost' => 3 ),
+                        'broker/queryDetailByUid' => array( 'cost' => 3 ),
+                        'migrate/user/account/status' => array( 'cost' => 3 ),
                         // convert
-                        'convert/quote' => 20,
-                        'convert/order/detail' => 5,
-                        'convert/order/history' => 5,
-                        'convert/limit/quote' => 20,
-                        'convert/limit/order/detail' => 5,
-                        'convert/limit/orders' => 5,
+                        'convert/quote' => array( 'cost' => 20 ),
+                        'convert/order/detail' => array( 'cost' => 5 ),
+                        'convert/order/history' => array( 'cost' => 5 ),
+                        'convert/limit/quote' => array( 'cost' => 20 ),
+                        'convert/limit/order/detail' => array( 'cost' => 5 ),
+                        'convert/limit/orders' => array( 'cost' => 5 ),
                         // affiliate
-                        'affiliate/inviter/statistics' => 30,
+                        'affiliate/inviter/statistics' => array( 'cost' => 30 ),
                     ),
                     'post' => array(
                         // account
-                        'sub/user/created' => 15,
-                        'sub/api-key' => 20,
-                        'sub/api-key/update' => 30,
+                        'sub/user/created' => array( 'cost' => 15 ),
+                        'sub/api-key' => array( 'cost' => 20 ),
+                        'sub/api-key/update' => array( 'cost' => 30 ),
                         // funding
-                        'deposit-addresses' => 20,
-                        'withdrawals' => 5,
-                        'accounts/universal-transfer' => 4,
-                        'accounts/sub-transfer' => 30,
-                        'accounts/inner-transfer' => 15,
-                        'transfer-out' => 20,
-                        'transfer-in' => 20,
+                        'deposit-addresses' => array( 'cost' => 20 ),
+                        'withdrawals' => array( 'cost' => 5 ),
+                        'accounts/universal-transfer' => array( 'cost' => 4 ),
+                        'accounts/sub-transfer' => array( 'cost' => 30 ),
+                        'accounts/inner-transfer' => array( 'cost' => 15 ),
+                        'transfer-out' => array( 'cost' => 20 ),
+                        'transfer-in' => array( 'cost' => 20 ),
                         // spot trading
-                        'hf/orders' => 1,
-                        'hf/orders/test' => 1,
-                        'hf/orders/sync' => 1,
-                        'hf/orders/multi' => 1,
-                        'hf/orders/multi/sync' => 1,
-                        'hf/orders/alter' => 1,
-                        'hf/orders/dead-cancel-all' => 2,
-                        'orders' => 2,
-                        'orders/test' => 2,
-                        'orders/multi' => 3,
-                        'stop-order' => 2,
-                        'oco/order' => 2,
+                        'hf/orders' => array( 'cost' => 1 ),
+                        'hf/orders/test' => array( 'cost' => 1 ),
+                        'hf/orders/sync' => array( 'cost' => 1 ),
+                        'hf/orders/multi' => array( 'cost' => 1 ),
+                        'hf/orders/multi/sync' => array( 'cost' => 1 ),
+                        'hf/orders/alter' => array( 'cost' => 1 ),
+                        'hf/orders/dead-cancel-all' => array( 'cost' => 2 ),
+                        'orders' => array( 'cost' => 2 ),
+                        'orders/test' => array( 'cost' => 2 ),
+                        'orders/multi' => array( 'cost' => 3 ),
+                        'stop-order' => array( 'cost' => 2 ),
+                        'oco/order' => array( 'cost' => 2 ),
                         // margin trading
-                        'hf/margin/order' => 2,
-                        'hf/margin/order/test' => 2,
-                        'hf/margin/stop-order' => 3,
-                        'margin/order' => 5,
-                        'margin/order/test' => 5,
-                        'hf/margin/oco-order' => 2,
-                        'margin/borrow' => 15,
-                        'margin/repay' => 10,
-                        'purchase' => 15,
-                        'redeem' => 15,
-                        'lend/purchase/update' => 10,
+                        'hf/margin/order' => array( 'cost' => 2 ),
+                        'hf/margin/order/test' => array( 'cost' => 2 ),
+                        'hf/margin/stop-order' => array( 'cost' => 3 ),
+                        'margin/order' => array( 'cost' => 5 ),
+                        'margin/order/test' => array( 'cost' => 5 ),
+                        'hf/margin/oco-order' => array( 'cost' => 2 ),
+                        'margin/borrow' => array( 'cost' => 15 ),
+                        'margin/repay' => array( 'cost' => 10 ),
+                        'purchase' => array( 'cost' => 15 ),
+                        'redeem' => array( 'cost' => 15 ),
+                        'lend/purchase/update' => array( 'cost' => 10 ),
                         // convert
-                        'convert/order' => 20,
-                        'convert/limit/order' => 20,
+                        'convert/order' => array( 'cost' => 20 ),
+                        'convert/limit/order' => array( 'cost' => 20 ),
                         // ws
-                        'bullet-private' => 10,
-                        'position/update-user-leverage' => 5,
-                        'deposit-address/create' => 20,
+                        'bullet-private' => array( 'cost' => 10 ),
+                        'position/update-user-leverage' => array( 'cost' => 5 ),
+                        'deposit-address/create' => array( 'cost' => 20 ),
                     ),
                     'delete' => array(
                         // account
-                        'sub/api-key' => 30,
+                        'sub/api-key' => array( 'cost' => 30 ),
                         // funding
-                        'withdrawals/{withdrawalId}' => 20,
+                        'withdrawals/{withdrawalId}' => array( 'cost' => 20 ),
                         // spot trading
-                        'hf/orders/{orderId}' => 1,
-                        'hf/orders/sync/{orderId}' => 1,
-                        'hf/orders/client-order/{clientOid}' => 1,
-                        'hf/orders/sync/client-order/{clientOid}' => 1,
-                        'hf/orders/cancel/{orderId}' => 1,
-                        'hf/orders' => 2,
-                        'hf/orders/cancelAll' => 30,
-                        'orders/{orderId}' => 3,
-                        'order/client-order/{clientOid}' => 5,
-                        'orders' => 20,
-                        'stop-order/{orderId}' => 3,
-                        'stop-order/cancelOrderByClientOid' => 5,
-                        'stop-order/cancel' => 3,
-                        'oco/order/{orderId}' => 3,
-                        'oco/client-order/{clientOid}' => 3,
-                        'oco/orders' => 3,
+                        'hf/orders/{orderId}' => array( 'cost' => 1 ),
+                        'hf/orders/sync/{orderId}' => array( 'cost' => 1 ),
+                        'hf/orders/client-order/{clientOid}' => array( 'cost' => 1 ),
+                        'hf/orders/sync/client-order/{clientOid}' => array( 'cost' => 1 ),
+                        'hf/orders/cancel/{orderId}' => array( 'cost' => 1 ),
+                        'hf/orders' => array( 'cost' => 2 ),
+                        'hf/orders/cancelAll' => array( 'cost' => 30 ),
+                        'orders/{orderId}' => array( 'cost' => 3 ),
+                        'order/client-order/{clientOid}' => array( 'cost' => 5 ),
+                        'orders' => array( 'cost' => 20 ),
+                        'stop-order/{orderId}' => array( 'cost' => 3 ),
+                        'stop-order/cancelOrderByClientOid' => array( 'cost' => 5 ),
+                        'stop-order/cancel' => array( 'cost' => 3 ),
+                        'oco/order/{orderId}' => array( 'cost' => 3 ),
+                        'oco/client-order/{clientOid}' => array( 'cost' => 3 ),
+                        'oco/orders' => array( 'cost' => 3 ),
                         // margin trading
-                        'hf/margin/orders/{orderId}' => 2,
-                        'hf/margin/orders/client-order/{clientOid}' => 2,
-                        'hf/margin/orders' => 5,
-                        'hf/margin/stop-order/cancel-by-id' => 3,
-                        'hf/margin/stop-order/cancel-by-clientOid' => 5,
-                        'hf/margin/stop-order/cancel' => 3,
-                        'hf/margin/oco-order/cancel-by-id' => 3,
-                        'hf/margin/oco-order/cancel-by-clientOid' => 3,
-                        'hf/margin/oco-order/cancel' => 3,
+                        'hf/margin/orders/{orderId}' => array( 'cost' => 2 ),
+                        'hf/margin/orders/client-order/{clientOid}' => array( 'cost' => 2 ),
+                        'hf/margin/orders' => array( 'cost' => 5 ),
+                        'hf/margin/stop-order/cancel-by-id' => array( 'cost' => 3 ),
+                        'hf/margin/stop-order/cancel-by-clientOid' => array( 'cost' => 5 ),
+                        'hf/margin/stop-order/cancel' => array( 'cost' => 3 ),
+                        'hf/margin/oco-order/cancel-by-id' => array( 'cost' => 3 ),
+                        'hf/margin/oco-order/cancel-by-clientOid' => array( 'cost' => 3 ),
+                        'hf/margin/oco-order/cancel' => array( 'cost' => 3 ),
                         // convert
-                        'convert/limit/order/cancel' => 5,
+                        'convert/limit/order/cancel' => array( 'cost' => 5 ),
                     ),
                 ),
                 'futuresPublic' => array(
                     'get' => array(
-                        'contracts/active' => 6,
-                        'contracts/{symbol}' => 6, // 3PW
-                        'ticker' => 4, // 2PW
-                        'allTickers' => 10, // 5PW
-                        'level2/snapshot' => 6, // 3PW
-                        'level2/depth20' => 10, // 5PW
-                        'level2/depth100' => 20, // 10PW
-                        'trade/history' => 10, // 5PW
-                        'kline/query' => 6, // 3PW
-                        'interest/query' => 10, // 5PW
-                        'index/query' => 4, // 2PW
-                        'mark-price/{symbol}/current' => 6, // 3PW
-                        'premium/query' => 6, // 3PW
-                        'trade-statistics' => 6, // 3PW
-                        'funding-rate/{symbol}/current' => 4, // 2PW
-                        'contract/funding-rates' => 10, // 5PW
-                        'timestamp' => 4, // 2PW
-                        'status' => 8, // 4PW
+                        'contracts/active' => array( 'cost' => 6 ),
+                        'contracts/{symbol}' => array( 'cost' => 6 ), // 3PW
+                        'ticker' => array( 'cost' => 4 ), // 2PW
+                        'allTickers' => array( 'cost' => 10 ), // 5PW
+                        'level2/snapshot' => array( 'cost' => 6 ), // 3PW
+                        'level2/depth20' => array( 'cost' => 10 ), // 5PW
+                        'level2/depth100' => array( 'cost' => 20 ), // 10PW
+                        'trade/history' => array( 'cost' => 10 ), // 5PW
+                        'kline/query' => array( 'cost' => 6 ), // 3PW
+                        'interest/query' => array( 'cost' => 10 ), // 5PW
+                        'index/query' => array( 'cost' => 4 ), // 2PW
+                        'mark-price/{symbol}/current' => array( 'cost' => 6 ), // 3PW
+                        'premium/query' => array( 'cost' => 6 ), // 3PW
+                        'trade-statistics' => array( 'cost' => 6 ), // 3PW
+                        'funding-rate/{symbol}/current' => array( 'cost' => 4 ), // 2PW
+                        'contract/funding-rates' => array( 'cost' => 10 ), // 5PW
+                        'timestamp' => array( 'cost' => 4 ), // 2PW
+                        'status' => array( 'cost' => 8 ), // 4PW
                         // ?
-                        'level2/message/query' => 1.3953,
-                        'contracts/risk-limit/{symbol}' => 3,
-                        'level3/message/query' => 3, // deprecated，level3/snapshot is suggested
-                        'level3/snapshot' => 3, // v2
+                        'level2/message/query' => array( 'cost' => 1.3953 ),
+                        'contracts/risk-limit/{symbol}' => array( 'cost' => 3 ),
+                        'level3/message/query' => array( 'cost' => 3 ), // deprecated，level3/snapshot is suggested
+                        'level3/snapshot' => array( 'cost' => 3 ), // v2
                     ),
                     'post' => array(
                         // ws
-                        'bullet-public' => 20, // 10PW
+                        'bullet-public' => array( 'cost' => 20 ), // 10PW
                     ),
                 ),
                 'futuresPrivate' => array(
                     'get' => array(
                         // account
-                        'transaction-history' => 4, // 2MW
+                        'transaction-history' => array( 'cost' => 4 ), // 2MW
                         // funding
-                        'account-overview' => 10, // 5FW
-                        'account-overview-all' => 12, // 6FW
-                        'transfer-list' => 20,
+                        'account-overview' => array( 'cost' => 10 ), // 5FW
+                        'account-overview-all' => array( 'cost' => 12 ), // 6FW
+                        'transfer-list' => array( 'cost' => 20 ),
                         // futures
-                        'orders' => 4, // 2FW
-                        'stopOrders' => 12, // 6FW
-                        'recentDoneOrders' => 10, // 5FW
-                        'orders/{orderId}' => 10, // 5FW
-                        'orders/byClientOid' => 10, // 5FW
-                        'fills' => 10, // 5FW
-                        'recentFills' => 6, // 3FW
-                        'trade-fees' => 6,
-                        'openOrderStatistics' => 20, // 10FW
-                        'position' => 4, // 2FW
-                        'positions' => 4, // 2FW
-                        'margin/maxWithdrawMargin' => 20, // 10FW
-                        'contracts/risk-limit/{symbol}' => 10, // 5FW
-                        'funding-history' => 10, // 5FW
-                        'copy-trade/futures/get-max-open-size' => 8, // 4FW
-                        'copy-trade/futures/position/margin/max-withdraw-margin' => 20, // 10FW
-                        'history-positions' => 4,
-                        'position/getMarginMode' => 4,
-                        'position/getPositionMode' => 4,
-                        'deposit-address' => 4,
-                        'deposit-list' => 4,
-                        'withdrawals/quotas' => 4,
-                        'withdrawal-list' => 4,
-                        'sub/api-key' => 4,
-                        'trade-statistics' => 4,
-                        'getMaxOpenSize' => 4,
-                        'getCrossUserLeverage' => 4,
+                        'orders' => array( 'cost' => 4 ), // 2FW
+                        'stopOrders' => array( 'cost' => 12 ), // 6FW
+                        'recentDoneOrders' => array( 'cost' => 10 ), // 5FW
+                        'orders/{orderId}' => array( 'cost' => 10 ), // 5FW
+                        'orders/byClientOid' => array( 'cost' => 10 ), // 5FW
+                        'fills' => array( 'cost' => 10 ), // 5FW
+                        'recentFills' => array( 'cost' => 6 ), // 3FW
+                        'trade-fees' => array( 'cost' => 6 ),
+                        'openOrderStatistics' => array( 'cost' => 20 ), // 10FW
+                        'position' => array( 'cost' => 4 ), // 2FW
+                        'positions' => array( 'cost' => 4 ), // 2FW
+                        'margin/maxWithdrawMargin' => array( 'cost' => 20 ), // 10FW
+                        'contracts/risk-limit/{symbol}' => array( 'cost' => 10 ), // 5FW
+                        'funding-history' => array( 'cost' => 10 ), // 5FW
+                        'copy-trade/futures/get-max-open-size' => array( 'cost' => 8 ), // 4FW
+                        'copy-trade/futures/position/margin/max-withdraw-margin' => array( 'cost' => 20 ), // 10FW
+                        'history-positions' => array( 'cost' => 4 ),
+                        'position/getMarginMode' => array( 'cost' => 4 ),
+                        'position/getPositionMode' => array( 'cost' => 4 ),
+                        'deposit-address' => array( 'cost' => 4 ),
+                        'deposit-list' => array( 'cost' => 4 ),
+                        'withdrawals/quotas' => array( 'cost' => 4 ),
+                        'withdrawal-list' => array( 'cost' => 4 ),
+                        'sub/api-key' => array( 'cost' => 4 ),
+                        'trade-statistics' => array( 'cost' => 4 ),
+                        'getMaxOpenSize' => array( 'cost' => 4 ),
+                        'getCrossUserLeverage' => array( 'cost' => 4 ),
                     ),
                     'post' => array(
                         // funding
-                        'transfer-out' => 20,
-                        'transfer-in' => 20,
+                        'transfer-out' => array( 'cost' => 20 ),
+                        'transfer-in' => array( 'cost' => 20 ),
                         // futures
-                        'orders' => 4, // 2FW
-                        'st-orders' => 4,
-                        'orders/test' => 4, // 2FW
-                        'orders/multi' => 6, // 3FW
-                        'position/margin/auto-deposit-status' => 8, // 4FW
-                        'margin/withdrawMargin' => 10, // 10FW
-                        'position/margin/deposit-margin' => 8, // 4FW
-                        'position/risk-limit-level/change' => 8, // 4FW
-                        'copy-trade/futures/orders' => 4, // 2FW
-                        'copy-trade/futures/orders/test' => 4, // 2FW
-                        'copy-trade/futures/st-orders' => 4, // 2FW
-                        'copy-trade/futures/position/margin/deposit-margin' => 8, // 4FW
-                        'copy-trade/futures/position/margin/withdraw-margin' => 20, // 10FW
-                        'copy-trade/futures/position/risk-limit-level/change' => 4, // 2FW
-                        'copy-trade/futures/position/margin/auto-deposit-status' => 8, // 4FW
-                        'copy-trade/futures/position/changeMarginMode' => 4, // 2FW
-                        'copy-trade/futures/position/changeCrossUserLeverage' => 4, // 2FW
-                        'copy-trade/getCrossModeMarginRequirement' => 6, // 3FW
-                        'copy-trade/position/switchPositionMode' => 4, // 2FW
-                        'changeCrossUserLeverage' => 4,
-                        'withdrawals' => 4,
-                        'sub/api-key' => 4,
-                        'sub/api-key/update' => 4,
-                        'position/changeMarginMode' => 4,
-                        'position/switchPositionMode' => 4,
+                        'orders' => array( 'cost' => 4 ), // 2FW
+                        'st-orders' => array( 'cost' => 4 ),
+                        'orders/test' => array( 'cost' => 4 ), // 2FW
+                        'orders/multi' => array( 'cost' => 6 ), // 3FW
+                        'position/margin/auto-deposit-status' => array( 'cost' => 8 ), // 4FW
+                        'margin/withdrawMargin' => array( 'cost' => 10 ), // 10FW
+                        'position/margin/deposit-margin' => array( 'cost' => 8 ), // 4FW
+                        'position/risk-limit-level/change' => array( 'cost' => 8 ), // 4FW
+                        'copy-trade/futures/orders' => array( 'cost' => 4 ), // 2FW
+                        'copy-trade/futures/orders/test' => array( 'cost' => 4 ), // 2FW
+                        'copy-trade/futures/st-orders' => array( 'cost' => 4 ), // 2FW
+                        'copy-trade/futures/position/margin/deposit-margin' => array( 'cost' => 8 ), // 4FW
+                        'copy-trade/futures/position/margin/withdraw-margin' => array( 'cost' => 20 ), // 10FW
+                        'copy-trade/futures/position/risk-limit-level/change' => array( 'cost' => 4 ), // 2FW
+                        'copy-trade/futures/position/margin/auto-deposit-status' => array( 'cost' => 8 ), // 4FW
+                        'copy-trade/futures/position/changeMarginMode' => array( 'cost' => 4 ), // 2FW
+                        'copy-trade/futures/position/changeCrossUserLeverage' => array( 'cost' => 4 ), // 2FW
+                        'copy-trade/getCrossModeMarginRequirement' => array( 'cost' => 6 ), // 3FW
+                        'copy-trade/position/switchPositionMode' => array( 'cost' => 4 ), // 2FW
+                        'changeCrossUserLeverage' => array( 'cost' => 4 ),
+                        'withdrawals' => array( 'cost' => 4 ),
+                        'sub/api-key' => array( 'cost' => 4 ),
+                        'sub/api-key/update' => array( 'cost' => 4 ),
+                        'position/changeMarginMode' => array( 'cost' => 4 ),
+                        'position/switchPositionMode' => array( 'cost' => 4 ),
                         // ws
-                        'bullet-private' => 20, // 10FW
+                        'bullet-private' => array( 'cost' => 20 ), // 10FW
                     ),
                     'delete' => array(
-                        'orders/{orderId}' => 2, // 1FW
-                        'orders/client-order/{clientOid}' => 2, // 1FW
-                        'orders' => 20, // 10FW
-                        'stopOrders' => 30, // 15FW
-                        'copy-trade/futures/orders' => 1.5, // 1FW
-                        'copy-trade/futures/orders/client-order' => 1.5, // 1FW
-                        'orders/multi-cancel' => 40, // 20FW
-                        'withdrawals/{withdrawalId}' => 10,
-                        'cancel/transfer-out' => 10,
-                        'sub/api-key' => 10,
+                        'orders/{orderId}' => array( 'cost' => 2 ), // 1FW
+                        'orders/client-order/{clientOid}' => array( 'cost' => 2 ), // 1FW
+                        'orders' => array( 'cost' => 20 ), // 10FW
+                        'stopOrders' => array( 'cost' => 30 ), // 15FW
+                        'copy-trade/futures/orders' => array( 'cost' => 1.5 ), // 1FW
+                        'copy-trade/futures/orders/client-order' => array( 'cost' => 1.5 ), // 1FW
+                        'orders/multi-cancel' => array( 'cost' => 40 ), // 20FW
+                        'withdrawals/{withdrawalId}' => array( 'cost' => 10 ),
+                        'cancel/transfer-out' => array( 'cost' => 10 ),
+                        'sub/api-key' => array( 'cost' => 10 ),
                     ),
                 ),
                 'webExchange' => array(
                     'get' => array(
-                        'currency/currency/chain-info' => 1, // this is temporary from webApi
-                        'contract/{symbol}/funding-rates' => 2,
+                        'currency/currency/chain-info' => array( 'cost' => 1 ), // this is temporary from webApi
+                        'contract/{symbol}/funding-rates' => array( 'cost' => 2 ),
                     ),
                 ),
                 'broker' => array(
                     'get' => array(
-                        'broker/nd/info' => 4,
-                        'broker/nd/account' => 4,
-                        'broker/nd/account/apikey' => 4,
-                        'broker/nd/rebase/download' => 4,
-                        'asset/ndbroker/deposit/list' => 2,
-                        'broker/nd/transfer/detail' => 2,
-                        'broker/nd/deposit/detail' => 2,
-                        'broker/nd/withdraw/detail' => 2,
+                        'broker/nd/info' => array( 'cost' => 4 ),
+                        'broker/nd/account' => array( 'cost' => 4 ),
+                        'broker/nd/account/apikey' => array( 'cost' => 4 ),
+                        'broker/nd/rebase/download' => array( 'cost' => 4 ),
+                        'asset/ndbroker/deposit/list' => array( 'cost' => 2 ),
+                        'broker/nd/transfer/detail' => array( 'cost' => 2 ),
+                        'broker/nd/deposit/detail' => array( 'cost' => 2 ),
+                        'broker/nd/withdraw/detail' => array( 'cost' => 2 ),
                     ),
                     'post' => array(
-                        'broker/nd/transfer' => 2,
-                        'broker/nd/account' => 6,
-                        'broker/nd/account/apikey' => 6,
-                        'broker/nd/account/update-apikey' => 6,
+                        'broker/nd/transfer' => array( 'cost' => 2 ),
+                        'broker/nd/account' => array( 'cost' => 6 ),
+                        'broker/nd/account/apikey' => array( 'cost' => 6 ),
+                        'broker/nd/account/update-apikey' => array( 'cost' => 6 ),
                     ),
                     'delete' => array(
-                        'broker/nd/account/apikey' => 6,
+                        'broker/nd/account/apikey' => array( 'cost' => 6 ),
                     ),
                 ),
                 'earn' => array(
                     'get' => array(
-                        'otc-loan/discount-rate-configs' => 20,
-                        'otc-loan/loan' => 2,
-                        'otc-loan/accounts' => 2,
-                        'earn/redeem-preview' => 10, // 5EW
-                        'earn/saving/products' => 10, // 5EW
-                        'earn/hold-assets' => 10, // 5EW
-                        'earn/promotion/products' => 10, // 5EW
-                        'earn/kcs-staking/products' => 10, // 5EW
-                        'earn/staking/products' => 10, // 5EW
-                        'earn/eth-staking/products' => 10, // 5EW
-                        'struct-earn/dual/products' => 6,
-                        'struct-earn/orders' => 10,
+                        'otc-loan/discount-rate-configs' => array( 'cost' => 20 ),
+                        'otc-loan/loan' => array( 'cost' => 2 ),
+                        'otc-loan/accounts' => array( 'cost' => 2 ),
+                        'earn/redeem-preview' => array( 'cost' => 10 ), // 5EW
+                        'earn/saving/products' => array( 'cost' => 10 ), // 5EW
+                        'earn/hold-assets' => array( 'cost' => 10 ), // 5EW
+                        'earn/promotion/products' => array( 'cost' => 10 ), // 5EW
+                        'earn/kcs-staking/products' => array( 'cost' => 10 ), // 5EW
+                        'earn/staking/products' => array( 'cost' => 10 ), // 5EW
+                        'earn/eth-staking/products' => array( 'cost' => 10 ), // 5EW
+                        'struct-earn/dual/products' => array( 'cost' => 6 ),
+                        'struct-earn/orders' => array( 'cost' => 10 ),
                     ),
                     'post' => array(
-                        'earn/orders' => 10, // 5EW
-                        'struct-earn/orders' => 10,
+                        'earn/orders' => array( 'cost' => 10 ), // 5EW
+                        'struct-earn/orders' => array( 'cost' => 10 ),
                     ),
                     'delete' => array(
-                        'earn/orders' => 10, // 5EW
+                        'earn/orders' => array( 'cost' => 10 ), // 5EW
                     ),
                 ),
                 'uta' => array(
                     'get' => array(
-                        'market/announcement' => 40,
-                        'market/currency' => 6,
-                        'asset/currencies' => 6,
-                        'market/instrument' => 8,
-                        'market/ticker' => 30,
-                        'market/trade' => 6,
-                        'market/kline' => 6,
-                        'market/funding-rate' => 4,
-                        'market/funding-rate-history' => 10,
-                        'market/cross-config' => 50,
-                        'market/collateral-discount-ratio' => 20,
-                        'market/index-price' => 20,
-                        'market/position-tiers' => 40,
-                        'market/open-interest' => 20,
-                        'server/status' => 6,
-                        'market/borrowable-currency' => 30,
-                        'user/my-ip' => 20,
-                        'market/fiat-price' => 6,
+                        'market/announcement' => array( 'cost' => 40 ),
+                        'market/currency' => array( 'cost' => 6 ),
+                        'asset/currencies' => array( 'cost' => 6 ),
+                        'market/instrument' => array( 'cost' => 8 ),
+                        'market/ticker' => array( 'cost' => 30 ),
+                        'market/trade' => array( 'cost' => 6 ),
+                        'market/kline' => array( 'cost' => 6 ),
+                        'market/funding-rate' => array( 'cost' => 4 ),
+                        'market/funding-rate-history' => array( 'cost' => 10 ),
+                        'market/cross-config' => array( 'cost' => 50 ),
+                        'market/collateral-discount-ratio' => array( 'cost' => 20 ),
+                        'market/index-price' => array( 'cost' => 20 ),
+                        'market/position-tiers' => array( 'cost' => 40 ),
+                        'market/open-interest' => array( 'cost' => 20 ),
+                        'server/status' => array( 'cost' => 6 ),
+                        'market/borrowable-currency' => array( 'cost' => 30 ),
+                        'user/my-ip' => array( 'cost' => 20 ),
+                        'market/fiat-price' => array( 'cost' => 6 ),
                     ),
                 ),
                 'utaPrivate' => array(
                     'get' => array(
-                        'market/orderbook' => 6,
-                        'account/balance' => 10,
-                        'account/transfer-quota' => 40,
-                        'account/mode' => 60,
-                        'account/ledger' => 4,
-                        'account/interest-history' => 30,
-                        'asset/deposit/address' => 10,
-                        'account/deposit/address' => 5,
-                        '{accountMode}/account/balance' => 10,
-                        '{accountMode}/account/overview' => 10,
-                        '{accountMode}/order/detail' => 8,
-                        '{accountMode}/order/open-list' => 8,
-                        '{accountMode}/order/history' => 8,
-                        '{accountMode}/order/execution' => 8,
-                        '{accountMode}/position/open-list' => 6,
-                        '{accountMode}/position/history' => 4,
-                        'position/history' => 4,
-                        '{accountMode}/position/tiers' => 40,
-                        'sub-account/balance' => 10,
-                        'user/fee-rate' => 6,
-                        'dcp/query' => 4,
-                        'unified/account/leverage' => 20, // returns array("code":"404","msg":"Not Found","retry":false,"success":false)
-                        'position/funding-history' => 30,
-                        'account/interest-limits' => 20,
+                        'market/orderbook' => array( 'cost' => 6 ),
+                        'account/balance' => array( 'cost' => 10 ),
+                        'account/transfer-quota' => array( 'cost' => 40 ),
+                        'account/mode' => array( 'cost' => 60 ),
+                        'account/ledger' => array( 'cost' => 4 ),
+                        'account/interest-history' => array( 'cost' => 30 ),
+                        'asset/deposit/address' => array( 'cost' => 10 ),
+                        'account/deposit/address' => array( 'cost' => 5 ),
+                        '{accountMode}/account/balance' => array( 'cost' => 10 ),
+                        '{accountMode}/account/overview' => array( 'cost' => 10 ),
+                        '{accountMode}/order/detail' => array( 'cost' => 8 ),
+                        '{accountMode}/order/open-list' => array( 'cost' => 8 ),
+                        '{accountMode}/order/history' => array( 'cost' => 8 ),
+                        '{accountMode}/order/execution' => array( 'cost' => 8 ),
+                        '{accountMode}/position/open-list' => array( 'cost' => 6 ),
+                        '{accountMode}/position/history' => array( 'cost' => 4 ),
+                        'position/history' => array( 'cost' => 4 ),
+                        '{accountMode}/position/tiers' => array( 'cost' => 40 ),
+                        'sub-account/balance' => array( 'cost' => 10 ),
+                        'user/fee-rate' => array( 'cost' => 6 ),
+                        'dcp/query' => array( 'cost' => 4 ),
+                        'unified/account/leverage' => array( 'cost' => 20 ), // returns array("code":"404","msg":"Not Found","retry":false,"success":false)
+                        'position/funding-history' => array( 'cost' => 30 ),
+                        'account/interest-limits' => array( 'cost' => 20 ),
                     ),
                     'post' => array(
-                        'account/transfer' => 8,
-                        'account/mode' => 60,
-                        '{accountMode}/account/modify-leverage' => 40,
-                        '{accountMode}/order/place' => 2,
-                        '{accountMode}/order/place-batch' => 8,
-                        '{accountMode}/order/cancel' => 2,
-                        '{accountMode}/order/cancel-batch' => 8,
-                        '{accountMode}/order/cancel-all' => 40,
-                        'sub-account/canTransferOut' => 10,
-                        'dcp/set' => 4,
-                        '{accountMode}/account/modify-leverage-margin-cross' => 40,
+                        'account/transfer' => array( 'cost' => 8 ),
+                        'account/mode' => array( 'cost' => 60 ),
+                        '{accountMode}/account/modify-leverage' => array( 'cost' => 40 ),
+                        '{accountMode}/order/place' => array( 'cost' => 2 ),
+                        '{accountMode}/order/place-batch' => array( 'cost' => 8 ),
+                        '{accountMode}/order/cancel' => array( 'cost' => 2 ),
+                        '{accountMode}/order/cancel-batch' => array( 'cost' => 8 ),
+                        '{accountMode}/order/cancel-all' => array( 'cost' => 40 ),
+                        'sub-account/canTransferOut' => array( 'cost' => 10 ),
+                        'dcp/set' => array( 'cost' => 4 ),
+                        '{accountMode}/account/modify-leverage-margin-cross' => array( 'cost' => 40 ),
                     ),
                 ),
             ),
@@ -1117,7 +1117,7 @@ class kucoin extends Exchange {
                     'EOS' => 'eos',
                     'BEP20' => 'bsc',
                     'BEP2' => 'bnb',
-                    'ARBONE' => 'arbitrum',
+                    'ARBITRUM' => 'arbitrum',
                     'AVAXX' => 'avax',
                     'AVAXC' => 'avaxc',
                     'TLOS' => 'tlos', // tlosevm is different
@@ -1523,7 +1523,7 @@ class kucoin extends Exchange {
         return $this->safe_integer($response, 'data');
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -3834,7 +3834,12 @@ class kucoin extends Exchange {
             if ($level !== 2 && $level !== null) {
                 throw new BadRequest($this->id . ' fetchOrderBook() can only return $level 2');
             }
-            if (($limit === null) || $limit === 20) {
+            if ($limit === null) {
+                // full L2 snapshot - required for correct ws diff-sync => the futures delta
+                // stream covers the whole book while depth20/depth100 truncate the snapshot,
+                // see https://github.com/ccxt/ccxt/issues/22063
+                $response = $this->futuresPublicGetLevel2Snapshot($this->extend($request, $params));
+            } elseif ($limit === 20) {
                 //
                 //     {
                 //         "code" => "200000",
@@ -4960,7 +4965,7 @@ class kucoin extends Exchange {
         $useSync = false;
         list($useSync, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'sync', false);
         $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
         $tradeType = $this->safe_string($params, 'tradeType'); // keep it for backward compatibility
         $isMarginOrder = $tradeType === 'MARGIN_TRADE' || $marginMode !== null;
         if ($hf || $useSync || $isMarginOrder) {
@@ -5159,10 +5164,10 @@ class kucoin extends Exchange {
         $market = $this->market($symbol);
         $request['symbol'] = $market['id'];
         $accountMode = 'unified';
-        list($accountMode, $params) = $this->handle_option_and_params($params, 'fetchOrder', 'accountMode', $accountMode);
+        list($accountMode, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'accountMode', $accountMode);
         $request['accountMode'] = $accountMode;
         $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrder', $params);
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
         $isUnified = ($accountMode === 'unified');
         $tradeType = $this->handle_trade_type($market['contract'], $marginMode, $isUnified, $params);
         $request['tradeType'] = $tradeType;
@@ -5216,7 +5221,7 @@ class kucoin extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        list($marketType, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
         if (($marketType === 'spot') || ($marketType === 'margin')) {
             return $this->cancel_all_spot_orders($symbol, $params);
         } else {
@@ -5375,7 +5380,7 @@ class kucoin extends Exchange {
         return $this->parse_orders($orders, $market, null, null, array( 'status' => 'canceled' ));
     }
 
-    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches a list of orders placed on the exchange
          *
@@ -6861,15 +6866,17 @@ class kucoin extends Exchange {
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
+        // v1 (historical) returns the trade list directly under 'data', v2 nests it under 'items'
         $trades = null;
         if ($parseResponseData) {
             $trades = $data;
         } else {
             $trades = $this->safe_list($data, 'items', array());
         }
+        // v1 may put a bare list or dict under $data; normalize once for parseTrades
         $tradesList = array();
         if ($trades !== null) {
-            $tradesList = $trades;
+            $tradesList = $this->to_array($trades);
         }
         return $this->parse_trades($tradesList, $market, $since, $limit);
     }
@@ -7922,7 +7929,8 @@ class kucoin extends Exchange {
         //         }
         //     }
         //
-        $responseData = $response['data']['items'];
+        $data = $this->safe_dict($response, 'data', array());
+        $responseData = $this->safe_list($data, 'items', array());
         return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'deposit' ));
     }
 
@@ -8075,7 +8083,8 @@ class kucoin extends Exchange {
         //         }
         //     }
         //
-        $responseData = $response['data']['items'];
+        $data = $this->safe_dict($response, 'data', array());
+        $responseData = $this->safe_list($data, 'items', array());
         return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
@@ -9616,7 +9625,7 @@ class kucoin extends Exchange {
         return $this->parse_borrow_rate($data, $currency);
     }
 
-    public function borrow_cross_margin(string $code, float $amount, $params = array()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * create a loan to borrow margin
          *
@@ -9654,7 +9663,7 @@ class kucoin extends Exchange {
         return $this->parse_margin_loan($data, $currency);
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()): array {
         /**
          * create a loan to borrow margin
          *
@@ -9696,7 +9705,7 @@ class kucoin extends Exchange {
         return $this->parse_margin_loan($data, $currency);
     }
 
-    public function repay_cross_margin(string $code, float $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * repay borrowed margin and interest
          *
@@ -9732,7 +9741,7 @@ class kucoin extends Exchange {
         return $this->parse_margin_loan($data, $currency);
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()): array {
         /**
          * repay borrowed margin and interest
          *
@@ -9772,7 +9781,7 @@ class kucoin extends Exchange {
         return $this->parse_margin_loan($data, $currency);
     }
 
-    public function parse_margin_loan(mixed $info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
         //
         //     {
         //         "orderNo" => "5da6dba0f943c0c81f5d5db5",
@@ -10896,7 +10905,7 @@ class kucoin extends Exchange {
             list($accountMode, $params) = $this->handle_option_and_params($params, 'cancelOrders', 'accountMode', $accountMode);
             $request['accountMode'] = $accountMode;
             $marginMode = null;
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrder', $params);
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrders', $params);
             $isUnified = ($accountMode === 'unified');
             $tradeType = $this->handle_trade_type($isContractMarket, $marginMode, $isUnified, $params);
             $request['tradeType'] = $tradeType;
@@ -11201,7 +11210,7 @@ class kucoin extends Exchange {
         //    }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_margin_mode($data, $market);
+        return $this->parse_margin_mode($data, $market); // widened to Dict to match the base setMarginMode return (array()) — narrowing it to MarginMode breaks the Go IExchange interface
     }
 
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
@@ -11234,7 +11243,7 @@ class kucoin extends Exchange {
         return $response;
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): array {
         /**
          * fetchs the position mode, hedged or one way
          *

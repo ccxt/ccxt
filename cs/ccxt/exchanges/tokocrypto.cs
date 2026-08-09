@@ -103,8 +103,8 @@ public partial class tokocrypto : Exchange
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchSettlementHistory", false },
                 { "fetchStatus", false },
-                { "fetchTicker", false },
-                { "fetchTickers", false },
+                { "fetchTicker", true },
+                { "fetchTickers", true },
                 { "fetchTime", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", false },
@@ -163,16 +163,28 @@ public partial class tokocrypto : Exchange
             { "api", new Dictionary<string, object>() {
                 { "binance", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "ping", 1 },
-                        { "time", 1 },
+                        { "ping", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "depth", new Dictionary<string, object>() {
                             { "cost", 1 },
                             { "byLimit", new List<object>() {new List<object>() {100, 1}, new List<object>() {500, 5}, new List<object>() {1000, 10}, new List<object>() {5000, 50}} },
                         } },
-                        { "trades", 1 },
-                        { "aggTrades", 1 },
-                        { "historicalTrades", 5 },
-                        { "klines", 1 },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "aggTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "historicalTrades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "klines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "ticker/24hr", new Dictionary<string, object>() {
                             { "cost", 1 },
                             { "noSymbol", 40 },
@@ -185,45 +197,91 @@ public partial class tokocrypto : Exchange
                             { "cost", 1 },
                             { "noSymbol", 2 },
                         } },
-                        { "exchangeInfo", 10 },
+                        { "exchangeInfo", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
-                        { "userDataStream", 1 },
+                        { "userDataStream", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "userDataStream", 1 },
+                        { "userDataStream", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "userDataStream", 1 },
+                        { "userDataStream", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "open/v1/common/time", 1 },
-                        { "open/v1/common/symbols", 1 },
-                        { "open/v1/market/depth", 1 },
-                        { "open/v1/market/trades", 1 },
-                        { "open/v1/market/agg-trades", 1 },
-                        { "open/v1/market/klines", 1 },
+                        { "open/v1/common/time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/common/symbols", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/market/depth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/market/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/market/agg-trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/market/klines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "open/v1/orders/detail", 1 },
-                        { "open/v1/orders", 1 },
-                        { "open/v1/account/spot", 1 },
-                        { "open/v1/account/spot/asset", 1 },
-                        { "open/v1/orders/trades", 1 },
-                        { "open/v1/withdraws", 1 },
-                        { "open/v1/deposits", 1 },
-                        { "open/v1/deposits/address", 1 },
+                        { "open/v1/orders/detail", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/account/spot", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/account/spot/asset", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/orders/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/withdraws", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/deposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/deposits/address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "open/v1/orders", 1 },
-                        { "open/v1/orders/cancel", 1 },
-                        { "open/v1/orders/oco", 1 },
-                        { "open/v1/withdraws", 1 },
-                        { "open/v1/user-data-stream", 1 },
+                        { "open/v1/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/orders/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/orders/oco", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/withdraws", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/user-data-stream", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -1236,11 +1294,7 @@ public partial class tokocrypto : Exchange
         //         }
         //     ]
         //
-        object responseList = new List<object>() {};
-        if (isTrue(!isEqual(response, null)))
-        {
-            responseList = response;
-        }
+        object responseList = this.toArray(response);
         return this.parseTrades(responseList, market, since, limit);
     }
 
@@ -1515,7 +1569,14 @@ public partial class tokocrypto : Exchange
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         //     ]
         //
-        object data = this.safeList(response, "data", response);
+        object data = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            data = response;
+        } else
+        {
+            data = this.safeList(response, "data", new List<object>() {});
+        }
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -2882,7 +2943,7 @@ public partial class tokocrypto : Exchange
         } else if (isTrue(isTrue((inOp(config, "byLimit"))) && isTrue((inOp(parameters, "limit")))))
         {
             object limit = getValue(parameters, "limit");
-            object byLimit = ((object)getValue(config, "byLimit"));
+            object byLimit = this.safeList(config, "byLimit", new List<object>() {});
             for (object i = 0; isLessThan(i, getArrayLength(byLimit)); postFixIncrement(ref i))
             {
                 object entry = getValue(byLimit, i);

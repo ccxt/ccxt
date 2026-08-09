@@ -34,12 +34,12 @@ func NewCoincheckFromCore(core *CoincheckCore) *Coincheck {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Coincheck) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Coincheck) FetchStatus(params ...any) (Status, error) {
 	res := <-this.Core.FetchStatus(params...)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return Status{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewStatus(res), nil
 }
 
 /**
@@ -729,7 +729,7 @@ func (this *Coincheck) FetchPosition(symbol string, options ...FetchPositionOpti
 func (this *Coincheck) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Coincheck) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Coincheck) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Coincheck) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -867,7 +867,7 @@ func (this *Coincheck) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Coincheck) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Coincheck) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Coincheck) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Coincheck) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -912,7 +912,7 @@ func (this *Coincheck) FetchTradesWs(symbol string, options ...FetchTradesWsOpti
 func (this *Coincheck) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Coincheck) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Coincheck) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Coincheck) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

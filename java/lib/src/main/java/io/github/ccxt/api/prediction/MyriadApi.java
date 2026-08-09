@@ -19,162 +19,354 @@ public class MyriadApi extends PredictionExchange
         super(options);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicGetQuestions (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicGetQuestions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetQuestions (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetQuestions", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicGetQuestionsId (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicGetQuestionsId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetQuestionsId (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetQuestionsId", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicGetMarkets (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicGetMarkets endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetMarkets (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetMarkets", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicGetMarketsId (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicGetMarketsId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetMarketsId (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetMarketsId", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicGetMarketsNetworkIdId (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicGetMarketsNetworkIdId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetMarketsNetworkIdId (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetMarketsNetworkIdId", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicGetMarketsIdEvents (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicGetMarketsIdEvents endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetMarketsIdEvents (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetMarketsIdEvents", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicGetMarketsIdOrderbook (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicGetMarketsIdOrderbook endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetMarketsIdOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetMarketsIdOrderbook", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicGetMarketsIdTrades (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicGetMarketsIdTrades endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  myriadPublicGetMarketsIdTrades (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetMarketsIdTrades", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicGetMarketsIdHolders (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicGetMarketsIdHolders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetMarketsIdHolders (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetMarketsIdHolders", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicGetMarketsIdReferrals (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicGetMarketsIdReferrals endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetMarketsIdReferrals (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetMarketsIdReferrals", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicGetEvents (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicGetEvents endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetEvents (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetEvents", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicGetOrders (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicGetOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetOrders (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetOrders", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicGetOrdersHash (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicGetOrdersHash endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetOrdersHash (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetOrdersHash", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicGetUsersAddressEvents (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicGetUsersAddressEvents endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetUsersAddressEvents (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetUsersAddressEvents", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicGetUsersAddressReferrals (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicGetUsersAddressReferrals endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetUsersAddressReferrals (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetUsersAddressReferrals", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicGetUsersAddressPortfolio (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicGetUsersAddressPortfolio endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetUsersAddressPortfolio (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetUsersAddressPortfolio", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicGetUsersAddressMarkets (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicGetUsersAddressMarkets endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetUsersAddressMarkets (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetUsersAddressMarkets", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicGetTags (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicGetTags endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetTags (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetTags", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicGetTopics (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicGetTopics endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetTopics (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetTopics", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicPostMarketsQuote (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicPostMarketsQuote endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostMarketsQuote (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostMarketsQuote", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicPostMarketsClaim (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicPostMarketsClaim endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostMarketsClaim (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostMarketsClaim", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicPostOrders (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicPostOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostOrders (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostOrders", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicPostOrdersCancelBatch (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicPostOrdersCancelBatch endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostOrdersCancelBatch (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostOrdersCancelBatch", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicPostOrdersCancelAll (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicPostOrdersCancelAll endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostOrdersCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostOrdersCancelAll", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicPostPositionsSplit (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicPostPositionsSplit endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostPositionsSplit (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostPositionsSplit", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicPostPositionsMerge (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicPostPositionsMerge endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostPositionsMerge (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostPositionsMerge", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicPostPositionsRedeem (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicPostPositionsRedeem endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostPositionsRedeem (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostPositionsRedeem", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicPostPositionsRedeemVoided (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicPostPositionsRedeemVoided endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostPositionsRedeemVoided (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostPositionsRedeemVoided", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicPostPositionsNegRiskSplit (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicPostPositionsNegRiskSplit endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostPositionsNegRiskSplit (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostPositionsNegRiskSplit", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicPostPositionsNegRiskMerge (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicPostPositionsNegRiskMerge endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostPositionsNegRiskMerge (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostPositionsNegRiskMerge", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPublicDeleteOrdersHash (Object... optionalArgs)
+    /**
+     * Calls the myriadPublicDeleteOrdersHash endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicDeleteOrdersHash (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicDeleteOrdersHash", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  myriadPrivatePostMarketsQuoteWithFee (Object... optionalArgs)
+    /**
+     * Calls the myriadPrivatePostMarketsQuoteWithFee endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPrivatePostMarketsQuoteWithFee (Object... optionalArgs)
     {
         return this.callAsync ("myriadPrivatePostMarketsQuoteWithFee", optionalArgs);
     }

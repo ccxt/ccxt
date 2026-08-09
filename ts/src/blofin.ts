@@ -6,7 +6,7 @@ import Exchange from './abstract/blofin.js';
 import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, FeeString, Bool, List, NullableDict, IndexType } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, FeeString, Bool, List, NullableDict, IndexType, PositionModeInfo, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -109,6 +109,7 @@ export default class blofin extends Exchange {
                 'fetchPositions': true,
                 'fetchPositionsADLRank': true,
                 'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
@@ -175,100 +176,100 @@ export default class blofin extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'market/instruments': 1,
-                        'market/tickers': 1,
-                        'market/books': 1,
-                        'market/trades': 1,
-                        'market/mark-price': 1,
-                        'market/funding-rate': 1,
-                        'market/funding-rate-history': 1,
-                        'market/candles': 1,
-                        'market/index-candles': 1,
-                        'market/mark-price-candles': 1,
-                        'market/position-tiers': 1,
+                        'market/instruments': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/books': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/mark-price': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/funding-rate': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/funding-rate-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/index-candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/mark-price-candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/position-tiers': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
                         // account
-                        'asset/balances': 1,
-                        'asset/bills': 1,
-                        'asset/withdrawal-history': 1,
-                        'asset/deposit-history': 1,
-                        'account/config': 1,
-                        'asset/currencies': 1,
+                        'asset/balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'asset/bills': { 'cost': 1 } as Endpoint<Dict>,
+                        'asset/withdrawal-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'asset/deposit-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/config': { 'cost': 1 } as Endpoint<Dict>,
+                        'asset/currencies': { 'cost': 1 } as Endpoint<Dict>,
                         // trading
-                        'account/balance': 1,
-                        'account/positions': 1,
-                        'account/positions-history': 1,
-                        'account/margin-mode': 1,
-                        'account/position-mode': 1,
-                        'account/leverage-info': 1,
-                        'account/batch-leverage-info': 1,
-                        'trade/orders-pending': 1,
-                        'trade/order-detail': 1,
-                        'trade/orders-tpsl-pending': 1,
-                        'trade/order-tpsl-detail': 1,
-                        'trade/orders-algo-pending': 1,
-                        'trade/orders-history': 1,
-                        'trade/orders-tpsl-history': 1,
-                        'trade/orders-algo-history': 1, // todo new
-                        'trade/fills-history': 1,
-                        'trade/order/price-range': 1,
+                        'account/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/positions-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/margin-mode': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/position-mode': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/leverage-info': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/batch-leverage-info': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/orders-pending': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/order-detail': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/orders-tpsl-pending': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/order-tpsl-detail': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/orders-algo-pending': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/orders-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/orders-tpsl-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/orders-algo-history': { 'cost': 1 } as Endpoint<Dict>, // todo new
+                        'trade/fills-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/order/price-range': { 'cost': 1 } as Endpoint<Dict>,
                         // affiliate
-                        'affiliate/basic': 1,
-                        'affiliate/referral-code': 1,
-                        'affiliate/invitees': 1,
-                        'affiliate/sub-invitees': 1,
-                        'affiliate/sub-affiliates': 1,
-                        'affiliate/invitees/daily/info': 1,
+                        'affiliate/basic': { 'cost': 1 } as Endpoint<Dict>,
+                        'affiliate/referral-code': { 'cost': 1 } as Endpoint<Dict>,
+                        'affiliate/invitees': { 'cost': 1 } as Endpoint<Dict>,
+                        'affiliate/sub-invitees': { 'cost': 1 } as Endpoint<Dict>,
+                        'affiliate/sub-affiliates': { 'cost': 1 } as Endpoint<Dict>,
+                        'affiliate/invitees/daily/info': { 'cost': 1 } as Endpoint<Dict>,
                         // copy trading
-                        'copytrading/instruments': 1,
-                        'copytrading/config': 1,
-                        'copytrading/account/balance': 1,
-                        'copytrading/account/positions-by-order': 1,
-                        'copytrading/account/positions-details-by-order': 1,
-                        'copytrading/account/positions-by-contract': 1,
-                        'copytrading/account/position-mode': 1,
-                        'copytrading/account/leverage-info': 1,
-                        'copytrading/trade/orders-pending': 1,
-                        'copytrading/trade/pending-tpsl-by-contract': 1,
-                        'copytrading/trade/position-history-by-order': 1,
-                        'copytrading/trade/orders-history': 1,
-                        'copytrading/trade/pending-tpsl-by-order': 1,
+                        'copytrading/instruments': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/config': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/account/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/account/positions-by-order': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/account/positions-details-by-order': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/account/positions-by-contract': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/account/position-mode': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/account/leverage-info': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/trade/orders-pending': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/trade/pending-tpsl-by-contract': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/trade/position-history-by-order': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/trade/orders-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/trade/pending-tpsl-by-order': { 'cost': 1 } as Endpoint<Dict>,
                         // user
-                        'user/query-apikey': 1,
+                        'user/query-apikey': { 'cost': 1 } as Endpoint<Dict>,
                         // tax
-                        'spot/trade/fills-history': 1,
+                        'spot/trade/fills-history': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
                         // account
-                        'asset/transfer': 1,
-                        'asset/demo-apply-money': 1,
+                        'asset/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'asset/demo-apply-money': { 'cost': 1 } as Endpoint<Dict>,
                         // trading
-                        'account/set-margin-mode': 1,
-                        'account/set-position-mode': 1,
-                        'account/set-leverage': 1,
-                        'trade/order': 1,
-                        'trade/batch-orders': 1,
-                        'trade/order-tpsl': 1,
-                        'trade/order-algo': 1,
-                        'trade/cancel-order': 1,
-                        'trade/cancel-batch-orders': 1,
-                        'trade/cancel-tpsl': 1,
-                        'trade/cancel-algo': 1,
-                        'trade/close-position': 1,
+                        'account/set-margin-mode': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/set-position-mode': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/set-leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/batch-orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/order-tpsl': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/order-algo': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/cancel-order': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/cancel-batch-orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/cancel-tpsl': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/cancel-algo': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/close-position': { 'cost': 1 } as Endpoint<Dict>,
                         // copy trading
-                        'copytrading/account/set-position-mode': 1,
-                        'copytrading/account/set-leverage': 1,
-                        'copytrading/trade/place-order': 1,
-                        'copytrading/trade/cancel-order': 1,
-                        'copytrading/trade/place-tpsl-by-contract': 1,
-                        'copytrading/trade/cancel-tpsl-by-contract': 1,
-                        'copytrading/trade/place-tpsl-by-order': 1,
-                        'copytrading/trade/cancel-tpsl-by-order': 1,
-                        'copytrading/trade/close-position-by-order': 1,
-                        'copytrading/trade/close-position-by-contract': 1,
+                        'copytrading/account/set-position-mode': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/account/set-leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/trade/place-order': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/trade/cancel-order': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/trade/place-tpsl-by-contract': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/trade/cancel-tpsl-by-contract': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/trade/place-tpsl-by-order': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/trade/cancel-tpsl-by-order': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/trade/close-position-by-order': { 'cost': 1 } as Endpoint<Dict>,
+                        'copytrading/trade/close-position-by-contract': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -2753,7 +2754,7 @@ export default class blofin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseMarginMode (data as Dict, market) as any; // keep untyped to match the base setMarginMode return ({}) — narrowing it breaks the Go IExchange interface
+        return this.parseMarginMode (data as Dict, market) as Dict; // Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
     }
 
     /**
@@ -2765,7 +2766,7 @@ export default class blofin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    override async fetchPositionMode (symbol: Str = undefined, params = {}) {
+    override async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<PositionModeInfo> {
         const response = await this.privateGetAccountPositionMode (params);
         const data = this.safeDict (response, 'data', {});
         const positionMode = this.safeString (data, 'positionMode');

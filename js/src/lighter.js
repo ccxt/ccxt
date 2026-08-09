@@ -170,81 +170,81 @@ export default class lighter extends Exchange {
                 'root': {
                     'get': {
                         // root
-                        '': 1, // status
-                        'info': 1,
+                        '': { 'cost': 1 }, // status
+                        'info': { 'cost': 1 },
                     },
                 },
                 'public': {
                     'get': {
                         // account
-                        'account': 1,
-                        'accountsByL1Address': 1,
-                        'apikeys': 1,
+                        'account': { 'cost': 1 },
+                        'accountsByL1Address': { 'cost': 1 },
+                        'apikeys': { 'cost': 1 },
                         // order
-                        'exchangeStats': 1,
-                        'assetDetails': 1,
-                        'orderBookDetails': 1,
-                        'orderBookOrders': 1,
-                        'orderBooks': 1,
-                        'recentTrades': 1,
+                        'exchangeStats': { 'cost': 1 },
+                        'assetDetails': { 'cost': 1 },
+                        'orderBookDetails': { 'cost': 1 },
+                        'orderBookOrders': { 'cost': 1 },
+                        'orderBooks': { 'cost': 1 },
+                        'recentTrades': { 'cost': 1 },
                         // transaction
-                        'blockTxs': 1,
-                        'nextNonce': 1,
-                        'tx': 1,
-                        'txFromL1TxHash': 1,
-                        'txs': 1,
+                        'blockTxs': { 'cost': 1 },
+                        'nextNonce': { 'cost': 1 },
+                        'tx': { 'cost': 1 },
+                        'txFromL1TxHash': { 'cost': 1 },
+                        'txs': { 'cost': 1 },
                         // announcement
-                        'announcement': 1,
+                        'announcement': { 'cost': 1 },
                         // block
-                        'block': 1,
-                        'blocks': 1,
-                        'currentHeight': 1,
+                        'block': { 'cost': 1 },
+                        'blocks': { 'cost': 1 },
+                        'currentHeight': { 'cost': 1 },
                         // candlestick
-                        'candles': 1,
-                        'fundings': 1,
+                        'candles': { 'cost': 1 },
+                        'fundings': { 'cost': 1 },
                         // bridge
-                        'fastbridge/info': 1,
+                        'fastbridge/info': { 'cost': 1 },
                         // funding
-                        'funding-rates': 1,
+                        'funding-rates': { 'cost': 1 },
                         // info
-                        'withdrawalDelay': 1,
+                        'withdrawalDelay': { 'cost': 1 },
                     },
                     'post': {
                         // transaction
-                        'sendTx': 1,
-                        'sendTxBatch': 1,
+                        'sendTx': { 'cost': 1 },
+                        'sendTxBatch': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
                         // account
-                        'accountLimits': 1,
-                        'accountMetadata': 1,
-                        'pnl': 1,
-                        'l1Metadata': 1,
-                        'liquidations': 1,
-                        'positionFunding': 1,
-                        'publicPoolsMetadata': 1,
+                        'accountLimits': { 'cost': 1 },
+                        'accountMetadata': { 'cost': 1 },
+                        'pnl': { 'cost': 1 },
+                        'l1Metadata': { 'cost': 1 },
+                        'liquidations': { 'cost': 1 },
+                        'positionFunding': { 'cost': 1 },
+                        'publicPoolsMetadata': { 'cost': 1 },
                         // order
-                        'accountActiveOrders': 1,
-                        'accountInactiveOrders': 1,
-                        'export': 1,
-                        'trades': 1,
+                        'accountActiveOrders': { 'cost': 1 },
+                        'accountInactiveOrders': { 'cost': 1 },
+                        'export': { 'cost': 1 },
+                        'trades': { 'cost': 1 },
                         // transaction
-                        'accountTxs': 1,
-                        'deposit/history': 1,
-                        'transfer/history': 1,
-                        'withdraw/history': 1,
+                        'accountTxs': { 'cost': 1 },
+                        'deposit/history': { 'cost': 1 },
+                        'transfer/history': { 'cost': 1 },
+                        'withdraw/history': { 'cost': 1 },
                         // referral
-                        'referral/points': 1,
+                        'referral/points': { 'cost': 1 },
                         // info
-                        'transferFeeInfo': 1,
+                        'transferFeeInfo': { 'cost': 1 },
                     },
                     'post': {
                         // account
-                        'changeAccountTier': 1,
+                        'changeAccountTier': { 'cost': 1 },
                         // notification
-                        'notification/ack': 1,
+                        'notification/ack': { 'cost': 1 },
                     },
                 },
             },

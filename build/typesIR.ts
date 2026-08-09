@@ -55,7 +55,7 @@ export interface TypesIR {
     sourcePath: string;
 }
 
-const SCALAR_ALIASES = [ 'Int', 'int', 'Str', 'Strings', 'Num', 'Bool', 'IndexType', 'NullableIndexType', 'OrderSide', 'OrderType', 'MarketType', 'SubType', 'Dict', 'NullableDict', 'List', 'NullableList', 'Fee', 'Market', 'Currency', 'implicitReturnType' ];
+const SCALAR_ALIASES = [ 'Int', 'int', 'Str', 'Strings', 'Num', 'Bool', 'IndexType', 'NullableIndexType', 'OrderSide', 'OrderType', 'MarketType', 'SubType', 'Dict', 'NullableDict', 'List', 'NullableList', 'Fee', 'Market', 'Currency' ];
 
 function stripUndefined (parts: string[]): string[] {
     return parts.filter ((p) => p !== 'undefined' && p !== 'null');

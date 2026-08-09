@@ -56,7 +56,7 @@ public partial class aster : Exchange
                 { "createMarketSellOrder", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
-                { "createOrders", false },
+                { "createOrders", true },
                 { "createOrderWithTakeProfitAndStopLoss", false },
                 { "createPostOnlyOrder", false },
                 { "createReduceOnlyOrder", false },
@@ -71,7 +71,7 @@ public partial class aster : Exchange
                 { "editOrders", false },
                 { "fetchAccounts", null },
                 { "fetchBalance", true },
-                { "fetchBidsAsks", false },
+                { "fetchBidsAsks", true },
                 { "fetchBorrowInterest", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
@@ -105,7 +105,7 @@ public partial class aster : Exchange
                 { "fetchIsolatedBorrowRate", "emulated" },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchL3OrderBook", false },
-                { "fetchLastPrices", false },
+                { "fetchLastPrices", true },
                 { "fetchLedger", true },
                 { "fetchLedgerEntry", false },
                 { "fetchLeverage", "emulated" },
@@ -179,153 +179,411 @@ public partial class aster : Exchange
             { "api", new Dictionary<string, object>() {
                 { "fapiPublic", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "v1/ping", 1 },
-                        { "v3/ping", 1 },
-                        { "v1/time", 1 },
-                        { "v3/time", 1 },
-                        { "v1/exchangeInfo", 1 },
-                        { "v3/exchangeInfo", 1 },
-                        { "v1/depth", 1 },
-                        { "v3/depth", 2 },
-                        { "v1/trades", 1 },
-                        { "v3/trades", 1 },
-                        { "v1/historicalTrades", 1 },
-                        { "v3/historicalTrades", 20 },
-                        { "v1/aggTrades", 1 },
-                        { "v3/aggTrades", 20 },
-                        { "v1/klines", 1 },
-                        { "v3/klines", 1 },
-                        { "v1/indexPriceKlines", 1 },
-                        { "v3/indexPriceKlines", 1 },
-                        { "v1/markPriceKlines", 1 },
-                        { "v3/markPriceKlines", 1 },
-                        { "v1/premiumIndex", 1 },
-                        { "v3/premiumIndex", 1 },
-                        { "v1/fundingRate", 1 },
-                        { "v3/fundingRate", 1 },
-                        { "v1/fundingInfo", 1 },
-                        { "v3/fundingInfo", 1 },
-                        { "v1/ticker/24hr", 1 },
-                        { "v3/ticker/24hr", 1 },
-                        { "v1/ticker/price", 1 },
-                        { "v3/ticker/price", 1 },
-                        { "v1/ticker/bookTicker", 1 },
-                        { "v3/ticker/bookTicker", 1 },
-                        { "v1/adlQuantile", 1 },
-                        { "v1/forceOrders", 1 },
-                        { "v3/indexreferences", 1 },
+                        { "v1/ping", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/ping", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/exchangeInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/exchangeInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/depth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/depth", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "v1/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/historicalTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/historicalTrades", new Dictionary<string, object>() {
+                            { "cost", 20 },
+                        } },
+                        { "v1/aggTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/aggTrades", new Dictionary<string, object>() {
+                            { "cost", 20 },
+                        } },
+                        { "v1/klines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/klines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/indexPriceKlines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/indexPriceKlines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/markPriceKlines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/markPriceKlines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/premiumIndex", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/premiumIndex", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fundingRate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/fundingRate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fundingInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/fundingInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/ticker/24hr", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/ticker/24hr", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/ticker/price", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/ticker/price", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/ticker/bookTicker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/ticker/bookTicker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/adlQuantile", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/forceOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/indexreferences", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "fapiPrivate", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "v1/positionSide/dual", 1 },
-                        { "v3/positionSide/dual", 30 },
-                        { "v1/multiAssetsMargin", 1 },
-                        { "v3/multiAssetsMargin", 1 },
-                        { "v1/order", 1 },
-                        { "v3/order", 1 },
-                        { "v1/openOrder", 1 },
-                        { "v3/openOrder", 1 },
-                        { "v1/openOrders", 1 },
-                        { "v3/openOrders", 1 },
-                        { "v1/allOrders", 1 },
-                        { "v3/allOrders", 1 },
-                        { "v2/balance", 1 },
-                        { "v3/balance", 1 },
-                        { "v3/account", 1 },
-                        { "v1/positionMargin/history", 1 },
-                        { "v3/positionMargin/history", 1 },
-                        { "v2/positionRisk", 1 },
-                        { "v3/positionRisk", 1 },
-                        { "v1/userTrades", 1 },
-                        { "v3/userTrades", 5 },
-                        { "v1/income", 1 },
-                        { "v3/income", 1 },
-                        { "v1/leverageBracket", 1 },
-                        { "v3/leverageBracket", 1 },
-                        { "v1/commissionRate", 1 },
-                        { "v3/commissionRate", 1 },
-                        { "v3/adlQuantile", 1 },
-                        { "v3/forceOrders", 1 },
-                        { "v3/mmp", 1 },
-                        { "v3/accountWithJoinMargin", 1 },
-                        { "v4/account", 1 },
-                        { "v3/agent", 1 },
-                        { "v3/builder", 1 },
+                        { "v1/positionSide/dual", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/positionSide/dual", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "v1/multiAssetsMargin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/multiAssetsMargin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/openOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/openOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/allOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/allOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/positionMargin/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/positionMargin/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/positionRisk", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/positionRisk", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/userTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/userTrades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/income", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/income", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/leverageBracket", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/leverageBracket", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/commissionRate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/commissionRate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/adlQuantile", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/forceOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/mmp", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/accountWithJoinMargin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v4/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/agent", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/builder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "v1/positionSide/dual", 1 },
-                        { "v3/positionSide/dual", 1 },
-                        { "v1/multiAssetsMargin", 1 },
-                        { "v3/multiAssetsMargin", 1 },
-                        { "v1/order", 1 },
-                        { "v3/order", 1 },
-                        { "v1/order/test", 1 },
-                        { "v3/order/test", 1 },
-                        { "v1/batchOrders", 1 },
-                        { "v3/batchOrders", 1 },
-                        { "v1/asset/wallet/transfer", 1 },
-                        { "v3/asset/wallet/transfer", 1 },
-                        { "v1/countdownCancelAll", 1 },
-                        { "v3/countdownCancelAll", 1 },
-                        { "v1/leverage", 1 },
-                        { "v3/leverage", 1 },
-                        { "v1/marginType", 1 },
-                        { "v3/marginType", 1 },
-                        { "v1/positionMargin", 1 },
-                        { "v3/positionMargin", 1 },
-                        { "v1/listenKey", 1 },
-                        { "v3/listenKey", 1 },
-                        { "v3/mmp", 1 },
-                        { "v3/mmpReset", 1 },
-                        { "v3/noop", 1 },
-                        { "v3/approveAgent", 1 },
-                        { "v3/updateAgent", 1 },
-                        { "v3/approveBuilder", 1 },
-                        { "v3/updateBuilder", 1 },
+                        { "v1/positionSide/dual", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/positionSide/dual", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/multiAssetsMargin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/multiAssetsMargin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/order/test", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/order/test", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/batchOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/batchOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/asset/wallet/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/asset/wallet/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/countdownCancelAll", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/countdownCancelAll", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/marginType", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/marginType", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/positionMargin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/positionMargin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/mmp", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/mmpReset", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/noop", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/approveAgent", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/updateAgent", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/approveBuilder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/updateBuilder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
-                        { "v1/listenKey", 1 },
-                        { "v3/listenKey", 1 },
+                        { "v1/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "v1/order", 1 },
-                        { "v3/order", 1 },
-                        { "v1/allOpenOrders", 1 },
-                        { "v3/allOpenOrders", 1 },
-                        { "v1/batchOrders", 1 },
-                        { "v3/batchOrders", 1 },
-                        { "v3/mmp", 1 },
-                        { "v1/listenKey", 1 },
-                        { "v3/listenKey", 1 },
-                        { "v3/agent", 1 },
-                        { "v3/builder", 1 },
+                        { "v1/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/allOpenOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/allOpenOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/batchOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/batchOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/mmp", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/agent", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/builder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "sapiPublic", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "v1/ping", 1 },
-                        { "v1/time", 1 },
-                        { "v1/exchangeInfo", 1 },
-                        { "v1/depth", 1 },
-                        { "v1/trades", 1 },
-                        { "v1/historicalTrades", 1 },
-                        { "v1/aggTrades", 1 },
-                        { "v1/klines", 1 },
-                        { "v1/ticker/24hr", 1 },
-                        { "v1/ticker/price", 1 },
-                        { "v1/ticker/bookTicker", 1 },
-                        { "v1/aster/withdraw/estimateFee", 1 },
-                        { "v3/ping", 1 },
-                        { "v3/time", 1 },
-                        { "v3/exchangeInfo", 1 },
+                        { "v1/ping", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/exchangeInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/depth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/historicalTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/aggTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/klines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/ticker/24hr", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/ticker/price", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/ticker/bookTicker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/aster/withdraw/estimateFee", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/ping", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/exchangeInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "v3/depth", new Dictionary<string, object>() {
                             { "cost", 2 },
                             { "byLimit", new List<object>() {new List<object>() {50, 2}, new List<object>() {100, 5}, new List<object>() {500, 10}, new List<object>() {1000, 20}} },
                         } },
-                        { "v3/trades", 1 },
-                        { "v3/historicalTrades", 20 },
-                        { "v3/aggTrades", 20 },
+                        { "v3/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/historicalTrades", new Dictionary<string, object>() {
+                            { "cost", 20 },
+                        } },
+                        { "v3/aggTrades", new Dictionary<string, object>() {
+                            { "cost", 20 },
+                        } },
                         { "v3/klines", new Dictionary<string, object>() {
                             { "cost", 1 },
                             { "byLimit", new List<object>() {new List<object>() {99, 1}, new List<object>() {499, 2}, new List<object>() {1000, 5}, new List<object>() {10000, 10}} },
@@ -342,47 +600,110 @@ public partial class aster : Exchange
                             { "cost", 1 },
                             { "noSymbol", 2 },
                         } },
-                        { "v3/aster/withdraw/estimateFee", 1 },
+                        { "v3/aster/withdraw/estimateFee", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "sapiPrivate", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "v1/commissionRate", 1 },
-                        { "v1/order", 1 },
-                        { "v1/openOrders", 1 },
-                        { "v1/allOrders", 1 },
-                        { "v1/transactionHistory", 1 },
-                        { "v1/account", 1 },
-                        { "v1/userTrades", 1 },
+                        { "v1/commissionRate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/allOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/transactionHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/userTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "v3/commissionRate", new Dictionary<string, object>() {
                             { "cost", 1 },
                             { "noSymbol", 2 },
                         } },
-                        { "v3/order", 1 },
-                        { "v3/openOrders", 1 },
-                        { "v3/allOrders", 5 },
-                        { "v3/account", 5 },
-                        { "v3/userTrades", 5 },
-                        { "v3/openOrder", 1 },
+                        { "v3/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/allOrders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v3/account", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v3/userTrades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v3/openOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "v1/order", 1 },
-                        { "v1/asset/wallet/transfer", 5 },
-                        { "v1/asset/sendToAddress", 1 },
-                        { "v1/listenKey", 1 },
-                        { "v3/order", 1 },
-                        { "v3/asset/wallet/transfer", 5 },
-                        { "v3/aster/user-withdraw", 1 },
-                        { "v3/listenKey", 1 },
+                        { "v1/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/asset/wallet/transfer", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/asset/sendToAddress", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/asset/wallet/transfer", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v3/aster/user-withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
-                    { "put", new List<object>() {"v1/listenKey", "v3/listenKey"} },
+                    { "put", new Dictionary<string, object>() {
+                        { "v1/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                     { "delete", new Dictionary<string, object>() {
-                        { "v1/order", 1 },
-                        { "v1/allOpenOrders", 1 },
-                        { "v1/listenKey", 1 },
-                        { "v3/allOpenOrders", 1 },
-                        { "v3/order", 1 },
-                        { "v3/listenKey", 1 },
+                        { "v1/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/allOpenOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/allOpenOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -565,7 +886,7 @@ public partial class aster : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ETH" },
                     { "BEP20", "BSC" },
-                    { "ARBONE", "Arbitrum" },
+                    { "ARBITRUM", "Arbitrum" },
                 } },
                 { "networksToChainId", new Dictionary<string, object>() {
                     { "ETH", 1 },
@@ -1184,7 +1505,7 @@ public partial class aster : Exchange
                 response = await this.sapiPublicGetV3Klines(this.extend(request, parameters));
             }
         }
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1376,7 +1697,7 @@ public partial class aster : Exchange
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
         object marketType = null;
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (isTrue(!isEqual(since, null)))
@@ -1744,12 +2065,13 @@ public partial class aster : Exchange
         {
             throw new NullResponse ((string)add(this.id, " fetchLastPrices() returned empty response")) ;
         }
+        object rows = this.toArray(response);
         object results = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
-            object marketId = this.safeString(getValue(response, i), "symbol");
+            object marketId = this.safeString(getValue(rows, i), "symbol");
             object safeMarket = this.safeMarket(marketId, null, null, marketType);
-            object priceData = this.extend(this.parseLastPrice(getValue(response, i), safeMarket), parameters);
+            object priceData = this.extend(this.parseLastPrice(getValue(rows, i), safeMarket), parameters);
             ((IList<object>)results).Add(priceData);
         }
         symbols = this.marketSymbols(symbols);
@@ -3254,7 +3576,7 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
-        return this.parseLeverages(response, symbols, "symbol");
+        return this.parseLeverages(this.toArray(response), symbols, "symbol");
     }
 
     public override object parseLeverage(object leverage, object market = null)
@@ -3341,7 +3663,7 @@ public partial class aster : Exchange
         //     ]
         //
         //
-        return this.parseMarginModes(response, symbols, "symbol", "swap");
+        return this.parseMarginModes(this.toArray(response), symbols, "symbol", "swap");
     }
 
     public override object parseMarginMode(object marginMode, object market = null)
@@ -3430,7 +3752,7 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
-        object modifications = this.parseMarginModifications(response);
+        object modifications = this.parseMarginModifications(this.toArray(response));
         return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
     }
 
@@ -3953,14 +4275,15 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
+        object rawPositions = this.toArray(response);
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
-            object rawPosition = getValue(response, i);
+            object rawPosition = getValue(rawPositions, i);
             object entryPriceString = this.safeString(rawPosition, "entryPrice");
             if (isTrue(Precise.stringGt(entryPriceString, "0")))
             {
-                ((IList<object>)result).Add(this.parsePositionRisk(getValue(response, i)));
+                ((IList<object>)result).Add(this.parsePositionRisk(rawPosition));
             }
         }
         symbols = this.marketSymbols(symbols);
@@ -4311,9 +4634,10 @@ public partial class aster : Exchange
             //                ...
             //
             ((IDictionary<string,object>)this.options)["leverageBrackets"] = this.createSafeDictionary();
-            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            object entries = this.toArray(response);
+            for (object i = 0; isLessThan(i, getArrayLength(entries)); postFixIncrement(ref i))
             {
-                object entry = getValue(response, i);
+                object entry = getValue(entries, i);
                 object marketId = this.safeString(entry, "symbol");
                 object symbol = this.safeSymbol(marketId, null, null, "contract");
                 object brackets = this.safeList(entry, "brackets", new List<object>() {});

@@ -98,6 +98,7 @@ public class CexCore extends CexApi
                 put( "fetchOption", false );
                 put( "fetchOptionChain", false );
                 put( "fetchOrderBook", true );
+                put( "fetchOrdersByStatus", true );
                 put( "fetchPosition", false );
                 put( "fetchPositionHistory", false );
                 put( "fetchPositionMode", false );
@@ -138,39 +139,95 @@ public class CexCore extends CexApi
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{}} );
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "get_server_time", 1 );
-                        put( "get_pairs_info", 1 );
-                        put( "get_currencies_info", 1 );
-                        put( "get_processing_info", 10 );
-                        put( "get_ticker", 1 );
-                        put( "get_trade_history", 1 );
-                        put( "get_order_book", 1 );
-                        put( "get_candles", 1 );
+                        put( "get_server_time", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_pairs_info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_currencies_info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_processing_info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
+                        put( "get_ticker", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_trade_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_order_book", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_candles", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{}} );
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "get_my_current_fee", 5 );
-                        put( "get_fee_strategy", 1 );
-                        put( "get_my_volume", 5 );
-                        put( "do_create_account", 1 );
-                        put( "get_my_account_status_v3", 5 );
-                        put( "get_my_wallet_balance", 5 );
-                        put( "get_my_orders", 5 );
-                        put( "do_my_new_order", 1 );
-                        put( "do_cancel_my_order", 1 );
-                        put( "do_cancel_all_orders", 5 );
-                        put( "get_order_book", 1 );
-                        put( "get_candles", 1 );
-                        put( "get_trade_history", 1 );
-                        put( "get_my_transaction_history", 1 );
-                        put( "get_my_funding_history", 5 );
-                        put( "do_my_internal_transfer", 1 );
-                        put( "get_processing_info", 10 );
-                        put( "get_deposit_address", 5 );
-                        put( "do_deposit_funds_from_wallet", 1 );
-                        put( "do_withdrawal_funds_to_wallet", 1 );
+                        put( "get_my_current_fee", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "get_fee_strategy", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_my_volume", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "do_create_account", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_my_account_status_v3", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "get_my_wallet_balance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "get_my_orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "do_my_new_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "do_cancel_my_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "do_cancel_all_orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "get_order_book", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_candles", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_trade_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_my_transaction_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_my_funding_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "do_my_internal_transfer", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_processing_info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
+                        put( "get_deposit_address", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "do_deposit_funds_from_wallet", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "do_withdrawal_funds_to_wallet", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -287,7 +344,7 @@ public class CexCore extends CexApi
                     put( "AVALANCHEC", "avalanche" );
                     put( "ETHPOW", "ethereumpow" );
                     put( "NEAR", "near" );
-                    put( "ARB", "arbitrum" );
+                    put( "ARBITRUM", "arbitrum" );
                     put( "DOT", "polkadot" );
                     put( "OPT", "optimism" );
                     put( "INJ", "injective" );

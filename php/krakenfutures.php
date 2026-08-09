@@ -31,6 +31,7 @@ class krakenfutures extends Exchange {
                 'cancelOrders' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -104,61 +105,61 @@ class krakenfutures extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'feeschedules', // deprecated
-                        'instruments',
-                        'orderbook',
-                        'tickers',
-                        'history',
-                        'historicalfundingrates',
+                        'feeschedules' => array( 'cost' => 1 ),
+                        'instruments' => array( 'cost' => 1 ),
+                        'orderbook' => array( 'cost' => 1 ),
+                        'tickers' => array( 'cost' => 1 ),
+                        'history' => array( 'cost' => 1 ),
+                        'historicalfundingrates' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'feeschedules/volumes', // deprecated
-                        'openpositions',
-                        'notifications',
-                        'accounts',
-                        'openorders',
-                        'recentorders',
-                        'fills',
-                        'transfers',
-                        'leveragepreferences',
-                        'pnlpreferences',
-                        'assignmentprogram/current',
-                        'assignmentprogram/history',
-                        'orders/status',
+                        'feeschedules/volumes' => array( 'cost' => 1 ),
+                        'openpositions' => array( 'cost' => 1 ),
+                        'notifications' => array( 'cost' => 1 ),
+                        'accounts' => array( 'cost' => 1 ),
+                        'openorders' => array( 'cost' => 1 ),
+                        'recentorders' => array( 'cost' => 1 ),
+                        'fills' => array( 'cost' => 1 ),
+                        'transfers' => array( 'cost' => 1 ),
+                        'leveragepreferences' => array( 'cost' => 1 ),
+                        'pnlpreferences' => array( 'cost' => 1 ),
+                        'assignmentprogram/current' => array( 'cost' => 1 ),
+                        'assignmentprogram/history' => array( 'cost' => 1 ),
+                        'orders/status' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'sendorder',
-                        'editorder',
-                        'cancelorder',
-                        'transfer',
-                        'batchorder',
-                        'cancelallorders',
-                        'cancelallordersafter',
-                        'withdrawal',                              // for futures wallet -> kraken spot wallet
-                        'assignmentprogram/add',
-                        'assignmentprogram/delete',
+                        'sendorder' => array( 'cost' => 1 ),
+                        'editorder' => array( 'cost' => 1 ),
+                        'cancelorder' => array( 'cost' => 1 ),
+                        'transfer' => array( 'cost' => 1 ),
+                        'batchorder' => array( 'cost' => 1 ),
+                        'cancelallorders' => array( 'cost' => 1 ),
+                        'cancelallordersafter' => array( 'cost' => 1 ),
+                        'withdrawal' => array( 'cost' => 1 ),
+                        'assignmentprogram/add' => array( 'cost' => 1 ),
+                        'assignmentprogram/delete' => array( 'cost' => 1 ),
                     ),
                     'put' => array(
-                        'leveragepreferences',
-                        'pnlpreferences',
+                        'leveragepreferences' => array( 'cost' => 1 ),
+                        'pnlpreferences' => array( 'cost' => 1 ),
                     ),
                 ),
                 'charts' => array(
                     'get' => array(
-                        '{price_type}/{symbol}/{interval}',
+                        '{price_type}/{symbol}/{interval}' => array( 'cost' => 1 ),
                     ),
                 ),
                 'history' => array(
                     'get' => array(
-                        'orders',
-                        'executions',
-                        'triggers',
-                        'accountlogcsv',
-                        'account-log',
-                        'market/{symbol}/orders',
-                        'market/{symbol}/executions',
+                        'orders' => array( 'cost' => 1 ),
+                        'executions' => array( 'cost' => 1 ),
+                        'triggers' => array( 'cost' => 1 ),
+                        'accountlogcsv' => array( 'cost' => 1 ),
+                        'account-log' => array( 'cost' => 1 ),
+                        'market/{symbol}/orders' => array( 'cost' => 1 ),
+                        'market/{symbol}/executions' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -582,8 +583,9 @@ class krakenfutures extends Exchange {
         //        ),
         //    }
         //
-        $timestamp = $this->parse8601($response['serverTime']);
-        return $this->parse_order_book($response['orderBook'], $symbol, $timestamp);
+        $timestamp = $this->parse8601($this->safe_string($response, 'serverTime'));
+        $orderBook = $this->safe_dict($response, 'orderBook', array());
+        return $this->parse_order_book($orderBook, $symbol, $timestamp);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): array {
@@ -1321,9 +1323,10 @@ class krakenfutures extends Exchange {
             $request['limitPrice'] = $price;
         }
         $response = $this->privatePostEditorder($this->extend($request, $params));
-        $status = $this->safe_string($response['editStatus'], 'status');
+        $editStatus = $this->safe_dict($response, 'editStatus', array());
+        $status = $this->safe_string($editStatus, 'status');
         $this->verify_order_action_success($status, 'editOrder', array( 'filled' ));
-        $order = $this->parse_order($response['editStatus']);
+        $order = $this->parse_order($editStatus);
         $order['info'] = $response;
         return $order;
     }
@@ -2275,7 +2278,7 @@ class krakenfutures extends Exchange {
         /**
          * fetch all trades made by the user
          *
-         * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fills
+         * @see https://docs.kraken.com/api/docs/futures-api/trading/get-$fills
          *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] *not used by the  api* the earliest time in ms to fetch trades for
@@ -2313,7 +2316,8 @@ class krakenfutures extends Exchange {
         //        )
         //    }
         //
-        return $this->parse_trades($response['fills'], $market, $since, $limit);
+        $fills = $this->safe_list($response, 'fills', array());
+        return $this->parse_trades($fills, $market, $since, $limit);
     }
 
     public function fetch_balance($params = array()): array {

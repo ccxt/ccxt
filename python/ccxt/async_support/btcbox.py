@@ -82,6 +82,7 @@ class btcbox(Exchange, ImplicitAPI):
                 'fetchMarginMode': False,
                 'fetchMarginModes': False,
                 'fetchMarketLeverageTiers': False,
+                'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMarkPrices': False,
                 'fetchMyLiquidations': False,
@@ -135,27 +136,27 @@ class btcbox(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'depth',
-                        'orders',
-                        'ticker',
-                        'tickers',
-                    ],
+                    'get': {
+                        'depth': {'cost': 1},
+                        'orders': {'cost': 1},
+                        'ticker': {'cost': 1},
+                        'tickers': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'post': [
-                        'balance',
-                        'trade_add',
-                        'trade_cancel',
-                        'trade_list',
-                        'trade_view',
-                        'wallet',
-                    ],
+                    'post': {
+                        'balance': {'cost': 1},
+                        'trade_add': {'cost': 1},
+                        'trade_cancel': {'cost': 1},
+                        'trade_list': {'cost': 1},
+                        'trade_view': {'cost': 1},
+                        'wallet': {'cost': 1},
+                    },
                 },
                 'webApi': {
-                    'get': [
-                        'ajax/coin/coinInfo',
-                    ],
+                    'get': {
+                        'ajax/coin/coinInfo': {'cost': 1},
+                    },
                 },
             },
             'options': {
@@ -260,7 +261,7 @@ class btcbox(Exchange, ImplicitAPI):
             quote = self.safe_string(symbolParts, 1, '')
             quoteId = quote.lower()
             id = baseCurr.lower()
-            res = response1[marketId]
+            res = self.safe_dict(response1, marketId, {})
             symbol = baseCurr + '/' + quote
             fee = self.parse_number('0.0005') if (id == 'BTC') else self.parse_number('0.0010')
             details = self.safe_dict(result2Data, id, {})

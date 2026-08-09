@@ -105,8 +105,8 @@ class mudrex(Exchange, ImplicitAPI):
             'api': {
                 'market': {
                     'get': {
-                        'price/kline': 1,
-                        'price/mark-kline': 1,
+                        'price/kline': {'cost': 1},
+                        'price/mark-kline': {'cost': 1},
                     },
                 },
                 'public': {
@@ -115,36 +115,36 @@ class mudrex(Exchange, ImplicitAPI):
                 },
                 'private': {
                     'get': {
-                        'futures': 1,
-                        'futures/{asset_id}': 1,
-                        'wallet/funds': 5,
-                        'futures/funds': 5,
-                        'futures/orders': 1,
-                        'futures/orders/history': 1,
-                        'futures/orders/{order_id}': 1,
-                        'futures/positions': 1,
-                        'futures/positions/history': 1,
-                        'futures/fee/history': 1,
-                        'futures/{asset_id}/leverage': 2,
-                        'futures/positions/{position_id}/liq-price': 1,
+                        'futures': {'cost': 1},
+                        'futures/{asset_id}': {'cost': 1},
+                        'wallet/funds': {'cost': 5},
+                        'futures/funds': {'cost': 5},
+                        'futures/orders': {'cost': 1},
+                        'futures/orders/history': {'cost': 1},
+                        'futures/orders/{order_id}': {'cost': 1},
+                        'futures/positions': {'cost': 1},
+                        'futures/positions/history': {'cost': 1},
+                        'futures/fee/history': {'cost': 1},
+                        'futures/{asset_id}/leverage': {'cost': 2},
+                        'futures/positions/{position_id}/liq-price': {'cost': 1},
                     },
                     'post': {
-                        'wallet/futures/transfer': 5,
-                        'futures/transfers/inr': 5,
-                        'futures/{asset_id}/order': 2,
-                        'futures/positions/{position_id}/close': 2,
-                        'futures/positions/{position_id}/close/partial': 2,
-                        'futures/positions/{position_id}/reverse': 2,
-                        'futures/positions/{position_id}/add-margin': 2,
-                        'futures/positions/{position_id}/riskorder': 2,
-                        'futures/{asset_id}/leverage': 2,
+                        'wallet/futures/transfer': {'cost': 5},
+                        'futures/transfers/inr': {'cost': 5},
+                        'futures/{asset_id}/order': {'cost': 2},
+                        'futures/positions/{position_id}/close': {'cost': 2},
+                        'futures/positions/{position_id}/close/partial': {'cost': 2},
+                        'futures/positions/{position_id}/reverse': {'cost': 2},
+                        'futures/positions/{position_id}/add-margin': {'cost': 2},
+                        'futures/positions/{position_id}/riskorder': {'cost': 2},
+                        'futures/{asset_id}/leverage': {'cost': 2},
                     },
                     'patch': {
-                        'futures/orders/{order_id}': 1,
-                        'futures/positions/{position_id}/riskorder': 2,
+                        'futures/orders/{order_id}': {'cost': 1},
+                        'futures/positions/{position_id}/riskorder': {'cost': 2},
                     },
                     'delete': {
-                        'futures/orders/{order_id}': 2,
+                        'futures/orders/{order_id}': {'cost': 2},
                     },
                 },
             },
@@ -438,21 +438,26 @@ class mudrex(Exchange, ImplicitAPI):
             items = []
             if isinstance(data, dict) and not isinstance(data, list):
                 items = self.safe_list(data, 'items', [])
-                if not len(items):
+                # hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
+                itemsLength = len(items)
+                if not itemsLength:
                     items = self.safe_list(data, 'results', [])
-                if not len(items) and ('symbol' in data):
+                    itemsLength = len(items)
+                if not itemsLength and ('symbol' in data):
                     items = [data]
             else:
                 items = self.to_array(data)
-            if not len(items):
+            numItems = len(items)
+            if not numItems:
                 paging = False
                 break
-            for i in range(0, len(items)):
+            for i in range(0, numItems):
                 aggregated.append(items[i])
-            if len(items) < pageLimit:
+            if numItems < pageLimit:
                 paging = False
             else:
-                offset += pageLimit
+                # self.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                offset = self.sum(offset, pageLimit)
         result = []
         for i in range(0, len(aggregated)):
             result.append(self.parse_market(aggregated[i]))
@@ -1087,9 +1092,11 @@ class mudrex(Exchange, ImplicitAPI):
             if orderType == 'LIMIT' and lp is not None:
                 request['limit_price'] = lp
             params = self.omit(params, ['order_type', 'limit_price', 'amount', 'position_id'])
-            return await self.privatePostFuturesPositionsPositionIdClosePartial(self.extend(request, params))
+            partialResponse = await self.privatePostFuturesPositionsPositionIdClosePartial(self.extend(request, params))
+            return partialResponse
         params = self.omit(params, ['position_id'])
-        return await self.privatePostFuturesPositionsPositionIdClose(self.extend(request, params))
+        response = await self.privatePostFuturesPositionsPositionIdClose(self.extend(request, params))
+        return response
 
     async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
@@ -1120,7 +1127,8 @@ class mudrex(Exchange, ImplicitAPI):
             'margin': self.cost_to_precision(symbol, amount),
         }
         params = self.omit(params, ['position_id'])
-        return await self.privatePostFuturesPositionsPositionIdAddMargin(self.extend(request, params))
+        response = await self.privatePostFuturesPositionsPositionIdAddMargin(self.extend(request, params))
+        return response
 
     async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """

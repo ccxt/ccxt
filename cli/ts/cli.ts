@@ -124,6 +124,7 @@ program
     .option ('--clipboard', 'Copies the result to clipboard automatically.')
     .option ('--signIn', 'calls the signIn() method if available')
     .option ('--cache-markets', 'forces markets caching')
+    .option ('--cache-events', 'persists the prediction events discovered by any command (not just fetchEvents) to the prediction/ cache')
     .option ('--no-load-markets', 'skips markets loading')
     .option ('--no-table', 'does not prettify the results')
     .option ('--spot', 'sets defaultType as spot')
@@ -526,6 +527,14 @@ async function executeCCXTCommand (exchange, params:any, methodName: string, cli
     const isEventsResult = (methodName === 'fetchEvents') && Array.isArray (result);
     if (isEventsResult) {
         await cacheEvents (exchange, result);
+    } else if (cliOptions.cacheEvents && (exchange.events !== undefined)) {
+        // --cache-events: persist whatever events the command resolved internally
+        // (e.g. fetchTicker's loadOutcome search), so later invocations resolve
+        // the same handles straight from the prediction/ cache
+        const accumulated = Object.keys (exchange.events).map ((k) => exchange.events[k]);
+        if (accumulated.length > 0) {
+            await cacheEvents (exchange, accumulated);
+        }
     }
     if (isEventsResult && !cliOptions.raw) {
         printPredictionEvents (result);

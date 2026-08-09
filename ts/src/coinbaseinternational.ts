@@ -6,7 +6,7 @@ import Exchange from './abstract/coinbaseinternational.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionDenied, DuplicateOrderId, AuthenticationError, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Bool, Tickers, Strings, Market, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, DepositAddress, MarginModification } from './base/types.js';
+import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Bool, Tickers, Strings, List, Market, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, DepositAddress, MarginModification, Endpoint } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -67,6 +67,7 @@ export default class coinbaseinternational extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
@@ -112,6 +113,7 @@ export default class coinbaseinternational extends Exchange {
                 'setMargin': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'urls': {
@@ -139,53 +141,53 @@ export default class coinbaseinternational extends Exchange {
             'api': {
                 'v1': {
                     'public': {
-                        'get': [
-                            'assets',
-                            'assets/{assets}',
-                            'assets/{asset}/networks',
-                            'instruments',
-                            'instruments/{instrument}',
-                            'instruments/{instrument}/quote',
-                            'instruments/{instrument}/funding',
-                            'instruments/{instrument}/candles',
-                        ],
+                        'get': {
+                            'assets': { 'cost': 1 } as Endpoint<List>,
+                            'assets/{assets}': { 'cost': 1 } as Endpoint<Dict>,
+                            'assets/{asset}/networks': { 'cost': 1 } as Endpoint<List>,
+                            'instruments': { 'cost': 1 } as Endpoint<List>,
+                            'instruments/{instrument}': { 'cost': 1 } as Endpoint<Dict>,
+                            'instruments/{instrument}/quote': { 'cost': 1 } as Endpoint<Dict>,
+                            'instruments/{instrument}/funding': { 'cost': 1 } as Endpoint<Dict>,
+                            'instruments/{instrument}/candles': { 'cost': 1 } as Endpoint<Dict>,
+                        },
                     },
                     'private': {
-                        'get': [
-                            'orders',
-                            'orders/{id}',
-                            'portfolios',
-                            'portfolios/{portfolio}',
-                            'portfolios/{portfolio}/detail',
-                            'portfolios/{portfolio}/summary',
-                            'portfolios/{portfolio}/balances',
-                            'portfolios/{portfolio}/balances/{asset}',
-                            'portfolios/{portfolio}/positions',
-                            'portfolios/{portfolio}/positions/{instrument}',
-                            'portfolios/fills',
-                            'portfolios/{portfolio}/fills',
-                            'transfers',
-                            'transfers/{transfer_uuid}',
-                        ],
-                        'post': [
-                            'orders',
-                            'portfolios',
-                            'portfolios/margin',
-                            'portfolios/transfer',
-                            'transfers/withdraw',
-                            'transfers/address',
-                            'transfers/create-counterparty-id',
-                            'transfers/validate-counterparty-id',
-                            'transfers/withdraw/counterparty',
-                        ],
-                        'put': [
-                            'orders/{id}',
-                            'portfolios/{portfolio}',
-                        ],
-                        'delete': [
-                            'orders',
-                            'orders/{id}',
-                        ],
+                        'get': {
+                            'orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios': { 'cost': 1 } as Endpoint<List>,
+                            'portfolios/{portfolio}': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios/{portfolio}/detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios/{portfolio}/summary': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios/{portfolio}/balances': { 'cost': 1 } as Endpoint<List>,
+                            'portfolios/{portfolio}/balances/{asset}': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios/{portfolio}/positions': { 'cost': 1 } as Endpoint<List>,
+                            'portfolios/{portfolio}/positions/{instrument}': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios/fills': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios/{portfolio}/fills': { 'cost': 1 } as Endpoint<Dict>,
+                            'transfers': { 'cost': 1 } as Endpoint<Dict>,
+                            'transfers/{transfer_uuid}': { 'cost': 1 } as Endpoint<Dict>,
+                        },
+                        'post': {
+                            'orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios/margin': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                            'transfers/withdraw': { 'cost': 1 } as Endpoint<Dict>,
+                            'transfers/address': { 'cost': 1 } as Endpoint<Dict>,
+                            'transfers/create-counterparty-id': { 'cost': 1 } as Endpoint<Dict>,
+                            'transfers/validate-counterparty-id': { 'cost': 1 } as Endpoint<Dict>,
+                            'transfers/withdraw/counterparty': { 'cost': 1 } as Endpoint<Dict>,
+                        },
+                        'put': {
+                            'orders/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios/{portfolio}': { 'cost': 1 } as Endpoint<Dict>,
+                        },
+                        'delete': {
+                            'orders': { 'cost': 1 } as Endpoint<List>,
+                            'orders/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        },
                     },
                 },
             },
@@ -331,7 +333,7 @@ export default class coinbaseinternational extends Exchange {
     }
 
     async handlePortfolioAndParams (methodName: string, params = {}): Promise<[Str, Dict]> {
-        let portfolio = undefined;
+        let portfolio: Str = undefined;
         [ portfolio, params ] = this.handleOptionAndParams (params, methodName, 'portfolio');
         if ((portfolio !== undefined) && (portfolio !== '')) {
             return [ portfolio, params ];
@@ -952,7 +954,8 @@ export default class coinbaseinternational extends Exchange {
             'portfolio': portfolio,
             'margin_override': amount,
         };
-        return await this.v1PrivatePostPortfoliosMargin (this.extend (request, params));
+        const response: Dict = await this.v1PrivatePostPortfoliosMargin (this.extend (request, params));
+        return response as MarginModification;
     }
 
     /**
@@ -1572,8 +1575,12 @@ export default class coinbaseinternational extends Exchange {
         symbols = this.marketSymbols (symbols);
         const instruments = await this.v1PublicGetInstruments (params);
         const tickers: Dict = {};
-        for (let i = 0; i < instruments.length; i++) {
-            const instrument = instruments[i];
+        let rows: List = [];
+        if (Array.isArray (instruments)) {
+            rows = instruments;
+        }
+        for (let i = 0; i < rows.length; i++) {
+            const instrument = rows[i];
             const marketId = this.safeString (instrument, 'symbol');
             const symbol = this.safeSymbol (marketId);
             const quote = this.safeDict (instrument, 'quote', {});

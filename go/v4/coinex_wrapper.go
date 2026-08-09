@@ -65,12 +65,12 @@ func (this *Coinex) FetchSpotMarkets(params any) ([]MarketInterface, error) {
 	}
 	return NewMarketInterfaceArray(res), nil
 }
-func (this *Coinex) FetchContractMarkets(params any) ([]map[string]any, error) {
+func (this *Coinex) FetchContractMarkets(params any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchContractMarkets(params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return NewMarketInterfaceArray(res), nil
 }
 
 /**
@@ -2000,7 +2000,7 @@ func (this *Coinex) FetchOrderTrades(id string, options ...FetchOrderTradesOptio
 func (this *Coinex) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
-func (this *Coinex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Coinex) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Coinex) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -2015,7 +2015,7 @@ func (this *Coinex) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Coinex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Coinex) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Coinex) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Coinex) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
@@ -2117,7 +2117,7 @@ func (this *Coinex) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Coinex) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Coinex) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Coinex) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Coinex) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -2162,7 +2162,7 @@ func (this *Coinex) FetchTradesWs(symbol string, options ...FetchTradesWsOptions
 func (this *Coinex) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Coinex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Coinex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Coinex) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

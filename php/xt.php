@@ -79,7 +79,7 @@ class xt extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
-                'fetchOpenInterest' => false,
+                'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOption' => false,
@@ -142,204 +142,206 @@ class xt extends Exchange {
                 'public' => array(
                     'spot' => array(
                         'get' => array(
-                            'currencies' => 1,
-                            'depth' => 10,
-                            'kline' => 1,
-                            'symbol' => 1, // 1 for a single symbol
-                            'ticker' => 1, // 1 for a single symbol
-                            'ticker/book' => 1, // 1 for a single symbol
-                            'ticker/price' => 1, // 1 for a single symbol
-                            'ticker/24h' => 1, // 1 for a single symbol
-                            'time' => 1,
-                            'trade/history' => 1,
-                            'trade/recent' => 1,
-                            'wallet/support/currency' => 1,
+                            'currencies' => array( 'cost' => 1 ),
+                            'depth' => array( 'cost' => 10 ),
+                            'kline' => array( 'cost' => 1 ),
+                            'symbol' => array( 'cost' => 1 ), // 1 for a single symbol
+                            'ticker' => array( 'cost' => 1 ), // 1 for a single symbol
+                            'ticker/book' => array( 'cost' => 1 ), // 1 for a single symbol
+                            'ticker/price' => array( 'cost' => 1 ), // 1 for a single symbol
+                            'ticker/24h' => array( 'cost' => 1 ), // 1 for a single symbol
+                            'time' => array( 'cost' => 1 ),
+                            'trade/history' => array( 'cost' => 1 ),
+                            'trade/recent' => array( 'cost' => 1 ),
+                            'wallet/support/currency' => array( 'cost' => 1 ),
                         ),
                     ),
                     'linear' => array(
                         'get' => array(
-                            'future/market/v1/public/contract/risk-balance' => 1,
-                            'future/market/v1/public/contract/open-interest' => 1,
-                            'future/market/v1/public/leverage/bracket/detail' => 1,
-                            'future/market/v1/public/leverage/bracket/list' => 1,
-                            'future/market/v1/public/q/agg-ticker' => 1,
-                            'future/market/v1/public/q/agg-tickers' => 1,
-                            'future/market/v1/public/q/deal' => 1,
-                            'future/market/v1/public/q/depth' => 1,
-                            'future/market/v1/public/q/funding-rate' => 1,
-                            'future/market/v1/public/q/funding-rate-record' => 1,
-                            'future/market/v1/public/q/index-price' => 1,
-                            'future/market/v1/public/q/kline' => 1,
-                            'future/market/v1/public/q/mark-price' => 1,
-                            'future/market/v1/public/q/symbol-index-price' => 1,
-                            'future/market/v1/public/q/symbol-mark-price' => 1,
-                            'future/market/v1/public/q/ticker' => 1,
-                            'future/market/v1/public/q/tickers' => 1,
-                            'future/market/v1/public/symbol/coins' => 3.33,
-                            'future/market/v1/public/symbol/detail' => 3.33,
-                            'future/market/v1/public/symbol/list' => 1,
+                            'future/market/v1/public/contract/risk-balance' => array( 'cost' => 1 ),
+                            'future/market/v1/public/contract/open-interest' => array( 'cost' => 1 ),
+                            'future/market/v1/public/leverage/bracket/detail' => array( 'cost' => 1 ),
+                            'future/market/v1/public/leverage/bracket/list' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/agg-ticker' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/agg-tickers' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/deal' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/depth' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/funding-rate' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/funding-rate-record' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/index-price' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/kline' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/mark-price' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/symbol-index-price' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/symbol-mark-price' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/ticker' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/ticker/books' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/tickers' => array( 'cost' => 1 ),
+                            'future/market/v1/public/symbol/coins' => array( 'cost' => 3.33 ),
+                            'future/market/v1/public/symbol/detail' => array( 'cost' => 3.33 ),
+                            'future/market/v1/public/symbol/list' => array( 'cost' => 1 ),
                         ),
                     ),
                     'inverse' => array(
                         'get' => array(
-                            'future/market/v1/public/contract/risk-balance' => 1,
-                            'future/market/v1/public/contract/open-interest' => 1,
-                            'future/market/v1/public/leverage/bracket/detail' => 1,
-                            'future/market/v1/public/leverage/bracket/list' => 1,
-                            'future/market/v1/public/q/agg-ticker' => 1,
-                            'future/market/v1/public/q/agg-tickers' => 1,
-                            'future/market/v1/public/q/deal' => 1,
-                            'future/market/v1/public/q/depth' => 1,
-                            'future/market/v1/public/q/funding-rate' => 1,
-                            'future/market/v1/public/q/funding-rate-record' => 1,
-                            'future/market/v1/public/q/index-price' => 1,
-                            'future/market/v1/public/q/kline' => 1,
-                            'future/market/v1/public/q/mark-price' => 1,
-                            'future/market/v1/public/q/symbol-index-price' => 1,
-                            'future/market/v1/public/q/symbol-mark-price' => 1,
-                            'future/market/v1/public/q/ticker' => 1,
-                            'future/market/v1/public/q/tickers' => 1,
-                            'future/market/v1/public/symbol/coins' => 3.33,
-                            'future/market/v1/public/symbol/detail' => 3.33,
-                            'future/market/v1/public/symbol/list' => 1,
+                            'future/market/v1/public/contract/risk-balance' => array( 'cost' => 1 ),
+                            'future/market/v1/public/contract/open-interest' => array( 'cost' => 1 ),
+                            'future/market/v1/public/leverage/bracket/detail' => array( 'cost' => 1 ),
+                            'future/market/v1/public/leverage/bracket/list' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/agg-ticker' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/agg-tickers' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/deal' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/depth' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/funding-rate' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/funding-rate-record' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/index-price' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/kline' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/mark-price' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/symbol-index-price' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/symbol-mark-price' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/ticker' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/ticker/books' => array( 'cost' => 1 ),
+                            'future/market/v1/public/q/tickers' => array( 'cost' => 1 ),
+                            'future/market/v1/public/symbol/coins' => array( 'cost' => 3.33 ),
+                            'future/market/v1/public/symbol/detail' => array( 'cost' => 3.33 ),
+                            'future/market/v1/public/symbol/list' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
                 'private' => array(
                     'spot' => array(
                         'get' => array(
-                            'balance' => 1,
-                            'balances' => 1,
-                            'batch-order' => 1,
-                            'deposit/address' => 1,
-                            'deposit/history' => 1,
-                            'history-order' => 1,
-                            'open-order' => 1,
-                            'order' => 1,
-                            'order/{orderId}' => 1,
-                            'trade' => 1,
-                            'withdraw/history' => 1,
+                            'balance' => array( 'cost' => 1 ),
+                            'balances' => array( 'cost' => 1 ),
+                            'batch-order' => array( 'cost' => 1 ),
+                            'deposit/address' => array( 'cost' => 1 ),
+                            'deposit/history' => array( 'cost' => 1 ),
+                            'history-order' => array( 'cost' => 1 ),
+                            'open-order' => array( 'cost' => 1 ),
+                            'order' => array( 'cost' => 1 ),
+                            'order/{orderId}' => array( 'cost' => 1 ),
+                            'trade' => array( 'cost' => 1 ),
+                            'withdraw/history' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'order' => 0.2,
-                            'withdraw' => 10,
-                            'balance/transfer' => 1,
-                            'balance/account/transfer' => 1,
-                            'ws-token' => 1,
+                            'order' => array( 'cost' => 0.2 ),
+                            'withdraw' => array( 'cost' => 10 ),
+                            'balance/transfer' => array( 'cost' => 1 ),
+                            'balance/account/transfer' => array( 'cost' => 1 ),
+                            'ws-token' => array( 'cost' => 1 ),
                         ),
                         'delete' => array(
-                            'batch-order' => 1,
-                            'open-order' => 1,
-                            'order/{orderId}' => 1,
+                            'batch-order' => array( 'cost' => 1 ),
+                            'open-order' => array( 'cost' => 1 ),
+                            'order/{orderId}' => array( 'cost' => 1 ),
                         ),
                         'put' => array(
-                            'order/{orderId}' => 1,
+                            'order/{orderId}' => array( 'cost' => 1 ),
                         ),
                     ),
                     'linear' => array(
                         'get' => array(
-                            'future/trade/v1/entrust/plan-detail' => 1,
-                            'future/trade/v1/entrust/plan-list' => 1,
-                            'future/trade/v1/entrust/plan-list-history' => 1,
-                            'future/trade/v1/entrust/profit-detail' => 1,
-                            'future/trade/v1/entrust/profit-list' => 1,
-                            'future/trade/v1/order/detail' => 1,
-                            'future/trade/v1/order/list' => 1,
-                            'future/trade/v1/order/list-history' => 1,
-                            'future/trade/v1/order/trade-list' => 1,
-                            'future/user/v1/account/info' => 1,
-                            'future/user/v1/balance/bills' => 1,
-                            'future/user/v1/balance/detail' => 1,
-                            'future/user/v1/balance/funding-rate-list' => 1,
-                            'future/user/v1/balance/list' => 1,
-                            'future/user/v1/position/adl' => 1,
-                            'future/user/v1/position/break-list' => 1,
-                            'future/user/v1/position/list' => 1,
-                            'future/user/v1/user/collection/list' => 1,
-                            'future/user/v1/user/listen-key' => 1,
+                            'future/trade/v1/entrust/plan-detail' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/plan-list' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/plan-list-history' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/profit-detail' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/profit-list' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/detail' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/list' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/list-history' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/trade-list' => array( 'cost' => 1 ),
+                            'future/user/v1/account/info' => array( 'cost' => 1 ),
+                            'future/user/v1/balance/bills' => array( 'cost' => 1 ),
+                            'future/user/v1/balance/detail' => array( 'cost' => 1 ),
+                            'future/user/v1/balance/funding-rate-list' => array( 'cost' => 1 ),
+                            'future/user/v1/balance/list' => array( 'cost' => 1 ),
+                            'future/user/v1/position/adl' => array( 'cost' => 1 ),
+                            'future/user/v1/position/break-list' => array( 'cost' => 1 ),
+                            'future/user/v1/position/list' => array( 'cost' => 1 ),
+                            'future/user/v1/user/collection/list' => array( 'cost' => 1 ),
+                            'future/user/v1/user/listen-key' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'future/trade/v1/entrust/cancel-all-plan' => 1,
-                            'future/trade/v1/entrust/cancel-all-profit-stop' => 1,
-                            'future/trade/v1/entrust/cancel-plan' => 1,
-                            'future/trade/v1/entrust/cancel-profit-stop' => 1,
-                            'future/trade/v1/entrust/create-plan' => 1,
-                            'future/trade/v1/entrust/create-profit' => 1,
-                            'future/trade/v1/entrust/update-profit-stop' => 1,
-                            'future/trade/v1/order/cancel' => 1,
-                            'future/trade/v1/order/cancel-all' => 1,
-                            'future/trade/v1/order/create' => 1,
-                            'future/trade/v1/order/create-batch' => 1,
-                            'future/trade/v1/order/update' => 1,
-                            'future/user/v1/account/open' => 1,
-                            'future/user/v1/position/adjust-leverage' => 1,
-                            'future/user/v1/position/auto-margin' => 1,
-                            'future/user/v1/position/close-all' => 1,
-                            'future/user/v1/position/margin' => 1,
-                            'future/user/v1/user/collection/add' => 1,
-                            'future/user/v1/user/collection/cancel' => 1,
-                            'future/user/v1/position/change-type' => 1,
+                            'future/trade/v1/entrust/cancel-all-plan' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/cancel-all-profit-stop' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/cancel-plan' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/cancel-profit-stop' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/create-plan' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/create-profit' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/update-profit-stop' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/cancel' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/cancel-all' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/create' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/create-batch' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/update' => array( 'cost' => 1 ),
+                            'future/user/v1/account/open' => array( 'cost' => 1 ),
+                            'future/user/v1/position/adjust-leverage' => array( 'cost' => 1 ),
+                            'future/user/v1/position/auto-margin' => array( 'cost' => 1 ),
+                            'future/user/v1/position/close-all' => array( 'cost' => 1 ),
+                            'future/user/v1/position/margin' => array( 'cost' => 1 ),
+                            'future/user/v1/user/collection/add' => array( 'cost' => 1 ),
+                            'future/user/v1/user/collection/cancel' => array( 'cost' => 1 ),
+                            'future/user/v1/position/change-type' => array( 'cost' => 1 ),
                         ),
                     ),
                     'inverse' => array(
                         'get' => array(
-                            'future/trade/v1/entrust/plan-detail' => 1,
-                            'future/trade/v1/entrust/plan-list' => 1,
-                            'future/trade/v1/entrust/plan-list-history' => 1,
-                            'future/trade/v1/entrust/profit-detail' => 1,
-                            'future/trade/v1/entrust/profit-list' => 1,
-                            'future/trade/v1/order/detail' => 1,
-                            'future/trade/v1/order/list' => 1,
-                            'future/trade/v1/order/list-history' => 1,
-                            'future/trade/v1/order/trade-list' => 1,
-                            'future/user/v1/account/info' => 1,
-                            'future/user/v1/balance/bills' => 1,
-                            'future/user/v1/balance/detail' => 1,
-                            'future/user/v1/balance/funding-rate-list' => 1,
-                            'future/user/v1/balance/list' => 1,
-                            'future/user/v1/position/adl' => 1,
-                            'future/user/v1/position/break-list' => 1,
-                            'future/user/v1/position/list' => 1,
-                            'future/user/v1/user/collection/list' => 1,
-                            'future/user/v1/user/listen-key' => 1,
+                            'future/trade/v1/entrust/plan-detail' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/plan-list' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/plan-list-history' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/profit-detail' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/profit-list' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/detail' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/list' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/list-history' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/trade-list' => array( 'cost' => 1 ),
+                            'future/user/v1/account/info' => array( 'cost' => 1 ),
+                            'future/user/v1/balance/bills' => array( 'cost' => 1 ),
+                            'future/user/v1/balance/detail' => array( 'cost' => 1 ),
+                            'future/user/v1/balance/funding-rate-list' => array( 'cost' => 1 ),
+                            'future/user/v1/balance/list' => array( 'cost' => 1 ),
+                            'future/user/v1/position/adl' => array( 'cost' => 1 ),
+                            'future/user/v1/position/break-list' => array( 'cost' => 1 ),
+                            'future/user/v1/position/list' => array( 'cost' => 1 ),
+                            'future/user/v1/user/collection/list' => array( 'cost' => 1 ),
+                            'future/user/v1/user/listen-key' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'future/trade/v1/entrust/cancel-all-plan' => 1,
-                            'future/trade/v1/entrust/cancel-all-profit-stop' => 1,
-                            'future/trade/v1/entrust/cancel-plan' => 1,
-                            'future/trade/v1/entrust/cancel-profit-stop' => 1,
-                            'future/trade/v1/entrust/create-plan' => 1,
-                            'future/trade/v1/entrust/create-profit' => 1,
-                            'future/trade/v1/entrust/update-profit-stop' => 1,
-                            'future/trade/v1/order/cancel' => 1,
-                            'future/trade/v1/order/cancel-all' => 1,
-                            'future/trade/v1/order/create' => 1,
-                            'future/trade/v1/order/create-batch' => 1,
-                            'future/trade/v1/order/update' => 1,
-                            'future/user/v1/account/open' => 1,
-                            'future/user/v1/position/adjust-leverage' => 1,
-                            'future/user/v1/position/auto-margin' => 1,
-                            'future/user/v1/position/close-all' => 1,
-                            'future/user/v1/position/margin' => 1,
-                            'future/user/v1/user/collection/add' => 1,
-                            'future/user/v1/user/collection/cancel' => 1,
-                            'future/user/v1/position/change-type' => 1,
+                            'future/trade/v1/entrust/cancel-all-plan' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/cancel-all-profit-stop' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/cancel-plan' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/cancel-profit-stop' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/create-plan' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/create-profit' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/update-profit-stop' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/cancel' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/cancel-all' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/create' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/create-batch' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/update' => array( 'cost' => 1 ),
+                            'future/user/v1/account/open' => array( 'cost' => 1 ),
+                            'future/user/v1/position/adjust-leverage' => array( 'cost' => 1 ),
+                            'future/user/v1/position/auto-margin' => array( 'cost' => 1 ),
+                            'future/user/v1/position/close-all' => array( 'cost' => 1 ),
+                            'future/user/v1/position/margin' => array( 'cost' => 1 ),
+                            'future/user/v1/user/collection/add' => array( 'cost' => 1 ),
+                            'future/user/v1/user/collection/cancel' => array( 'cost' => 1 ),
+                            'future/user/v1/position/change-type' => array( 'cost' => 1 ),
                         ),
                     ),
                     'user' => array(
                         'get' => array(
-                            'user/account' => 1,
-                            'user/account/api-key' => 1,
+                            'user/account' => array( 'cost' => 1 ),
+                            'user/account/api-key' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'user/account' => 1,
-                            'user/account/api-key' => 1,
+                            'user/account' => array( 'cost' => 1 ),
+                            'user/account/api-key' => array( 'cost' => 1 ),
                         ),
                         'put' => array(
-                            'user/account/api-key' => 1,
+                            'user/account/api-key' => array( 'cost' => 1 ),
                         ),
                         'delete' => array(
-                            'user/account/{apiKeyId}' => 1,
+                            'user/account/{apiKeyId}' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
@@ -1002,7 +1004,7 @@ class xt extends Exchange {
         return $this->array_concat($spotMarkets, $swapAndFutureMarkets);
     }
 
-    public function fetch_spot_markets($params = array()) {
+    public function fetch_spot_markets($params = array()): array {
         $response = $this->publicSpotGetSymbol($params);
         //
         //     {
@@ -1803,15 +1805,16 @@ class xt extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()): array {
         /**
          * fetches the bid and ask price and volume for multiple markets
          *
          * @see https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
+         * @see https://doc.xt.com/docs/futures/MarketData/get-ask-bid-$market-information-for-all-trading-pairs
          *
-         * @param {string} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {array} $params extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1822,12 +1825,23 @@ class xt extends Exchange {
         if ($symbols !== null) {
             $market = $this->market($symbols[0]);
         }
+        $type = null;
         $subType = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
         list($subType, $params) = $this->handle_sub_type_and_params('fetchBidsAsks', $market, $params);
-        if ($subType !== null) {
-            throw new NotSupported($this->id . ' fetchBidsAsks() is not available for swap and future markets, only spot markets are supported');
+        $isInverse = ($subType === 'inverse');
+        $isLinear = ($subType === 'linear') || ($type === 'swap') || ($type === 'future');
+        $isContract = $isInverse || $isLinear;
+        $response = null;
+        if ($isInverse) {
+            $response = $this->publicInverseGetFutureMarketV1PublicQTickerBooks($this->extend($request, $params));
+        } elseif ($isLinear) {
+            $response = $this->publicLinearGetFutureMarketV1PublicQTickerBooks($this->extend($request, $params));
+        } else {
+            $response = $this->publicSpotGetTickerBook($this->extend($request, $params));
         }
-        $response = $this->publicSpotGetTickerBook($this->extend($request, $params));
+        //
+        // spot
         //
         //     {
         //         "rc" => 0,
@@ -1845,8 +1859,40 @@ class xt extends Exchange {
         //         )
         //     }
         //
-        $tickers = $this->safe_value($response, 'result', array());
-        return $this->parse_tickers($tickers, $symbols);
+        // swap and future
+        //
+        //     {
+        //         "returnCode" => 0,
+        //         "msgInfo" => "success",
+        //         "error" => null,
+        //         "result" => array(
+        //             array(
+        //                 "s" => "btc_usdt",
+        //                 "t" => 1785928174370,
+        //                 "ap" => "64085.5",
+        //                 "aq" => "101843",
+        //                 "bp" => "64085.3",
+        //                 "bq" => "121042"
+        //             ),
+        //         )
+        //     }
+        //
+        $tickers = $this->safe_list($response, 'result', array());
+        $result = array();
+        for ($i = 0; $i < count($tickers); $i++) {
+            $rawTicker = $tickers[$i];
+            // the spot and contract payloads share the same field names, so
+            // the $market $type cannot be inferred from the entry itself
+            $marketId = $this->safe_string($rawTicker, 's');
+            $marketType = $isContract ? 'contract' : 'spot';
+            $marketInner = $this->safe_market($marketId, $market, '_', $marketType);
+            $ticker = $this->parse_ticker($rawTicker, $marketInner);
+            $symbol = $ticker['symbol'];
+            if ($symbol !== null) {
+                $result[$symbol] = $ticker;
+            }
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function parse_ticker(mixed $ticker, ?array $market = null) {
@@ -2564,7 +2610,7 @@ class xt extends Exchange {
             $requestType = ($reduceOnly) ? 'LONG' : 'SHORT';
             $request['positionSide'] = $requestType;
         }
-        $response = null;
+        $response = array();
         $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
         $stopLoss = $this->safe_number_2($params, 'stopLoss', 'triggerStopPrice');
         $takeProfit = $this->safe_number_2($params, 'takeProfit', 'triggerProfitPrice');
@@ -2970,7 +3016,7 @@ class xt extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -4230,7 +4276,8 @@ class xt extends Exchange {
 
     public function modify_margin_helper(string $symbol, mixed $amount, mixed $addOrReduce, $params = array()): array {
         $positionSide = $this->safe_string($params, 'positionSide');
-        $this->check_required_argument('setLeverage', $positionSide, 'positionSide', array( 'LONG', 'SHORT' ));
+        $methodName = ($addOrReduce === 'ADD') ? 'addMargin' : 'reduceMargin';
+        $this->check_required_argument($methodName, $positionSide, 'positionSide', array( 'LONG', 'SHORT' ));
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -4628,6 +4675,71 @@ class xt extends Exchange {
             'previousFundingDatetime' => null,
             'interval' => $interval,
         );
+    }
+
+    public function fetch_open_interest(string $symbol, $params = array()): array {
+        /**
+         * retrieves the open interest of a contract trading pair
+         *
+         * @see https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new NotSupported($this->id . ' fetchOpenInterest() supports swap contracts only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenInterest', $market, $params);
+        $response = null;
+        if ($subType === 'inverse') {
+            $response = $this->publicInverseGetFutureMarketV1PublicContractOpenInterest($this->extend($request, $params));
+        } else {
+            $response = $this->publicLinearGetFutureMarketV1PublicContractOpenInterest($this->extend($request, $params));
+        }
+        //
+        //     {
+        //         "returnCode" => 0,
+        //         "msgInfo" => "success",
+        //         "error" => null,
+        //         "result" => {
+        //             "symbol" => "btc_usdt",
+        //             "openInterest" => "21005.8646",
+        //             "openInterestUsd" => "1120726916.46709",
+        //             "time" => 1785925443734
+        //         }
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_open_interest($result, $market);
+    }
+
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol" => "btc_usdt",
+        //         "openInterest" => "21005.8646",
+        //         "openInterestUsd" => "1120726916.46709",
+        //         "time" => 1785925443734
+        //     }
+        //
+        $marketId = $this->safe_string($interest, 'symbol');
+        $market = $this->safe_market($marketId, $market, null, 'contract');
+        $timestamp = $this->safe_integer($interest, 'time');
+        return $this->safe_open_interest(array(
+            'symbol' => $market['symbol'],
+            'openInterestAmount' => $this->safe_number($interest, 'openInterest'),
+            'openInterestValue' => $this->safe_number($interest, 'openInterestUsd'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
+        ), $market);
     }
 
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {

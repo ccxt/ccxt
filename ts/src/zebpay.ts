@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/zebpay.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, InsufficientFunds } from './base/errors.js';
-import type { Balances, Currencies, CurrencyInterface, Dict, Int, int, Leverage, Leverages, List, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees } from './base/types.js';
+import type { Balances, Currencies, CurrencyInterface, Dict, Int, int, Leverage, Leverages, List, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Status, Endpoint } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -61,10 +61,13 @@ export default class zebpay extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
                 'fetchPositions': true,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'reduceMargin': true,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
@@ -100,72 +103,72 @@ export default class zebpay extends Exchange {
                 'public': {
                     'spot': {
                         'get': {
-                            'v2/system/time': 10,
-                            'v2/system/status': 10,
-                            'v2/market/orderbook': 10,
-                            'v2/market/trades': 10,
-                            'v2/market/ticker': 10,
-                            'v2/market/allTickers': 10,
-                            'v2/ex/exchangeInfo': 10,
-                            'v2/ex/currencies': 10,
-                            'v2/market/klines': 10,
-                            'v2/ex/tradefees': 10,
+                            'v2/system/time': { 'cost': 10 } as Endpoint<Dict>,
+                            'v2/system/status': { 'cost': 10 } as Endpoint<Dict>,
+                            'v2/market/orderbook': { 'cost': 10 } as Endpoint<Dict>,
+                            'v2/market/trades': { 'cost': 10 } as Endpoint<Dict>,
+                            'v2/market/ticker': { 'cost': 10 } as Endpoint<Dict>,
+                            'v2/market/allTickers': { 'cost': 10 } as Endpoint<Dict>,
+                            'v2/ex/exchangeInfo': { 'cost': 10 } as Endpoint<Dict>,
+                            'v2/ex/currencies': { 'cost': 10 } as Endpoint<Dict>,
+                            'v2/market/klines': { 'cost': 10 } as Endpoint<Dict>,
+                            'v2/ex/tradefees': { 'cost': 10 } as Endpoint<Dict>,
                         },
                     },
                     'swap': {
                         'get': {
-                            'v1/system/time': 10,
-                            'v1/system/status': 10,
-                            'v1/exchange/tradefee': 10,
-                            'v1/exchange/tradefees': 10,
-                            'v1/market/orderBook': 10,
-                            'v1/market/ticker24Hr': 10,
-                            'v1/market/markets': 10,
-                            'v1/market/aggTrade': 10,
+                            'v1/system/time': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/system/status': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/exchange/tradefee': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/exchange/tradefees': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/market/orderBook': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/market/ticker24Hr': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/market/markets': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/market/aggTrade': { 'cost': 10 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'v1/market/klines': 10,
+                            'v1/market/klines': { 'cost': 10 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'private': {
                     'spot': {
                         'post': {
-                            'v2/ex/orders': 10,
+                            'v2/ex/orders': { 'cost': 10 } as Endpoint<Dict>,
                         },
                         'get': {
-                            'v2/ex/orders': 10,
-                            'v2/account/balance': 10,
-                            'v2/ex/tradefee': 10,
-                            'v2/ex/order': 10,
-                            'v2/ex/order/fills': 10,
+                            'v2/ex/orders': { 'cost': 10 } as Endpoint<Dict>,
+                            'v2/account/balance': { 'cost': 10 } as Endpoint<Dict>,
+                            'v2/ex/tradefee': { 'cost': 10 } as Endpoint<Dict>,
+                            'v2/ex/order': { 'cost': 10 } as Endpoint<Dict>,
+                            'v2/ex/order/fills': { 'cost': 10 } as Endpoint<Dict>,
                         },
                         'delete': {
-                            'v2/ex/order': 10,
-                            'v2/ex/orders': 10,
-                            'v2/ex/orders/cancelAll': 10,
+                            'v2/ex/order': { 'cost': 10 } as Endpoint<Dict>,
+                            'v2/ex/orders': { 'cost': 10 } as Endpoint<Dict>,
+                            'v2/ex/orders/cancelAll': { 'cost': 10 } as Endpoint<Dict>,
                         },
                     },
                     'swap': {
                         'get': {
-                            'v1/wallet/balance': 10,
-                            'v1/trade/order': 10,
-                            'v1/trade/order/open-orders': 10,
-                            'v1/trade/userLeverages': 10,
-                            'v1/trade/userLeverage': 10,
-                            'v1/trade/positions': 10,
-                            'v1/trade/history': 10,
+                            'v1/wallet/balance': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/trade/order': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/trade/order/open-orders': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/trade/userLeverages': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/trade/userLeverage': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/trade/positions': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/trade/history': { 'cost': 10 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'v1/trade/order': 10,
-                            'v1/trade/order/addTPSL': 10,
-                            'v1/trade/addMargin': 10,
-                            'v1/trade/reduceMargin': 10,
-                            'v1/trade/position/close': 10,
-                            'v1/trade/update/userLeverage': 10,
+                            'v1/trade/order': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/trade/order/addTPSL': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/trade/addMargin': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/trade/reduceMargin': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/trade/position/close': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/trade/update/userLeverage': { 'cost': 10 } as Endpoint<Dict>,
                         },
                         'delete': {
-                            'v1/trade/order': 10,
+                            'v1/trade/order': { 'cost': 10 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -225,7 +228,7 @@ export default class zebpay extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
         const isSpot = (type === 'spot');

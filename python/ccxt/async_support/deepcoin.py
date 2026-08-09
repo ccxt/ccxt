@@ -161,65 +161,65 @@ class deepcoin(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'deepcoin/market/books': 1,
-                        'deepcoin/market/candles': 1,
-                        'deepcoin/market/instruments': 1,
-                        'deepcoin/market/tickers': 1,
-                        'deepcoin/market/index-candles': 1,
-                        'deepcoin/market/trades': 1,
-                        'deepcoin/market/mark-price-candles': 1,
-                        'deepcoin/market/step-margin': 5,
-                        'deepcoin/trade/funding-rate': 5,
-                        'deepcoin/trade/fund-rate/current-funding-rate': 5,
-                        'deepcoin/trade/fund-rate/history': 5,
+                        'deepcoin/market/books': {'cost': 1},
+                        'deepcoin/market/candles': {'cost': 1},
+                        'deepcoin/market/instruments': {'cost': 1},
+                        'deepcoin/market/tickers': {'cost': 1},
+                        'deepcoin/market/index-candles': {'cost': 1},
+                        'deepcoin/market/trades': {'cost': 1},
+                        'deepcoin/market/mark-price-candles': {'cost': 1},
+                        'deepcoin/market/step-margin': {'cost': 5},
+                        'deepcoin/trade/funding-rate': {'cost': 5},
+                        'deepcoin/trade/fund-rate/current-funding-rate': {'cost': 5},
+                        'deepcoin/trade/fund-rate/history': {'cost': 5},
                     },
                 },
                 'private': {
                     'get': {
-                        'deepcoin/account/balances': 5,
-                        'deepcoin/account/bills': 5,
-                        'deepcoin/account/positions': 5,
-                        'deepcoin/trade/fills': 5,
-                        'deepcoin/trade/orderByID': 5,
-                        'deepcoin/trade/finishOrderByID': 5,
-                        'deepcoin/trade/orders-history': 5,
-                        'deepcoin/trade/v2/orders-pending': 5,
-                        'deepcoin/trade/trigger-orders-pending': 5,
-                        'deepcoin/trade/trigger-orders-history': 5,
-                        'deepcoin/copytrading/support-contracts': 5,
-                        'deepcoin/copytrading/leader-position': 5,
-                        'deepcoin/copytrading/estimate-profit': 5,
-                        'deepcoin/copytrading/history-profit': 5,
-                        'deepcoin/copytrading/follower-rank': 5,
-                        'deepcoin/internal-transfer/support': 5,
-                        'deepcoin/internal-transfer/history-order': 5,
-                        'deepcoin/rebate/config': 5,
-                        'deepcoin/agents/users': 5,
-                        'deepcoin/agents/users/rebate-list': 5,
-                        'deepcoin/agents/users/rebates': 5,
-                        'deepcoin/asset/deposit-list': 5,
-                        'deepcoin/asset/withdraw-list': 5,
-                        'deepcoin/asset/recharge-chain-list': 5,
-                        'deepcoin/listenkey/acquire': 5,
-                        'deepcoin/listenkey/extend': 5,
+                        'deepcoin/account/balances': {'cost': 5},
+                        'deepcoin/account/bills': {'cost': 5},
+                        'deepcoin/account/positions': {'cost': 5},
+                        'deepcoin/trade/fills': {'cost': 5},
+                        'deepcoin/trade/orderByID': {'cost': 5},
+                        'deepcoin/trade/finishOrderByID': {'cost': 5},
+                        'deepcoin/trade/orders-history': {'cost': 5},
+                        'deepcoin/trade/v2/orders-pending': {'cost': 5},
+                        'deepcoin/trade/trigger-orders-pending': {'cost': 5},
+                        'deepcoin/trade/trigger-orders-history': {'cost': 5},
+                        'deepcoin/copytrading/support-contracts': {'cost': 5},
+                        'deepcoin/copytrading/leader-position': {'cost': 5},
+                        'deepcoin/copytrading/estimate-profit': {'cost': 5},
+                        'deepcoin/copytrading/history-profit': {'cost': 5},
+                        'deepcoin/copytrading/follower-rank': {'cost': 5},
+                        'deepcoin/internal-transfer/support': {'cost': 5},
+                        'deepcoin/internal-transfer/history-order': {'cost': 5},
+                        'deepcoin/rebate/config': {'cost': 5},
+                        'deepcoin/agents/users': {'cost': 5},
+                        'deepcoin/agents/users/rebate-list': {'cost': 5},
+                        'deepcoin/agents/users/rebates': {'cost': 5},
+                        'deepcoin/asset/deposit-list': {'cost': 5},
+                        'deepcoin/asset/withdraw-list': {'cost': 5},
+                        'deepcoin/asset/recharge-chain-list': {'cost': 5},
+                        'deepcoin/listenkey/acquire': {'cost': 5},
+                        'deepcoin/listenkey/extend': {'cost': 5},
                     },
                     'post': {
-                        'deepcoin/account/set-leverage': 5,
-                        'deepcoin/trade/order': 5,
-                        'deepcoin/trade/replace-order': 5,
-                        'deepcoin/trade/cancel-order': 5,
-                        'deepcoin/trade/batch-cancel-order': 5,
-                        'deepcoin/trade/cancel-trigger-order': 1 / 6,
-                        'deepcoin/trade/swap/cancel-all': 5,
-                        'deepcoin/trade/trigger-order': 5,
-                        'deepcoin/trade/batch-close-position': 5,
-                        'deepcoin/trade/replace-order-sltp': 5,
-                        'deepcoin/trade/close-position-by-ids': 5,
-                        'deepcoin/copytrading/leader-settings': 5,
-                        'deepcoin/copytrading/set-contracts': 5,
-                        'deepcoin/internal-transfer': 5,
-                        'deepcoin/rebate/config': 5,
-                        'deepcoin/asset/transfer': 5,
+                        'deepcoin/account/set-leverage': {'cost': 5},
+                        'deepcoin/trade/order': {'cost': 5},
+                        'deepcoin/trade/replace-order': {'cost': 5},
+                        'deepcoin/trade/cancel-order': {'cost': 5},
+                        'deepcoin/trade/batch-cancel-order': {'cost': 5},
+                        'deepcoin/trade/cancel-trigger-order': {'cost': 1 / 6},
+                        'deepcoin/trade/swap/cancel-all': {'cost': 5},
+                        'deepcoin/trade/trigger-order': {'cost': 5},
+                        'deepcoin/trade/batch-close-position': {'cost': 5},
+                        'deepcoin/trade/replace-order-sltp': {'cost': 5},
+                        'deepcoin/trade/close-position-by-ids': {'cost': 5},
+                        'deepcoin/copytrading/leader-settings': {'cost': 5},
+                        'deepcoin/copytrading/set-contracts': {'cost': 5},
+                        'deepcoin/internal-transfer': {'cost': 5},
+                        'deepcoin/rebate/config': {'cost': 5},
+                        'deepcoin/asset/transfer': {'cost': 5},
                     },
                 },
             },
@@ -317,7 +317,7 @@ class deepcoin(Exchange, ImplicitAPI):
                 'networks': {
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
-                    'ARB': 'ARBITRUM',
+                    'ARBITRUM': 'ARBITRUM',
                     'BSC': 'BSC(BEP20)',
                     'SOL': 'SOL',
                     'BTC': 'Bitcoin',
@@ -1006,9 +1006,9 @@ class deepcoin(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate', False)
+        paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchDeposits', code, since, limit, params, 'code', None, 1, 50)
+            return await self.fetch_paginated_call_cursor('fetchWithdrawals', code, since, limit, params, 'code', None, 1, 50)
         request = {}
         currency = None
         if code is not None:
@@ -1780,7 +1780,7 @@ class deepcoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         length = len(data)
         if length == 0:
-            return None
+            raise OrderNotFound(self.id + ' fetchOpenOrder() could not find order id ' + id)
         entry = self.safe_dict(data, 0, {})
         return self.parse_order(entry, market)
 

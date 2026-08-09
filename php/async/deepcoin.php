@@ -10,6 +10,7 @@ use ccxt\async\abstract\deepcoin as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
+use ccxt\OrderNotFound;
 use ccxt\NotSupported;
 use ccxt\NullResponse;
 use ccxt\Precise;
@@ -158,65 +159,65 @@ class deepcoin extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'deepcoin/market/books' => 1,
-                        'deepcoin/market/candles' => 1,
-                        'deepcoin/market/instruments' => 1,
-                        'deepcoin/market/tickers' => 1,
-                        'deepcoin/market/index-candles' => 1,
-                        'deepcoin/market/trades' => 1,
-                        'deepcoin/market/mark-price-candles' => 1,
-                        'deepcoin/market/step-margin' => 5,
-                        'deepcoin/trade/funding-rate' => 5,
-                        'deepcoin/trade/fund-rate/current-funding-rate' => 5,
-                        'deepcoin/trade/fund-rate/history' => 5,
+                        'deepcoin/market/books' => array( 'cost' => 1 ),
+                        'deepcoin/market/candles' => array( 'cost' => 1 ),
+                        'deepcoin/market/instruments' => array( 'cost' => 1 ),
+                        'deepcoin/market/tickers' => array( 'cost' => 1 ),
+                        'deepcoin/market/index-candles' => array( 'cost' => 1 ),
+                        'deepcoin/market/trades' => array( 'cost' => 1 ),
+                        'deepcoin/market/mark-price-candles' => array( 'cost' => 1 ),
+                        'deepcoin/market/step-margin' => array( 'cost' => 5 ),
+                        'deepcoin/trade/funding-rate' => array( 'cost' => 5 ),
+                        'deepcoin/trade/fund-rate/current-funding-rate' => array( 'cost' => 5 ),
+                        'deepcoin/trade/fund-rate/history' => array( 'cost' => 5 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'deepcoin/account/balances' => 5,
-                        'deepcoin/account/bills' => 5,
-                        'deepcoin/account/positions' => 5,
-                        'deepcoin/trade/fills' => 5,
-                        'deepcoin/trade/orderByID' => 5,
-                        'deepcoin/trade/finishOrderByID' => 5,
-                        'deepcoin/trade/orders-history' => 5,
-                        'deepcoin/trade/v2/orders-pending' => 5,
-                        'deepcoin/trade/trigger-orders-pending' => 5,
-                        'deepcoin/trade/trigger-orders-history' => 5,
-                        'deepcoin/copytrading/support-contracts' => 5,
-                        'deepcoin/copytrading/leader-position' => 5,
-                        'deepcoin/copytrading/estimate-profit' => 5,
-                        'deepcoin/copytrading/history-profit' => 5,
-                        'deepcoin/copytrading/follower-rank' => 5,
-                        'deepcoin/internal-transfer/support' => 5,
-                        'deepcoin/internal-transfer/history-order' => 5,
-                        'deepcoin/rebate/config' => 5,
-                        'deepcoin/agents/users' => 5,
-                        'deepcoin/agents/users/rebate-list' => 5,
-                        'deepcoin/agents/users/rebates' => 5,
-                        'deepcoin/asset/deposit-list' => 5,
-                        'deepcoin/asset/withdraw-list' => 5,
-                        'deepcoin/asset/recharge-chain-list' => 5,
-                        'deepcoin/listenkey/acquire' => 5,
-                        'deepcoin/listenkey/extend' => 5,
+                        'deepcoin/account/balances' => array( 'cost' => 5 ),
+                        'deepcoin/account/bills' => array( 'cost' => 5 ),
+                        'deepcoin/account/positions' => array( 'cost' => 5 ),
+                        'deepcoin/trade/fills' => array( 'cost' => 5 ),
+                        'deepcoin/trade/orderByID' => array( 'cost' => 5 ),
+                        'deepcoin/trade/finishOrderByID' => array( 'cost' => 5 ),
+                        'deepcoin/trade/orders-history' => array( 'cost' => 5 ),
+                        'deepcoin/trade/v2/orders-pending' => array( 'cost' => 5 ),
+                        'deepcoin/trade/trigger-orders-pending' => array( 'cost' => 5 ),
+                        'deepcoin/trade/trigger-orders-history' => array( 'cost' => 5 ),
+                        'deepcoin/copytrading/support-contracts' => array( 'cost' => 5 ),
+                        'deepcoin/copytrading/leader-position' => array( 'cost' => 5 ),
+                        'deepcoin/copytrading/estimate-profit' => array( 'cost' => 5 ),
+                        'deepcoin/copytrading/history-profit' => array( 'cost' => 5 ),
+                        'deepcoin/copytrading/follower-rank' => array( 'cost' => 5 ),
+                        'deepcoin/internal-transfer/support' => array( 'cost' => 5 ),
+                        'deepcoin/internal-transfer/history-order' => array( 'cost' => 5 ),
+                        'deepcoin/rebate/config' => array( 'cost' => 5 ),
+                        'deepcoin/agents/users' => array( 'cost' => 5 ),
+                        'deepcoin/agents/users/rebate-list' => array( 'cost' => 5 ),
+                        'deepcoin/agents/users/rebates' => array( 'cost' => 5 ),
+                        'deepcoin/asset/deposit-list' => array( 'cost' => 5 ),
+                        'deepcoin/asset/withdraw-list' => array( 'cost' => 5 ),
+                        'deepcoin/asset/recharge-chain-list' => array( 'cost' => 5 ),
+                        'deepcoin/listenkey/acquire' => array( 'cost' => 5 ),
+                        'deepcoin/listenkey/extend' => array( 'cost' => 5 ),
                     ),
                     'post' => array(
-                        'deepcoin/account/set-leverage' => 5,
-                        'deepcoin/trade/order' => 5,
-                        'deepcoin/trade/replace-order' => 5,
-                        'deepcoin/trade/cancel-order' => 5,
-                        'deepcoin/trade/batch-cancel-order' => 5,
-                        'deepcoin/trade/cancel-trigger-order' => 1 / 6,
-                        'deepcoin/trade/swap/cancel-all' => 5,
-                        'deepcoin/trade/trigger-order' => 5,
-                        'deepcoin/trade/batch-close-position' => 5,
-                        'deepcoin/trade/replace-order-sltp' => 5,
-                        'deepcoin/trade/close-position-by-ids' => 5,
-                        'deepcoin/copytrading/leader-settings' => 5,
-                        'deepcoin/copytrading/set-contracts' => 5,
-                        'deepcoin/internal-transfer' => 5,
-                        'deepcoin/rebate/config' => 5,
-                        'deepcoin/asset/transfer' => 5,
+                        'deepcoin/account/set-leverage' => array( 'cost' => 5 ),
+                        'deepcoin/trade/order' => array( 'cost' => 5 ),
+                        'deepcoin/trade/replace-order' => array( 'cost' => 5 ),
+                        'deepcoin/trade/cancel-order' => array( 'cost' => 5 ),
+                        'deepcoin/trade/batch-cancel-order' => array( 'cost' => 5 ),
+                        'deepcoin/trade/cancel-trigger-order' => array( 'cost' => 1 / 6 ),
+                        'deepcoin/trade/swap/cancel-all' => array( 'cost' => 5 ),
+                        'deepcoin/trade/trigger-order' => array( 'cost' => 5 ),
+                        'deepcoin/trade/batch-close-position' => array( 'cost' => 5 ),
+                        'deepcoin/trade/replace-order-sltp' => array( 'cost' => 5 ),
+                        'deepcoin/trade/close-position-by-ids' => array( 'cost' => 5 ),
+                        'deepcoin/copytrading/leader-settings' => array( 'cost' => 5 ),
+                        'deepcoin/copytrading/set-contracts' => array( 'cost' => 5 ),
+                        'deepcoin/internal-transfer' => array( 'cost' => 5 ),
+                        'deepcoin/rebate/config' => array( 'cost' => 5 ),
+                        'deepcoin/asset/transfer' => array( 'cost' => 5 ),
                     ),
                 ),
             ),
@@ -314,7 +315,7 @@ class deepcoin extends Exchange {
                 'networks' => array(
                     'ERC20' => 'ERC20',
                     'TRC20' => 'TRC20',
-                    'ARB' => 'ARBITRUM',
+                    'ARBITRUM' => 'ARBITRUM',
                     'BSC' => 'BSC(BEP20)',
                     'SOL' => 'SOL',
                     'BTC' => 'Bitcoin',
@@ -387,73 +388,77 @@ class deepcoin extends Exchange {
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinMarket/getBaseInfo
-             *
-             * retrieves data on all markets for okcoin
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} an array of objects representing market data
-             */
-            $types = array( 'spot', 'swap' );
-            $fetchMarketsOption = $this->safe_dict($this->options, 'fetchMarkets');
-            if ($fetchMarketsOption !== null) {
-                $types = $this->safe_list($fetchMarketsOption, 'types', $types);
-            } else {
-                $types = $this->safe_list($this->options, 'fetchMarkets', $types); // backward-support
-            }
-            $promises = array();
-            $result = array();
-            for ($i = 0; $i < count($types); $i++) {
-                $promises[] = $this->fetch_markets_by_type($types[$i], $params);
-            }
-            $promises = Async\await(Promise\all($promises));
-            for ($i = 0; $i < count($promises); $i++) {
-                $result = $this->array_concat($result, $promises[$i]);
-            }
-            return $result;
-        })();
+        return Async\async(self::do_fetch_markets(...))($params);
+    }
+
+    private function do_fetch_markets($params = array()) {
+        /**
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinMarket/getBaseInfo
+         *
+         * retrieves data on all markets for okcoin
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing market data
+         */
+        $types = array( 'spot', 'swap' );
+        $fetchMarketsOption = $this->safe_dict($this->options, 'fetchMarkets');
+        if ($fetchMarketsOption !== null) {
+            $types = $this->safe_list($fetchMarketsOption, 'types', $types);
+        } else {
+            $types = $this->safe_list($this->options, 'fetchMarkets', $types); // backward-support
+        }
+        $promises = array();
+        $result = array();
+        for ($i = 0; $i < count($types); $i++) {
+            $promises[] = $this->fetch_markets_by_type($types[$i], $params);
+        }
+        $promises = Async\await(Promise\all($promises));
+        for ($i = 0; $i < count($promises); $i++) {
+            $result = $this->array_concat($result, $promises[$i]);
+        }
+        return $result;
     }
 
     public function fetch_markets_by_type(mixed $type, $params = array()) {
-        return Async\async(function () use ($type, $params) {
-            $request = array(
-                'instType' => $this->convert_to_instrument_type($type),
-            );
-            $response = Async\await($this->publicGetDeepcoinMarketInstruments($this->extend($request, $params)));
-            //
-            // spot
-            //
-            //     {
-            //         "code" => "0",
-            //         "msg" => "",
-            //         "data" => array(
-            //             {
-            //                 "instType" => "SPOT",
-            //                 "instId" => "A-USDT",
-            //                 "uly" => "",
-            //                 "baseCcy" => "A",
-            //                 "quoteCcy" => "USDT",
-            //                 "ctVal" => "1",
-            //                 "ctValCcy" => "",
-            //                 "listTime" => "0",
-            //                 "lever" => "1",
-            //                 "tickSz" => "0.0001",
-            //                 "lotSz" => "0.001",
-            //                 "minSz" => "0.5",
-            //                 "ctType" => "",
-            //                 "alias" => "",
-            //                 "state" => "live",
-            //                 "maxLmtSz" => "7692307",
-            //                 "maxMktSz" => "7692307"
-            //             }
-            //         )
-            //     }
-            //
-            $dataResponse = $this->safe_list($response, 'data', array());
-            return $this->parse_markets($dataResponse);
-        })();
+        return Async\async(self::do_fetch_markets_by_type(...))($type, $params);
+    }
+
+    private function do_fetch_markets_by_type(mixed $type, $params = array()) {
+        $request = array(
+            'instType' => $this->convert_to_instrument_type($type),
+        );
+        $response = Async\await($this->publicGetDeepcoinMarketInstruments($this->extend($request, $params)));
+        //
+        // spot
+        //
+        //     {
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "data" => array(
+        //             {
+        //                 "instType" => "SPOT",
+        //                 "instId" => "A-USDT",
+        //                 "uly" => "",
+        //                 "baseCcy" => "A",
+        //                 "quoteCcy" => "USDT",
+        //                 "ctVal" => "1",
+        //                 "ctValCcy" => "",
+        //                 "listTime" => "0",
+        //                 "lever" => "1",
+        //                 "tickSz" => "0.0001",
+        //                 "lotSz" => "0.001",
+        //                 "minSz" => "0.5",
+        //                 "ctType" => "",
+        //                 "alias" => "",
+        //                 "state" => "live",
+        //                 "maxLmtSz" => "7692307",
+        //                 "maxMktSz" => "7692307"
+        //             }
+        //         )
+        //     }
+        //
+        $dataResponse = $this->safe_list($response, 'data', array());
+        return $this->parse_markets($dataResponse);
     }
 
     public function parse_market(array $market): array {
@@ -597,175 +602,181 @@ class deepcoin extends Exchange {
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinMarket/marketBooks
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            if ($limit === null) {
-                $limit = 400;
-            }
-            $request = array(
-                'instId' => $market['id'],
-                'sz' => $limit,
-            );
-            $response = Async\await($this->publicGetDeepcoinMarketBooks($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => "0",
-            //         "msg" => "",
-            //         "data" => {
-            //             "bids" => array(
-            //                 ["3732.21", "99.6"],
-            //                 ["3732.2", "54.7"]
-            //             ),
-            //             "asks" => array(
-            //                 ["3732.22", "85.1"],
-            //                 ["3732.23", "49.4"]
-            //             )
-            //         }
-            //     }
-            //
-            $data = $this->safe_dict($response, 'data', array());
-            return $this->parse_order_book($data, $symbol, null, 'bids', 'asks', 0, 1);
-        })();
+        return Async\async(self::do_fetch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_fetch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinMarket/marketBooks
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        if ($limit === null) {
+            $limit = 400;
+        }
+        $request = array(
+            'instId' => $market['id'],
+            'sz' => $limit,
+        );
+        $response = Async\await($this->publicGetDeepcoinMarketBooks($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "data" => {
+        //             "bids" => array(
+        //                 ["3732.21", "99.6"],
+        //                 ["3732.2", "54.7"]
+        //             ),
+        //             "asks" => array(
+        //                 ["3732.22", "85.1"],
+        //                 ["3732.23", "49.4"]
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_order_book($data, $symbol, null, 'bids', 'asks', 0, 1);
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinMarket/getKlineData
-             * @see https://www.deepcoin.com/docs/DeepCoinMarket/getIndexKlineData
-             * @see https://www.deepcoin.com/docs/DeepCoinMarket/getMarkKlineData
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-             * @param {string} [$params->price] "mark" or "index" for mark $price and index $price candles
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $maxLimit = 300;
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
-            if ($paginate) {
-                $params = $this->extend($params, array( 'calculateUntil' => true ));
-                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit));
-            }
-            $market = $this->market($symbol);
-            $price = $this->safe_string($params, 'price');
-            $params = $this->omit($params, 'price');
-            $bar = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-            $request = array(
-                'instId' => $market['id'],
-                'bar' => $bar,
-            );
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $until = $this->safe_integer($params, 'until');
-            if ($until !== null) {
-                $request['after'] = $until;
-                $params = $this->omit($params, 'until');
-            }
-            $calculateUntil = $this->safe_bool($params, 'calculateUntil', false);
-            if ($calculateUntil) {
-                $params = $this->omit($params, 'calculateUntil');
-                if ($since !== null) {
-                    // the exchange do not have a $since param for this endpoint
-                    // we calculate $until (after) for correct pagination
-                    $duration = $this->parse_timeframe($timeframe);
-                    $numberOfCandles = ($limit === null) ? $maxLimit : $limit;
-                    $endTime = $since . ($duration * $numberOfCandles) * 1000;
-                    if ($until !== null) {
-                        $endTime = min($endTime, $until);
-                    }
-                    $now = $this->milliseconds();
-                    $request['after'] = min($endTime, $now);
+        return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinMarket/getKlineData
+         * @see https://www.deepcoin.com/docs/DeepCoinMarket/getIndexKlineData
+         * @see https://www.deepcoin.com/docs/DeepCoinMarket/getMarkKlineData
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+         * @param {string} [$params->price] "mark" or "index" for mark $price and index $price candles
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $maxLimit = 300;
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+        if ($paginate) {
+            $params = $this->extend($params, array( 'calculateUntil' => true ));
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit));
+        }
+        $market = $this->market($symbol);
+        $price = $this->safe_string($params, 'price');
+        $params = $this->omit($params, 'price');
+        $bar = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $request = array(
+            'instId' => $market['id'],
+            'bar' => $bar,
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $request['after'] = $until;
+            $params = $this->omit($params, 'until');
+        }
+        $calculateUntil = $this->safe_bool($params, 'calculateUntil', false);
+        if ($calculateUntil) {
+            $params = $this->omit($params, 'calculateUntil');
+            if ($since !== null) {
+                // the exchange do not have a $since param for this endpoint
+                // we calculate $until (after) for correct pagination
+                $duration = $this->parse_timeframe($timeframe);
+                $numberOfCandles = ($limit === null) ? $maxLimit : $limit;
+                $endTime = $since . ($duration * $numberOfCandles) * 1000;
+                if ($until !== null) {
+                    $endTime = min($endTime, $until);
                 }
+                $now = $this->milliseconds();
+                $request['after'] = min($endTime, $now);
             }
-            $response = null;
-            if ($price === 'mark') {
-                $response = Async\await($this->publicGetDeepcoinMarketMarkPriceCandles($this->extend($request, $params)));
-            } elseif ($price === 'index') {
-                $response = Async\await($this->publicGetDeepcoinMarketIndexCandles($this->extend($request, $params)));
-            } else {
-                $response = Async\await($this->publicGetDeepcoinMarketCandles($this->extend($request, $params)));
-            }
-            //
-            //     {
-            //         "code" => "0",
-            //         "msg" => "",
-            //         "data":array(
-            //             array(
-            //                 "1760221800000",
-            //                 "3739.08",
-            //                 "3741.95",
-            //                 "3737.75",
-            //                 "3740.1",
-            //                 "2849",
-            //                 "1065583.744"
-            //             ),
-            //             array(
-            //                 "1760221740000",
-            //                 "3742.36",
-            //                 "3743.01",
-            //                 "3736.83",
-            //                 "3739.08",
-            //                 "2723",
-            //                 "1018290.723"
-            //             )
-            //         )
-            //     }
-            //
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-        })();
+        }
+        $response = null;
+        if ($price === 'mark') {
+            $response = Async\await($this->publicGetDeepcoinMarketMarkPriceCandles($this->extend($request, $params)));
+        } elseif ($price === 'index') {
+            $response = Async\await($this->publicGetDeepcoinMarketIndexCandles($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->publicGetDeepcoinMarketCandles($this->extend($request, $params)));
+        }
+        //
+        //     {
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "data":array(
+        //             array(
+        //                 "1760221800000",
+        //                 "3739.08",
+        //                 "3741.95",
+        //                 "3737.75",
+        //                 "3740.1",
+        //                 "2849",
+        //                 "1065583.744"
+        //             ),
+        //             array(
+        //                 "1760221740000",
+        //                 "3742.36",
+        //                 "3743.01",
+        //                 "3736.83",
+        //                 "3739.08",
+        //                 "2723",
+        //                 "1018290.723"
+        //             )
+        //         )
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinMarket/getMarketTickers
-             *
-             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $market = $this->get_market_from_symbols($symbols);
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-            $request = array(
-                'instType' => $this->convert_to_instrument_type($marketType),
-            );
-            $response = Async\await($this->publicGetDeepcoinMarketTickers($this->extend($request, $params)));
-            $tickers = $this->safe_list($response, 'data', array());
-            return $this->parse_tickers($tickers, $symbols);
-        })();
+        return Async\async(self::do_fetch_tickers(...))($symbols, $params);
+    }
+
+    private function do_fetch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinMarket/getMarketTickers
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $market = $this->get_market_from_symbols($symbols);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+        $request = array(
+            'instType' => $this->convert_to_instrument_type($marketType),
+        );
+        $response = Async\await($this->publicGetDeepcoinMarketTickers($this->extend($request, $params)));
+        $tickers = $this->safe_list($response, 'data', array());
+        return $this->parse_tickers($tickers, $symbols);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -831,34 +842,36 @@ class deepcoin extends Exchange {
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent trades for a particular $symbol
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinMarket/getTrades
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch (default 100, max 500)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'instId' => $market['id'],
-            );
-            if ($limit !== null) {
-                $request['limit'] = min($limit, 500);
-            }
-            $productGroup = $this->get_product_group_from_market($market);
-            $request['productGroup'] = $productGroup;
-            $response = Async\await($this->publicGetDeepcoinMarketTrades($this->extend($request, $params)));
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_trades($data, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinMarket/getTrades
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch (default 100, max 500)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'instId' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['limit'] = min($limit, 500);
+        }
+        $productGroup = $this->get_product_group_from_market($market);
+        $request['productGroup'] = $productGroup;
+        $response = Async\await($this->publicGetDeepcoinMarketTrades($this->extend($request, $params)));
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function get_product_group_from_market(array $market): string {
@@ -946,27 +959,29 @@ class deepcoin extends Exchange {
     }
 
     public function fetch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinAccount/getAccountBalance
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->type] "spot" or "swap", the market type for the balance
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params, $marketType);
-            $request = array(
-                'instType' => $this->convert_to_instrument_type($marketType),
-            );
-            $response = Async\await($this->privateGetDeepcoinAccountBalances($this->extend($request, $params)));
-            return $this->parse_balance($response);
-        })();
+        return Async\async(self::do_fetch_balance(...))($params);
+    }
+
+    private function do_fetch_balance($params = array()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinAccount/getAccountBalance
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] "spot" or "swap", the market type for the balance
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params, $marketType);
+        $request = array(
+            'instType' => $this->convert_to_instrument_type($marketType),
+        );
+        $response = Async\await($this->privateGetDeepcoinAccountBalances($this->extend($request, $params)));
+        return $this->parse_balance($response);
     }
 
     public function parse_balance(mixed $response): array {
@@ -1004,103 +1019,107 @@ class deepcoin extends Exchange {
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch all deposits made to an account
-             *
-             * @see https://www.deepcoin.com/docs/assets/deposit
-             *
-             * @param {string} $code unified $currency $code
-             * @param {int} [$since] the earliest time in ms to fetch deposits for
-             * @param {int} [$limit] the maximum number of deposits structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] the latest time in ms to fetch entries for
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate', false);
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_cursor('fetchDeposits', $code, $since, $limit, $params, 'code', null, 1, 50));
-            }
-            $request = array();
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-                $request['coin'] = $currency['id'];
-            }
-            if ($since !== null) {
-                $request['startTime'] = $since;
-            }
-            if ($limit !== null) {
-                $request['size'] = $limit;
-            }
-            $until = $this->safe_integer($params, 'until');
-            if ($until !== null) {
-                $request['endTime'] = $until;
-                $params = $this->omit($params, 'until');
-            }
-            $response = Async\await($this->privateGetDeepcoinAssetDepositList($this->extend($request, $params)));
-            $data = $this->safe_dict($response, 'data', array());
-            $items = $this->safe_list($data, 'data', array());
-            $transactionParams = array(
-                'type' => 'deposit',
-            );
-            return $this->parse_transactions($items, $currency, $since, $limit, $transactionParams);
-        })();
+        return Async\async(self::do_fetch_deposits(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all deposits made to an account
+         *
+         * @see https://www.deepcoin.com/docs/assets/deposit
+         *
+         * @param {string} $code unified $currency $code
+         * @param {int} [$since] the earliest time in ms to fetch deposits for
+         * @param {int} [$limit] the maximum number of deposits structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch entries for
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate', false);
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_cursor('fetchDeposits', $code, $since, $limit, $params, 'code', null, 1, 50));
+        }
+        $request = array();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['coin'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $request['endTime'] = $until;
+            $params = $this->omit($params, 'until');
+        }
+        $response = Async\await($this->privateGetDeepcoinAssetDepositList($this->extend($request, $params)));
+        $data = $this->safe_dict($response, 'data', array());
+        $items = $this->safe_list($data, 'data', array());
+        $transactionParams = array(
+            'type' => 'deposit',
+        );
+        return $this->parse_transactions($items, $currency, $since, $limit, $transactionParams);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch all withdrawals made from an account
-             *
-             * @see https://www.deepcoin.com/docs/assets/withdraw
-             *
-             * @param {string} $code unified $currency $code of the $currency transferred
-             * @param {int} [$since] the earliest time in ms to fetch transfers for (default 24 hours ago)
-             * @param {int} [$limit] the maximum number of transfer structures to retrieve (default 50, max 200)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] the latest time in ms to fetch transfers for (default time now)
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate', false);
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_cursor('fetchDeposits', $code, $since, $limit, $params, 'code', null, 1, 50));
-            }
-            $request = array();
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-                $request['coin'] = $currency['id'];
-            }
-            if ($since !== null) {
-                $request['startTime'] = $since;
-            }
-            if ($limit !== null) {
-                $request['size'] = $limit;
-            }
-            $until = $this->safe_integer($params, 'until');
-            if ($until !== null) {
-                $request['endTime'] = $until;
-                $params = $this->omit($params, 'until');
-            }
-            $response = Async\await($this->privateGetDeepcoinAssetWithdrawList($this->extend($request, $params)));
-            $data = $this->safe_dict($response, 'data', array());
-            $items = $this->safe_list($data, 'data', array());
-            $transactionParams = array(
-                'type' => 'withdrawal',
-            );
-            return $this->parse_transactions($items, $currency, $since, $limit, $transactionParams);
-        })();
+        return Async\async(self::do_fetch_withdrawals(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all withdrawals made from an account
+         *
+         * @see https://www.deepcoin.com/docs/assets/withdraw
+         *
+         * @param {string} $code unified $currency $code of the $currency transferred
+         * @param {int} [$since] the earliest time in ms to fetch transfers for (default 24 hours ago)
+         * @param {int} [$limit] the maximum number of transfer structures to retrieve (default 50, max 200)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch transfers for (default time now)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate', false);
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_cursor('fetchWithdrawals', $code, $since, $limit, $params, 'code', null, 1, 50));
+        }
+        $request = array();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['coin'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $request['endTime'] = $until;
+            $params = $this->omit($params, 'until');
+        }
+        $response = Async\await($this->privateGetDeepcoinAssetWithdrawList($this->extend($request, $params)));
+        $data = $this->safe_dict($response, 'data', array());
+        $items = $this->safe_list($data, 'data', array());
+        $transactionParams = array(
+            'type' => 'withdrawal',
+        );
+        return $this->parse_transactions($items, $currency, $since, $limit, $transactionParams);
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -1159,103 +1178,107 @@ class deepcoin extends Exchange {
     }
 
     public function fetch_deposit_addresses(?array $codes = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($codes, $params) {
-            /**
-             * fetch deposit addresses for multiple currencies and chain types
-             *
-             * @see https://www.deepcoin.com/docs/assets/chainlist
-             *
-             * @param {string[]|null} $codes $list of unified $currency $codes, default is null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a $list of ~@link https://docs.ccxt.com/?id=address-structure address structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if ($codes === null) {
-                throw new ArgumentsRequired($this->id . ' fetchDepositAddresses requires a $list with one $currency code');
-            }
-            $length = count($codes);
-            if ($length !== 1) {
-                throw new NotSupported($this->id . ' fetchDepositAddresses requires a $list with one $currency code');
-            }
-            $code = $codes[0];
-            $currency = $this->currency($code);
-            $request = array(
-                'currency_id' => $currency['id'],
-                'lang' => 'en',
-            );
-            $response = Async\await($this->privateGetDeepcoinAssetRechargeChainList($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => "0",
-            //         "msg" => "",
-            //         "data" => {
-            //             "list" => array(
-            //                 {
-            //                     "chain" => "TRC20",
-            //                     "state" => 1,
-            //                     "remind" => "Only support deposits and withdrawals via TRC20 network. If you send it via other address by mistake, it will not be credited and will result in the permanent loss of your deposit.",
-            //                     "inNotice" => "",
-            //                     "actLogo" => "",
-            //                     "address" => "TNJYDW9Bk87VwfA6s7FtxURLEMHesQbYgF",
-            //                     "hasMemo" => false,
-            //                     "memo" => "",
-            //                     "estimatedTime" => 1,
-            //                     "fastConfig" => {
-            //                         "fastLimitNum" => 0,
-            //                         "fastBlock" => 10,
-            //                         "realBlock" => 1
-            //                     }
-            //                 }
-            //             )
-            //         }
-            //     }
-            //
-            $data = $this->safe_dict($response, 'data', array());
-            $list = $this->safe_list($data, 'list', array());
-            $additionalParams = array(
-                'currency' => $code,
-            );
-            return $this->parse_deposit_addresses($list, $codes, false, $additionalParams);
-        })();
+        return Async\async(self::do_fetch_deposit_addresses(...))($codes, $params);
+    }
+
+    private function do_fetch_deposit_addresses(?array $codes = null, $params = array()) {
+        /**
+         * fetch deposit addresses for multiple currencies and chain types
+         *
+         * @see https://www.deepcoin.com/docs/assets/chainlist
+         *
+         * @param {string[]|null} $codes $list of unified $currency $codes, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a $list of ~@link https://docs.ccxt.com/?id=address-structure address structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($codes === null) {
+            throw new ArgumentsRequired($this->id . ' fetchDepositAddresses requires a $list with one $currency code');
+        }
+        $length = count($codes);
+        if ($length !== 1) {
+            throw new NotSupported($this->id . ' fetchDepositAddresses requires a $list with one $currency code');
+        }
+        $code = $codes[0];
+        $currency = $this->currency($code);
+        $request = array(
+            'currency_id' => $currency['id'],
+            'lang' => 'en',
+        );
+        $response = Async\await($this->privateGetDeepcoinAssetRechargeChainList($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "data" => {
+        //             "list" => array(
+        //                 {
+        //                     "chain" => "TRC20",
+        //                     "state" => 1,
+        //                     "remind" => "Only support deposits and withdrawals via TRC20 network. If you send it via other address by mistake, it will not be credited and will result in the permanent loss of your deposit.",
+        //                     "inNotice" => "",
+        //                     "actLogo" => "",
+        //                     "address" => "TNJYDW9Bk87VwfA6s7FtxURLEMHesQbYgF",
+        //                     "hasMemo" => false,
+        //                     "memo" => "",
+        //                     "estimatedTime" => 1,
+        //                     "fastConfig" => {
+        //                         "fastLimitNum" => 0,
+        //                         "fastBlock" => 10,
+        //                         "realBlock" => 1
+        //                     }
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $list = $this->safe_list($data, 'list', array());
+        $additionalParams = array(
+            'currency' => $code,
+        );
+        return $this->parse_deposit_addresses($list, $codes, false, $additionalParams);
     }
 
     public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $params) {
-            /**
-             * fetch the deposit $address for a currency associated with this account
-             *
-             * @see https://www.deepcoin.com/docs/assets/chainlist
-             *
-             * @param {string} $code unified currency $code
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->network] unified $network $code for deposit chain
-             * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $network = $this->safe_string($params, 'network');
-            $defaultNetworks = $this->safe_dict($this->options, 'defaultNetworks', array());
-            $defaultNetwork = $this->safe_string($defaultNetworks, $code);
-            $network = $network ? $network : $defaultNetwork;
-            if ($network !== null) {
-                $params = $this->omit($params, 'network');
-            }
-            $addressess = Async\await($this->fetch_deposit_addresses(array( $code ), $params));
-            $length = count($addressess);
-            $address = $this->safe_dict($addressess, 0, array());
-            if (($network !== null) && ($length > 1)) {
-                for ($i = 0; $i < $length; $i++) {
-                    $entry = $addressess[$i];
-                    if ($entry['network'] === $network) {
-                        $address = $entry;
-                    }
+        return Async\async(self::do_fetch_deposit_address(...))($code, $params);
+    }
+
+    private function do_fetch_deposit_address(string $code, $params = array()) {
+        /**
+         * fetch the deposit $address for a currency associated with this account
+         *
+         * @see https://www.deepcoin.com/docs/assets/chainlist
+         *
+         * @param {string} $code unified currency $code
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->network] unified $network $code for deposit chain
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $network = $this->safe_string($params, 'network');
+        $defaultNetworks = $this->safe_dict($this->options, 'defaultNetworks', array());
+        $defaultNetwork = $this->safe_string($defaultNetworks, $code);
+        $network = $network ? $network : $defaultNetwork;
+        if ($network !== null) {
+            $params = $this->omit($params, 'network');
+        }
+        $addressess = Async\await($this->fetch_deposit_addresses(array( $code ), $params));
+        $length = count($addressess);
+        $address = $this->safe_dict($addressess, 0, array());
+        if (($network !== null) && ($length > 1)) {
+            for ($i = 0; $i < $length; $i++) {
+                $entry = $addressess[$i];
+                if ($entry['network'] === $network) {
+                    $address = $entry;
                 }
             }
-            return $address;
-        })();
+        }
+        return $address;
     }
 
     public function parse_deposit_address(mixed $response, ?array $currency = null): array {
@@ -1291,74 +1314,76 @@ class deepcoin extends Exchange {
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinAccount/getAccountBills
-             *
-             * @param {string} [$code] unified $currency $code
-             * @param {int} [$since] timestamp in ms of the earliest ledger entry
-             * @param {int} [$limit] max number of ledger entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest ledger entry
-             * @param {string} [$params->type] 'spot' or 'swap', the market type for the ledger (default 'spot')
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $marketType = 'spot';
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchLedger', null, $params, $marketType);
-            $request = array(
-                'instType' => $this->convert_to_instrument_type($marketType),
-            );
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-                $request['ccy'] = $currency['id'];
-            }
-            if ($since !== null) {
-                $request['after'] = $since;
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $until = $this->safe_integer($params, 'until');
-            if ($until !== null) {
-                $request['before'] = $until;
-                $params = $this->omit($params, 'until');
-            }
-            $response = Async\await($this->privateGetDeepcoinAccountBills($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => "0",
-            //         "msg" => "",
-            //         "data" => array(
-            //             array(
-            //                 "billId" => "1001044652247714",
-            //                 "ccy" => "USDT",
-            //                 "clientId" => "",
-            //                 "balChg" => "-0.03543537",
-            //                 "bal" => "72.41881427",
-            //                 "type" => "5",
-            //                 "ts" => "1761047448000"
-            //             ),
-            //             {
-            //                 "billId" => "1001044652258368",
-            //                 "ccy" => "DOGE",
-            //                 "clientId" => "",
-            //                 "balChg" => "76",
-            //                 "bal" => "76",
-            //                 "type" => "2",
-            //                 "ts" => "1761051006000"
-            //             }
-            //         )
-            //     }
-            //
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_ledger($data, $currency, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_ledger(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinAccount/getAccountBills
+         *
+         * @param {string} [$code] unified $currency $code
+         * @param {int} [$since] timestamp in ms of the earliest ledger entry
+         * @param {int} [$limit] max number of ledger entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest ledger entry
+         * @param {string} [$params->type] 'spot' or 'swap', the market type for the ledger (default 'spot')
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $marketType = 'spot';
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchLedger', null, $params, $marketType);
+        $request = array(
+            'instType' => $this->convert_to_instrument_type($marketType),
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['ccy'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['after'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $request['before'] = $until;
+            $params = $this->omit($params, 'until');
+        }
+        $response = Async\await($this->privateGetDeepcoinAccountBills($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "data" => array(
+        //             array(
+        //                 "billId" => "1001044652247714",
+        //                 "ccy" => "USDT",
+        //                 "clientId" => "",
+        //                 "balChg" => "-0.03543537",
+        //                 "bal" => "72.41881427",
+        //                 "type" => "5",
+        //                 "ts" => "1761047448000"
+        //             ),
+        //             {
+        //                 "billId" => "1001044652258368",
+        //                 "ccy" => "DOGE",
+        //                 "clientId" => "",
+        //                 "balChg" => "76",
+        //                 "bal" => "76",
+        //                 "type" => "2",
+        //                 "ts" => "1761051006000"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_ledger($data, $currency, $since, $limit);
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
@@ -1411,63 +1436,65 @@ class deepcoin extends Exchange {
     }
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
-            /**
-             * $transfer $currency internally between wallets on the same account
-             *
-             * @see https://www.deepcoin.com/docs/assets/transfer
-             *
-             * @param {string} $code unified $currency $code
-             * @param {float} $amount amount to $transfer
-             * @param {string} $fromAccount account to $transfer from ('spot', 'inverse', 'linear', 'fund', 'rebate' or 'demo')
-             * @param {string} $toAccount account to $transfer to ('spot', 'inverse', 'linear', 'fund', 'rebate' or 'demo')
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->userId] user id
-             * @return {array} a ~@link https://docs.ccxt.com/?id=$transfer-structure $transfer structure~
-             */
-            $userId = null;
-            list($userId, $params) = $this->handle_option_and_params($params, 'transfer', 'userId');
-            $userId = $userId ? $userId : $this->safe_string($params, 'uid');
-            if ($userId === null) {
-                throw new ArgumentsRequired($this->id . ' $transfer() requires a $userId parameter');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $currency = $this->currency($code);
-            $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
-            $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
-            $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
-            $request = array(
-                'currency_id' => $currency['id'],
-                'amount' => $this->currency_to_precision($code, $amount),
-                'from_id' => $fromId,
-                'to_id' => $toId,
-                'uid' => $userId,
-            );
-            $response = Async\await($this->privatePostDeepcoinAssetTransfer($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => "0",
-            //         "msg" => "",
-            //         "data" => {
-            //             "retCode" => 0,
-            //             "retMsg" => "",
-            //             "retData" => array()
-            //         }
-            //     }
-            //
-            $data = $this->safe_dict($response, 'data', array());
-            $transfer = $this->parse_transfer($data, $currency);
-            $transferOptions = $this->safe_dict($this->options, 'transfer', array());
-            $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
-            if ($fillResponseFromRequest) {
-                $transfer['fromAccount'] = $fromAccount;
-                $transfer['toAccount'] = $toAccount;
-                $transfer['amount'] = $amount;
-            }
-            return $transfer;
-        })();
+        return Async\async(self::do_transfer(...))($code, $amount, $fromAccount, $toAccount, $params);
+    }
+
+    private function do_transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()) {
+        /**
+         * $transfer $currency internally between wallets on the same account
+         *
+         * @see https://www.deepcoin.com/docs/assets/transfer
+         *
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount amount to $transfer
+         * @param {string} $fromAccount account to $transfer from ('spot', 'inverse', 'linear', 'fund', 'rebate' or 'demo')
+         * @param {string} $toAccount account to $transfer to ('spot', 'inverse', 'linear', 'fund', 'rebate' or 'demo')
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->userId] user id
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$transfer-structure $transfer structure~
+         */
+        $userId = null;
+        list($userId, $params) = $this->handle_option_and_params($params, 'transfer', 'userId');
+        $userId = $userId ? $userId : $this->safe_string($params, 'uid');
+        if ($userId === null) {
+            throw new ArgumentsRequired($this->id . ' $transfer() requires a $userId parameter');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = $this->currency($code);
+        $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+        $request = array(
+            'currency_id' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+            'from_id' => $fromId,
+            'to_id' => $toId,
+            'uid' => $userId,
+        );
+        $response = Async\await($this->privatePostDeepcoinAssetTransfer($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "data" => {
+        //             "retCode" => 0,
+        //             "retMsg" => "",
+        //             "retData" => array()
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $transfer = $this->parse_transfer($data, $currency);
+        $transferOptions = $this->safe_dict($this->options, 'transfer', array());
+        $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
+        if ($fillResponseFromRequest) {
+            $transfer['fromAccount'] = $fromAccount;
+            $transfer['toAccount'] = $toAccount;
+            $transfer['amount'] = $amount;
+        }
+        return $transfer;
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -1501,61 +1528,63 @@ class deepcoin extends Exchange {
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * create a trade order
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinTrade/order
-             * @see https://www.deepcoin.com/docs/DeepCoinTrade/triggerOrder
-             *
-             * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->clientOrderId] a unique id for the order
-             * @param {string} [$params->timeInForce] *non trigger orders only* 'GTC' (Good Till Cancel), 'IOC' (Immediate Or Cancel) or 'PO' (Post Only)
-             * @param {bool} [$params->postOnly] *non trigger orders only* true to place a post only order
-             * @param {bool} [$params->reduceOnly] *non trigger orders only* a mark to reduce the position size for margin, swap and future orders
-             * @param {float} [$params->triggerPrice] the $price a trigger order is triggered at
-             * @param {float} [$params->stopLoss.triggerPrice] the $price that a stop loss order is triggered at
-             * @param {float} [$params->takeProfit.triggerPrice] the $price that a take profit order is triggered at
-             * @param {string} [$params->positionSide] if position mode is one-way => set to 'net', if position mode is hedge-mode => set to 'long' or 'short'
-             * @param {bool} [$params->hedged] *swap only* true for hedged mode, false for one way mode
-             * @param {string} [$params->marginMode] *swap only*'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $triggerPrice = $this->safe_string($params, 'triggerPrice');
-            $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-            $response = null;
-            if ($triggerPrice !== null) {
-                // trigger orders
-                $response = Async\await($this->privatePostDeepcoinTradeTriggerOrder($request));
-            } else {
-                // regular orders
-                //
-                //     {
-                //         "code" => "0",
-                //         "msg" => "",
-                //         "data" => {
-                //             "ordId" => "1001434570213727",
-                //             "clOrdId" => "",
-                //             "tag" => "",
-                //             "sCode" => "0",
-                //             "sMsg" => ""
-                //         }
-                //     }
-                //
-                $response = Async\await($this->privatePostDeepcoinTradeOrder($request));
-            }
-            $data = $this->safe_dict($response, 'data', array());
-            return $this->parse_order($data, $market);
-        })();
+        return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * create a trade order
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinTrade/order
+         * @see https://www.deepcoin.com/docs/DeepCoinTrade/triggerOrder
+         *
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] a unique id for the order
+         * @param {string} [$params->timeInForce] *non trigger orders only* 'GTC' (Good Till Cancel), 'IOC' (Immediate Or Cancel) or 'PO' (Post Only)
+         * @param {bool} [$params->postOnly] *non trigger orders only* true to place a post only order
+         * @param {bool} [$params->reduceOnly] *non trigger orders only* a mark to reduce the position size for margin, swap and future orders
+         * @param {float} [$params->triggerPrice] the $price a trigger order is triggered at
+         * @param {float} [$params->stopLoss.triggerPrice] the $price that a stop loss order is triggered at
+         * @param {float} [$params->takeProfit.triggerPrice] the $price that a take profit order is triggered at
+         * @param {string} [$params->positionSide] if position mode is one-way => set to 'net', if position mode is hedge-mode => set to 'long' or 'short'
+         * @param {bool} [$params->hedged] *swap only* true for hedged mode, false for one way mode
+         * @param {string} [$params->marginMode] *swap only*'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $triggerPrice = $this->safe_string($params, 'triggerPrice');
+        $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+        $response = null;
+        if ($triggerPrice !== null) {
+            // trigger orders
+            $response = Async\await($this->privatePostDeepcoinTradeTriggerOrder($request));
+        } else {
+            // regular orders
+            //
+            //     {
+            //         "code" => "0",
+            //         "msg" => "",
+            //         "data" => {
+            //             "ordId" => "1001434570213727",
+            //             "clOrdId" => "",
+            //             "tag" => "",
+            //             "sCode" => "0",
+            //             "sMsg" => ""
+            //         }
+            //     }
+            //
+            $response = Async\await($this->privatePostDeepcoinTradeOrder($request));
+        }
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_order($data, $market);
     }
 
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
@@ -1798,72 +1827,251 @@ class deepcoin extends Exchange {
     }
 
     public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()) {
-        return Async\async(function () use ($symbol, $side, $cost, $params) {
-            /**
-             * create a market order by providing the $symbol, $side and $cost
-             * @param {string} $symbol unified $symbol of the market to create an order in
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $cost how much you want to trade in units of the quote currency
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            $params = $this->extend($params, array( 'cost' => $cost ));
-            return Async\await($this->create_order($symbol, 'market', $side, 0, null, $params));
-        })();
+        return Async\async(self::do_create_market_order_with_cost(...))($symbol, $side, $cost, $params);
+    }
+
+    private function do_create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()) {
+        /**
+         * create a market order by providing the $symbol, $side and $cost
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        $params = $this->extend($params, array( 'cost' => $cost ));
+        return Async\await($this->create_order($symbol, 'market', $side, 0, null, $params));
     }
 
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $cost, $params) {
-            /**
-             * create a market buy order by providing the $symbol and $cost
-             * @param {string} $symbol unified $symbol of the market to create an order in
-             * @param {float} $cost how much you want to trade in units of the quote currency
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            $params = $this->extend($params, array( 'cost' => $cost ));
-            return Async\await($this->create_order($symbol, 'market', 'buy', 0, null, $params));
-        })();
+        return Async\async(self::do_create_market_buy_order_with_cost(...))($symbol, $cost, $params);
+    }
+
+    private function do_create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
+        /**
+         * create a market buy order by providing the $symbol and $cost
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        $params = $this->extend($params, array( 'cost' => $cost ));
+        return Async\await($this->create_order($symbol, 'market', 'buy', 0, null, $params));
     }
 
     public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $cost, $params) {
-            /**
-             * create a market sell order by providing the $symbol and $cost
-             * @param {string} $symbol unified $symbol of the market to create an order in
-             * @param {float} $cost how much you want to trade in units of the quote currency
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            $params = $this->extend($params, array( 'cost' => $cost ));
-            return Async\await($this->create_order($symbol, 'market', 'sell', 0, null, $params));
-        })();
+        return Async\async(self::do_create_market_sell_order_with_cost(...))($symbol, $cost, $params);
+    }
+
+    private function do_create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()) {
+        /**
+         * create a market sell order by providing the $symbol and $cost
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        $params = $this->extend($params, array( 'cost' => $cost ));
+        return Async\await($this->create_order($symbol, 'market', 'sell', 0, null, $params));
     }
 
     public function fetch_closed_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * fetches information on a closed order made by the user
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinTrade/finishOrderByID
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchClosedOrder() requires a $symbol argument');
-            }
+        return Async\async(self::do_fetch_closed_order(...))($id, $symbol, $params);
+    }
+
+    private function do_fetch_closed_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * fetches information on a closed order made by the user
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinTrade/finishOrderByID
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrder() requires a $symbol argument');
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'instId' => $market['id'],
+            'ordId' => $id,
+        );
+        $response = Async\await($this->privateGetDeepcoinTradeFinishOrderByID($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "data" => array(
+        //             {
+        //                 "instType" => "SPOT",
+        //                 "instId" => "ETH-USDT",
+        //                 "tgtCcy" => "",
+        //                 "ccy" => "",
+        //                 "ordId" => "1001434573319675",
+        //                 "clOrdId" => "",
+        //                 "tag" => "",
+        //                 "px" => "4056.620000000000",
+        //                 "sz" => "0.004000",
+        //                 "pnl" => "0.000000",
+        //                 "ordType" => "market",
+        //                 "side" => "buy",
+        //                 "posSide" => "",
+        //                 "tdMode" => "cash",
+        //                 "accFillSz" => "0.004000",
+        //                 "fillPx" => "",
+        //                 "tradeId" => "",
+        //                 "fillSz" => "0.004000",
+        //                 "fillTime" => "1760619119000",
+        //                 "avgPx" => "",
+        //                 "state" => "filled",
+        //                 "lever" => "1.000000",
+        //                 "tpTriggerPx" => "",
+        //                 "tpTriggerPxType" => "",
+        //                 "tpOrdPx" => "",
+        //                 "slTriggerPx" => "",
+        //                 "slTriggerPxType" => "",
+        //                 "slOrdPx" => "",
+        //                 "feeCcy" => "USDT",
+        //                 "fee" => "0.000004",
+        //                 "rebateCcy" => "",
+        //                 "source" => "",
+        //                 "rebate" => "",
+        //                 "category" => "normal",
+        //                 "uTime" => "1760619119000",
+        //                 "cTime" => "1760619119000"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        $entry = $this->safe_dict($data, 0, array());
+        return $this->parse_order($entry, $market);
+    }
+
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_open_order(...))($id, $symbol, $params);
+    }
+
+    private function do_fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * fetch an open order by it's $id
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinTrade/orderByID
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $market $symbol, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrder() requires a $symbol argument');
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'instId' => $market['id'],
+            'ordId' => $id,
+        );
+        $response = Async\await($this->privateGetDeepcoinTradeOrderByID($this->extend($request, $params)));
+        $data = $this->safe_list($response, 'data', array());
+        $length = count($data);
+        if ($length === 0) {
+            throw new OrderNotFound($this->id . ' fetchOpenOrder() could not find order $id ' . $id);
+        }
+        $entry = $this->safe_dict($data, 0, array());
+        return $this->parse_order($entry, $market);
+    }
+
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_canceled_and_closed_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory
+         * @see https://www.deepcoin.com/docs/DeepCoinTrade/triggerOrdersHistory
+         *
+         * fetches information on multiple canceled and closed orders made by the user
+         * @param {string} [$symbol] unified $market $symbol of the $market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [$params->trigger] whether to fetch trigger/algo orders (default false)
+         * @param {string} [$params->type] *non $trigger orders only* 'spot' or 'swap', the $market type for the orders
+         * @param {string} [$params->state] *non $trigger orders only* 'canceled' or 'filled', the order state to filter by
+         * @param {string} [$params->OrderType] *$trigger orders only* 'limit' or 'market'
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'paginate');
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $params));
+        }
+        $trigger = $this->safe_bool($params, 'trigger', false);
+        $methodName = 'fetchCanceledAndClosedOrders';
+        list($methodName, $params) = $this->handle_param_string($params, 'methodName', $methodName);
+        $market = null;
+        $request = array();
+        if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request = array(
-                'instId' => $market['id'],
-                'ordId' => $id,
-            );
-            $response = Async\await($this->privateGetDeepcoinTradeFinishOrderByID($this->extend($request, $params)));
+            $request['instId'] = $market['id'];
+        }
+        $marketType = 'spot';
+        list($marketType, $params) = $this->handle_market_type_and_params($methodName, $market, $params, $marketType);
+        $request['instType'] = $this->convert_to_instrument_type($marketType);
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100
+        }
+        $response = null;
+        if ($trigger) {
+            if ($methodName !== 'fetchCanceledAndClosedOrders') {
+                throw new BadRequest($this->id . ' ' . $methodName . '() does not support $trigger orders');
+            }
+            if ($market === null) {
+                throw new ArgumentsRequired($this->id . ' fetchCanceledAndClosedOrders() requires a $symbol argument for $trigger orders');
+            }
+            $params = $this->omit($params, 'trigger');
+            //
+            //     {
+            //         "code" => "0",
+            //         "msg" => "",
+            //         "data" => array(
+            //             {
+            //                 "instType" => "SWAP",
+            //                 "instId" => "DOGE-USDT-SWAP",
+            //                 "ordId" => "1001110510915416",
+            //                 "px" => "0",
+            //                 "sz" => "76",
+            //                 "triggerPx" => "0",
+            //                 "triggerPxType" => "last",
+            //                 "ordType" => "TPSL",
+            //                 "side" => "sell",
+            //                 "posSide" => "long",
+            //                 "tdMode" => "cross",
+            //                 "lever" => "2",
+            //                 "triggerTime" => "0",
+            //                 "uTime" => "1761059366000",
+            //                 "cTime" => "1761059218",
+            //                 "errorCode" => "0",
+            //                 "errorMsg" => ""
+            //             }
+            //         )
+            //     }
+            //
+            $response = Async\await($this->privateGetDeepcoinTradeTriggerOrdersHistory($this->extend($request, $params)));
+        } else {
             //
             //     {
             //         "code" => "0",
@@ -1910,526 +2118,373 @@ class deepcoin extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_list($response, 'data', array());
-            $entry = $this->safe_dict($data, 0, array());
-            return $this->parse_order($entry, $market);
-        })();
-    }
-
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * fetch an open order by it's $id
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinTrade/orderByID
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $market $symbol, default is null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchClosedOrder() requires a $symbol argument');
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'instId' => $market['id'],
-                'ordId' => $id,
-            );
-            $response = Async\await($this->privateGetDeepcoinTradeOrderByID($this->extend($request, $params)));
-            $data = $this->safe_list($response, 'data', array());
-            $length = count($data);
-            if ($length === 0) {
-                return null;
-            }
-            $entry = $this->safe_dict($data, 0, array());
-            return $this->parse_order($entry, $market);
-        })();
-    }
-
-    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory
-             * @see https://www.deepcoin.com/docs/DeepCoinTrade/triggerOrdersHistory
-             *
-             * fetches information on multiple canceled and closed orders made by the user
-             * @param {string} [$symbol] unified $market $symbol of the $market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {bool} [$params->trigger] whether to fetch trigger/algo orders (default false)
-             * @param {string} [$params->type] *non $trigger orders only* 'spot' or 'swap', the $market type for the orders
-             * @param {string} [$params->state] *non $trigger orders only* 'canceled' or 'filled', the order state to filter by
-             * @param {string} [$params->OrderType] *$trigger orders only* 'limit' or 'market'
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'paginate');
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $params));
-            }
-            $trigger = $this->safe_bool($params, 'trigger', false);
-            $methodName = 'fetchCanceledAndClosedOrders';
-            list($methodName, $params) = $this->handle_param_string($params, 'methodName', $methodName);
-            $market = null;
-            $request = array();
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['instId'] = $market['id'];
-            }
-            $marketType = 'spot';
-            list($marketType, $params) = $this->handle_market_type_and_params($methodName, $market, $params, $marketType);
-            $request['instType'] = $this->convert_to_instrument_type($marketType);
-            if ($limit !== null) {
-                $request['limit'] = $limit; // default 100
-            }
-            $response = null;
-            if ($trigger) {
-                if ($methodName !== 'fetchCanceledAndClosedOrders') {
-                    throw new BadRequest($this->id . ' ' . $methodName . '() does not support $trigger orders');
-                }
-                if ($market === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchCanceledAndClosedOrders() requires a $symbol argument for $trigger orders');
-                }
-                $params = $this->omit($params, 'trigger');
-                //
-                //     {
-                //         "code" => "0",
-                //         "msg" => "",
-                //         "data" => array(
-                //             {
-                //                 "instType" => "SWAP",
-                //                 "instId" => "DOGE-USDT-SWAP",
-                //                 "ordId" => "1001110510915416",
-                //                 "px" => "0",
-                //                 "sz" => "76",
-                //                 "triggerPx" => "0",
-                //                 "triggerPxType" => "last",
-                //                 "ordType" => "TPSL",
-                //                 "side" => "sell",
-                //                 "posSide" => "long",
-                //                 "tdMode" => "cross",
-                //                 "lever" => "2",
-                //                 "triggerTime" => "0",
-                //                 "uTime" => "1761059366000",
-                //                 "cTime" => "1761059218",
-                //                 "errorCode" => "0",
-                //                 "errorMsg" => ""
-                //             }
-                //         )
-                //     }
-                //
-                $response = Async\await($this->privateGetDeepcoinTradeTriggerOrdersHistory($this->extend($request, $params)));
-            } else {
-                //
-                //     {
-                //         "code" => "0",
-                //         "msg" => "",
-                //         "data" => array(
-                //             {
-                //                 "instType" => "SPOT",
-                //                 "instId" => "ETH-USDT",
-                //                 "tgtCcy" => "",
-                //                 "ccy" => "",
-                //                 "ordId" => "1001434573319675",
-                //                 "clOrdId" => "",
-                //                 "tag" => "",
-                //                 "px" => "4056.620000000000",
-                //                 "sz" => "0.004000",
-                //                 "pnl" => "0.000000",
-                //                 "ordType" => "market",
-                //                 "side" => "buy",
-                //                 "posSide" => "",
-                //                 "tdMode" => "cash",
-                //                 "accFillSz" => "0.004000",
-                //                 "fillPx" => "",
-                //                 "tradeId" => "",
-                //                 "fillSz" => "0.004000",
-                //                 "fillTime" => "1760619119000",
-                //                 "avgPx" => "",
-                //                 "state" => "filled",
-                //                 "lever" => "1.000000",
-                //                 "tpTriggerPx" => "",
-                //                 "tpTriggerPxType" => "",
-                //                 "tpOrdPx" => "",
-                //                 "slTriggerPx" => "",
-                //                 "slTriggerPxType" => "",
-                //                 "slOrdPx" => "",
-                //                 "feeCcy" => "USDT",
-                //                 "fee" => "0.000004",
-                //                 "rebateCcy" => "",
-                //                 "source" => "",
-                //                 "rebate" => "",
-                //                 "category" => "normal",
-                //                 "uTime" => "1760619119000",
-                //                 "cTime" => "1760619119000"
-                //             }
-                //         )
-                //     }
-                //
-                $response = Async\await($this->privateGetDeepcoinTradeOrdersHistory($this->extend($request, $params)));
-            }
-            // todo handle with $since, until and pagination
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_orders($data, $market, $since, $limit);
-        })();
+            $response = Async\await($this->privateGetDeepcoinTradeOrdersHistory($this->extend($request, $params)));
+        }
+        // todo handle with $since, until and pagination
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_orders($data, $market, $since, $limit);
     }
 
     public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple canceled orders made by the user
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory
-             *
-             * @param {string} $symbol unified market $symbol of the market the orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->type] 'spot' or 'swap', the market type for the orders
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $methodName = 'fetchCanceledOrders';
-            $params = $this->extend($params, array( 'methodName' => $methodName ));
-            $params = $this->extend($params, array( 'state' => 'canceled' ));
-            return Async\await($this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params));
-        })();
+        return Async\async(self::do_fetch_canceled_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple canceled orders made by the user
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory
+         *
+         * @param {string} $symbol unified market $symbol of the market the orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] 'spot' or 'swap', the market type for the orders
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $methodName = 'fetchCanceledOrders';
+        $params = $this->extend($params, array( 'methodName' => $methodName ));
+        $params = $this->extend($params, array( 'state' => 'canceled' ));
+        return Async\await($this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params));
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple closed orders made by the user
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory
-             *
-             * @param {string} $symbol unified market $symbol of the market the orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->type] 'spot' or 'swap', the market type for the orders
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $methodName = 'fetchClosedOrders';
-            $params = $this->extend($params, array( 'methodName' => $methodName ));
-            $params = $this->extend($params, array( 'state' => 'filled' ));
-            return Async\await($this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params));
-        })();
+        return Async\async(self::do_fetch_closed_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory
+         *
+         * @param {string} $symbol unified market $symbol of the market the orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] 'spot' or 'swap', the market type for the orders
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $methodName = 'fetchClosedOrders';
+        $params = $this->extend($params, array( 'methodName' => $methodName ));
+        $params = $this->extend($params, array( 'state' => 'filled' ));
+        return Async\await($this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params));
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetch all unfilled currently open orders
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinTrade/ordersPendingV2
-             * @see https://www.deepcoin.com/docs/DeepCoinTrade/triggerOrdersPending
-             *
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {bool} [$params->trigger] whether to fetch trigger/algo orders (default false)
-             * @param {int} [$params->index] *non $trigger orders only* pagination $index, default is 1
-             * @param {string} [$params->orderType] *$trigger orders only* 'limit' or 'market'
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-            }
-            $market = $this->market($symbol);
-            $index = $this->safe_integer($params, 'index', 1); // todo add pagination handling
-            $request = array(
-                'instId' => $market['id'],
-            );
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $trigger = $this->safe_bool($params, 'trigger', false);
-            $response = null;
-            if ($trigger) {
-                $params = $this->omit($params, 'trigger');
-                $request['instType'] = $this->convert_to_instrument_type($market['type']);
-                //
-                //     {
-                //         "code" => "0",
-                //         "msg" => "",
-                //         "data" => array(
-                //             {
-                //                 "instType" => "SPOT",
-                //                 "instId" => "DOGE-USDT",
-                //                 "ordId" => "1001442305797142",
-                //                 "triggerPx" => "0.01",
-                //                 "ordPx" => "0.01",
-                //                 "sz" => "20",
-                //                 "ordType" => "",
-                //                 "side" => "buy",
-                //                 "posSide" => "",
-                //                 "tdMode" => "cash",
-                //                 "triggerOrderType" => "Conditional",
-                //                 "triggerPxType" => "last",
-                //                 "lever" => "",
-                //                 "slPrice" => "",
-                //                 "slTriggerPrice" => "",
-                //                 "tpPrice" => "",
-                //                 "tpTriggerPrice" => "",
-                //                 "closeSLTriggerPrice" => "",
-                //                 "closeTPTriggerPrice" => "",
-                //                 "cTime" => "1761814167000",
-                //                 "uTime" => "1761814167000"
-                //             }
-                //         )
-                //     }
-                //
-                $response = Async\await($this->privateGetDeepcoinTradeTriggerOrdersPending($this->extend($request, $params)));
-            } else {
-                $request['index'] = $index;
-                //
-                //     {
-                //         "code" => "0",
-                //         "msg" => "",
-                //         "data" => array(
-                //             {
-                //                 "instType" => "SPOT",
-                //                 "instId" => "ETH-USDT",
-                //                 "tgtCcy" => "",
-                //                 "ccy" => "",
-                //                 "ordId" => "1001435158096314",
-                //                 "clOrdId" => "",
-                //                 "tag" => "",
-                //                 "px" => "1000.000000000000",
-                //                 "sz" => "0.004000",
-                //                 "pnl" => "0.000000",
-                //                 "ordType" => "limit",
-                //                 "side" => "buy",
-                //                 "posSide" => "",
-                //                 "tdMode" => "cash",
-                //                 "accFillSz" => "0.000000",
-                //                 "fillPx" => "",
-                //                 "tradeId" => "",
-                //                 "fillSz" => "0.000000",
-                //                 "fillTime" => "1760695267000",
-                //                 "avgPx" => "",
-                //                 "state" => "live",
-                //                 "lever" => "1",
-                //                 "tpTriggerPx" => "",
-                //                 "tpTriggerPxType" => "",
-                //                 "tpOrdPx" => "",
-                //                 "slTriggerPx" => "",
-                //                 "slTriggerPxType" => "",
-                //                 "slOrdPx" => "",
-                //                 "feeCcy" => "USDT",
-                //                 "fee" => "0.000000",
-                //                 "rebateCcy" => "",
-                //                 "source" => "",
-                //                 "rebate" => "",
-                //                 "category" => "normal",
-                //                 "uTime" => "1760695267000",
-                //                 "cTime" => "1760695267000"
-                //             }
-                //         )
-                //     }
-                //
-                $response = Async\await($this->privateGetDeepcoinTradeV2OrdersPending($this->extend($request, $params)));
-            }
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_orders($data, $market, $since, $limit, array( 'status' => 'open' ));
-        })();
+        return Async\async(self::do_fetch_open_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all unfilled currently open orders
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinTrade/ordersPendingV2
+         * @see https://www.deepcoin.com/docs/DeepCoinTrade/triggerOrdersPending
+         *
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [$params->trigger] whether to fetch trigger/algo orders (default false)
+         * @param {int} [$params->index] *non $trigger orders only* pagination $index, default is 1
+         * @param {string} [$params->orderType] *$trigger orders only* 'limit' or 'market'
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+        }
+        $market = $this->market($symbol);
+        $index = $this->safe_integer($params, 'index', 1); // todo add pagination handling
+        $request = array(
+            'instId' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $trigger = $this->safe_bool($params, 'trigger', false);
+        $response = null;
+        if ($trigger) {
+            $params = $this->omit($params, 'trigger');
+            $request['instType'] = $this->convert_to_instrument_type($market['type']);
+            //
+            //     {
+            //         "code" => "0",
+            //         "msg" => "",
+            //         "data" => array(
+            //             {
+            //                 "instType" => "SPOT",
+            //                 "instId" => "DOGE-USDT",
+            //                 "ordId" => "1001442305797142",
+            //                 "triggerPx" => "0.01",
+            //                 "ordPx" => "0.01",
+            //                 "sz" => "20",
+            //                 "ordType" => "",
+            //                 "side" => "buy",
+            //                 "posSide" => "",
+            //                 "tdMode" => "cash",
+            //                 "triggerOrderType" => "Conditional",
+            //                 "triggerPxType" => "last",
+            //                 "lever" => "",
+            //                 "slPrice" => "",
+            //                 "slTriggerPrice" => "",
+            //                 "tpPrice" => "",
+            //                 "tpTriggerPrice" => "",
+            //                 "closeSLTriggerPrice" => "",
+            //                 "closeTPTriggerPrice" => "",
+            //                 "cTime" => "1761814167000",
+            //                 "uTime" => "1761814167000"
+            //             }
+            //         )
+            //     }
+            //
+            $response = Async\await($this->privateGetDeepcoinTradeTriggerOrdersPending($this->extend($request, $params)));
+        } else {
+            $request['index'] = $index;
+            //
+            //     {
+            //         "code" => "0",
+            //         "msg" => "",
+            //         "data" => array(
+            //             {
+            //                 "instType" => "SPOT",
+            //                 "instId" => "ETH-USDT",
+            //                 "tgtCcy" => "",
+            //                 "ccy" => "",
+            //                 "ordId" => "1001435158096314",
+            //                 "clOrdId" => "",
+            //                 "tag" => "",
+            //                 "px" => "1000.000000000000",
+            //                 "sz" => "0.004000",
+            //                 "pnl" => "0.000000",
+            //                 "ordType" => "limit",
+            //                 "side" => "buy",
+            //                 "posSide" => "",
+            //                 "tdMode" => "cash",
+            //                 "accFillSz" => "0.000000",
+            //                 "fillPx" => "",
+            //                 "tradeId" => "",
+            //                 "fillSz" => "0.000000",
+            //                 "fillTime" => "1760695267000",
+            //                 "avgPx" => "",
+            //                 "state" => "live",
+            //                 "lever" => "1",
+            //                 "tpTriggerPx" => "",
+            //                 "tpTriggerPxType" => "",
+            //                 "tpOrdPx" => "",
+            //                 "slTriggerPx" => "",
+            //                 "slTriggerPxType" => "",
+            //                 "slOrdPx" => "",
+            //                 "feeCcy" => "USDT",
+            //                 "fee" => "0.000000",
+            //                 "rebateCcy" => "",
+            //                 "source" => "",
+            //                 "rebate" => "",
+            //                 "category" => "normal",
+            //                 "uTime" => "1760695267000",
+            //                 "cTime" => "1760695267000"
+            //             }
+            //         )
+            //     }
+            //
+            $response = Async\await($this->privateGetDeepcoinTradeV2OrdersPending($this->extend($request, $params)));
+        }
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_orders($data, $market, $since, $limit, array( 'status' => 'open' ));
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * cancels an open order
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinTrade/cancelOrder
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {bool} [$params->trigger] whether the order is a trigger/algo order (default false)
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'instId' => $market['id'],
-                'ordId' => $id,
-            );
-            $response = null;
-            $trigger = $this->safe_bool($params, 'trigger', false);
-            if ($trigger) {
-                $params = $this->omit($params, 'trigger');
-                $response = Async\await($this->privatePostDeepcoinTradeCancelTriggerOrder($this->extend($request, $params)));
-            } else {
-                $response = Async\await($this->privatePostDeepcoinTradeCancelOrder($this->extend($request, $params)));
-            }
-            $data = $this->safe_dict($response, 'data', array());
-            return $this->parse_order($data, $market);
-        })();
+        return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
+    }
+
+    private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * cancels an open order
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinTrade/cancelOrder
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [$params->trigger] whether the order is a trigger/algo order (default false)
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'instId' => $market['id'],
+            'ordId' => $id,
+        );
+        $response = null;
+        $trigger = $this->safe_bool($params, 'trigger', false);
+        if ($trigger) {
+            $params = $this->omit($params, 'trigger');
+            $response = Async\await($this->privatePostDeepcoinTradeCancelTriggerOrder($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->privatePostDeepcoinTradeCancelOrder($this->extend($request, $params)));
+        }
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_order($data, $market);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * cancel all open orders in a $market
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinTrade/cancelAllOrder
-             *
-             * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->marginMode] *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
-             * @param {bool} [$params->merged] *swap only* true for $merged positions, false for split positions (default true)
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
+    }
+
+    private function do_cancel_all_orders(?string $symbol = null, $params = array()) {
+        /**
+         * cancel all open orders in a $market
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinTrade/cancelAllOrder
+         *
+         * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->marginMode] *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
+         * @param {bool} [$params->merged] *swap only* true for $merged positions, false for split positions (default true)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+        }
+        $market = $this->market($symbol);
+        if ($market['spot']) {
+            throw new NotSupported($this->id . ' cancelAllOrders() is not supported for spot markets');
+        }
+        $productGroup = $this->get_product_group_from_market($market);
+        $marginMode = $this->safe_string($params, 'marginMode');
+        $encodedMarginMode = 1;
+        if ($marginMode !== null) {
+            $params = $this->omit($params, 'marginMode');
+            if ($marginMode === 'isolated') {
+                $encodedMarginMode = 0;
             }
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
-            }
-            $market = $this->market($symbol);
-            if ($market['spot']) {
-                throw new NotSupported($this->id . ' cancelAllOrders() is not supported for spot markets');
-            }
-            $productGroup = $this->get_product_group_from_market($market);
-            $marginMode = $this->safe_string($params, 'marginMode');
-            $encodedMarginMode = 1;
-            if ($marginMode !== null) {
-                $params = $this->omit($params, 'marginMode');
-                if ($marginMode === 'isolated') {
-                    $encodedMarginMode = 0;
-                }
-            }
-            $merged = true;
-            list($merged, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'merged', $merged);
-            $isMergedMode = $merged ? 1 : 0;
-            $request = array(
-                'InstrumentID' => $market['id'],
-                'ProductGroup' => $productGroup,
-                'IsCrossMargin' => $encodedMarginMode,
-                'IsMergeMode' => $isMergedMode,
-            );
-            $response = Async\await($this->privatePostDeepcoinTradeSwapCancelAll($this->extend($request, $params)));
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_orders($data, $market);
-        })();
+        }
+        $merged = true;
+        list($merged, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'merged', $merged);
+        $isMergedMode = $merged ? 1 : 0;
+        $request = array(
+            'InstrumentID' => $market['id'],
+            'ProductGroup' => $productGroup,
+            'IsCrossMargin' => $encodedMarginMode,
+            'IsMergeMode' => $isMergedMode,
+        );
+        $response = Async\await($this->privatePostDeepcoinTradeSwapCancelAll($this->extend($request, $params)));
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_orders($data, $market);
     }
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * edit a trade order
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinTrade/replaceOrder
-             * @see https://www.deepcoin.com/docs/DeepCoinTrade/replaceTPSL
-             *
-             * @param {string} $id cancel order $id
-             * @param {string} [$symbol] unified $symbol of the $market to create an order in (not used in deepcoin editOrder)
-             * @param {string} [$type] 'market' or 'limit' (not used in deepcoin editOrder)
-             * @param {string} [$side] 'buy' or 'sell' (not used in deepcoin editOrder)
-             * @param {float} [$amount] how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {float} [$params->stopLossPrice] the $price that a stop loss order is triggered at
-             * @param {float} [$params->takeProfitPrice] the $price that a take profit order is triggered at
-             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+        /**
+         * edit a trade order
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinTrade/replaceOrder
+         * @see https://www.deepcoin.com/docs/DeepCoinTrade/replaceTPSL
+         *
+         * @param {string} $id cancel order $id
+         * @param {string} [$symbol] unified $symbol of the $market to create an order in (not used in deepcoin editOrder)
+         * @param {string} [$type] 'market' or 'limit' (not used in deepcoin editOrder)
+         * @param {string} [$side] 'buy' or 'sell' (not used in deepcoin editOrder)
+         * @param {float} [$amount] how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->stopLossPrice] the $price that a stop loss order is triggered at
+         * @param {float} [$params->takeProfitPrice] the $price that a take profit order is triggered at
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array(
+            'OrderSysID' => $id,
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            if ($market['spot']) {
+                throw new NotSupported($this->id . ' editOrder() is not supported for spot markets');
             }
-            $request = array(
-                'OrderSysID' => $id,
-            );
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                if ($market['spot']) {
-                    throw new NotSupported($this->id . ' editOrder() is not supported for spot markets');
-                }
-                $symbol = $market['symbol'];
+            $symbol = $market['symbol'];
+        }
+        $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
+        $isTPSL = ($stopLossPrice !== null) || ($takeProfitPrice !== null);
+        $response = null;
+        if ($isTPSL) {
+            if (($price !== null) || ($amount !== null)) {
+                throw new BadRequest($this->id . ' editOrder() with $stopLossPrice or $takeProfitPrice cannot have $price or $amount-> Either use stopLossPrice/takeProfitPrice or price/amount to edit order.');
             }
-            $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
-            $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
-            $isTPSL = ($stopLossPrice !== null) || ($takeProfitPrice !== null);
-            $response = null;
-            if ($isTPSL) {
-                if (($price !== null) || ($amount !== null)) {
-                    throw new BadRequest($this->id . ' editOrder() with $stopLossPrice or $takeProfitPrice cannot have $price or $amount-> Either use stopLossPrice/takeProfitPrice or price/amount to edit order.');
-                }
-                if ($stopLossPrice !== null) {
-                    $request['slTriggerPx'] = $symbol ? $this->price_to_precision($symbol, $stopLossPrice) : $this->number_to_string($stopLossPrice);
-                }
-                if ($takeProfitPrice !== null) {
-                    $request['tpTriggerPx'] = $symbol ? $this->price_to_precision($symbol, $takeProfitPrice) : $this->number_to_string($takeProfitPrice);
-                }
-                $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice' ));
-                $response = Async\await($this->privatePostDeepcoinTradeReplaceOrderSltp($this->extend($request, $params)));
-            } else {
-                if ($price !== null) {
-                    if ($symbol !== null) {
-                        $request['price'] = $this->price_to_precision($symbol, $price);
-                    } else {
-                        $request['price'] = $this->number_to_string($price);
-                    }
-                }
-                if ($amount !== null) {
-                    if ($symbol !== null) {
-                        $request['volume'] = $this->amount_to_precision($symbol, $amount);
-                    } else {
-                        $request['volume'] = $this->number_to_string($amount);
-                    }
-                }
-                $response = Async\await($this->privatePostDeepcoinTradeReplaceOrder($this->extend($request, $params)));
+            if ($stopLossPrice !== null) {
+                $request['slTriggerPx'] = $symbol ? $this->price_to_precision($symbol, $stopLossPrice) : $this->number_to_string($stopLossPrice);
             }
-            $data = $this->safe_dict($response, 'data', array());
-            return $this->parse_order($data);
-        })();
+            if ($takeProfitPrice !== null) {
+                $request['tpTriggerPx'] = $symbol ? $this->price_to_precision($symbol, $takeProfitPrice) : $this->number_to_string($takeProfitPrice);
+            }
+            $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice' ));
+            $response = Async\await($this->privatePostDeepcoinTradeReplaceOrderSltp($this->extend($request, $params)));
+        } else {
+            if ($price !== null) {
+                if ($symbol !== null) {
+                    $request['price'] = $this->price_to_precision($symbol, $price);
+                } else {
+                    $request['price'] = $this->number_to_string($price);
+                }
+            }
+            if ($amount !== null) {
+                if ($symbol !== null) {
+                    $request['volume'] = $this->amount_to_precision($symbol, $amount);
+                } else {
+                    $request['volume'] = $this->number_to_string($amount);
+                }
+            }
+            $response = Async\await($this->privatePostDeepcoinTradeReplaceOrder($this->extend($request, $params)));
+        }
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_order($data);
     }
 
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($ids, $symbol, $params) {
-            /**
-             * cancel multiple orders
-             * @param {string[]} $ids order $ids
-             * @param {string} [$symbol] unified $market $symbol, default is null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
+    }
+
+    private function do_cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+        /**
+         * cancel multiple orders
+         * @param {string[]} $ids order $ids
+         * @param {string} [$symbol] unified $market $symbol, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            if ($market['spot']) {
+                throw new NotSupported($this->id . ' cancelOrders() is not supported for spot markets');
             }
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                if ($market['spot']) {
-                    throw new NotSupported($this->id . ' cancelOrders() is not supported for spot markets');
-                }
-            }
-            $request = array(
-                'OrderSysIDs' => $ids,
-            );
-            $response = Async\await($this->privatePostDeepcoinTradeBatchCancelOrder($this->extend($request, $params)));
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_orders($data, $market);
-        })();
+        }
+        $request = array(
+            'OrderSysIDs' => $ids,
+        );
+        $response = Async\await($this->privatePostDeepcoinTradeBatchCancelOrder($this->extend($request, $params)));
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_orders($data, $market);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -2582,86 +2637,90 @@ class deepcoin extends Exchange {
     }
 
     public function fetch_positions_for_symbol(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetch open positions for a single $market
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinAccount/accountPositions
-             *
-             * fetch all open positions for specific $symbol
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $instrumentType = $this->convert_to_instrument_type($market['type']);
-            $request = array(
-                'instType' => $instrumentType,
-                'instId' => $market['id'],
-            );
-            $response = Async\await($this->privateGetDeepcoinAccountPositions($this->extend($request, $params)));
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_positions($data, array( $market['symbol'] ));
-        })();
+        return Async\async(self::do_fetch_positions_for_symbol(...))($symbol, $params);
+    }
+
+    private function do_fetch_positions_for_symbol(string $symbol, $params = array()) {
+        /**
+         * fetch open positions for a single $market
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinAccount/accountPositions
+         *
+         * fetch all open positions for specific $symbol
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $instrumentType = $this->convert_to_instrument_type($market['type']);
+        $request = array(
+            'instType' => $instrumentType,
+            'instId' => $market['id'],
+        );
+        $response = Async\await($this->privateGetDeepcoinAccountPositions($this->extend($request, $params)));
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_positions($data, array( $market['symbol'] ));
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetch all open positions
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinAccount/accountPositions
-             *
-             * @param {string[]} [$symbols] list of unified $market $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols, null, true, true);
-            $marketType = 'swap';
-            $market = null;
-            if ($symbols !== null) {
-                $firstSymbol = $this->safe_string($symbols, 0);
-                $market = $this->market($firstSymbol);
-            }
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchPositions', $market, $params, $marketType);
-            $instrumentType = $this->convert_to_instrument_type($marketType);
-            $request = array(
-                'instType' => $instrumentType,
-            );
-            $response = Async\await($this->privateGetDeepcoinAccountPositions($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => "0",
-            //         "msg" => "",
-            //         "data" => array(
-            //             {
-            //                 "instType" => "SWAP",
-            //                 "mgnMode" => "cross",
-            //                 "instId" => "DOGE-USDT-SWAP",
-            //                 "posId" => "1001110099878275",
-            //                 "posSide" => "long",
-            //                 "pos" => "20",
-            //                 "avgPx" => "0.18408",
-            //                 "lever" => "75",
-            //                 "liqPx" => "0.00001",
-            //                 "useMargin" => "0.049088",
-            //                 "mrgPosition" => "merge",
-            //                 "ccy" => "USDT",
-            //                 "uTime" => "1760709419000",
-            //                 "cTime" => "1760709419000"
-            //             }
-            //         )
-            //     }
-            //
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_positions($data, $symbols);
-        })();
+        return Async\async(self::do_fetch_positions(...))($symbols, $params);
+    }
+
+    private function do_fetch_positions(?array $symbols = null, $params = array()) {
+        /**
+         * fetch all open positions
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinAccount/accountPositions
+         *
+         * @param {string[]} [$symbols] list of unified $market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols, null, true, true);
+        $marketType = 'swap';
+        $market = null;
+        if ($symbols !== null) {
+            $firstSymbol = $this->safe_string($symbols, 0);
+            $market = $this->market($firstSymbol);
+        }
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchPositions', $market, $params, $marketType);
+        $instrumentType = $this->convert_to_instrument_type($marketType);
+        $request = array(
+            'instType' => $instrumentType,
+        );
+        $response = Async\await($this->privateGetDeepcoinAccountPositions($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "data" => array(
+        //             {
+        //                 "instType" => "SWAP",
+        //                 "mgnMode" => "cross",
+        //                 "instId" => "DOGE-USDT-SWAP",
+        //                 "posId" => "1001110099878275",
+        //                 "posSide" => "long",
+        //                 "pos" => "20",
+        //                 "avgPx" => "0.18408",
+        //                 "lever" => "75",
+        //                 "liqPx" => "0.00001",
+        //                 "useMargin" => "0.049088",
+        //                 "mrgPosition" => "merge",
+        //                 "ccy" => "USDT",
+        //                 "uTime" => "1760709419000",
+        //                 "cTime" => "1760709419000"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_positions($data, $symbols);
     }
 
     public function parse_position(array $position, ?array $market = null): array {
@@ -2719,165 +2778,171 @@ class deepcoin extends Exchange {
     }
 
     public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($leverage, $symbol, $params) {
-            /**
-             * set the level of $leverage for a $market
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinAccount/accountSetLeverage
-             *
-             * @param {float} $leverage the rate of $leverage
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->marginMode] 'cross' or 'isolated' (default is cross)
-             * @param {string} [$params->mrgPosition] 'merge' or 'split', default is merge
-             * @return {array} $response from the exchange
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
-            }
-            // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
-            // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-            if ($leverage < 1) {
-                throw new BadRequest($this->id . ' setLeverage() $leverage should be minimum 1');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $marginMode = 'cross';
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params, $marginMode);
-            if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-                throw new BadRequest($this->id . ' setLeverage() requires a $marginMode parameter that must be either cross or isolated');
-            }
-            $mrgPosition = 'merge';
-            list($mrgPosition, $params) = $this->handle_option_and_params($params, 'setLeverage', 'mrgPosition', $mrgPosition);
-            if ($mrgPosition !== 'merge' && $mrgPosition !== 'split') {
-                throw new BadRequest($this->id . ' setLeverage() $mrgPosition parameter must be either merge or split');
-            }
-            $request = array(
-                'lever' => $leverage,
-                'mgnMode' => $marginMode,
-                'instId' => $market['id'],
-                'mrgPosition' => $mrgPosition,
-            );
-            $response = Async\await($this->privatePostDeepcoinAccountSetLeverage($this->extend($request, $params)));
-            //
-            //     {
-            //         code => '0',
-            //         msg => '',
-            //         data => {
-            //             instId => 'ETH-USDT-SWAP',
-            //             lever => '2',
-            //             mgnMode => 'cross',
-            //             $mrgPosition => 'merge',
-            //             sCode => '0',
-            //             sMsg => ''
-            //         }
-            //     }
-            //
-            return $response;
-        })();
+        return Async\async(self::do_set_leverage(...))($leverage, $symbol, $params);
+    }
+
+    private function do_set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+        /**
+         * set the level of $leverage for a $market
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinAccount/accountSetLeverage
+         *
+         * @param {float} $leverage the rate of $leverage
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->marginMode] 'cross' or 'isolated' (default is cross)
+         * @param {string} [$params->mrgPosition] 'merge' or 'split', default is merge
+         * @return {array} $response from the exchange
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if ($leverage < 1) {
+            throw new BadRequest($this->id . ' setLeverage() $leverage should be minimum 1');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $marginMode = 'cross';
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params, $marginMode);
+        if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
+            throw new BadRequest($this->id . ' setLeverage() requires a $marginMode parameter that must be either cross or isolated');
+        }
+        $mrgPosition = 'merge';
+        list($mrgPosition, $params) = $this->handle_option_and_params($params, 'setLeverage', 'mrgPosition', $mrgPosition);
+        if ($mrgPosition !== 'merge' && $mrgPosition !== 'split') {
+            throw new BadRequest($this->id . ' setLeverage() $mrgPosition parameter must be either merge or split');
+        }
+        $request = array(
+            'lever' => $leverage,
+            'mgnMode' => $marginMode,
+            'instId' => $market['id'],
+            'mrgPosition' => $mrgPosition,
+        );
+        $response = Async\await($this->privatePostDeepcoinAccountSetLeverage($this->extend($request, $params)));
+        //
+        //     {
+        //         code => '0',
+        //         msg => '',
+        //         data => {
+        //             instId => 'ETH-USDT-SWAP',
+        //             lever => '2',
+        //             mgnMode => 'cross',
+        //             $mrgPosition => 'merge',
+        //             sCode => '0',
+        //             sMsg => ''
+        //         }
+        //     }
+        //
+        return $response;
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetch the funding rate for multiple markets
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinTrade/currentFundRate
-             *
-             * @param {string[]|null} $symbols list of unified market $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->subType] "linear" or "inverse"
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rates-structure funding rate structures~, indexed by market $symbols
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols, 'swap', true, true, true);
-            $subType = 'linear';
-            $firstMarket = null;
-            if ($symbols !== null) {
-                $firstSymbol = $this->safe_string($symbols, 0);
-                $firstMarket = $this->market($firstSymbol);
-            }
-            list($subType, $params) = $this->handle_sub_type_and_params('fetchFundingRates', $firstMarket, $params, $subType);
-            $instType = 'SwapU';
-            if ($subType === 'inverse') {
-                $instType = 'Swap';
-            } elseif ($subType !== 'linear') {
-                throw new BadRequest($this->id . ' fetchFundingRates() $subType parameter must be either linear or inverse');
-            }
-            $request = array(
-                'instType' => $instType,
-            );
-            $response = Async\await($this->publicGetDeepcoinTradeFundRateCurrentFundingRate($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => "0",
-            //         "msg" => "",
-            //         "data" => {
-            //             "current_fund_rates" => array(
-            //                 array(
-            //                     "instrumentId" => "SPKUSDT",
-            //                     "fundingRate" => 0.00005
-            //                 ),
-            //                 {
-            //                     "instrumentId" => "LAUNCHCOINUSDT",
-            //                     "fundingRate" => 0.00005
-            //                 }
-            //             )
-            //         }
-            //     }
-            //
-            $data = $this->safe_dict($response, 'data', array());
-            $rates = $this->safe_list($data, 'current_fund_rates', array());
-            return $this->parse_funding_rates($rates, $symbols);
-        })();
+        return Async\async(self::do_fetch_funding_rates(...))($symbols, $params);
+    }
+
+    private function do_fetch_funding_rates(?array $symbols = null, $params = array()) {
+        /**
+         * fetch the funding rate for multiple markets
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinTrade/currentFundRate
+         *
+         * @param {string[]|null} $symbols list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subType] "linear" or "inverse"
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rates-structure funding rate structures~, indexed by market $symbols
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols, 'swap', true, true, true);
+        $subType = 'linear';
+        $firstMarket = null;
+        if ($symbols !== null) {
+            $firstSymbol = $this->safe_string($symbols, 0);
+            $firstMarket = $this->market($firstSymbol);
+        }
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchFundingRates', $firstMarket, $params, $subType);
+        $instType = 'SwapU';
+        if ($subType === 'inverse') {
+            $instType = 'Swap';
+        } elseif ($subType !== 'linear') {
+            throw new BadRequest($this->id . ' fetchFundingRates() $subType parameter must be either linear or inverse');
+        }
+        $request = array(
+            'instType' => $instType,
+        );
+        $response = Async\await($this->publicGetDeepcoinTradeFundRateCurrentFundingRate($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "data" => {
+        //             "current_fund_rates" => array(
+        //                 array(
+        //                     "instrumentId" => "SPKUSDT",
+        //                     "fundingRate" => 0.00005
+        //                 ),
+        //                 {
+        //                     "instrumentId" => "LAUNCHCOINUSDT",
+        //                     "fundingRate" => 0.00005
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $rates = $this->safe_list($data, 'current_fund_rates', array());
+        return $this->parse_funding_rates($rates, $symbols);
     }
 
     public function fetch_funding_rate(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetch the current funding rate
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinTrade/currentFundRate
-             *
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            if (!$market['swap']) {
-                throw new ExchangeError($this->id . ' fetchFundingRate() is only valid for swap markets');
-            }
-            $request = array(
-                'instId' => $market['id'],
-                'instType' => $this->get_product_group_from_market($market),
-            );
-            $response = Async\await($this->publicGetDeepcoinTradeFundRateCurrentFundingRate($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => "0",
-            //         "msg" => "",
-            //         "data" => {
-            //             "current_fund_rates" => array(
-            //                 {
-            //                     "instrumentId" => "ETHUSDT",
-            //                     "fundingRate" => 0.0000402356250176
-            //                 }
-            //             )
-            //         }
-            //     }
-            //
-            $data = $this->safe_dict($response, 'data', array());
-            $rates = $this->safe_list($data, 'current_fund_rates', array());
-            $entry = $this->safe_dict($rates, 0, array());
-            return $this->parse_funding_rate($entry, $market);
-        })();
+        return Async\async(self::do_fetch_funding_rate(...))($symbol, $params);
+    }
+
+    private function do_fetch_funding_rate(string $symbol, $params = array()) {
+        /**
+         * fetch the current funding rate
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinTrade/currentFundRate
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new ExchangeError($this->id . ' fetchFundingRate() is only valid for swap markets');
+        }
+        $request = array(
+            'instId' => $market['id'],
+            'instType' => $this->get_product_group_from_market($market),
+        );
+        $response = Async\await($this->publicGetDeepcoinTradeFundRateCurrentFundingRate($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "data" => {
+        //             "current_fund_rates" => array(
+        //                 {
+        //                     "instrumentId" => "ETHUSDT",
+        //                     "fundingRate" => 0.0000402356250176
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $rates = $this->safe_list($data, 'current_fund_rates', array());
+        $entry = $this->safe_dict($rates, 0, array());
+        return $this->parse_funding_rate($entry, $market);
     }
 
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
@@ -2912,59 +2977,61 @@ class deepcoin extends Exchange {
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches historical funding rate prices
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinTrade/fundingRateHistory
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
-             * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
-             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->page] pagination page number
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'instId' => $market['id'],
-            );
-            if ($limit !== null) {
-                $request['size'] = $limit; // default 20, max 100
-            }
-            $response = Async\await($this->publicGetDeepcoinTradeFundRateHistory($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => "0",
-            //         "msg" => "",
-            //         "data" => {
-            //             "rows" => array(
-            //                 array(
-            //                     "instrumentID" => "ETHUSD",
-            //                     "rate" => "0.00046493",
-            //                     "CreateTime" => 1760860800,
-            //                     "ratePeriodSec" => 0
-            //                 ),
-            //                 {
-            //                     "instrumentID" => "ETHUSD",
-            //                     "rate" => "0.00047949",
-            //                     "CreateTime" => 1760832000,
-            //                     "ratePeriodSec" => 0
-            //                 }
-            //             )
-            //         }
-            //     }
-            //
-            $data = $this->safe_dict($response, 'data', array());
-            $rows = $this->safe_list($data, 'rows', array());
-            return $this->parse_funding_rate_histories($rows, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical funding rate prices
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinTrade/fundingRateHistory
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->page] pagination page number
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'instId' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['size'] = $limit; // default 20, max 100
+        }
+        $response = Async\await($this->publicGetDeepcoinTradeFundRateHistory($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "data" => {
+        //             "rows" => array(
+        //                 array(
+        //                     "instrumentID" => "ETHUSD",
+        //                     "rate" => "0.00046493",
+        //                     "CreateTime" => 1760860800,
+        //                     "ratePeriodSec" => 0
+        //                 ),
+        //                 {
+        //                     "instrumentID" => "ETHUSD",
+        //                     "rate" => "0.00047949",
+        //                     "CreateTime" => 1760832000,
+        //                     "ratePeriodSec" => 0
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $rows = $this->safe_list($data, 'rows', array());
+        return $this->parse_funding_rate_histories($rows, $market, $since, $limit);
     }
 
     public function parse_funding_rate_history(mixed $info, ?array $market = null): array {
@@ -2989,149 +3056,155 @@ class deepcoin extends Exchange {
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetch all trades made by the user
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinTrade/tradeFills
-             *
-             * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trades structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest trade to fetch
-             * @param {string} [$params->type] 'spot' or 'swap', the $market type for the trades (default is 'spot')
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params));
-            }
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $marketType = 'spot';
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params, $marketType);
-            $request = array(
-                'instType' => $this->convert_to_instrument_type($marketType),
-            );
-            if ($market !== null) {
-                $request['instId'] = $market['id'];
-            }
-            if ($since !== null) {
-                $request['begin'] = $since;
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit; // default 100, max 100
-            }
-            $until = $this->safe_integer($params, 'until');
-            if ($until !== null) {
-                $params = $this->omit($params, 'until');
-                $request['end'] = $until;
-            }
-            $response = Async\await($this->privateGetDeepcoinTradeFills($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => "0",
-            //         "msg" => "",
-            //         "data" => array(
-            //             {
-            //                 "instType" => "SPOT",
-            //                 "instId" => "ETH-USDT",
-            //                 "tradeId" => "1001056429613610",
-            //                 "ordId" => "1001435238208686",
-            //                 "clOrdId" => "",
-            //                 "billId" => "10010564296136101",
-            //                 "tag" => "",
-            //                 "fillPx" => "3791.15",
-            //                 "fillSz" => "0.004",
-            //                 "side" => "sell",
-            //                 "posSide" => "",
-            //                 "execType" => "",
-            //                 "feeCcy" => "USDT",
-            //                 "fee" => "0.0151646",
-            //                 "ts" => "1760704540000"
-            //             }
-            //         )
-            //     }
-            //
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_trades($data, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all trades made by the user
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinTrade/tradeFills
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest trade to fetch
+         * @param {string} [$params->type] 'spot' or 'swap', the $market type for the trades (default is 'spot')
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params));
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $marketType = 'spot';
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params, $marketType);
+        $request = array(
+            'instType' => $this->convert_to_instrument_type($marketType),
+        );
+        if ($market !== null) {
+            $request['instId'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['begin'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100, max 100
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $params = $this->omit($params, 'until');
+            $request['end'] = $until;
+        }
+        $response = Async\await($this->privateGetDeepcoinTradeFills($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "data" => array(
+        //             {
+        //                 "instType" => "SPOT",
+        //                 "instId" => "ETH-USDT",
+        //                 "tradeId" => "1001056429613610",
+        //                 "ordId" => "1001435238208686",
+        //                 "clOrdId" => "",
+        //                 "billId" => "10010564296136101",
+        //                 "tag" => "",
+        //                 "fillPx" => "3791.15",
+        //                 "fillSz" => "0.004",
+        //                 "side" => "sell",
+        //                 "posSide" => "",
+        //                 "execType" => "",
+        //                 "feeCcy" => "USDT",
+        //                 "fee" => "0.0151646",
+        //                 "ts" => "1760704540000"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
-            /**
-             * fetch all the trades made from a single order
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinTrade/tradeFills
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trades to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->type] 'spot' or 'swap', the market type for the trades
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $marketType = $this->safe_string($params, 'type');
-            if ($symbol === null && $marketType === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrderTrades requires a $symbol argument or a market type in the params');
-            }
-            $params = $this->extend(array( 'ordId' => $id ), $params);
-            return Async\await($this->fetch_my_trades($symbol, $since, $limit, $params));
-        })();
+        return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all the trades made from a single order
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinTrade/tradeFills
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] 'spot' or 'swap', the market type for the trades
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $marketType = $this->safe_string($params, 'type');
+        if ($symbol === null && $marketType === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrderTrades requires a $symbol argument or a market type in the params');
+        }
+        $params = $this->extend(array( 'ordId' => $id ), $params);
+        return Async\await($this->fetch_my_trades($symbol, $since, $limit, $params));
     }
 
     public function close_position(string $symbol, ?string $side = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $side, $params) {
-            /**
-             * closes open positions for a $market
-             *
-             * @see https://www.deepcoin.com/docs/DeepCoinTrade/batchClosePosition
-             * @see https://www.deepcoin.com/docs/DeepCoinTrade/closePositionByIds
-             *
-             * @param {string} $symbol Unified CCXT $market $symbol
-             * @param {string} [$side] not used by deepcoin
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string|null} [$params->positionId] the id of the position you would like to close
-             * @param {string[]|null} [$params->positionIds] list of position ids to close (for batch closing)
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_close_position(...))($symbol, $side, $params);
+    }
+
+    private function do_close_position(string $symbol, ?string $side = null, $params = array()) {
+        /**
+         * closes open positions for a $market
+         *
+         * @see https://www.deepcoin.com/docs/DeepCoinTrade/batchClosePosition
+         * @see https://www.deepcoin.com/docs/DeepCoinTrade/closePositionByIds
+         *
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {string} [$side] not used by deepcoin
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string|null} [$params->positionId] the id of the position you would like to close
+         * @param {string[]|null} [$params->positionIds] list of position ids to close (for batch closing)
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $productGroup = $this->get_product_group_from_market($market);
+        $positionId = $this->safe_string($params, 'positionId');
+        $positionIds = $this->safe_list($params, 'positionIds');
+        $request = array(
+            'instId' => $market['id'],
+            'productGroup' => $productGroup,
+        );
+        $response = null;
+        if ($positionId === null && $positionIds === null) {
+            $response = Async\await($this->privatePostDeepcoinTradeBatchClosePosition($this->extend($request, $params)));
+        } else {
+            if ($positionId !== null) {
+                $params = $this->omit($params, 'positionId');
+                $request['positionIds'] = array( $positionId );
             }
-            $market = $this->market($symbol);
-            $productGroup = $this->get_product_group_from_market($market);
-            $positionId = $this->safe_string($params, 'positionId');
-            $positionIds = $this->safe_list($params, 'positionIds');
-            $request = array(
-                'instId' => $market['id'],
-                'productGroup' => $productGroup,
-            );
-            $response = null;
-            if ($positionId === null && $positionIds === null) {
-                $response = Async\await($this->privatePostDeepcoinTradeBatchClosePosition($this->extend($request, $params)));
-            } else {
-                if ($positionId !== null) {
-                    $params = $this->omit($params, 'positionId');
-                    $request['positionIds'] = array( $positionId );
-                }
-                $response = Async\await($this->privatePostDeepcoinTradeClosePositionByIds($this->extend($request, $params)));
-            }
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_order($data, $market);
-        })();
+            $response = Async\await($this->privatePostDeepcoinTradeClosePositionByIds($this->extend($request, $params)));
+        }
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_order($data, $market);
     }
 
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {

@@ -131,7 +131,7 @@ func (this *BydfiCore) Describe() any {
 			"fetchOpenInterest":                    false,
 			"fetchOpenInterestHistory":             false,
 			"fetchOpenInterests":                   false,
-			"fetchOpenOrder":                       false,
+			"fetchOpenOrder":                       true,
 			"fetchOpenOrders":                      true,
 			"fetchOption":                          false,
 			"fetchOptionChain":                     false,
@@ -197,57 +197,147 @@ func (this *BydfiCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"v1/public/api_limits":                1,
-					"v1/fapi/market/exchange_info":        1,
-					"v1/fapi/market/depth":                1,
-					"v1/fapi/market/trades":               1,
-					"v1/fapi/market/klines":               1,
-					"v1/fapi/market/ticker/24hr":          1,
-					"v1/fapi/market/ticker/price":         1,
-					"v1/fapi/market/mark_price":           1,
-					"v1/fapi/market/funding_rate":         1,
-					"v1/fapi/market/funding_rate_history": 1,
-					"v1/fapi/market/risk_limit":           1,
+					"v1/public/api_limits": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/market/exchange_info": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/market/depth": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/market/trades": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/market/klines": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/market/ticker/24hr": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/market/ticker/price": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/market/mark_price": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/market/funding_rate": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/market/funding_rate_history": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/market/risk_limit": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"v1/account/assets":                    1,
-					"v1/account/transfer_records":          1,
-					"v1/spot/deposit_records":              1,
-					"v1/spot/withdraw_records":             1,
-					"v1/fapi/trade/open_order":             1,
-					"v1/fapi/trade/plan_order":             1,
-					"v1/fapi/trade/leverage":               1,
-					"v1/fapi/trade/history_order":          1,
-					"v1/fapi/trade/history_trade":          1,
-					"v1/fapi/trade/position_history":       1,
-					"v1/fapi/trade/positions":              1,
-					"v1/fapi/account/balance":              1,
-					"v1/fapi/user_data/assets_margin":      1,
-					"v1/fapi/user_data/position_side/dual": 1,
-					"v1/agent/teams":                       1,
-					"v1/agent/agent_links":                 1,
-					"v1/agent/regular_overview":            1,
-					"v1/agent/agent_sub_overview":          1,
-					"v1/agent/partener_user_deposit":       1,
-					"v1/agent/partener_users_data":         1,
-					"v1/agent/affiliate_uids":              1,
-					"v1/agent/affiliate_commission":        1,
-					"v1/agent/internal_withdrawal_status":  1,
+					"v1/account/assets": map[string]any{
+						"cost": 1,
+					},
+					"v1/account/transfer_records": map[string]any{
+						"cost": 1,
+					},
+					"v1/spot/deposit_records": map[string]any{
+						"cost": 1,
+					},
+					"v1/spot/withdraw_records": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/trade/open_order": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/trade/plan_order": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/trade/leverage": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/trade/history_order": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/trade/history_trade": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/trade/position_history": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/trade/positions": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/account/balance": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/user_data/assets_margin": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/user_data/position_side/dual": map[string]any{
+						"cost": 1,
+					},
+					"v1/agent/teams": map[string]any{
+						"cost": 1,
+					},
+					"v1/agent/agent_links": map[string]any{
+						"cost": 1,
+					},
+					"v1/agent/regular_overview": map[string]any{
+						"cost": 1,
+					},
+					"v1/agent/agent_sub_overview": map[string]any{
+						"cost": 1,
+					},
+					"v1/agent/partener_user_deposit": map[string]any{
+						"cost": 1,
+					},
+					"v1/agent/partener_users_data": map[string]any{
+						"cost": 1,
+					},
+					"v1/agent/affiliate_uids": map[string]any{
+						"cost": 1,
+					},
+					"v1/agent/affiliate_commission": map[string]any{
+						"cost": 1,
+					},
+					"v1/agent/internal_withdrawal_status": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"v1/account/transfer":                  1,
-					"v1/fapi/trade/place_order":            1,
-					"v1/fapi/trade/batch_place_order":      1,
-					"v1/fapi/trade/edit_order":             1,
-					"v1/fapi/trade/batch_edit_order":       1,
-					"v1/fapi/trade/cancel_all_order":       1,
-					"v1/fapi/trade/leverage":               1,
-					"v1/fapi/trade/batch_leverage_margin":  1,
-					"v1/fapi/user_data/margin_type":        1,
-					"v1/fapi/user_data/position_side/dual": 1,
-					"v1/agent/internal_withdrawal":         1,
+					"v1/account/transfer": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/trade/place_order": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/trade/batch_place_order": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/trade/edit_order": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/trade/batch_edit_order": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/trade/cancel_all_order": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/trade/leverage": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/trade/batch_leverage_margin": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/user_data/margin_type": map[string]any{
+						"cost": 1,
+					},
+					"v1/fapi/user_data/position_side/dual": map[string]any{
+						"cost": 1,
+					},
+					"v1/agent/internal_withdrawal": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -2664,7 +2754,7 @@ func (this *BydfiCore) FetchPositionHistory(symbol any, optionalArgs ...any) <-c
 		}
 		var market any = this.Market(symbol)
 		var contractType any = "FUTURE"
-		contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchPositionsHistory", "contractType", contractType)
+		contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchPositionHistory", "contractType", contractType)
 		contractType = GetValue(contractTypeparamsVariable, 0)
 		params = GetValue(contractTypeparamsVariable, 1)
 		var request any = map[string]any{
@@ -2894,11 +2984,11 @@ func (this *BydfiCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan
 		}
 		var market any = this.Market(symbol)
 		var contractType any = "FUTURE"
-		contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchMarginMode", "contractType", contractType)
+		contractTypeparamsVariable := this.HandleOptionAndParams(params, "setMarginMode", "contractType", contractType)
 		contractType = GetValue(contractTypeparamsVariable, 0)
 		params = GetValue(contractTypeparamsVariable, 1)
 		var wallet any = "W001"
-		walletparamsVariable := this.HandleOptionAndParams(params, "fetchMarginMode", "wallet", wallet)
+		walletparamsVariable := this.HandleOptionAndParams(params, "setMarginMode", "wallet", wallet)
 		wallet = GetValue(walletparamsVariable, 0)
 		params = GetValue(walletparamsVariable, 1)
 		var request any = map[string]any{

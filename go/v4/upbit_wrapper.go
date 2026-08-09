@@ -1281,7 +1281,7 @@ func (this *Upbit) FetchPosition(symbol string, options ...FetchPositionOptions)
 func (this *Upbit) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Upbit) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Upbit) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Upbit) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1299,7 +1299,7 @@ func (this *Upbit) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]P
 func (this *Upbit) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Upbit) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Upbit) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Upbit) FetchTime(params ...any) (int64, error) {
@@ -1413,7 +1413,7 @@ func (this *Upbit) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Upbit) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Upbit) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Upbit) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Upbit) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1458,7 +1458,7 @@ func (this *Upbit) FetchTradesWs(symbol string, options ...FetchTradesWsOptions)
 func (this *Upbit) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Upbit) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Upbit) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Upbit) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

@@ -160,57 +160,103 @@ func (this *BitrueCore) Describe() any {
 				"kline": map[string]any{
 					"public": map[string]any{
 						"get": map[string]any{
-							"public.json":           0.24,
-							"public{currency}.json": 0.24,
+							"public.json": map[string]any{
+								"cost": 0.24,
+							},
+							"public{currency}.json": map[string]any{
+								"cost": 0.24,
+							},
 						},
 					},
 				},
 				"v1": map[string]any{
 					"public": map[string]any{
 						"get": map[string]any{
-							"ping":         0.24,
-							"time":         0.24,
-							"exchangeInfo": 0.24,
+							"ping": map[string]any{
+								"cost": 0.24,
+							},
+							"time": map[string]any{
+								"cost": 0.24,
+							},
+							"exchangeInfo": map[string]any{
+								"cost": 0.24,
+							},
 							"depth": map[string]any{
 								"cost":    1,
 								"byLimit": []any{[]any{100, 0.24}, []any{500, 1.2}, []any{1000, 2.4}},
 							},
-							"trades":           0.24,
-							"historicalTrades": 1.2,
-							"aggTrades":        0.24,
+							"trades": map[string]any{
+								"cost": 0.24,
+							},
+							"historicalTrades": map[string]any{
+								"cost": 1.2,
+							},
+							"aggTrades": map[string]any{
+								"cost": 0.24,
+							},
 							"ticker/24hr": map[string]any{
 								"cost":     0.24,
 								"noSymbol": 9.6,
 							},
-							"ticker/price":      0.24,
-							"ticker/bookTicker": 0.24,
-							"market/kline":      0.24,
+							"ticker/price": map[string]any{
+								"cost": 0.24,
+							},
+							"ticker/bookTicker": map[string]any{
+								"cost": 0.24,
+							},
+							"market/kline": map[string]any{
+								"cost": 0.24,
+							},
 						},
 					},
 					"private": map[string]any{
 						"get": map[string]any{
-							"order":                  5,
-							"openOrders":             5,
-							"allOrders":              25,
-							"account":                25,
-							"myTrades":               25,
-							"etf/net-value/{symbol}": 0.24,
-							"withdraw/history":       120,
-							"deposit/history":        120,
+							"order": map[string]any{
+								"cost": 5,
+							},
+							"openOrders": map[string]any{
+								"cost": 5,
+							},
+							"allOrders": map[string]any{
+								"cost": 25,
+							},
+							"account": map[string]any{
+								"cost": 25,
+							},
+							"myTrades": map[string]any{
+								"cost": 25,
+							},
+							"etf/net-value/{symbol}": map[string]any{
+								"cost": 0.24,
+							},
+							"withdraw/history": map[string]any{
+								"cost": 120,
+							},
+							"deposit/history": map[string]any{
+								"cost": 120,
+							},
 						},
 						"post": map[string]any{
-							"order":           5,
-							"withdraw/commit": 120,
+							"order": map[string]any{
+								"cost": 5,
+							},
+							"withdraw/commit": map[string]any{
+								"cost": 120,
+							},
 						},
 						"delete": map[string]any{
-							"order": 5,
+							"order": map[string]any{
+								"cost": 5,
+							},
 						},
 					},
 				},
 				"v2": map[string]any{
 					"private": map[string]any{
 						"get": map[string]any{
-							"myTrades": 1.2,
+							"myTrades": map[string]any{
+								"cost": 1.2,
+							},
 						},
 					},
 				},
@@ -219,34 +265,74 @@ func (this *BitrueCore) Describe() any {
 				"v1": map[string]any{
 					"public": map[string]any{
 						"get": map[string]any{
-							"ping":      0.24,
-							"time":      0.24,
-							"contracts": 0.24,
-							"depth":     0.24,
-							"ticker":    0.24,
-							"klines":    0.24,
+							"ping": map[string]any{
+								"cost": 0.24,
+							},
+							"time": map[string]any{
+								"cost": 0.24,
+							},
+							"contracts": map[string]any{
+								"cost": 0.24,
+							},
+							"depth": map[string]any{
+								"cost": 0.24,
+							},
+							"ticker": map[string]any{
+								"cost": 0.24,
+							},
+							"klines": map[string]any{
+								"cost": 0.24,
+							},
 						},
 					},
 				},
 				"v2": map[string]any{
 					"private": map[string]any{
 						"get": map[string]any{
-							"myTrades":                 5,
-							"openOrders":               5,
-							"order":                    5,
-							"account":                  5,
-							"leverageBracket":          5,
-							"commissionRate":           5,
-							"futures_transfer_history": 5,
-							"forceOrdersHistory":       5,
+							"myTrades": map[string]any{
+								"cost": 5,
+							},
+							"openOrders": map[string]any{
+								"cost": 5,
+							},
+							"order": map[string]any{
+								"cost": 5,
+							},
+							"account": map[string]any{
+								"cost": 5,
+							},
+							"leverageBracket": map[string]any{
+								"cost": 5,
+							},
+							"commissionRate": map[string]any{
+								"cost": 5,
+							},
+							"futures_transfer_history": map[string]any{
+								"cost": 5,
+							},
+							"forceOrdersHistory": map[string]any{
+								"cost": 5,
+							},
 						},
 						"post": map[string]any{
-							"positionMargin":   5,
-							"level_edit":       5,
-							"cancel":           5,
-							"order":            25,
-							"allOpenOrders":    5,
-							"futures_transfer": 5,
+							"positionMargin": map[string]any{
+								"cost": 5,
+							},
+							"level_edit": map[string]any{
+								"cost": 5,
+							},
+							"cancel": map[string]any{
+								"cost": 5,
+							},
+							"order": map[string]any{
+								"cost": 25,
+							},
+							"allOpenOrders": map[string]any{
+								"cost": 5,
+							},
+							"futures_transfer": map[string]any{
+								"cost": 5,
+							},
 						},
 					},
 				},
@@ -255,34 +341,74 @@ func (this *BitrueCore) Describe() any {
 				"v1": map[string]any{
 					"public": map[string]any{
 						"get": map[string]any{
-							"ping":      0.24,
-							"time":      0.24,
-							"contracts": 0.24,
-							"depth":     0.24,
-							"ticker":    0.24,
-							"klines":    0.24,
+							"ping": map[string]any{
+								"cost": 0.24,
+							},
+							"time": map[string]any{
+								"cost": 0.24,
+							},
+							"contracts": map[string]any{
+								"cost": 0.24,
+							},
+							"depth": map[string]any{
+								"cost": 0.24,
+							},
+							"ticker": map[string]any{
+								"cost": 0.24,
+							},
+							"klines": map[string]any{
+								"cost": 0.24,
+							},
 						},
 					},
 				},
 				"v2": map[string]any{
 					"private": map[string]any{
 						"get": map[string]any{
-							"myTrades":                 5,
-							"openOrders":               5,
-							"order":                    5,
-							"account":                  5,
-							"leverageBracket":          5,
-							"commissionRate":           5,
-							"futures_transfer_history": 5,
-							"forceOrdersHistory":       5,
+							"myTrades": map[string]any{
+								"cost": 5,
+							},
+							"openOrders": map[string]any{
+								"cost": 5,
+							},
+							"order": map[string]any{
+								"cost": 5,
+							},
+							"account": map[string]any{
+								"cost": 5,
+							},
+							"leverageBracket": map[string]any{
+								"cost": 5,
+							},
+							"commissionRate": map[string]any{
+								"cost": 5,
+							},
+							"futures_transfer_history": map[string]any{
+								"cost": 5,
+							},
+							"forceOrdersHistory": map[string]any{
+								"cost": 5,
+							},
 						},
 						"post": map[string]any{
-							"positionMargin":   5,
-							"level_edit":       5,
-							"cancel":           5,
-							"order":            5,
-							"allOpenOrders":    5,
-							"futures_transfer": 5,
+							"positionMargin": map[string]any{
+								"cost": 5,
+							},
+							"level_edit": map[string]any{
+								"cost": 5,
+							},
+							"cancel": map[string]any{
+								"cost": 5,
+							},
+							"order": map[string]any{
+								"cost": 5,
+							},
+							"allOpenOrders": map[string]any{
+								"cost": 5,
+							},
+							"futures_transfer": map[string]any{
+								"cost": 5,
+							},
 						},
 					},
 				},
@@ -1694,7 +1820,7 @@ func (this *BitrueCore) FetchTickers(optionalArgs ...any) <-chan any {
 			PanicOnError(retRes166012)
 		}
 		symbols = this.MarketSymbols(symbols)
-		var response any = nil
+		var response any = []any{}
 		var data any = []any{}
 		var request any = map[string]any{}
 		var typeVar any = nil
@@ -1707,7 +1833,7 @@ func (this *BitrueCore) FetchTickers(optionalArgs ...any) <-chan any {
 
 				response = (<-this.SpotV1PublicGetTicker24hr(this.Extend(request, params)))
 				PanicOnError(response)
-				data = response
+				data = this.ToArray(response)
 			} else {
 				panic(NotSupported(Add(this.Id, " fetchTickers only support spot & swap markets")))
 			}
@@ -1721,7 +1847,7 @@ func (this *BitrueCore) FetchTickers(optionalArgs ...any) <-chan any {
 
 			response = (<-this.SpotV1PublicGetTicker24hr(this.Extend(request, params)))
 			PanicOnError(response)
-			data = response
+			data = this.ToArray(response)
 		}
 		//
 		// spot
@@ -3814,7 +3940,7 @@ func (this *BitrueCore) CalculateRateLimiterCost(api any, method any, path any, 
 		return GetValue(config, "noSymbol")
 	} else if IsTrue(IsTrue((InOp(config, "byLimit"))) && IsTrue((InOp(params, "limit")))) {
 		var limit any = GetValue(params, "limit")
-		var byLimit any = GetValue(config, "byLimit")
+		var byLimit any = this.SafeList(config, "byLimit", []any{})
 		for i := 0; IsLessThan(i, GetArrayLength(byLimit)); i++ {
 			var entry any = GetValue(byLimit, i)
 			if IsTrue(IsLessThanOrEqual(limit, GetValue(entry, 0))) {

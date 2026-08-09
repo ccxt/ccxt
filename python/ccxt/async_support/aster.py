@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.aster import ImplicitAPI
 import asyncio
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -94,7 +94,7 @@ class aster(Exchange, ImplicitAPI):
                 'createMarketSellOrder': False,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
-                'createOrders': False,
+                'createOrders': True,
                 'createOrderWithTakeProfitAndStopLoss': False,
                 'createPostOnlyOrder': False,
                 'createReduceOnlyOrder': False,
@@ -109,7 +109,7 @@ class aster(Exchange, ImplicitAPI):
                 'editOrders': False,
                 'fetchAccounts': None,
                 'fetchBalance': True,
-                'fetchBidsAsks': False,
+                'fetchBidsAsks': True,
                 'fetchBorrowInterest': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
@@ -143,7 +143,7 @@ class aster(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRate': 'emulated',
                 'fetchIsolatedBorrowRates': False,
                 'fetchL3OrderBook': False,
-                'fetchLastPrices': False,
+                'fetchLastPrices': True,
                 'fetchLedger': True,
                 'fetchLedgerEntry': False,
                 'fetchLeverage': 'emulated',
@@ -217,209 +217,209 @@ class aster(Exchange, ImplicitAPI):
             'api': {
                 'fapiPublic': {
                     'get': {
-                        'v1/ping': 1,
-                        'v3/ping': 1,
-                        'v1/time': 1,
-                        'v3/time': 1,
-                        'v1/exchangeInfo': 1,
-                        'v3/exchangeInfo': 1,
-                        'v1/depth': 1,
-                        'v3/depth': 2,  # dynamic: 5, 10, 20, 50->2, 100->5, 500->10, 1000->20
-                        'v1/trades': 1,
-                        'v3/trades': 1,
-                        'v1/historicalTrades': 1,
-                        'v3/historicalTrades': 20,
-                        'v1/aggTrades': 1,
-                        'v3/aggTrades': 20,
-                        'v1/klines': 1,
-                        'v3/klines': 1,  # dynamic [1,100) ->1,  [100, 500)->2, [500, 1000]->5, [1000 -> 10
-                        'v1/indexPriceKlines': 1,
-                        'v3/indexPriceKlines': 1,  # same
-                        'v1/markPriceKlines': 1,
-                        'v3/markPriceKlines': 1,  # same
-                        'v1/premiumIndex': 1,
-                        'v3/premiumIndex': 1,
-                        'v1/fundingRate': 1,
-                        'v3/fundingRate': 1,
-                        'v1/fundingInfo': 1,
-                        'v3/fundingInfo': 1,
-                        'v1/ticker/24hr': 1,
-                        'v3/ticker/24hr': 1,  # 1 single-symbol, otherwise 40
-                        'v1/ticker/price': 1,
-                        'v3/ticker/price': 1,  # 1 single-symbol, otherwise 2
-                        'v1/ticker/bookTicker': 1,
-                        'v3/ticker/bookTicker': 1,  # 1 single-symbol, otherwise 2
+                        'v1/ping': {'cost': 1},
+                        'v3/ping': {'cost': 1},
+                        'v1/time': {'cost': 1},
+                        'v3/time': {'cost': 1},
+                        'v1/exchangeInfo': {'cost': 1},
+                        'v3/exchangeInfo': {'cost': 1},
+                        'v1/depth': {'cost': 1},
+                        'v3/depth': {'cost': 2},  # dynamic: 5, 10, 20, 50->2, 100->5, 500->10, 1000->20
+                        'v1/trades': {'cost': 1},
+                        'v3/trades': {'cost': 1},
+                        'v1/historicalTrades': {'cost': 1},
+                        'v3/historicalTrades': {'cost': 20},
+                        'v1/aggTrades': {'cost': 1},
+                        'v3/aggTrades': {'cost': 20},
+                        'v1/klines': {'cost': 1},
+                        'v3/klines': {'cost': 1},  # dynamic [1,100) ->1,  [100, 500)->2, [500, 1000]->5, [1000 -> 10
+                        'v1/indexPriceKlines': {'cost': 1},
+                        'v3/indexPriceKlines': {'cost': 1},  # same
+                        'v1/markPriceKlines': {'cost': 1},
+                        'v3/markPriceKlines': {'cost': 1},  # same
+                        'v1/premiumIndex': {'cost': 1},
+                        'v3/premiumIndex': {'cost': 1},
+                        'v1/fundingRate': {'cost': 1},
+                        'v3/fundingRate': {'cost': 1},
+                        'v1/fundingInfo': {'cost': 1},
+                        'v3/fundingInfo': {'cost': 1},
+                        'v1/ticker/24hr': {'cost': 1},
+                        'v3/ticker/24hr': {'cost': 1},  # 1 single-symbol, otherwise 40
+                        'v1/ticker/price': {'cost': 1},
+                        'v3/ticker/price': {'cost': 1},  # 1 single-symbol, otherwise 2
+                        'v1/ticker/bookTicker': {'cost': 1},
+                        'v3/ticker/bookTicker': {'cost': 1},  # 1 single-symbol, otherwise 2
                         # different endpoints
-                        'v1/adlQuantile': 1,
-                        'v1/forceOrders': 1,
-                        'v3/indexreferences': 1,
+                        'v1/adlQuantile': {'cost': 1},
+                        'v1/forceOrders': {'cost': 1},
+                        'v3/indexreferences': {'cost': 1},
                     },
                 },
                 'fapiPrivate': {
                     'get': {
-                        'v1/positionSide/dual': 1,
-                        'v3/positionSide/dual': 30,
-                        'v1/multiAssetsMargin': 1,
-                        'v3/multiAssetsMargin': 1,
-                        'v1/order': 1,
-                        'v3/order': 1,
-                        'v1/openOrder': 1,
-                        'v3/openOrder': 1,
-                        'v1/openOrders': 1,
-                        'v3/openOrders': 1,
-                        'v1/allOrders': 1,
-                        'v3/allOrders': 1,
-                        'v2/balance': 1,
-                        'v3/balance': 1,
-                        'v3/account': 1,
-                        'v1/positionMargin/history': 1,
-                        'v3/positionMargin/history': 1,
-                        'v2/positionRisk': 1,
-                        'v3/positionRisk': 1,
-                        'v1/userTrades': 1,
-                        'v3/userTrades': 5,
-                        'v1/income': 1,
-                        'v3/income': 1,
-                        'v1/leverageBracket': 1,
-                        'v3/leverageBracket': 1,
-                        'v1/commissionRate': 1,
-                        'v3/commissionRate': 1,
+                        'v1/positionSide/dual': {'cost': 1},
+                        'v3/positionSide/dual': {'cost': 30},
+                        'v1/multiAssetsMargin': {'cost': 1},
+                        'v3/multiAssetsMargin': {'cost': 1},
+                        'v1/order': {'cost': 1},
+                        'v3/order': {'cost': 1},
+                        'v1/openOrder': {'cost': 1},
+                        'v3/openOrder': {'cost': 1},
+                        'v1/openOrders': {'cost': 1},
+                        'v3/openOrders': {'cost': 1},
+                        'v1/allOrders': {'cost': 1},
+                        'v3/allOrders': {'cost': 1},
+                        'v2/balance': {'cost': 1},
+                        'v3/balance': {'cost': 1},
+                        'v3/account': {'cost': 1},
+                        'v1/positionMargin/history': {'cost': 1},
+                        'v3/positionMargin/history': {'cost': 1},
+                        'v2/positionRisk': {'cost': 1},
+                        'v3/positionRisk': {'cost': 1},
+                        'v1/userTrades': {'cost': 1},
+                        'v3/userTrades': {'cost': 5},
+                        'v1/income': {'cost': 1},
+                        'v3/income': {'cost': 1},
+                        'v1/leverageBracket': {'cost': 1},
+                        'v3/leverageBracket': {'cost': 1},
+                        'v1/commissionRate': {'cost': 1},
+                        'v3/commissionRate': {'cost': 1},
                         # others
-                        'v3/adlQuantile': 1,
-                        'v3/forceOrders': 1,
-                        'v3/mmp': 1,
-                        'v3/accountWithJoinMargin': 1,
-                        'v4/account': 1,
+                        'v3/adlQuantile': {'cost': 1},
+                        'v3/forceOrders': {'cost': 1},
+                        'v3/mmp': {'cost': 1},
+                        'v3/accountWithJoinMargin': {'cost': 1},
+                        'v4/account': {'cost': 1},
                         # builder
-                        'v3/agent': 1,
-                        'v3/builder': 1,
+                        'v3/agent': {'cost': 1},
+                        'v3/builder': {'cost': 1},
                     },
                     'post': {
-                        'v1/positionSide/dual': 1,
-                        'v3/positionSide/dual': 1,
-                        'v1/multiAssetsMargin': 1,
-                        'v3/multiAssetsMargin': 1,
-                        'v1/order': 1,
-                        'v3/order': 1,
-                        'v1/order/test': 1,
-                        'v3/order/test': 1,
-                        'v1/batchOrders': 1,
-                        'v3/batchOrders': 1,
-                        'v1/asset/wallet/transfer': 1,
-                        'v3/asset/wallet/transfer': 1,
-                        'v1/countdownCancelAll': 1,
-                        'v3/countdownCancelAll': 1,
-                        'v1/leverage': 1,
-                        'v3/leverage': 1,
-                        'v1/marginType': 1,
-                        'v3/marginType': 1,
-                        'v1/positionMargin': 1,
-                        'v3/positionMargin': 1,
-                        'v1/listenKey': 1,
-                        'v3/listenKey': 1,
+                        'v1/positionSide/dual': {'cost': 1},
+                        'v3/positionSide/dual': {'cost': 1},
+                        'v1/multiAssetsMargin': {'cost': 1},
+                        'v3/multiAssetsMargin': {'cost': 1},
+                        'v1/order': {'cost': 1},
+                        'v3/order': {'cost': 1},
+                        'v1/order/test': {'cost': 1},
+                        'v3/order/test': {'cost': 1},
+                        'v1/batchOrders': {'cost': 1},
+                        'v3/batchOrders': {'cost': 1},
+                        'v1/asset/wallet/transfer': {'cost': 1},
+                        'v3/asset/wallet/transfer': {'cost': 1},
+                        'v1/countdownCancelAll': {'cost': 1},
+                        'v3/countdownCancelAll': {'cost': 1},
+                        'v1/leverage': {'cost': 1},
+                        'v3/leverage': {'cost': 1},
+                        'v1/marginType': {'cost': 1},
+                        'v3/marginType': {'cost': 1},
+                        'v1/positionMargin': {'cost': 1},
+                        'v3/positionMargin': {'cost': 1},
+                        'v1/listenKey': {'cost': 1},
+                        'v3/listenKey': {'cost': 1},
                         # others
-                        'v3/mmp': 1,
-                        'v3/mmpReset': 1,
-                        'v3/noop': 1,
+                        'v3/mmp': {'cost': 1},
+                        'v3/mmpReset': {'cost': 1},
+                        'v3/noop': {'cost': 1},
                         # builder
-                        'v3/approveAgent': 1,
-                        'v3/updateAgent': 1,
-                        'v3/approveBuilder': 1,
-                        'v3/updateBuilder': 1,
+                        'v3/approveAgent': {'cost': 1},
+                        'v3/updateAgent': {'cost': 1},
+                        'v3/approveBuilder': {'cost': 1},
+                        'v3/updateBuilder': {'cost': 1},
                     },
                     'put': {
-                        'v1/listenKey': 1,
-                        'v3/listenKey': 1,
+                        'v1/listenKey': {'cost': 1},
+                        'v3/listenKey': {'cost': 1},
                     },
                     'delete': {
-                        'v1/order': 1,
-                        'v3/order': 1,
-                        'v1/allOpenOrders': 1,
-                        'v3/allOpenOrders': 1,
-                        'v1/batchOrders': 1,
-                        'v3/batchOrders': 1,
-                        'v3/mmp': 1,
-                        'v1/listenKey': 1,
-                        'v3/listenKey': 1,
+                        'v1/order': {'cost': 1},
+                        'v3/order': {'cost': 1},
+                        'v1/allOpenOrders': {'cost': 1},
+                        'v3/allOpenOrders': {'cost': 1},
+                        'v1/batchOrders': {'cost': 1},
+                        'v3/batchOrders': {'cost': 1},
+                        'v3/mmp': {'cost': 1},
+                        'v1/listenKey': {'cost': 1},
+                        'v3/listenKey': {'cost': 1},
                         # builder
-                        'v3/agent': 1,
-                        'v3/builder': 1,
+                        'v3/agent': {'cost': 1},
+                        'v3/builder': {'cost': 1},
                     },
                 },
                 'sapiPublic': {
                     'get': {
                         # v1
-                        'v1/ping': 1,
-                        'v1/time': 1,
-                        'v1/exchangeInfo': 1,
-                        'v1/depth': 1,
-                        'v1/trades': 1,
-                        'v1/historicalTrades': 1,
-                        'v1/aggTrades': 1,
-                        'v1/klines': 1,
-                        'v1/ticker/24hr': 1,
-                        'v1/ticker/price': 1,
-                        'v1/ticker/bookTicker': 1,
-                        'v1/aster/withdraw/estimateFee': 1,
+                        'v1/ping': {'cost': 1},
+                        'v1/time': {'cost': 1},
+                        'v1/exchangeInfo': {'cost': 1},
+                        'v1/depth': {'cost': 1},
+                        'v1/trades': {'cost': 1},
+                        'v1/historicalTrades': {'cost': 1},
+                        'v1/aggTrades': {'cost': 1},
+                        'v1/klines': {'cost': 1},
+                        'v1/ticker/24hr': {'cost': 1},
+                        'v1/ticker/price': {'cost': 1},
+                        'v1/ticker/bookTicker': {'cost': 1},
+                        'v1/aster/withdraw/estimateFee': {'cost': 1},
                         # v3
-                        'v3/ping': 1,
-                        'v3/time': 1,
-                        'v3/exchangeInfo': 1,
+                        'v3/ping': {'cost': 1},
+                        'v3/time': {'cost': 1},
+                        'v3/exchangeInfo': {'cost': 1},
                         'v3/depth': {'cost': 2, 'byLimit': [[50, 2], [100, 5], [500, 10], [1000, 20]]},
-                        'v3/trades': 1,
-                        'v3/historicalTrades': 20,
-                        'v3/aggTrades': 20,
+                        'v3/trades': {'cost': 1},
+                        'v3/historicalTrades': {'cost': 20},
+                        'v3/aggTrades': {'cost': 20},
                         'v3/klines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},  # todo: not specified in docs
                         'v3/ticker/24hr': {'cost': 1, 'noSymbol': 40},
                         'v3/ticker/price': {'cost': 1, 'noSymbol': 2},
                         'v3/ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
-                        'v3/aster/withdraw/estimateFee': 1,
+                        'v3/aster/withdraw/estimateFee': {'cost': 1},
                     },
                 },
                 'sapiPrivate': {
                     'get': {
                         # v1
-                        'v1/commissionRate': 1,
-                        'v1/order': 1,
-                        'v1/openOrders': 1,
-                        'v1/allOrders': 1,
-                        'v1/transactionHistory': 1,
-                        'v1/account': 1,
-                        'v1/userTrades': 1,
+                        'v1/commissionRate': {'cost': 1},
+                        'v1/order': {'cost': 1},
+                        'v1/openOrders': {'cost': 1},
+                        'v1/allOrders': {'cost': 1},
+                        'v1/transactionHistory': {'cost': 1},
+                        'v1/account': {'cost': 1},
+                        'v1/userTrades': {'cost': 1},
                         # v3
                         'v3/commissionRate': {'cost': 1, 'noSymbol': 2},
-                        'v3/order': 1,
-                        'v3/openOrders': 1,  # with symbol 1, otherwise 40
-                        'v3/allOrders': 5,
-                        'v3/account': 5,
-                        'v3/userTrades': 5,
-                        'v3/openOrder': 1,
+                        'v3/order': {'cost': 1},
+                        'v3/openOrders': {'cost': 1},  # with symbol 1, otherwise 40
+                        'v3/allOrders': {'cost': 5},
+                        'v3/account': {'cost': 5},
+                        'v3/userTrades': {'cost': 5},
+                        'v3/openOrder': {'cost': 1},
                     },
                     'post': {
                         # v1
-                        'v1/order': 1,
-                        'v1/asset/wallet/transfer': 5,
-                        'v1/asset/sendToAddress': 1,  # inexistent in v3
-                        'v1/listenKey': 1,
+                        'v1/order': {'cost': 1},
+                        'v1/asset/wallet/transfer': {'cost': 5},
+                        'v1/asset/sendToAddress': {'cost': 1},  # inexistent in v3
+                        'v1/listenKey': {'cost': 1},
                         # v3
-                        'v3/order': 1,
-                        'v3/asset/wallet/transfer': 5,
-                        'v3/aster/user-withdraw': 1,
-                        'v3/listenKey': 1,
+                        'v3/order': {'cost': 1},
+                        'v3/asset/wallet/transfer': {'cost': 5},
+                        'v3/aster/user-withdraw': {'cost': 1},
+                        'v3/listenKey': {'cost': 1},
                     },
-                    'put': [
-                        'v1/listenKey',
-                        'v3/listenKey',
-                    ],
+                    'put': {
+                        'v1/listenKey': {'cost': 1},
+                        'v3/listenKey': {'cost': 1},
+                    },
                     'delete': {
                         # v1
-                        'v1/order': 1,
-                        'v1/allOpenOrders': 1,
-                        'v1/listenKey': 1,
+                        'v1/order': {'cost': 1},
+                        'v1/allOpenOrders': {'cost': 1},
+                        'v1/listenKey': {'cost': 1},
                         # v3
-                        'v3/allOpenOrders': 1,
-                        'v3/order': 1,
-                        'v3/listenKey': 1,
+                        'v3/allOpenOrders': {'cost': 1},
+                        'v3/order': {'cost': 1},
+                        'v3/listenKey': {'cost': 1},
                     },
                 },
             },
@@ -602,7 +602,7 @@ class aster(Exchange, ImplicitAPI):
                 'networks': {
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
-                    'ARBONE': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                 },
                 'networksToChainId': {
                     'ETH': 1,
@@ -1166,7 +1166,7 @@ class aster(Exchange, ImplicitAPI):
         isMark = (price == 'mark')
         isIndex = (price == 'index')
         params = self.omit(params, 'price')
-        response: List
+        response: dict | List
         if isMark:
             request['symbol'] = market['id']
             response = await self.fapiPublicGetV3MarkPriceKlines(self.extend(request, params))
@@ -1199,7 +1199,7 @@ class aster(Exchange, ImplicitAPI):
             #     ]
             #  ]
             #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -1385,7 +1385,7 @@ class aster(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        marketType, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -1697,11 +1697,12 @@ class aster(Exchange, ImplicitAPI):
         #
         if response is None:
             raise NullResponse(self.id + ' fetchLastPrices() returned empty response')
+        rows = self.to_array(response)
         results = []
-        for i in range(0, len(response)):
-            marketId = self.safe_string(response[i], 'symbol')
+        for i in range(0, len(rows)):
+            marketId = self.safe_string(rows[i], 'symbol')
             safeMarket = self.safe_market(marketId, None, None, marketType)
-            priceData = self.extend(self.parse_last_price(response[i], safeMarket), params)
+            priceData = self.extend(self.parse_last_price(rows[i], safeMarket), params)
             results.append(priceData)
         symbols = self.market_symbols(symbols)
         return self.filter_by_array(results, 'symbol', symbols)
@@ -2056,7 +2057,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return response
 
-    async def fetch_position_mode(self, symbol: Str = None, params={}):
+    async def fetch_position_mode(self, symbol: Str = None, params={}) -> PositionModeInfo:
         """
         fetchs the position mode, hedged or one way, hedged for aster is set identically for all linear markets or all inverse markets
 
@@ -2320,7 +2321,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch an open order by the id
 
@@ -2991,7 +2992,7 @@ class aster(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_leverages(response, symbols, 'symbol')
+        return self.parse_leverages(self.to_array(response), symbols, 'symbol')
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         #
@@ -3069,7 +3070,7 @@ class aster(Exchange, ImplicitAPI):
         #     ]
         #
         #
-        return self.parse_margin_modes(response, symbols, 'symbol', 'swap')
+        return self.parse_margin_modes(self.to_array(response), symbols, 'symbol', 'swap')
 
     def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         #
@@ -3143,7 +3144,7 @@ class aster(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        modifications = self.parse_margin_modifications(response)
+        modifications = self.parse_margin_modifications(self.to_array(response))
         return self.filter_by_symbol_since_limit(modifications, symbol, since, limit)
 
     def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
@@ -3575,12 +3576,13 @@ class aster(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
+        rawPositions = self.to_array(response)
         result = []
-        for i in range(0, len(response)):
-            rawPosition = response[i]
+        for i in range(0, len(rawPositions)):
+            rawPosition = rawPositions[i]
             entryPriceString = self.safe_string(rawPosition, 'entryPrice')
             if Precise.string_gt(entryPriceString, '0'):
-                result.append(self.parse_position_risk(response[i]))
+                result.append(self.parse_position_risk(rawPosition))
         symbols = self.market_symbols(symbols)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
@@ -3849,8 +3851,9 @@ class aster(Exchange, ImplicitAPI):
             #                ...
             #
             self.options['leverageBrackets'] = self.create_safe_dictionary()
-            for i in range(0, len(response)):
-                entry = response[i]
+            entries = self.to_array(response)
+            for i in range(0, len(entries)):
+                entry = entries[i]
                 marketId = self.safe_string(entry, 'symbol')
                 symbol = self.safe_symbol(marketId, None, None, 'contract')
                 brackets = self.safe_list(entry, 'brackets', [])

@@ -150,70 +150,178 @@ public class DydxCore extends DydxApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "indexer", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "addresses/{address}", 1 );
-                        put( "addresses/{address}/parentSubaccountNumber/{number}", 1 );
-                        put( "addresses/{address}/subaccountNumber/{subaccountNumber}", 1 );
-                        put( "assetPositions", 1 );
-                        put( "assetPositions/parentSubaccountNumber", 1 );
-                        put( "candles/perpetualMarkets/{market}", 1 );
-                        put( "compliance/screen/{address}", 1 );
-                        put( "fills", 1 );
-                        put( "fills/parentSubaccountNumber", 1 );
-                        put( "fundingPayments", 1 );
-                        put( "fundingPayments/parentSubaccount", 1 );
-                        put( "height", 0.1 );
-                        put( "historical-pnl", 1 );
-                        put( "historical-pnl/parentSubaccountNumber", 1 );
-                        put( "historicalBlockTradingRewards/{address}", 1 );
-                        put( "historicalFunding/{market}", 1 );
-                        put( "historicalTradingRewardAggregations/{address}", 1 );
-                        put( "orderbooks/perpetualMarket/{market}", 1 );
-                        put( "orders", 1 );
-                        put( "orders/parentSubaccountNumber", 1 );
-                        put( "orders/{orderId}", 1 );
-                        put( "perpetualMarkets", 1 );
-                        put( "perpetualPositions", 1 );
-                        put( "perpetualPositions/parentSubaccountNumber", 1 );
-                        put( "screen", 1 );
-                        put( "sparklines", 1 );
-                        put( "time", 1 );
-                        put( "trades/perpetualMarket/{market}", 1 );
-                        put( "transfers", 1 );
-                        put( "transfers/between", 1 );
-                        put( "transfers/parentSubaccountNumber", 1 );
-                        put( "vault/v1/megavault/historicalPnl", 1 );
-                        put( "vault/v1/megavault/positions", 1 );
-                        put( "vault/v1/vaults/historicalPnl", 1 );
-                        put( "perpetualMarketSparklines", 1 );
-                        put( "perpetualMarkets/{ticker}", 1 );
-                        put( "perpetualMarkets/{ticker}/orderbook", 1 );
-                        put( "trades/perpetualMarket/{ticker}", 1 );
-                        put( "historicalFunding/{ticker}", 1 );
-                        put( "candles/{ticker}/{resolution}", 1 );
-                        put( "addresses/{address}/subaccounts", 1 );
-                        put( "addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions", 1 );
-                        put( "addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions", 1 );
-                        put( "addresses/{address}/subaccountNumber/{subaccountNumber}/orders", 1 );
-                        put( "fills/parentSubaccount", 1 );
-                        put( "historical-pnl/parentSubaccount", 1 );
+                        put( "addresses/{address}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "addresses/{address}/parentSubaccountNumber/{number}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "addresses/{address}/subaccountNumber/{subaccountNumber}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "assetPositions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "assetPositions/parentSubaccountNumber", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "candles/perpetualMarkets/{market}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "compliance/screen/{address}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "fills", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "fills/parentSubaccountNumber", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "fundingPayments", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "fundingPayments/parentSubaccount", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "height", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0.1 );
+                        }} );
+                        put( "historical-pnl", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "historical-pnl/parentSubaccountNumber", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "historicalBlockTradingRewards/{address}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "historicalFunding/{market}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "historicalTradingRewardAggregations/{address}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orderbooks/perpetualMarket/{market}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orders/parentSubaccountNumber", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orders/{orderId}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "perpetualMarkets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "perpetualPositions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "perpetualPositions/parentSubaccountNumber", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "screen", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "sparklines", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "time", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trades/perpetualMarket/{market}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "transfers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "transfers/between", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "transfers/parentSubaccountNumber", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "vault/v1/megavault/historicalPnl", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "vault/v1/megavault/positions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "vault/v1/vaults/historicalPnl", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "perpetualMarketSparklines", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "perpetualMarkets/{ticker}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "perpetualMarkets/{ticker}/orderbook", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trades/perpetualMarket/{ticker}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "historicalFunding/{ticker}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "candles/{ticker}/{resolution}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "addresses/{address}/subaccounts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "addresses/{address}/subaccountNumber/{subaccountNumber}/orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "fills/parentSubaccount", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "historical-pnl/parentSubaccount", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "nodeRpc", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "abci_info", 1 );
-                        put( "block", 1 );
-                        put( "broadcast_tx_async", 1 );
-                        put( "broadcast_tx_sync", 1 );
-                        put( "tx", 1 );
+                        put( "abci_info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "block", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "broadcast_tx_async", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "broadcast_tx_sync", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "tx", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "nodeRest", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "cosmos/auth/v1beta1/account_info/{dydxAddress}", 1 );
+                        put( "cosmos/auth/v1beta1/account_info/{dydxAddress}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "cosmos/tx/v1beta1/encode", 1 );
-                        put( "cosmos/tx/v1beta1/simulate", 1 );
+                        put( "cosmos/tx/v1beta1/encode", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cosmos/tx/v1beta1/simulate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -1293,7 +1401,7 @@ public class DydxCore extends DydxApi
             var userAddressparametersVariable = this.handlePublicAddress("fetchPositions", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
-            var subAccountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "subAccountNumber", "0");
+            var subAccountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "subAccountNumber", "0");
             subAccountNumber = ((java.util.List<Object>) subAccountNumberparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subAccountNumberparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2832,11 +2940,11 @@ public class DydxCore extends DydxApi
                 (this.loadMarkets()).join();
             }
             Object userAddress = null;
-            var userAddressparametersVariable = this.handlePublicAddress("fetchAccounts", parameters);
+            var userAddressparametersVariable = this.handlePublicAddress("fetchBalance", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             Object subaccountNumber = null;
-            var subaccountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchAccounts", "subaccountNumber", 0);
+            var subaccountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "subaccountNumber", 0);
             subaccountNumber = ((java.util.List<Object>) subaccountNumberparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountNumberparametersVariable).get(1);
             final Object finalUserAddress = userAddress;

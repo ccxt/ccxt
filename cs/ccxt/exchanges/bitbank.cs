@@ -66,6 +66,7 @@ public partial class bitbank : Exchange
                 { "fetchMarginMode", false },
                 { "fetchMarginModes", false },
                 { "fetchMarketLeverageTiers", false },
+                { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
                 { "fetchMarkPrices", false },
                 { "fetchMyLiquidations", false },
@@ -133,44 +134,100 @@ public partial class bitbank : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "{pair}/ticker", 1 },
-                        { "tickers", 1 },
-                        { "tickers_jpy", 1 },
-                        { "{pair}/depth", 1 },
-                        { "{pair}/transactions", 1 },
-                        { "{pair}/transactions/{yyyymmdd}", 1 },
-                        { "{pair}/candlestick/{candletype}/{yyyymmdd}", 1 },
-                        { "{pair}/circuit_break_info", 1 },
+                        { "{pair}/ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers_jpy", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "{pair}/depth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "{pair}/transactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "{pair}/transactions/{yyyymmdd}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "{pair}/candlestick/{candletype}/{yyyymmdd}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "{pair}/circuit_break_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "user/assets", 1 },
-                        { "user/spot/order", 1 },
-                        { "user/spot/active_orders", 1 },
-                        { "user/margin/positions", 1 },
-                        { "user/spot/trade_history", 1 },
-                        { "user/deposit_history", 1 },
-                        { "user/unconfirmed_deposits", 1 },
-                        { "user/deposit_originators", 1 },
-                        { "user/withdrawal_account", 1 },
-                        { "user/withdrawal_history", 1 },
-                        { "spot/status", 1 },
-                        { "spot/pairs", 1 },
+                        { "user/assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/spot/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/spot/active_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/margin/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/spot/trade_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/deposit_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/unconfirmed_deposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/deposit_originators", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/withdrawal_account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/withdrawal_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot/status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot/pairs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "user/spot/order", 1.66 },
-                        { "user/spot/cancel_order", 1.66 },
-                        { "user/spot/cancel_orders", 1.66 },
-                        { "user/spot/orders_info", 1.66 },
-                        { "user/confirm_deposits", 1.66 },
-                        { "user/confirm_deposits_all", 1.66 },
-                        { "user/request_withdrawal", 1.66 },
+                        { "user/spot/order", new Dictionary<string, object>() {
+                            { "cost", 1.66 },
+                        } },
+                        { "user/spot/cancel_order", new Dictionary<string, object>() {
+                            { "cost", 1.66 },
+                        } },
+                        { "user/spot/cancel_orders", new Dictionary<string, object>() {
+                            { "cost", 1.66 },
+                        } },
+                        { "user/spot/orders_info", new Dictionary<string, object>() {
+                            { "cost", 1.66 },
+                        } },
+                        { "user/confirm_deposits", new Dictionary<string, object>() {
+                            { "cost", 1.66 },
+                        } },
+                        { "user/confirm_deposits_all", new Dictionary<string, object>() {
+                            { "cost", 1.66 },
+                        } },
+                        { "user/request_withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1.66 },
+                        } },
                     } },
                 } },
                 { "markets", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "spot/pairs", 1 },
+                        { "spot/pairs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },

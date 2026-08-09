@@ -503,7 +503,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object market = this.market(Helpers.GetValue(symbols, 0));
             Object instType = null;
             Object uta = null;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "uta", false);
+            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchBidsAsks", "uta", false);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             var instTypeparametersVariable = this.getInstType("watchBidsAsks", market, uta, parameters);
@@ -2907,6 +2907,9 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 }
             }
         }
+        // REST parseBalance sets info, keep the ws structure at parity,
+        // see https://github.com/ccxt/ccxt/issues/21973
+        Helpers.addElementToObject(this.balance, "info", message);
         this.balance = this.safeBalance(this.balance);
         Object messageHash = Helpers.add("balance:", instType);
         client.resolve(this.balance, messageHash);

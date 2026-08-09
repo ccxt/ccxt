@@ -67,72 +67,188 @@ public partial class limitless : PredictionExchange
                 { "limitless", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "markets/active", 1 },
-                            { "markets/active/{categoryId}", 1 },
-                            { "categories", 1 },
-                            { "markets/{addressOrSlug}", 1 },
-                            { "markets/categories/count", 1 },
-                            { "markets/active/slugs", 1 },
-                            { "markets/search", 1 },
-                            { "markets/{slug}/orderbook", 1 },
-                            { "markets/{slug}/historical-price", 1 },
-                            { "auth/signing-message", 1 },
-                            { "markets/{addressOrSlug}/oracle-candles", 1 },
-                            { "markets/{slug}/get-feed-events", 1 },
-                            { "markets/{slug}/events", 1 },
-                            { "markets/timeline", 1 },
-                            { "markets/{slug}/timeline", 1 },
-                            { "navigation", 1 },
-                            { "market-pages/by-path", 1 },
-                            { "market-pages/{id}/markets", 1 },
-                            { "property-keys", 1 },
-                            { "property-keys/{id}", 1 },
-                            { "property-keys/{id}/options", 1 },
-                            { "portfolio/{account}/traded-volume", 1 },
-                            { "portfolio/{account}/positions", 1 },
-                            { "portfolio/{account}/pnl-chart", 1 },
+                            { "markets/active", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/active/{categoryId}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "categories", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{addressOrSlug}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/categories/count", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/active/slugs", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/search", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{slug}/orderbook", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{slug}/historical-price", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "auth/signing-message", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{addressOrSlug}/oracle-candles", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{slug}/get-feed-events", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{slug}/events", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/timeline", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{slug}/timeline", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "navigation", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market-pages/by-path", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market-pages/{id}/markets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "property-keys", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "property-keys/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "property-keys/{id}/options", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/{account}/traded-volume", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/{account}/positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/{account}/pnl-chart", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "auth/api-keys", 1 },
-                            { "profiles/partner-accounts", 1 },
-                            { "markets/{slug}/user-orders", 1 },
-                            { "portfolio/positions", 1 },
-                            { "portfolio/trades", 1 },
-                            { "markets/{slug}/locked-balance", 1 },
-                            { "profiles/me", 1 },
-                            { "profiles/{account}", 1 },
-                            { "portfolio/pnl-chart", 1 },
-                            { "portfolio/history", 1 },
-                            { "portfolio/points", 1 },
-                            { "portfolio/trading/allowance", 1 },
-                            { "auth/api-tokens/capabilities", 1 },
-                            { "auth/api-tokens", 1 },
-                            { "profiles/partner-accounts/{profileId}/allowances", 1 },
+                            { "auth/api-keys", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "profiles/partner-accounts", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{slug}/user-orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/{slug}/locked-balance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "profiles/me", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "profiles/{account}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/pnl-chart", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/points", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/trading/allowance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "auth/api-tokens/capabilities", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "auth/api-tokens", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "profiles/partner-accounts/{profileId}/allowances", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "auth/logout", 1 },
-                            { "auth/api-keys", 1 },
-                            { "auth/login", 1 },
-                            { "orders", 1 },
-                            { "orders/cancel", 1 },
-                            { "orders/cancel-batch", 1 },
-                            { "orders/batch-cancel", 1 },
-                            { "orders/status/batch", 1 },
-                            { "portfolio/redeem", 1 },
-                            { "portfolio/withdraw", 1 },
-                            { "portfolio/withdrawal-addresses", 1 },
-                            { "auth/api-tokens/derive", 1 },
-                            { "profiles/partner-accounts", 1 },
-                            { "profiles/partner-accounts/{profileId}/allowances/retry", 1 },
+                            { "auth/logout", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "auth/api-keys", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "auth/login", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/cancel-batch", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/batch-cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/status/batch", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/redeem", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/withdraw", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/withdrawal-addresses", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "auth/api-tokens/derive", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "profiles/partner-accounts", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "profiles/partner-accounts/{profileId}/allowances/retry", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "delete", new Dictionary<string, object>() {
-                            { "auth/api-keys", 1 },
-                            { "orders/{order_id}", 1 },
-                            { "orders/all/{slug}", 1 },
-                            { "auth/api-tokens/{tokenId}", 1 },
-                            { "portfolio/withdrawal-addresses/{address}", 1 },
+                            { "auth/api-keys", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/{order_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/all/{slug}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "auth/api-tokens/{tokenId}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/withdrawal-addresses/{address}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
@@ -265,7 +381,12 @@ public partial class limitless : PredictionExchange
                     page = this.sum(page, 1);
                     ((IDictionary<string,object>)request)["page"] = page;
                     object response = await this.limitlessPublicGetMarketsActive(this.extend(request, rest));
-                    object rawPageMarkets = this.safeList(response, "data", response);
+                    object responseRows = new List<object>() {};
+                    if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+                    {
+                        responseRows = response;
+                    }
+                    object rawPageMarkets = this.safeList(response, "data", responseRows);
                     object page_markets = ((bool) isTrue((!isEqual(rawPageMarkets, null)))) ? rawPageMarkets : new List<object>() {};
                     object pageMarketsLength = getArrayLength(page_markets);
                     if (isTrue(!isTrue(page_markets) || isTrue(isEqual(pageMarketsLength, 0))))
@@ -1484,7 +1605,12 @@ public partial class limitless : PredictionExchange
         //         }
         //     ]
         //
-        object rawHistoryList = this.safeList(response, "data", this.safeList(response, "prices", response));
+        object responseRows = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            responseRows = response;
+        }
+        object rawHistoryList = this.safeList(response, "data", this.safeList(response, "prices", responseRows));
         object rawHistory = ((bool) isTrue((!isEqual(rawHistoryList, null)))) ? rawHistoryList : new List<object>() {};
         object history = rawHistory;
         object rawHistoryLength = getArrayLength(rawHistory);
@@ -1633,7 +1759,7 @@ public partial class limitless : PredictionExchange
         // pass undefined as market: parsePredictionOrder sets outcome to the market outcome while the outcome
         // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
         // endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
-        return this.parsePredictionOrders(response, null, since, limit);
+        return this.parsePredictionOrders(this.toArray(response), null, since, limit);
     }
 
     /**
@@ -3357,7 +3483,11 @@ public partial class limitless : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         object categoriesResponse = await this.limitlessPublicGetCategories();
-        object categories = ((bool) isTrue((!isEqual(categoriesResponse, null)))) ? categoriesResponse : new List<object>() {};
+        object categories = new List<object>() {};
+        if (isTrue(((categoriesResponse is IList<object>) || (categoriesResponse.GetType().IsGenericType && categoriesResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            categories = categoriesResponse;
+        }
         object wanted = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tags)); postFixIncrement(ref i))
         {

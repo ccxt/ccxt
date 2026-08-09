@@ -47,10 +47,11 @@ class lbank extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
+                'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
-                'fetchFundingRate' => false,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
@@ -77,8 +78,10 @@ class lbank extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => true,
+                'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -115,82 +118,82 @@ class lbank extends Exchange {
                 'spot' => array(
                     'public' => array(
                         'get' => array(
-                            'currencyPairs' => 2.5,
-                            'accuracy' => 2.5,
-                            'usdToCny' => 2.5,
-                            'assetConfigs' => 2.5,
-                            'withdrawConfigs' => 2.5 * 1.5, // frequently rate-limits, so increase this endpoint RL
-                            'timestamp' => 2.5,
-                            'ticker/24hr' => 2.5,
-                            'ticker' => 2.5,
-                            'depth' => 2.5,
-                            'incrDepth' => 2.5,
-                            'trades' => 2.5,
-                            'kline' => 2.5,
+                            'currencyPairs' => array( 'cost' => 2.5 ),
+                            'accuracy' => array( 'cost' => 2.5 ),
+                            'usdToCny' => array( 'cost' => 2.5 ),
+                            'assetConfigs' => array( 'cost' => 2.5 ),
+                            'withdrawConfigs' => array( 'cost' => 2.5 * 1.5 ), // frequently rate-limits, so increase this endpoint RL
+                            'timestamp' => array( 'cost' => 2.5 ),
+                            'ticker/24hr' => array( 'cost' => 2.5 ),
+                            'ticker' => array( 'cost' => 2.5 ),
+                            'depth' => array( 'cost' => 2.5 ),
+                            'incrDepth' => array( 'cost' => 2.5 ),
+                            'trades' => array( 'cost' => 2.5 ),
+                            'kline' => array( 'cost' => 2.5 ),
                             // new quote endpoints
-                            'supplement/system_ping' => 2.5,
-                            'supplement/incrDepth' => 2.5,
-                            'supplement/trades' => 2.5,
-                            'supplement/ticker/price' => 2.5,
-                            'supplement/ticker/bookTicker' => 2.5,
+                            'supplement/system_ping' => array( 'cost' => 2.5 ),
+                            'supplement/incrDepth' => array( 'cost' => 2.5 ),
+                            'supplement/trades' => array( 'cost' => 2.5 ),
+                            'supplement/ticker/price' => array( 'cost' => 2.5 ),
+                            'supplement/ticker/bookTicker' => array( 'cost' => 2.5 ),
                         ),
                         'post' => array(
-                            'supplement/system_status' => 2.5,
+                            'supplement/system_status' => array( 'cost' => 2.5 ),
                         ),
                     ),
                     'private' => array(
                         'post' => array(
                             // account
-                            'user_info' => 2.5,
-                            'subscribe/get_key' => 2.5,
-                            'subscribe/refresh_key' => 2.5,
-                            'subscribe/destroy_key' => 2.5,
-                            'get_deposit_address' => 2.5,
-                            'deposit_history' => 2.5,
+                            'user_info' => array( 'cost' => 2.5 ),
+                            'subscribe/get_key' => array( 'cost' => 2.5 ),
+                            'subscribe/refresh_key' => array( 'cost' => 2.5 ),
+                            'subscribe/destroy_key' => array( 'cost' => 2.5 ),
+                            'get_deposit_address' => array( 'cost' => 2.5 ),
+                            'deposit_history' => array( 'cost' => 2.5 ),
                             // order
-                            'create_order' => 1,
-                            'batch_create_order' => 1,
-                            'cancel_order' => 1,
-                            'cancel_clientOrders' => 1,
-                            'orders_info' => 2.5,
-                            'orders_info_history' => 2.5,
-                            'order_transaction_detail' => 2.5,
-                            'transaction_history' => 2.5,
-                            'orders_info_no_deal' => 2.5,
+                            'create_order' => array( 'cost' => 1 ),
+                            'batch_create_order' => array( 'cost' => 1 ),
+                            'cancel_order' => array( 'cost' => 1 ),
+                            'cancel_clientOrders' => array( 'cost' => 1 ),
+                            'orders_info' => array( 'cost' => 2.5 ),
+                            'orders_info_history' => array( 'cost' => 2.5 ),
+                            'order_transaction_detail' => array( 'cost' => 2.5 ),
+                            'transaction_history' => array( 'cost' => 2.5 ),
+                            'orders_info_no_deal' => array( 'cost' => 2.5 ),
                             // withdraw
-                            'withdraw' => 2.5,
-                            'withdrawCancel' => 2.5,
-                            'withdraws' => 2.5,
-                            'supplement/user_info' => 2.5,
-                            'supplement/withdraw' => 2.5,
-                            'supplement/deposit_history' => 2.5,
-                            'supplement/withdraws' => 2.5,
-                            'supplement/get_deposit_address' => 2.5,
-                            'supplement/asset_detail' => 2.5,
-                            'supplement/customer_trade_fee' => 2.5,
-                            'supplement/api_Restrictions' => 2.5,
+                            'withdraw' => array( 'cost' => 2.5 ),
+                            'withdrawCancel' => array( 'cost' => 2.5 ),
+                            'withdraws' => array( 'cost' => 2.5 ),
+                            'supplement/user_info' => array( 'cost' => 2.5 ),
+                            'supplement/withdraw' => array( 'cost' => 2.5 ),
+                            'supplement/deposit_history' => array( 'cost' => 2.5 ),
+                            'supplement/withdraws' => array( 'cost' => 2.5 ),
+                            'supplement/get_deposit_address' => array( 'cost' => 2.5 ),
+                            'supplement/asset_detail' => array( 'cost' => 2.5 ),
+                            'supplement/customer_trade_fee' => array( 'cost' => 2.5 ),
+                            'supplement/api_Restrictions' => array( 'cost' => 2.5 ),
                             // new quote endpoints
-                            'supplement/system_ping' => 2.5,
+                            'supplement/system_ping' => array( 'cost' => 2.5 ),
                             // new order endpoints
-                            'supplement/create_order_test' => 1,
-                            'supplement/create_order' => 1,
-                            'supplement/cancel_order' => 1,
-                            'supplement/cancel_order_by_symbol' => 1,
-                            'supplement/orders_info' => 2.5,
-                            'supplement/orders_info_no_deal' => 2.5,
-                            'supplement/orders_info_history' => 2.5,
-                            'supplement/user_info_account' => 2.5,
-                            'supplement/transaction_history' => 2.5,
+                            'supplement/create_order_test' => array( 'cost' => 1 ),
+                            'supplement/create_order' => array( 'cost' => 1 ),
+                            'supplement/cancel_order' => array( 'cost' => 1 ),
+                            'supplement/cancel_order_by_symbol' => array( 'cost' => 1 ),
+                            'supplement/orders_info' => array( 'cost' => 2.5 ),
+                            'supplement/orders_info_no_deal' => array( 'cost' => 2.5 ),
+                            'supplement/orders_info_history' => array( 'cost' => 2.5 ),
+                            'supplement/user_info_account' => array( 'cost' => 2.5 ),
+                            'supplement/transaction_history' => array( 'cost' => 2.5 ),
                         ),
                     ),
                 ),
                 'contract' => array(
                     'public' => array(
                         'get' => array(
-                            'cfd/openApi/v1/pub/getTime' => 2.5,
-                            'cfd/openApi/v1/pub/instrument' => 2.5,
-                            'cfd/openApi/v1/pub/marketData' => 2.5,
-                            'cfd/openApi/v1/pub/marketOrder' => 2.5,
+                            'cfd/openApi/v1/pub/getTime' => array( 'cost' => 2.5 ),
+                            'cfd/openApi/v1/pub/instrument' => array( 'cost' => 2.5 ),
+                            'cfd/openApi/v1/pub/marketData' => array( 'cost' => 2.5 ),
+                            'cfd/openApi/v1/pub/marketOrder' => array( 'cost' => 2.5 ),
                         ),
                     ),
                 ),
@@ -525,7 +528,7 @@ class lbank extends Exchange {
         return $this->array_concat($resolvedMarkets[0], $resolvedMarkets[1]);
     }
 
-    public function fetch_spot_markets($params = array()) {
+    public function fetch_spot_markets($params = array()): array {
         $response = $this->spotPublicGetAccuracy($params);
         //
         //     {
@@ -606,7 +609,7 @@ class lbank extends Exchange {
         return $result;
     }
 
-    public function fetch_swap_markets($params = array()) {
+    public function fetch_swap_markets($params = array()): array {
         $request = array(
             'productGroup' => 'SwapU',
         );
@@ -1363,7 +1366,7 @@ class lbank extends Exchange {
             }
             return $this->safe_balance($result);
         }
-        return null;
+        return $this->safe_balance($result);
     }
 
     public function parse_funding_rate(mixed $ticker, ?array $market = null): array {

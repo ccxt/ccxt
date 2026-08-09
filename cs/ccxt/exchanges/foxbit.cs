@@ -30,6 +30,8 @@ public partial class foxbit : Exchange
                 { "createMarketBuyOrder", true },
                 { "createMarketSellOrder", true },
                 { "createOrder", true },
+                { "createOrders", true },
+                { "editOrder", true },
                 { "fecthOrderBook", true },
                 { "fetchBalance", true },
                 { "fetchCanceledOrders", true },
@@ -44,7 +46,10 @@ public partial class foxbit : Exchange
                 { "fetchOHLCV", true },
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
+                { "fetchOrderBook", true },
                 { "fetchOrders", true },
+                { "fetchOrdersByStatus", true },
+                { "fetchStatus", true },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTrades", true },
@@ -124,42 +129,86 @@ public partial class foxbit : Exchange
                 { "v3", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "currencies", 5 },
-                            { "markets", 5 },
-                            { "markets/ticker/24hr", 60 },
-                            { "markets/{market}/orderbook", 6 },
-                            { "markets/{market}/candlesticks", 12 },
-                            { "markets/{market}/trades/history", 12 },
-                            { "markets/{market}/ticker/24hr", 15 },
+                            { "currencies", new Dictionary<string, object>() {
+                                { "cost", 5 },
+                            } },
+                            { "markets", new Dictionary<string, object>() {
+                                { "cost", 5 },
+                            } },
+                            { "markets/ticker/24hr", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "markets/{market}/orderbook", new Dictionary<string, object>() {
+                                { "cost", 6 },
+                            } },
+                            { "markets/{market}/candlesticks", new Dictionary<string, object>() {
+                                { "cost", 12 },
+                            } },
+                            { "markets/{market}/trades/history", new Dictionary<string, object>() {
+                                { "cost", 12 },
+                            } },
+                            { "markets/{market}/ticker/24hr", new Dictionary<string, object>() {
+                                { "cost", 15 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "accounts", 2 },
-                            { "accounts/{symbol}/transactions", 60 },
-                            { "orders", 2 },
-                            { "orders/by-order-id/{id}", 2 },
-                            { "trades", 6 },
-                            { "deposits/address", 10 },
-                            { "deposits", 10 },
-                            { "withdrawals", 10 },
-                            { "me/fees/trading", 60 },
+                            { "accounts", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "accounts/{symbol}/transactions", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "orders/by-order-id/{id}", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "trades", new Dictionary<string, object>() {
+                                { "cost", 6 },
+                            } },
+                            { "deposits/address", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "deposits", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "withdrawals", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "me/fees/trading", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "orders", 2 },
-                            { "orders/batch", 7.5 },
-                            { "orders/cancel-replace", 3 },
-                            { "withdrawals", 10 },
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "orders/batch", new Dictionary<string, object>() {
+                                { "cost", 7.5 },
+                            } },
+                            { "orders/cancel-replace", new Dictionary<string, object>() {
+                                { "cost", 3 },
+                            } },
+                            { "withdrawals", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                         { "put", new Dictionary<string, object>() {
-                            { "orders/cancel", 2 },
+                            { "orders/cancel", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
                         } },
                     } },
                 } },
                 { "status", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "status", 30 },
+                            { "status", new Dictionary<string, object>() {
+                                { "cost", 30 },
+                            } },
                         } },
                     } },
                 } },
@@ -831,7 +880,7 @@ public partial class foxbit : Exchange
         //         "15466.34096391" // taker buy quote volume
         //     ]
         // ]
-        return this.parseOHLCVs(response, market, interval, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, interval, since, limit);
     }
 
     /**
@@ -1620,7 +1669,7 @@ public partial class foxbit : Exchange
         };
         return new Dictionary<string, object>() {
             { "status", this.safeString(statusMap, statusRaw, statusRaw) },
-            { "updated", this.safeString(attributes, "updatedAt") },
+            { "updated", this.parse8601(this.safeString(attributes, "updatedAt")) },
             { "eta", null },
             { "url", null },
             { "info", response },
@@ -1701,7 +1750,8 @@ public partial class foxbit : Exchange
         //         "client_order_id": "451637946501"
         //     }
         // }
-        return this.parseOrder(getValue(response, "create"), market);
+        object created = this.safeDict(response, "create", new Dictionary<string, object>() {});
+        return this.parseOrder(created, market);
     }
 
     /**
@@ -2243,6 +2293,8 @@ public partial class foxbit : Exchange
         }
         headers = new Dictionary<string, object>() {
             { "Content-Type", "application/json" },
+            { "X-FB-CLIENT", "ccxt" },
+            { "X-FB-CLIENT-VERSION", this.getCcxtVersion() },
         };
         if (isTrue(isEqual(urlPath, "private")))
         {

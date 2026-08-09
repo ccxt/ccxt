@@ -28,6 +28,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'future': True,
                 'option': None,
                 'fetchBidsAsks': True,
+                'transfer': True,
             },
             'options': {
                 'fetchMarkets': {

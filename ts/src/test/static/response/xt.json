@@ -2,6 +2,247 @@
   "exchange": "xt",
   "skipKeys": [],
   "methods": {
+    "fetchBidsAsks": [
+      {
+        "description": "linear swap bids and asks",
+        "method": "fetchBidsAsks",
+        "input": [
+          [
+            "BTC/USDT:USDT"
+          ]
+        ],
+        "httpResponse": {
+          "returnCode": 0,
+          "msgInfo": "success",
+          "error": null,
+          "result": [
+            {
+              "s": "btc_usdt",
+              "t": 1785928174370,
+              "ap": "64085.5",
+              "aq": "101843",
+              "bp": "64085.3",
+              "bq": "121042"
+            }
+          ]
+        },
+        "parsedResponse": {
+          "BTC/USDT:USDT": {
+            "symbol": "BTC/USDT:USDT",
+            "timestamp": 1785928174370,
+            "datetime": "2026-08-05T11:09:34.370Z",
+            "high": null,
+            "low": null,
+            "bid": 64085.3,
+            "bidVolume": 121042,
+            "ask": 64085.5,
+            "askVolume": 101843,
+            "vwap": null,
+            "open": null,
+            "close": null,
+            "last": null,
+            "previousClose": null,
+            "change": null,
+            "percentage": null,
+            "average": null,
+            "baseVolume": null,
+            "quoteVolume": null,
+            "info": {
+              "s": "btc_usdt",
+              "t": 1785928174370,
+              "ap": "64085.5",
+              "aq": "101843",
+              "bp": "64085.3",
+              "bq": "121042"
+            },
+            "indexPrice": null,
+            "markPrice": null
+          }
+        }
+      },
+      {
+        "description": "inverse swap bids and asks",
+        "method": "fetchBidsAsks",
+        "input": [
+          [
+            "BTC/USD:BTC"
+          ]
+        ],
+        "httpResponse": {
+          "returnCode": 0,
+          "msgInfo": "success",
+          "error": null,
+          "result": [
+            {
+              "s": "btc_usd",
+              "t": 1785928174537,
+              "ap": "64024.4",
+              "aq": "5305",
+              "bp": "64022.3",
+              "bq": "3909"
+            }
+          ]
+        },
+        "parsedResponse": {
+          "BTC/USD:BTC": {
+            "symbol": "BTC/USD:BTC",
+            "timestamp": 1785928174537,
+            "datetime": "2026-08-05T11:09:34.537Z",
+            "high": null,
+            "low": null,
+            "bid": 64022.3,
+            "bidVolume": 3909,
+            "ask": 64024.4,
+            "askVolume": 5305,
+            "vwap": null,
+            "open": null,
+            "close": null,
+            "last": null,
+            "previousClose": null,
+            "change": null,
+            "percentage": null,
+            "average": null,
+            "baseVolume": null,
+            "quoteVolume": null,
+            "info": {
+              "s": "btc_usd",
+              "t": 1785928174537,
+              "ap": "64024.4",
+              "aq": "5305",
+              "bp": "64022.3",
+              "bq": "3909"
+            },
+            "indexPrice": null,
+            "markPrice": null
+          }
+        }
+      },
+      {
+        "description": "spot bids and asks",
+        "method": "fetchBidsAsks",
+        "input": [
+          [
+            "BTC/USDT"
+          ]
+        ],
+        "httpResponse": {
+          "rc": 0,
+          "mc": "SUCCESS",
+          "ma": [],
+          "result": [
+            {
+              "s": "btc_usdt",
+              "t": 1785928178915,
+              "ap": "64114.25",
+              "aq": "17.49513",
+              "bp": "64114.24",
+              "bq": "15.38607"
+            }
+          ]
+        },
+        "parsedResponse": {
+          "BTC/USDT": {
+            "symbol": "BTC/USDT",
+            "timestamp": 1785928178915,
+            "datetime": "2026-08-05T11:09:38.915Z",
+            "high": null,
+            "low": null,
+            "bid": 64114.24,
+            "bidVolume": 15.38607,
+            "ask": 64114.25,
+            "askVolume": 17.49513,
+            "vwap": null,
+            "open": null,
+            "close": null,
+            "last": null,
+            "previousClose": null,
+            "change": null,
+            "percentage": null,
+            "average": null,
+            "baseVolume": null,
+            "quoteVolume": null,
+            "info": {
+              "s": "btc_usdt",
+              "t": 1785928178915,
+              "ap": "64114.25",
+              "aq": "17.49513",
+              "bp": "64114.24",
+              "bq": "15.38607"
+            },
+            "indexPrice": null,
+            "markPrice": null
+          }
+        }
+      }
+    ],
+    "fetchOpenInterest": [
+      {
+        "description": "linear swap open interest",
+        "method": "fetchOpenInterest",
+        "input": [
+          "BTC/USDT:USDT"
+        ],
+        "httpResponse": {
+          "returnCode": 0,
+          "msgInfo": "success",
+          "error": null,
+          "result": {
+            "symbol": "btc_usdt",
+            "openInterest": "21206.0654",
+            "openInterestUsd": "1133703183.13733",
+            "time": 1785927519723
+          }
+        },
+        "parsedResponse": {
+          "symbol": "BTC/USDT:USDT",
+          "openInterestAmount": 21206.0654,
+          "openInterestValue": 1133703183.13733,
+          "timestamp": 1785927519723,
+          "datetime": "2026-08-05T10:58:39.723Z",
+          "info": {
+            "symbol": "btc_usdt",
+            "openInterest": "21206.0654",
+            "openInterestUsd": "1133703183.13733",
+            "time": 1785927519723
+          },
+          "baseVolume": null,
+          "quoteVolume": null
+        }
+      },
+      {
+        "description": "inverse swap open interest",
+        "method": "fetchOpenInterest",
+        "input": [
+          "BTC/USD:BTC"
+        ],
+        "httpResponse": {
+          "returnCode": 0,
+          "msgInfo": "success",
+          "error": null,
+          "result": {
+            "symbol": "btc_usd",
+            "openInterest": "95394000",
+            "openInterestUsd": "95394000",
+            "time": 1785925444152
+          }
+        },
+        "parsedResponse": {
+          "symbol": "BTC/USD:BTC",
+          "openInterestAmount": 95394000,
+          "openInterestValue": 95394000,
+          "timestamp": 1785925444152,
+          "datetime": "2026-08-05T10:24:04.152Z",
+          "info": {
+            "symbol": "btc_usd",
+            "openInterest": "95394000",
+            "openInterestUsd": "95394000",
+            "time": 1785925444152
+          },
+          "baseVolume": null,
+          "quoteVolume": null
+        }
+      }
+    ],
     "fetchPositions": [
       {
         "description": "isolated short position with a real margin-call price (position/list and position/break-list share one mocked response here since the static test harness returns the same httpResponse for every fetch() call within a method; the raw payload below carries both position/list fields and position/break-list fields so the merge + parse logic is still exercised end-to-end)",

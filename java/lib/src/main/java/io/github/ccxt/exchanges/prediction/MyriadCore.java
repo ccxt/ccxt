@@ -38,6 +38,7 @@ public class MyriadCore extends MyriadApi
                 put( "cancelAllOrders", true );
                 put( "cancelOrder", true );
                 put( "cancelOrders", true );
+                put( "createMarketBuyOrderWithCost", true );
                 put( "createOrder", true );
                 put( "createOrders", true );
                 put( "editOrder", true );
@@ -94,46 +95,110 @@ public class MyriadCore extends MyriadApi
                 put( "myriad", new java.util.HashMap<String, Object>() {{
                     put( "public", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "questions", 1 );
-                            put( "questions/{id}", 1 );
-                            put( "markets", 1 );
-                            put( "markets/{id}", 1 );
-                            put( "markets/{networkId}/{id}", 1 );
-                            put( "markets/{id}/events", 1 );
-                            put( "markets/{id}/orderbook", 1 );
-                            put( "markets/{id}/trades", 1 );
-                            put( "markets/{id}/holders", 1 );
-                            put( "markets/{id}/referrals", 1 );
-                            put( "events", 1 );
-                            put( "orders", 1 );
-                            put( "orders/{hash}", 1 );
-                            put( "users/{address}/events", 1 );
-                            put( "users/{address}/referrals", 1 );
-                            put( "users/{address}/portfolio", 1 );
-                            put( "users/{address}/markets", 1 );
-                            put( "tags", 1 );
-                            put( "topics", 1 );
+                            put( "questions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "questions/{id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/{id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/{networkId}/{id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/{id}/events", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/{id}/orderbook", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/{id}/trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/{id}/holders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/{id}/referrals", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "events", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders/{hash}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "users/{address}/events", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "users/{address}/referrals", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "users/{address}/portfolio", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "users/{address}/markets", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "tags", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "topics", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "markets/quote", 1 );
-                            put( "markets/claim", 1 );
-                            put( "orders", 1 );
-                            put( "orders/cancel-batch", 1 );
-                            put( "orders/cancel-all", 1 );
-                            put( "positions/split", 1 );
-                            put( "positions/merge", 1 );
-                            put( "positions/redeem", 1 );
-                            put( "positions/redeem-voided", 1 );
-                            put( "positions/neg-risk/split", 1 );
-                            put( "positions/neg-risk/merge", 1 );
+                            put( "markets/quote", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/claim", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders/cancel-batch", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders/cancel-all", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "positions/split", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "positions/merge", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "positions/redeem", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "positions/redeem-voided", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "positions/neg-risk/split", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "positions/neg-risk/merge", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "delete", new java.util.HashMap<String, Object>() {{
-                            put( "orders/{hash}", 1 );
+                            put( "orders/{hash}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                     put( "private", new java.util.HashMap<String, Object>() {{
                         put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "markets/quote_with_fee", 1 );
+                            put( "markets/quote_with_fee", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                 }} );
@@ -289,7 +354,8 @@ public class MyriadCore extends MyriadApi
                     put( "state", state );
                     put( "limit", limit );
                 }}, rest))).join();
-                Object foundList = this.safeList(response, "data", response);
+                Object responseIsArray = Helpers.isArray(response);
+                Object foundList = ((Helpers.isTrue((responseIsArray)))) ? response : this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object found = ((Helpers.isTrue((!Helpers.isEqual(foundList, null))))) ? foundList : new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(found)); j++)
                 {
@@ -347,7 +413,8 @@ public class MyriadCore extends MyriadApi
                     put( "page", finalPage );
                     put( "trading_model", tradingModel );
                 }}, rest))).join();
-                Object rawMarketsList = this.safeList(response, "data", response);
+                Object responseIsArray = Helpers.isArray(response);
+                Object rawMarketsList = ((Helpers.isTrue((responseIsArray)))) ? response : this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object rawMarkets = ((Helpers.isTrue((!Helpers.isEqual(rawMarketsList, null))))) ? rawMarketsList : new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 Object rawMarketsLength = Helpers.getArrayLength(rawMarkets);
                 if (Helpers.isTrue(Helpers.isEqual(rawMarketsLength, 0)))
@@ -517,7 +584,8 @@ public class MyriadCore extends MyriadApi
                     put( "keyword", q );
                     put( "limit", limit );
                 }}, rest))).join();
-                Object foundList = this.safeList(response, "data", response);
+                Object responseIsArray = Helpers.isArray(response);
+                Object foundList = ((Helpers.isTrue((responseIsArray)))) ? response : this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object found = ((Helpers.isTrue((!Helpers.isEqual(foundList, null))))) ? foundList : new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(found)); j++)
                 {
@@ -570,7 +638,8 @@ public class MyriadCore extends MyriadApi
                     Helpers.addElementToObject(request, "state", state);
                 }
                 Object response = (this.myriadPublicGetQuestions(this.extend(request, rest))).join();
-                Object rawQuestionsList = this.safeList(response, "data", response);
+                Object responseIsArray = Helpers.isArray(response);
+                Object rawQuestionsList = ((Helpers.isTrue((responseIsArray)))) ? response : this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object rawQuestions = ((Helpers.isTrue((!Helpers.isEqual(rawQuestionsList, null))))) ? rawQuestionsList : new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 Object rawQuestionsLength = Helpers.getArrayLength(rawQuestions);
                 if (Helpers.isTrue(Helpers.isEqual(rawQuestionsLength, 0)))
@@ -3515,7 +3584,8 @@ final Object finalNetworkId = networkId;
             //         ]
             //     }
             //
-            Object rowsList = this.safeList(response, "data", response);
+            Object responseIsArray = Helpers.isArray(response);
+            Object rowsList = ((Helpers.isTrue((responseIsArray)))) ? response : this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rows = ((Helpers.isTrue((!Helpers.isEqual(rowsList, null))))) ? rowsList : new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)

@@ -156,65 +156,171 @@ public class DeepcoinCore extends DeepcoinApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "deepcoin/market/books", 1 );
-                        put( "deepcoin/market/candles", 1 );
-                        put( "deepcoin/market/instruments", 1 );
-                        put( "deepcoin/market/tickers", 1 );
-                        put( "deepcoin/market/index-candles", 1 );
-                        put( "deepcoin/market/trades", 1 );
-                        put( "deepcoin/market/mark-price-candles", 1 );
-                        put( "deepcoin/market/step-margin", 5 );
-                        put( "deepcoin/trade/funding-rate", 5 );
-                        put( "deepcoin/trade/fund-rate/current-funding-rate", 5 );
-                        put( "deepcoin/trade/fund-rate/history", 5 );
+                        put( "deepcoin/market/books", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "deepcoin/market/candles", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "deepcoin/market/instruments", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "deepcoin/market/tickers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "deepcoin/market/index-candles", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "deepcoin/market/trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "deepcoin/market/mark-price-candles", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "deepcoin/market/step-margin", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/funding-rate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/fund-rate/current-funding-rate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/fund-rate/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "deepcoin/account/balances", 5 );
-                        put( "deepcoin/account/bills", 5 );
-                        put( "deepcoin/account/positions", 5 );
-                        put( "deepcoin/trade/fills", 5 );
-                        put( "deepcoin/trade/orderByID", 5 );
-                        put( "deepcoin/trade/finishOrderByID", 5 );
-                        put( "deepcoin/trade/orders-history", 5 );
-                        put( "deepcoin/trade/v2/orders-pending", 5 );
-                        put( "deepcoin/trade/trigger-orders-pending", 5 );
-                        put( "deepcoin/trade/trigger-orders-history", 5 );
-                        put( "deepcoin/copytrading/support-contracts", 5 );
-                        put( "deepcoin/copytrading/leader-position", 5 );
-                        put( "deepcoin/copytrading/estimate-profit", 5 );
-                        put( "deepcoin/copytrading/history-profit", 5 );
-                        put( "deepcoin/copytrading/follower-rank", 5 );
-                        put( "deepcoin/internal-transfer/support", 5 );
-                        put( "deepcoin/internal-transfer/history-order", 5 );
-                        put( "deepcoin/rebate/config", 5 );
-                        put( "deepcoin/agents/users", 5 );
-                        put( "deepcoin/agents/users/rebate-list", 5 );
-                        put( "deepcoin/agents/users/rebates", 5 );
-                        put( "deepcoin/asset/deposit-list", 5 );
-                        put( "deepcoin/asset/withdraw-list", 5 );
-                        put( "deepcoin/asset/recharge-chain-list", 5 );
-                        put( "deepcoin/listenkey/acquire", 5 );
-                        put( "deepcoin/listenkey/extend", 5 );
+                        put( "deepcoin/account/balances", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/account/bills", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/account/positions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/fills", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/orderByID", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/finishOrderByID", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/orders-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/v2/orders-pending", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/trigger-orders-pending", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/trigger-orders-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/copytrading/support-contracts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/copytrading/leader-position", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/copytrading/estimate-profit", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/copytrading/history-profit", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/copytrading/follower-rank", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/internal-transfer/support", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/internal-transfer/history-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/rebate/config", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/agents/users", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/agents/users/rebate-list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/agents/users/rebates", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/asset/deposit-list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/asset/withdraw-list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/asset/recharge-chain-list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/listenkey/acquire", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/listenkey/extend", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "deepcoin/account/set-leverage", 5 );
-                        put( "deepcoin/trade/order", 5 );
-                        put( "deepcoin/trade/replace-order", 5 );
-                        put( "deepcoin/trade/cancel-order", 5 );
-                        put( "deepcoin/trade/batch-cancel-order", 5 );
-                        put( "deepcoin/trade/cancel-trigger-order", Helpers.divide(1, 6) );
-                        put( "deepcoin/trade/swap/cancel-all", 5 );
-                        put( "deepcoin/trade/trigger-order", 5 );
-                        put( "deepcoin/trade/batch-close-position", 5 );
-                        put( "deepcoin/trade/replace-order-sltp", 5 );
-                        put( "deepcoin/trade/close-position-by-ids", 5 );
-                        put( "deepcoin/copytrading/leader-settings", 5 );
-                        put( "deepcoin/copytrading/set-contracts", 5 );
-                        put( "deepcoin/internal-transfer", 5 );
-                        put( "deepcoin/rebate/config", 5 );
-                        put( "deepcoin/asset/transfer", 5 );
+                        put( "deepcoin/account/set-leverage", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/replace-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/cancel-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/batch-cancel-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/cancel-trigger-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(1, 6) );
+                        }} );
+                        put( "deepcoin/trade/swap/cancel-all", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/trigger-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/batch-close-position", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/replace-order-sltp", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/close-position-by-ids", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/copytrading/leader-settings", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/copytrading/set-contracts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/internal-transfer", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/rebate/config", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/asset/transfer", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -312,7 +418,7 @@ public class DeepcoinCore extends DeepcoinApi
                 put( "networks", new java.util.HashMap<String, Object>() {{
                     put( "ERC20", "ERC20" );
                     put( "TRC20", "TRC20" );
-                    put( "ARB", "ARBITRUM" );
+                    put( "ARBITRUM", "ARBITRUM" );
                     put( "BSC", "BSC(BEP20)" );
                     put( "SOL", "SOL" );
                     put( "BTC", "Bitcoin" );
@@ -1210,12 +1316,12 @@ public class DeepcoinCore extends DeepcoinApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "paginate", false);
+            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "code", null, 1, 50)).join();
+                return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, parameters, "code", null, 1, 50)).join();
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
@@ -2253,7 +2359,7 @@ public class DeepcoinCore extends DeepcoinApi
             Object length = Helpers.getArrayLength(data);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
             {
-                return null;
+                throw new OrderNotFound((String)Helpers.add(Helpers.add(this.id, " fetchOpenOrder() could not find order id "), id)) ;
             }
             Object entry = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(entry, market);

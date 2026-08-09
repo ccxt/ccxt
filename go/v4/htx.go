@@ -113,7 +113,7 @@ func (this *HtxCore) Describe() any {
 			"fetchPositionsRisk":             false,
 			"fetchPremiumIndexOHLCV":         true,
 			"fetchSettlementHistory":         true,
-			"fetchStatus":                    false,
+			"fetchStatus":                    true,
 			"fetchTicker":                    true,
 			"fetchTickers":                   true,
 			"fetchTime":                      true,
@@ -188,154 +188,368 @@ func (this *HtxCore) Describe() any {
 		"api": map[string]any{
 			"v2Public": map[string]any{
 				"get": map[string]any{
-					"reference/currencies": 1,
-					"market-status":        1,
+					"reference/currencies": map[string]any{
+						"cost": 1,
+					},
+					"market-status": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"v2Private": map[string]any{
 				"get": map[string]any{
-					"account/ledger":              1,
-					"account/withdraw/quota":      1,
-					"account/withdraw/address":    1,
-					"account/deposit/address":     1,
-					"account/repayment":           5,
-					"reference/transact-fee-rate": 1,
-					"account/asset-valuation":     0.2,
-					"point/account":               5,
-					"sub-user/user-list":          1,
-					"sub-user/user-state":         1,
-					"sub-user/account-list":       1,
-					"sub-user/deposit-address":    1,
-					"sub-user/query-deposit":      1,
-					"user/api-key":                1,
-					"user/uid":                    1,
-					"algo-orders/opening":         1,
-					"algo-orders/history":         1,
-					"algo-orders/specific":        1,
-					"c2c/offers":                  1,
-					"c2c/offer":                   1,
-					"c2c/transactions":            1,
-					"c2c/repayment":               1,
-					"c2c/account":                 1,
-					"etp/reference":               1,
-					"etp/transactions":            5,
-					"etp/transaction":             5,
-					"etp/rebalance":               1,
-					"etp/limit":                   1,
+					"account/ledger": map[string]any{
+						"cost": 1,
+					},
+					"account/withdraw/quota": map[string]any{
+						"cost": 1,
+					},
+					"account/withdraw/address": map[string]any{
+						"cost": 1,
+					},
+					"account/deposit/address": map[string]any{
+						"cost": 1,
+					},
+					"account/repayment": map[string]any{
+						"cost": 5,
+					},
+					"reference/transact-fee-rate": map[string]any{
+						"cost": 1,
+					},
+					"account/asset-valuation": map[string]any{
+						"cost": 0.2,
+					},
+					"point/account": map[string]any{
+						"cost": 5,
+					},
+					"sub-user/user-list": map[string]any{
+						"cost": 1,
+					},
+					"sub-user/user-state": map[string]any{
+						"cost": 1,
+					},
+					"sub-user/account-list": map[string]any{
+						"cost": 1,
+					},
+					"sub-user/deposit-address": map[string]any{
+						"cost": 1,
+					},
+					"sub-user/query-deposit": map[string]any{
+						"cost": 1,
+					},
+					"user/api-key": map[string]any{
+						"cost": 1,
+					},
+					"user/uid": map[string]any{
+						"cost": 1,
+					},
+					"algo-orders/opening": map[string]any{
+						"cost": 1,
+					},
+					"algo-orders/history": map[string]any{
+						"cost": 1,
+					},
+					"algo-orders/specific": map[string]any{
+						"cost": 1,
+					},
+					"c2c/offers": map[string]any{
+						"cost": 1,
+					},
+					"c2c/offer": map[string]any{
+						"cost": 1,
+					},
+					"c2c/transactions": map[string]any{
+						"cost": 1,
+					},
+					"c2c/repayment": map[string]any{
+						"cost": 1,
+					},
+					"c2c/account": map[string]any{
+						"cost": 1,
+					},
+					"etp/reference": map[string]any{
+						"cost": 1,
+					},
+					"etp/transactions": map[string]any{
+						"cost": 5,
+					},
+					"etp/transaction": map[string]any{
+						"cost": 5,
+					},
+					"etp/rebalance": map[string]any{
+						"cost": 1,
+					},
+					"etp/limit": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"account/transfer":              1,
-					"account/repayment":             5,
-					"point/transfer":                5,
-					"sub-user/management":           1,
-					"sub-user/creation":             1,
-					"sub-user/tradable-market":      1,
-					"sub-user/transferability":      1,
-					"sub-user/api-key-generation":   1,
-					"sub-user/api-key-modification": 1,
-					"sub-user/api-key-deletion":     1,
-					"sub-user/deduct-mode":          1,
-					"algo-orders":                   1,
-					"algo-orders/cancel-all-after":  1,
-					"algo-orders/cancellation":      1,
-					"c2c/offer":                     1,
-					"c2c/cancellation":              1,
-					"c2c/cancel-all":                1,
-					"c2c/repayment":                 1,
-					"c2c/transfer":                  1,
-					"etp/creation":                  5,
-					"etp/redemption":                5,
-					"etp/{transactId}/cancel":       10,
-					"etp/batch-cancel":              50,
+					"account/transfer": map[string]any{
+						"cost": 1,
+					},
+					"account/repayment": map[string]any{
+						"cost": 5,
+					},
+					"point/transfer": map[string]any{
+						"cost": 5,
+					},
+					"sub-user/management": map[string]any{
+						"cost": 1,
+					},
+					"sub-user/creation": map[string]any{
+						"cost": 1,
+					},
+					"sub-user/tradable-market": map[string]any{
+						"cost": 1,
+					},
+					"sub-user/transferability": map[string]any{
+						"cost": 1,
+					},
+					"sub-user/api-key-generation": map[string]any{
+						"cost": 1,
+					},
+					"sub-user/api-key-modification": map[string]any{
+						"cost": 1,
+					},
+					"sub-user/api-key-deletion": map[string]any{
+						"cost": 1,
+					},
+					"sub-user/deduct-mode": map[string]any{
+						"cost": 1,
+					},
+					"algo-orders": map[string]any{
+						"cost": 1,
+					},
+					"algo-orders/cancel-all-after": map[string]any{
+						"cost": 1,
+					},
+					"algo-orders/cancellation": map[string]any{
+						"cost": 1,
+					},
+					"c2c/offer": map[string]any{
+						"cost": 1,
+					},
+					"c2c/cancellation": map[string]any{
+						"cost": 1,
+					},
+					"c2c/cancel-all": map[string]any{
+						"cost": 1,
+					},
+					"c2c/repayment": map[string]any{
+						"cost": 1,
+					},
+					"c2c/transfer": map[string]any{
+						"cost": 1,
+					},
+					"etp/creation": map[string]any{
+						"cost": 5,
+					},
+					"etp/redemption": map[string]any{
+						"cost": 5,
+					},
+					"etp/{transactId}/cancel": map[string]any{
+						"cost": 10,
+					},
+					"etp/batch-cancel": map[string]any{
+						"cost": 50,
+					},
 				},
 			},
 			"public": map[string]any{
 				"get": map[string]any{
-					"common/symbols":     1,
-					"common/currencys":   1,
-					"common/timestamp":   1,
-					"common/exchange":    1,
-					"settings/currencys": 1,
+					"common/symbols": map[string]any{
+						"cost": 1,
+					},
+					"common/currencys": map[string]any{
+						"cost": 1,
+					},
+					"common/timestamp": map[string]any{
+						"cost": 1,
+					},
+					"common/exchange": map[string]any{
+						"cost": 1,
+					},
+					"settings/currencys": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"account/accounts":               0.2,
-					"account/accounts/{id}/balance":  0.2,
-					"account/accounts/{sub-uid}":     1,
-					"account/history":                4,
-					"cross-margin/loan-info":         1,
-					"margin/loan-info":               1,
-					"fee/fee-rate/get":               1,
-					"order/openOrders":               0.4,
-					"order/orders":                   0.4,
-					"order/orders/{id}":              0.4,
-					"order/orders/{id}/matchresults": 0.4,
-					"order/orders/getClientOrder":    0.4,
-					"order/history":                  1,
-					"order/matchresults":             1,
-					"query/deposit-withdraw":         1,
-					"margin/loan-orders":             0.2,
-					"margin/accounts/balance":        0.2,
-					"cross-margin/loan-orders":       1,
-					"cross-margin/accounts/balance":  1,
-					"points/actions":                 1,
-					"points/orders":                  1,
-					"subuser/aggregate-balance":      10,
-					"stable-coin/exchange_rate":      1,
-					"stable-coin/quote":              1,
+					"account/accounts": map[string]any{
+						"cost": 0.2,
+					},
+					"account/accounts/{id}/balance": map[string]any{
+						"cost": 0.2,
+					},
+					"account/accounts/{sub-uid}": map[string]any{
+						"cost": 1,
+					},
+					"account/history": map[string]any{
+						"cost": 4,
+					},
+					"cross-margin/loan-info": map[string]any{
+						"cost": 1,
+					},
+					"margin/loan-info": map[string]any{
+						"cost": 1,
+					},
+					"fee/fee-rate/get": map[string]any{
+						"cost": 1,
+					},
+					"order/openOrders": map[string]any{
+						"cost": 0.4,
+					},
+					"order/orders": map[string]any{
+						"cost": 0.4,
+					},
+					"order/orders/{id}": map[string]any{
+						"cost": 0.4,
+					},
+					"order/orders/{id}/matchresults": map[string]any{
+						"cost": 0.4,
+					},
+					"order/orders/getClientOrder": map[string]any{
+						"cost": 0.4,
+					},
+					"order/history": map[string]any{
+						"cost": 1,
+					},
+					"order/matchresults": map[string]any{
+						"cost": 1,
+					},
+					"query/deposit-withdraw": map[string]any{
+						"cost": 1,
+					},
+					"margin/loan-orders": map[string]any{
+						"cost": 0.2,
+					},
+					"margin/accounts/balance": map[string]any{
+						"cost": 0.2,
+					},
+					"cross-margin/loan-orders": map[string]any{
+						"cost": 1,
+					},
+					"cross-margin/accounts/balance": map[string]any{
+						"cost": 1,
+					},
+					"points/actions": map[string]any{
+						"cost": 1,
+					},
+					"points/orders": map[string]any{
+						"cost": 1,
+					},
+					"subuser/aggregate-balance": map[string]any{
+						"cost": 10,
+					},
+					"stable-coin/exchange_rate": map[string]any{
+						"cost": 1,
+					},
+					"stable-coin/quote": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"account/transfer":                     1,
-					"futures/transfer":                     1,
-					"order/batch-orders":                   0.4,
-					"order/orders/place":                   0.2,
-					"order/orders/submitCancelClientOrder": 0.2,
-					"order/orders/batchCancelOpenOrders":   0.4,
-					"order/orders/{id}/submitcancel":       0.2,
-					"order/orders/batchcancel":             0.4,
-					"dw/withdraw/api/create":               1,
-					"dw/withdraw-virtual/{id}/cancel":      1,
-					"dw/transfer-in/margin":                10,
-					"dw/transfer-out/margin":               10,
-					"margin/orders":                        10,
-					"margin/orders/{id}/repay":             10,
-					"cross-margin/transfer-in":             1,
-					"cross-margin/transfer-out":            1,
-					"cross-margin/orders":                  1,
-					"cross-margin/orders/{id}/repay":       1,
-					"stable-coin/exchange":                 1,
-					"subuser/transfer":                     10,
+					"account/transfer": map[string]any{
+						"cost": 1,
+					},
+					"futures/transfer": map[string]any{
+						"cost": 1,
+					},
+					"order/batch-orders": map[string]any{
+						"cost": 0.4,
+					},
+					"order/orders/place": map[string]any{
+						"cost": 0.2,
+					},
+					"order/orders/submitCancelClientOrder": map[string]any{
+						"cost": 0.2,
+					},
+					"order/orders/batchCancelOpenOrders": map[string]any{
+						"cost": 0.4,
+					},
+					"order/orders/{id}/submitcancel": map[string]any{
+						"cost": 0.2,
+					},
+					"order/orders/batchcancel": map[string]any{
+						"cost": 0.4,
+					},
+					"dw/withdraw/api/create": map[string]any{
+						"cost": 1,
+					},
+					"dw/withdraw-virtual/{id}/cancel": map[string]any{
+						"cost": 1,
+					},
+					"dw/transfer-in/margin": map[string]any{
+						"cost": 10,
+					},
+					"dw/transfer-out/margin": map[string]any{
+						"cost": 10,
+					},
+					"margin/orders": map[string]any{
+						"cost": 10,
+					},
+					"margin/orders/{id}/repay": map[string]any{
+						"cost": 10,
+					},
+					"cross-margin/transfer-in": map[string]any{
+						"cost": 1,
+					},
+					"cross-margin/transfer-out": map[string]any{
+						"cost": 1,
+					},
+					"cross-margin/orders": map[string]any{
+						"cost": 1,
+					},
+					"cross-margin/orders/{id}/repay": map[string]any{
+						"cost": 1,
+					},
+					"stable-coin/exchange": map[string]any{
+						"cost": 1,
+					},
+					"subuser/transfer": map[string]any{
+						"cost": 10,
+					},
 				},
 			},
 			"status": map[string]any{
 				"public": map[string]any{
 					"spot": map[string]any{
 						"get": map[string]any{
-							"api/v2/summary.json": 1,
+							"api/v2/summary.json": map[string]any{
+								"cost": 1,
+							},
 						},
 					},
 					"future": map[string]any{
 						"inverse": map[string]any{
 							"get": map[string]any{
-								"api/v2/summary.json": 1,
+								"api/v2/summary.json": map[string]any{
+									"cost": 1,
+								},
 							},
 						},
 						"linear": map[string]any{
 							"get": map[string]any{
-								"api/v2/summary.json": 1,
+								"api/v2/summary.json": map[string]any{
+									"cost": 1,
+								},
 							},
 						},
 					},
 					"swap": map[string]any{
 						"inverse": map[string]any{
 							"get": map[string]any{
-								"api/v2/summary.json": 1,
+								"api/v2/summary.json": map[string]any{
+									"cost": 1,
+								},
 							},
 						},
 						"linear": map[string]any{
 							"get": map[string]any{
-								"api/v2/summary.json": 1,
+								"api/v2/summary.json": map[string]any{
+									"cost": 1,
+								},
 							},
 						},
 					},
@@ -344,382 +558,1098 @@ func (this *HtxCore) Describe() any {
 			"spot": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"v2/market-status":                  1,
-						"v1/common/symbols":                 1,
-						"v1/common/currencys":               1,
-						"v2/settings/common/currencies":     1,
-						"v2/reference/currencies":           1,
-						"v1/common/timestamp":               1,
-						"v1/common/exchange":                1,
-						"v1/settings/common/chains":         1,
-						"v1/settings/common/currencys":      1,
-						"v1/settings/common/symbols":        1,
-						"v2/settings/common/symbols":        1,
-						"v1/settings/common/market-symbols": 1,
-						"market/history/candles":            1,
-						"market/history/kline":              1,
-						"market/detail/merged":              1,
-						"market/tickers":                    1,
-						"market/detail":                     1,
-						"market/depth":                      1,
-						"market/trade":                      1,
-						"market/history/trade":              1,
-						"market/etp":                        1,
-						"v2/etp/reference":                  1,
-						"v2/etp/rebalance":                  1,
+						"v2/market-status": map[string]any{
+							"cost": 1,
+						},
+						"v1/common/symbols": map[string]any{
+							"cost": 1,
+						},
+						"v1/common/currencys": map[string]any{
+							"cost": 1,
+						},
+						"v2/settings/common/currencies": map[string]any{
+							"cost": 1,
+						},
+						"v2/reference/currencies": map[string]any{
+							"cost": 1,
+						},
+						"v1/common/timestamp": map[string]any{
+							"cost": 1,
+						},
+						"v1/common/exchange": map[string]any{
+							"cost": 1,
+						},
+						"v1/settings/common/chains": map[string]any{
+							"cost": 1,
+						},
+						"v1/settings/common/currencys": map[string]any{
+							"cost": 1,
+						},
+						"v1/settings/common/symbols": map[string]any{
+							"cost": 1,
+						},
+						"v2/settings/common/symbols": map[string]any{
+							"cost": 1,
+						},
+						"v1/settings/common/market-symbols": map[string]any{
+							"cost": 1,
+						},
+						"market/history/candles": map[string]any{
+							"cost": 1,
+						},
+						"market/history/kline": map[string]any{
+							"cost": 1,
+						},
+						"market/detail/merged": map[string]any{
+							"cost": 1,
+						},
+						"market/tickers": map[string]any{
+							"cost": 1,
+						},
+						"market/detail": map[string]any{
+							"cost": 1,
+						},
+						"market/depth": map[string]any{
+							"cost": 1,
+						},
+						"market/trade": map[string]any{
+							"cost": 1,
+						},
+						"market/history/trade": map[string]any{
+							"cost": 1,
+						},
+						"market/etp": map[string]any{
+							"cost": 1,
+						},
+						"v2/etp/reference": map[string]any{
+							"cost": 1,
+						},
+						"v2/etp/rebalance": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"v1/account/accounts":                      0.2,
-						"v1/account/accounts/{account-id}/balance": 0.2,
-						"v2/account/valuation":                     1,
-						"v2/account/asset-valuation":               0.2,
-						"v1/account/history":                       4,
-						"v2/account/ledger":                        1,
-						"v2/point/account":                         5,
-						"v2/account/deposit/address":               1,
-						"v2/account/withdraw/quota":                1,
-						"v2/account/withdraw/address":              1,
-						"v2/reference/currencies":                  1,
-						"v1/query/deposit-withdraw":                1,
-						"v1/query/withdraw/client-order-id":        1,
-						"v2/user/api-key":                          1,
-						"v2/user/uid":                              1,
-						"v2/sub-user/user-list":                    1,
-						"v2/sub-user/user-state":                   1,
-						"v2/sub-user/account-list":                 1,
-						"v2/sub-user/deposit-address":              1,
-						"v2/sub-user/query-deposit":                1,
-						"v1/subuser/aggregate-balance":             10,
-						"v1/account/accounts/{sub-uid}":            1,
-						"v1/order/openOrders":                      0.4,
-						"v1/order/orders/{order-id}":               0.4,
-						"v1/order/orders/getClientOrder":           0.4,
-						"v1/order/orders/{order-id}/matchresult":   0.4,
-						"v1/order/orders/{order-id}/matchresults":  0.4,
-						"v1/order/orders":                          0.4,
-						"v1/order/history":                         1,
-						"v1/order/matchresults":                    1,
-						"v2/reference/transact-fee-rate":           1,
-						"v2/algo-orders/opening":                   1,
-						"v2/algo-orders/history":                   1,
-						"v2/algo-orders/specific":                  1,
-						"v1/margin/loan-info":                      1,
-						"v1/margin/loan-orders":                    0.2,
-						"v1/margin/accounts/balance":               0.2,
-						"v1/cross-margin/loan-info":                1,
-						"v1/cross-margin/loan-orders":              1,
-						"v1/cross-margin/accounts/balance":         1,
-						"v2/account/repayment":                     5,
-						"v5/account/universal_transfer_records":    4,
-						"v1/stable-coin/quote":                     1,
-						"v1/stable_coin/exchange_rate":             1,
-						"v2/etp/transactions":                      5,
-						"v2/etp/transaction":                       5,
-						"v2/etp/limit":                             1,
+						"v1/account/accounts": map[string]any{
+							"cost": 0.2,
+						},
+						"v1/account/accounts/{account-id}/balance": map[string]any{
+							"cost": 0.2,
+						},
+						"v2/account/valuation": map[string]any{
+							"cost": 1,
+						},
+						"v2/account/asset-valuation": map[string]any{
+							"cost": 0.2,
+						},
+						"v1/account/history": map[string]any{
+							"cost": 4,
+						},
+						"v2/account/ledger": map[string]any{
+							"cost": 1,
+						},
+						"v2/point/account": map[string]any{
+							"cost": 5,
+						},
+						"v2/account/deposit/address": map[string]any{
+							"cost": 1,
+						},
+						"v2/account/withdraw/quota": map[string]any{
+							"cost": 1,
+						},
+						"v2/account/withdraw/address": map[string]any{
+							"cost": 1,
+						},
+						"v2/reference/currencies": map[string]any{
+							"cost": 1,
+						},
+						"v1/query/deposit-withdraw": map[string]any{
+							"cost": 1,
+						},
+						"v1/query/withdraw/client-order-id": map[string]any{
+							"cost": 1,
+						},
+						"v2/user/api-key": map[string]any{
+							"cost": 1,
+						},
+						"v2/user/uid": map[string]any{
+							"cost": 1,
+						},
+						"v2/sub-user/user-list": map[string]any{
+							"cost": 1,
+						},
+						"v2/sub-user/user-state": map[string]any{
+							"cost": 1,
+						},
+						"v2/sub-user/account-list": map[string]any{
+							"cost": 1,
+						},
+						"v2/sub-user/deposit-address": map[string]any{
+							"cost": 1,
+						},
+						"v2/sub-user/query-deposit": map[string]any{
+							"cost": 1,
+						},
+						"v1/subuser/aggregate-balance": map[string]any{
+							"cost": 10,
+						},
+						"v1/account/accounts/{sub-uid}": map[string]any{
+							"cost": 1,
+						},
+						"v1/order/openOrders": map[string]any{
+							"cost": 0.4,
+						},
+						"v1/order/orders/{order-id}": map[string]any{
+							"cost": 0.4,
+						},
+						"v1/order/orders/getClientOrder": map[string]any{
+							"cost": 0.4,
+						},
+						"v1/order/orders/{order-id}/matchresult": map[string]any{
+							"cost": 0.4,
+						},
+						"v1/order/orders/{order-id}/matchresults": map[string]any{
+							"cost": 0.4,
+						},
+						"v1/order/orders": map[string]any{
+							"cost": 0.4,
+						},
+						"v1/order/history": map[string]any{
+							"cost": 1,
+						},
+						"v1/order/matchresults": map[string]any{
+							"cost": 1,
+						},
+						"v2/reference/transact-fee-rate": map[string]any{
+							"cost": 1,
+						},
+						"v2/algo-orders/opening": map[string]any{
+							"cost": 1,
+						},
+						"v2/algo-orders/history": map[string]any{
+							"cost": 1,
+						},
+						"v2/algo-orders/specific": map[string]any{
+							"cost": 1,
+						},
+						"v1/margin/loan-info": map[string]any{
+							"cost": 1,
+						},
+						"v1/margin/loan-orders": map[string]any{
+							"cost": 0.2,
+						},
+						"v1/margin/accounts/balance": map[string]any{
+							"cost": 0.2,
+						},
+						"v1/cross-margin/loan-info": map[string]any{
+							"cost": 1,
+						},
+						"v1/cross-margin/loan-orders": map[string]any{
+							"cost": 1,
+						},
+						"v1/cross-margin/accounts/balance": map[string]any{
+							"cost": 1,
+						},
+						"v2/account/repayment": map[string]any{
+							"cost": 5,
+						},
+						"v5/account/universal_transfer_records": map[string]any{
+							"cost": 4,
+						},
+						"v1/stable-coin/quote": map[string]any{
+							"cost": 1,
+						},
+						"v1/stable_coin/exchange_rate": map[string]any{
+							"cost": 1,
+						},
+						"v2/etp/transactions": map[string]any{
+							"cost": 5,
+						},
+						"v2/etp/transaction": map[string]any{
+							"cost": 5,
+						},
+						"v2/etp/limit": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"v1/account/transfer":                         1,
-						"v1/futures/transfer":                         1,
-						"v2/point/transfer":                           5,
-						"v2/account/transfer":                         1,
-						"v1/dw/withdraw/api/create":                   1,
-						"v1/dw/withdraw-virtual/{withdraw-id}/cancel": 1,
-						"v2/sub-user/deduct-mode":                     1,
-						"v2/sub-user/creation":                        1,
-						"v2/sub-user/management":                      1,
-						"v2/sub-user/tradable-market":                 1,
-						"v2/sub-user/transferability":                 1,
-						"v2/sub-user/api-key-generation":              1,
-						"v2/sub-user/api-key-modification":            1,
-						"v2/sub-user/api-key-deletion":                1,
-						"v1/subuser/transfer":                         10,
-						"v1/trust/user/active/credit":                 10,
-						"v1/order/orders/place":                       0.2,
-						"v1/order/batch-orders":                       0.4,
-						"v1/order/auto/place":                         0.2,
-						"v1/order/orders/{order-id}/submitcancel":     0.2,
-						"v1/order/orders/submitCancelClientOrder":     0.2,
-						"v1/order/orders/batchCancelOpenOrders":       0.4,
-						"v1/order/orders/batchcancel":                 0.4,
-						"v2/algo-orders/cancel-all-after":             1,
-						"v2/algo-orders":                              1,
-						"v2/algo-orders/cancellation":                 1,
-						"v2/account/repayment":                        5,
-						"v1/dw/transfer-in/margin":                    10,
-						"v1/dw/transfer-out/margin":                   10,
-						"v1/margin/orders":                            10,
-						"v1/margin/orders/{order-id}/repay":           10,
-						"v1/cross-margin/transfer-in":                 1,
-						"v1/cross-margin/transfer-out":                1,
-						"v1/cross-margin/orders":                      1,
-						"v1/cross-margin/orders/{order-id}/repay":     1,
-						"v1/stable-coin/exchange":                     1,
-						"v2/etp/creation":                             5,
-						"v2/etp/redemption":                           5,
-						"v2/etp/{transactId}/cancel":                  10,
-						"v2/etp/batch-cancel":                         50,
+						"v1/account/transfer": map[string]any{
+							"cost": 1,
+						},
+						"v1/futures/transfer": map[string]any{
+							"cost": 1,
+						},
+						"v2/point/transfer": map[string]any{
+							"cost": 5,
+						},
+						"v2/account/transfer": map[string]any{
+							"cost": 1,
+						},
+						"v1/dw/withdraw/api/create": map[string]any{
+							"cost": 1,
+						},
+						"v1/dw/withdraw-virtual/{withdraw-id}/cancel": map[string]any{
+							"cost": 1,
+						},
+						"v2/sub-user/deduct-mode": map[string]any{
+							"cost": 1,
+						},
+						"v2/sub-user/creation": map[string]any{
+							"cost": 1,
+						},
+						"v2/sub-user/management": map[string]any{
+							"cost": 1,
+						},
+						"v2/sub-user/tradable-market": map[string]any{
+							"cost": 1,
+						},
+						"v2/sub-user/transferability": map[string]any{
+							"cost": 1,
+						},
+						"v2/sub-user/api-key-generation": map[string]any{
+							"cost": 1,
+						},
+						"v2/sub-user/api-key-modification": map[string]any{
+							"cost": 1,
+						},
+						"v2/sub-user/api-key-deletion": map[string]any{
+							"cost": 1,
+						},
+						"v1/subuser/transfer": map[string]any{
+							"cost": 10,
+						},
+						"v1/trust/user/active/credit": map[string]any{
+							"cost": 10,
+						},
+						"v1/order/orders/place": map[string]any{
+							"cost": 0.2,
+						},
+						"v1/order/batch-orders": map[string]any{
+							"cost": 0.4,
+						},
+						"v1/order/auto/place": map[string]any{
+							"cost": 0.2,
+						},
+						"v1/order/orders/{order-id}/submitcancel": map[string]any{
+							"cost": 0.2,
+						},
+						"v1/order/orders/submitCancelClientOrder": map[string]any{
+							"cost": 0.2,
+						},
+						"v1/order/orders/batchCancelOpenOrders": map[string]any{
+							"cost": 0.4,
+						},
+						"v1/order/orders/batchcancel": map[string]any{
+							"cost": 0.4,
+						},
+						"v2/algo-orders/cancel-all-after": map[string]any{
+							"cost": 1,
+						},
+						"v2/algo-orders": map[string]any{
+							"cost": 1,
+						},
+						"v2/algo-orders/cancellation": map[string]any{
+							"cost": 1,
+						},
+						"v2/account/repayment": map[string]any{
+							"cost": 5,
+						},
+						"v1/dw/transfer-in/margin": map[string]any{
+							"cost": 10,
+						},
+						"v1/dw/transfer-out/margin": map[string]any{
+							"cost": 10,
+						},
+						"v1/margin/orders": map[string]any{
+							"cost": 10,
+						},
+						"v1/margin/orders/{order-id}/repay": map[string]any{
+							"cost": 10,
+						},
+						"v1/cross-margin/transfer-in": map[string]any{
+							"cost": 1,
+						},
+						"v1/cross-margin/transfer-out": map[string]any{
+							"cost": 1,
+						},
+						"v1/cross-margin/orders": map[string]any{
+							"cost": 1,
+						},
+						"v1/cross-margin/orders/{order-id}/repay": map[string]any{
+							"cost": 1,
+						},
+						"v1/stable-coin/exchange": map[string]any{
+							"cost": 1,
+						},
+						"v2/etp/creation": map[string]any{
+							"cost": 5,
+						},
+						"v2/etp/redemption": map[string]any{
+							"cost": 5,
+						},
+						"v2/etp/{transactId}/cancel": map[string]any{
+							"cost": 10,
+						},
+						"v2/etp/batch-cancel": map[string]any{
+							"cost": 50,
+						},
 					},
 				},
 			},
 			"contract": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"api/v1/timestamp":                                      1,
-						"heartbeat/":                                            1,
-						"api/v1/contract_contract_info":                         1,
-						"api/v1/contract_index":                                 1,
-						"api/v1/contract_query_elements":                        1,
-						"api/v1/contract_price_limit":                           1,
-						"api/v1/contract_open_interest":                         1,
-						"api/v1/contract_delivery_price":                        1,
-						"market/depth":                                          1,
-						"market/bbo":                                            1,
-						"market/history/kline":                                  1,
-						"index/market/history/mark_price_kline":                 1,
-						"market/detail/merged":                                  1,
-						"market/detail/batch_merged":                            1,
-						"v2/market/detail/batch_merged":                         1,
-						"market/trade":                                          1,
-						"market/history/trade":                                  1,
-						"api/v1/contract_risk_info":                             1,
-						"api/v1/contract_insurance_fund":                        1,
-						"api/v1/contract_adjustfactor":                          1,
-						"api/v1/contract_his_open_interest":                     1,
-						"api/v1/contract_ladder_margin":                         1,
-						"api/v1/contract_api_state":                             1,
-						"api/v1/contract_elite_account_ratio":                   1,
-						"api/v1/contract_elite_position_ratio":                  1,
-						"api/v1/contract_liquidation_orders":                    1,
-						"api/v1/contract_settlement_records":                    1,
-						"index/market/history/index":                            1,
-						"index/market/history/basis":                            1,
-						"api/v1/contract_estimated_settlement_price":            1,
-						"api/v3/contract_liquidation_orders":                    1,
-						"swap-api/v1/swap_contract_info":                        1,
-						"swap-api/v1/swap_index":                                1,
-						"swap-api/v1/swap_query_elements":                       1,
-						"swap-api/v1/swap_price_limit":                          1,
-						"swap-api/v1/swap_open_interest":                        1,
-						"swap-ex/market/depth":                                  1,
-						"swap-ex/market/bbo":                                    1,
-						"swap-ex/market/history/kline":                          1,
-						"index/market/history/swap_mark_price_kline":            1,
-						"swap-ex/market/detail/merged":                          1,
-						"v2/swap-ex/market/detail/batch_merged":                 1,
-						"index/market/history/swap_premium_index_kline":         1,
-						"swap-ex/market/detail/batch_merged":                    1,
-						"swap-ex/market/trade":                                  1,
-						"swap-ex/market/history/trade":                          1,
-						"swap-api/v1/swap_risk_info":                            1,
-						"swap-api/v1/swap_insurance_fund":                       1,
-						"swap-api/v1/swap_adjustfactor":                         1,
-						"swap-api/v1/swap_his_open_interest":                    1,
-						"swap-api/v1/swap_ladder_margin":                        1,
-						"swap-api/v1/swap_api_state":                            1,
-						"swap-api/v1/swap_elite_account_ratio":                  1,
-						"swap-api/v1/swap_elite_position_ratio":                 1,
-						"swap-api/v1/swap_estimated_settlement_price":           1,
-						"swap-api/v1/swap_liquidation_orders":                   1,
-						"swap-api/v1/swap_settlement_records":                   1,
-						"swap-api/v1/swap_funding_rate":                         1,
-						"swap-api/v1/swap_batch_funding_rate":                   1,
-						"swap-api/v1/swap_historical_funding_rate":              1,
-						"swap-api/v3/swap_liquidation_orders":                   1,
-						"index/market/history/swap_estimated_rate_kline":        1,
-						"index/market/history/swap_basis":                       1,
-						"linear-swap-api/v1/swap_contract_info":                 1,
-						"linear-swap-api/v1/swap_index":                         1,
-						"linear-swap-api/v1/swap_query_elements":                1,
-						"linear-swap-api/v1/swap_price_limit":                   1,
-						"linear-swap-ex/market/depth":                           1,
-						"linear-swap-ex/market/bbo":                             1,
-						"linear-swap-ex/market/history/kline":                   1,
-						"index/market/history/linear_swap_mark_price_kline":     1,
-						"linear-swap-ex/market/detail/merged":                   1,
-						"linear-swap-ex/market/detail/batch_merged":             1,
-						"v2/linear-swap-ex/market/detail/batch_merged":          1,
-						"linear-swap-ex/market/trade":                           1,
-						"linear-swap-ex/market/history/trade":                   1,
-						"swap-api/v1/linear-swap-api/v1/swap_insurance_fund":    1,
-						"linear-swap-api/v1/swap_adjustfactor":                  1,
-						"linear-swap-api/v1/swap_cross_adjustfactor":            1,
-						"linear-swap-api/v1/swap_his_open_interest":             1,
-						"linear-swap-api/v1/swap_ladder_margin":                 1,
-						"linear-swap-api/v1/swap_cross_ladder_margin":           1,
-						"linear-swap-api/v1/swap_api_state":                     1,
-						"linear-swap-api/v1/swap_elite_account_ratio":           1,
-						"linear-swap-api/v1/swap_elite_position_ratio":          1,
-						"linear-swap-api/v1/swap_settlement_records":            1,
-						"linear-swap-api/v3/swap_liquidation_orders":            1,
-						"index/market/history/linear_swap_premium_index_kline":  1,
-						"index/market/history/linear_swap_estimated_rate_kline": 1,
-						"index/market/history/linear_swap_basis":                1,
-						"linear-swap-api/v1/swap_estimated_settlement_price":    1,
-						"v5/market/funding_rate":                                0.125,
-						"v5/market/funding_rate_history":                        0.125,
-						"v5/market/open_interest":                               0.125,
-						"v5/market/liquidation_orders":                          0.125,
-						"v5/market/settlement_history":                          0.125,
-						"v5/market/elite_account_ratio":                         0.125,
-						"v5/market/elite_position_ratio":                        0.125,
-						"v5/market/estimated_settlement_price":                  0.125,
-						"v5/market/price_limit":                                 0.125,
+						"api/v1/timestamp": map[string]any{
+							"cost": 1,
+						},
+						"heartbeat/": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_contract_info": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_index": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_query_elements": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_price_limit": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_open_interest": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_delivery_price": map[string]any{
+							"cost": 1,
+						},
+						"market/depth": map[string]any{
+							"cost": 1,
+						},
+						"market/bbo": map[string]any{
+							"cost": 1,
+						},
+						"market/history/kline": map[string]any{
+							"cost": 1,
+						},
+						"index/market/history/mark_price_kline": map[string]any{
+							"cost": 1,
+						},
+						"market/detail/merged": map[string]any{
+							"cost": 1,
+						},
+						"market/detail/batch_merged": map[string]any{
+							"cost": 1,
+						},
+						"v2/market/detail/batch_merged": map[string]any{
+							"cost": 1,
+						},
+						"market/trade": map[string]any{
+							"cost": 1,
+						},
+						"market/history/trade": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_risk_info": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_insurance_fund": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_adjustfactor": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_his_open_interest": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_ladder_margin": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_api_state": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_elite_account_ratio": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_elite_position_ratio": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_liquidation_orders": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_settlement_records": map[string]any{
+							"cost": 1,
+						},
+						"index/market/history/index": map[string]any{
+							"cost": 1,
+						},
+						"index/market/history/basis": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_estimated_settlement_price": map[string]any{
+							"cost": 1,
+						},
+						"api/v3/contract_liquidation_orders": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_contract_info": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_index": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_query_elements": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_price_limit": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_open_interest": map[string]any{
+							"cost": 1,
+						},
+						"swap-ex/market/depth": map[string]any{
+							"cost": 1,
+						},
+						"swap-ex/market/bbo": map[string]any{
+							"cost": 1,
+						},
+						"swap-ex/market/history/kline": map[string]any{
+							"cost": 1,
+						},
+						"index/market/history/swap_mark_price_kline": map[string]any{
+							"cost": 1,
+						},
+						"swap-ex/market/detail/merged": map[string]any{
+							"cost": 1,
+						},
+						"v2/swap-ex/market/detail/batch_merged": map[string]any{
+							"cost": 1,
+						},
+						"index/market/history/swap_premium_index_kline": map[string]any{
+							"cost": 1,
+						},
+						"swap-ex/market/detail/batch_merged": map[string]any{
+							"cost": 1,
+						},
+						"swap-ex/market/trade": map[string]any{
+							"cost": 1,
+						},
+						"swap-ex/market/history/trade": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_risk_info": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_insurance_fund": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_adjustfactor": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_his_open_interest": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_ladder_margin": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_api_state": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_elite_account_ratio": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_elite_position_ratio": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_estimated_settlement_price": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_liquidation_orders": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_settlement_records": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_funding_rate": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_batch_funding_rate": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_historical_funding_rate": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v3/swap_liquidation_orders": map[string]any{
+							"cost": 1,
+						},
+						"index/market/history/swap_estimated_rate_kline": map[string]any{
+							"cost": 1,
+						},
+						"index/market/history/swap_basis": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-api/v1/swap_contract_info": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-api/v1/swap_index": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-api/v1/swap_query_elements": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-api/v1/swap_price_limit": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-ex/market/depth": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-ex/market/bbo": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-ex/market/history/kline": map[string]any{
+							"cost": 1,
+						},
+						"index/market/history/linear_swap_mark_price_kline": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-ex/market/detail/merged": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-ex/market/detail/batch_merged": map[string]any{
+							"cost": 1,
+						},
+						"v2/linear-swap-ex/market/detail/batch_merged": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-ex/market/trade": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-ex/market/history/trade": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/linear-swap-api/v1/swap_insurance_fund": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-api/v1/swap_adjustfactor": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-api/v1/swap_cross_adjustfactor": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-api/v1/swap_his_open_interest": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-api/v1/swap_ladder_margin": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-api/v1/swap_cross_ladder_margin": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-api/v1/swap_api_state": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-api/v1/swap_elite_account_ratio": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-api/v1/swap_elite_position_ratio": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-api/v1/swap_settlement_records": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-api/v3/swap_liquidation_orders": map[string]any{
+							"cost": 1,
+						},
+						"index/market/history/linear_swap_premium_index_kline": map[string]any{
+							"cost": 1,
+						},
+						"index/market/history/linear_swap_estimated_rate_kline": map[string]any{
+							"cost": 1,
+						},
+						"index/market/history/linear_swap_basis": map[string]any{
+							"cost": 1,
+						},
+						"linear-swap-api/v1/swap_estimated_settlement_price": map[string]any{
+							"cost": 1,
+						},
+						"v5/market/funding_rate": map[string]any{
+							"cost": 0.125,
+						},
+						"v5/market/funding_rate_history": map[string]any{
+							"cost": 0.125,
+						},
+						"v5/market/open_interest": map[string]any{
+							"cost": 0.125,
+						},
+						"v5/market/liquidation_orders": map[string]any{
+							"cost": 0.125,
+						},
+						"v5/market/settlement_history": map[string]any{
+							"cost": 0.125,
+						},
+						"v5/market/elite_account_ratio": map[string]any{
+							"cost": 0.125,
+						},
+						"v5/market/elite_position_ratio": map[string]any{
+							"cost": 0.125,
+						},
+						"v5/market/estimated_settlement_price": map[string]any{
+							"cost": 0.125,
+						},
+						"v5/market/price_limit": map[string]any{
+							"cost": 0.125,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"api/v1/contract_sub_auth_list":       1,
-						"api/v1/contract_api_trading_status":  1,
-						"swap-api/v1/swap_sub_auth_list":      1,
-						"swap-api/v1/swap_api_trading_status": 1,
-						"v5/account/asset_mode":               0.20834,
-						"v5/account/balance":                  0.20834,
-						"v5/account/bills":                    0.20834,
-						"v5/account/fee_deduction_currency":   0.20834,
-						"v5/trade/position/opens":             0.41679,
-						"v5/trade/order/opens":                0.41679,
-						"v5/trade/order/details":              0.41679,
-						"v5/trade/order/history":              0.41679,
-						"v5/trade/order":                      0.41679,
-						"v5/position/lever":                   0.20834,
-						"v5/position/mode":                    0.20834,
-						"v5/position/risk/limit":              0.20834,
-						"v5/position/risk/limit_tier":         0.20834,
-						"v5/market/risk/limit":                0.125,
-						"v5/market/assets_deduction_currency": 0.125,
-						"v5/market/multi_assets_margin":       0.125,
-						"v5/algo/order/opens":                 0.41679,
-						"v5/algo/order":                       0.41679,
-						"v5/algo/order/history":               0.41679,
+						"api/v1/contract_sub_auth_list": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_api_trading_status": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_sub_auth_list": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_api_trading_status": map[string]any{
+							"cost": 1,
+						},
+						"v5/account/asset_mode": map[string]any{
+							"cost": 0.20834,
+						},
+						"v5/account/balance": map[string]any{
+							"cost": 0.20834,
+						},
+						"v5/account/bills": map[string]any{
+							"cost": 0.20834,
+						},
+						"v5/account/fee_deduction_currency": map[string]any{
+							"cost": 0.20834,
+						},
+						"v5/trade/position/opens": map[string]any{
+							"cost": 0.41679,
+						},
+						"v5/trade/order/opens": map[string]any{
+							"cost": 0.41679,
+						},
+						"v5/trade/order/details": map[string]any{
+							"cost": 0.41679,
+						},
+						"v5/trade/order/history": map[string]any{
+							"cost": 0.41679,
+						},
+						"v5/trade/order": map[string]any{
+							"cost": 0.41679,
+						},
+						"v5/position/lever": map[string]any{
+							"cost": 0.20834,
+						},
+						"v5/position/mode": map[string]any{
+							"cost": 0.20834,
+						},
+						"v5/position/risk/limit": map[string]any{
+							"cost": 0.20834,
+						},
+						"v5/position/risk/limit_tier": map[string]any{
+							"cost": 0.20834,
+						},
+						"v5/market/risk/limit": map[string]any{
+							"cost": 0.125,
+						},
+						"v5/market/assets_deduction_currency": map[string]any{
+							"cost": 0.125,
+						},
+						"v5/market/multi_assets_margin": map[string]any{
+							"cost": 0.125,
+						},
+						"v5/algo/order/opens": map[string]any{
+							"cost": 0.41679,
+						},
+						"v5/algo/order": map[string]any{
+							"cost": 0.41679,
+						},
+						"v5/algo/order/history": map[string]any{
+							"cost": 0.41679,
+						},
 					},
 					"post": map[string]any{
-						"api/v1/contract_balance_valuation":           1,
-						"api/v1/contract_account_info":                1,
-						"api/v1/contract_position_info":               1,
-						"api/v1/contract_sub_auth":                    1,
-						"api/v1/contract_sub_account_list":            1,
-						"api/v1/contract_sub_account_info_list":       1,
-						"api/v1/contract_sub_account_info":            1,
-						"api/v1/contract_sub_position_info":           1,
-						"api/v1/contract_financial_record":            1,
-						"api/v1/contract_financial_record_exact":      1,
-						"api/v1/contract_user_settlement_records":     1,
-						"api/v1/contract_order_limit":                 1,
-						"api/v1/contract_fee":                         1,
-						"api/v1/contract_transfer_limit":              1,
-						"api/v1/contract_position_limit":              1,
-						"api/v1/contract_account_position_info":       1,
-						"api/v1/contract_master_sub_transfer":         1,
-						"api/v1/contract_master_sub_transfer_record":  1,
-						"api/v1/contract_available_level_rate":        1,
-						"api/v3/contract_financial_record":            1,
-						"api/v3/contract_financial_record_exact":      1,
-						"api/v1/contract-cancel-after":                1,
-						"api/v1/contract_order":                       1,
-						"api/v1/contract_batchorder":                  1,
-						"api/v1/contract_cancel":                      1,
-						"api/v1/contract_cancelall":                   1,
-						"api/v1/contract_switch_lever_rate":           30,
-						"api/v1/lightning_close_position":             1,
-						"api/v1/contract_order_info":                  1,
-						"api/v1/contract_order_detail":                1,
-						"api/v1/contract_openorders":                  1,
-						"api/v1/contract_hisorders":                   1,
-						"api/v1/contract_hisorders_exact":             1,
-						"api/v1/contract_matchresults":                1,
-						"api/v1/contract_matchresults_exact":          1,
-						"api/v3/contract_hisorders":                   1,
-						"api/v3/contract_hisorders_exact":             1,
-						"api/v3/contract_matchresults":                1,
-						"api/v3/contract_matchresults_exact":          1,
-						"api/v1/contract_trigger_order":               1,
-						"api/v1/contract_trigger_cancel":              1,
-						"api/v1/contract_trigger_cancelall":           1,
-						"api/v1/contract_trigger_openorders":          1,
-						"api/v1/contract_trigger_hisorders":           1,
-						"api/v1/contract_tpsl_order":                  1,
-						"api/v1/contract_tpsl_cancel":                 1,
-						"api/v1/contract_tpsl_cancelall":              1,
-						"api/v1/contract_tpsl_openorders":             1,
-						"api/v1/contract_tpsl_hisorders":              1,
-						"api/v1/contract_relation_tpsl_order":         1,
-						"api/v1/contract_track_order":                 1,
-						"api/v1/contract_track_cancel":                1,
-						"api/v1/contract_track_cancelall":             1,
-						"api/v1/contract_track_openorders":            1,
-						"api/v1/contract_track_hisorders":             1,
-						"swap-api/v1/swap_balance_valuation":          1,
-						"swap-api/v1/swap_account_info":               1,
-						"swap-api/v1/swap_position_info":              1,
-						"swap-api/v1/swap_account_position_info":      1,
-						"swap-api/v1/swap_sub_auth":                   1,
-						"swap-api/v1/swap_sub_account_list":           1,
-						"swap-api/v1/swap_sub_account_info_list":      1,
-						"swap-api/v1/swap_sub_account_info":           1,
-						"swap-api/v1/swap_sub_position_info":          1,
-						"swap-api/v1/swap_financial_record":           1,
-						"swap-api/v1/swap_financial_record_exact":     1,
-						"swap-api/v1/swap_user_settlement_records":    1,
-						"swap-api/v1/swap_available_level_rate":       1,
-						"swap-api/v1/swap_order_limit":                1,
-						"swap-api/v1/swap_fee":                        1,
-						"swap-api/v1/swap_transfer_limit":             1,
-						"swap-api/v1/swap_position_limit":             1,
-						"swap-api/v1/swap_master_sub_transfer":        1,
-						"swap-api/v1/swap_master_sub_transfer_record": 1,
-						"swap-api/v3/swap_financial_record":           1,
-						"swap-api/v3/swap_financial_record_exact":     1,
-						"swap-api/v1/swap-cancel-after":               1,
-						"swap-api/v1/swap_order":                      1,
-						"swap-api/v1/swap_batchorder":                 1,
-						"swap-api/v1/swap_cancel":                     1,
-						"swap-api/v1/swap_cancelall":                  1,
-						"swap-api/v1/swap_lightning_close_position":   1,
-						"swap-api/v1/swap_switch_lever_rate":          30,
-						"swap-api/v1/swap_order_info":                 1,
-						"swap-api/v1/swap_order_detail":               1,
-						"swap-api/v1/swap_openorders":                 1,
-						"swap-api/v1/swap_hisorders":                  1,
-						"swap-api/v1/swap_hisorders_exact":            1,
-						"swap-api/v1/swap_matchresults":               1,
-						"swap-api/v1/swap_matchresults_exact":         1,
-						"swap-api/v3/swap_matchresults":               1,
-						"swap-api/v3/swap_matchresults_exact":         1,
-						"swap-api/v3/swap_hisorders":                  1,
-						"swap-api/v3/swap_hisorders_exact":            1,
-						"swap-api/v1/swap_trigger_order":              1,
-						"swap-api/v1/swap_trigger_cancel":             1,
-						"swap-api/v1/swap_trigger_cancelall":          1,
-						"swap-api/v1/swap_trigger_openorders":         1,
-						"swap-api/v1/swap_trigger_hisorders":          1,
-						"swap-api/v1/swap_tpsl_order":                 1,
-						"swap-api/v1/swap_tpsl_cancel":                1,
-						"swap-api/v1/swap_tpsl_cancelall":             1,
-						"swap-api/v1/swap_tpsl_openorders":            1,
-						"swap-api/v1/swap_tpsl_hisorders":             1,
-						"swap-api/v1/swap_relation_tpsl_order":        1,
-						"swap-api/v1/swap_track_order":                1,
-						"swap-api/v1/swap_track_cancel":               1,
-						"swap-api/v1/swap_track_cancelall":            1,
-						"swap-api/v1/swap_track_openorders":           1,
-						"swap-api/v1/swap_track_hisorders":            1,
-						"v5/account/asset_mode":                       100,
-						"v5/trade/order":                              0.41679,
-						"v5/trade/batch_orders":                       0.41679,
-						"v5/trade/cancel_order":                       0.41679,
-						"v5/trade/cancel_batch_orders":                0.41679,
-						"v5/trade/cancel_all_orders":                  0.41679,
-						"v5/trade/cancel-after":                       0.41679,
-						"v5/trade/position":                           0.41679,
-						"v5/trade/position_all":                       0.41679,
-						"v5/position/lever":                           0.20834,
-						"v5/position/mode":                            0.20834,
-						"v5/position/margin":                          0.20834,
-						"v5/account/fee_deduction_currency":           0.20834,
-						"v5/algo/order":                               0.41679,
-						"v5/algo/cancel_orders":                       0.41679,
+						"api/v1/contract_balance_valuation": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_account_info": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_position_info": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_sub_auth": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_sub_account_list": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_sub_account_info_list": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_sub_account_info": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_sub_position_info": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_financial_record": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_financial_record_exact": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_user_settlement_records": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_order_limit": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_fee": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_transfer_limit": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_position_limit": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_account_position_info": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_master_sub_transfer": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_master_sub_transfer_record": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_available_level_rate": map[string]any{
+							"cost": 1,
+						},
+						"api/v3/contract_financial_record": map[string]any{
+							"cost": 1,
+						},
+						"api/v3/contract_financial_record_exact": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract-cancel-after": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_order": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_batchorder": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_cancel": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_cancelall": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_switch_lever_rate": map[string]any{
+							"cost": 30,
+						},
+						"api/v1/lightning_close_position": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_order_info": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_order_detail": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_openorders": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_hisorders": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_hisorders_exact": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_matchresults": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_matchresults_exact": map[string]any{
+							"cost": 1,
+						},
+						"api/v3/contract_hisorders": map[string]any{
+							"cost": 1,
+						},
+						"api/v3/contract_hisorders_exact": map[string]any{
+							"cost": 1,
+						},
+						"api/v3/contract_matchresults": map[string]any{
+							"cost": 1,
+						},
+						"api/v3/contract_matchresults_exact": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_trigger_order": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_trigger_cancel": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_trigger_cancelall": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_trigger_openorders": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_trigger_hisorders": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_tpsl_order": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_tpsl_cancel": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_tpsl_cancelall": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_tpsl_openorders": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_tpsl_hisorders": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_relation_tpsl_order": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_track_order": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_track_cancel": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_track_cancelall": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_track_openorders": map[string]any{
+							"cost": 1,
+						},
+						"api/v1/contract_track_hisorders": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_balance_valuation": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_account_info": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_position_info": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_account_position_info": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_sub_auth": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_sub_account_list": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_sub_account_info_list": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_sub_account_info": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_sub_position_info": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_financial_record": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_financial_record_exact": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_user_settlement_records": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_available_level_rate": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_order_limit": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_fee": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_transfer_limit": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_position_limit": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_master_sub_transfer": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_master_sub_transfer_record": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v3/swap_financial_record": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v3/swap_financial_record_exact": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap-cancel-after": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_order": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_batchorder": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_cancel": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_cancelall": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_lightning_close_position": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_switch_lever_rate": map[string]any{
+							"cost": 30,
+						},
+						"swap-api/v1/swap_order_info": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_order_detail": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_openorders": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_hisorders": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_hisorders_exact": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_matchresults": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_matchresults_exact": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v3/swap_matchresults": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v3/swap_matchresults_exact": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v3/swap_hisorders": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v3/swap_hisorders_exact": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_trigger_order": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_trigger_cancel": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_trigger_cancelall": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_trigger_openorders": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_trigger_hisorders": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_tpsl_order": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_tpsl_cancel": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_tpsl_cancelall": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_tpsl_openorders": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_tpsl_hisorders": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_relation_tpsl_order": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_track_order": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_track_cancel": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_track_cancelall": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_track_openorders": map[string]any{
+							"cost": 1,
+						},
+						"swap-api/v1/swap_track_hisorders": map[string]any{
+							"cost": 1,
+						},
+						"v5/account/asset_mode": map[string]any{
+							"cost": 100,
+						},
+						"v5/trade/order": map[string]any{
+							"cost": 0.41679,
+						},
+						"v5/trade/batch_orders": map[string]any{
+							"cost": 0.41679,
+						},
+						"v5/trade/cancel_order": map[string]any{
+							"cost": 0.41679,
+						},
+						"v5/trade/cancel_batch_orders": map[string]any{
+							"cost": 0.41679,
+						},
+						"v5/trade/cancel_all_orders": map[string]any{
+							"cost": 0.41679,
+						},
+						"v5/trade/cancel-after": map[string]any{
+							"cost": 0.41679,
+						},
+						"v5/trade/position": map[string]any{
+							"cost": 0.41679,
+						},
+						"v5/trade/position_all": map[string]any{
+							"cost": 0.41679,
+						},
+						"v5/position/lever": map[string]any{
+							"cost": 0.20834,
+						},
+						"v5/position/mode": map[string]any{
+							"cost": 0.20834,
+						},
+						"v5/position/margin": map[string]any{
+							"cost": 0.20834,
+						},
+						"v5/account/fee_deduction_currency": map[string]any{
+							"cost": 0.20834,
+						},
+						"v5/algo/order": map[string]any{
+							"cost": 0.41679,
+						},
+						"v5/algo/cancel_orders": map[string]any{
+							"cost": 0.41679,
+						},
 					},
 				},
 			},
@@ -1446,7 +2376,7 @@ func (this *HtxCore) FetchStatus(optionalArgs ...any) <-chan any {
 			} else {
 				status = Ternary(IsTrue((IsEqual(statusRaw, "ok"))), "ok", "maintenance") // 'ok', 'error'
 			}
-			updated = this.SafeString(response, "ts")
+			updated = this.SafeInteger(response, "ts")
 		} else {
 			var statusData any = this.SafeValue(response, "status", map[string]any{})
 			var statusRaw any = this.SafeString(statusData, "indicator")
@@ -2933,8 +3863,9 @@ func (this *HtxCore) FetchSpotOrderTrades(id any, optionalArgs ...any) <-chan an
 
 		response := (<-this.SpotPrivateGetV1OrderOrdersOrderIdMatchresults(this.Extend(request, params)))
 		PanicOnError(response)
+		var data any = this.SafeList(response, "data", []any{})
 
-		ch <- this.ParseTrades(GetValue(response, "data"), nil, since, limit)
+		ch <- this.ParseTrades(data, nil, since, limit)
 		return nil
 
 	}()
@@ -2970,8 +3901,8 @@ func (this *HtxCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes286512 := (<-this.LoadMarkets())
-			PanicOnError(retRes286512)
+			retRes286612 := (<-this.LoadMarkets())
+			PanicOnError(retRes286612)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -2979,9 +3910,9 @@ func (this *HtxCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes287019 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-			PanicOnError(retRes287019)
-			ch <- retRes287019
+			retRes287119 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+			PanicOnError(retRes287119)
+			ch <- retRes287119
 			return nil
 		}
 		var market any = nil
@@ -3187,8 +4118,8 @@ func (this *HtxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes306412 := (<-this.LoadMarkets())
-			PanicOnError(retRes306412)
+			retRes306512 := (<-this.LoadMarkets())
+			PanicOnError(retRes306512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
@@ -3316,8 +4247,8 @@ func (this *HtxCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes317312 := (<-this.LoadMarkets())
-			PanicOnError(retRes317312)
+			retRes317412 := (<-this.LoadMarkets())
+			PanicOnError(retRes317412)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
@@ -3325,9 +4256,9 @@ func (this *HtxCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes317819 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
-			PanicOnError(retRes317819)
-			ch <- retRes317819
+			retRes317919 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+			PanicOnError(retRes317919)
+			ch <- retRes317919
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -3501,8 +4432,8 @@ func (this *HtxCore) FetchAccounts(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes331312 := (<-this.LoadMarkets())
-			PanicOnError(retRes331312)
+			retRes331412 := (<-this.LoadMarkets())
+			PanicOnError(retRes331412)
 		}
 
 		response := (<-this.SpotPrivateGetV1AccountAccounts(params))
@@ -3815,8 +4746,8 @@ func (this *HtxCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes357412 := (<-this.LoadMarkets())
-			PanicOnError(retRes357412)
+			retRes357512 := (<-this.LoadMarkets())
+			PanicOnError(retRes357512)
 		}
 		var isUnifiedAccount any = nil
 		isUnifiedAccountparamsVariable := this.HandleOptionAndParams2(params, "fetchBalance", "unified", "uta", false)
@@ -3871,8 +4802,8 @@ func (this *HtxCore) FetchBalance(optionalArgs ...any) <-chan any {
 				}
 			} else {
 
-				retRes361216 := (<-this.LoadAccounts())
-				PanicOnError(retRes361216)
+				retRes361316 := (<-this.LoadAccounts())
+				PanicOnError(retRes361316)
 
 				accountId := (<-this.FetchAccountIdByType(typeVar, nil, nil, params))
 				PanicOnError(accountId)
@@ -4133,8 +5064,8 @@ func (this *HtxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes384912 := (<-this.LoadMarkets())
-			PanicOnError(retRes384912)
+			retRes385012 := (<-this.LoadMarkets())
+			PanicOnError(retRes385012)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -4383,8 +5314,8 @@ func (this *HtxCore) FetchSpotOrdersByStates(states any, optionalArgs ...any) <-
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes407812 := (<-this.LoadMarkets())
-			PanicOnError(retRes407812)
+			retRes407912 := (<-this.LoadMarkets())
+			PanicOnError(retRes407912)
 		}
 		var market any = nil
 		var request any = map[string]any{
@@ -4462,9 +5393,9 @@ func (this *HtxCore) FetchSpotOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes414715 := (<-this.FetchSpotOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol, since, limit, params))
-		PanicOnError(retRes414715)
-		ch <- retRes414715
+		retRes414815 := (<-this.FetchSpotOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol, since, limit, params))
+		PanicOnError(retRes414815)
+		ch <- retRes414815
 		return nil
 
 	}()
@@ -4484,9 +5415,9 @@ func (this *HtxCore) FetchClosedSpotOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes415115 := (<-this.FetchSpotOrdersByStates("filled", symbol, since, limit, params))
-		PanicOnError(retRes415115)
-		ch <- retRes415115
+		retRes415215 := (<-this.FetchSpotOrdersByStates("filled", symbol, since, limit, params))
+		PanicOnError(retRes415215)
+		ch <- retRes415215
 		return nil
 
 	}()
@@ -4510,8 +5441,8 @@ func (this *HtxCore) FetchContractOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes415912 := (<-this.LoadMarkets())
-			PanicOnError(retRes415912)
+			retRes416012 := (<-this.LoadMarkets())
+			PanicOnError(retRes416012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
@@ -4633,8 +5564,8 @@ func (this *HtxCore) FetchClosedContractOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes431412 := (<-this.LoadMarkets())
-			PanicOnError(retRes431412)
+			retRes431512 := (<-this.LoadMarkets())
+			PanicOnError(retRes431512)
 		}
 		var request any = map[string]any{}
 		var market any = this.Market(symbol)
@@ -4654,9 +5585,9 @@ func (this *HtxCore) FetchClosedContractOrders(optionalArgs ...any) <-chan any {
 			AddElementToObject(request, "status", "6")
 		}
 
-		retRes433315 := (<-this.FetchContractOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes433315)
-		ch <- retRes433315
+		retRes433415 := (<-this.FetchContractOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes433415)
+		ch <- retRes433415
 		return nil
 
 	}()
@@ -4700,8 +5631,8 @@ func (this *HtxCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes436012 := (<-this.LoadMarkets())
-			PanicOnError(retRes436012)
+			retRes436112 := (<-this.LoadMarkets())
+			PanicOnError(retRes436112)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -4717,15 +5648,15 @@ func (this *HtxCore) FetchOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(contract) {
 
-			retRes437319 := (<-this.FetchContractOrders(symbol, since, limit, params))
-			PanicOnError(retRes437319)
-			ch <- retRes437319
+			retRes437419 := (<-this.FetchContractOrders(symbol, since, limit, params))
+			PanicOnError(retRes437419)
+			ch <- retRes437419
 			return nil
 		} else {
 
-			retRes437519 := (<-this.FetchSpotOrders(symbol, since, limit, params))
-			PanicOnError(retRes437519)
-			ch <- retRes437519
+			retRes437619 := (<-this.FetchSpotOrders(symbol, since, limit, params))
+			PanicOnError(retRes437619)
+			ch <- retRes437619
 			return nil
 		}
 
@@ -4766,8 +5697,8 @@ func (this *HtxCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes439912 := (<-this.LoadMarkets())
-			PanicOnError(retRes439912)
+			retRes440012 := (<-this.LoadMarkets())
+			PanicOnError(retRes440012)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchCanceledOrders", "paginate")
@@ -4775,9 +5706,9 @@ func (this *HtxCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes440419 := (<-this.FetchPaginatedCallDynamic("fetchCanceledOrders", symbol, since, limit, params, 100))
-			PanicOnError(retRes440419)
-			ch <- retRes440419
+			retRes440519 := (<-this.FetchPaginatedCallDynamic("fetchCanceledOrders", symbol, since, limit, params, 100))
+			PanicOnError(retRes440519)
+			ch <- retRes440519
 			return nil
 		}
 		var market any = nil
@@ -4790,9 +5721,9 @@ func (this *HtxCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(marketTypeparamsVariable, 1)
 		if IsTrue(IsEqual(marketType, "spot")) {
 
-			retRes441319 := (<-this.FetchSpotOrdersByStates("partial-canceled,canceled", symbol, since, limit, params))
-			PanicOnError(retRes441319)
-			ch <- retRes441319
+			retRes441419 := (<-this.FetchSpotOrdersByStates("partial-canceled,canceled", symbol, since, limit, params))
+			PanicOnError(retRes441419)
+			ch <- retRes441419
 			return nil
 		} else {
 			if IsTrue(IsEqual(symbol, nil)) {
@@ -4815,9 +5746,9 @@ func (this *HtxCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 				AddElementToObject(request, "status", "5,7") // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
 			}
 
-			retRes443419 := (<-this.FetchContractOrders(symbol, since, limit, this.Extend(request, params)))
-			PanicOnError(retRes443419)
-			ch <- retRes443419
+			retRes443519 := (<-this.FetchContractOrders(symbol, since, limit, this.Extend(request, params)))
+			PanicOnError(retRes443519)
+			ch <- retRes443519
 			return nil
 		}
 
@@ -4858,8 +5789,8 @@ func (this *HtxCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes445812 := (<-this.LoadMarkets())
-			PanicOnError(retRes445812)
+			retRes445912 := (<-this.LoadMarkets())
+			PanicOnError(retRes445912)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
@@ -4867,9 +5798,9 @@ func (this *HtxCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes446319 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params, 100))
-			PanicOnError(retRes446319)
-			ch <- retRes446319
+			retRes446419 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params, 100))
+			PanicOnError(retRes446419)
+			ch <- retRes446419
 			return nil
 		}
 		var market any = nil
@@ -4882,15 +5813,15 @@ func (this *HtxCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(marketTypeparamsVariable, 1)
 		if IsTrue(IsEqual(marketType, "spot")) {
 
-			retRes447219 := (<-this.FetchClosedSpotOrders(symbol, since, limit, params))
-			PanicOnError(retRes447219)
-			ch <- retRes447219
+			retRes447319 := (<-this.FetchClosedSpotOrders(symbol, since, limit, params))
+			PanicOnError(retRes447319)
+			ch <- retRes447319
 			return nil
 		} else {
 
-			retRes447419 := (<-this.FetchClosedContractOrders(symbol, since, limit, params))
-			PanicOnError(retRes447419)
-			ch <- retRes447419
+			retRes447519 := (<-this.FetchClosedContractOrders(symbol, since, limit, params))
+			PanicOnError(retRes447519)
+			ch <- retRes447519
 			return nil
 		}
 
@@ -4931,8 +5862,8 @@ func (this *HtxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes449812 := (<-this.LoadMarkets())
-			PanicOnError(retRes449812)
+			retRes449912 := (<-this.LoadMarkets())
+			PanicOnError(retRes449912)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -4958,8 +5889,8 @@ func (this *HtxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 			if IsTrue(IsEqual(accountId, nil)) {
 				// pick the first account
 
-				retRes451916 := (<-this.LoadAccounts())
-				PanicOnError(retRes451916)
+				retRes452016 := (<-this.LoadAccounts())
+				PanicOnError(retRes452016)
 				for i := 0; IsLessThan(i, GetArrayLength(this.Accounts)); i++ {
 					var account any = GetValue(this.Accounts, i)
 					if IsTrue(IsEqual(this.SafeString(account, "type"), "spot")) {
@@ -5677,8 +6608,8 @@ func (this *HtxCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optional
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes520612 := (<-this.LoadMarkets())
-			PanicOnError(retRes520612)
+			retRes520712 := (<-this.LoadMarkets())
+			PanicOnError(retRes520712)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
@@ -5686,9 +6617,9 @@ func (this *HtxCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optional
 		}
 		AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-		retRes521315 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
-		PanicOnError(retRes521315)
-		ch <- retRes521315
+		retRes521415 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
+		PanicOnError(retRes521415)
+		ch <- retRes521415
 		return nil
 
 	}()
@@ -5731,9 +6662,9 @@ func (this *HtxCore) CreateTrailingPercentOrder(symbol any, typeVar any, side an
 		AddElementToObject(params, "trailingPercent", trailingPercent)
 		AddElementToObject(params, "trailingTriggerPrice", trailingTriggerPrice)
 
-		retRes523915 := (<-this.CreateOrder(symbol, typeVar, side, amount, price, params))
-		PanicOnError(retRes523915)
-		ch <- retRes523915
+		retRes524015 := (<-this.CreateOrder(symbol, typeVar, side, amount, price, params))
+		PanicOnError(retRes524015)
+		ch <- retRes524015
 		return nil
 
 	}()
@@ -5772,12 +6703,12 @@ func (this *HtxCore) CreateSpotOrderRequest(symbol any, typeVar any, side any, a
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes526512 := (<-this.LoadMarkets())
-			PanicOnError(retRes526512)
+			retRes526612 := (<-this.LoadMarkets())
+			PanicOnError(retRes526612)
 		}
 
-		retRes52678 := (<-this.LoadAccounts())
-		PanicOnError(retRes52678)
+		retRes52688 := (<-this.LoadAccounts())
+		PanicOnError(retRes52688)
 		var market any = this.Market(symbol)
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("createOrder", params)
@@ -6143,8 +7074,8 @@ func (this *HtxCore) CreateOrder(symbol any, typeVar any, side any, amount any, 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes561012 := (<-this.LoadMarkets())
-			PanicOnError(retRes561012)
+			retRes561112 := (<-this.LoadMarkets())
+			PanicOnError(retRes561112)
 		}
 		var market any = this.Market(symbol)
 		var triggerPrice any = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "trigger_price"})
@@ -6362,8 +7293,8 @@ func (this *HtxCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes578812 := (<-this.LoadMarkets())
-			PanicOnError(retRes578812)
+			retRes578912 := (<-this.LoadMarkets())
+			PanicOnError(retRes578912)
 		}
 		var ordersRequests any = []any{}
 		var symbol any = nil
@@ -6544,8 +7475,8 @@ func (this *HtxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes594512 := (<-this.LoadMarkets())
-			PanicOnError(retRes594512)
+			retRes594612 := (<-this.LoadMarkets())
+			PanicOnError(retRes594612)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -6756,8 +7687,8 @@ func (this *HtxCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes612512 := (<-this.LoadMarkets())
-			PanicOnError(retRes612512)
+			retRes612612 := (<-this.LoadMarkets())
+			PanicOnError(retRes612612)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -7057,8 +7988,8 @@ func (this *HtxCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes640112 := (<-this.LoadMarkets())
-			PanicOnError(retRes640112)
+			retRes640212 := (<-this.LoadMarkets())
+			PanicOnError(retRes640212)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -7193,8 +8124,8 @@ func (this *HtxCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes652812 := (<-this.LoadMarkets())
-			PanicOnError(retRes652812)
+			retRes652912 := (<-this.LoadMarkets())
+			PanicOnError(retRes652912)
 		}
 		if IsTrue(IsEqual(timeout, nil)) {
 			panic(ExchangeError(Add(this.Id, " cancelAllOrdersAfter() missing timeout")))
@@ -7269,8 +8200,8 @@ func (this *HtxCore) FetchDepositAddressesByNetwork(code any, optionalArgs ...an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes658812 := (<-this.LoadMarkets())
-			PanicOnError(retRes658812)
+			retRes658912 := (<-this.LoadMarkets())
+			PanicOnError(retRes658912)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -7320,8 +8251,8 @@ func (this *HtxCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes662412 := (<-this.LoadMarkets())
-			PanicOnError(retRes662412)
+			retRes662512 := (<-this.LoadMarkets())
+			PanicOnError(retRes662512)
 		}
 		var currency any = this.Currency(code)
 		networkCodeparamsOmitedVariable := this.HandleNetworkCodeAndParams(params)
@@ -7351,8 +8282,8 @@ func (this *HtxCore) FetchWithdrawAddresses(code any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes663512 := (<-this.LoadMarkets())
-			PanicOnError(retRes663512)
+			retRes663612 := (<-this.LoadMarkets())
+			PanicOnError(retRes663612)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -7376,7 +8307,7 @@ func (this *HtxCore) FetchWithdrawAddresses(code any, optionalArgs ...any) <-cha
 		//     }
 		//
 		var data any = this.SafeValue(response, "data", []any{})
-		var allAddresses any = this.ParseDepositAddresses(data, []any{GetValue(currency, "code")}, false) // cjg: to do remove this weird object or array ambiguity
+		var allAddresses any = this.ParseDepositAddresses(data, []any{GetValue(currency, "code")}, false)
 		var addresses any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(allAddresses)); i++ {
 			var address any = GetValue(allAddresses, i)
@@ -7423,8 +8354,8 @@ func (this *HtxCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes668612 := (<-this.LoadMarkets())
-			PanicOnError(retRes668612)
+			retRes668712 := (<-this.LoadMarkets())
+			PanicOnError(retRes668712)
 		}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -7444,7 +8375,6 @@ func (this *HtxCore) FetchDeposits(optionalArgs ...any) <-chan any {
 
 		response := (<-this.SpotPrivateGetV1QueryDepositWithdraw(this.Extend(request, params)))
 		PanicOnError(response)
-
 		//
 		//    {
 		//         "status": "ok",
@@ -7471,7 +8401,9 @@ func (this *HtxCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		//         ]
 		//     }
 		//
-		ch <- this.ParseTransactions(GetValue(response, "data"), currency, since, limit)
+		var data any = this.SafeList(response, "data", []any{})
+
+		ch <- this.ParseTransactions(data, currency, since, limit)
 		return nil
 
 	}()
@@ -7507,8 +8439,8 @@ func (this *HtxCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes674912 := (<-this.LoadMarkets())
-			PanicOnError(retRes674912)
+			retRes675112 := (<-this.LoadMarkets())
+			PanicOnError(retRes675112)
 		}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -7528,7 +8460,6 @@ func (this *HtxCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 
 		response := (<-this.SpotPrivateGetV1QueryDepositWithdraw(this.Extend(request, params)))
 		PanicOnError(response)
-
 		//
 		//    {
 		//         "status": "ok",
@@ -7553,7 +8484,9 @@ func (this *HtxCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		//         ]
 		//     }
 		//
-		ch <- this.ParseTransactions(GetValue(response, "data"), currency, since, limit)
+		var data any = this.SafeList(response, "data", []any{})
+
+		ch <- this.ParseTransactions(data, currency, since, limit)
 		return nil
 
 	}()
@@ -7707,8 +8640,8 @@ func (this *HtxCore) Withdraw(code any, amount any, address any, optionalArgs ..
 		params = GetValue(tagparamsVariable, 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes693312 := (<-this.LoadMarkets())
-			PanicOnError(retRes693312)
+			retRes693612 := (<-this.LoadMarkets())
+			PanicOnError(retRes693612)
 		}
 		this.CheckAddress(address)
 		var currency any = this.Currency(code)
@@ -7870,8 +8803,8 @@ func (this *HtxCore) Transfer(code any, amount any, fromAccount any, toAccount a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes707612 := (<-this.LoadMarkets())
-			PanicOnError(retRes707612)
+			retRes707912 := (<-this.LoadMarkets())
+			PanicOnError(retRes707912)
 		}
 		var currency any = this.Currency(code)
 		var transferAmount any = this.CurrencyToPrecision(code, amount)
@@ -7997,8 +8930,8 @@ func (this *HtxCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes717012 := (<-this.LoadMarkets())
-			PanicOnError(retRes717012)
+			retRes717312 := (<-this.LoadMarkets())
+			PanicOnError(retRes717312)
 		}
 		var currency any = nil
 		var request any = map[string]any{}
@@ -8066,8 +8999,8 @@ func (this *HtxCore) FetchIsolatedBorrowRates(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes722412 := (<-this.LoadMarkets())
-			PanicOnError(retRes722412)
+			retRes722712 := (<-this.LoadMarkets())
+			PanicOnError(retRes722712)
 		}
 
 		response := (<-this.SpotPrivateGetV1MarginLoanInfo(params))
@@ -8191,15 +9124,15 @@ func (this *HtxCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes732519 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "current_page", "page_index", 1, 50))
-			PanicOnError(retRes732519)
-			ch <- retRes732519
+			retRes732819 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "current_page", "page_index", 1, 50))
+			PanicOnError(retRes732819)
+			ch <- retRes732819
 			return nil
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes732812 := (<-this.LoadMarkets())
-			PanicOnError(retRes732812)
+			retRes733112 := (<-this.LoadMarkets())
+			PanicOnError(retRes733112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -8359,8 +9292,8 @@ func (this *HtxCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes750912 := (<-this.LoadMarkets())
-			PanicOnError(retRes750912)
+			retRes751212 := (<-this.LoadMarkets())
+			PanicOnError(retRes751212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -8413,8 +9346,8 @@ func (this *HtxCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes757612 := (<-this.LoadMarkets())
-			PanicOnError(retRes757612)
+			retRes757912 := (<-this.LoadMarkets())
+			PanicOnError(retRes757912)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var defaultSubType any = "linear"
@@ -8496,8 +9429,8 @@ func (this *HtxCore) FetchBorrowInterest(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes763612 := (<-this.LoadMarkets())
-			PanicOnError(retRes763612)
+			retRes763912 := (<-this.LoadMarkets())
+			PanicOnError(retRes763912)
 		}
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBorrowInterest", params)
@@ -8862,8 +9795,8 @@ func (this *HtxCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes796012 := (<-this.LoadMarkets())
-			PanicOnError(retRes796012)
+			retRes796312 := (<-this.LoadMarkets())
+			PanicOnError(retRes796312)
 		}
 		var market any = this.Market(symbol)
 		var marketType any = nil
@@ -8967,8 +9900,8 @@ func (this *HtxCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes805612 := (<-this.LoadMarkets())
-			PanicOnError(retRes805612)
+			retRes805912 := (<-this.LoadMarkets())
+			PanicOnError(retRes805912)
 		}
 		var market any = this.Market(symbol)
 		marketTypequeryVariable := this.HandleMarketTypeAndParams("setLeverage", market, params)
@@ -9220,8 +10153,8 @@ func (this *HtxCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes831012 := (<-this.LoadMarkets())
-			PanicOnError(retRes831012)
+			retRes831312 := (<-this.LoadMarkets())
+			PanicOnError(retRes831312)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var market any = nil
@@ -9300,8 +10233,8 @@ func (this *HtxCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes845012 := (<-this.LoadMarkets())
-			PanicOnError(retRes845012)
+			retRes845312 := (<-this.LoadMarkets())
+			PanicOnError(retRes845312)
 		}
 		var market any = this.Market(symbol)
 		var marginMode any = nil
@@ -9466,8 +10399,8 @@ func (this *HtxCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes868712 := (<-this.LoadMarkets())
-			PanicOnError(retRes868712)
+			retRes869012 := (<-this.LoadMarkets())
+			PanicOnError(retRes869012)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
@@ -9475,9 +10408,9 @@ func (this *HtxCore) FetchLedger(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes869219 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, 500))
-			PanicOnError(retRes869219)
-			ch <- retRes869219
+			retRes869519 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, 500))
+			PanicOnError(retRes869519)
+			ch <- retRes869519
 			return nil
 		}
 
@@ -9563,8 +10496,8 @@ func (this *HtxCore) FetchLeverageTiers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes876412 := (<-this.LoadMarkets())
-			PanicOnError(retRes876412)
+			retRes876712 := (<-this.LoadMarkets())
+			PanicOnError(retRes876712)
 		}
 
 		response := (<-this.ContractPublicGetLinearSwapApiV1SwapAdjustfactor(params))
@@ -9669,8 +10602,8 @@ func (this *HtxCore) FetchOpenInterestHistory(symbol any, optionalArgs ...any) <
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes884812 := (<-this.LoadMarkets())
-			PanicOnError(retRes884812)
+			retRes885112 := (<-this.LoadMarkets())
+			PanicOnError(retRes885112)
 		}
 		var timeframes any = map[string]any{
 			"1h":  "60min",
@@ -9801,8 +10734,8 @@ func (this *HtxCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes895912 := (<-this.LoadMarkets())
-			PanicOnError(retRes895912)
+			retRes896212 := (<-this.LoadMarkets())
+			PanicOnError(retRes896212)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var market any = nil
@@ -9863,8 +10796,8 @@ func (this *HtxCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes903512 := (<-this.LoadMarkets())
-			PanicOnError(retRes903512)
+			retRes903812 := (<-this.LoadMarkets())
+			PanicOnError(retRes903812)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
@@ -10058,8 +10991,8 @@ func (this *HtxCore) BorrowIsolatedMargin(symbol any, code any, amount any, opti
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes920812 := (<-this.LoadMarkets())
-			PanicOnError(retRes920812)
+			retRes921112 := (<-this.LoadMarkets())
+			PanicOnError(retRes921112)
 		}
 		var currency any = this.Currency(code)
 		var market any = this.Market(symbol)
@@ -10110,8 +11043,8 @@ func (this *HtxCore) BorrowCrossMargin(code any, amount any, optionalArgs ...any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes924512 := (<-this.LoadMarkets())
-			PanicOnError(retRes924512)
+			retRes924812 := (<-this.LoadMarkets())
+			PanicOnError(retRes924812)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -10160,8 +11093,8 @@ func (this *HtxCore) RepayIsolatedMargin(symbol any, code any, amount any, optio
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes928012 := (<-this.LoadMarkets())
-			PanicOnError(retRes928012)
+			retRes928312 := (<-this.LoadMarkets())
+			PanicOnError(retRes928312)
 		}
 		var currency any = this.Currency(code)
 
@@ -10219,8 +11152,8 @@ func (this *HtxCore) RepayCrossMargin(code any, amount any, optionalArgs ...any)
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes932212 := (<-this.LoadMarkets())
-			PanicOnError(retRes932212)
+			retRes932512 := (<-this.LoadMarkets())
+			PanicOnError(retRes932512)
 		}
 		var currency any = this.Currency(code)
 
@@ -10468,8 +11401,8 @@ func (this *HtxCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes952412 := (<-this.LoadMarkets())
-			PanicOnError(retRes952412)
+			retRes952712 := (<-this.LoadMarkets())
+			PanicOnError(retRes952712)
 		}
 
 		response := (<-this.SpotPublicGetV2ReferenceCurrencies(params))
@@ -10734,8 +11667,8 @@ func (this *HtxCore) FetchLiquidations(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes977212 := (<-this.LoadMarkets())
-			PanicOnError(retRes977212)
+			retRes977512 := (<-this.LoadMarkets())
+			PanicOnError(retRes977512)
 		}
 		var market any = this.Market(symbol)
 		var tradeType any = this.SafeInteger2(params, "trade_type", "tradeType", 0)
@@ -10884,8 +11817,8 @@ func (this *HtxCore) ClosePosition(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes991812 := (<-this.LoadMarkets())
-			PanicOnError(retRes991812)
+			retRes992112 := (<-this.LoadMarkets())
+			PanicOnError(retRes992112)
 		}
 		var market any = this.Market(symbol)
 		var clientOrderId any = this.SafeString(params, "clientOrderId")
@@ -10967,8 +11900,8 @@ func (this *HtxCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes998712 := (<-this.LoadMarkets())
-			PanicOnError(retRes998712)
+			retRes999012 := (<-this.LoadMarkets())
+			PanicOnError(retRes999012)
 		}
 		var posMode any = Ternary(IsTrue(hedged), "dual_side", "single_side")
 		var market any = nil
@@ -11024,8 +11957,8 @@ func (this *HtxCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1002712 := (<-this.LoadMarkets())
-			PanicOnError(retRes1002712)
+			retRes1003012 := (<-this.LoadMarkets())
+			PanicOnError(retRes1003012)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var market any = nil
