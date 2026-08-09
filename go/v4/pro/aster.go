@@ -2257,7 +2257,7 @@ func (this *AsterCore) WatchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		var messageHash any = "myTrades"
 		var typeVar any = nil
-		typeVarparamsVariable := this.HandleMarketTypeAndParams("watchOrders", market, params, typeVar)
+		typeVarparamsVariable := this.HandleMarketTypeAndParams("watchMyTrades", market, params, typeVar)
 		typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 		params = ccxt.GetValue(typeVarparamsVariable, 1)
 

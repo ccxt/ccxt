@@ -1329,12 +1329,12 @@ func (this *DeepcoinCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 			PanicOnError(retRes104912)
 		}
 		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate", false)
+		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate", false)
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes105419 := (<-this.FetchPaginatedCallCursor("fetchDeposits", code, since, limit, params, "code", nil, 1, 50))
+			retRes105419 := (<-this.FetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "code", nil, 1, 50))
 			PanicOnError(retRes105419)
 			ch <- retRes105419
 			return nil

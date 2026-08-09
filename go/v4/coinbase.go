@@ -1294,7 +1294,7 @@ func (this *CoinbaseCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 		var currencyType any = nil
-		currencyTypeparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "currencyType")
+		currencyTypeparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "currencyType")
 		currencyType = GetValue(currencyTypeparamsVariable, 0)
 		params = GetValue(currencyTypeparamsVariable, 1)
 		if IsTrue(IsEqual(currencyType, "crypto")) {

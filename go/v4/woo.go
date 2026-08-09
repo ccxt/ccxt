@@ -4770,7 +4770,7 @@ func (this *WooCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
 		} else if IsTrue(this.SafeBool(market, "swap")) {
 			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 			var marginMode any = nil
-			marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLeverage", params, "cross")
+			marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params, "cross")
 			marginMode = GetValue(marginModeparamsVariable, 0)
 			params = GetValue(marginModeparamsVariable, 1)
 			AddElementToObject(request, "marginMode", this.EncodeMarginMode(marginMode))

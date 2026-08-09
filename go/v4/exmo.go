@@ -2648,7 +2648,7 @@ func (this *ExmoCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 			PanicOnError(retRes220812)
 		}
 		var marginMode any = nil
-		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchOrders", params)
+		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchCanceledOrders", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
 		params = GetValue(marginModeparamsVariable, 1)
 		if IsTrue(IsEqual(marginMode, "cross")) {

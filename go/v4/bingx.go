@@ -5592,13 +5592,13 @@ func (this *BingxCore) FetchCanceledAndClosedOrders(optionalArgs ...any) <-chan 
 		var subType any = nil
 		var standard any = nil
 		var response any = nil
-		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
+		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
-		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchClosedOrders", market, params)
+		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchCanceledAndClosedOrders", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		standardparamsVariable := this.HandleOptionAndParams(params, "fetchClosedOrders", "standard", false)
+		standardparamsVariable := this.HandleOptionAndParams(params, "fetchCanceledAndClosedOrders", "standard", false)
 		standard = GetValue(standardparamsVariable, 0)
 		params = GetValue(standardparamsVariable, 1)
 		if IsTrue(standard) {

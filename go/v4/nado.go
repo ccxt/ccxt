@@ -1139,7 +1139,7 @@ func (this *NadoCore) FetchOrders(optionalArgs ...any) <-chan any {
 			AppendToArray(&productIds, this.ParseToInt(GetValue(market, "id")))
 		}
 		var subaccount any = nil
-		subaccountparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "subaccount", "default")
+		subaccountparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "subaccount", "default")
 		subaccount = GetValue(subaccountparamsVariable, 0)
 		params = GetValue(subaccountparamsVariable, 1)
 		var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)

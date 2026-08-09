@@ -11704,7 +11704,7 @@ func (this *BitgetCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
 		if IsTrue(uta) {
 			if IsTrue(IsEqual(productType, "SPOT")) {
 				var marginMode any = nil
-				marginModeparamsVariable := this.HandleMarginModeAndParams("fetchTrades", params)
+				marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params)
 				marginMode = GetValue(marginModeparamsVariable, 0)
 				params = GetValue(marginModeparamsVariable, 1)
 				if IsTrue(!IsEqual(marginMode, nil)) {

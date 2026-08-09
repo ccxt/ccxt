@@ -1448,7 +1448,7 @@ func (this *DydxCore) FetchPositions(optionalArgs ...any) <-chan any {
 		userAddressparamsVariable := this.HandlePublicAddress("fetchPositions", params)
 		userAddress = GetValue(userAddressparamsVariable, 0)
 		params = GetValue(userAddressparamsVariable, 1)
-		subAccountNumberparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "subAccountNumber", "0")
+		subAccountNumberparamsVariable := this.HandleOptionAndParams(params, "fetchPositions", "subAccountNumber", "0")
 		subAccountNumber = GetValue(subAccountNumberparamsVariable, 0)
 		params = GetValue(subAccountNumberparamsVariable, 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
@@ -3025,11 +3025,11 @@ func (this *DydxCore) FetchBalance(optionalArgs ...any) <-chan any {
 			PanicOnError(retRes240112)
 		}
 		var userAddress any = nil
-		userAddressparamsVariable := this.HandlePublicAddress("fetchAccounts", params)
+		userAddressparamsVariable := this.HandlePublicAddress("fetchBalance", params)
 		userAddress = GetValue(userAddressparamsVariable, 0)
 		params = GetValue(userAddressparamsVariable, 1)
 		var subaccountNumber any = nil
-		subaccountNumberparamsVariable := this.HandleOptionAndParams(params, "fetchAccounts", "subaccountNumber", 0)
+		subaccountNumberparamsVariable := this.HandleOptionAndParams(params, "fetchBalance", "subaccountNumber", 0)
 		subaccountNumber = GetValue(subaccountNumberparamsVariable, 0)
 		params = GetValue(subaccountNumberparamsVariable, 1)
 		var request any = map[string]any{
