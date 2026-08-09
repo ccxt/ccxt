@@ -2,7 +2,7 @@
 
 import Precise from '../base/Precise.js';
 import type { Balances, Dict, FeeString, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market } from '../base/types.js';
-import { ArrayCache } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
 
@@ -558,7 +558,9 @@ export default class lighter extends lighterRest {
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCache (limit);
+            // the exchange resends already-seen trades on every push, so
+            // dedupe by trade id instead of blindly appending each batch
+            stored = new ArrayCacheBySymbolById (limit);
             this.trades[symbol] = stored;
         }
         const dataLength = data.length;
