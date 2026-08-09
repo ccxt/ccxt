@@ -426,7 +426,8 @@ class bullish(ccxt.async_support.bullish):
             rawOrders.append(data)  # update is a single order
         else:
             rawOrders = self.safe_list(message, 'data', [])  # snapshot is a list of orders
-        if len(rawOrders) > 0:
+        numRawOrders = len(rawOrders)  # hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if numRawOrders > 0:
             if self.orders is None:
                 limit = self.safe_integer(self.options, 'ordersLimit', 1000)
                 self.orders = ArrayCacheBySymbolById(limit)
@@ -524,7 +525,8 @@ class bullish(ccxt.async_support.bullish):
             rawTrades.append(data)  # update is a single trade
         else:
             rawTrades = self.safe_list(message, 'data', [])  # snapshot is a list of trades
-        if len(rawTrades) > 0:
+        numRawTrades = len(rawTrades)  # hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if numRawTrades > 0:
             if self.myTrades is None:
                 limit = self.safe_integer(self.options, 'tradesLimit', 1000)
                 self.myTrades = ArrayCacheBySymbolById(limit)

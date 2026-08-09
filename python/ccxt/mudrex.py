@@ -438,21 +438,26 @@ class mudrex(Exchange, ImplicitAPI):
             items = []
             if isinstance(data, dict) and not isinstance(data, list):
                 items = self.safe_list(data, 'items', [])
-                if not len(items):
+                # hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
+                itemsLength = len(items)
+                if not itemsLength:
                     items = self.safe_list(data, 'results', [])
-                if not len(items) and ('symbol' in data):
+                    itemsLength = len(items)
+                if not itemsLength and ('symbol' in data):
                     items = [data]
             else:
                 items = self.to_array(data)
-            if not len(items):
+            numItems = len(items)
+            if not numItems:
                 paging = False
                 break
-            for i in range(0, len(items)):
+            for i in range(0, numItems):
                 aggregated.append(items[i])
-            if len(items) < pageLimit:
+            if numItems < pageLimit:
                 paging = False
             else:
-                offset += pageLimit
+                # self.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                offset = self.sum(offset, pageLimit)
         result = []
         for i in range(0, len(aggregated)):
             result.append(self.parse_market(aggregated[i]))
