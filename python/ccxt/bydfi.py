@@ -140,7 +140,7 @@ class bydfi(Exchange, ImplicitAPI):
                 'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenInterests': False,
-                'fetchOpenOrder': False,
+                'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
                 'fetchOption': False,
                 'fetchOptionChain': False,

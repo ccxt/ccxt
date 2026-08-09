@@ -60,7 +60,7 @@ class kraken(Exchange, ImplicitAPI):
                 'cancelOrders': True,
                 'createDepositAddress': True,
                 'createMarketBuyOrderWithCost': True,
-                'createMarketOrderWithCost': False,
+                'createMarketOrderWithCost': True,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createOrders': True,

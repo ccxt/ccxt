@@ -117,6 +117,7 @@ class blofin(Exchange, ImplicitAPI):
                 'fetchPositions': True,
                 'fetchPositionsADLRank': True,
                 'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchSettlementHistory': False,

@@ -47,6 +47,7 @@ class exmo(Exchange, ImplicitAPI):
                 'createMarketBuyOrder': True,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrderWithCost': True,
+                'createMarketSellOrderWithCost': True,
                 'createOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,

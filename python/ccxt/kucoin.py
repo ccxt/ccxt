@@ -100,7 +100,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchL3OrderBook': True,
                 'fetchLedger': True,
                 'fetchLeverage': True,
-                'fetchLeverageTiers': False,
+                'fetchLeverageTiers': True,
                 'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': True,
                 'fetchMarketLeverageTiers': True,

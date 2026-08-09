@@ -80,6 +80,7 @@ class bitbank(Exchange, ImplicitAPI):
                 'fetchMarginMode': False,
                 'fetchMarginModes': False,
                 'fetchMarketLeverageTiers': False,
+                'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMarkPrices': False,
                 'fetchMyLiquidations': False,

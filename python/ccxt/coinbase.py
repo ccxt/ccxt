@@ -143,6 +143,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchOrdersByStatus': True,
                 'fetchPosition': True,
                 'fetchPositionHistory': False,
                 'fetchPositionMode': False,

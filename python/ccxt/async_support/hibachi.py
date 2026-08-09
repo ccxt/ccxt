@@ -96,6 +96,7 @@ class hibachi(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': False,
+                'fetchOrdersByStatus': True,
                 'fetchOrderTrades': False,
                 'fetchPosition': False,
                 'fetchPositionMode': False,

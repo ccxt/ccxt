@@ -67,6 +67,7 @@ class alpaca(Exchange, ImplicitAPI):
                 'createMarketBuyOrder': True,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrderWithCost': True,
+                'createMarketSellOrderWithCost': True,
                 'createOrder': True,
                 'createOrderWithTakeProfitAndStopLoss': False,
                 'createOrderWithTakeProfitAndStopLossWs': False,

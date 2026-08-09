@@ -74,6 +74,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDeposits': True,
+                'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': True,
@@ -119,6 +120,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'setMargin': True,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'urls': {

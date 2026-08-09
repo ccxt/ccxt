@@ -104,7 +104,7 @@ class bitopro(Exchange, ImplicitAPI):
                 'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': False,
+                'fetchOrders': True,
                 'fetchOrderTrades': False,
                 'fetchPosition': False,
                 'fetchPositionHistory': False,

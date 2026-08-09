@@ -63,6 +63,7 @@ class hollaex(Exchange, ImplicitAPI):
                 'fetchDepositAddresses': True,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
