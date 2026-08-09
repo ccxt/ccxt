@@ -19,272 +19,596 @@ public class DydxApi extends Exchange
         super(options);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetAddressesAddress (Object... optionalArgs)
+    /**
+     * Calls the indexerGetAddressesAddress endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetAddressesAddress (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetAddressesAddress", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetAddressesAddressParentSubaccountNumberNumber (Object... optionalArgs)
+    /**
+     * Calls the indexerGetAddressesAddressParentSubaccountNumberNumber endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetAddressesAddressParentSubaccountNumberNumber (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetAddressesAddressParentSubaccountNumberNumber", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetAddressesAddressSubaccountNumberSubaccountNumber (Object... optionalArgs)
+    /**
+     * Calls the indexerGetAddressesAddressSubaccountNumberSubaccountNumber endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetAddressesAddressSubaccountNumberSubaccountNumber (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetAddressesAddressSubaccountNumberSubaccountNumber", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetAssetPositions (Object... optionalArgs)
+    /**
+     * Calls the indexerGetAssetPositions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetAssetPositions (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetAssetPositions", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetAssetPositionsParentSubaccountNumber (Object... optionalArgs)
+    /**
+     * Calls the indexerGetAssetPositionsParentSubaccountNumber endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetAssetPositionsParentSubaccountNumber (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetAssetPositionsParentSubaccountNumber", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetCandlesPerpetualMarketsMarket (Object... optionalArgs)
+    /**
+     * Calls the indexerGetCandlesPerpetualMarketsMarket endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetCandlesPerpetualMarketsMarket (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetCandlesPerpetualMarketsMarket", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetComplianceScreenAddress (Object... optionalArgs)
+    /**
+     * Calls the indexerGetComplianceScreenAddress endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetComplianceScreenAddress (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetComplianceScreenAddress", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetFills (Object... optionalArgs)
+    /**
+     * Calls the indexerGetFills endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetFills (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetFills", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetFillsParentSubaccountNumber (Object... optionalArgs)
+    /**
+     * Calls the indexerGetFillsParentSubaccountNumber endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetFillsParentSubaccountNumber (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetFillsParentSubaccountNumber", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetFundingPayments (Object... optionalArgs)
+    /**
+     * Calls the indexerGetFundingPayments endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetFundingPayments (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetFundingPayments", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetFundingPaymentsParentSubaccount (Object... optionalArgs)
+    /**
+     * Calls the indexerGetFundingPaymentsParentSubaccount endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetFundingPaymentsParentSubaccount (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetFundingPaymentsParentSubaccount", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetHeight (Object... optionalArgs)
+    /**
+     * Calls the indexerGetHeight endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetHeight (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetHeight", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetHistoricalPnl (Object... optionalArgs)
+    /**
+     * Calls the indexerGetHistoricalPnl endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetHistoricalPnl (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetHistoricalPnl", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetHistoricalPnlParentSubaccountNumber (Object... optionalArgs)
+    /**
+     * Calls the indexerGetHistoricalPnlParentSubaccountNumber endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetHistoricalPnlParentSubaccountNumber (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetHistoricalPnlParentSubaccountNumber", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetHistoricalBlockTradingRewardsAddress (Object... optionalArgs)
+    /**
+     * Calls the indexerGetHistoricalBlockTradingRewardsAddress endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetHistoricalBlockTradingRewardsAddress (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetHistoricalBlockTradingRewardsAddress", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetHistoricalFundingMarket (Object... optionalArgs)
+    /**
+     * Calls the indexerGetHistoricalFundingMarket endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetHistoricalFundingMarket (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetHistoricalFundingMarket", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetHistoricalTradingRewardAggregationsAddress (Object... optionalArgs)
+    /**
+     * Calls the indexerGetHistoricalTradingRewardAggregationsAddress endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetHistoricalTradingRewardAggregationsAddress (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetHistoricalTradingRewardAggregationsAddress", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetOrderbooksPerpetualMarketMarket (Object... optionalArgs)
+    /**
+     * Calls the indexerGetOrderbooksPerpetualMarketMarket endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetOrderbooksPerpetualMarketMarket (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetOrderbooksPerpetualMarketMarket", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetOrders (Object... optionalArgs)
+    /**
+     * Calls the indexerGetOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  indexerGetOrders (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetOrders", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetOrdersParentSubaccountNumber (Object... optionalArgs)
+    /**
+     * Calls the indexerGetOrdersParentSubaccountNumber endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetOrdersParentSubaccountNumber (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetOrdersParentSubaccountNumber", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetOrdersOrderId (Object... optionalArgs)
+    /**
+     * Calls the indexerGetOrdersOrderId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetOrdersOrderId", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetPerpetualMarkets (Object... optionalArgs)
+    /**
+     * Calls the indexerGetPerpetualMarkets endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetPerpetualMarkets (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetPerpetualMarkets", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetPerpetualPositions (Object... optionalArgs)
+    /**
+     * Calls the indexerGetPerpetualPositions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetPerpetualPositions (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetPerpetualPositions", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetPerpetualPositionsParentSubaccountNumber (Object... optionalArgs)
+    /**
+     * Calls the indexerGetPerpetualPositionsParentSubaccountNumber endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetPerpetualPositionsParentSubaccountNumber (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetPerpetualPositionsParentSubaccountNumber", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetScreen (Object... optionalArgs)
+    /**
+     * Calls the indexerGetScreen endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetScreen (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetScreen", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetSparklines (Object... optionalArgs)
+    /**
+     * Calls the indexerGetSparklines endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetSparklines (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetSparklines", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetTime (Object... optionalArgs)
+    /**
+     * Calls the indexerGetTime endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetTime (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetTime", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetTradesPerpetualMarketMarket (Object... optionalArgs)
+    /**
+     * Calls the indexerGetTradesPerpetualMarketMarket endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetTradesPerpetualMarketMarket (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetTradesPerpetualMarketMarket", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetTransfers (Object... optionalArgs)
+    /**
+     * Calls the indexerGetTransfers endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetTransfers (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetTransfers", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetTransfersBetween (Object... optionalArgs)
+    /**
+     * Calls the indexerGetTransfersBetween endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetTransfersBetween (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetTransfersBetween", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetTransfersParentSubaccountNumber (Object... optionalArgs)
+    /**
+     * Calls the indexerGetTransfersParentSubaccountNumber endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetTransfersParentSubaccountNumber (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetTransfersParentSubaccountNumber", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetVaultV1MegavaultHistoricalPnl (Object... optionalArgs)
+    /**
+     * Calls the indexerGetVaultV1MegavaultHistoricalPnl endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetVaultV1MegavaultHistoricalPnl (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetVaultV1MegavaultHistoricalPnl", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetVaultV1MegavaultPositions (Object... optionalArgs)
+    /**
+     * Calls the indexerGetVaultV1MegavaultPositions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetVaultV1MegavaultPositions (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetVaultV1MegavaultPositions", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetVaultV1VaultsHistoricalPnl (Object... optionalArgs)
+    /**
+     * Calls the indexerGetVaultV1VaultsHistoricalPnl endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetVaultV1VaultsHistoricalPnl (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetVaultV1VaultsHistoricalPnl", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetPerpetualMarketSparklines (Object... optionalArgs)
+    /**
+     * Calls the indexerGetPerpetualMarketSparklines endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetPerpetualMarketSparklines (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetPerpetualMarketSparklines", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetPerpetualMarketsTicker (Object... optionalArgs)
+    /**
+     * Calls the indexerGetPerpetualMarketsTicker endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetPerpetualMarketsTicker (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetPerpetualMarketsTicker", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetPerpetualMarketsTickerOrderbook (Object... optionalArgs)
+    /**
+     * Calls the indexerGetPerpetualMarketsTickerOrderbook endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetPerpetualMarketsTickerOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetPerpetualMarketsTickerOrderbook", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetTradesPerpetualMarketTicker (Object... optionalArgs)
+    /**
+     * Calls the indexerGetTradesPerpetualMarketTicker endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetTradesPerpetualMarketTicker (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetTradesPerpetualMarketTicker", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetHistoricalFundingTicker (Object... optionalArgs)
+    /**
+     * Calls the indexerGetHistoricalFundingTicker endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetHistoricalFundingTicker (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetHistoricalFundingTicker", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetCandlesTickerResolution (Object... optionalArgs)
+    /**
+     * Calls the indexerGetCandlesTickerResolution endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetCandlesTickerResolution (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetCandlesTickerResolution", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetAddressesAddressSubaccounts (Object... optionalArgs)
+    /**
+     * Calls the indexerGetAddressesAddressSubaccounts endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetAddressesAddressSubaccounts (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetAddressesAddressSubaccounts", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetAddressesAddressSubaccountNumberSubaccountNumberAssetPositions (Object... optionalArgs)
+    /**
+     * Calls the indexerGetAddressesAddressSubaccountNumberSubaccountNumberAssetPositions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetAddressesAddressSubaccountNumberSubaccountNumberAssetPositions (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetAddressesAddressSubaccountNumberSubaccountNumberAssetPositions", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetAddressesAddressSubaccountNumberSubaccountNumberPerpetualPositions (Object... optionalArgs)
+    /**
+     * Calls the indexerGetAddressesAddressSubaccountNumberSubaccountNumberPerpetualPositions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetAddressesAddressSubaccountNumberSubaccountNumberPerpetualPositions (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetAddressesAddressSubaccountNumberSubaccountNumberPerpetualPositions", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders (Object... optionalArgs)
+    /**
+     * Calls the indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetFillsParentSubaccount (Object... optionalArgs)
+    /**
+     * Calls the indexerGetFillsParentSubaccount endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetFillsParentSubaccount (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetFillsParentSubaccount", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  indexerGetHistoricalPnlParentSubaccount (Object... optionalArgs)
+    /**
+     * Calls the indexerGetHistoricalPnlParentSubaccount endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetHistoricalPnlParentSubaccount (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetHistoricalPnlParentSubaccount", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  nodeRpcGetAbciInfo (Object... optionalArgs)
+    /**
+     * Calls the nodeRpcGetAbciInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  nodeRpcGetAbciInfo (Object... optionalArgs)
     {
         return this.callAsync ("nodeRpcGetAbciInfo", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  nodeRpcGetBlock (Object... optionalArgs)
+    /**
+     * Calls the nodeRpcGetBlock endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  nodeRpcGetBlock (Object... optionalArgs)
     {
         return this.callAsync ("nodeRpcGetBlock", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  nodeRpcGetBroadcastTxAsync (Object... optionalArgs)
+    /**
+     * Calls the nodeRpcGetBroadcastTxAsync endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  nodeRpcGetBroadcastTxAsync (Object... optionalArgs)
     {
         return this.callAsync ("nodeRpcGetBroadcastTxAsync", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  nodeRpcGetBroadcastTxSync (Object... optionalArgs)
+    /**
+     * Calls the nodeRpcGetBroadcastTxSync endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  nodeRpcGetBroadcastTxSync (Object... optionalArgs)
     {
         return this.callAsync ("nodeRpcGetBroadcastTxSync", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  nodeRpcGetTx (Object... optionalArgs)
+    /**
+     * Calls the nodeRpcGetTx endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  nodeRpcGetTx (Object... optionalArgs)
     {
         return this.callAsync ("nodeRpcGetTx", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress (Object... optionalArgs)
+    /**
+     * Calls the nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress (Object... optionalArgs)
     {
         return this.callAsync ("nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  nodeRestPostCosmosTxV1beta1Encode (Object... optionalArgs)
+    /**
+     * Calls the nodeRestPostCosmosTxV1beta1Encode endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  nodeRestPostCosmosTxV1beta1Encode (Object... optionalArgs)
     {
         return this.callAsync ("nodeRestPostCosmosTxV1beta1Encode", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  nodeRestPostCosmosTxV1beta1Simulate (Object... optionalArgs)
+    /**
+     * Calls the nodeRestPostCosmosTxV1beta1Simulate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  nodeRestPostCosmosTxV1beta1Simulate (Object... optionalArgs)
     {
         return this.callAsync ("nodeRestPostCosmosTxV1beta1Simulate", optionalArgs);
     }

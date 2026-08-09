@@ -7,124 +7,244 @@ namespace ccxt\abstract\prediction;
 
 
 abstract class binance extends \ccxt\prediction\PredictionExchange {
-    public function sapi_private_get_category_list($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_private_get_category_list($params = array()): \React\Promise\PromiseInterface {
         return $this->request('category/list', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapi_private_get_market_list($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_private_get_market_list($params = array()): \React\Promise\PromiseInterface {
         return $this->request('market/list', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapi_private_get_market_search($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function sapi_private_get_market_search($params = array()): \React\Promise\PromiseInterface {
         return $this->request('market/search', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapi_private_get_market_detail($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_private_get_market_detail($params = array()): \React\Promise\PromiseInterface {
         return $this->request('market/detail', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapi_private_get_order_book($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_private_get_order_book($params = array()): \React\Promise\PromiseInterface {
         return $this->request('order-book', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapi_private_get_order_book_last_trade_price($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_private_get_order_book_last_trade_price($params = array()): \React\Promise\PromiseInterface {
         return $this->request('order-book/last-trade-price', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapi_private_get_wallet_list($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_private_get_wallet_list($params = array()): \React\Promise\PromiseInterface {
         return $this->request('wallet/list', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapi_private_get_balance_payment_options($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_private_get_balance_payment_options($params = array()): \React\Promise\PromiseInterface {
         return $this->request('balance/payment-options', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapi_private_get_quota_limit_status($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_private_get_quota_limit_status($params = array()): \React\Promise\PromiseInterface {
         return $this->request('quota/limit/status', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapi_private_get_pnl_portfolio($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_private_get_pnl_portfolio($params = array()): \React\Promise\PromiseInterface {
         return $this->request('pnl/portfolio', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapi_private_get_pnl_query($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_private_get_pnl_query($params = array()): \React\Promise\PromiseInterface {
         return $this->request('pnl/query', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapi_private_get_position_list($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_private_get_position_list($params = array()): \React\Promise\PromiseInterface {
         return $this->request('position/list', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapi_private_get_position_filter($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_private_get_position_filter($params = array()): \React\Promise\PromiseInterface {
         return $this->request('position/filter', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapi_private_get_position_token($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_private_get_position_token($params = array()): \React\Promise\PromiseInterface {
         return $this->request('position/token', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapi_private_get_position_settled_history($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_private_get_position_settled_history($params = array()): \React\Promise\PromiseInterface {
         return $this->request('position/settled-history', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapi_private_get_order_list($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_private_get_order_list($params = array()): \React\Promise\PromiseInterface {
         return $this->request('order/list', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapi_private_get_order_history($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_private_get_order_history($params = array()): \React\Promise\PromiseInterface {
         return $this->request('order/history', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapi_private_post_trade_get_quote($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_private_post_trade_get_quote($params = array()): \React\Promise\PromiseInterface {
         return $this->request('trade/get-quote', array('sapi', 'private'), 'POST', $params, null, null, array("cost" => 200));
     }
-    public function sapi_private_post_trade_place_order_bundle($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_private_post_trade_place_order_bundle($params = array()): \React\Promise\PromiseInterface {
         return $this->request('trade/place-order-bundle', array('sapi', 'private'), 'POST', $params, null, null, array("cost" => 200));
     }
-    public function sapi_private_post_trade_batch_cancel($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_private_post_trade_batch_cancel($params = array()): \React\Promise\PromiseInterface {
         return $this->request('trade/batch-cancel', array('sapi', 'private'), 'POST', $params, null, null, array("cost" => 200));
     }
-    public function sapiPrivateGetCategoryList($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPrivateGetCategoryList($params = array()): \React\Promise\PromiseInterface {
         return $this->request('category/list', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapiPrivateGetMarketList($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPrivateGetMarketList($params = array()): \React\Promise\PromiseInterface {
         return $this->request('market/list', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapiPrivateGetMarketSearch($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function sapiPrivateGetMarketSearch($params = array()): \React\Promise\PromiseInterface {
         return $this->request('market/search', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapiPrivateGetMarketDetail($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPrivateGetMarketDetail($params = array()): \React\Promise\PromiseInterface {
         return $this->request('market/detail', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapiPrivateGetOrderBook($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPrivateGetOrderBook($params = array()): \React\Promise\PromiseInterface {
         return $this->request('order-book', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapiPrivateGetOrderBookLastTradePrice($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPrivateGetOrderBookLastTradePrice($params = array()): \React\Promise\PromiseInterface {
         return $this->request('order-book/last-trade-price', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapiPrivateGetWalletList($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPrivateGetWalletList($params = array()): \React\Promise\PromiseInterface {
         return $this->request('wallet/list', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapiPrivateGetBalancePaymentOptions($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPrivateGetBalancePaymentOptions($params = array()): \React\Promise\PromiseInterface {
         return $this->request('balance/payment-options', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapiPrivateGetQuotaLimitStatus($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPrivateGetQuotaLimitStatus($params = array()): \React\Promise\PromiseInterface {
         return $this->request('quota/limit/status', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapiPrivateGetPnlPortfolio($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPrivateGetPnlPortfolio($params = array()): \React\Promise\PromiseInterface {
         return $this->request('pnl/portfolio', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapiPrivateGetPnlQuery($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPrivateGetPnlQuery($params = array()): \React\Promise\PromiseInterface {
         return $this->request('pnl/query', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapiPrivateGetPositionList($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPrivateGetPositionList($params = array()): \React\Promise\PromiseInterface {
         return $this->request('position/list', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapiPrivateGetPositionFilter($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPrivateGetPositionFilter($params = array()): \React\Promise\PromiseInterface {
         return $this->request('position/filter', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapiPrivateGetPositionToken($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPrivateGetPositionToken($params = array()): \React\Promise\PromiseInterface {
         return $this->request('position/token', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapiPrivateGetPositionSettledHistory($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPrivateGetPositionSettledHistory($params = array()): \React\Promise\PromiseInterface {
         return $this->request('position/settled-history', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapiPrivateGetOrderList($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPrivateGetOrderList($params = array()): \React\Promise\PromiseInterface {
         return $this->request('order/list', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapiPrivateGetOrderHistory($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPrivateGetOrderHistory($params = array()): \React\Promise\PromiseInterface {
         return $this->request('order/history', array('sapi', 'private'), 'GET', $params, null, null, array("cost" => 200));
     }
-    public function sapiPrivatePostTradeGetQuote($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPrivatePostTradeGetQuote($params = array()): \React\Promise\PromiseInterface {
         return $this->request('trade/get-quote', array('sapi', 'private'), 'POST', $params, null, null, array("cost" => 200));
     }
-    public function sapiPrivatePostTradePlaceOrderBundle($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPrivatePostTradePlaceOrderBundle($params = array()): \React\Promise\PromiseInterface {
         return $this->request('trade/place-order-bundle', array('sapi', 'private'), 'POST', $params, null, null, array("cost" => 200));
     }
-    public function sapiPrivatePostTradeBatchCancel($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPrivatePostTradeBatchCancel($params = array()): \React\Promise\PromiseInterface {
         return $this->request('trade/batch-cancel', array('sapi', 'private'), 'POST', $params, null, null, array("cost" => 200));
     }
 }

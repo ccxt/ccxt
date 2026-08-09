@@ -158,69 +158,69 @@ class luno(Exchange, ImplicitAPI):
             'api': {
                 'exchange': {
                     'get': {
-                        'markets': 1,
+                        'markets': {'cost': 1},
                     },
                 },
                 'exchangePrivate': {
                     'get': {
-                        'candles': 1,
-                        'move': 1,
-                        'move/list_moves': 1,
-                        'transfers': 1,
+                        'candles': {'cost': 1},
+                        'move': {'cost': 1},
+                        'move/list_moves': {'cost': 1},
+                        'transfers': {'cost': 1},
                     },
                     'post': {
-                        'convert': 1,
-                        'move': 1,
+                        'convert': {'cost': 1},
+                        'move': {'cost': 1},
                     },
                 },
                 'public': {
                     'get': {
-                        'orderbook': 1,
-                        'orderbook_top': 1,
-                        'ticker': 1,
-                        'tickers': 1,
-                        'trades': 1,
+                        'orderbook': {'cost': 1},
+                        'orderbook_top': {'cost': 1},
+                        'ticker': {'cost': 1},
+                        'tickers': {'cost': 1},
+                        'trades': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts/{id}/pending': 1,
-                        'accounts/{id}/transactions': 1,
-                        'balance': 1,
-                        'beneficiaries': 1,
-                        'send/networks': 1,
-                        'fee_info': 1,
-                        'funding_address': 1,
-                        'listorders': 1,
-                        'listtrades': 1,
-                        'send_fee': 1,
-                        'orders/{id}': 1,
-                        'withdrawals': 1,
-                        'withdrawals/{id}': 1,
-                        'transfers': 1,  # not found in current docs, use GET /api/exchange/1/transfers
-                        'users/linked': 1,
+                        'accounts/{id}/pending': {'cost': 1},
+                        'accounts/{id}/transactions': {'cost': 1},
+                        'balance': {'cost': 1},
+                        'beneficiaries': {'cost': 1},
+                        'send/networks': {'cost': 1},
+                        'fee_info': {'cost': 1},
+                        'funding_address': {'cost': 1},
+                        'listorders': {'cost': 1},
+                        'listtrades': {'cost': 1},
+                        'send_fee': {'cost': 1},
+                        'orders/{id}': {'cost': 1},
+                        'withdrawals': {'cost': 1},
+                        'withdrawals/{id}': {'cost': 1},
+                        'transfers': {'cost': 1},  # not found in current docs, use GET /api/exchange/1/transfers
+                        'users/linked': {'cost': 1},
                         # GET /api/exchange/2/listorders
                         # GET /api/exchange/2/orders/{id}
                         # GET /api/exchange/3/order
                     },
                     'post': {
-                        'accounts': 1,
-                        'address/validate': 1,
-                        'postorder': 1,
-                        'marketorder': 1,
-                        'stoporder': 1,
-                        'funding_address': 1,
-                        'withdrawals': 1,
-                        'send': 1,
-                        'oauth2/grant': 1,  # deprecated for new applications
-                        'beneficiaries': 1,
+                        'accounts': {'cost': 1},
+                        'address/validate': {'cost': 1},
+                        'postorder': {'cost': 1},
+                        'marketorder': {'cost': 1},
+                        'stoporder': {'cost': 1},
+                        'funding_address': {'cost': 1},
+                        'withdrawals': {'cost': 1},
+                        'send': {'cost': 1},
+                        'oauth2/grant': {'cost': 1},  # deprecated for new applications
+                        'beneficiaries': {'cost': 1},
                     },
                     'put': {
-                        'accounts/{id}/name': 1,
+                        'accounts/{id}/name': {'cost': 1},
                     },
                     'delete': {
-                        'withdrawals/{id}': 1,
-                        'beneficiaries/{id}': 1,
+                        'withdrawals/{id}': {'cost': 1},
+                        'beneficiaries/{id}': {'cost': 1},
                     },
                 },
             },
@@ -238,10 +238,51 @@ class luno(Exchange, ImplicitAPI):
             },
             'fees': {
                 'trading': {
+                    # Luno prices by PAIR CATEGORY 30-day volume tier:
+                    # crypto/fiat, stablecoin/fiat and crypto/crypto each have their own
+                    # ladder, and the maker side is a charge in one category and a rebate
+                    # in another at the same tier. A single scalar cannot represent that,
+                    # so per-market 'taker'/'maker' are set in fetchMarkets where the
+                    # published schedule has been verified. The values below are the
+                    # exchange-wide fallback: crypto/fiat at the entry tier, which is the
+                    # dearest cell in the table and therefore the safe direction to quote
+                    # for a caller who cannot reach the authenticated fetchTradingFee.
                     'tierBased': True,  # based on volume from your primary currency(not the same for everyone)
                     'percentage': True,
-                    'taker': self.parse_number('0.001'),
-                    'maker': self.parse_number('0'),
+                    'taker': self.parse_number('0.006'),
+                    'maker': self.parse_number('0.004'),
+                    'tiers': {
+                        'taker': [
+                            [self.parse_number('0'), self.parse_number('0.006')],
+                            [self.parse_number('20000'), self.parse_number('0.005')],
+                            [self.parse_number('200000'), self.parse_number('0.004')],
+                            [self.parse_number('1000000'), self.parse_number('0.003')],
+                            [self.parse_number('2000000'), self.parse_number('0.002')],
+                            [self.parse_number('5000000'), self.parse_number('0.0015')],
+                            [self.parse_number('10000000'), self.parse_number('0.001')],
+                            [self.parse_number('20000000'), self.parse_number('0.0009')],
+                            [self.parse_number('40000000'), self.parse_number('0.0008')],
+                            [self.parse_number('80000000'), self.parse_number('0.0007')],
+                            [self.parse_number('120000000'), self.parse_number('0.0006')],
+                            [self.parse_number('160000000'), self.parse_number('0.0005')],
+                            [self.parse_number('300000000'), self.parse_number('0.0005')],
+                        ],
+                        'maker': [
+                            [self.parse_number('0'), self.parse_number('0.004')],
+                            [self.parse_number('20000'), self.parse_number('0.003')],
+                            [self.parse_number('200000'), self.parse_number('0.002')],
+                            [self.parse_number('1000000'), self.parse_number('0.001')],
+                            [self.parse_number('2000000'), self.parse_number('0.0008')],
+                            [self.parse_number('5000000'), self.parse_number('0.0006')],
+                            [self.parse_number('10000000'), self.parse_number('0')],
+                            [self.parse_number('20000000'), self.parse_number('0')],
+                            [self.parse_number('40000000'), self.parse_number('-0.0001')],
+                            [self.parse_number('80000000'), self.parse_number('-0.0001')],
+                            [self.parse_number('120000000'), self.parse_number('-0.0002')],
+                            [self.parse_number('160000000'), self.parse_number('-0.0002')],
+                            [self.parse_number('300000000'), self.parse_number('-0.0002')],
+                        ],
+                    },
                 },
             },
             'exceptions': {
@@ -548,9 +589,35 @@ class luno(Exchange, ImplicitAPI):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             status = self.safe_string(market, 'trading_status')
+            # Luno's published schedule is categorical, not a single pair. Entry-tier
+            # rates below are read from Luno's own Help Centre fee article for the ZAR
+            # market; markets quoted in other fiat currencies are left on the
+            # exchange-wide default until their schedules are verified the same way.
+            fiats = ['ZAR']
+            # live-but-unverified counters, kept on the exchange-wide default; the market
+            # list is geo-filtered so self is a superset of any one region's view, and
+            # ZARU is Luno's tokenized rand("ZAR Universal"), not fiat, but equally unverified
+            unverifiedQuotes = ['MYR', 'NGN', 'IDR', 'KES', 'UGX', 'AUD', 'GBP', 'EUR', 'USD', 'ZARU']
+            stablecoins = ['USDT', 'USDC']
+            taker = None
+            maker = None
+            if self.in_array(quote, fiats):
+                if self.in_array(base, stablecoins):
+                    taker = self.parse_number('0.002')
+                    maker = self.parse_number('-0.0001')  # a rebate, not a charge
+                else:
+                    taker = self.parse_number('0.006')
+                    maker = self.parse_number('0.004')
+            elif not self.in_array(quote, unverifiedQuotes):
+                # stablecoin-quoted(BTC/USDT) and crypto-quoted(ETH/BTC, SOL/ADA) books
+                # are both in Luno's crypto/crypto column
+                taker = self.parse_number('0.001')
+                maker = self.parse_number('0.0008')
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
+                'taker': taker,
+                'maker': maker,
                 'base': base,
                 'quote': quote,
                 'settle': None,
@@ -904,7 +971,8 @@ class luno(Exchange, ImplicitAPI):
             self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.publicGetTickers(params)
-        tickers = self.index_by(response['tickers'], 'pair')
+        rawTickers = self.safe_list(response, 'tickers', [])
+        tickers = self.index_by(rawTickers, 'pair')
         ids = list(tickers.keys())
         result = {}
         for i in range(0, len(ids)):

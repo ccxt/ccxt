@@ -141,142 +141,142 @@ class whitebit extends Exchange {
             'api' => array(
                 'web' => array(
                     'get' => array(
-                        'v1/healthcheck',
+                        'v1/healthcheck' => array( 'cost' => 1 ),
                     ),
                 ),
                 'v1' => array(
                     'public' => array(
                         'get' => array(
-                            'markets',
-                            'tickers',
-                            'ticker',
-                            'symbols',
-                            'depth/result',
-                            'history',
-                            'kline',
+                            'markets' => array( 'cost' => 1 ),
+                            'tickers' => array( 'cost' => 1 ),
+                            'ticker' => array( 'cost' => 1 ),
+                            'symbols' => array( 'cost' => 1 ),
+                            'depth/result' => array( 'cost' => 1 ),
+                            'history' => array( 'cost' => 1 ),
+                            'kline' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'post' => array(
-                            'account/balance',
-                            'order/new',
-                            'order/cancel',
-                            'orders',
-                            'account/order_history',
-                            'account/executed_history',
-                            'account/executed_history/all',
-                            'account/order',
+                            'account/balance' => array( 'cost' => 1 ),
+                            'order/new' => array( 'cost' => 1 ),
+                            'order/cancel' => array( 'cost' => 1 ),
+                            'orders' => array( 'cost' => 1 ),
+                            'account/order_history' => array( 'cost' => 1 ),
+                            'account/executed_history' => array( 'cost' => 1 ),
+                            'account/executed_history/all' => array( 'cost' => 1 ),
+                            'account/order' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
                 'v2' => array(
                     'public' => array(
                         'get' => array(
-                            'markets',
-                            'ticker',
-                            'assets',
-                            'fee',
-                            'depth/{market}',
-                            'trades/{market}',
+                            'markets' => array( 'cost' => 1 ),
+                            'ticker' => array( 'cost' => 1 ),
+                            'assets' => array( 'cost' => 1 ),
+                            'fee' => array( 'cost' => 1 ),
+                            'depth/{market}' => array( 'cost' => 1 ),
+                            'trades/{market}' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
                 'v4' => array(
                     'public' => array(
                         'get' => array(
-                            'assets',
-                            'collateral/markets',
-                            'fee',
-                            'funding-history/{market}',
-                            'orderbook/depth/{market}',
-                            'orderbook/{market}',
-                            'ticker',
-                            'trades/{market}',
-                            'time',
-                            'ping',
-                            'markets',
-                            'futures',
-                            'platform/status',
-                            'mining-pool',
+                            'assets' => array( 'cost' => 1 ),
+                            'collateral/markets' => array( 'cost' => 1 ),
+                            'fee' => array( 'cost' => 1 ),
+                            'funding-history/{market}' => array( 'cost' => 1 ),
+                            'orderbook/depth/{market}' => array( 'cost' => 1 ),
+                            'orderbook/{market}' => array( 'cost' => 1 ),
+                            'ticker' => array( 'cost' => 1 ),
+                            'trades/{market}' => array( 'cost' => 1 ),
+                            'time' => array( 'cost' => 1 ),
+                            'ping' => array( 'cost' => 1 ),
+                            'markets' => array( 'cost' => 1 ),
+                            'futures' => array( 'cost' => 1 ),
+                            'platform/status' => array( 'cost' => 1 ),
+                            'mining-pool' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'post' => array(
-                            'collateral-account/balance',
-                            'collateral-account/balance-summary',
-                            'collateral-account/positions/history',
-                            'collateral-account/leverage',
-                            'collateral-account/positions/open',
-                            'collateral-account/summary',
-                            'collateral-account/funding-history',
-                            'main-account/address',
-                            'main-account/balance',
-                            'main-account/create-new-address',
-                            'main-account/codes',
-                            'main-account/codes/apply',
-                            'main-account/codes/my',
-                            'main-account/codes/history',
-                            'main-account/fiat-deposit-url',
-                            'main-account/history',
-                            'main-account/withdraw',
-                            'main-account/withdraw-pay',
-                            'main-account/transfer',
-                            'main-account/smart/plans',
-                            'main-account/smart/investment',
-                            'main-account/smart/investment/close',
-                            'main-account/smart/investments',
-                            'main-account/fee',
-                            'main-account/smart/interest-payment-history',
-                            'trade-account/balance',
-                            'trade-account/executed-history',
-                            'trade-account/order/history',
-                            'trade-account/order',
-                            'order/collateral/limit',
-                            'order/collateral/market',
-                            'order/collateral/stop-limit',
-                            'order/collateral/trigger-market',
-                            'order/collateral/bulk',
-                            'order/new',
-                            'order/market',
-                            'order/stock_market',
-                            'order/stop_limit',
-                            'order/stop_market',
-                            'order/cancel',
-                            'order/cancel/all',
-                            'order/kill-switch',
-                            'order/kill-switch/status',
-                            'order/bulk',
-                            'order/modify',
-                            'order/conditional-cancel',
-                            'orders',
-                            'oco-orders',
-                            'order/collateral/oco',
-                            'order/oco-cancel',
-                            'order/oto-cancel',
-                            'profile/websocket_token',
-                            'convert/estimate',
-                            'convert/confirm',
-                            'convert/history',
-                            'sub-account/create',
-                            'sub-account/delete',
-                            'sub-account/edit',
-                            'sub-account/list',
-                            'sub-account/transfer',
-                            'sub-account/block',
-                            'sub-account/unblock',
-                            'sub-account/balances',
-                            'sub-account/transfer/history',
-                            'sub-account/api-key/create',
-                            'sub-account/api-key/edit',
-                            'sub-account/api-key/delete',
-                            'sub-account/api-key/list',
-                            'sub-account/api-key/reset',
-                            'sub-account/api-key/ip-address/list',
-                            'sub-account/api-key/ip-address/create',
-                            'sub-account/api-key/ip-address/delete',
-                            'mining/rewards',
-                            'market/fee',
-                            'conditional-orders',
+                            'collateral-account/balance' => array( 'cost' => 1 ),
+                            'collateral-account/balance-summary' => array( 'cost' => 1 ),
+                            'collateral-account/positions/history' => array( 'cost' => 1 ),
+                            'collateral-account/leverage' => array( 'cost' => 1 ),
+                            'collateral-account/positions/open' => array( 'cost' => 1 ),
+                            'collateral-account/summary' => array( 'cost' => 1 ),
+                            'collateral-account/funding-history' => array( 'cost' => 1 ),
+                            'main-account/address' => array( 'cost' => 1 ),
+                            'main-account/balance' => array( 'cost' => 1 ),
+                            'main-account/create-new-address' => array( 'cost' => 1 ),
+                            'main-account/codes' => array( 'cost' => 1 ),
+                            'main-account/codes/apply' => array( 'cost' => 1 ),
+                            'main-account/codes/my' => array( 'cost' => 1 ),
+                            'main-account/codes/history' => array( 'cost' => 1 ),
+                            'main-account/fiat-deposit-url' => array( 'cost' => 1 ),
+                            'main-account/history' => array( 'cost' => 1 ),
+                            'main-account/withdraw' => array( 'cost' => 1 ),
+                            'main-account/withdraw-pay' => array( 'cost' => 1 ),
+                            'main-account/transfer' => array( 'cost' => 1 ),
+                            'main-account/smart/plans' => array( 'cost' => 1 ),
+                            'main-account/smart/investment' => array( 'cost' => 1 ),
+                            'main-account/smart/investment/close' => array( 'cost' => 1 ),
+                            'main-account/smart/investments' => array( 'cost' => 1 ),
+                            'main-account/fee' => array( 'cost' => 1 ),
+                            'main-account/smart/interest-payment-history' => array( 'cost' => 1 ),
+                            'trade-account/balance' => array( 'cost' => 1 ),
+                            'trade-account/executed-history' => array( 'cost' => 1 ),
+                            'trade-account/order/history' => array( 'cost' => 1 ),
+                            'trade-account/order' => array( 'cost' => 1 ),
+                            'order/collateral/limit' => array( 'cost' => 1 ),
+                            'order/collateral/market' => array( 'cost' => 1 ),
+                            'order/collateral/stop-limit' => array( 'cost' => 1 ),
+                            'order/collateral/trigger-market' => array( 'cost' => 1 ),
+                            'order/collateral/bulk' => array( 'cost' => 1 ),
+                            'order/new' => array( 'cost' => 1 ),
+                            'order/market' => array( 'cost' => 1 ),
+                            'order/stock_market' => array( 'cost' => 1 ),
+                            'order/stop_limit' => array( 'cost' => 1 ),
+                            'order/stop_market' => array( 'cost' => 1 ),
+                            'order/cancel' => array( 'cost' => 1 ),
+                            'order/cancel/all' => array( 'cost' => 1 ),
+                            'order/kill-switch' => array( 'cost' => 1 ),
+                            'order/kill-switch/status' => array( 'cost' => 1 ),
+                            'order/bulk' => array( 'cost' => 1 ),
+                            'order/modify' => array( 'cost' => 1 ),
+                            'order/conditional-cancel' => array( 'cost' => 1 ),
+                            'orders' => array( 'cost' => 1 ),
+                            'oco-orders' => array( 'cost' => 1 ),
+                            'order/collateral/oco' => array( 'cost' => 1 ),
+                            'order/oco-cancel' => array( 'cost' => 1 ),
+                            'order/oto-cancel' => array( 'cost' => 1 ),
+                            'profile/websocket_token' => array( 'cost' => 1 ),
+                            'convert/estimate' => array( 'cost' => 1 ),
+                            'convert/confirm' => array( 'cost' => 1 ),
+                            'convert/history' => array( 'cost' => 1 ),
+                            'sub-account/create' => array( 'cost' => 1 ),
+                            'sub-account/delete' => array( 'cost' => 1 ),
+                            'sub-account/edit' => array( 'cost' => 1 ),
+                            'sub-account/list' => array( 'cost' => 1 ),
+                            'sub-account/transfer' => array( 'cost' => 1 ),
+                            'sub-account/block' => array( 'cost' => 1 ),
+                            'sub-account/unblock' => array( 'cost' => 1 ),
+                            'sub-account/balances' => array( 'cost' => 1 ),
+                            'sub-account/transfer/history' => array( 'cost' => 1 ),
+                            'sub-account/api-key/create' => array( 'cost' => 1 ),
+                            'sub-account/api-key/edit' => array( 'cost' => 1 ),
+                            'sub-account/api-key/delete' => array( 'cost' => 1 ),
+                            'sub-account/api-key/list' => array( 'cost' => 1 ),
+                            'sub-account/api-key/reset' => array( 'cost' => 1 ),
+                            'sub-account/api-key/ip-address/list' => array( 'cost' => 1 ),
+                            'sub-account/api-key/ip-address/create' => array( 'cost' => 1 ),
+                            'sub-account/api-key/ip-address/delete' => array( 'cost' => 1 ),
+                            'mining/rewards' => array( 'cost' => 1 ),
+                            'market/fee' => array( 'cost' => 1 ),
+                            'conditional-orders' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
@@ -492,7 +492,6 @@ class whitebit extends Exchange {
         $margin = $isCollateral && !$swap;
         $contract = false;
         $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'stockPrec')));
-        $contractSize = $amountPrecision;
         $linear = null;
         $inverse = null;
         if ($swap) {
@@ -532,7 +531,7 @@ class whitebit extends Exchange {
             'inverse' => $inverse,
             'taker' => $this->parse_number($taker),
             'maker' => $this->parse_number($maker),
-            'contractSize' => $isSpot ? null : $contractSize,
+            'contractSize' => $isSpot ? null : $this->parse_number('1'), // perpetual amounts are denominated in $base currency units
             'expiry' => null,
             'expiryDatetime' => null,
             'strike' => null,
@@ -757,7 +756,7 @@ class whitebit extends Exchange {
         $depositFees = array();
         for ($i = 0; $i < count($currenciesIds); $i++) {
             $currency = $currenciesIds[$i];
-            $data = $response[$currency];
+            $data = $this->safe_dict($response, $currency, array());
             $code = $this->safe_currency_code($currency);
             $withdraw = $this->safe_value($data, 'withdraw', array());
             if ($code !== null) {
@@ -1191,7 +1190,7 @@ class whitebit extends Exchange {
             $feeKeys = is_array($feesData) ? array_keys($feesData) : array();
             for ($j = 0; $j < count($feeKeys); $j++) {
                 $feeKey = $feeKeys[$j];
-                $fee = $feesData[$feeKey];
+                $fee = $this->safe_dict($feesData, $feeKey);
                 if ($fee && $fee['ticker'] === $code) {
                     $feeData = $fee;
                     break;
@@ -1440,8 +1439,9 @@ class whitebit extends Exchange {
             try {
                 $response = $this->v4PrivatePostOrders($this->extend($request, $params));
                 // Search for $order in active $orders $response (array format)
-                for ($i = 0; $i < count($response); $i++) {
-                    $order = $response[$i];
+                $orders = $this->to_array($response);
+                for ($i = 0; $i < count($orders); $i++) {
+                    $order = $orders[$i];
                     $orderId = $this->safe_string($order, 'orderId');
                     if ($orderId === $id) {
                         $marketId = $this->safe_string($order, 'market');
@@ -1464,9 +1464,9 @@ class whitebit extends Exchange {
                 for ($i = 0; $i < count($marketIds); $i++) {
                     $marketId = $marketIds[$i];
                     $marketNew = $this->safe_market($marketId, null, '_');
-                    $orders = $response[$marketId];
-                    for ($j = 0; $j < count($orders); $j++) {
-                        $order = $orders[$j];
+                    $marketOrders = $this->safe_list($response, $marketId, array());
+                    for ($j = 0; $j < count($marketOrders); $j++) {
+                        $order = $marketOrders[$j];
                         $orderId = $this->safe_string($order, 'id');
                         if ($orderId === $id) {
                             return $this->parse_order($order, $marketNew);
@@ -2311,11 +2311,7 @@ class whitebit extends Exchange {
         $isBiggerThanZero = ($timeout > 0);
         $request = array(
             'market' => $market['id'],
-            // 'timeout' => ($timeout > 0) ? $this->number_to_string($timeout / 1000) : null,
         );
-        if ($timeout === null) {
-            throw new ExchangeError($this->id . ' cancelAllOrdersAfter() missing timeout');
-        }
         if ($isBiggerThanZero) {
             $request['timeout'] = $this->number_to_string($timeout / 1000);
         } else {
@@ -2508,7 +2504,7 @@ class whitebit extends Exchange {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $marketNew = $this->safe_market($marketId, null, '_');
-            $orders = $response[$marketId];
+            $orders = $this->safe_list($response, $marketId, array());
             for ($j = 0; $j < count($orders); $j++) {
                 $order = $this->parse_order($orders[$j], $marketNew);
                 $results[] = $this->extend($order, array( 'status' => 'closed' ));
@@ -2805,7 +2801,8 @@ class whitebit extends Exchange {
         //         array( ... )                                 // More transactions (deposits and withdrawals)
         //     )
         //
-        return $this->parse_transactions($response, $currency, $since, $limit);
+        $records = $this->safe_list($response, 'records', array());
+        return $this->parse_transactions($records, $currency, $since, $limit);
     }
 
     public function fetch_deposit_address(string $code, $params = array()): array {

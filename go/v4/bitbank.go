@@ -140,44 +140,100 @@ func (this *BitbankCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"{pair}/ticker":                  1,
-					"tickers":                        1,
-					"tickers_jpy":                    1,
-					"{pair}/depth":                   1,
-					"{pair}/transactions":            1,
-					"{pair}/transactions/{yyyymmdd}": 1,
-					"{pair}/candlestick/{candletype}/{yyyymmdd}": 1,
-					"{pair}/circuit_break_info":                  1,
+					"{pair}/ticker": map[string]any{
+						"cost": 1,
+					},
+					"tickers": map[string]any{
+						"cost": 1,
+					},
+					"tickers_jpy": map[string]any{
+						"cost": 1,
+					},
+					"{pair}/depth": map[string]any{
+						"cost": 1,
+					},
+					"{pair}/transactions": map[string]any{
+						"cost": 1,
+					},
+					"{pair}/transactions/{yyyymmdd}": map[string]any{
+						"cost": 1,
+					},
+					"{pair}/candlestick/{candletype}/{yyyymmdd}": map[string]any{
+						"cost": 1,
+					},
+					"{pair}/circuit_break_info": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"user/assets":               1,
-					"user/spot/order":           1,
-					"user/spot/active_orders":   1,
-					"user/margin/positions":     1,
-					"user/spot/trade_history":   1,
-					"user/deposit_history":      1,
-					"user/unconfirmed_deposits": 1,
-					"user/deposit_originators":  1,
-					"user/withdrawal_account":   1,
-					"user/withdrawal_history":   1,
-					"spot/status":               1,
-					"spot/pairs":                1,
+					"user/assets": map[string]any{
+						"cost": 1,
+					},
+					"user/spot/order": map[string]any{
+						"cost": 1,
+					},
+					"user/spot/active_orders": map[string]any{
+						"cost": 1,
+					},
+					"user/margin/positions": map[string]any{
+						"cost": 1,
+					},
+					"user/spot/trade_history": map[string]any{
+						"cost": 1,
+					},
+					"user/deposit_history": map[string]any{
+						"cost": 1,
+					},
+					"user/unconfirmed_deposits": map[string]any{
+						"cost": 1,
+					},
+					"user/deposit_originators": map[string]any{
+						"cost": 1,
+					},
+					"user/withdrawal_account": map[string]any{
+						"cost": 1,
+					},
+					"user/withdrawal_history": map[string]any{
+						"cost": 1,
+					},
+					"spot/status": map[string]any{
+						"cost": 1,
+					},
+					"spot/pairs": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"user/spot/order":           1.66,
-					"user/spot/cancel_order":    1.66,
-					"user/spot/cancel_orders":   1.66,
-					"user/spot/orders_info":     1.66,
-					"user/confirm_deposits":     1.66,
-					"user/confirm_deposits_all": 1.66,
-					"user/request_withdrawal":   1.66,
+					"user/spot/order": map[string]any{
+						"cost": 1.66,
+					},
+					"user/spot/cancel_order": map[string]any{
+						"cost": 1.66,
+					},
+					"user/spot/cancel_orders": map[string]any{
+						"cost": 1.66,
+					},
+					"user/spot/orders_info": map[string]any{
+						"cost": 1.66,
+					},
+					"user/confirm_deposits": map[string]any{
+						"cost": 1.66,
+					},
+					"user/confirm_deposits_all": map[string]any{
+						"cost": 1.66,
+					},
+					"user/request_withdrawal": map[string]any{
+						"cost": 1.66,
+					},
 				},
 			},
 			"markets": map[string]any{
 				"get": map[string]any{
-					"spot/pairs": 1,
+					"spot/pairs": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},

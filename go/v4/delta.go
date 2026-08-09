@@ -125,13 +125,174 @@ func (this *DeltaCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"assets", "indices", "products", "products/{symbol}", "tickers", "tickers/{symbol}", "l2orderbook/{symbol}", "trades/{symbol}", "stats", "history/candles", "history/sparklines", "settings"},
+				"get": map[string]any{
+					"assets": map[string]any{
+						"cost": 1,
+					},
+					"indices": map[string]any{
+						"cost": 1,
+					},
+					"products": map[string]any{
+						"cost": 1,
+					},
+					"products/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"tickers": map[string]any{
+						"cost": 1,
+					},
+					"tickers/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"l2orderbook/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"trades/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"stats": map[string]any{
+						"cost": 1,
+					},
+					"history/candles": map[string]any{
+						"cost": 1,
+					},
+					"history/sparklines": map[string]any{
+						"cost": 1,
+					},
+					"settings": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"get":    []any{"orders", "orders/{order_id}", "orders/client_order_id/{client_oid}", "products/{product_id}/orders/leverage", "positions/margined", "positions", "orders/history", "fills", "fills/history/download/csv", "wallet/balances", "wallet/transactions", "wallet/transactions/download", "wallets/sub_accounts_transfer_history", "users/trading_preferences", "sub_accounts", "profile", "rate_limits/quota", "heartbeat", "deposits/address"},
-				"post":   []any{"orders", "orders/bracket", "orders/batch", "products/{product_id}/orders/leverage", "positions/change_margin", "positions/close_all", "wallets/sub_account_balance_transfer", "heartbeat/create", "heartbeat", "orders/cancel_after", "orders/leverage"},
-				"put":    []any{"orders", "orders/bracket", "orders/batch", "positions/auto_topup", "users/update_mmp", "users/reset_mmp", "users/margin_mode"},
-				"delete": []any{"orders", "orders/all", "orders/batch"},
+				"get": map[string]any{
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/{order_id}": map[string]any{
+						"cost": 1,
+					},
+					"orders/client_order_id/{client_oid}": map[string]any{
+						"cost": 1,
+					},
+					"products/{product_id}/orders/leverage": map[string]any{
+						"cost": 1,
+					},
+					"positions/margined": map[string]any{
+						"cost": 1,
+					},
+					"positions": map[string]any{
+						"cost": 1,
+					},
+					"orders/history": map[string]any{
+						"cost": 1,
+					},
+					"fills": map[string]any{
+						"cost": 1,
+					},
+					"fills/history/download/csv": map[string]any{
+						"cost": 1,
+					},
+					"wallet/balances": map[string]any{
+						"cost": 1,
+					},
+					"wallet/transactions": map[string]any{
+						"cost": 1,
+					},
+					"wallet/transactions/download": map[string]any{
+						"cost": 1,
+					},
+					"wallets/sub_accounts_transfer_history": map[string]any{
+						"cost": 1,
+					},
+					"users/trading_preferences": map[string]any{
+						"cost": 1,
+					},
+					"sub_accounts": map[string]any{
+						"cost": 1,
+					},
+					"profile": map[string]any{
+						"cost": 1,
+					},
+					"rate_limits/quota": map[string]any{
+						"cost": 1,
+					},
+					"heartbeat": map[string]any{
+						"cost": 1,
+					},
+					"deposits/address": map[string]any{
+						"cost": 1,
+					},
+				},
+				"post": map[string]any{
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/bracket": map[string]any{
+						"cost": 1,
+					},
+					"orders/batch": map[string]any{
+						"cost": 1,
+					},
+					"products/{product_id}/orders/leverage": map[string]any{
+						"cost": 1,
+					},
+					"positions/change_margin": map[string]any{
+						"cost": 1,
+					},
+					"positions/close_all": map[string]any{
+						"cost": 1,
+					},
+					"wallets/sub_account_balance_transfer": map[string]any{
+						"cost": 1,
+					},
+					"heartbeat/create": map[string]any{
+						"cost": 1,
+					},
+					"heartbeat": map[string]any{
+						"cost": 1,
+					},
+					"orders/cancel_after": map[string]any{
+						"cost": 1,
+					},
+					"orders/leverage": map[string]any{
+						"cost": 1,
+					},
+				},
+				"put": map[string]any{
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/bracket": map[string]any{
+						"cost": 1,
+					},
+					"orders/batch": map[string]any{
+						"cost": 1,
+					},
+					"positions/auto_topup": map[string]any{
+						"cost": 1,
+					},
+					"users/update_mmp": map[string]any{
+						"cost": 1,
+					},
+					"users/reset_mmp": map[string]any{
+						"cost": 1,
+					},
+					"users/margin_mode": map[string]any{
+						"cost": 1,
+					},
+				},
+				"delete": map[string]any{
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/all": map[string]any{
+						"cost": 1,
+					},
+					"orders/batch": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"fees": map[string]any{

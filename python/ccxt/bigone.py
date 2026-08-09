@@ -130,73 +130,73 @@ class bigone(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'ping',
-                        'asset_pairs',
-                        'asset_pairs/{asset_pair_name}/depth',
-                        'asset_pairs/{asset_pair_name}/trades',
-                        'asset_pairs/{asset_pair_name}/ticker',
-                        'asset_pairs/{asset_pair_name}/candles',
-                        'asset_pairs/tickers',
-                    ],
+                    'get': {
+                        'ping': {'cost': 1},
+                        'asset_pairs': {'cost': 1},
+                        'asset_pairs/{asset_pair_name}/depth': {'cost': 1},
+                        'asset_pairs/{asset_pair_name}/trades': {'cost': 1},
+                        'asset_pairs/{asset_pair_name}/ticker': {'cost': 1},
+                        'asset_pairs/{asset_pair_name}/candles': {'cost': 1},
+                        'asset_pairs/tickers': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'get': [
-                        'accounts',
-                        'fund/accounts',
-                        'assets/{asset_symbol}/address',
-                        'orders',
-                        'orders/{id}',
-                        'orders/multi',
-                        'trades',
-                        'withdrawals',
-                        'deposits',
-                    ],
-                    'post': [
-                        'orders',
-                        'orders/{id}/cancel',
-                        'orders/cancel',
-                        'withdrawals',
-                        'transfer',
-                    ],
+                    'get': {
+                        'accounts': {'cost': 1},
+                        'fund/accounts': {'cost': 1},
+                        'assets/{asset_symbol}/address': {'cost': 1},
+                        'orders': {'cost': 1},
+                        'orders/{id}': {'cost': 1},
+                        'orders/multi': {'cost': 1},
+                        'trades': {'cost': 1},
+                        'withdrawals': {'cost': 1},
+                        'deposits': {'cost': 1},
+                    },
+                    'post': {
+                        'orders': {'cost': 1},
+                        'orders/{id}/cancel': {'cost': 1},
+                        'orders/cancel': {'cost': 1},
+                        'withdrawals': {'cost': 1},
+                        'transfer': {'cost': 1},
+                    },
                 },
                 'contractPublic': {
-                    'get': [
-                        'symbols',
-                        'instruments',
-                        'depth@{symbol}/snapshot',
-                        'instruments/difference',
-                        'instruments/prices',
-                    ],
+                    'get': {
+                        'symbols': {'cost': 1},
+                        'instruments': {'cost': 1},
+                        'depth@{symbol}/snapshot': {'cost': 1},
+                        'instruments/difference': {'cost': 1},
+                        'instruments/prices': {'cost': 1},
+                    },
                 },
                 'contractPrivate': {
-                    'get': [
-                        'accounts',
-                        'orders/{id}',
-                        'orders',
-                        'orders/opening',
-                        'orders/count',
-                        'orders/opening/count',
-                        'trades',
-                        'trades/count',
-                    ],
-                    'post': [
-                        'orders',
-                        'orders/batch',
-                    ],
-                    'put': [
-                        'positions/{symbol}/margin',
-                        'positions/{symbol}/risk-limit',
-                    ],
-                    'delete': [
-                        'orders/{id}',
-                        'orders/batch',
-                    ],
+                    'get': {
+                        'accounts': {'cost': 1},
+                        'orders/{id}': {'cost': 1},
+                        'orders': {'cost': 1},
+                        'orders/opening': {'cost': 1},
+                        'orders/count': {'cost': 1},
+                        'orders/opening/count': {'cost': 1},
+                        'trades': {'cost': 1},
+                        'trades/count': {'cost': 1},
+                    },
+                    'post': {
+                        'orders': {'cost': 1},
+                        'orders/batch': {'cost': 1},
+                    },
+                    'put': {
+                        'positions/{symbol}/margin': {'cost': 1},
+                        'positions/{symbol}/risk-limit': {'cost': 1},
+                    },
+                    'delete': {
+                        'orders/{id}': {'cost': 1},
+                        'orders/batch': {'cost': 1},
+                    },
                 },
                 'webExchange': {
-                    'get': [
-                        'v3/assets',
-                    ],
+                    'get': {
+                        'v3/assets': {'cost': 1},
+                    },
                 },
             },
             'fees': {
@@ -729,8 +729,9 @@ class bigone(Exchange, ImplicitAPI):
                 'created': None,
                 'info': market,
             }))
-        for i in range(0, len(contractResponse)):
-            market = contractResponse[i]
+        contractMarkets = self.to_array(contractResponse)
+        for i in range(0, len(contractMarkets)):
+            market = contractMarkets[i]
             baseId = self.safe_string(market, 'baseCurrency')
             quoteId = self.safe_string(market, 'quoteCurrency')
             settleId = self.safe_string(market, 'settleCurrency')
@@ -965,7 +966,8 @@ class bigone(Exchange, ImplicitAPI):
             #
             data = self.safe_list(response, 'data', [])
         else:
-            data = self.contractPublicGetInstruments(params)
+            instruments = self.contractPublicGetInstruments(params)
+            data = self.to_array(instruments)
             #
             #    [
             #        {

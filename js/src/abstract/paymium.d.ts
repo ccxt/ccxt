@@ -1,30 +1,30 @@
-import { implicitReturnType } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
-    publicGetCountries(params?: {}): Promise<implicitReturnType>;
-    publicGetCurrencies(params?: {}): Promise<implicitReturnType>;
-    publicGetDataCurrencyTicker(params?: {}): Promise<implicitReturnType>;
-    publicGetDataCurrencyTrades(params?: {}): Promise<implicitReturnType>;
-    publicGetDataCurrencyDepth(params?: {}): Promise<implicitReturnType>;
-    publicGetBitcoinChartsIdTrades(params?: {}): Promise<implicitReturnType>;
-    publicGetBitcoinChartsIdDepth(params?: {}): Promise<implicitReturnType>;
-    privateGetUser(params?: {}): Promise<implicitReturnType>;
-    privateGetUserAddresses(params?: {}): Promise<implicitReturnType>;
-    privateGetUserAddressesAddress(params?: {}): Promise<implicitReturnType>;
-    privateGetUserOrders(params?: {}): Promise<implicitReturnType>;
-    privateGetUserOrdersUuid(params?: {}): Promise<implicitReturnType>;
-    privateGetUserPriceAlerts(params?: {}): Promise<implicitReturnType>;
-    privateGetMerchantGetPaymentUuid(params?: {}): Promise<implicitReturnType>;
-    privatePostUserAddresses(params?: {}): Promise<implicitReturnType>;
-    privatePostUserOrders(params?: {}): Promise<implicitReturnType>;
-    privatePostUserWithdrawals(params?: {}): Promise<implicitReturnType>;
-    privatePostUserEmailTransfers(params?: {}): Promise<implicitReturnType>;
-    privatePostUserPaymentRequests(params?: {}): Promise<implicitReturnType>;
-    privatePostUserPriceAlerts(params?: {}): Promise<implicitReturnType>;
-    privatePostMerchantCreatePayment(params?: {}): Promise<implicitReturnType>;
-    privateDeleteUserOrdersUuid(params?: {}): Promise<implicitReturnType>;
-    privateDeleteUserOrdersUuidCancel(params?: {}): Promise<implicitReturnType>;
-    privateDeleteUserPriceAlertsId(params?: {}): Promise<implicitReturnType>;
+    publicGetCountries(params?: {}): Promise<List>;
+    publicGetCurrencies(params?: {}): Promise<List>;
+    publicGetDataCurrencyTicker(params?: {}): Promise<Dict>;
+    publicGetDataCurrencyTrades(params?: {}): Promise<List>;
+    publicGetDataCurrencyDepth(params?: {}): Promise<Dict>;
+    publicGetBitcoinChartsIdTrades(params?: {}): Promise<List>;
+    publicGetBitcoinChartsIdDepth(params?: {}): Promise<Dict>;
+    privateGetUser(params?: {}): Promise<Dict>;
+    privateGetUserAddresses(params?: {}): Promise<List>;
+    privateGetUserAddressesAddress(params?: {}): Promise<Dict>;
+    privateGetUserOrders(params?: {}): Promise<List>;
+    privateGetUserOrdersUuid(params?: {}): Promise<Dict>;
+    privateGetUserPriceAlerts(params?: {}): Promise<List>;
+    privateGetMerchantGetPaymentUuid(params?: {}): Promise<Dict>;
+    privatePostUserAddresses(params?: {}): Promise<Dict>;
+    privatePostUserOrders(params?: {}): Promise<Dict>;
+    privatePostUserWithdrawals(params?: {}): Promise<Dict>;
+    privatePostUserEmailTransfers(params?: {}): Promise<Dict>;
+    privatePostUserPaymentRequests(params?: {}): Promise<List>;
+    privatePostUserPriceAlerts(params?: {}): Promise<Dict>;
+    privatePostMerchantCreatePayment(params?: {}): Promise<Dict>;
+    privateDeleteUserOrdersUuid(params?: {}): Promise<Dict>;
+    privateDeleteUserOrdersUuidCancel(params?: {}): Promise<Dict>;
+    privateDeleteUserPriceAlertsId(params?: {}): Promise<Dict>;
 }
 declare abstract class Exchange extends _Exchange {
 }

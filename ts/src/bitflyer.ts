@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitflyer.js';
 import { ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Fee, FundingRate, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFeeInterface, Transaction, Position, int, List, NullableDict } from './base/types.js';
+import type { Balances, Currency, Dict, Fee, FundingRate, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFeeInterface, Transaction, Position, int, List, NullableDict, Endpoint } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -89,49 +89,49 @@ export default class bitflyer extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'getmarkets/usa', // new (wip)
-                        'getmarkets/eu',  // new (wip)
-                        'getmarkets',     // or 'markets'
-                        'getboard',       // ...
-                        'getticker',
-                        'getexecutions',
-                        'gethealth',
-                        'getboardstate',
-                        'getchats',
-                        'getfundingrate',
-                    ],
+                    'get': {
+                        'getmarkets/usa': { 'cost': 1 } as Endpoint<List>,
+                        'getmarkets/eu': { 'cost': 1 } as Endpoint<List>,
+                        'getmarkets': { 'cost': 1 } as Endpoint<List>,
+                        'getboard': { 'cost': 1 } as Endpoint<Dict>,
+                        'getticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'getexecutions': { 'cost': 1 } as Endpoint<List>,
+                        'gethealth': { 'cost': 1 } as Endpoint<Dict>,
+                        'getboardstate': { 'cost': 1 } as Endpoint<Dict>,
+                        'getchats': { 'cost': 1 } as Endpoint<List>,
+                        'getfundingrate': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'getpermissions',
-                        'getbalance',
-                        'getbalancehistory',
-                        'getcollateral',
-                        'getcollateralhistory',
-                        'getcollateralaccounts',
-                        'getaddresses',
-                        'getcoinins',
-                        'getcoinouts',
-                        'getbankaccounts',
-                        'getdeposits',
-                        'getwithdrawals',
-                        'getchildorders',
-                        'getparentorders',
-                        'getparentorder',
-                        'getexecutions',
-                        'getpositions',
-                        'gettradingcommission',
-                    ],
-                    'post': [
-                        'sendcoin',
-                        'withdraw',
-                        'sendchildorder',
-                        'cancelchildorder',
-                        'sendparentorder',
-                        'cancelparentorder',
-                        'cancelallchildorders',
-                    ],
+                    'get': {
+                        'getpermissions': { 'cost': 1 } as Endpoint<List>,
+                        'getbalance': { 'cost': 1 } as Endpoint<Dict>,
+                        'getbalancehistory': { 'cost': 1 } as Endpoint<List>,
+                        'getcollateral': { 'cost': 1 } as Endpoint<Dict>,
+                        'getcollateralhistory': { 'cost': 1 } as Endpoint<List>,
+                        'getcollateralaccounts': { 'cost': 1 } as Endpoint<List>,
+                        'getaddresses': { 'cost': 1 } as Endpoint<List>,
+                        'getcoinins': { 'cost': 1 } as Endpoint<List>,
+                        'getcoinouts': { 'cost': 1 } as Endpoint<List>,
+                        'getbankaccounts': { 'cost': 1 } as Endpoint<List>,
+                        'getdeposits': { 'cost': 1 } as Endpoint<List>,
+                        'getwithdrawals': { 'cost': 1 } as Endpoint<List>,
+                        'getchildorders': { 'cost': 1 } as Endpoint<List>,
+                        'getparentorders': { 'cost': 1 } as Endpoint<List>,
+                        'getparentorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'getexecutions': { 'cost': 1 } as Endpoint<List>,
+                        'getpositions': { 'cost': 1 } as Endpoint<List>,
+                        'gettradingcommission': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'post': {
+                        'sendcoin': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdraw': { 'cost': 1 } as Endpoint<Dict>,
+                        'sendchildorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelchildorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'sendparentorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelparentorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelallchildorders': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -294,8 +294,8 @@ export default class bitflyer extends Exchange {
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        let markets = this.arrayConcat (jp_markets, us_markets);
-        markets = this.arrayConcat (markets, eu_markets);
+        let markets = this.arrayConcat (this.toArray (jp_markets), this.toArray (us_markets));
+        markets = this.arrayConcat (markets, this.toArray (eu_markets));
         const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -959,7 +959,7 @@ export default class bitflyer extends Exchange {
         //     ]
         //
         // todo unify parsePosition/parsePositions
-        return response;
+        return response as Position[];
     }
 
     /**

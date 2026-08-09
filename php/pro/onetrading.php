@@ -84,32 +84,34 @@ class onetrading extends \ccxt\async\onetrading {
     }
 
     public function watch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             *
-             * @see https://developers.bitpanda.com/exchange/#account-history-channel
-             *
-             * watch balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            Async\await($this->authenticate($params));
-            $url = $this->urls['api']['ws'];
-            $messageHash = 'balance';
-            $subscribeHash = 'ACCOUNT_HISTORY';
-            $bpRemainingQuota = $this->safe_integer($this->options, 'bp_remaining_quota', 200);
-            $subscribe = array(
-                'type' => 'SUBSCRIBE',
-                'bp_remaining_quota' => $bpRemainingQuota,
-                'channels' => array(
-                    array(
-                        'name' => 'ACCOUNT_HISTORY',
-                    ),
+        return Async\async(self::do_watch_balance(...))($params);
+    }
+
+    private function do_watch_balance($params = array()) {
+        /**
+         *
+         * @see https://developers.bitpanda.com/exchange/#account-history-channel
+         *
+         * watch balance and get the amount of funds available for trading or funds locked in orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        Async\await($this->authenticate($params));
+        $url = $this->urls['api']['ws'];
+        $messageHash = 'balance';
+        $subscribeHash = 'ACCOUNT_HISTORY';
+        $bpRemainingQuota = $this->safe_integer($this->options, 'bp_remaining_quota', 200);
+        $subscribe = array(
+            'type' => 'SUBSCRIBE',
+            'bp_remaining_quota' => $bpRemainingQuota,
+            'channels' => array(
+                array(
+                    'name' => 'ACCOUNT_HISTORY',
                 ),
-            );
-            $request = $this->deep_extend($subscribe, $params);
-            return Async\await($this->watch($url, $messageHash, $request, $subscribeHash, $request));
-        })();
+            ),
+        );
+        $request = $this->deep_extend($subscribe, $params);
+        return Async\await($this->watch($url, $messageHash, $request, $subscribeHash, $request));
     }
 
     public function handle_balance_snapshot(Client $client, mixed $message) {
@@ -147,68 +149,72 @@ class onetrading extends \ccxt\async\onetrading {
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://developers.bitpanda.com/exchange/#$market-ticker-channel
-             *
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $subscriptionHash = 'MARKET_TICKER';
-            $messageHash = 'ticker.' . $symbol;
-            $request = array(
-                'type' => 'SUBSCRIBE',
-                'channels' => array(
-                    array(
-                        'name' => 'MARKET_TICKER',
-                        'price_points_mode' => 'INLINE',
-                    ),
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        /**
+         *
+         * @see https://developers.bitpanda.com/exchange/#$market-ticker-channel
+         *
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $subscriptionHash = 'MARKET_TICKER';
+        $messageHash = 'ticker.' . $symbol;
+        $request = array(
+            'type' => 'SUBSCRIBE',
+            'channels' => array(
+                array(
+                    'name' => 'MARKET_TICKER',
+                    'price_points_mode' => 'INLINE',
                 ),
-            );
-            return Async\await($this->watch_many($messageHash, $request, $subscriptionHash, array( $symbol ), $params));
-        })();
+            ),
+        );
+        return Async\await($this->watch_many($messageHash, $request, $subscriptionHash, array( $symbol ), $params));
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             *
-             * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
-             *
-             * watches price $tickers, a statistical calculation with the information for all markets or those specified.
-             * @param {string} $symbols unified $symbols of the markets to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an array of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            if ($symbols === null) {
-                $symbols = array();
-            }
-            $subscriptionHash = 'MARKET_TICKER';
-            $messageHash = 'tickers';
-            $request = array(
-                'type' => 'SUBSCRIBE',
-                'channels' => array(
-                    array(
-                        'name' => 'MARKET_TICKER',
-                        'price_points_mode' => 'INLINE',
-                    ),
+        return Async\async(self::do_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         *
+         * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
+         *
+         * watches price $tickers, a statistical calculation with the information for all markets or those specified.
+         * @param {string} $symbols unified $symbols of the markets to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an array of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        if ($symbols === null) {
+            $symbols = array();
+        }
+        $subscriptionHash = 'MARKET_TICKER';
+        $messageHash = 'tickers';
+        $request = array(
+            'type' => 'SUBSCRIBE',
+            'channels' => array(
+                array(
+                    'name' => 'MARKET_TICKER',
+                    'price_points_mode' => 'INLINE',
                 ),
-            );
-            $tickers = Async\await($this->watch_many($messageHash, $request, $subscriptionHash, $symbols, $params));
-            return $this->filter_by_array($tickers, 'symbol', $symbols);
-        })();
+            ),
+        );
+        $tickers = Async\await($this->watch_many($messageHash, $request, $subscriptionHash, $symbols, $params));
+        return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
 
     public function handle_ticker(Client $client, mixed $message) {
@@ -281,89 +287,93 @@ class onetrading extends \ccxt\async\onetrading {
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             *
-             * @see https://developers.bitpanda.com/exchange/#account-history-channel
-             *
-             * get the list of $trades associated with the user
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for. Use 'any' to watch all $trades
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $messageHash = 'myTrades';
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-                $messageHash .= ':' . $symbol;
-            }
-            Async\await($this->authenticate($params));
-            $url = $this->urls['api']['ws'];
-            $subscribeHash = 'ACCOUNT_HISTORY';
-            $bpRemainingQuota = $this->safe_integer($this->options, 'bp_remaining_quota', 200);
-            $subscribe = array(
-                'type' => 'SUBSCRIBE',
-                'bp_remaining_quota' => $bpRemainingQuota,
-                'channels' => array(
-                    array(
-                        'name' => 'ACCOUNT_HISTORY',
-                    ),
+        return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://developers.bitpanda.com/exchange/#account-history-channel
+         *
+         * get the list of $trades associated with the user
+         * @param {string} $symbol unified $symbol of the $market to fetch $trades for. Use 'any' to watch all $trades
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $messageHash = 'myTrades';
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $messageHash .= ':' . $symbol;
+        }
+        Async\await($this->authenticate($params));
+        $url = $this->urls['api']['ws'];
+        $subscribeHash = 'ACCOUNT_HISTORY';
+        $bpRemainingQuota = $this->safe_integer($this->options, 'bp_remaining_quota', 200);
+        $subscribe = array(
+            'type' => 'SUBSCRIBE',
+            'bp_remaining_quota' => $bpRemainingQuota,
+            'channels' => array(
+                array(
+                    'name' => 'ACCOUNT_HISTORY',
                 ),
-            );
-            $request = $this->deep_extend($subscribe, $params);
-            $trades = Async\await($this->watch($url, $messageHash, $request, $subscribeHash, $request));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($symbol, $limit);
-            }
-            $trades = $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
-            $numTrades = count($trades);
-            if ($numTrades === 0) {
-                return Async\await($this->watch_my_trades($symbol, $since, $limit, $params));
-            }
-            return $trades;
-        })();
+            ),
+        );
+        $request = $this->deep_extend($subscribe, $params);
+        $trades = Async\await($this->watch($url, $messageHash, $request, $subscribeHash, $request));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        $trades = $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+        $numTrades = count($trades);
+        if ($numTrades === 0) {
+            return Async\await($this->watch_my_trades($symbol, $since, $limit, $params));
+        }
+        return $trades;
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             *
-             * @see https://docs.onetrading.com/websocket/orderbook/introduction
-             *
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'book:' . $symbol;
-            $subscriptionHash = 'ORDER_BOOK';
-            $depth = 0;
-            if ($limit !== null) {
-                $depth = $limit;
-            }
-            $request = array(
-                'type' => 'SUBSCRIBE',
-                'channels' => array(
-                    array(
-                        'name' => 'ORDER_BOOK',
-                        'depth' => $depth,
-                    ),
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.onetrading.com/websocket/orderbook/introduction
+         *
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $messageHash = 'book:' . $symbol;
+        $subscriptionHash = 'ORDER_BOOK';
+        $depth = 0;
+        if ($limit !== null) {
+            $depth = $limit;
+        }
+        $request = array(
+            'type' => 'SUBSCRIBE',
+            'channels' => array(
+                array(
+                    'name' => 'ORDER_BOOK',
+                    'depth' => $depth,
                 ),
-            );
-            $orderbook = Async\await($this->watch_many($messageHash, $request, $subscriptionHash, array( $symbol ), $params));
-            return $orderbook->limit();
-        })();
+            ),
+        );
+        $orderbook = Async\await($this->watch_many($messageHash, $request, $subscriptionHash, array( $symbol ), $params));
+        return $orderbook->limit();
     }
 
     public function handle_order_book(Client $client, mixed $message) {
@@ -451,53 +461,55 @@ class onetrading extends \ccxt\async\onetrading {
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             *
-             * @see https://developers.bitpanda.com/exchange/#account-history-channel
-             *
-             * watches information on multiple $orders made by the user
-             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->channel] can listen to $orders using ACCOUNT_HISTORY or TRADING
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $messageHash = 'orders';
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-                $messageHash .= ':' . $symbol;
-            }
-            Async\await($this->authenticate($params));
-            $url = $this->urls['api']['ws'];
-            $subscribeHash = $this->safe_string($params, 'channel', 'ACCOUNT_HISTORY');
-            $bpRemainingQuota = $this->safe_integer($this->options, 'bp_remaining_quota', 200);
-            $subscribe = array(
-                'type' => 'SUBSCRIBE',
-                'bp_remaining_quota' => $bpRemainingQuota,
-                'channels' => array(
-                    array(
-                        'name' => $subscribeHash,
-                    ),
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://developers.bitpanda.com/exchange/#account-history-channel
+         *
+         * watches information on multiple $orders made by the user
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->channel] can listen to $orders using ACCOUNT_HISTORY or TRADING
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $messageHash = 'orders';
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $messageHash .= ':' . $symbol;
+        }
+        Async\await($this->authenticate($params));
+        $url = $this->urls['api']['ws'];
+        $subscribeHash = $this->safe_string($params, 'channel', 'ACCOUNT_HISTORY');
+        $bpRemainingQuota = $this->safe_integer($this->options, 'bp_remaining_quota', 200);
+        $subscribe = array(
+            'type' => 'SUBSCRIBE',
+            'bp_remaining_quota' => $bpRemainingQuota,
+            'channels' => array(
+                array(
+                    'name' => $subscribeHash,
                 ),
-            );
-            $request = $this->deep_extend($subscribe, $params);
-            $orders = Async\await($this->watch($url, $messageHash, $request, $subscribeHash, $request));
-            if ($this->newUpdates) {
-                $limit = $orders->getLimit($symbol, $limit);
-            }
-            $orders = $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
-            $numOrders = count($orders);
-            if ($numOrders === 0) {
-                return Async\await($this->watch_orders($symbol, $since, $limit, $params));
-            }
-            return $orders;
-        })();
+            ),
+        );
+        $request = $this->deep_extend($subscribe, $params);
+        $orders = Async\await($this->watch($url, $messageHash, $request, $subscribeHash, $request));
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit($symbol, $limit);
+        }
+        $orders = $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+        $numOrders = count($orders);
+        if ($numOrders === 0) {
+            return Async\await($this->watch_orders($symbol, $since, $limit, $params));
+        }
+        return $orders;
     }
 
     public function handle_trading(Client $client, mixed $message) {
@@ -1079,86 +1091,88 @@ class onetrading extends \ccxt\async\onetrading {
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             *
-             * @see https://developers.bitpanda.com/exchange/#candlesticks-channel
-             *
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $marketId = $market['id'];
-            $url = $this->urls['api']['ws'];
-            $timeframes = $this->safe_value($this->options, 'timeframes', array());
-            $timeframeId = $this->safe_value($timeframes, $timeframe);
-            if ($timeframeId === null) {
-                throw new NotSupported($this->id . ' this interval is not supported, please provide one of the supported timeframes');
-            }
-            $messageHash = 'ohlcv.' . $symbol . '.' . $timeframe;
-            $subscriptionHash = 'CANDLESTICKS';
-            $client = $this->safe_value($this->clients, $url);
-            $type = 'SUBSCRIBE';
-            $subscription = array();
-            if ($client !== null) {
-                $subscription = $this->safe_value($client->subscriptions, $subscriptionHash);
-                if ($subscription !== null) {
-                    $ohlcvMarket = $this->safe_value($subscription, $marketId, array());
-                    $marketSubscribed = $this->safe_bool($ohlcvMarket, $timeframe, false);
-                    if (!$marketSubscribed) {
-                        $type = 'UPDATE_SUBSCRIPTION';
-                        $client->subscriptions[$subscriptionHash] = null;
-                    }
-                } else {
-                    $subscription = array();
+        return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://developers.bitpanda.com/exchange/#candlesticks-channel
+         *
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $marketId = $market['id'];
+        $url = $this->urls['api']['ws'];
+        $timeframes = $this->safe_value($this->options, 'timeframes', array());
+        $timeframeId = $this->safe_value($timeframes, $timeframe);
+        if ($timeframeId === null) {
+            throw new NotSupported($this->id . ' this interval is not supported, please provide one of the supported timeframes');
+        }
+        $messageHash = 'ohlcv.' . $symbol . '.' . $timeframe;
+        $subscriptionHash = 'CANDLESTICKS';
+        $client = $this->safe_value($this->clients, $url);
+        $type = 'SUBSCRIBE';
+        $subscription = array();
+        if ($client !== null) {
+            $subscription = $this->safe_value($client->subscriptions, $subscriptionHash);
+            if ($subscription !== null) {
+                $ohlcvMarket = $this->safe_value($subscription, $marketId, array());
+                $marketSubscribed = $this->safe_bool($ohlcvMarket, $timeframe, false);
+                if (!$marketSubscribed) {
+                    $type = 'UPDATE_SUBSCRIPTION';
+                    $client->subscriptions[$subscriptionHash] = null;
                 }
+            } else {
+                $subscription = array();
             }
-            $subscriptionMarketId = $this->safe_value($subscription, $marketId);
-            if ($subscriptionMarketId === null) {
-                if ($marketId !== null) {
-                    $subscription[$marketId] = array();
-                }
+        }
+        $subscriptionMarketId = $this->safe_value($subscription, $marketId);
+        if ($subscriptionMarketId === null) {
+            if ($marketId !== null) {
+                $subscription[$marketId] = array();
             }
-            if (($marketId !== null) && ($timeframe !== null)) {
-                $subscription[$marketId][$timeframe] = true;
+        }
+        if (($marketId !== null) && ($timeframe !== null)) {
+            $subscription[$marketId][$timeframe] = true;
+        }
+        $properties = array();
+        $marketIds = is_array($subscription) ? array_keys($subscription) : array();
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketIdtimeframes = is_array($subscription[$marketIds[$i]]) ? array_keys($subscription[$marketIds[$i]]) : array();
+            for ($ii = 0; $ii < count($marketIdtimeframes); $ii++) {
+                $marketTimeframeId = $this->safe_value($timeframes, $timeframe);
+                $property = array(
+                    'instrument_code' => $marketIds[$i],
+                    'time_granularity' => $marketTimeframeId,
+                );
+                $properties[] = $property;
             }
-            $properties = array();
-            $marketIds = is_array($subscription) ? array_keys($subscription) : array();
-            for ($i = 0; $i < count($marketIds); $i++) {
-                $marketIdtimeframes = is_array($subscription[$marketIds[$i]]) ? array_keys($subscription[$marketIds[$i]]) : array();
-                for ($ii = 0; $ii < count($marketIdtimeframes); $ii++) {
-                    $marketTimeframeId = $this->safe_value($timeframes, $timeframe);
-                    $property = array(
-                        'instrument_code' => $marketIds[$i],
-                        'time_granularity' => $marketTimeframeId,
-                    );
-                    $properties[] = $property;
-                }
-            }
-            $request = array(
-                'type' => $type,
-                'channels' => array(
-                    array(
-                        'name' => 'CANDLESTICKS',
-                        'properties' => $properties,
-                    ),
+        }
+        $request = array(
+            'type' => $type,
+            'channels' => array(
+                array(
+                    'name' => 'CANDLESTICKS',
+                    'properties' => $properties,
                 ),
-            );
-            $ohlcv = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $subscriptionHash, $subscription));
-            if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        })();
+            ),
+        );
+        $ohlcv = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $subscriptionHash, $subscription));
+        if ($this->newUpdates) {
+            $limit = $ohlcv->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
     public function handle_ohlcv(Client $client, mixed $message) {
@@ -1355,63 +1369,67 @@ class onetrading extends \ccxt\async\onetrading {
     }
 
     public function watch_many(mixed $messageHash, mixed $request, mixed $subscriptionHash, ?array $symbols = array(), $params = array()) {
-        return Async\async(function () use ($messageHash, $request, $subscriptionHash, $symbols, $params) {
-            $marketIds = array();
-            $numSymbols = count($symbols);
-            if ($numSymbols === 0) {
-                $marketsById = $this->markets_by_id;
-                if ($marketsById === null) {
-                    return array();
-                }
-                $marketIds = is_array($marketsById) ? array_keys($marketsById) : array();
-            } else {
-                $marketIds = $this->market_ids($symbols);
+        return Async\async(self::do_watch_many(...))($messageHash, $request, $subscriptionHash, $symbols, $params);
+    }
+
+    private function do_watch_many(mixed $messageHash, mixed $request, mixed $subscriptionHash, ?array $symbols = array(), $params = array()) {
+        $marketIds = array();
+        $numSymbols = count($symbols);
+        if ($numSymbols === 0) {
+            $marketsById = $this->markets_by_id;
+            if ($marketsById === null) {
+                return array();
             }
-            $url = $this->urls['api']['ws'];
-            $client = $this->safe_value($this->clients, $url);
-            $type = 'SUBSCRIBE';
-            $subscription = array();
-            if ($client !== null) {
-                $subscription = $this->safe_value($client->subscriptions, $subscriptionHash);
-                if ($subscription !== null) {
-                    for ($i = 0; $i < count($marketIds); $i++) {
-                        $marketId = $marketIds[$i];
-                        $marketSubscribed = $this->safe_bool($subscription, $marketId, false);
-                        if (!$marketSubscribed) {
-                            $type = 'UPDATE_SUBSCRIPTION';
-                            $client->subscriptions[$subscriptionHash] = null;
-                        }
+            $marketIds = is_array($marketsById) ? array_keys($marketsById) : array();
+        } else {
+            $marketIds = $this->market_ids($symbols);
+        }
+        $url = $this->urls['api']['ws'];
+        $client = $this->safe_value($this->clients, $url);
+        $type = 'SUBSCRIBE';
+        $subscription = array();
+        if ($client !== null) {
+            $subscription = $this->safe_value($client->subscriptions, $subscriptionHash);
+            if ($subscription !== null) {
+                for ($i = 0; $i < count($marketIds); $i++) {
+                    $marketId = $marketIds[$i];
+                    $marketSubscribed = $this->safe_bool($subscription, $marketId, false);
+                    if (!$marketSubscribed) {
+                        $type = 'UPDATE_SUBSCRIPTION';
+                        $client->subscriptions[$subscriptionHash] = null;
                     }
-                } else {
-                    $subscription = array();
                 }
+            } else {
+                $subscription = array();
             }
-            for ($i = 0; $i < count($marketIds); $i++) {
-                $marketId = $marketIds[$i];
-                $subscription[$marketId] = true;
-            }
-            $request['type'] = $type;
-            $request['channels'][0]['instrument_codes'] = is_array($subscription) ? array_keys($subscription) : array();
-            return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $subscriptionHash, $subscription));
-        })();
+        }
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $subscription[$marketId] = true;
+        }
+        $request['type'] = $type;
+        $request['channels'][0]['instrument_codes'] = is_array($subscription) ? array_keys($subscription) : array();
+        return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $subscriptionHash, $subscription));
     }
 
     public function authenticate($params = array()) {
-        return Async\async(function () use ($params) {
-            $url = $this->urls['api']['ws'];
-            $client = $this->client($url);
-            $messageHash = 'authenticated';
-            $future = $client->reusableFuture('authenticated');
-            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-            if ($authenticated === null) {
-                $this->check_required_credentials();
-                $request = array(
-                    'type' => 'AUTHENTICATE',
-                    'api_token' => $this->apiKey,
-                );
-                $this->watch($url, $messageHash, $this->extend($request, $params), $messageHash);
-            }
-            return Async\await($future);
-        })();
+        return Async\async(self::do_authenticate(...))($params);
+    }
+
+    private function do_authenticate($params = array()) {
+        $url = $this->urls['api']['ws'];
+        $client = $this->client($url);
+        $messageHash = 'authenticated';
+        $future = $client->reusableFuture('authenticated');
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
+            $this->check_required_credentials();
+            $request = array(
+                'type' => 'AUTHENTICATE',
+                'api_token' => $this->apiKey,
+            );
+            $this->watch($url, $messageHash, $this->extend($request, $params), $messageHash);
+        }
+        return Async\await($future);
     }
 }

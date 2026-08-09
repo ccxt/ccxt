@@ -3,15 +3,7 @@ import { Precise } from '../base/Precise.js';
 import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidNonce, PermissionDenied, RateLimitExceeded, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound } from '../base/errors.js';
-import type {
-    Int, int, Str, Dict, Strings, Num,
-    Market, PredictionOrderBook,
-    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder,
-    fetchEventsParams,
-    Balances,
-    PredictionPosition,
-    PredictionTrade,
-} from '../base/types.js';
+import type { Int, int, Str, Dict, List, Strings, Num, Market, PredictionOrderBook, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, fetchEventsParams, Balances, PredictionPosition, PredictionTrade, Endpoint } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -72,28 +64,28 @@ export default class binance extends Exchange {
                 'sapi': {
                     'private': {
                         'get': {
-                            'category/list': 200,
-                            'market/list': 200,
-                            'market/search': 200,
-                            'market/detail': 200,
-                            'order-book': 200,
-                            'order-book/last-trade-price': 200,
-                            'wallet/list': 200,
-                            'balance/payment-options': 200,
-                            'quota/limit/status': 200,
-                            'pnl/portfolio': 200,
-                            'pnl/query': 200,
-                            'position/list': 200,
-                            'position/filter': 200,
-                            'position/token': 200,
-                            'position/settled-history': 200,
-                            'order/list': 200,
-                            'order/history': 200,
+                            'category/list': { 'cost': 200 } as Endpoint<Dict>,
+                            'market/list': { 'cost': 200 } as Endpoint<Dict>,
+                            'market/search': { 'cost': 200 } as Endpoint<List>,
+                            'market/detail': { 'cost': 200 } as Endpoint<Dict>,
+                            'order-book': { 'cost': 200 } as Endpoint<Dict>,
+                            'order-book/last-trade-price': { 'cost': 200 } as Endpoint<Dict>,
+                            'wallet/list': { 'cost': 200 } as Endpoint<Dict>,
+                            'balance/payment-options': { 'cost': 200 } as Endpoint<Dict>,
+                            'quota/limit/status': { 'cost': 200 } as Endpoint<Dict>,
+                            'pnl/portfolio': { 'cost': 200 } as Endpoint<Dict>,
+                            'pnl/query': { 'cost': 200 } as Endpoint<Dict>,
+                            'position/list': { 'cost': 200 } as Endpoint<Dict>,
+                            'position/filter': { 'cost': 200 } as Endpoint<Dict>,
+                            'position/token': { 'cost': 200 } as Endpoint<Dict>,
+                            'position/settled-history': { 'cost': 200 } as Endpoint<Dict>,
+                            'order/list': { 'cost': 200 } as Endpoint<Dict>,
+                            'order/history': { 'cost': 200 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'trade/get-quote': 200,
-                            'trade/place-order-bundle': 200,
-                            'trade/batch-cancel': 200,
+                            'trade/get-quote': { 'cost': 200 } as Endpoint<Dict>,
+                            'trade/place-order-bundle': { 'cost': 200 } as Endpoint<Dict>,
+                            'trade/batch-cancel': { 'cost': 200 } as Endpoint<Dict>,
                         },
                     },
                 },

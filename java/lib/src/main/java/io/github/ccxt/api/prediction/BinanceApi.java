@@ -19,102 +19,222 @@ public class BinanceApi extends PredictionExchange
         super(options);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  sapiPrivateGetCategoryList (Object... optionalArgs)
+    /**
+     * Calls the sapiPrivateGetCategoryList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetCategoryList (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetCategoryList", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  sapiPrivateGetMarketList (Object... optionalArgs)
+    /**
+     * Calls the sapiPrivateGetMarketList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetMarketList (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetMarketList", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  sapiPrivateGetMarketSearch (Object... optionalArgs)
+    /**
+     * Calls the sapiPrivateGetMarketSearch endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiPrivateGetMarketSearch (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetMarketSearch", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  sapiPrivateGetMarketDetail (Object... optionalArgs)
+    /**
+     * Calls the sapiPrivateGetMarketDetail endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetMarketDetail (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetMarketDetail", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  sapiPrivateGetOrderBook (Object... optionalArgs)
+    /**
+     * Calls the sapiPrivateGetOrderBook endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetOrderBook (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetOrderBook", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  sapiPrivateGetOrderBookLastTradePrice (Object... optionalArgs)
+    /**
+     * Calls the sapiPrivateGetOrderBookLastTradePrice endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetOrderBookLastTradePrice (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetOrderBookLastTradePrice", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  sapiPrivateGetWalletList (Object... optionalArgs)
+    /**
+     * Calls the sapiPrivateGetWalletList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetWalletList (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetWalletList", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  sapiPrivateGetBalancePaymentOptions (Object... optionalArgs)
+    /**
+     * Calls the sapiPrivateGetBalancePaymentOptions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetBalancePaymentOptions (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetBalancePaymentOptions", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  sapiPrivateGetQuotaLimitStatus (Object... optionalArgs)
+    /**
+     * Calls the sapiPrivateGetQuotaLimitStatus endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetQuotaLimitStatus (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetQuotaLimitStatus", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  sapiPrivateGetPnlPortfolio (Object... optionalArgs)
+    /**
+     * Calls the sapiPrivateGetPnlPortfolio endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetPnlPortfolio (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetPnlPortfolio", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  sapiPrivateGetPnlQuery (Object... optionalArgs)
+    /**
+     * Calls the sapiPrivateGetPnlQuery endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetPnlQuery (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetPnlQuery", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  sapiPrivateGetPositionList (Object... optionalArgs)
+    /**
+     * Calls the sapiPrivateGetPositionList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetPositionList (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetPositionList", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  sapiPrivateGetPositionFilter (Object... optionalArgs)
+    /**
+     * Calls the sapiPrivateGetPositionFilter endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetPositionFilter (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetPositionFilter", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  sapiPrivateGetPositionToken (Object... optionalArgs)
+    /**
+     * Calls the sapiPrivateGetPositionToken endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetPositionToken (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetPositionToken", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  sapiPrivateGetPositionSettledHistory (Object... optionalArgs)
+    /**
+     * Calls the sapiPrivateGetPositionSettledHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetPositionSettledHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetPositionSettledHistory", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  sapiPrivateGetOrderList (Object... optionalArgs)
+    /**
+     * Calls the sapiPrivateGetOrderList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetOrderList (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetOrderList", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  sapiPrivateGetOrderHistory (Object... optionalArgs)
+    /**
+     * Calls the sapiPrivateGetOrderHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetOrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetOrderHistory", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  sapiPrivatePostTradeGetQuote (Object... optionalArgs)
+    /**
+     * Calls the sapiPrivatePostTradeGetQuote endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivatePostTradeGetQuote (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivatePostTradeGetQuote", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  sapiPrivatePostTradePlaceOrderBundle (Object... optionalArgs)
+    /**
+     * Calls the sapiPrivatePostTradePlaceOrderBundle endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivatePostTradePlaceOrderBundle (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivatePostTradePlaceOrderBundle", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  sapiPrivatePostTradeBatchCancel (Object... optionalArgs)
+    /**
+     * Calls the sapiPrivatePostTradeBatchCancel endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivatePostTradeBatchCancel (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivatePostTradeBatchCancel", optionalArgs);
     }

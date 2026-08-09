@@ -173,30 +173,62 @@ public class CryptomusCore extends CryptomusApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "v2/user-api/exchange/markets", 1 );
-                        put( "v2/user-api/exchange/market/price", 1 );
-                        put( "v1/exchange/market/assets", 1 );
-                        put( "v1/exchange/market/order-book/{currencyPair}", 1 );
-                        put( "v1/exchange/market/tickers", 1 );
-                        put( "v1/exchange/market/trades/{currencyPair}", 1 );
+                        put( "v2/user-api/exchange/markets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/user-api/exchange/market/price", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/exchange/market/assets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/exchange/market/order-book/{currencyPair}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/exchange/market/tickers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/exchange/market/trades/{currencyPair}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "v2/user-api/exchange/orders", 1 );
-                        put( "v2/user-api/exchange/orders/history", 1 );
-                        put( "v2/user-api/exchange/account/balance", 1 );
-                        put( "v2/user-api/exchange/account/tariffs", 1 );
-                        put( "v2/user-api/payment/services", 1 );
-                        put( "v2/user-api/payout/services", 1 );
-                        put( "v2/user-api/transaction/list", 1 );
+                        put( "v2/user-api/exchange/orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/user-api/exchange/orders/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/user-api/exchange/account/balance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/user-api/exchange/account/tariffs", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/user-api/payment/services", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/user-api/payout/services", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/user-api/transaction/list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "v2/user-api/exchange/orders", 1 );
-                        put( "v2/user-api/exchange/orders/market", 1 );
+                        put( "v2/user-api/exchange/orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/user-api/exchange/orders/market", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "delete", new java.util.HashMap<String, Object>() {{
-                        put( "v2/user-api/exchange/orders/{orderId}", 1 );
+                        put( "v2/user-api/exchange/orders/{orderId}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
             }} );

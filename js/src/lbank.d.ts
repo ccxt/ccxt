@@ -318,12 +318,12 @@ export default class lbank extends Exchange {
     fetchPrivateTransactionFees(params?: {}): Promise<{
         withdraw: Dict;
         deposit: {};
-        info: any;
+        info: Dict;
     }>;
     fetchPublicTransactionFees(params?: {}): Promise<{
         withdraw: Dict;
         deposit: {};
-        info: any;
+        info: Dict;
     }>;
     /**
      * @method

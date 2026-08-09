@@ -694,6 +694,8 @@ class whitebit(ccxt.async_support.whitebit):
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: spot or contract if not provided self.options['defaultType'] is used
+        :param bool [params.fetchBalanceSnapshot]: whether to fetch the initial balance snapshot over REST, default is True
+        :param bool [params.awaitBalanceSnapshot]: whether to wait for the balance snapshot before providing updates, default is True
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         if self.markets is None:
@@ -708,10 +710,41 @@ class whitebit(ccxt.async_support.whitebit):
         else:
             method = 'balanceMargin_subscribe'
             messageHash += 'margin'
-        currencies = list(self.currencies.keys())
-        return await self.watch_private(messageHash, method, currencies, params)
+        url = self.urls['api']['ws']
+        client = self.client(url)
+        self.set_balance_cache(client, type, messageHash)
+        fetchBalanceSnapshot = None
+        awaitBalanceSnapshot = None
+        fetchBalanceSnapshot, params = self.handle_option_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
+        awaitBalanceSnapshot, params = self.handle_option_and_params(params, 'watchBalance', 'awaitBalanceSnapshot', True)
+        if fetchBalanceSnapshot and awaitBalanceSnapshot:
+            await client.future(type + ':fetchBalanceSnapshot')
+        # an empty params array subscribes to updates for all assets,
+        # listing all tickers explicitly is rejected with "invalid argument"
+        return await self.watch_private(messageHash, method, [], params)
+
+    def set_balance_cache(self, client: Client, type: Any, subscriptionHash: Any):
+        if subscriptionHash in client.subscriptions:
+            return
+        fetchBalanceSnapshot = self.handle_option('watchBalance', 'fetchBalanceSnapshot', True)
+        if fetchBalanceSnapshot:
+            messageHash = type + ':fetchBalanceSnapshot'
+            if not (messageHash in client.futures):
+                client.future(messageHash)
+                self.spawn(self.load_balance_snapshot, client, messageHash, type, subscriptionHash)
+
+    async def load_balance_snapshot(self, client: Any, messageHash: Any, type: Any, subscriptionHash: Any):
+        response = await self.fetch_balance({'type': type})
+        self.balance = self.extend(response, self.balance)
+        # don't remove the future from the .futures cache
+        if messageHash in client.futures:
+            future = client.futures[messageHash]
+            future.resolve()
+            client.resolve(self.balance, subscriptionHash)
 
     def handle_balance(self, client: Client, message: Any):
+        #
+        # spot
         #
         #   {
         #       "method":"balanceSpot_update",
@@ -720,7 +753,27 @@ class whitebit(ccxt.async_support.whitebit):
         #             "LTC":{
         #                "available":"0.16587",
         #                "freeze":"0"
+        #             },
+        #             "BTC":{
+        #                "available":"0.005",
+        #                "freeze":"0.001"
         #             }
+        #          }
+        #       ],
+        #       "id":null
+        #   }
+        #
+        # margin
+        #
+        #   {
+        #       "method":"balanceMargin_update",
+        #       "params":[
+        #          {
+        #             "a":"USDT",         # asset
+        #             "B":"0.00538073",   # total balance
+        #             "b":"0",            # borrowed
+        #             "av":"0.00538073",  # available without borrowing
+        #             "ab":"28.43739825"  # available with borrowing
         #          }
         #       ],
         #       "id":null
@@ -729,18 +782,31 @@ class whitebit(ccxt.async_support.whitebit):
         method = self.safe_string(message, 'method')
         if method is None:
             return
-        data = self.safe_value(message, 'params')
-        balanceDict = self.safe_value(data, 0)
-        self.balance['info'] = balanceDict
-        keys = list(balanceDict.keys())
-        currencyId = self.safe_value(keys, 0)
-        rawBalance = self.safe_value(balanceDict, currencyId)
-        code = self.safe_currency_code(currencyId)
-        account = self.account()
-        account['free'] = self.safe_string(rawBalance, 'available')
-        account['used'] = self.safe_string(rawBalance, 'freeze')
-        if code is not None:
-            self.balance[code] = account
+        isMargin = (method.find('Margin') >= 0)
+        data = self.safe_list(message, 'params', [])
+        for i in range(0, len(data)):
+            balanceDict = self.safe_dict(data, i, {})
+            self.balance['info'] = balanceDict
+            if isMargin:
+                currencyId = self.safe_string(balanceDict, 'a')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(balanceDict, 'av')
+                account['total'] = self.safe_string(balanceDict, 'B')
+                account['debt'] = self.safe_string(balanceDict, 'b')
+                if code is not None:
+                    self.balance[code] = account
+            else:
+                keys = list(balanceDict.keys())
+                for j in range(0, len(keys)):
+                    currencyId = keys[j]
+                    rawBalance = self.safe_dict(balanceDict, currencyId, {})
+                    code = self.safe_currency_code(currencyId)
+                    account = self.account()
+                    account['free'] = self.safe_string(rawBalance, 'available')
+                    account['used'] = self.safe_string(rawBalance, 'freeze')
+                    if code is not None:
+                        self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
         messageHash = 'wallet:'
         if method.find('Spot') >= 0:

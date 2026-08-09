@@ -194,6 +194,7 @@ var hyperliquid$2 = require('./src/prediction/hyperliquid.js');
 var kalshi = require('./src/prediction/kalshi.js');
 var limitless = require('./src/prediction/limitless.js');
 var myriad = require('./src/prediction/myriad.js');
+var opinion = require('./src/prediction/opinion.js');
 var polymarket = require('./src/prediction/polymarket.js');
 
 //-----------------------------------------------------------------------------
@@ -392,6 +393,7 @@ const prediction = {
     'kalshi': kalshi["default"],
     'limitless': limitless["default"],
     'myriad': myriad["default"],
+    'opinion': opinion["default"],
     'polymarket': polymarket["default"],
 };
 prediction.exchanges = Object.keys(prediction);

@@ -190,447 +190,1313 @@ func (this *OkxCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"market/tickers":                             1,
-					"market/ticker":                              1,
-					"market/books":                               Divide(1, 2),
-					"market/books-full":                          2,
-					"market/candles":                             Divide(1, 2),
-					"market/history-candles":                     1,
-					"market/trades":                              Divide(1, 5),
-					"market/history-trades":                      2,
-					"market/option/instrument-family-trades":     1,
-					"market/platform-24-volume":                  10,
-					"market/call-auction-detail":                 1,
-					"market/call-auction-details":                1,
-					"market/books-sbe":                           10,
-					"market/block-tickers":                       1,
-					"market/block-ticker":                        1,
-					"market/sprd-ticker":                         1,
-					"market/sprd-candles":                        Divide(1, 2),
-					"market/sprd-history-candles":                1,
-					"market/index-tickers":                       1,
-					"market/index-candles":                       1,
-					"market/history-index-candles":               2,
-					"market/mark-price-candles":                  1,
-					"market/history-mark-price-candles":          1,
-					"market/exchange-rate":                       20,
-					"market/index-components":                    1,
-					"market/open-oracle":                         50,
-					"market/books-lite":                          Divide(5, 3),
-					"public/option-trades":                       1,
-					"public/block-trades":                        1,
-					"public/instruments":                         1,
-					"public/estimated-price":                     2,
-					"public/delivery-exercise-history":           Divide(1, 2),
-					"public/estimated-settlement-info":           2,
-					"public/settlement-history":                  Divide(1, 2),
-					"public/funding-rate":                        2,
-					"public/funding-rate-history":                2,
-					"public/open-interest":                       1,
-					"public/price-limit":                         1,
-					"public/opt-summary":                         1,
-					"public/discount-rate-interest-free-quota":   10,
-					"public/time":                                2,
-					"public/mark-price":                          2,
-					"public/position-tiers":                      2,
-					"public/interest-rate-loan-quota":            10,
-					"public/underlying":                          1,
-					"public/insurance-fund":                      2,
-					"public/convert-contract-coin":               2,
-					"public/instrument-tick-bands":               4,
-					"public/premium-history":                     1,
-					"public/economic-calendar":                   50,
-					"public/market-data-history":                 4,
-					"public/event-contract/events":               1,
-					"public/event-contract/markets":              1,
-					"public/event-contract/series":               1,
-					"public/vip-interest-rate-loan-quota":        10,
-					"rubik/stat/trading-data/support-coin":       4,
-					"rubik/stat/contracts/open-interest-history": 2,
-					"rubik/stat/taker-volume":                    4,
-					"rubik/stat/taker-volume-contract":           4,
-					"rubik/stat/margin/loan-ratio":               4,
-					"rubik/stat/contracts/long-short-account-ratio-contract-top-trader":  4,
-					"rubik/stat/contracts/long-short-position-ratio-contract-top-trader": 4,
-					"rubik/stat/contracts/long-short-account-ratio-contract":             4,
-					"rubik/stat/contracts/long-short-account-ratio":                      4,
-					"rubik/stat/contracts/open-interest-volume":                          4,
-					"rubik/stat/option/open-interest-volume":                             4,
-					"rubik/stat/option/open-interest-volume-ratio":                       4,
-					"rubik/stat/option/open-interest-volume-expiry":                      4,
-					"rubik/stat/option/open-interest-volume-strike":                      4,
-					"rubik/stat/option/taker-block-volume":                               4,
-					"system/status":                                                      50,
-					"sprd/spreads":                                                       1,
-					"sprd/books":                                                         1,
-					"sprd/public-trades":                                                 1,
-					"sprd/ticker":                                                        1,
-					"tradingBot/grid/ai-param":                                           1,
-					"tradingBot/grid/min-investment":                                     1,
-					"tradingBot/public/rsi-back-testing":                                 1,
-					"tradingBot/grid/grid-quantity":                                      4,
-					"asset/exchange-list":                                                Divide(5, 3),
-					"finance/staking-defi/eth/apy-history":                               Divide(5, 3),
-					"finance/staking-defi/sol/apy-history":                               Divide(5, 3),
-					"finance/savings/lending-rate-summary":                               Divide(5, 3),
-					"finance/savings/lending-rate-history":                               Divide(5, 3),
-					"finance/fixed-loan/lending-offers":                                  Divide(10, 3),
-					"finance/fixed-loan/lending-apy-history":                             Divide(10, 3),
-					"finance/fixed-loan/pending-lending-volume":                          Divide(10, 3),
-					"finance/sfp/dcd/products":                                           Divide(2, 3),
-					"copytrading/public-config":                                          4,
-					"copytrading/public-lead-traders":                                    4,
-					"copytrading/public-weekly-pnl":                                      4,
-					"copytrading/public-pnl":                                             4,
-					"copytrading/public-stats":                                           4,
-					"copytrading/public-preference-currency":                             4,
-					"copytrading/public-current-subpositions":                            4,
-					"copytrading/public-subpositions-history":                            4,
-					"copytrading/public-copy-traders":                                    4,
-					"support/announcements":                                              4,
-					"support/announcements-types":                                        20,
-					"support/announcement-types":                                         20,
+					"market/tickers": map[string]any{
+						"cost": 1,
+					},
+					"market/ticker": map[string]any{
+						"cost": 1,
+					},
+					"market/books": map[string]any{
+						"cost": Divide(1, 2),
+					},
+					"market/books-full": map[string]any{
+						"cost": 2,
+					},
+					"market/candles": map[string]any{
+						"cost": Divide(1, 2),
+					},
+					"market/history-candles": map[string]any{
+						"cost": 1,
+					},
+					"market/trades": map[string]any{
+						"cost": Divide(1, 5),
+					},
+					"market/history-trades": map[string]any{
+						"cost": 2,
+					},
+					"market/option/instrument-family-trades": map[string]any{
+						"cost": 1,
+					},
+					"market/platform-24-volume": map[string]any{
+						"cost": 10,
+					},
+					"market/call-auction-detail": map[string]any{
+						"cost": 1,
+					},
+					"market/call-auction-details": map[string]any{
+						"cost": 1,
+					},
+					"market/books-sbe": map[string]any{
+						"cost": 10,
+					},
+					"market/block-tickers": map[string]any{
+						"cost": 1,
+					},
+					"market/block-ticker": map[string]any{
+						"cost": 1,
+					},
+					"market/sprd-ticker": map[string]any{
+						"cost": 1,
+					},
+					"market/sprd-candles": map[string]any{
+						"cost": Divide(1, 2),
+					},
+					"market/sprd-history-candles": map[string]any{
+						"cost": 1,
+					},
+					"market/index-tickers": map[string]any{
+						"cost": 1,
+					},
+					"market/index-candles": map[string]any{
+						"cost": 1,
+					},
+					"market/history-index-candles": map[string]any{
+						"cost": 2,
+					},
+					"market/mark-price-candles": map[string]any{
+						"cost": 1,
+					},
+					"market/history-mark-price-candles": map[string]any{
+						"cost": 1,
+					},
+					"market/exchange-rate": map[string]any{
+						"cost": 20,
+					},
+					"market/index-components": map[string]any{
+						"cost": 1,
+					},
+					"market/open-oracle": map[string]any{
+						"cost": 50,
+					},
+					"market/books-lite": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"public/option-trades": map[string]any{
+						"cost": 1,
+					},
+					"public/block-trades": map[string]any{
+						"cost": 1,
+					},
+					"public/instruments": map[string]any{
+						"cost": 1,
+					},
+					"public/estimated-price": map[string]any{
+						"cost": 2,
+					},
+					"public/delivery-exercise-history": map[string]any{
+						"cost": Divide(1, 2),
+					},
+					"public/estimated-settlement-info": map[string]any{
+						"cost": 2,
+					},
+					"public/settlement-history": map[string]any{
+						"cost": Divide(1, 2),
+					},
+					"public/funding-rate": map[string]any{
+						"cost": 2,
+					},
+					"public/funding-rate-history": map[string]any{
+						"cost": 2,
+					},
+					"public/open-interest": map[string]any{
+						"cost": 1,
+					},
+					"public/price-limit": map[string]any{
+						"cost": 1,
+					},
+					"public/opt-summary": map[string]any{
+						"cost": 1,
+					},
+					"public/discount-rate-interest-free-quota": map[string]any{
+						"cost": 10,
+					},
+					"public/time": map[string]any{
+						"cost": 2,
+					},
+					"public/mark-price": map[string]any{
+						"cost": 2,
+					},
+					"public/position-tiers": map[string]any{
+						"cost": 2,
+					},
+					"public/interest-rate-loan-quota": map[string]any{
+						"cost": 10,
+					},
+					"public/underlying": map[string]any{
+						"cost": 1,
+					},
+					"public/insurance-fund": map[string]any{
+						"cost": 2,
+					},
+					"public/convert-contract-coin": map[string]any{
+						"cost": 2,
+					},
+					"public/instrument-tick-bands": map[string]any{
+						"cost": 4,
+					},
+					"public/premium-history": map[string]any{
+						"cost": 1,
+					},
+					"public/economic-calendar": map[string]any{
+						"cost": 50,
+					},
+					"public/market-data-history": map[string]any{
+						"cost": 4,
+					},
+					"public/event-contract/events": map[string]any{
+						"cost": 1,
+					},
+					"public/event-contract/markets": map[string]any{
+						"cost": 1,
+					},
+					"public/event-contract/series": map[string]any{
+						"cost": 1,
+					},
+					"public/vip-interest-rate-loan-quota": map[string]any{
+						"cost": 10,
+					},
+					"rubik/stat/trading-data/support-coin": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/contracts/open-interest-history": map[string]any{
+						"cost": 2,
+					},
+					"rubik/stat/taker-volume": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/taker-volume-contract": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/margin/loan-ratio": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/contracts/long-short-account-ratio-contract-top-trader": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/contracts/long-short-position-ratio-contract-top-trader": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/contracts/long-short-account-ratio-contract": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/contracts/long-short-account-ratio": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/contracts/open-interest-volume": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/option/open-interest-volume": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/option/open-interest-volume-ratio": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/option/open-interest-volume-expiry": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/option/open-interest-volume-strike": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/option/taker-block-volume": map[string]any{
+						"cost": 4,
+					},
+					"system/status": map[string]any{
+						"cost": 50,
+					},
+					"sprd/spreads": map[string]any{
+						"cost": 1,
+					},
+					"sprd/books": map[string]any{
+						"cost": 1,
+					},
+					"sprd/public-trades": map[string]any{
+						"cost": 1,
+					},
+					"sprd/ticker": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/ai-param": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/min-investment": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/public/rsi-back-testing": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/grid-quantity": map[string]any{
+						"cost": 4,
+					},
+					"asset/exchange-list": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/staking-defi/eth/apy-history": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/staking-defi/sol/apy-history": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/savings/lending-rate-summary": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/savings/lending-rate-history": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/fixed-loan/lending-offers": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"finance/fixed-loan/lending-apy-history": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"finance/fixed-loan/pending-lending-volume": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"finance/sfp/dcd/products": map[string]any{
+						"cost": Divide(2, 3),
+					},
+					"copytrading/public-config": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/public-lead-traders": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/public-weekly-pnl": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/public-pnl": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/public-stats": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/public-preference-currency": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/public-current-subpositions": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/public-subpositions-history": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/public-copy-traders": map[string]any{
+						"cost": 4,
+					},
+					"support/announcements": map[string]any{
+						"cost": 4,
+					},
+					"support/announcements-types": map[string]any{
+						"cost": 20,
+					},
+					"support/announcement-types": map[string]any{
+						"cost": 20,
+					},
 				},
 				"post": map[string]any{
-					"tradingBot/grid/min-investment": 1,
+					"tradingBot/grid/min-investment": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"rfq/counterparties":                                 4,
-					"rfq/maker-instrument-settings":                      4,
-					"rfq/mmp-config":                                     4,
-					"rfq/rfqs":                                           10,
-					"rfq/quotes":                                         10,
-					"rfq/trades":                                         4,
-					"rfq/public-trades":                                  4,
-					"sprd/order":                                         1,
-					"sprd/orders-pending":                                2,
-					"sprd/orders-history":                                1,
-					"sprd/orders-history-archive":                        1,
-					"sprd/trades":                                        1,
-					"trade/order":                                        Divide(1, 3),
-					"trade/orders-pending":                               Divide(1, 3),
-					"trade/orders-history":                               Divide(1, 2),
-					"trade/orders-history-archive":                       1,
-					"trade/fills":                                        Divide(1, 3),
-					"trade/fills-history":                                2,
-					"trade/fills-archive":                                2,
-					"trade/order-algo":                                   1,
-					"trade/orders-algo-pending":                          1,
-					"trade/orders-algo-history":                          1,
-					"trade/easy-convert-currency-list":                   20,
-					"trade/easy-convert-history":                         20,
-					"trade/one-click-repay-currency-list":                20,
-					"trade/one-click-repay-currency-list-v2":             20,
-					"trade/one-click-repay-history":                      20,
-					"trade/one-click-repay-history-v2":                   20,
-					"trade/account-rate-limit":                           1,
-					"asset/currencies":                                   Divide(5, 3),
-					"asset/balances":                                     Divide(5, 3),
-					"asset/non-tradable-assets":                          Divide(5, 3),
-					"asset/asset-valuation":                              10,
-					"asset/transfer-state":                               1,
-					"asset/bills":                                        Divide(5, 3),
-					"asset/bills-history":                                10,
-					"asset/deposit-lightning":                            5,
-					"asset/deposit-address":                              Divide(5, 3),
-					"asset/deposit-history":                              Divide(5, 3),
-					"asset/withdrawal-history":                           Divide(5, 3),
-					"asset/deposit-withdraw-status":                      20,
-					"asset/monthly-statement":                            2,
-					"asset/convert/currencies":                           Divide(5, 3),
-					"asset/convert/currency-pair":                        Divide(5, 3),
-					"asset/convert/history":                              Divide(5, 3),
-					"account/instruments":                                1,
-					"account/balance":                                    2,
-					"account/positions":                                  2,
-					"account/positions-history":                          2,
-					"account/account-position-risk":                      2,
-					"account/bills":                                      2,
-					"account/bills-archive":                              4,
-					"account/bills-history-archive":                      2,
-					"account/config":                                     4,
-					"account/subtypes":                                   4,
-					"account/max-size":                                   1,
-					"account/max-avail-size":                             1,
-					"account/leverage-info":                              1,
-					"account/adjust-leverage-info":                       4,
-					"account/max-loan":                                   1,
-					"account/trade-fee":                                  4,
-					"account/interest-accrued":                           4,
-					"account/interest-rate":                              4,
-					"account/max-withdrawal":                             1,
-					"account/risk-state":                                 2,
-					"account/interest-limits":                            4,
-					"account/spot-borrow-repay-history":                  4,
-					"account/greeks":                                     2,
-					"account/position-tiers":                             2,
-					"account/set-account-switch-precheck":                4,
-					"account/collateral-assets":                          4,
-					"account/mmp-config":                                 4,
-					"account/move-positions-history":                     10,
-					"account/precheck-set-delta-neutral":                 20,
-					"account/quick-margin-borrow-repay-history":          4,
-					"account/borrow-repay-history":                       4,
-					"account/vip-interest-accrued":                       4,
-					"account/vip-interest-deducted":                      4,
-					"account/vip-loan-order-list":                        4,
-					"account/vip-loan-order-detail":                      4,
-					"account/fixed-loan/borrowing-limit":                 4,
-					"account/fixed-loan/borrowing-quote":                 5,
-					"account/fixed-loan/borrowing-orders-list":           5,
-					"account/spot-manual-borrow-repay":                   30,
-					"account/set-auto-repay":                             4,
-					"users/subaccount/list":                              10,
-					"account/subaccount/balances":                        Divide(10, 3),
-					"asset/subaccount/balances":                          Divide(10, 3),
-					"account/subaccount/max-withdrawal":                  1,
-					"asset/subaccount/bills":                             Divide(5, 3),
-					"asset/subaccount/managed-subaccount-bills":          Divide(5, 3),
-					"users/entrust-subaccount-list":                      10,
-					"account/subaccount/interest-limits":                 4,
-					"users/subaccount/apikey":                            10,
-					"tradingBot/grid/orders-algo-pending":                1,
-					"tradingBot/grid/orders-algo-history":                1,
-					"tradingBot/grid/orders-algo-details":                1,
-					"tradingBot/grid/sub-orders":                         1,
-					"tradingBot/grid/positions":                          1,
-					"tradingBot/grid/ai-param":                           1,
-					"tradingBot/signal/signals":                          1,
-					"tradingBot/signal/orders-algo-details":              1,
-					"tradingBot/signal/orders-algo-pending":              1,
-					"tradingBot/signal/orders-algo-history":              1,
-					"tradingBot/signal/positions":                        1,
-					"tradingBot/signal/positions-history":                2,
-					"tradingBot/signal/sub-orders":                       1,
-					"tradingBot/signal/event-history":                    1,
-					"tradingBot/recurring/orders-algo-pending":           1,
-					"tradingBot/recurring/orders-algo-history":           1,
-					"tradingBot/recurring/orders-algo-details":           1,
-					"tradingBot/recurring/sub-orders":                    1,
-					"tradingBot/dca/ongoing-list":                        1,
-					"tradingBot/dca/history-list":                        1,
-					"tradingBot/dca/orders":                              1,
-					"tradingBot/dca/position-details":                    1,
-					"tradingBot/dca/cycle-list":                          1,
-					"finance/savings/balance":                            Divide(5, 3),
-					"finance/savings/lending-history":                    Divide(5, 3),
-					"finance/staking-defi/offers":                        Divide(10, 3),
-					"finance/staking-defi/orders-active":                 Divide(10, 3),
-					"finance/staking-defi/orders-history":                Divide(10, 3),
-					"finance/staking-defi/eth/product-info":              Divide(10, 3),
-					"finance/staking-defi/eth/balance":                   Divide(5, 3),
-					"finance/staking-defi/eth/purchase-redeem-history":   Divide(5, 3),
-					"finance/staking-defi/sol/product-info":              Divide(10, 3),
-					"finance/staking-defi/sol/balance":                   Divide(5, 3),
-					"finance/staking-defi/sol/purchase-redeem-history":   Divide(5, 3),
-					"finance/flexible-loan/borrow-currencies":            4,
-					"finance/flexible-loan/collateral-assets":            4,
-					"finance/flexible-loan/max-collateral-redeem-amount": 4,
-					"finance/flexible-loan/loan-info":                    4,
-					"finance/flexible-loan/loan-history":                 4,
-					"finance/flexible-loan/interest-accrued":             4,
-					"copytrading/current-subpositions":                   1,
-					"copytrading/subpositions-history":                   1,
-					"copytrading/instruments":                            4,
-					"copytrading/profit-sharing-details":                 4,
-					"copytrading/total-profit-sharing":                   4,
-					"copytrading/unrealized-profit-sharing-details":      4,
-					"copytrading/total-unrealized-profit-sharing":        4,
-					"copytrading/config":                                 4,
-					"copytrading/copy-settings":                          4,
-					"copytrading/current-lead-traders":                   4,
-					"copytrading/batch-leverage-info":                    4,
-					"copytrading/lead-traders-history":                   4,
-					"broker/dma/subaccount-info":                         2,
-					"broker/dma/subaccount-trade-fee":                    10,
-					"broker/dma/subaccount/apikey":                       10,
-					"broker/dma/rebate-per-orders":                       300,
-					"broker/fd/rebate-per-orders":                        300,
-					"broker/fd/if-rebate":                                5,
-					"broker/nd/info":                                     10,
-					"broker/nd/subaccount-info":                          10,
-					"broker/nd/subaccount/apikey":                        10,
-					"asset/broker/nd/subaccount-deposit-address":         Divide(5, 3),
-					"asset/broker/nd/subaccount-deposit-history":         4,
-					"asset/broker/nd/subaccount-withdrawal-history":      4,
-					"broker/nd/rebate-daily":                             100,
-					"broker/nd/rebate-per-orders":                        300,
-					"finance/sfp/dcd/order":                              2,
-					"finance/sfp/dcd/orders":                             2,
-					"finance/sfp/dcd/currency-pair":                      2,
-					"finance/sfp/dcd/order-status":                       2,
-					"finance/sfp/dcd/order-history":                      2,
-					"affiliate/invitee/detail":                           1,
-					"users/partner/if-rebate":                            1,
-					"support/announcements":                              4,
+					"rfq/counterparties": map[string]any{
+						"cost": 4,
+					},
+					"rfq/maker-instrument-settings": map[string]any{
+						"cost": 4,
+					},
+					"rfq/mmp-config": map[string]any{
+						"cost": 4,
+					},
+					"rfq/rfqs": map[string]any{
+						"cost": 10,
+					},
+					"rfq/quotes": map[string]any{
+						"cost": 10,
+					},
+					"rfq/trades": map[string]any{
+						"cost": 4,
+					},
+					"rfq/public-trades": map[string]any{
+						"cost": 4,
+					},
+					"sprd/order": map[string]any{
+						"cost": 1,
+					},
+					"sprd/orders-pending": map[string]any{
+						"cost": 2,
+					},
+					"sprd/orders-history": map[string]any{
+						"cost": 1,
+					},
+					"sprd/orders-history-archive": map[string]any{
+						"cost": 1,
+					},
+					"sprd/trades": map[string]any{
+						"cost": 1,
+					},
+					"trade/order": map[string]any{
+						"cost": Divide(1, 3),
+					},
+					"trade/orders-pending": map[string]any{
+						"cost": Divide(1, 3),
+					},
+					"trade/orders-history": map[string]any{
+						"cost": Divide(1, 2),
+					},
+					"trade/orders-history-archive": map[string]any{
+						"cost": 1,
+					},
+					"trade/fills": map[string]any{
+						"cost": Divide(1, 3),
+					},
+					"trade/fills-history": map[string]any{
+						"cost": 2,
+					},
+					"trade/fills-archive": map[string]any{
+						"cost": 2,
+					},
+					"trade/order-algo": map[string]any{
+						"cost": 1,
+					},
+					"trade/orders-algo-pending": map[string]any{
+						"cost": 1,
+					},
+					"trade/orders-algo-history": map[string]any{
+						"cost": 1,
+					},
+					"trade/easy-convert-currency-list": map[string]any{
+						"cost": 20,
+					},
+					"trade/easy-convert-history": map[string]any{
+						"cost": 20,
+					},
+					"trade/one-click-repay-currency-list": map[string]any{
+						"cost": 20,
+					},
+					"trade/one-click-repay-currency-list-v2": map[string]any{
+						"cost": 20,
+					},
+					"trade/one-click-repay-history": map[string]any{
+						"cost": 20,
+					},
+					"trade/one-click-repay-history-v2": map[string]any{
+						"cost": 20,
+					},
+					"trade/account-rate-limit": map[string]any{
+						"cost": 1,
+					},
+					"asset/currencies": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/balances": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/non-tradable-assets": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/asset-valuation": map[string]any{
+						"cost": 10,
+					},
+					"asset/transfer-state": map[string]any{
+						"cost": 1,
+					},
+					"asset/bills": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/bills-history": map[string]any{
+						"cost": 10,
+					},
+					"asset/deposit-lightning": map[string]any{
+						"cost": 5,
+					},
+					"asset/deposit-address": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/deposit-history": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/withdrawal-history": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/deposit-withdraw-status": map[string]any{
+						"cost": 20,
+					},
+					"asset/monthly-statement": map[string]any{
+						"cost": 2,
+					},
+					"asset/convert/currencies": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/convert/currency-pair": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/convert/history": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"account/instruments": map[string]any{
+						"cost": 1,
+					},
+					"account/balance": map[string]any{
+						"cost": 2,
+					},
+					"account/positions": map[string]any{
+						"cost": 2,
+					},
+					"account/positions-history": map[string]any{
+						"cost": 2,
+					},
+					"account/account-position-risk": map[string]any{
+						"cost": 2,
+					},
+					"account/bills": map[string]any{
+						"cost": 2,
+					},
+					"account/bills-archive": map[string]any{
+						"cost": 4,
+					},
+					"account/bills-history-archive": map[string]any{
+						"cost": 2,
+					},
+					"account/config": map[string]any{
+						"cost": 4,
+					},
+					"account/subtypes": map[string]any{
+						"cost": 4,
+					},
+					"account/max-size": map[string]any{
+						"cost": 1,
+					},
+					"account/max-avail-size": map[string]any{
+						"cost": 1,
+					},
+					"account/leverage-info": map[string]any{
+						"cost": 1,
+					},
+					"account/adjust-leverage-info": map[string]any{
+						"cost": 4,
+					},
+					"account/max-loan": map[string]any{
+						"cost": 1,
+					},
+					"account/trade-fee": map[string]any{
+						"cost": 4,
+					},
+					"account/interest-accrued": map[string]any{
+						"cost": 4,
+					},
+					"account/interest-rate": map[string]any{
+						"cost": 4,
+					},
+					"account/max-withdrawal": map[string]any{
+						"cost": 1,
+					},
+					"account/risk-state": map[string]any{
+						"cost": 2,
+					},
+					"account/interest-limits": map[string]any{
+						"cost": 4,
+					},
+					"account/spot-borrow-repay-history": map[string]any{
+						"cost": 4,
+					},
+					"account/greeks": map[string]any{
+						"cost": 2,
+					},
+					"account/position-tiers": map[string]any{
+						"cost": 2,
+					},
+					"account/set-account-switch-precheck": map[string]any{
+						"cost": 4,
+					},
+					"account/collateral-assets": map[string]any{
+						"cost": 4,
+					},
+					"account/mmp-config": map[string]any{
+						"cost": 4,
+					},
+					"account/move-positions-history": map[string]any{
+						"cost": 10,
+					},
+					"account/precheck-set-delta-neutral": map[string]any{
+						"cost": 20,
+					},
+					"account/quick-margin-borrow-repay-history": map[string]any{
+						"cost": 4,
+					},
+					"account/borrow-repay-history": map[string]any{
+						"cost": 4,
+					},
+					"account/vip-interest-accrued": map[string]any{
+						"cost": 4,
+					},
+					"account/vip-interest-deducted": map[string]any{
+						"cost": 4,
+					},
+					"account/vip-loan-order-list": map[string]any{
+						"cost": 4,
+					},
+					"account/vip-loan-order-detail": map[string]any{
+						"cost": 4,
+					},
+					"account/fixed-loan/borrowing-limit": map[string]any{
+						"cost": 4,
+					},
+					"account/fixed-loan/borrowing-quote": map[string]any{
+						"cost": 5,
+					},
+					"account/fixed-loan/borrowing-orders-list": map[string]any{
+						"cost": 5,
+					},
+					"account/spot-manual-borrow-repay": map[string]any{
+						"cost": 30,
+					},
+					"account/set-auto-repay": map[string]any{
+						"cost": 4,
+					},
+					"users/subaccount/list": map[string]any{
+						"cost": 10,
+					},
+					"account/subaccount/balances": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"asset/subaccount/balances": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"account/subaccount/max-withdrawal": map[string]any{
+						"cost": 1,
+					},
+					"asset/subaccount/bills": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/subaccount/managed-subaccount-bills": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"users/entrust-subaccount-list": map[string]any{
+						"cost": 10,
+					},
+					"account/subaccount/interest-limits": map[string]any{
+						"cost": 4,
+					},
+					"users/subaccount/apikey": map[string]any{
+						"cost": 10,
+					},
+					"tradingBot/grid/orders-algo-pending": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/orders-algo-history": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/orders-algo-details": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/sub-orders": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/positions": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/ai-param": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/signals": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/orders-algo-details": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/orders-algo-pending": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/orders-algo-history": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/positions": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/positions-history": map[string]any{
+						"cost": 2,
+					},
+					"tradingBot/signal/sub-orders": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/event-history": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/orders-algo-pending": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/orders-algo-history": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/orders-algo-details": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/sub-orders": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/ongoing-list": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/history-list": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/orders": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/position-details": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/cycle-list": map[string]any{
+						"cost": 1,
+					},
+					"finance/savings/balance": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/savings/lending-history": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/staking-defi/offers": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"finance/staking-defi/orders-active": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"finance/staking-defi/orders-history": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"finance/staking-defi/eth/product-info": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"finance/staking-defi/eth/balance": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/staking-defi/eth/purchase-redeem-history": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/staking-defi/sol/product-info": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"finance/staking-defi/sol/balance": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/staking-defi/sol/purchase-redeem-history": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/flexible-loan/borrow-currencies": map[string]any{
+						"cost": 4,
+					},
+					"finance/flexible-loan/collateral-assets": map[string]any{
+						"cost": 4,
+					},
+					"finance/flexible-loan/max-collateral-redeem-amount": map[string]any{
+						"cost": 4,
+					},
+					"finance/flexible-loan/loan-info": map[string]any{
+						"cost": 4,
+					},
+					"finance/flexible-loan/loan-history": map[string]any{
+						"cost": 4,
+					},
+					"finance/flexible-loan/interest-accrued": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/current-subpositions": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/subpositions-history": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/instruments": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/profit-sharing-details": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/total-profit-sharing": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/unrealized-profit-sharing-details": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/total-unrealized-profit-sharing": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/config": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/copy-settings": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/current-lead-traders": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/batch-leverage-info": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/lead-traders-history": map[string]any{
+						"cost": 4,
+					},
+					"broker/dma/subaccount-info": map[string]any{
+						"cost": 2,
+					},
+					"broker/dma/subaccount-trade-fee": map[string]any{
+						"cost": 10,
+					},
+					"broker/dma/subaccount/apikey": map[string]any{
+						"cost": 10,
+					},
+					"broker/dma/rebate-per-orders": map[string]any{
+						"cost": 300,
+					},
+					"broker/fd/rebate-per-orders": map[string]any{
+						"cost": 300,
+					},
+					"broker/fd/if-rebate": map[string]any{
+						"cost": 5,
+					},
+					"broker/nd/info": map[string]any{
+						"cost": 10,
+					},
+					"broker/nd/subaccount-info": map[string]any{
+						"cost": 10,
+					},
+					"broker/nd/subaccount/apikey": map[string]any{
+						"cost": 10,
+					},
+					"asset/broker/nd/subaccount-deposit-address": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/broker/nd/subaccount-deposit-history": map[string]any{
+						"cost": 4,
+					},
+					"asset/broker/nd/subaccount-withdrawal-history": map[string]any{
+						"cost": 4,
+					},
+					"broker/nd/rebate-daily": map[string]any{
+						"cost": 100,
+					},
+					"broker/nd/rebate-per-orders": map[string]any{
+						"cost": 300,
+					},
+					"finance/sfp/dcd/order": map[string]any{
+						"cost": 2,
+					},
+					"finance/sfp/dcd/orders": map[string]any{
+						"cost": 2,
+					},
+					"finance/sfp/dcd/currency-pair": map[string]any{
+						"cost": 2,
+					},
+					"finance/sfp/dcd/order-status": map[string]any{
+						"cost": 2,
+					},
+					"finance/sfp/dcd/order-history": map[string]any{
+						"cost": 2,
+					},
+					"affiliate/invitee/detail": map[string]any{
+						"cost": 1,
+					},
+					"users/partner/if-rebate": map[string]any{
+						"cost": 1,
+					},
+					"support/announcements": map[string]any{
+						"cost": 4,
+					},
 				},
 				"post": map[string]any{
-					"rfq/create-rfq":                                    4,
-					"rfq/cancel-rfq":                                    4,
-					"rfq/cancel-batch-rfqs":                             10,
-					"rfq/cancel-all-rfqs":                               10,
-					"rfq/execute-quote":                                 15,
-					"rfq/maker-instrument-settings":                     4,
-					"rfq/mmp-reset":                                     4,
-					"rfq/mmp-config":                                    100,
-					"rfq/create-quote":                                  0.4,
-					"rfq/cancel-quote":                                  0.4,
-					"rfq/cancel-batch-quotes":                           10,
-					"rfq/cancel-all-quotes":                             10,
-					"rfq/cancel-all-after":                              10,
-					"sprd/order":                                        1,
-					"sprd/cancel-order":                                 1,
-					"sprd/mass-cancel":                                  1,
-					"sprd/amend-order":                                  1,
-					"sprd/cancel-all-after":                             10,
-					"trade/order":                                       Divide(1, 3),
-					"trade/batch-orders":                                Divide(1, 15),
-					"trade/cancel-order":                                Divide(1, 3),
-					"trade/cancel-batch-orders":                         Divide(1, 15),
-					"trade/amend-order":                                 Divide(1, 3),
-					"trade/amend-batch-orders":                          Divide(1, 150),
-					"trade/close-position":                              1,
-					"trade/fills-archive":                               172800,
-					"trade/cancel-advance-algos":                        1,
-					"trade/easy-convert":                                20,
-					"trade/one-click-repay":                             20,
-					"trade/one-click-repay-v2":                          20,
-					"trade/mass-cancel":                                 4,
-					"trade/cancel-all-after":                            10,
-					"trade/order-precheck":                              4,
-					"trade/order-algo":                                  1,
-					"trade/cancel-algos":                                1,
-					"trade/amend-algos":                                 1,
-					"asset/transfer":                                    5,
-					"asset/withdrawal":                                  Divide(5, 3),
-					"asset/withdrawal-lightning":                        5,
-					"asset/cancel-withdrawal":                           Divide(5, 3),
-					"asset/convert-dust-assets":                         10,
-					"asset/monthly-statement":                           1296000,
-					"asset/convert/estimate-quote":                      50,
-					"asset/convert/trade":                               1,
-					"account/bills-history-archive":                     72000,
-					"account/set-position-mode":                         4,
-					"account/set-leverage":                              1,
-					"account/position/margin-balance":                   1,
-					"account/set-fee-type":                              4,
-					"account/set-greeks":                                4,
-					"account/set-isolated-mode":                         4,
-					"account/spot-manual-borrow-repay":                  30,
-					"account/set-auto-repay":                            4,
-					"account/quick-margin-borrow-repay":                 4,
-					"account/borrow-repay":                              Divide(5, 3),
-					"account/simulated_margin":                          10,
-					"account/position-builder":                          10,
-					"account/position-builder-graph":                    50,
-					"account/set-riskOffset-type":                       2,
-					"account/set-riskOffset-amt":                        2,
-					"account/activate-option":                           4,
-					"account/set-auto-loan":                             4,
-					"account/account-level-switch-preset":               4,
-					"account/set-account-level":                         4,
-					"account/set-collateral-assets":                     4,
-					"account/mmp-reset":                                 4,
-					"account/mmp-config":                                50,
-					"account/fixed-loan/borrowing-order":                5,
-					"account/fixed-loan/amend-borrowing-order":          5,
-					"account/fixed-loan/manual-reborrow":                5,
-					"account/fixed-loan/repay-borrowing-order":          5,
-					"account/move-positions":                            10,
-					"account/set-auto-earn":                             10,
-					"account/set-settle-currency":                       1,
-					"account/set-trading-config":                        20,
-					"account/demo-adjust-balance":                       20,
-					"asset/subaccount/transfer":                         10,
-					"account/subaccount/set-loan-allocation":            4,
-					"users/subaccount/create-subaccount":                10,
-					"users/subaccount/apikey":                           10,
-					"users/subaccount/modify-apikey":                    10,
-					"users/subaccount/subaccount-apikey":                10,
-					"users/subaccount/delete-apikey":                    10,
-					"users/subaccount/set-transfer-out":                 10,
-					"tradingBot/grid/order-algo":                        1,
-					"tradingBot/grid/copy-order-algo":                   1,
-					"tradingBot/grid/amend-algo-basic-param":            1,
-					"tradingBot/grid/amend-order-algo":                  1,
-					"tradingBot/grid/stop-order-algo":                   1,
-					"tradingBot/grid/close-position":                    1,
-					"tradingBot/grid/cancel-close-order":                1,
-					"tradingBot/grid/order-instant-trigger":             1,
-					"tradingBot/grid/withdraw-income":                   1,
-					"tradingBot/grid/compute-margin-balance":            1,
-					"tradingBot/grid/margin-balance":                    1,
-					"tradingBot/grid/min-investment":                    1,
-					"tradingBot/grid/adjust-investment":                 1,
-					"tradingBot/signal/create-signal":                   1,
-					"tradingBot/signal/order-algo":                      1,
-					"tradingBot/signal/stop-order-algo":                 1,
-					"tradingBot/signal/margin-balance":                  1,
-					"tradingBot/signal/amendTPSL":                       1,
-					"tradingBot/signal/set-instruments":                 1,
-					"tradingBot/signal/close-position":                  1,
-					"tradingBot/signal/sub-order":                       1,
-					"tradingBot/signal/cancel-sub-order":                1,
-					"tradingBot/recurring/order-algo":                   1,
-					"tradingBot/recurring/amend-order-algo":             1,
-					"tradingBot/recurring/stop-order-algo":              1,
-					"tradingBot/dca/create":                             1,
-					"tradingBot/dca/amend-order-algo":                   1,
-					"tradingBot/dca/stop":                               1,
-					"tradingBot/dca/orders/manual-buy":                  1,
-					"tradingBot/dca/settings/reinvestment":              1,
-					"tradingBot/dca/settings/take-profit":               1,
-					"tradingBot/dca/margin/add":                         1,
-					"tradingBot/dca/margin/reduce":                      1,
-					"tradingBot/recurring/add-investment":               1,
-					"tradingBot/recurring/amend-price-range":            1,
-					"tradingBot/recurring/amend-recurring-amount":       1,
-					"tradingBot/recurring/amend-recurring-time":         1,
-					"tradingBot/recurring/pause":                        1,
-					"tradingBot/recurring/restart":                      1,
-					"finance/savings/purchase-redempt":                  Divide(5, 3),
-					"finance/savings/set-lending-rate":                  Divide(5, 3),
-					"finance/staking-defi/purchase":                     5,
-					"finance/staking-defi/redeem":                       5,
-					"finance/staking-defi/cancel":                       5,
-					"finance/staking-defi/eth/purchase":                 5,
-					"finance/staking-defi/eth/redeem":                   5,
-					"finance/staking-defi/eth/cancel-redeem":            5,
-					"finance/staking-defi/sol/purchase":                 5,
-					"finance/staking-defi/sol/redeem":                   5,
-					"finance/staking-defi/sol/cancel-redeem":            5,
-					"finance/flexible-loan/max-loan":                    4,
-					"finance/flexible-loan/adjust-collateral":           4,
-					"copytrading/algo-order":                            1,
-					"copytrading/close-subposition":                     1,
-					"copytrading/set-instruments":                       4,
-					"copytrading/amend-profit-sharing-ratio":            4,
-					"copytrading/first-copy-settings":                   4,
-					"copytrading/amend-copy-settings":                   4,
-					"copytrading/stop-copy-trading":                     4,
-					"copytrading/batch-set-leverage":                    4,
-					"broker/nd/create-subaccount":                       0.25,
-					"broker/nd/delete-subaccount":                       1,
-					"broker/nd/subaccount/apikey":                       0.25,
-					"broker/nd/subaccount/modify-apikey":                1,
-					"broker/nd/subaccount/delete-apikey":                1,
-					"broker/nd/set-subaccount-level":                    4,
-					"broker/nd/set-subaccount-fee-rate":                 4,
-					"broker/nd/set-subaccount-assets":                   0.25,
-					"asset/broker/nd/subaccount-deposit-address":        1,
-					"asset/broker/nd/modify-subaccount-deposit-address": Divide(5, 3),
-					"broker/nd/rebate-per-orders":                       36000,
-					"finance/sfp/dcd/quote":                             10,
-					"finance/sfp/dcd/order":                             10,
-					"finance/sfp/dcd/trade":                             10,
-					"finance/sfp/dcd/redeem-quote":                      10,
-					"finance/sfp/dcd/redeem":                            10,
-					"broker/nd/report-subaccount-ip":                    0.25,
-					"broker/dma/subaccount/apikey":                      Divide(1, 4),
-					"broker/dma/trades":                                 36000,
-					"broker/fd/rebate-per-orders":                       36000,
+					"rfq/create-rfq": map[string]any{
+						"cost": 4,
+					},
+					"rfq/cancel-rfq": map[string]any{
+						"cost": 4,
+					},
+					"rfq/cancel-batch-rfqs": map[string]any{
+						"cost": 10,
+					},
+					"rfq/cancel-all-rfqs": map[string]any{
+						"cost": 10,
+					},
+					"rfq/execute-quote": map[string]any{
+						"cost": 15,
+					},
+					"rfq/maker-instrument-settings": map[string]any{
+						"cost": 4,
+					},
+					"rfq/mmp-reset": map[string]any{
+						"cost": 4,
+					},
+					"rfq/mmp-config": map[string]any{
+						"cost": 100,
+					},
+					"rfq/create-quote": map[string]any{
+						"cost": 0.4,
+					},
+					"rfq/cancel-quote": map[string]any{
+						"cost": 0.4,
+					},
+					"rfq/cancel-batch-quotes": map[string]any{
+						"cost": 10,
+					},
+					"rfq/cancel-all-quotes": map[string]any{
+						"cost": 10,
+					},
+					"rfq/cancel-all-after": map[string]any{
+						"cost": 10,
+					},
+					"sprd/order": map[string]any{
+						"cost": 1,
+					},
+					"sprd/cancel-order": map[string]any{
+						"cost": 1,
+					},
+					"sprd/mass-cancel": map[string]any{
+						"cost": 1,
+					},
+					"sprd/amend-order": map[string]any{
+						"cost": 1,
+					},
+					"sprd/cancel-all-after": map[string]any{
+						"cost": 10,
+					},
+					"trade/order": map[string]any{
+						"cost": Divide(1, 3),
+					},
+					"trade/batch-orders": map[string]any{
+						"cost": Divide(1, 15),
+					},
+					"trade/cancel-order": map[string]any{
+						"cost": Divide(1, 3),
+					},
+					"trade/cancel-batch-orders": map[string]any{
+						"cost": Divide(1, 15),
+					},
+					"trade/amend-order": map[string]any{
+						"cost": Divide(1, 3),
+					},
+					"trade/amend-batch-orders": map[string]any{
+						"cost": Divide(1, 150),
+					},
+					"trade/close-position": map[string]any{
+						"cost": 1,
+					},
+					"trade/fills-archive": map[string]any{
+						"cost": 172800,
+					},
+					"trade/cancel-advance-algos": map[string]any{
+						"cost": 1,
+					},
+					"trade/easy-convert": map[string]any{
+						"cost": 20,
+					},
+					"trade/one-click-repay": map[string]any{
+						"cost": 20,
+					},
+					"trade/one-click-repay-v2": map[string]any{
+						"cost": 20,
+					},
+					"trade/mass-cancel": map[string]any{
+						"cost": 4,
+					},
+					"trade/cancel-all-after": map[string]any{
+						"cost": 10,
+					},
+					"trade/order-precheck": map[string]any{
+						"cost": 4,
+					},
+					"trade/order-algo": map[string]any{
+						"cost": 1,
+					},
+					"trade/cancel-algos": map[string]any{
+						"cost": 1,
+					},
+					"trade/amend-algos": map[string]any{
+						"cost": 1,
+					},
+					"asset/transfer": map[string]any{
+						"cost": 5,
+					},
+					"asset/withdrawal": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/withdrawal-lightning": map[string]any{
+						"cost": 5,
+					},
+					"asset/cancel-withdrawal": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/convert-dust-assets": map[string]any{
+						"cost": 10,
+					},
+					"asset/monthly-statement": map[string]any{
+						"cost": 1296000,
+					},
+					"asset/convert/estimate-quote": map[string]any{
+						"cost": 50,
+					},
+					"asset/convert/trade": map[string]any{
+						"cost": 1,
+					},
+					"account/bills-history-archive": map[string]any{
+						"cost": 72000,
+					},
+					"account/set-position-mode": map[string]any{
+						"cost": 4,
+					},
+					"account/set-leverage": map[string]any{
+						"cost": 1,
+					},
+					"account/position/margin-balance": map[string]any{
+						"cost": 1,
+					},
+					"account/set-fee-type": map[string]any{
+						"cost": 4,
+					},
+					"account/set-greeks": map[string]any{
+						"cost": 4,
+					},
+					"account/set-isolated-mode": map[string]any{
+						"cost": 4,
+					},
+					"account/spot-manual-borrow-repay": map[string]any{
+						"cost": 30,
+					},
+					"account/set-auto-repay": map[string]any{
+						"cost": 4,
+					},
+					"account/quick-margin-borrow-repay": map[string]any{
+						"cost": 4,
+					},
+					"account/borrow-repay": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"account/simulated_margin": map[string]any{
+						"cost": 10,
+					},
+					"account/position-builder": map[string]any{
+						"cost": 10,
+					},
+					"account/position-builder-graph": map[string]any{
+						"cost": 50,
+					},
+					"account/set-riskOffset-type": map[string]any{
+						"cost": 2,
+					},
+					"account/set-riskOffset-amt": map[string]any{
+						"cost": 2,
+					},
+					"account/activate-option": map[string]any{
+						"cost": 4,
+					},
+					"account/set-auto-loan": map[string]any{
+						"cost": 4,
+					},
+					"account/account-level-switch-preset": map[string]any{
+						"cost": 4,
+					},
+					"account/set-account-level": map[string]any{
+						"cost": 4,
+					},
+					"account/set-collateral-assets": map[string]any{
+						"cost": 4,
+					},
+					"account/mmp-reset": map[string]any{
+						"cost": 4,
+					},
+					"account/mmp-config": map[string]any{
+						"cost": 50,
+					},
+					"account/fixed-loan/borrowing-order": map[string]any{
+						"cost": 5,
+					},
+					"account/fixed-loan/amend-borrowing-order": map[string]any{
+						"cost": 5,
+					},
+					"account/fixed-loan/manual-reborrow": map[string]any{
+						"cost": 5,
+					},
+					"account/fixed-loan/repay-borrowing-order": map[string]any{
+						"cost": 5,
+					},
+					"account/move-positions": map[string]any{
+						"cost": 10,
+					},
+					"account/set-auto-earn": map[string]any{
+						"cost": 10,
+					},
+					"account/set-settle-currency": map[string]any{
+						"cost": 1,
+					},
+					"account/set-trading-config": map[string]any{
+						"cost": 20,
+					},
+					"account/demo-adjust-balance": map[string]any{
+						"cost": 20,
+					},
+					"asset/subaccount/transfer": map[string]any{
+						"cost": 10,
+					},
+					"account/subaccount/set-loan-allocation": map[string]any{
+						"cost": 4,
+					},
+					"users/subaccount/create-subaccount": map[string]any{
+						"cost": 10,
+					},
+					"users/subaccount/apikey": map[string]any{
+						"cost": 10,
+					},
+					"users/subaccount/modify-apikey": map[string]any{
+						"cost": 10,
+					},
+					"users/subaccount/subaccount-apikey": map[string]any{
+						"cost": 10,
+					},
+					"users/subaccount/delete-apikey": map[string]any{
+						"cost": 10,
+					},
+					"users/subaccount/set-transfer-out": map[string]any{
+						"cost": 10,
+					},
+					"tradingBot/grid/order-algo": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/copy-order-algo": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/amend-algo-basic-param": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/amend-order-algo": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/stop-order-algo": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/close-position": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/cancel-close-order": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/order-instant-trigger": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/withdraw-income": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/compute-margin-balance": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/margin-balance": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/min-investment": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/adjust-investment": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/create-signal": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/order-algo": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/stop-order-algo": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/margin-balance": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/amendTPSL": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/set-instruments": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/close-position": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/sub-order": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/cancel-sub-order": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/order-algo": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/amend-order-algo": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/stop-order-algo": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/create": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/amend-order-algo": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/stop": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/orders/manual-buy": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/settings/reinvestment": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/settings/take-profit": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/margin/add": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/margin/reduce": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/add-investment": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/amend-price-range": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/amend-recurring-amount": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/amend-recurring-time": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/pause": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/restart": map[string]any{
+						"cost": 1,
+					},
+					"finance/savings/purchase-redempt": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/savings/set-lending-rate": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/staking-defi/purchase": map[string]any{
+						"cost": 5,
+					},
+					"finance/staking-defi/redeem": map[string]any{
+						"cost": 5,
+					},
+					"finance/staking-defi/cancel": map[string]any{
+						"cost": 5,
+					},
+					"finance/staking-defi/eth/purchase": map[string]any{
+						"cost": 5,
+					},
+					"finance/staking-defi/eth/redeem": map[string]any{
+						"cost": 5,
+					},
+					"finance/staking-defi/eth/cancel-redeem": map[string]any{
+						"cost": 5,
+					},
+					"finance/staking-defi/sol/purchase": map[string]any{
+						"cost": 5,
+					},
+					"finance/staking-defi/sol/redeem": map[string]any{
+						"cost": 5,
+					},
+					"finance/staking-defi/sol/cancel-redeem": map[string]any{
+						"cost": 5,
+					},
+					"finance/flexible-loan/max-loan": map[string]any{
+						"cost": 4,
+					},
+					"finance/flexible-loan/adjust-collateral": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/algo-order": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/close-subposition": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/set-instruments": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/amend-profit-sharing-ratio": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/first-copy-settings": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/amend-copy-settings": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/stop-copy-trading": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/batch-set-leverage": map[string]any{
+						"cost": 4,
+					},
+					"broker/nd/create-subaccount": map[string]any{
+						"cost": 0.25,
+					},
+					"broker/nd/delete-subaccount": map[string]any{
+						"cost": 1,
+					},
+					"broker/nd/subaccount/apikey": map[string]any{
+						"cost": 0.25,
+					},
+					"broker/nd/subaccount/modify-apikey": map[string]any{
+						"cost": 1,
+					},
+					"broker/nd/subaccount/delete-apikey": map[string]any{
+						"cost": 1,
+					},
+					"broker/nd/set-subaccount-level": map[string]any{
+						"cost": 4,
+					},
+					"broker/nd/set-subaccount-fee-rate": map[string]any{
+						"cost": 4,
+					},
+					"broker/nd/set-subaccount-assets": map[string]any{
+						"cost": 0.25,
+					},
+					"asset/broker/nd/subaccount-deposit-address": map[string]any{
+						"cost": 1,
+					},
+					"asset/broker/nd/modify-subaccount-deposit-address": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"broker/nd/rebate-per-orders": map[string]any{
+						"cost": 36000,
+					},
+					"finance/sfp/dcd/quote": map[string]any{
+						"cost": 10,
+					},
+					"finance/sfp/dcd/order": map[string]any{
+						"cost": 10,
+					},
+					"finance/sfp/dcd/trade": map[string]any{
+						"cost": 10,
+					},
+					"finance/sfp/dcd/redeem-quote": map[string]any{
+						"cost": 10,
+					},
+					"finance/sfp/dcd/redeem": map[string]any{
+						"cost": 10,
+					},
+					"broker/nd/report-subaccount-ip": map[string]any{
+						"cost": 0.25,
+					},
+					"broker/dma/subaccount/apikey": map[string]any{
+						"cost": Divide(1, 4),
+					},
+					"broker/dma/trades": map[string]any{
+						"cost": 36000,
+					},
+					"broker/fd/rebate-per-orders": map[string]any{
+						"cost": 36000,
+					},
 				},
 			},
 		},
@@ -8153,9 +9019,14 @@ func (this *OkxCore) FetchCrossBorrowRates(optionalArgs ...any) <-chan any {
 		//    }
 		//
 		var data any = this.SafeList(response, "data", []any{})
-		var rates any = []any{}
+		// code-keyed dict (CrossBorrowRates); base fetchCrossBorrowRate looks up by code
+		var rates any = map[string]any{}
 		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			AppendToArray(&rates, this.ParseBorrowRate(GetValue(data, i)))
+			var rate any = this.ParseBorrowRate(GetValue(data, i))
+			var code any = this.SafeString(rate, "currency")
+			if IsTrue(!IsEqual(code, nil)) {
+				AddElementToObject(rates, code, rate)
+			}
 		}
 
 		ch <- rates
@@ -8183,8 +9054,8 @@ func (this *OkxCore) FetchCrossBorrowRate(code any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes730312 := (<-this.LoadMarkets())
-			PanicOnError(retRes730312)
+			retRes730812 := (<-this.LoadMarkets())
+			PanicOnError(retRes730812)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -8231,7 +9102,7 @@ func (this *OkxCore) ParseBorrowRate(info any, optionalArgs ...any) any {
 	return map[string]any{
 		"currency":  this.SafeCurrencyCode(ccy),
 		"rate":      this.SafeNumber2(info, "interestRate", "rate"),
-		"period":    86400000,
+		"period":    3600000,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 		"info":      info,
@@ -8258,6 +9129,8 @@ func (this *OkxCore) ParseBorrowRateHistories(response any, codes any, since any
 				AddElementToObject(borrowRateHistories, code, []any{})
 			}
 			var borrowRateStructure any = this.ParseBorrowRate(item)
+			// GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
+			AddElementToObject(borrowRateStructure, "period", 31536000000)
 			var borrrowRateCode any = GetValue(borrowRateHistories, code)
 			AppendToArray(&borrrowRateCode, borrowRateStructure)
 		}
@@ -8296,8 +9169,8 @@ func (this *OkxCore) FetchBorrowRateHistories(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes739512 := (<-this.LoadMarkets())
-			PanicOnError(retRes739512)
+			retRes740212 := (<-this.LoadMarkets())
+			PanicOnError(retRes740212)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -8356,8 +9229,8 @@ func (this *OkxCore) FetchBorrowRateHistory(code any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes744112 := (<-this.LoadMarkets())
-			PanicOnError(retRes744112)
+			retRes744812 := (<-this.LoadMarkets())
+			PanicOnError(retRes744812)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -8403,8 +9276,8 @@ func (this *OkxCore) ModifyMarginHelper(symbol any, amount any, typeVar any, opt
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes747712 := (<-this.LoadMarkets())
-			PanicOnError(retRes747712)
+			retRes748412 := (<-this.LoadMarkets())
+			PanicOnError(retRes748412)
 		}
 		var market any = this.Market(symbol)
 		var posSide any = this.SafeString(params, "posSide", "net")
@@ -8496,6 +9369,7 @@ func (this *OkxCore) ParseMarginModification(data any, optionalArgs ...any) any 
 	_ = market
 	var amountRaw any = this.SafeString2(data, "amt", "posBalChg")
 	var typeRaw any = this.SafeString(data, "type")
+	// ledger uses numeric '6' (+/- amount); addMargin/reduceMargin already send 'add'/'reduce'
 	var typeVar any = nil
 	if IsTrue(IsEqual(typeRaw, "6")) {
 		typeVar = Ternary(IsTrue(Precise.StringGt(amountRaw, "0")), "add", "reduce")
@@ -8539,9 +9413,9 @@ func (this *OkxCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) <
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes759715 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
-		PanicOnError(retRes759715)
-		ch <- retRes759715
+		retRes760615 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
+		PanicOnError(retRes760615)
+		ch <- retRes760615
 		return nil
 
 	}()
@@ -8566,9 +9440,9 @@ func (this *OkxCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-ch
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes761115 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
-		PanicOnError(retRes761115)
-		ch <- retRes761115
+		retRes762015 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+		PanicOnError(retRes762015)
+		ch <- retRes762015
 		return nil
 
 	}()
@@ -8594,8 +9468,8 @@ func (this *OkxCore) FetchMarketLeverageTiers(symbol any, optionalArgs ...any) <
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes762612 := (<-this.LoadMarkets())
-			PanicOnError(retRes762612)
+			retRes763512 := (<-this.LoadMarkets())
+			PanicOnError(retRes763512)
 		}
 		var market any = this.Market(symbol)
 		var typeVar any = Ternary(IsTrue(GetValue(market, "spot")), "MARGIN", this.ConvertToInstrumentType(GetValue(market, "type")))
@@ -8728,8 +9602,8 @@ func (this *OkxCore) FetchBorrowInterest(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes773412 := (<-this.LoadMarkets())
-			PanicOnError(retRes773412)
+			retRes774312 := (<-this.LoadMarkets())
+			PanicOnError(retRes774312)
 		}
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBorrowInterest", params)
@@ -8827,8 +9701,8 @@ func (this *OkxCore) BorrowCrossMargin(code any, amount any, optionalArgs ...any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes781512 := (<-this.LoadMarkets())
-			PanicOnError(retRes781512)
+			retRes782412 := (<-this.LoadMarkets())
+			PanicOnError(retRes782412)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -8884,8 +9758,8 @@ func (this *OkxCore) RepayCrossMargin(code any, amount any, optionalArgs ...any)
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes785712 := (<-this.LoadMarkets())
-			PanicOnError(retRes785712)
+			retRes786612 := (<-this.LoadMarkets())
+			PanicOnError(retRes786612)
 		}
 		var id any = this.SafeString2(params, "id", "ordId")
 		params = this.Omit(params, "id")
@@ -8970,8 +9844,8 @@ func (this *OkxCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes792712 := (<-this.LoadMarkets())
-			PanicOnError(retRes792712)
+			retRes793612 := (<-this.LoadMarkets())
+			PanicOnError(retRes793612)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
@@ -9034,8 +9908,8 @@ func (this *OkxCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes797412 := (<-this.LoadMarkets())
-			PanicOnError(retRes797412)
+			retRes798312 := (<-this.LoadMarkets())
+			PanicOnError(retRes798312)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true, true)
 		var market any = nil
@@ -9128,8 +10002,8 @@ func (this *OkxCore) FetchOpenInterestHistory(symbol any, optionalArgs ...any) <
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes804312 := (<-this.LoadMarkets())
-			PanicOnError(retRes804312)
+			retRes805212 := (<-this.LoadMarkets())
+			PanicOnError(retRes805212)
 		}
 		// handle unified currency code or symbol
 		var currencyId any = nil
@@ -9275,8 +10149,8 @@ func (this *OkxCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes816912 := (<-this.LoadMarkets())
-			PanicOnError(retRes816912)
+			retRes817812 := (<-this.LoadMarkets())
+			PanicOnError(retRes817812)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(codes, nil)) {
@@ -9439,8 +10313,8 @@ func (this *OkxCore) FetchSettlementHistory(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes830912 := (<-this.LoadMarkets())
-			PanicOnError(retRes830912)
+			retRes831812 := (<-this.LoadMarkets())
+			PanicOnError(retRes831812)
 		}
 		var market any = this.Market(symbol)
 		var typeVar any = nil
@@ -9555,8 +10429,8 @@ func (this *OkxCore) FetchUnderlyingAssets(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes841012 := (<-this.LoadMarkets())
-			PanicOnError(retRes841012)
+			retRes841912 := (<-this.LoadMarkets())
+			PanicOnError(retRes841912)
 		}
 		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchUnderlyingAssets", nil, params)
@@ -9613,8 +10487,8 @@ func (this *OkxCore) FetchGreeks(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes845112 := (<-this.LoadMarkets())
-			PanicOnError(retRes845112)
+			retRes846012 := (<-this.LoadMarkets())
+			PanicOnError(retRes846012)
 		}
 		var market any = this.Market(symbol)
 		var marketId any = this.SafeString(market, "id", "")
@@ -9666,8 +10540,7 @@ func (this *OkxCore) FetchGreeks(symbol any, optionalArgs ...any) <-chan any {
 				return nil
 			}
 		}
-
-		return nil
+		panic(NullResponse(Add(Add(this.Id, " fetchGreeks() could not find greeks for "), symbol)))
 
 	}()
 	return ch
@@ -9695,8 +10568,8 @@ func (this *OkxCore) FetchAllGreeks(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes851512 := (<-this.LoadMarkets())
-			PanicOnError(retRes851512)
+			retRes852412 := (<-this.LoadMarkets())
+			PanicOnError(retRes852412)
 		}
 		var request any = map[string]any{}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
@@ -9849,8 +10722,8 @@ func (this *OkxCore) ClosePosition(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes865112 := (<-this.LoadMarkets())
-			PanicOnError(retRes865112)
+			retRes866012 := (<-this.LoadMarkets())
+			PanicOnError(retRes866012)
 		}
 		var market any = this.Market(symbol)
 		var clientOrderId any = this.SafeString(params, "clientOrderId")
@@ -9927,8 +10800,8 @@ func (this *OkxCore) FetchOption(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes871212 := (<-this.LoadMarkets())
-			PanicOnError(retRes871212)
+			retRes872112 := (<-this.LoadMarkets())
+			PanicOnError(retRes872112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -9992,8 +10865,8 @@ func (this *OkxCore) FetchOptionChain(code any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes876212 := (<-this.LoadMarkets())
-			PanicOnError(retRes876212)
+			retRes877112 := (<-this.LoadMarkets())
+			PanicOnError(retRes877112)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -10108,8 +10981,8 @@ func (this *OkxCore) FetchConvertQuote(fromCode any, toCode any, optionalArgs ..
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes885812 := (<-this.LoadMarkets())
-			PanicOnError(retRes885812)
+			retRes886712 := (<-this.LoadMarkets())
+			PanicOnError(retRes886712)
 		}
 		var request any = map[string]any{
 			"baseCcy":  ToUpper(fromCode),
@@ -10181,8 +11054,8 @@ func (this *OkxCore) CreateConvertTrade(id any, fromCode any, toCode any, option
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes891412 := (<-this.LoadMarkets())
-			PanicOnError(retRes891412)
+			retRes892312 := (<-this.LoadMarkets())
+			PanicOnError(retRes892312)
 		}
 		var request any = map[string]any{
 			"quoteId":  id,
@@ -10252,8 +11125,8 @@ func (this *OkxCore) FetchConvertTrade(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes896812 := (<-this.LoadMarkets())
-			PanicOnError(retRes896812)
+			retRes897712 := (<-this.LoadMarkets())
+			PanicOnError(retRes897712)
 		}
 		var request any = map[string]any{
 			"clTReqId": id,
@@ -10329,8 +11202,8 @@ func (this *OkxCore) FetchConvertTradeHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes902412 := (<-this.LoadMarkets())
-			PanicOnError(retRes902412)
+			retRes903312 := (<-this.LoadMarkets())
+			PanicOnError(retRes903312)
 		}
 		var request any = map[string]any{}
 		requestparamsVariable := this.HandleUntilOption("after", request, params)
@@ -10467,8 +11340,8 @@ func (this *OkxCore) FetchConvertCurrencies(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes914212 := (<-this.LoadMarkets())
-			PanicOnError(retRes914212)
+			retRes915112 := (<-this.LoadMarkets())
+			PanicOnError(retRes915112)
 		}
 
 		response := (<-this.PrivateGetAssetConvertCurrencies(params))
@@ -10602,8 +11475,8 @@ func (this *OkxCore) FetchMarginAdjustmentHistory(optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes925512 := (<-this.LoadMarkets())
-			PanicOnError(retRes925512)
+			retRes926412 := (<-this.LoadMarkets())
+			PanicOnError(retRes926412)
 		}
 		var auto any = this.SafeBool(params, "auto")
 		if IsTrue(IsEqual(typeVar, nil)) {
@@ -10734,8 +11607,8 @@ func (this *OkxCore) FetchPositionsHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes936412 := (<-this.LoadMarkets())
-			PanicOnError(retRes936412)
+			retRes937312 := (<-this.LoadMarkets())
+			PanicOnError(retRes937312)
 		}
 		var marginMode any = this.SafeString(params, "marginMode")
 		var instType any = this.SafeStringUpper(params, "instType")
@@ -10835,8 +11708,8 @@ func (this *OkxCore) FetchLongShortRatioHistory(optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes944212 := (<-this.LoadMarkets())
-			PanicOnError(retRes944212)
+			retRes945112 := (<-this.LoadMarkets())
+			PanicOnError(retRes945112)
 		}
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchLongShortRatioHistory() requires a symbol argument")))
