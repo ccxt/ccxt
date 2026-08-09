@@ -1562,27 +1562,27 @@ class woo extends Exchange {
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         /**
-         * edit a trade order
+         * edit a trade $order
          *
-         * @see https://docs.woox.io/#edit-order
-         * @see https://docs.woox.io/#edit-order-by-client_order_id
-         * @see https://docs.woox.io/#edit-algo-order
-         * @see https://docs.woox.io/#edit-algo-order-by-client_order_id
+         * @see https://developer.woox.io/api-reference/endpoint/trading/edit_order
+         * @see https://developer.woox.io/api-reference/endpoint/trading/edit_algo_order
          *
-         * @param {string} $id order $id
-         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $id $order $id
+         * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
+         * @param {string} [$params->clientOrderId] client $order $id of the $order to edit, used instead of the $id argument
+         * @param {boolean} [$params->trigger] whether the $order is a trigger/algo $order, set to true to edit an algo $order without passing trigger parameters
+         * @param {float} [$params->triggerPrice] The $price a trigger $order is triggered at
          * @param {float} [$params->stopLossPrice] $price to trigger stop-loss orders
          * @param {float} [$params->takeProfitPrice] $price to trigger take-profit orders
          * @param {string} [$params->trailingAmount] the quote $amount to trail away from the current $market $price
          * @param {string} [$params->trailingPercent] the percent to trail away from the current $market $price
-         * @param {string} [$params->trailingTriggerPrice] the $price to trigger a trailing order, default uses the $price argument
-         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         * @param {string} [$params->trailingTriggerPrice] the $price to trigger a trailing $order, default uses the $price argument
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1622,38 +1622,42 @@ class woo extends Exchange {
                 $request['callbackRate'] = $convertedTrailingPercent;
             }
         }
-        $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ));
-        $isConditional = $isTrailing || ($triggerPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
+        $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent', 'trigger', 'stop' ));
+        $isConditional = $isTrigger || $isTrailing || ($triggerPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
         $response = null;
-        if ($isByClientOrder) {
-            $request['client_order_id'] = $clientOrderIdExchangeSpecific;
-            if ($isConditional) {
-                $response = $this->v3PrivatePutAlgoOrderClientClientOrderId($this->extend($request, $params));
+        if ($isConditional) {
+            if ($isByClientOrder) {
+                $request['clientAlgoOrderId'] = $clientOrderIdExchangeSpecific;
             } else {
-                $response = $this->v3PrivatePutOrderClientClientOrderId($this->extend($request, $params));
+                $request['algoOrderId'] = $id;
             }
+            $response = $this->v3PrivatePutTradeAlgoOrder($this->extend($request, $params));
         } else {
-            $request['oid'] = $id;
-            if ($isConditional) {
-                $response = $this->v3PrivatePutAlgoOrderOid($this->extend($request, $params));
+            if ($isByClientOrder) {
+                $request['clientOrderId'] = $clientOrderIdExchangeSpecific;
             } else {
-                $response = $this->v3PrivatePutOrderOid($this->extend($request, $params));
+                $request['orderId'] = $id;
             }
+            $response = $this->v3PrivatePutTradeOrder($this->extend($request, $params));
         }
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             "status" => "string",
-        //             "success" => true
-        //         ),
-        //         "message" => "string",
         //         "success" => true,
-        //         "timestamp" => 0
+        //         "data" => array(
+        //             "status" => "EDIT_SENT"
+        //         ),
+        //         "timestamp" => 1786038156772
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_order($data, $market);
+        $order = $this->extend($response, $data);
+        if ($isByClientOrder) {
+            $order['clientOrderId'] = $clientOrderIdExchangeSpecific;
+        } else {
+            $order['orderId'] = $id;
+        }
+        return $this->parse_order($order, $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
@@ -2259,6 +2263,7 @@ class woo extends Exchange {
             $statuses = array(
                 'NEW' => 'open',
                 'FILLED' => 'closed',
+                'EDIT_SENT' => 'open',
                 'CANCEL_SENT' => 'canceled',
                 'CANCEL_ALL_SENT' => 'canceled',
                 'CANCELLED' => 'canceled',
