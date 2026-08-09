@@ -295,12 +295,18 @@
             {
                 "description": "Fetch linear position",
                 "method": "fetchPositions",
-                "url": "https://api.woox.io/v3/futures/positions",
+                "url": "https://api.woox.io/v3/futures/positions?symbol=PERP_LTC_USDT",
                 "input": [
                     [
                         "LTC/USDT:USDT"
                     ]
                 ]
+            },
+            {
+                "description": "Fetch all positions without symbols",
+                "method": "fetchPositions",
+                "url": "https://api.woox.io/v3/futures/positions",
+                "input": []
             }
         ],
         "setLeverage": [
@@ -950,10 +956,28 @@
             {
                 "description": "linear swap fetch position ADL rank",
                 "method": "fetchPositionADLRank",
-                "url": "https://api.woox.io/v3/futures/positions",
+                "url": "https://api.woox.io/v3/futures/positions?symbol=PERP_BTC_USDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            }
+        ],
+        "fetchPositionsADLRank": [
+            {
+                "description": "Fetch ADL rank for a single symbol, filtered server-side",
+                "method": "fetchPositionsADLRank",
+                "url": "https://api.woox.io/v3/futures/positions?symbol=PERP_BTC_USDT",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "Fetch ADL rank for all symbols",
+                "method": "fetchPositionsADLRank",
+                "url": "https://api.woox.io/v3/futures/positions",
+                "input": []
             }
         ]
     }
