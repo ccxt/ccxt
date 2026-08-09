@@ -1883,10 +1883,8 @@ public partial class woo : Exchange
      * @method
      * @name woo#editOrder
      * @description edit a trade order
-     * @see https://docs.woox.io/#edit-order
-     * @see https://docs.woox.io/#edit-order-by-client_order_id
-     * @see https://docs.woox.io/#edit-algo-order
-     * @see https://docs.woox.io/#edit-algo-order-by-client_order_id
+     * @see https://developer.woox.io/api-reference/endpoint/trading/edit_order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/edit_algo_order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -1894,6 +1892,8 @@ public partial class woo : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id of the order to edit, used instead of the id argument
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order, set to true to edit an algo order without passing trigger parameters
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
@@ -1948,44 +1948,50 @@ public partial class woo : Exchange
                 ((IDictionary<string,object>)request)["callbackRate"] = convertedTrailingPercent;
             }
         }
-        parameters = this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"});
-        object isConditional = isTrue(isTrue(isTrailing) || isTrue((!isEqual(triggerPrice, null)))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
+        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        parameters = this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent", "trigger", "stop"});
+        object isConditional = isTrue(isTrue(isTrue(isTrigger) || isTrue(isTrailing)) || isTrue((!isEqual(triggerPrice, null)))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
         object response = null;
-        if (isTrue(isByClientOrder))
+        if (isTrue(isConditional))
         {
-            ((IDictionary<string,object>)request)["client_order_id"] = clientOrderIdExchangeSpecific;
-            if (isTrue(isConditional))
+            if (isTrue(isByClientOrder))
             {
-                response = await this.v3PrivatePutAlgoOrderClientClientOrderId(this.extend(request, parameters));
+                ((IDictionary<string,object>)request)["clientAlgoOrderId"] = clientOrderIdExchangeSpecific;
             } else
             {
-                response = await this.v3PrivatePutOrderClientClientOrderId(this.extend(request, parameters));
+                ((IDictionary<string,object>)request)["algoOrderId"] = id;
             }
+            response = await this.v3PrivatePutTradeAlgoOrder(this.extend(request, parameters));
         } else
         {
-            ((IDictionary<string,object>)request)["oid"] = id;
-            if (isTrue(isConditional))
+            if (isTrue(isByClientOrder))
             {
-                response = await this.v3PrivatePutAlgoOrderOid(this.extend(request, parameters));
+                ((IDictionary<string,object>)request)["clientOrderId"] = clientOrderIdExchangeSpecific;
             } else
             {
-                response = await this.v3PrivatePutOrderOid(this.extend(request, parameters));
+                ((IDictionary<string,object>)request)["orderId"] = id;
             }
+            response = await this.v3PrivatePutTradeOrder(this.extend(request, parameters));
         }
         //
         //     {
-        //         "code": 0,
-        //         "data": {
-        //             "status": "string",
-        //             "success": true
-        //         },
-        //         "message": "string",
         //         "success": true,
-        //         "timestamp": 0
+        //         "data": {
+        //             "status": "EDIT_SENT"
+        //         },
+        //         "timestamp": 1786038156772
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(data, market);
+        object order = this.extend(response, data);
+        if (isTrue(isByClientOrder))
+        {
+            ((IDictionary<string,object>)order)["clientOrderId"] = clientOrderIdExchangeSpecific;
+        } else
+        {
+            ((IDictionary<string,object>)order)["orderId"] = id;
+        }
+        return this.parseOrder(order, market);
     }
 
     /**
@@ -2506,6 +2512,7 @@ public partial class woo : Exchange
             object statuses = new Dictionary<string, object>() {
                 { "NEW", "open" },
                 { "FILLED", "closed" },
+                { "EDIT_SENT", "open" },
                 { "CANCEL_SENT", "canceled" },
                 { "CANCEL_ALL_SENT", "canceled" },
                 { "CANCELLED", "canceled" },
