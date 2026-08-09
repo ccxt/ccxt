@@ -307,6 +307,21 @@ func (this *WeexCore) ContractPrivateGetCapiV3AllAlgoOrders(args ...any) <-chan 
 	return this.callEndpointAsync("contractPrivateGetCapiV3AllAlgoOrders", args...)
 }
 
+// ContractPrivateGetCapiV3SimBalance returns a channel that yields a JSON array.
+func (this *WeexCore) ContractPrivateGetCapiV3SimBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivateGetCapiV3SimBalance", args...)
+}
+
+// ContractPrivateGetCapiV3SimPositionAllPosition returns a channel that yields a JSON array.
+func (this *WeexCore) ContractPrivateGetCapiV3SimPositionAllPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivateGetCapiV3SimPositionAllPosition", args...)
+}
+
+// ContractPrivateGetCapiV3SimOrderHistory returns a channel that yields a JSON array.
+func (this *WeexCore) ContractPrivateGetCapiV3SimOrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivateGetCapiV3SimOrderHistory", args...)
+}
+
 // ContractPrivatePostCapiV3AccountIncome returns a channel that yields a JSON object.
 func (this *WeexCore) ContractPrivatePostCapiV3AccountIncome(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostCapiV3AccountIncome", args...)
@@ -360,6 +375,11 @@ func (this *WeexCore) ContractPrivatePostCapiV3PlaceTpSlOrder(args ...any) <-cha
 // ContractPrivatePostCapiV3ModifyTpSlOrder returns a channel that yields a JSON object.
 func (this *WeexCore) ContractPrivatePostCapiV3ModifyTpSlOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostCapiV3ModifyTpSlOrder", args...)
+}
+
+// ContractPrivatePostCapiV3SimOrder returns a channel that yields a JSON object.
+func (this *WeexCore) ContractPrivatePostCapiV3SimOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivatePostCapiV3SimOrder", args...)
 }
 
 // ContractPrivateDeleteCapiV3Order returns a channel that yields a JSON object.
