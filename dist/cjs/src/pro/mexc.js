@@ -1972,7 +1972,8 @@ class mexc extends mexc$1["default"] {
             else if (messageHash.indexOf('candles') >= 0) {
                 const splitHashes = messageHash.split(':');
                 let symbol = this.safeString(splitHashes, 2);
-                if (splitHashes.length > 4) {
+                const splitHashesLength = splitHashes.length; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+                if (splitHashesLength > 4) {
                     symbol += ':' + this.safeString(splitHashes, 3);
                 }
                 if ((symbol !== undefined) && (symbol in this.ohlcvs)) {

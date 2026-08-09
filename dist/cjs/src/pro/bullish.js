@@ -439,7 +439,8 @@ class bullish extends bullish$1["default"] {
         else {
             rawOrders = this.safeList(message, 'data', []); // snapshot is a list of orders
         }
-        if (rawOrders.length > 0) {
+        const numRawOrders = rawOrders.length; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if (numRawOrders > 0) {
             if (this.orders === undefined) {
                 const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
                 this.orders = new Cache.ArrayCacheBySymbolById(limit);
@@ -548,7 +549,8 @@ class bullish extends bullish$1["default"] {
         else {
             rawTrades = this.safeList(message, 'data', []); // snapshot is a list of trades
         }
-        if (rawTrades.length > 0) {
+        const numRawTrades = rawTrades.length; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if (numRawTrades > 0) {
             if (this.myTrades === undefined) {
                 const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
                 this.myTrades = new Cache.ArrayCacheBySymbolById(limit);
