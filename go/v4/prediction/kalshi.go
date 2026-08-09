@@ -77,96 +77,244 @@ func (this *KalshiCore) Describe() any {
 			"kalshi": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"events":                         1,
-						"events/multivariate":            1,
-						"events/fee_changes":             1,
-						"events/{event_ticker}":          1,
-						"events/{event_ticker}/metadata": 1,
-						"series":                         1,
-						"series/fee_changes":             1,
-						"series/{series_ticker}":         1,
-						"series/{series_ticker}/markets/{ticker}/candlesticks":               1,
-						"series/{series_ticker}/events/{ticker}/candlesticks":                1,
-						"series/{series_ticker}/events/{ticker}/forecast_percentile_history": 1,
-						"markets":                                            1,
-						"markets/trades":                                     1,
-						"markets/orderbooks":                                 1,
-						"markets/candlesticks":                               1,
-						"markets/{ticker}":                                   1,
-						"markets/{ticker}/orderbook":                         1,
-						"exchange/status":                                    1,
-						"exchange/schedule":                                  1,
-						"exchange/announcements":                             1,
-						"exchange/user_data_timestamp":                       1,
-						"milestones":                                         1,
-						"milestones/{milestone_id}":                          1,
-						"structured_targets":                                 1,
-						"structured_targets/{structured_target_id}":          1,
-						"search/filters_by_sport":                            1,
-						"search/tags_by_categories":                          1,
-						"live_data/batch":                                    1,
-						"live_data/milestone/{milestone_id}":                 1,
-						"historical/markets":                                 1,
-						"historical/markets/{ticker}/candlesticks":           1,
-						"historical/trades":                                  1,
-						"historical/cutoff_timestamps":                       1,
-						"multivariate_event_collections":                     1,
-						"multivariate_event_collections/{collection_ticker}": 1,
-						"multivariate_event_collections/{collection_ticker}/lookup": 1,
-						"incentive_programs": 1,
+						"events": map[string]any{
+							"cost": 1,
+						},
+						"events/multivariate": map[string]any{
+							"cost": 1,
+						},
+						"events/fee_changes": map[string]any{
+							"cost": 1,
+						},
+						"events/{event_ticker}": map[string]any{
+							"cost": 1,
+						},
+						"events/{event_ticker}/metadata": map[string]any{
+							"cost": 1,
+						},
+						"series": map[string]any{
+							"cost": 1,
+						},
+						"series/fee_changes": map[string]any{
+							"cost": 1,
+						},
+						"series/{series_ticker}": map[string]any{
+							"cost": 1,
+						},
+						"series/{series_ticker}/markets/{ticker}/candlesticks": map[string]any{
+							"cost": 1,
+						},
+						"series/{series_ticker}/events/{ticker}/candlesticks": map[string]any{
+							"cost": 1,
+						},
+						"series/{series_ticker}/events/{ticker}/forecast_percentile_history": map[string]any{
+							"cost": 1,
+						},
+						"markets": map[string]any{
+							"cost": 1,
+						},
+						"markets/trades": map[string]any{
+							"cost": 1,
+						},
+						"markets/orderbooks": map[string]any{
+							"cost": 1,
+						},
+						"markets/candlesticks": map[string]any{
+							"cost": 1,
+						},
+						"markets/{ticker}": map[string]any{
+							"cost": 1,
+						},
+						"markets/{ticker}/orderbook": map[string]any{
+							"cost": 1,
+						},
+						"exchange/status": map[string]any{
+							"cost": 1,
+						},
+						"exchange/schedule": map[string]any{
+							"cost": 1,
+						},
+						"exchange/announcements": map[string]any{
+							"cost": 1,
+						},
+						"exchange/user_data_timestamp": map[string]any{
+							"cost": 1,
+						},
+						"milestones": map[string]any{
+							"cost": 1,
+						},
+						"milestones/{milestone_id}": map[string]any{
+							"cost": 1,
+						},
+						"structured_targets": map[string]any{
+							"cost": 1,
+						},
+						"structured_targets/{structured_target_id}": map[string]any{
+							"cost": 1,
+						},
+						"search/filters_by_sport": map[string]any{
+							"cost": 1,
+						},
+						"search/tags_by_categories": map[string]any{
+							"cost": 1,
+						},
+						"live_data/batch": map[string]any{
+							"cost": 1,
+						},
+						"live_data/milestone/{milestone_id}": map[string]any{
+							"cost": 1,
+						},
+						"historical/markets": map[string]any{
+							"cost": 1,
+						},
+						"historical/markets/{ticker}/candlesticks": map[string]any{
+							"cost": 1,
+						},
+						"historical/trades": map[string]any{
+							"cost": 1,
+						},
+						"historical/cutoff_timestamps": map[string]any{
+							"cost": 1,
+						},
+						"multivariate_event_collections": map[string]any{
+							"cost": 1,
+						},
+						"multivariate_event_collections/{collection_ticker}": map[string]any{
+							"cost": 1,
+						},
+						"multivariate_event_collections/{collection_ticker}/lookup": map[string]any{
+							"cost": 1,
+						},
+						"incentive_programs": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"portfolio/balance":                           1,
-						"portfolio/orders":                            1,
-						"portfolio/orders/{order_id}":                 1,
-						"portfolio/orders/{order_id}/queue_position":  1,
-						"portfolio/orders/queue_positions":            1,
-						"portfolio/positions":                         1,
-						"portfolio/fills":                             1,
-						"portfolio/settlements":                       1,
-						"portfolio/deposits":                          1,
-						"portfolio/withdrawals":                       1,
-						"portfolio/order_groups":                      1,
-						"portfolio/order_groups/{order_group_id}":     1,
-						"portfolio/summary/total_resting_order_value": 1,
-						"portfolio/subaccounts/balances":              1,
-						"portfolio/subaccounts/netting":               1,
-						"portfolio/subaccounts/transfers":             1,
-						"historical/fills":                            1,
-						"historical/orders":                           1,
+						"portfolio/balance": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/orders": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/orders/{order_id}": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/orders/{order_id}/queue_position": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/orders/queue_positions": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/positions": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/fills": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/settlements": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/deposits": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/withdrawals": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/order_groups": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/order_groups/{order_group_id}": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/summary/total_resting_order_value": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/subaccounts/balances": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/subaccounts/netting": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/subaccounts/transfers": map[string]any{
+							"cost": 1,
+						},
+						"historical/fills": map[string]any{
+							"cost": 1,
+						},
+						"historical/orders": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"portfolio/orders":                                   1,
-						"portfolio/events/orders":                            1,
-						"portfolio/orders/batched":                           1,
-						"portfolio/orders/{order_id}/amend":                  1,
-						"portfolio/orders/{order_id}/decrease":               1,
-						"portfolio/order_groups/create":                      1,
-						"portfolio/subaccounts":                              1,
-						"portfolio/subaccounts/transfer":                     1,
-						"multivariate_event_collections/{collection_ticker}": 1,
+						"portfolio/orders": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/events/orders": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/orders/batched": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/orders/{order_id}/amend": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/orders/{order_id}/decrease": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/order_groups/create": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/subaccounts": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/subaccounts/transfer": map[string]any{
+							"cost": 1,
+						},
+						"multivariate_event_collections/{collection_ticker}": map[string]any{
+							"cost": 1,
+						},
 					},
 					"put": map[string]any{
-						"portfolio/order_groups/{order_group_id}/reset":             1,
-						"portfolio/order_groups/{order_group_id}/trigger":           1,
-						"portfolio/order_groups/{order_group_id}/limit":             1,
-						"portfolio/subaccounts/netting":                             1,
-						"multivariate_event_collections/{collection_ticker}/lookup": 1,
+						"portfolio/order_groups/{order_group_id}/reset": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/order_groups/{order_group_id}/trigger": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/order_groups/{order_group_id}/limit": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/subaccounts/netting": map[string]any{
+							"cost": 1,
+						},
+						"multivariate_event_collections/{collection_ticker}/lookup": map[string]any{
+							"cost": 1,
+						},
 					},
 					"delete": map[string]any{
-						"portfolio/orders/{order_id}":             1,
-						"portfolio/orders/batched":                1,
-						"portfolio/events/orders/{order_id}":      1,
-						"portfolio/order_groups/{order_group_id}": 1,
+						"portfolio/orders/{order_id}": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/orders/batched": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/events/orders/{order_id}": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/order_groups/{order_group_id}": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
 			"elections": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"search/series": 1,
+						"search/series": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
@@ -393,6 +541,9 @@ func (this *KalshiCore) FetchOutcome(outcomeSymbol any) <-chan any {
 				if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 					this.Markets = this.CreateSafeDictionary()
 				}
+				if ccxt.IsTrue(ccxt.IsEqual(parsed, nil)) {
+					panic(ccxt.ExchangeError(ccxt.Add(this.Id, " fetchOutcome() could not resolve parsed")))
+				}
 				ccxt.AddElementToObject(this.Markets, ccxt.GetValue(parsed, "market"), parsed)
 				// index only the market just fetched, not a full O(markets x outcomes) rebuild of the
 				// whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
@@ -432,10 +583,10 @@ func (this *KalshiCore) FetchOutcome(outcomeSymbol any) <-chan any {
 						}()
 						// try block:
 
-						retRes37720 := (<-this.FetchEvents(map[string]any{
+						retRes37920 := (<-this.FetchEvents(map[string]any{
 							"series_ticker": seriesTicker,
 						}))
-						ccxt.PanicOnError(retRes37720)
+						ccxt.PanicOnError(retRes37920)
 						return nil
 					}(this)
 
@@ -448,12 +599,12 @@ func (this *KalshiCore) FetchOutcome(outcomeSymbol any) <-chan any {
 			}
 		}
 
-		retRes39315 := (<-this.BaseExchange.FetchOutcome(outcomeSymbol))
-		ccxt.PanicOnError(retRes39315)
+		retRes39515 := (<-this.BaseExchange.FetchOutcome(outcomeSymbol))
+		ccxt.PanicOnError(retRes39515)
 		// free-text fallback: the base derives a search query from the handle's words, resolves it
 		// through fetchEvents({query}) and re-checks the cache, throwing a guidance-rich ccxt.BadSymbol
 		// on a genuine miss
-		ch <- retRes39315
+		ch <- retRes39515
 		return nil
 
 	}()
@@ -515,6 +666,9 @@ func (this *KalshiCore) FetchOutcomes(outcomeSymbols any) <-chan any {
 			var rawMarkets any = this.SafeList(response, "markets", []any{})
 			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawMarkets)); i++ {
 				var parsed any = this.ParseMarket(ccxt.GetValue(rawMarkets, i))
+				if ccxt.IsTrue(ccxt.IsEqual(parsed, nil)) {
+					panic(ccxt.ExchangeError(ccxt.Add(this.Id, " fetchOutcomes() could not resolve parsed")))
+				}
 				ccxt.AddElementToObject(this.Markets, ccxt.GetValue(parsed, "market"), parsed)
 				this.IndexMarketOutcomes(parsed)
 			}
@@ -523,8 +677,8 @@ func (this *KalshiCore) FetchOutcomes(outcomeSymbols any) <-chan any {
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(outcomeSymbols)); i++ {
 			if !ccxt.IsTrue(this.HasOutcome(ccxt.GetValue(outcomeSymbols, i))) {
 
-				retRes45216 := (<-this.FetchOutcome(ccxt.GetValue(outcomeSymbols, i)))
-				ccxt.PanicOnError(retRes45216)
+				retRes45716 := (<-this.FetchOutcome(ccxt.GetValue(outcomeSymbols, i)))
+				ccxt.PanicOnError(retRes45716)
 			}
 		}
 
@@ -799,8 +953,8 @@ func (this *KalshiCore) FetchTicker(outcome any, optionalArgs ...any) <-chan any
 		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes7028 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes7028)
+		retRes7078 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes7078)
 		var outcomeObj any = this.Outcome(outcome)
 		var ticker any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
 		var request any = map[string]any{
@@ -926,8 +1080,8 @@ func (this *KalshiCore) FetchOpenInterest(outcome any, optionalArgs ...any) <-ch
 		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes8018 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes8018)
+		retRes8068 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes8068)
 		var outcomeObj any = this.Outcome(outcome)
 		var ticker any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
 		var request any = map[string]any{
@@ -1124,8 +1278,8 @@ func (this *KalshiCore) FetchTickers(optionalArgs ...any) <-chan any {
 		}
 		// batch-resolve the uncached outcomes (one markets request per 100 tickers)
 
-		retRes9778 := (<-this.LoadOutcomes(outcomes))
-		ccxt.PanicOnError(retRes9778)
+		retRes9828 := (<-this.LoadOutcomes(outcomes))
+		ccxt.PanicOnError(retRes9828)
 		var targets any = []any{}
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(outcomes)); i++ {
 			ccxt.AppendToArray(&targets, ccxt.GetValue(outcomes, i))
@@ -1214,8 +1368,8 @@ func (this *KalshiCore) FetchOrderBook(outcome any, optionalArgs ...any) <-chan 
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes10508 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes10508)
+		retRes10558 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes10558)
 		var outcomeObj any = this.Outcome(outcome)
 		var ticker any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
 		var isNo any = ccxt.IsEqual(ccxt.GetValue(outcomeObj, "label"), "NO")
@@ -1327,8 +1481,8 @@ func (this *KalshiCore) FetchOHLCV(outcome any, optionalArgs ...any) <-chan any 
 		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes11428 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes11428)
+		retRes11478 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes11478)
 		var outcomeObj any = this.Outcome(outcome)
 		var ticker any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
 		var seriesTicker any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "seriesTicker", ticker)
@@ -1500,8 +1654,8 @@ func (this *KalshiCore) FetchTrades(outcome any, optionalArgs ...any) <-chan any
 		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes13038 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes13038)
+		retRes13088 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes13088)
 		var outcomeObj any = this.Outcome(outcome)
 		var ticker any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
 		var request any = map[string]any{
@@ -1619,8 +1773,8 @@ func (this *KalshiCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
-			retRes139712 := (<-this.LoadOutcome(outcome))
-			ccxt.PanicOnError(retRes139712)
+			retRes140212 := (<-this.LoadOutcome(outcome))
+			ccxt.PanicOnError(retRes140212)
 		}
 		var request any = map[string]any{}
 		var outcomeObj any = nil
@@ -1628,6 +1782,9 @@ func (this *KalshiCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			// the ticker filter narrows to the market; a market has both legs, so the
 			// wanted-leg filter below still drops the opposite-leg fills
 			outcomeObj = this.Outcome(outcome)
+			if ccxt.IsTrue(ccxt.IsEqual(outcomeObj, nil)) {
+				panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " requires a valid outcome")))
+			}
 			ccxt.AddElementToObject(request, "ticker", this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker"))
 		}
 		if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
@@ -1817,8 +1974,8 @@ func (this *KalshiCore) FetchPositions(optionalArgs ...any) <-chan any {
 		}
 		if ccxt.IsTrue(ccxt.IsGreaterThan(outcomesLength, 0)) {
 
-			retRes155712 := (<-this.LoadOutcomes(outcomes))
-			ccxt.PanicOnError(retRes155712)
+			retRes156512 := (<-this.LoadOutcomes(outcomes))
+			ccxt.PanicOnError(retRes156512)
 		}
 		// no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
 		// labels resolve cache-only via safeOutcome (raw tickers when the cache is cold)
@@ -1835,6 +1992,9 @@ func (this *KalshiCore) FetchPositions(optionalArgs ...any) <-chan any {
 			return nil
 		}
 		var wantedTickers any = map[string]any{}
+		if ccxt.IsTrue(ccxt.IsEqual(outcomes, nil)) {
+			panic(ccxt.ExchangeError(ccxt.Add(this.Id, " fetchPositions() missing outcomes")))
+		}
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(outcomes)); i++ {
 			var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
 			var outcomeInfo any = this.SafeDict(outcomeObj, "info", map[string]any{})
@@ -1886,8 +2046,8 @@ func (this *KalshiCore) FetchSettlements(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
-			retRes160312 := (<-this.LoadOutcome(outcome))
-			ccxt.PanicOnError(retRes160312)
+			retRes161412 := (<-this.LoadOutcome(outcome))
+			ccxt.PanicOnError(retRes161412)
 		}
 		var request any = map[string]any{}
 		if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
@@ -2066,8 +2226,8 @@ func (this *KalshiCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
-			retRes175812 := (<-this.LoadOutcome(outcome))
-			ccxt.PanicOnError(retRes175812)
+			retRes176912 := (<-this.LoadOutcome(outcome))
+			ccxt.PanicOnError(retRes176912)
 		}
 		var request any = map[string]any{
 			"status": "resting",
@@ -2075,6 +2235,9 @@ func (this *KalshiCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		var outcomeObj any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 			outcomeObj = this.Outcome(outcome)
+			if ccxt.IsTrue(ccxt.IsEqual(outcomeObj, nil)) {
+				panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " requires a valid outcome")))
+			}
 			ccxt.AddElementToObject(request, "ticker", this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker"))
 		}
 
@@ -2115,14 +2278,17 @@ func (this *KalshiCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
-			retRes178412 := (<-this.LoadOutcome(outcome))
-			ccxt.PanicOnError(retRes178412)
+			retRes179812 := (<-this.LoadOutcome(outcome))
+			ccxt.PanicOnError(retRes179812)
 		}
 		// no status filter — the endpoint returns every order; pass params.status to narrow
 		var request any = map[string]any{}
 		var outcomeObj any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 			outcomeObj = this.Outcome(outcome)
+			if ccxt.IsTrue(ccxt.IsEqual(outcomeObj, nil)) {
+				panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " requires a valid outcome")))
+			}
 			ccxt.AddElementToObject(request, "ticker", this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker"))
 		}
 
@@ -2205,8 +2371,8 @@ func (this *KalshiCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
-			retRes183812 := (<-this.LoadOutcome(outcome))
-			ccxt.PanicOnError(retRes183812)
+			retRes185512 := (<-this.LoadOutcome(outcome))
+			ccxt.PanicOnError(retRes185512)
 		}
 
 		response := (<-this.KalshiPrivateGetPortfolioOrdersOrderId(this.Extend(map[string]any{
@@ -2347,8 +2513,8 @@ func (this *KalshiCore) CreateOrder(outcome any, typeVar any, side any, amount a
 			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params { 'time_in_force': 'immediate_or_cancel' }")))
 		}
 
-		retRes19598 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes19598)
+		retRes19768 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes19768)
 		var outcomeObj any = this.Outcome(outcome)
 		var ticker any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
 		var isNo any = (ccxt.IsEqual(ccxt.GetValue(outcomeObj, "label"), "NO"))
@@ -2470,15 +2636,15 @@ func (this *KalshiCore) EditOrder(id any, outcome any, typeVar any, side any, op
 			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " editOrder() requires an amount")))
 		}
 
-		retRes20598 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes20598)
+		retRes20768 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes20768)
 
-		retRes20608 := (<-this.CancelOrder(id, outcome))
-		ccxt.PanicOnError(retRes20608)
+		retRes20778 := (<-this.CancelOrder(id, outcome))
+		ccxt.PanicOnError(retRes20778)
 
-		retRes206115 := (<-this.CreateOrder(outcome, typeVar, side, amount, price, params))
-		ccxt.PanicOnError(retRes206115)
-		ch <- retRes206115
+		retRes207815 := (<-this.CreateOrder(outcome, typeVar, side, amount, price, params))
+		ccxt.PanicOnError(retRes207815)
+		ch <- retRes207815
 		return nil
 
 	}()
@@ -2554,8 +2720,8 @@ func (this *KalshiCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
-			retRes210512 := (<-this.LoadOutcome(outcome))
-			ccxt.PanicOnError(retRes210512)
+			retRes212212 := (<-this.LoadOutcome(outcome))
+			ccxt.PanicOnError(retRes212212)
 		}
 		// kalshi has no "cancel all" / batch-cancel endpoint (the v1 DELETE /portfolio/orders
 		// and /portfolio/orders/batched paths are 410 Gone) — fetch the resting orders and
@@ -2578,10 +2744,10 @@ func (this *KalshiCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			var orderId any = this.SafeString(restingOrder, "order_id")
 			if ccxt.IsTrue(!ccxt.IsEqual(orderId, nil)) {
 
-				retRes212316 := (<-this.KalshiPrivateDeletePortfolioEventsOrdersOrderId(this.Extend(map[string]any{
+				retRes214016 := (<-this.KalshiPrivateDeletePortfolioEventsOrdersOrderId(this.Extend(map[string]any{
 					"order_id": orderId,
 				}, params)))
-				ccxt.PanicOnError(retRes212316)
+				ccxt.PanicOnError(retRes214016)
 				// the DELETE body is minimal — parse the already-fetched resting order instead, which
 				// carries the true side/outcome/price/count, then mark it canceled
 				var parsed any = this.ParsePredictionOrder(restingOrder)
@@ -2620,6 +2786,9 @@ func (this *KalshiCore) FetchEvents(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		var queries any = this.ParseSearchQueries(params)
+		if ccxt.IsTrue(ccxt.IsEqual(queries, nil)) {
+			panic(ccxt.ExchangeError(ccxt.Add(this.Id, " fetchEvents() missing queries")))
+		}
 		var queriesLength any = ccxt.GetArrayLength(queries)
 		params = this.Omit(params, []any{"query", "queries"})
 		var userLimit any = this.SafeInteger(params, "limit")

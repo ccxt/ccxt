@@ -126,19 +126,213 @@ public partial class coinone : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"orderbook", "ticker", "ticker_utc", "trades"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "orderbook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker_utc", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "v2Public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"range_units", "markets/{quote_currency}", "markets/{quote_currency}/{target_currency}", "orderbook/{quote_currency}/{target_currency}", "trades/{quote_currency}/{target_currency}", "ticker_new/{quote_currency}", "ticker_new/{quote_currency}/{target_currency}", "ticker_utc_new/{quote_currency}", "ticker_utc_new/{quote_currency}/{target_currency}", "currencies", "currencies/{currency}", "chart/{quote_currency}/{target_currency}"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "range_units", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "markets/{quote_currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "markets/{quote_currency}/{target_currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbook/{quote_currency}/{target_currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades/{quote_currency}/{target_currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker_new/{quote_currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker_new/{quote_currency}/{target_currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker_utc_new/{quote_currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker_utc_new/{quote_currency}/{target_currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currencies", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currencies/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "chart/{quote_currency}/{target_currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "post", new List<object>() {"account/deposit_address", "account/btc_deposit_address", "account/balance", "account/daily_balance", "account/user_info", "account/virtual_account", "order/cancel_all", "order/cancel", "order/limit_buy", "order/limit_sell", "order/complete_orders", "order/limit_orders", "order/order_info", "transaction/auth_number", "transaction/history", "transaction/krw/history", "transaction/btc", "transaction/coin"} },
+                    { "post", new Dictionary<string, object>() {
+                        { "account/deposit_address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/btc_deposit_address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/daily_balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/user_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/virtual_account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/cancel_all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/limit_buy", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/limit_sell", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/complete_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/limit_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/order_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/auth_number", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/krw/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/btc", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/coin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "v2Private", new Dictionary<string, object>() {
-                    { "post", new List<object>() {"account/balance", "account/deposit_address", "account/user_info", "account/virtual_account", "order/cancel", "order/limit_buy", "order/limit_sell", "order/limit_orders", "order/complete_orders", "order/query_order", "transaction/auth_number", "transaction/btc", "transaction/history", "transaction/krw/history"} },
+                    { "post", new Dictionary<string, object>() {
+                        { "account/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/deposit_address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/user_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/virtual_account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/limit_buy", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/limit_sell", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/limit_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/complete_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/query_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/auth_number", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/btc", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/krw/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "v2_1Private", new Dictionary<string, object>() {
-                    { "post", new List<object>() {"account/balance/all", "account/balance", "account/trade_fee", "account/trade_fee/{quote_currency}/{target_currency}", "order/limit", "order/cancel", "order/cancel/all", "order/open_orders", "order/open_orders/all", "order/complete_orders", "order/complete_orders/all", "order/info", "transaction/krw/history", "transaction/coin/history", "transaction/coin/withdrawal/limit"} },
+                    { "post", new Dictionary<string, object>() {
+                        { "account/balance/all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/trade_fee", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/trade_fee/{quote_currency}/{target_currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/limit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/cancel/all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/open_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/open_orders/all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/complete_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/complete_orders/all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/krw/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/coin/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/coin/withdrawal/limit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -416,7 +610,10 @@ public partial class coinone : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "avail");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -448,7 +645,7 @@ public partial class coinone : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -520,7 +717,7 @@ public partial class coinone : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             object first = this.safeString(symbols, 0);
-            market = this.market(((string)first));
+            market = this.market(first);
             ((IDictionary<string,object>)request)["quote_currency"] = getValue(market, "quote");
             ((IDictionary<string,object>)request)["target_currency"] = getValue(market, "base");
             response = await this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.extend(request, parameters));
@@ -806,40 +1003,50 @@ public partial class coinone : Exchange
      * @method
      * @name coinone#createOrder
      * @description create a trade order
-     * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
-     * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+     * @see https://docs.coinone.co.kr/reference/order-v21
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type must be 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, required for the limit orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(!isEqual(type, "limit")))
+        object orderType = ((string)((string)type)).ToUpper(); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
+        object orderSide = ((string)((string)side)).ToUpper(); // unified lowercase order sides, same override rule
+        if (isTrue(!isEqual(orderType, "LIMIT")))
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() allows limit orders only")) ;
+        }
+        if (isTrue(isEqual(price, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a price argument for the limit orders")) ;
         }
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        // the v1 order/limit_buy and order/limit_sell endpoints were retired by
+        // the exchange and return 404, the v2.1 order endpoint replaces them,
+        // see https://github.com/ccxt/ccxt/issues/23174
         object request = new Dictionary<string, object>() {
-            { "price", price },
-            { "currency", getValue(market, "id") },
-            { "qty", amount },
+            { "quote_currency", getValue(market, "quoteId") },
+            { "target_currency", getValue(market, "baseId") },
+            { "type", orderType },
+            { "side", orderSide },
+            { "price", this.priceToPrecision(symbol, price) },
+            { "qty", this.amountToPrecision(symbol, amount) },
         };
-        object method = add(add("privatePostOrder", this.capitalize(type)), this.capitalize(((string)side)));
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = await this.v2_1PrivatePostOrderLimit(this.extend(request, parameters));
         //
         //     {
         //         "result": "success",
-        //         "errorCode": "0",
-        //         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
+        //         "error_code": "0",
+        //         "order_id": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         //     }
         //
         return this.parseOrder(response, market);
@@ -952,9 +1159,9 @@ public partial class coinone : Exchange
         //         "feeRate": "-0.0015"
         //     }
         //
-        object id = this.safeString(order, "orderId");
-        object baseId = this.safeString(order, "baseCurrency");
-        object quoteId = this.safeString(order, "targetCurrency");
+        object id = this.safeString2(order, "orderId", "order_id");
+        object baseId = this.safeString2(order, "baseCurrency", "target_currency");
+        object quoteId = this.safeString2(order, "targetCurrency", "quote_currency");
         object bs = null;
         object quote = null;
         if (isTrue(!isEqual(baseId, null)))
@@ -972,7 +1179,15 @@ public partial class coinone : Exchange
             market = this.safeMarket(symbol, market, "/");
         }
         object timestamp = this.safeTimestamp2(order, "timestamp", "updatedAt");
-        object side = this.safeString2(order, "type", "side");
+        if (isTrue(isEqual(timestamp, null)))
+        {
+            timestamp = this.safeInteger2(order, "ordered_at", "updated_at"); // v2.1 sends milliseconds
+        }
+        object side = this.safeStringLower2(order, "type", "side");
+        if (isTrue(isTrue(isTrue((isEqual(side, "limit"))) || isTrue((isEqual(side, "market")))) || isTrue((isEqual(side, "stop_limit")))))
+        {
+            side = this.safeStringLower(order, "side"); // in v2.1 rows the type field carries the order type, the side lives in side
+        }
         if (isTrue(isEqual(side, "ask")))
         {
             side = "sell";
@@ -980,8 +1195,8 @@ public partial class coinone : Exchange
         {
             side = "buy";
         }
-        object remainingString = this.safeString(order, "remainQty");
-        object amountString = this.safeString2(order, "originalQty", "qty");
+        object remainingString = this.safeString2(order, "remainQty", "remain_qty");
+        object amountString = this.safeStringN(order, new List<object>() {"originalQty", "qty", "original_qty"});
         object status = this.safeString(order, "status");
         // https://github.com/ccxt/ccxt/pull/7067
         if (isTrue(isEqual(status, "live")))
@@ -1003,7 +1218,7 @@ public partial class coinone : Exchange
             object feeCurrencyCode = ((bool) isTrue((isEqual(side, "sell")))) ? quote : bs;
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
-                { "rate", this.safeString(order, "feeRate") },
+                { "rate", this.safeString2(order, "feeRate", "fee_rate") },
                 { "currency", feeCurrencyCode },
             };
         }
@@ -1022,9 +1237,9 @@ public partial class coinone : Exchange
             { "price", this.safeString(order, "price") },
             { "triggerPrice", null },
             { "cost", null },
-            { "average", this.safeString(order, "averageExecutedPrice") },
+            { "average", this.safeString2(order, "averageExecutedPrice", "average_executed_price") },
             { "amount", amountString },
-            { "filled", this.safeString(order, "executedQty") },
+            { "filled", this.safeString2(order, "executedQty", "executed_qty") },
             { "remaining", remainingString },
             { "status", status },
             { "fee", fee },
@@ -1057,9 +1272,10 @@ public partial class coinone : Exchange
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "currency", getValue(market, "id") },
+            { "quote_currency", getValue(market, "quoteId") },
+            { "target_currency", getValue(market, "baseId") },
         };
-        object response = await this.privatePostOrderLimitOrders(this.extend(request, parameters));
+        object response = await this.v2_1PrivatePostOrderOpenOrders(this.extend(request, parameters));
         //
         //     {
         //         "result": "success",
@@ -1077,8 +1293,8 @@ public partial class coinone : Exchange
         //         ]
         //     }
         //
-        object limitOrders = this.safeList(response, "limitOrders", new List<object>() {});
-        return this.parseOrders(limitOrders, market, since, limit);
+        object openOrders = this.safeList2(response, "open_orders", "limitOrders", new List<object>() {});
+        return this.parseOrders(openOrders, market, since, limit);
     }
 
     /**
@@ -1240,7 +1456,10 @@ public partial class coinone : Exchange
                 ((IDictionary<string,object>)depositAddress)["tag"] = value;
                 ((IDictionary<string,object>)depositAddress)["info"] = new List<object>() {address, value};
             }
-            ((IDictionary<string,object>)result)[(string)code] = depositAddress;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = depositAddress;
+            }
         }
         return result;
     }
@@ -1275,7 +1494,15 @@ public partial class coinone : Exchange
         {
             this.checkRequiredCredentials();
             url = add(url, request);
-            object nonce = ((object)this.nonce()).ToString();
+            // the v2.1 api requires a uuid nonce, the older apis use a numeric one
+            object nonce = null;
+            if (isTrue(isEqual(api, "v2_1Private")))
+            {
+                nonce = this.uuid();
+            } else
+            {
+                nonce = ((object)this.nonce()).ToString();
+            }
             object json = this.json(this.extend(new Dictionary<string, object>() {
                 { "access_token", this.apiKey },
                 { "nonce", nonce },

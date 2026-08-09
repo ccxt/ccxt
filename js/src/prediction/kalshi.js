@@ -8,7 +8,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from '../abstract/prediction/kalshi.js';
 import { Precise } from '../base/Precise.js';
 import { rsa } from '../base/functions/rsa.js';
-import { BadSymbol, ArgumentsRequired, BadRequest, OrderNotFillable, InvalidOrder } from '../base/errors.js';
+import { BadSymbol, ArgumentsRequired, BadRequest, OrderNotFillable, InvalidOrder, ExchangeError } from '../base/errors.js';
 // ---------------------------------------------------------------------------
 /**
  * @class kalshi
@@ -82,96 +82,96 @@ export default class kalshi extends Exchange {
                 'kalshi': {
                     'public': {
                         'get': {
-                            'events': 1,
-                            'events/multivariate': 1,
-                            'events/fee_changes': 1,
-                            'events/{event_ticker}': 1,
-                            'events/{event_ticker}/metadata': 1,
-                            'series': 1,
-                            'series/fee_changes': 1,
-                            'series/{series_ticker}': 1,
-                            'series/{series_ticker}/markets/{ticker}/candlesticks': 1,
-                            'series/{series_ticker}/events/{ticker}/candlesticks': 1,
-                            'series/{series_ticker}/events/{ticker}/forecast_percentile_history': 1,
-                            'markets': 1,
-                            'markets/trades': 1,
-                            'markets/orderbooks': 1,
-                            'markets/candlesticks': 1,
-                            'markets/{ticker}': 1,
-                            'markets/{ticker}/orderbook': 1,
-                            'exchange/status': 1,
-                            'exchange/schedule': 1,
-                            'exchange/announcements': 1,
-                            'exchange/user_data_timestamp': 1,
-                            'milestones': 1,
-                            'milestones/{milestone_id}': 1,
-                            'structured_targets': 1,
-                            'structured_targets/{structured_target_id}': 1,
-                            'search/filters_by_sport': 1,
-                            'search/tags_by_categories': 1,
-                            'live_data/batch': 1,
-                            'live_data/milestone/{milestone_id}': 1,
-                            'historical/markets': 1,
-                            'historical/markets/{ticker}/candlesticks': 1,
-                            'historical/trades': 1,
-                            'historical/cutoff_timestamps': 1,
-                            'multivariate_event_collections': 1,
-                            'multivariate_event_collections/{collection_ticker}': 1,
-                            'multivariate_event_collections/{collection_ticker}/lookup': 1,
-                            'incentive_programs': 1,
+                            'events': { 'cost': 1 },
+                            'events/multivariate': { 'cost': 1 },
+                            'events/fee_changes': { 'cost': 1 },
+                            'events/{event_ticker}': { 'cost': 1 },
+                            'events/{event_ticker}/metadata': { 'cost': 1 },
+                            'series': { 'cost': 1 },
+                            'series/fee_changes': { 'cost': 1 },
+                            'series/{series_ticker}': { 'cost': 1 },
+                            'series/{series_ticker}/markets/{ticker}/candlesticks': { 'cost': 1 },
+                            'series/{series_ticker}/events/{ticker}/candlesticks': { 'cost': 1 },
+                            'series/{series_ticker}/events/{ticker}/forecast_percentile_history': { 'cost': 1 },
+                            'markets': { 'cost': 1 },
+                            'markets/trades': { 'cost': 1 },
+                            'markets/orderbooks': { 'cost': 1 },
+                            'markets/candlesticks': { 'cost': 1 },
+                            'markets/{ticker}': { 'cost': 1 },
+                            'markets/{ticker}/orderbook': { 'cost': 1 },
+                            'exchange/status': { 'cost': 1 },
+                            'exchange/schedule': { 'cost': 1 },
+                            'exchange/announcements': { 'cost': 1 },
+                            'exchange/user_data_timestamp': { 'cost': 1 },
+                            'milestones': { 'cost': 1 },
+                            'milestones/{milestone_id}': { 'cost': 1 },
+                            'structured_targets': { 'cost': 1 },
+                            'structured_targets/{structured_target_id}': { 'cost': 1 },
+                            'search/filters_by_sport': { 'cost': 1 },
+                            'search/tags_by_categories': { 'cost': 1 },
+                            'live_data/batch': { 'cost': 1 },
+                            'live_data/milestone/{milestone_id}': { 'cost': 1 },
+                            'historical/markets': { 'cost': 1 },
+                            'historical/markets/{ticker}/candlesticks': { 'cost': 1 },
+                            'historical/trades': { 'cost': 1 },
+                            'historical/cutoff_timestamps': { 'cost': 1 },
+                            'multivariate_event_collections': { 'cost': 1 },
+                            'multivariate_event_collections/{collection_ticker}': { 'cost': 1 },
+                            'multivariate_event_collections/{collection_ticker}/lookup': { 'cost': 1 },
+                            'incentive_programs': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'get': {
-                            'portfolio/balance': 1,
-                            'portfolio/orders': 1,
-                            'portfolio/orders/{order_id}': 1,
-                            'portfolio/orders/{order_id}/queue_position': 1,
-                            'portfolio/orders/queue_positions': 1,
-                            'portfolio/positions': 1,
-                            'portfolio/fills': 1,
-                            'portfolio/settlements': 1,
-                            'portfolio/deposits': 1,
-                            'portfolio/withdrawals': 1,
-                            'portfolio/order_groups': 1,
-                            'portfolio/order_groups/{order_group_id}': 1,
-                            'portfolio/summary/total_resting_order_value': 1,
-                            'portfolio/subaccounts/balances': 1,
-                            'portfolio/subaccounts/netting': 1,
-                            'portfolio/subaccounts/transfers': 1,
-                            'historical/fills': 1,
-                            'historical/orders': 1,
+                            'portfolio/balance': { 'cost': 1 },
+                            'portfolio/orders': { 'cost': 1 },
+                            'portfolio/orders/{order_id}': { 'cost': 1 },
+                            'portfolio/orders/{order_id}/queue_position': { 'cost': 1 },
+                            'portfolio/orders/queue_positions': { 'cost': 1 },
+                            'portfolio/positions': { 'cost': 1 },
+                            'portfolio/fills': { 'cost': 1 },
+                            'portfolio/settlements': { 'cost': 1 },
+                            'portfolio/deposits': { 'cost': 1 },
+                            'portfolio/withdrawals': { 'cost': 1 },
+                            'portfolio/order_groups': { 'cost': 1 },
+                            'portfolio/order_groups/{order_group_id}': { 'cost': 1 },
+                            'portfolio/summary/total_resting_order_value': { 'cost': 1 },
+                            'portfolio/subaccounts/balances': { 'cost': 1 },
+                            'portfolio/subaccounts/netting': { 'cost': 1 },
+                            'portfolio/subaccounts/transfers': { 'cost': 1 },
+                            'historical/fills': { 'cost': 1 },
+                            'historical/orders': { 'cost': 1 },
                         },
                         'post': {
-                            'portfolio/orders': 1,
-                            'portfolio/events/orders': 1,
-                            'portfolio/orders/batched': 1,
-                            'portfolio/orders/{order_id}/amend': 1,
-                            'portfolio/orders/{order_id}/decrease': 1,
-                            'portfolio/order_groups/create': 1,
-                            'portfolio/subaccounts': 1,
-                            'portfolio/subaccounts/transfer': 1,
-                            'multivariate_event_collections/{collection_ticker}': 1,
+                            'portfolio/orders': { 'cost': 1 },
+                            'portfolio/events/orders': { 'cost': 1 },
+                            'portfolio/orders/batched': { 'cost': 1 },
+                            'portfolio/orders/{order_id}/amend': { 'cost': 1 },
+                            'portfolio/orders/{order_id}/decrease': { 'cost': 1 },
+                            'portfolio/order_groups/create': { 'cost': 1 },
+                            'portfolio/subaccounts': { 'cost': 1 },
+                            'portfolio/subaccounts/transfer': { 'cost': 1 },
+                            'multivariate_event_collections/{collection_ticker}': { 'cost': 1 },
                         },
                         'put': {
-                            'portfolio/order_groups/{order_group_id}/reset': 1,
-                            'portfolio/order_groups/{order_group_id}/trigger': 1,
-                            'portfolio/order_groups/{order_group_id}/limit': 1,
-                            'portfolio/subaccounts/netting': 1,
-                            'multivariate_event_collections/{collection_ticker}/lookup': 1,
+                            'portfolio/order_groups/{order_group_id}/reset': { 'cost': 1 },
+                            'portfolio/order_groups/{order_group_id}/trigger': { 'cost': 1 },
+                            'portfolio/order_groups/{order_group_id}/limit': { 'cost': 1 },
+                            'portfolio/subaccounts/netting': { 'cost': 1 },
+                            'multivariate_event_collections/{collection_ticker}/lookup': { 'cost': 1 },
                         },
                         'delete': {
-                            'portfolio/orders/{order_id}': 1,
-                            'portfolio/orders/batched': 1,
-                            'portfolio/events/orders/{order_id}': 1, // v2 cancel (the non-v2 paths above are 410 Gone)
-                            'portfolio/order_groups/{order_group_id}': 1,
+                            'portfolio/orders/{order_id}': { 'cost': 1 },
+                            'portfolio/orders/batched': { 'cost': 1 },
+                            'portfolio/events/orders/{order_id}': { 'cost': 1 }, // v2 cancel (the non-v2 paths above are 410 Gone)
+                            'portfolio/order_groups/{order_group_id}': { 'cost': 1 },
                         },
                     },
                 },
                 'elections': {
                     'public': {
                         'get': {
-                            'search/series': 1, // free-text series/event search — elections web host only
+                            'search/series': { 'cost': 1 }, // free-text series/event search — elections web host only
                         },
                     },
                 },
@@ -353,6 +353,9 @@ export default class kalshi extends Exchange {
                 if (this.markets === undefined) {
                     this.markets = this.createSafeDictionary();
                 }
+                if (parsed === undefined) {
+                    throw new ExchangeError(this.id + ' fetchOutcome() could not resolve parsed');
+                }
                 this.markets[parsed['market']] = parsed;
                 // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
                 // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
@@ -439,6 +442,9 @@ export default class kalshi extends Exchange {
             const rawMarkets = this.safeList(response, 'markets', []);
             for (let i = 0; i < rawMarkets.length; i++) {
                 const parsed = this.parseMarket(rawMarkets[i]);
+                if (parsed === undefined) {
+                    throw new ExchangeError(this.id + ' fetchOutcomes() could not resolve parsed');
+                }
                 this.markets[parsed['market']] = parsed;
                 this.indexMarketOutcomes(parsed);
             }
@@ -1387,6 +1393,9 @@ export default class kalshi extends Exchange {
             // the ticker filter narrows to the market; a market has both legs, so the
             // wanted-leg filter below still drops the opposite-leg fills
             outcomeObj = this.outcome(outcome);
+            if (outcomeObj === undefined) {
+                throw new ArgumentsRequired(this.id + ' requires a valid outcome');
+            }
             request['ticker'] = this.safeString(outcomeObj['info'], 'ticker');
         }
         if (limit !== undefined) {
@@ -1549,6 +1558,9 @@ export default class kalshi extends Exchange {
             return parsed;
         }
         const wantedTickers = {};
+        if (outcomes === undefined) {
+            throw new ExchangeError(this.id + ' fetchPositions() missing outcomes');
+        }
         for (let i = 0; i < outcomes.length; i++) {
             const outcomeObj = this.outcome(outcomes[i]);
             const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
@@ -1739,6 +1751,9 @@ export default class kalshi extends Exchange {
         let outcomeObj = undefined;
         if (outcome !== undefined) {
             outcomeObj = this.outcome(outcome);
+            if (outcomeObj === undefined) {
+                throw new ArgumentsRequired(this.id + ' requires a valid outcome');
+            }
             request['ticker'] = this.safeString(outcomeObj['info'], 'ticker');
         }
         const response = await this.kalshiPrivateGetPortfolioOrders(this.extend(request, params));
@@ -1765,6 +1780,9 @@ export default class kalshi extends Exchange {
         let outcomeObj = undefined;
         if (outcome !== undefined) {
             outcomeObj = this.outcome(outcome);
+            if (outcomeObj === undefined) {
+                throw new ArgumentsRequired(this.id + ' requires a valid outcome');
+            }
             request['ticker'] = this.safeString(outcomeObj['info'], 'ticker');
         }
         const response = await this.kalshiPrivateGetPortfolioOrders(this.extend(request, params));
@@ -2120,6 +2138,9 @@ export default class kalshi extends Exchange {
      */
     async fetchEvents(params = {}) {
         const queries = this.parseSearchQueries(params);
+        if (queries === undefined) {
+            throw new ExchangeError(this.id + ' fetchEvents() missing queries');
+        }
         const queriesLength = queries.length;
         params = this.omit(params, ['query', 'queries']);
         const userLimit = this.safeInteger(params, 'limit');

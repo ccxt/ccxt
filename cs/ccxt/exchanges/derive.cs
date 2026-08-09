@@ -18,11 +18,11 @@ public partial class derive : Exchange
             { "dex", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
-                { "spot", false },
+                { "spot", true },
                 { "margin", false },
-                { "swap", false },
+                { "swap", true },
                 { "future", false },
-                { "option", false },
+                { "option", true },
                 { "addMargin", false },
                 { "borrowCrossMargin", false },
                 { "borrowIsolatedMargin", false },
@@ -142,11 +142,353 @@ public partial class derive : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"get_all_currencies"} },
-                    { "post", new List<object>() {"build_register_session_key_tx", "register_session_key", "deregister_session_key", "login", "statistics", "get_all_currencies", "get_currency", "get_instrument", "get_all_instruments", "get_instruments", "get_ticker", "get_latest_signed_feeds", "get_option_settlement_prices", "get_spot_feed_history", "get_spot_feed_history_candles", "get_funding_rate_history", "get_trade_history", "get_option_settlement_history", "get_liquidation_history", "get_interest_rate_history", "get_transaction", "get_margin", "margin_watch", "validate_invite_code", "get_points", "get_all_points", "get_points_leaderboard", "get_descendant_tree", "get_tree_roots", "get_swell_percent_points", "get_vault_assets", "get_etherfi_effective_balances", "get_kelp_effective_balances", "get_bridge_balances", "get_ethena_participants", "get_vault_share", "get_vault_statistics", "get_vault_balances", "estimate_integrator_points", "create_subaccount_debug", "deposit_debug", "withdraw_debug", "send_quote_debug", "execute_quote_debug", "get_invite_code", "register_invite", "get_time", "get_live_incidents", "get_maker_programs", "get_maker_program_scores"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "get_all_currencies", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "build_register_session_key_tx", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "register_session_key", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deregister_session_key", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "login", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "statistics", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_all_currencies", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_currency", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_instrument", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_all_instruments", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_instruments", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_latest_signed_feeds", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_option_settlement_prices", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_spot_feed_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_spot_feed_history_candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_funding_rate_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_trade_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_option_settlement_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_liquidation_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_interest_rate_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_transaction", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_margin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin_watch", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "validate_invite_code", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_points", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_all_points", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_points_leaderboard", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_descendant_tree", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_tree_roots", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_swell_percent_points", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_vault_assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_etherfi_effective_balances", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_kelp_effective_balances", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_bridge_balances", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_ethena_participants", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_vault_share", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_vault_statistics", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_vault_balances", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "estimate_integrator_points", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "create_subaccount_debug", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deposit_debug", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdraw_debug", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "send_quote_debug", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "execute_quote_debug", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_invite_code", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "register_invite", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_live_incidents", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_maker_programs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_maker_program_scores", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "post", new List<object>() {"get_account", "create_subaccount", "get_subaccount", "get_subaccounts", "get_all_portfolios", "change_subaccount_label", "get_notificationsv", "update_notifications", "deposit", "withdraw", "transfer_erc20", "transfer_position", "transfer_positions", "order", "replace", "order_debug", "get_order", "get_orders", "get_open_orders", "cancel", "cancel_by_label", "cancel_by_nonce", "cancel_by_instrument", "cancel_all", "cancel_trigger_order", "get_order_history", "get_trade_history", "get_deposit_history", "get_withdrawal_history", "send_rfq", "cancel_rfq", "cancel_batch_rfqs", "get_rfqs", "poll_rfqs", "send_quote", "cancel_quote", "cancel_batch_quotes", "get_quotes", "poll_quotes", "execute_quote", "rfq_get_best_quote", "get_margin", "get_collaterals", "get_positions", "get_option_settlement_history", "get_subaccount_value_history", "expired_and_cancelled_history", "get_funding_history", "get_interest_history", "get_erc20_transfer_history", "get_liquidation_history", "liquidate", "get_liquidator_history", "session_keys", "edit_session_key", "register_scoped_session_key", "get_mmp_config", "set_mmp_config", "reset_mmp", "set_cancel_on_disconnect", "get_invite_code", "register_invite"} },
+                    { "post", new Dictionary<string, object>() {
+                        { "get_account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "create_subaccount", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_subaccount", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_subaccounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_all_portfolios", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "change_subaccount_label", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_notificationsv", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "update_notifications", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfer_erc20", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfer_position", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfer_positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "replace", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order_debug", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_open_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancel_by_label", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancel_by_nonce", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancel_by_instrument", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancel_all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancel_trigger_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_order_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_trade_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_deposit_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_withdrawal_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "send_rfq", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancel_rfq", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancel_batch_rfqs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_rfqs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "poll_rfqs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "send_quote", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancel_quote", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancel_batch_quotes", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_quotes", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "poll_quotes", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "execute_quote", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rfq_get_best_quote", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_margin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_collaterals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_option_settlement_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_subaccount_value_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "expired_and_cancelled_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_funding_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_interest_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_erc20_transfer_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_liquidation_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "liquidate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_liquidator_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "session_keys", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "edit_session_key", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "register_scoped_session_key", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_mmp_config", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "set_mmp_config", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "reset_mmp", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "set_cancel_on_disconnect", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_invite_code", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "register_invite", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {} },
@@ -886,15 +1228,38 @@ public partial class derive : Exchange
         return this.parseTrades(data, market, since, limit);
     }
 
+    public override object parseTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object tradesArray = this.toArray(trades);
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(tradesArray)); postFixIncrement(ref i))
+        {
+            object rawTrade = getValue(tradesArray, i);
+            object isFetchTrades = !isTrue((inOp(rawTrade, "order_id")));
+            object liquidityRole = this.safeString(rawTrade, "liquidity_role");
+            if (isTrue(isTrue(isFetchTrades) && isTrue((isEqual(liquidityRole, "maker")))))
+            {
+                continue;
+            }
+            object parsed = this.parseTrade(rawTrade, market);
+            object trade = this.extend(parsed, parameters);
+            ((IList<object>)result).Add(trade);
+        }
+        result = this.sortBy2(result, "timestamp", "id");
+        object symbol = this.safeString(market, "symbol");
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
+    }
+
     public override object parseTrade(object trade, object market = null)
     {
         //
+        // fetchTrades & fetchMyTrades
+        //
         // {
         //     "subaccount_id": 130837,
-        //     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
         //     "instrument_name": "BTC-PERP",
         //     "direction": "sell",
-        //     "label": "test1234",
         //     "quote_id": null,
         //     "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
         //     "timestamp": 1738065303708,
@@ -905,11 +1270,17 @@ public partial class derive : Exchange
         //     "liquidity_role": "taker",
         //     "realized_pnl": "0",
         //     "realized_pnl_excl_fees": "0",
-        //     "is_transfer": false,
         //     "tx_status": "settled",
         //     "trade_fee": "1.127415534092999815",
         //     "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        //     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        //     "label": "test1234",                                      // only fetchMyTrades
+        //     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",       // only fetchMyTrades
+        //     "is_transfer": false,                                     // only fetchMyTrades
+        //     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d11bb", // only fetchMyTrades
+        //     "rfq_id": null,                                           // only fetchTrades
+        //     "wallet": "0x353Bf69715DdbF7A2b0C6Deba8EAC1F1D160c123",   // only fetchTrades
+        //     "expected_rebate": "0",                                   // only fetchTrades
+        //     "extra_fee": "0",                                         // only fetchTrades
         // }
         //
         object marketId = this.safeString(trade, "instrument_name");
@@ -954,7 +1325,7 @@ public partial class derive : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
         };
@@ -1080,7 +1451,7 @@ public partial class derive : Exchange
         object binaryMessageLength = this.binaryLength(binaryMessage);
         object x19 = this.base16ToBinary("19");
         object newline = this.base16ToBinary("0a");
-        object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(((string)this.numberToString(binaryMessageLength))));
+        object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
         return add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
     }
 
@@ -1153,7 +1524,7 @@ public partial class derive : Exchange
         object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
         object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object TRADE_MODULE_ADDRESS = ((bool) isTrue((sandboxMode))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
-        object priceString = ((string)this.numberToString(price));
+        object priceString = this.numberToString(price);
         object maxFee = null;
         var maxFeeparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "max_fee");
         maxFee = ((IList<object>)maxFeeparametersVariable)[0];
@@ -1162,8 +1533,8 @@ public partial class derive : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a max_fee argument in params")) ;
         }
-        object maxFeeString = ((string)this.numberToString(maxFee));
-        object amountString = ((string)this.numberToString(amount));
+        object maxFeeString = this.numberToString(maxFee);
+        object amountString = this.numberToString(amount);
         object tradeModuleDataHash = this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue(getValue(market, "info"), "base_asset_address"), this.parseToNumeric(getValue(getValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((string)this.parseUnits(priceString))), this.convertToBigInt(((string)this.parseUnits(((string)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((string)this.parseUnits(maxFeeString))), subaccountId, isEqual(orderSide, "buy")}), keccak, "binary");
         object deriveWalletAddress = null;
         var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("createOrder", parameters);
@@ -1347,7 +1718,7 @@ public partial class derive : Exchange
         object TRADE_MODULE_ADDRESS = ((bool) isTrue((sandboxMode))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
         object priceString = ((string)this.numberToString(price));
         object maxFeeString = this.safeString(parameters, "max_fee", "0");
-        object amountString = ((string)this.numberToString(amount));
+        object amountString = this.numberToString(amount);
         object tradeModuleDataHash = this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue(getValue(market, "info"), "base_asset_address"), this.parseToNumeric(getValue(getValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((string)this.parseUnits(priceString))), this.convertToBigInt(((string)this.parseUnits(((string)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((string)this.parseUnits(maxFeeString))), subaccountId, isEqual(orderSide, "buy")}), keccak, "binary");
         object deriveWalletAddress = null;
         var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("editOrder", parameters);
@@ -1584,7 +1955,7 @@ public partial class derive : Exchange
      * @see https://docs.derive.xyz/reference/post_private-cancel-by-instrument
      * @see https://docs.derive.xyz/reference/post_private-cancel-all
      * @description cancel all open orders in a market
-     * @param {string} symbol unified market symbol
+     * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2177,7 +2548,7 @@ public partial class derive : Exchange
      * @name derive#fetchPositions
      * @description fetch all open positions
      * @see https://docs.derive.xyz/reference/post_private-get-positions
-     * @param {string[]} [symbols] not used by kraken fetchPositions ()
+     * @param {string[]} [symbols] not used by fetchPositions ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -2541,7 +2912,10 @@ public partial class derive : Exchange
                     object amount = this.safeString(balance, "amount");
                     ((IDictionary<string,object>)account)["total"] = Precise.stringAdd(getValue(account, "total"), amount);
                 }
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         }
         return this.safeBalance(result);

@@ -96,67 +96,173 @@ public partial class upbit : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "market/all", 2 },
-                        { "candles/{timeframe}", 2 },
-                        { "candles/{timeframe}/{unit}", 2 },
-                        { "candles/seconds", 2 },
-                        { "candles/minutes/{unit}", 2 },
-                        { "candles/minutes/1", 2 },
-                        { "candles/minutes/3", 2 },
-                        { "candles/minutes/5", 2 },
-                        { "candles/minutes/10", 2 },
-                        { "candles/minutes/15", 2 },
-                        { "candles/minutes/30", 2 },
-                        { "candles/minutes/60", 2 },
-                        { "candles/minutes/240", 2 },
-                        { "candles/days", 2 },
-                        { "candles/weeks", 2 },
-                        { "candles/months", 2 },
-                        { "candles/years", 2 },
-                        { "trades/ticks", 2 },
-                        { "ticker", 2 },
-                        { "ticker/all", 2 },
-                        { "orderbook", 2 },
-                        { "orderbook/instruments", 2 },
+                        { "market/all", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "candles/{timeframe}", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "candles/{timeframe}/{unit}", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "candles/seconds", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "candles/minutes/{unit}", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "candles/minutes/1", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "candles/minutes/3", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "candles/minutes/5", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "candles/minutes/10", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "candles/minutes/15", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "candles/minutes/30", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "candles/minutes/60", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "candles/minutes/240", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "candles/days", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "candles/weeks", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "candles/months", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "candles/years", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "trades/ticks", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "ticker/all", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "orderbook", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "orderbook/instruments", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "accounts", 0.67 },
-                        { "orders/chance", 0.67 },
-                        { "order", 0.67 },
-                        { "orders/closed", 0.67 },
-                        { "orders/open", 0.67 },
-                        { "orders/uuids", 0.67 },
-                        { "withdraws", 0.67 },
-                        { "withdraw", 0.67 },
-                        { "withdraws/chance", 0.67 },
-                        { "withdraws/coin_addresses", 0.67 },
-                        { "deposits", 0.67 },
-                        { "deposits/chance/coin", 0.67 },
-                        { "deposit", 0.67 },
-                        { "deposits/coin_addresses", 0.67 },
-                        { "deposits/coin_address", 0.67 },
-                        { "travel_rule/vasps", 0.67 },
-                        { "status/wallet", 0.67 },
-                        { "api_keys", 0.67 },
+                        { "accounts", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "orders/chance", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "orders/closed", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "orders/open", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "orders/uuids", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "withdraws", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "withdraws/chance", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "withdraws/coin_addresses", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "deposits", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "deposits/chance/coin", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "deposits/coin_addresses", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "deposits/coin_address", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "travel_rule/vasps", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "status/wallet", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "api_keys", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "orders", 2.5 },
-                        { "orders/test", 2.5 },
-                        { "orders/cancel_and_new", 2.5 },
-                        { "withdraws/coin", 0.67 },
-                        { "withdraws/krw", 0.67 },
-                        { "deposits/krw", 0.67 },
-                        { "deposits/generate_coin_address", 0.67 },
-                        { "travel_rule/deposit/uuid", 0.67 },
-                        { "travel_rule/deposit/txid", 0.67 },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 2.5 },
+                        } },
+                        { "orders/test", new Dictionary<string, object>() {
+                            { "cost", 2.5 },
+                        } },
+                        { "orders/cancel_and_new", new Dictionary<string, object>() {
+                            { "cost", 2.5 },
+                        } },
+                        { "withdraws/coin", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "withdraws/krw", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "deposits/krw", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "deposits/generate_coin_address", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "travel_rule/deposit/uuid", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "travel_rule/deposit/txid", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "order", 0.67 },
-                        { "orders/open", 40 },
-                        { "orders/uuids", 0.67 },
-                        { "withdraws/coin", 0.67 },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "orders/open", new Dictionary<string, object>() {
+                            { "cost", 40 },
+                        } },
+                        { "orders/uuids", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "withdraws/coin", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
                     } },
                 } },
             } },
@@ -528,6 +634,10 @@ public partial class upbit : Exchange
     public override object parseMarket(object market)
     {
         object id = this.safeString(market, "market");
+        if (isTrue(isEqual(id, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseMarket() missing id")) ;
+        }
         var quoteIdbaseIdVariable = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         var quoteId = ((IList<object>) quoteIdbaseIdVariable)[0];
         var baseId = ((IList<object>) quoteIdbaseIdVariable)[1];
@@ -601,7 +711,10 @@ public partial class upbit : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "balance");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -706,9 +819,10 @@ public partial class upbit : Exchange
         //                               "bid_size": 0.4650305 }    ] }   ]
         //
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object orderbooks = this.toArray(response);
+        for (object i = 0; isLessThan(i, getArrayLength(orderbooks)); postFixIncrement(ref i))
         {
-            object orderbook = getValue(response, i);
+            object orderbook = getValue(orderbooks, i);
             object marketId = this.safeString(orderbook, "market");
             object symbol = this.safeSymbol(marketId, null, "-");
             object timestamp = this.safeInteger(orderbook, "timestamp");
@@ -733,7 +847,7 @@ public partial class upbit : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -863,6 +977,10 @@ public partial class upbit : Exchange
 
     public virtual object idsQueryStrings(object ids, object maxQueryLength)
     {
+        if (isTrue(isEqual(ids, null)))
+        {
+            return new List<object>() {};
+        }
         object idsString = "";
         object queries = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
@@ -1131,7 +1249,11 @@ public partial class upbit : Exchange
             ((IDictionary<string,object>)element)["percentage"] = true;
             ((IDictionary<string,object>)element)["tierBased"] = false;
             ((IDictionary<string,object>)element)["info"] = getValue(fetchMarketResponse, i);
-            ((IDictionary<string,object>)response)[(string)this.safeString(getValue(fetchMarketResponse, i), "symbol")] = element;
+            object feeSymbol = this.safeString(getValue(fetchMarketResponse, i), "symbol");
+            if (isTrue(!isEqual(feeSymbol, null)))
+            {
+                ((IDictionary<string,object>)response)[(string)feeSymbol] = element;
+            }
         }
         return response;
     }
@@ -1234,7 +1356,8 @@ public partial class upbit : Exchange
         //         }
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        object ohlcvs = this.toArray(response);
+        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
 
     public virtual object calcOrderPrice(object symbol, object amount, object price = null, object parameters = null)
@@ -1263,6 +1386,10 @@ public partial class upbit : Exchange
                 throw new ArgumentsRequired ((string)add(this.id, " When createMarketBuyOrderRequiresPrice is false, \"amount\" is required and should be the total quote amount to spend.")) ;
             }
             quoteAmount = this.costToPrecision(symbol, amount);
+        }
+        if (isTrue(isEqual(quoteAmount, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " calcOrderPrice() could not determine quote amount")) ;
         }
         return quoteAmount;
     }
@@ -1429,7 +1556,7 @@ public partial class upbit : Exchange
      * @see https://global-docs.upbit.com/reference/cancel-order
      * @description cancels an open order
      * @param {string} id order id
-     * @param {string} symbol not used by upbit cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */

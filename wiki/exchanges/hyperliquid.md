@@ -16,6 +16,7 @@
 * [fetchBalance](#fetchbalance)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchTickers](#fetchtickers)
+* [fetchFundingRate](#fetchfundingrate)
 * [fetchFundingRates](#fetchfundingrates)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchTrades](#fetchtrades)
@@ -69,6 +70,7 @@
 * [watchOrderBook](#watchorderbook)
 * [unWatchOrderBook](#unwatchorderbook)
 * [watchTicker](#watchticker)
+* [unWatchTicker](#unwatchticker)
 * [watchTickers](#watchtickers)
 * [unWatchTickers](#unwatchtickers)
 * [watchMyTrades](#watchmytrades)
@@ -287,7 +289,7 @@ hyperliquid.fetchBalance (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot  
 
@@ -327,6 +329,27 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 ```javascript
 hyperliquid.fetchTickers (symbols?, params?)
+```
+
+
+<a name="fetchFundingRate" id="fetchfundingrate"></a>
+
+### fetchFundingRate{docsify-ignore}
+fetch the current funding rate for a symbol - hyperliquid only offers a bulk endpoint, so this filters the result of fetchFundingRates
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -1560,7 +1583,7 @@ hyperliquid.cancelOrderWs (id, symbol, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
 
@@ -1615,6 +1638,27 @@ watches a price ticker, a statistical calculation with the information calculate
 
 ```javascript
 hyperliquid.watchTicker (symbol, params?)
+```
+
+
+<a name="unWatchTicker" id="unwatchticker"></a>
+
+### unWatchTicker{docsify-ignore}
+unWatches the price ticker stream of a specific market
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to stop watching the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.unWatchTicker (symbol, params?)
 ```
 
 

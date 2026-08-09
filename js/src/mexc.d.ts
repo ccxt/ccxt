@@ -1,5 +1,5 @@
 import Exchange from './abstract/mexc.js';
-import type { Account, Balances, Currencies, Currency, DepositAddress, Dict, NullableDict, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, NullableDict, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, DepositWithdrawFees, Status, PositionModeInfo } from './base/types.js';
 /**
  * @class mexc
  * @augments Exchange
@@ -15,13 +15,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: number;
-        url: any;
-        eta: any;
-        info: Dict;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name mexc#fetchTime
@@ -41,7 +35,7 @@ export default class mexc extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): Currency;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
      * @name mexc#fetchMarkets
@@ -61,7 +55,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchSpotMarkets(params?: {}): Promise<any[]>;
+    fetchSpotMarkets(params?: any): Promise<Market[]>;
     /**
      * @ignore
      * @method
@@ -71,7 +65,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchSwapMarkets(params?: {}): Promise<any[]>;
+    fetchSwapMarkets(params?: any): Promise<Market[]>;
     /**
      * @method
      * @name mexc#fetchOrderBook
@@ -81,10 +75,10 @@ export default class mexc extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseOrderBookBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): number[];
+    parseOrderBookBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): Num[];
     /**
      * @method
      * @name mexc#fetchTrades
@@ -220,7 +214,7 @@ export default class mexc extends Exchange {
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createSpotOrder(market: any, type: any, side: any, amount: any, price?: Num, marginMode?: Str, params?: {}): Promise<Order>;
+    createSpotOrder(market: any, type: OrderType, side: any, amount: any, price?: Num, marginMode?: Str, params?: {}): Promise<Order>;
     /**
      * @ignore
      * @method
@@ -365,7 +359,7 @@ export default class mexc extends Exchange {
      * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-all-orders // spot all symbols
      * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-orders-under-a-contract // swap
      * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-planned-orders // swap trigger
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -373,9 +367,9 @@ export default class mexc extends Exchange {
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderSide(status: any): string;
     parseOrderType(status: any): string;
-    parseOrderStatus(status: Str): string;
+    parseOrderStatus(status: Str): Str;
     parseOrderTimeInForce(status: any): string;
-    getTifFromRawOrderType(orderType?: Str): string;
+    getTifFromRawOrderType(orderType?: Str): Str;
     fetchAccountHelper(type: any, params: any): Promise<any>;
     /**
      * @method
@@ -439,7 +433,7 @@ export default class mexc extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    modifyMarginHelper(symbol: string, amount: any, addOrReduce: any, params?: {}): Promise<any>;
+    modifyMarginHelper(symbol: string, amount: any, addOrReduce: any, params?: {}): Promise<MarginModification>;
     /**
      * @method
      * @name mexc#reduceMargin
@@ -472,7 +466,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name mexc#fetchFundingHistory
@@ -625,7 +619,7 @@ export default class mexc extends Exchange {
      * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry
      * @param {string} id transfer id
      * @param {string} [code] not used by mexc fetchTransfer
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     fetchTransfer(id: string, code?: Str, params?: {}): Promise<TransferEntry>;
@@ -683,11 +677,11 @@ export default class mexc extends Exchange {
      * @description set hedged to true or false for a market
      * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-user-position-mode
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by mexc setPositionMode ()
+     * @param {string} symbol not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name mexc#fetchPositionMode
@@ -697,10 +691,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    fetchPositionMode(symbol?: Str, params?: {}): Promise<{
-        info: any;
-        hedged: boolean;
-    }>;
+    fetchPositionMode(symbol?: Str, params?: {}): Promise<PositionModeInfo>;
     /**
      * @method
      * @name mexc#fetchTransactionFees
@@ -730,7 +721,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<DepositWithdrawFees>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     /**
      * @method
@@ -743,7 +734,7 @@ export default class mexc extends Exchange {
      */
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
-    handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): [any, Dict];
+    handleMarginModeAndParams(methodName: string, params?: {}, defaultValue?: any): [any, Dict];
     /**
      * @method
      * @name mexc#fetchPositionsHistory
@@ -752,7 +743,7 @@ export default class mexc extends Exchange {
      * @param {string[]} [symbols] unified contract symbols
      * @param {int} [since] not used by mexc fetchPositionsHistory
      * @param {int} [limit] the maximum amount of candles to fetch, default=1000
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {int} [params.type] position type，1: long, 2: short
@@ -772,13 +763,13 @@ export default class mexc extends Exchange {
      * @param {string} [params.direction] "long" or "short" required when there is no position
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
     nonce(): number;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
-        url: string;
+        url: Str;
         method: string;
-        body: string;
-        headers: Dict;
+        body: Str;
+        headers: NullableDict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

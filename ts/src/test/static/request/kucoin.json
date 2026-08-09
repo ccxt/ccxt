@@ -2154,7 +2154,7 @@
             {
                 "description": "swap orderbook",
                 "method": "fetchOrderBook",
-                "url": "https://api-futures.kucoin.com/api/v1/level2/depth20?symbol=XBTUSDTM",
+                "url": "https://api-futures.kucoin.com/api/v1/level2/snapshot?symbol=XBTUSDTM",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
@@ -2170,11 +2170,12 @@
                 "output": null
             },
             {
-                "description": "fetch order book for swap",
+                "description": "fetch order book for swap with limit 20",
                 "method": "fetchOrderBook",
                 "url": "https://api-futures.kucoin.com/api/v1/level2/depth20?symbol=XBTUSDTM",
                 "input": [
-                    "BTC/USDT:USDT"
+                    "BTC/USDT:USDT",
+                    20
                 ],
                 "output": null
             },

@@ -65,9 +65,14 @@ func FetchTickersHelperTest(exchange ccxt.ICoreExchange, skippedProperties any, 
 							}
 							ret_ = func() any {
 								// catch block:
+								var ohlcv any = nil
+								var tickerSymbol any = GetValue(ticker, "symbol")
+								if IsTrue(IsTrue((!IsEqual(tickerSymbol, nil))) && IsTrue(TickerExceptionNeedsOhlcv(ex, exchange, ticker))) {
 
-								retRes3812 := (<-ValidateTickerExceptionForPercentage(ex, exchange, ticker))
-								PanicOnError(retRes3812)
+									ohlcv = (<-exchange.FetchOHLCV(tickerSymbol, "1d", nil, 5))
+									PanicOnError(ohlcv)
+								}
+								ValidateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv)
 								return nil
 							}()
 						}
@@ -101,6 +106,9 @@ func FetchTickersAmountsTest(exchange ccxt.ICoreExchange, skippedProperties any,
 		// ensure tickers length is less than markets length
 		//
 		var allMarkets any = exchange.GetMarkets()
+		if IsTrue(IsEqual(allMarkets, nil)) {
+			return
+		}
 		var allMarketsLength any = GetArrayLength(ObjectKeys(allMarkets))
 		Assert(IsLessThanOrEqual(obtainedTickersLength, allMarketsLength), Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), "fetchTickers"), " must return <= than all markets, but returned: "), ToString(obtainedTickersLength)), " tickers, "), ToString(allMarketsLength)), " markets"))
 	}

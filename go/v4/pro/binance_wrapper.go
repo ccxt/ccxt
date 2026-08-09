@@ -30,7 +30,7 @@ func NewBinance(userConfig map[string]any) *Binance {
  * @param {string} symbol unified CCXT market symbol
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
- * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
  */
 func (this *Binance) WatchLiquidations(symbol string, options ...ccxt.WatchLiquidationsOptions) ([]ccxt.Liquidation, error) {
@@ -71,7 +71,7 @@ func (this *Binance) WatchLiquidations(symbol string, options ...ccxt.WatchLiqui
  * @param {string[]} symbols list of unified market symbols
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
- * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
  */
 func (this *Binance) WatchLiquidationsForSymbols(symbols []string, options ...ccxt.WatchLiquidationsForSymbolsOptions) ([]ccxt.Liquidation, error) {
@@ -112,7 +112,7 @@ func (this *Binance) WatchLiquidationsForSymbols(symbols []string, options ...cc
  * @param {string} symbol unified CCXT market symbol
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
- * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
  */
 func (this *Binance) WatchMyLiquidations(symbol string, options ...ccxt.WatchMyLiquidationsOptions) ([]ccxt.Liquidation, error) {
@@ -153,7 +153,7 @@ func (this *Binance) WatchMyLiquidations(symbol string, options ...ccxt.WatchMyL
  * @param {string[]} symbols list of unified market symbols
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
- * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
  */
 func (this *Binance) WatchMyLiquidationsForSymbols(symbols []string, options ...ccxt.WatchMyLiquidationsForSymbolsOptions) ([]ccxt.Liquidation, error) {
@@ -240,7 +240,7 @@ func (this *Binance) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBoo
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Binance) WatchOrderBookForSymbols(symbols []string, options ...ccxt.WatchOrderBookForSymbolsOptions) (ccxt.OrderBook, error) {
 
@@ -986,6 +986,40 @@ func (this *Binance) UnWatchMarkPrice(symbol string, options ...ccxt.UnWatchMark
 		params = *opts.Params
 	}
 	res := <-this.Core.UnWatchMarkPrice(symbol, params)
+	if ccxt.IsError(res) {
+		return nil, ccxt.CreateReturnError(res)
+	}
+	return res, nil
+}
+
+/**
+ * @method
+ * @name binance#unWatchBidsAsks
+ * @description unWatches best bid & ask for symbols
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-book-ticker-streams
+ * @see https://developers.binance.com/docs/derivatives/options-trading/websocket-market-streams/Bookticker
+ * @param {string[]} [symbols] unified symbols
+ * @param {object} [params] extra parameters
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Binance) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {
+
+	opts := ccxt.UnWatchBidsAsksOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.UnWatchBidsAsks(symbols, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -1902,10 +1936,10 @@ func (this *Binance) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt
 func (this *Binance) FetchDepositsWithdrawals(options ...ccxt.FetchDepositsWithdrawalsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Binance) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Binance) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (ccxt.DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Binance) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Binance) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (ccxt.DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Binance) FetchFreeBalance(params ...any) (ccxt.Balance, error) {
@@ -2049,7 +2083,7 @@ func (this *Binance) FetchPosition(symbol string, options ...ccxt.FetchPositionO
 func (this *Binance) FetchPositionHistory(symbol string, options ...ccxt.FetchPositionHistoryOptions) ([]ccxt.Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Binance) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]any, error) {
+func (this *Binance) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (ccxt.PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Binance) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccxt.Position, error) {
@@ -2067,7 +2101,7 @@ func (this *Binance) FetchPositionsRisk(options ...ccxt.FetchPositionsRiskOption
 func (this *Binance) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchPremiumIndexOHLCVOptions) ([]ccxt.OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Binance) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Binance) FetchStatus(params ...any) (ccxt.Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Binance) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions) (ccxt.Ticker, error) {
@@ -2184,7 +2218,7 @@ func (this *Binance) CreateTrailingPercentOrderWs(symbol string, typeVar string,
 func (this *Binance) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateTriggerOrderWsOptions) (ccxt.Order, error) {
 	return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)
 }
-func (this *Binance) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Binance) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Binance) FetchOrdersByStatusWs(status string, options ...ccxt.FetchOrdersByStatusWsOptions) ([]ccxt.Order, error) {
@@ -2199,11 +2233,8 @@ func (this *Binance) FetchTickersWs(options ...ccxt.FetchTickersWsOptions) (ccxt
 func (this *Binance) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Binance) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Binance) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
-}
-func (this *Binance) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {
-	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
 func (this *Binance) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)

@@ -537,7 +537,6 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
         'bingx',
         'htx',
         'mexc',
-        'bitmart',
         'cryptocom',
         'coinex',
         'hashkey',

@@ -6,7 +6,7 @@ import Exchange from './abstract/bingx.js';
 import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired, NotSupported, OperationFailed, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, NullableDict, Leverage, MarginMode, Num, List, NullableList, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, Bool } from './base/types.js';
+import type{ LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, NullableDict, Leverage, MarginMode, Num, List, NullableList, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, Bool, DepositWithdrawFees, PositionModeInfo, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import type{ LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHist
  * @augments Exchange
  */
 export default class bingx extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bingx',
             'name': 'BingX',
@@ -180,7 +180,7 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'account/balance': 1,
+                                'account/balance': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -189,60 +189,60 @@ export default class bingx extends Exchange {
                     'v1': {
                         'public': {
                             'get': {
-                                'server/time': 1,
-                                'common/symbols': 1,
-                                'market/trades': 1,
-                                'market/depth': 1,
-                                'market/kline': 1,
-                                'ticker/24hr': 1,
-                                'ticker/price': 1, // deprecated, still can be used
-                                'ticker/bookTicker': 1,
+                                'server/time': { 'cost': 1 } as Endpoint<Dict>,
+                                'common/symbols': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/trades': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/kline': { 'cost': 1 } as Endpoint<Dict>,
+                                'ticker/24hr': { 'cost': 1 } as Endpoint<Dict>,
+                                'ticker/price': { 'cost': 1 } as Endpoint<Dict>, // deprecated, still can be used
+                                'ticker/bookTicker': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                         'private': {
                             'get': {
-                                'trade/query': 1,
-                                'trade/openOrders': 1,
-                                'trade/historyOrders': 1,
-                                'trade/myTrades': 2,
-                                'user/commissionRate': 5,
-                                'account/balance': 2,
-                                'oco/orderList': 5,
-                                'oco/openOrderList': 5,
-                                'oco/historyOrderList': 5,
+                                'trade/query': { 'cost': 1 } as Endpoint<Dict>,
+                                'trade/openOrders': { 'cost': 1 } as Endpoint<Dict>,
+                                'trade/historyOrders': { 'cost': 1 } as Endpoint<Dict>,
+                                'trade/myTrades': { 'cost': 2 } as Endpoint<Dict>,
+                                'user/commissionRate': { 'cost': 5 } as Endpoint<Dict>,
+                                'account/balance': { 'cost': 2 } as Endpoint<Dict>,
+                                'oco/orderList': { 'cost': 5 } as Endpoint<Dict>,
+                                'oco/openOrderList': { 'cost': 5 } as Endpoint<Dict>,
+                                'oco/historyOrderList': { 'cost': 5 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'trade/order': 2,
-                                'trade/cancel': 2,
-                                'trade/batchOrders': 5,
-                                'trade/order/cancelReplace': 5,
-                                'trade/cancelOrders': 5,
-                                'trade/cancelOpenOrders': 5,
-                                'trade/cancelAllAfter': 5,
-                                'oco/order': 5,
-                                'oco/cancel': 5,
+                                'trade/order': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/cancel': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/batchOrders': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/order/cancelReplace': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/cancelOrders': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/cancelOpenOrders': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/cancelAllAfter': { 'cost': 5 } as Endpoint<Dict>,
+                                'oco/order': { 'cost': 5 } as Endpoint<Dict>,
+                                'oco/cancel': { 'cost': 5 } as Endpoint<Dict>,
                             },
                         },
                     },
                     'v2': {
                         'public': {
                             'get': {
-                                'market/depth': 1,
-                                'market/kline': 1,
-                                'ticker/price': 1,
+                                'market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/kline': { 'cost': 1 } as Endpoint<Dict>,
+                                'ticker/price': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                     },
                     'v3': {
                         'private': {
                             'get': {
-                                'get/asset/transfer': 1,
-                                'asset/transfer': 1,
-                                'capital/deposit/hisrec': 1,
-                                'capital/withdraw/history': 1,
+                                'get/asset/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                                'asset/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                                'capital/deposit/hisrec': { 'cost': 1 } as Endpoint<List>,
+                                'capital/withdraw/history': { 'cost': 1 } as Endpoint<List>,
                             },
                             'post': {
-                                'post/asset/transfer': 5,
+                                'post/asset/transfer': { 'cost': 5 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -251,103 +251,103 @@ export default class bingx extends Exchange {
                     'v1': {
                         'public': {
                             'get': {
-                                'ticker/price': 1,
-                                'market/historicalTrades': 1,
-                                'market/markPriceKlines': 1,
-                                'trade/multiAssetsRules': 1,
-                                'tradingRules': 1,
+                                'ticker/price': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/historicalTrades': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/markPriceKlines': { 'cost': 1 } as Endpoint<Dict>,
+                                'trade/multiAssetsRules': { 'cost': 1 } as Endpoint<Dict>,
+                                'tradingRules': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                         'private': {
                             'get': {
-                                'positionSide/dual': 5,
-                                'trade/batchCancelReplace': 5,
-                                'trade/fullOrder': 2,
-                                'maintMarginRatio': 2,
-                                'trade/positionHistory': 2,
-                                'positionMargin/history': 2,
-                                'twap/openOrders': 5,
-                                'twap/historyOrders': 5,
-                                'twap/orderDetail': 5,
-                                'trade/assetMode': 5,
-                                'user/marginAssets': 5,
+                                'positionSide/dual': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/batchCancelReplace': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/fullOrder': { 'cost': 2 } as Endpoint<Dict>,
+                                'maintMarginRatio': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/positionHistory': { 'cost': 2 } as Endpoint<Dict>,
+                                'positionMargin/history': { 'cost': 2 } as Endpoint<Dict>,
+                                'twap/openOrders': { 'cost': 5 } as Endpoint<Dict>,
+                                'twap/historyOrders': { 'cost': 5 } as Endpoint<Dict>,
+                                'twap/orderDetail': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/assetMode': { 'cost': 5 } as Endpoint<Dict>,
+                                'user/marginAssets': { 'cost': 5 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'trade/amend': 2,
-                                'trade/cancelReplace': 2,
-                                'positionSide/dual': 5,
-                                'trade/batchCancelReplace': 5,
-                                'trade/closePosition': 2,
-                                'trade/getVst': 5, // deprecated
-                                'twap/order': 5,
-                                'twap/cancelOrder': 5,
-                                'trade/assetMode': 5,
-                                'trade/reverse': 5,
-                                'trade/autoAddMargin': 5,
+                                'trade/amend': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/cancelReplace': { 'cost': 2 } as Endpoint<Dict>,
+                                'positionSide/dual': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/batchCancelReplace': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/closePosition': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/getVst': { 'cost': 5 } as Endpoint<Dict>, // deprecated
+                                'twap/order': { 'cost': 5 } as Endpoint<Dict>,
+                                'twap/cancelOrder': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/assetMode': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/reverse': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/autoAddMargin': { 'cost': 5 } as Endpoint<Dict>,
                             },
                         },
                     },
                     'v2': {
                         'public': {
                             'get': {
-                                'server/time': 1,
-                                'quote/contracts': 1,
-                                'quote/price': 1,
-                                'quote/depth': 1,
-                                'quote/trades': 1,
-                                'quote/premiumIndex': 1,
-                                'quote/fundingRate': 1,
-                                'quote/klines': 1,
-                                'quote/openInterest': 1,
-                                'quote/ticker': 1,
-                                'quote/bookTicker': 1,
+                                'server/time': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/contracts': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/price': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/depth': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/trades': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/premiumIndex': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/fundingRate': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/klines': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/openInterest': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/bookTicker': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                         'private': {
                             'get': {
-                                'user/balance': 2,
-                                'user/positions': 2,
-                                'user/income': 2,
-                                'trade/openOrders': 2,
-                                'trade/openOrder': 2,
-                                'trade/order': 2,
-                                'trade/marginType': 5,
-                                'trade/leverage': 2,
-                                'trade/forceOrders': 1,
-                                'trade/allOrders': 2,
-                                'trade/allFillOrders': 2,
-                                'trade/fillHistory': 2,
-                                'user/income/export': 2,
-                                'user/commissionRate': 2,
-                                'quote/bookTicker': 1,
+                                'user/balance': { 'cost': 2 } as Endpoint<Dict>,
+                                'user/positions': { 'cost': 2 } as Endpoint<Dict>,
+                                'user/income': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/openOrders': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/openOrder': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/order': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/marginType': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/leverage': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/forceOrders': { 'cost': 1 } as Endpoint<Dict>,
+                                'trade/allOrders': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/allFillOrders': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/fillHistory': { 'cost': 2 } as Endpoint<Dict>,
+                                'user/income/export': { 'cost': 2 } as Endpoint<Dict>,
+                                'user/commissionRate': { 'cost': 2 } as Endpoint<Dict>,
+                                'quote/bookTicker': { 'cost': 1 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'trade/getVst': 5,
-                                'trade/order': 2,
-                                'trade/batchOrders': 2,
-                                'trade/closeAllPositions': 2,
-                                'trade/cancelAllAfter': 5,
-                                'trade/marginType': 5,
-                                'trade/leverage': 5,
-                                'trade/positionMargin': 5,
-                                'trade/order/test': 2,
+                                'trade/getVst': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/order': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/batchOrders': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/closeAllPositions': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/cancelAllAfter': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/marginType': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/leverage': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/positionMargin': { 'cost': 5 } as Endpoint<Dict>,
+                                'trade/order/test': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'delete': {
-                                'trade/order': 2,
-                                'trade/batchOrders': 2,
-                                'trade/allOpenOrders': 2,
+                                'trade/order': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/batchOrders': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/allOpenOrders': { 'cost': 2 } as Endpoint<Dict>,
                             },
                         },
                     },
                     'v3': {
                         'public': {
                             'get': {
-                                'quote/klines': 1,
+                                'quote/klines': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                         'private': {
                             'get': {
-                                'user/balance': 2,
+                                'user/balance': { 'cost': 2 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -356,38 +356,38 @@ export default class bingx extends Exchange {
                     'v1': {
                         'public': {
                             'get': {
-                                'market/contracts': 1,
-                                'market/premiumIndex': 1,
-                                'market/openInterest': 1,
-                                'market/klines': 1,
-                                'market/depth': 1,
-                                'market/ticker': 1,
+                                'market/contracts': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/premiumIndex': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/openInterest': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/klines': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                                'market/ticker': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                         'private': {
                             'get': {
-                                'trade/leverage': 2,
-                                'trade/forceOrders': 2,
-                                'trade/allFillOrders': 2,
-                                'trade/openOrders': 2,
-                                'trade/orderDetail': 2,
-                                'trade/orderHistory': 2,
-                                'trade/marginType': 2,
-                                'user/commissionRate': 2,
-                                'user/positions': 2,
-                                'user/balance': 2,
+                                'trade/leverage': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/forceOrders': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/allFillOrders': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/openOrders': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/orderDetail': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/orderHistory': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/marginType': { 'cost': 2 } as Endpoint<Dict>,
+                                'user/commissionRate': { 'cost': 2 } as Endpoint<Dict>,
+                                'user/positions': { 'cost': 2 } as Endpoint<Dict>,
+                                'user/balance': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'trade/order': 2,
-                                'trade/leverage': 2,
-                                'trade/allOpenOrders': 2,
-                                'trade/closeAllPositions': 2,
-                                'trade/marginType': 2,
-                                'trade/positionMargin': 2,
+                                'trade/order': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/leverage': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/allOpenOrders': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/closeAllPositions': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/marginType': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/positionMargin': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'delete': {
-                                'trade/allOpenOrders': 2, // post method in doc
-                                'trade/cancelOrder': 2,
+                                'trade/allOpenOrders': { 'cost': 2 } as Endpoint<Dict>, // post method in doc
+                                'trade/cancelOrder': { 'cost': 2 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -396,9 +396,9 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'allPosition': 2,
-                                'allOrders': 2,
-                                'balance': 2,
+                                'allPosition': { 'cost': 2 } as Endpoint<Dict>,
+                                'allOrders': { 'cost': 2 } as Endpoint<Dict>,
+                                'balance': { 'cost': 2 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -407,19 +407,19 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'capital/config/getall': 5,
-                                'capital/deposit/address': 5,
-                                'capital/innerTransfer/records': 1,
-                                'capital/subAccount/deposit/address': 5,
-                                'capital/deposit/subHisrec': 2,
-                                'capital/subAccount/innerTransfer/records': 1,
-                                'capital/deposit/riskRecords': 5,
+                                'capital/config/getall': { 'cost': 5 } as Endpoint<Dict>,
+                                'capital/deposit/address': { 'cost': 5 } as Endpoint<Dict>,
+                                'capital/innerTransfer/records': { 'cost': 1 } as Endpoint<Dict>,
+                                'capital/subAccount/deposit/address': { 'cost': 5 } as Endpoint<Dict>,
+                                'capital/deposit/subHisrec': { 'cost': 2 } as Endpoint<Dict>,
+                                'capital/subAccount/innerTransfer/records': { 'cost': 1 } as Endpoint<Dict>,
+                                'capital/deposit/riskRecords': { 'cost': 5 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'capital/withdraw/apply': 5,
-                                'capital/innerTransfer/apply': 5,
-                                'capital/subAccountInnerTransfer/apply': 2,
-                                'capital/deposit/createSubAddress': 2,
+                                'capital/withdraw/apply': { 'cost': 5 } as Endpoint<Dict>,
+                                'capital/innerTransfer/apply': { 'cost': 5 } as Endpoint<Dict>,
+                                'capital/subAccountInnerTransfer/apply': { 'cost': 2 } as Endpoint<Dict>,
+                                'capital/deposit/createSubAddress': { 'cost': 2 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -428,16 +428,16 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'list': 10,
-                                'assets': 2,
-                                'allAccountBalance': 2,
+                                'list': { 'cost': 10 } as Endpoint<Dict>,
+                                'assets': { 'cost': 2 } as Endpoint<Dict>,
+                                'allAccountBalance': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'create': 10,
-                                'apiKey/create': 2,
-                                'apiKey/edit': 2,
-                                'apiKey/del': 2,
-                                'updateStatus': 10,
+                                'create': { 'cost': 10 } as Endpoint<Dict>,
+                                'apiKey/create': { 'cost': 2 } as Endpoint<Dict>,
+                                'apiKey/edit': { 'cost': 2 } as Endpoint<Dict>,
+                                'apiKey/del': { 'cost': 2 } as Endpoint<Dict>,
+                                'updateStatus': { 'cost': 10 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -446,13 +446,13 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'uid': 1,
-                                'apiKey/query': 2,
-                                'account/apiPermissions': 5,
-                                'allAccountBalance': 2,
+                                'uid': { 'cost': 1 } as Endpoint<Dict>,
+                                'apiKey/query': { 'cost': 2 } as Endpoint<Dict>,
+                                'account/apiPermissions': { 'cost': 5 } as Endpoint<Dict>,
+                                'allAccountBalance': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'innerTransfer/authorizeSubAccount': 1,
+                                'innerTransfer/authorizeSubAccount': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -460,11 +460,11 @@ export default class bingx extends Exchange {
                         'v1': {
                             'private': {
                                 'get': {
-                                    'subAccount/asset/transferHistory': 1,
+                                    'subAccount/asset/transferHistory': { 'cost': 1 } as Endpoint<Dict>,
                                 },
                                 'post': {
-                                    'subAccount/transferAsset/supportCoins': 1,
-                                    'subAccount/transferAsset': 1,
+                                    'subAccount/transferAsset/supportCoins': { 'cost': 1 } as Endpoint<Dict>,
+                                    'subAccount/transferAsset': { 'cost': 1 } as Endpoint<Dict>,
                                 },
                             },
                         },
@@ -474,13 +474,13 @@ export default class bingx extends Exchange {
                     'auth': {
                         'private': {
                             'post': {
-                                'userDataStream': 2,
+                                'userDataStream': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'put': {
-                                'userDataStream': 2,
+                                'userDataStream': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'delete': {
-                                'userDataStream': 2,
+                                'userDataStream': { 'cost': 2 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -489,21 +489,21 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'swap/trace/currentTrack': 2,
-                                'PFutures/traderDetail': 2,
-                                'PFutures/profitHistorySummarys': 2,
-                                'PFutures/profitDetail': 2,
-                                'PFutures/tradingPairs': 2,
-                                'spot/traderDetail': 2,
-                                'spot/profitHistorySummarys': 2,
-                                'spot/profitDetail': 2,
-                                'spot/historyOrder': 2,
+                                'swap/trace/currentTrack': { 'cost': 2 } as Endpoint<Dict>,
+                                'PFutures/traderDetail': { 'cost': 2 } as Endpoint<Dict>,
+                                'PFutures/profitHistorySummarys': { 'cost': 2 } as Endpoint<Dict>,
+                                'PFutures/profitDetail': { 'cost': 2 } as Endpoint<Dict>,
+                                'PFutures/tradingPairs': { 'cost': 2 } as Endpoint<Dict>,
+                                'spot/traderDetail': { 'cost': 2 } as Endpoint<Dict>,
+                                'spot/profitHistorySummarys': { 'cost': 2 } as Endpoint<Dict>,
+                                'spot/profitDetail': { 'cost': 2 } as Endpoint<Dict>,
+                                'spot/historyOrder': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'swap/trace/closeTrackOrder': 2,
-                                'swap/trace/setTPSL': 2,
-                                'PFutures/setCommission': 2,
-                                'spot/trader/sellOrder': 10,
+                                'swap/trace/closeTrackOrder': { 'cost': 2 } as Endpoint<Dict>,
+                                'swap/trace/setTPSL': { 'cost': 2 } as Endpoint<Dict>,
+                                'PFutures/setCommission': { 'cost': 2 } as Endpoint<Dict>,
+                                'spot/trader/sellOrder': { 'cost': 10 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -512,13 +512,13 @@ export default class bingx extends Exchange {
                     'v3': {
                         'private': {
                             'get': {
-                                'asset/transfer': 1,
-                                'asset/transferRecord': 5,
-                                'capital/deposit/hisrec': 1,
-                                'capital/withdraw/history': 1,
+                                'asset/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                                'asset/transferRecord': { 'cost': 5 } as Endpoint<Dict>,
+                                'capital/deposit/hisrec': { 'cost': 1 } as Endpoint<Dict>,
+                                'capital/withdraw/history': { 'cost': 1 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'post/asset/transfer': 1,
+                                'post/asset/transfer': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -526,12 +526,12 @@ export default class bingx extends Exchange {
                         'v1': {
                             'private': {
                                 'post': {
-                                    'transfer': 5,
+                                    'transfer': { 'cost': 5 } as Endpoint<Dict>,
                                 },
                             },
                             'public': {
                                 'get': {
-                                    'transfer/supportCoins': 5,
+                                    'transfer/supportCoins': { 'cost': 5 } as Endpoint<Dict>,
                                 },
                             },
                         },
@@ -541,14 +541,14 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'account/inviteAccountList': 5,
-                                'reward/commissionDataList': 5,
-                                'account/inviteRelationCheck': 5,
-                                'asset/depositDetailList': 5,
-                                'reward/third/commissionDataList': 5,
-                                'asset/partnerData': 5,
-                                'commissionDataList/referralCode': 5,
-                                'account/superiorCheck': 5,
+                                'account/inviteAccountList': { 'cost': 5 } as Endpoint<Dict>,
+                                'reward/commissionDataList': { 'cost': 5 } as Endpoint<Dict>,
+                                'account/inviteRelationCheck': { 'cost': 5 } as Endpoint<Dict>,
+                                'asset/depositDetailList': { 'cost': 5 } as Endpoint<Dict>,
+                                'reward/third/commissionDataList': { 'cost': 5 } as Endpoint<Dict>,
+                                'asset/partnerData': { 'cost': 5 } as Endpoint<Dict>,
+                                'commissionDataList/referralCode': { 'cost': 5 } as Endpoint<Dict>,
+                                'account/superiorCheck': { 'cost': 5 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -615,6 +615,9 @@ export default class bingx extends Exchange {
             },
             'options': {
                 'defaultType': 'spot',
+                'fetchOHLCV': {
+                    'timeZone': 0, // candle boundary offset in hours, 0 anchors daily candles to UTC midnight, set 8 for the bingx-native UTC+8 anchoring
+                },
                 'accountsByType': {
                     'funding': 'fund',
                     'spot': 'spot',
@@ -781,7 +784,7 @@ export default class bingx extends Exchange {
                     },
                 },
             },
-            'rollingWindowSize': 2000.0,  // Some endpoints have a 10s window, some have a 5s window, a more complicated rate limiter is needed to accomodate for this
+            'rollingWindowSize': 2000.0,  // Some endpoints have a 10s window, some have a 5s window, a more complicated rate limiter is needed to accommodate for this
         });
     }
 
@@ -793,7 +796,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the bingx server
      */
-    async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params = {}): Promise<Int> {
         const response = await this.swapV2PublicGetServerTime (params);
         //
         //    {
@@ -816,7 +819,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params = {}): Promise<Currencies> {
         if (!this.checkRequiredCredentials (false)) {
             return {};
         }
@@ -876,7 +879,7 @@ export default class bingx extends Exchange {
         return this.parseCurrencies (data);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const currencyId = this.safeString (rawCurrency, 'coin');
         const code = this.safeCurrencyCode (currencyId);
         const name = this.safeString (rawCurrency, 'name');
@@ -897,17 +900,19 @@ export default class bingx extends Exchange {
                 },
             };
             const precision = this.parseNumber (this.parsePrecision (this.safeString (rawNetwork, 'withdrawPrecision')));
-            networks[networkCode] = {
-                'info': rawNetwork,
-                'id': network,
-                'network': networkCode,
-                'fee': this.safeNumber (rawNetwork, 'withdrawFee'),
-                'active': undefined,
-                'deposit': this.safeBool (rawNetwork, 'depositEnable'),
-                'withdraw': this.safeBool (rawNetwork, 'withdrawEnable'),
-                'precision': precision,
-                'limits': limits,
-            };
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': rawNetwork,
+                    'id': network,
+                    'network': networkCode,
+                    'fee': this.safeNumber (rawNetwork, 'withdrawFee'),
+                    'active': undefined,
+                    'deposit': this.safeBool (rawNetwork, 'depositEnable'),
+                    'withdraw': this.safeBool (rawNetwork, 'withdrawEnable'),
+                    'precision': precision,
+                    'limits': limits,
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'info': rawCurrency,
@@ -925,7 +930,7 @@ export default class bingx extends Exchange {
         });
     }
 
-    async fetchSpotMarkets (params): Promise<Market[]> {
+    async fetchSpotMarkets (params: any): Promise<Market[]> {
         const response = await this.spotV1PublicGetCommonSymbols (params);
         //
         //    {
@@ -959,7 +964,7 @@ export default class bingx extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    async fetchSwapMarkets (params) {
+    async fetchSwapMarkets (params: any): Promise<Market[]> {
         const response = await this.swapV2PublicGetQuoteContracts (params);
         //
         //    {
@@ -996,7 +1001,7 @@ export default class bingx extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    async fetchInverseSwapMarkets (params) {
+    async fetchInverseSwapMarkets (params: any) {
         const response = await this.cswapV1PublicGetMarketContracts (params);
         //
         //     {
@@ -1020,7 +1025,7 @@ export default class bingx extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market: Dict): Market {
+    override parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'symbol') as string;
         const symbolParts = id.split ('-');
         const baseId = symbolParts[0];
@@ -1135,7 +1140,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params = {}): Promise<Market[]> {
         const requests = [ this.fetchSwapMarkets (params) ];
         const isSandbox = this.safeBool (this.options, 'sandboxMode', false);
         if (!isSandbox) {
@@ -1143,8 +1148,8 @@ export default class bingx extends Exchange {
             requests.push (this.fetchSpotMarkets (params)); // sandbox is swap only
         }
         const promises = await Promise.all (requests);
-        const linearSwapMarkets = this.safeList (promises, 0, []) as List;
-        const inverseSwapMarkets = this.safeList (promises, 1, []) as List;
+        const linearSwapMarkets = this.safeList (promises, 0, []);
+        const inverseSwapMarkets = this.safeList (promises, 1, []);
         const spotMarkets = this.safeList (promises, 2, []) as List;
         const swapMarkets = this.arrayConcat (linearSwapMarkets, inverseSwapMarkets);
         return this.arrayConcat (spotMarkets, swapMarkets);
@@ -1167,7 +1172,7 @@ export default class bingx extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1194,6 +1199,13 @@ export default class bingx extends Exchange {
         }
         let response: Dict;
         if (market['spot']) {
+            // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
+            // the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
+            let timeZone: Int = undefined;
+            [ timeZone, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'timeZone', 0);
+            if (timeZone !== undefined) {
+                request['timeZone'] = timeZone;
+            }
             response = await this.spotV1PublicGetMarketKline (this.extend (request, params));
         } else {
             if (market['inverse']) {
@@ -1250,7 +1262,7 @@ export default class bingx extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //    {
         //        "open": "19394.4",
@@ -1316,7 +1328,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1372,7 +1384,7 @@ export default class bingx extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // spot fetchTrades
         //
@@ -1516,10 +1528,17 @@ export default class bingx extends Exchange {
         }
         let amount = this.safeStringN (trade, [ 'qty', 'amount', 'q' ]);
         if ((market !== undefined) && market['swap'] && ('volume' in trade)) {
-            // private trade returns num of contracts instead of base currency (as the order-related methods do)
-            const contractSize = this.safeString (market['info'], 'tradeMinQuantity');
-            const volume = this.safeString (trade, 'volume');
-            amount = Precise.stringMul (volume, contractSize);
+            if (market['linear']) {
+                // private linear swap trades report 'amount' as the notional (quote) value, not the base amount;
+                // 'volume' is the exchange's own base-currency fill quantity (bingx linear contractSize is always 1),
+                // use it directly instead of 'notional / price', which picks up rounding noise from the notional field
+                amount = this.safeString (trade, 'volume');
+            } else {
+                // private trade returns num of contracts instead of base currency (as the order-related methods do)
+                const contractSize = this.safeString (market['info'], 'tradeMinQuantity');
+                const volume = this.safeString (trade, 'volume');
+                amount = Precise.stringMul (volume, contractSize);
+            }
         }
         return this.safeTrade ({
             'id': this.safeString2 (trade, 'id', 't'),
@@ -1551,9 +1570,9 @@ export default class bingx extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1650,7 +1669,7 @@ export default class bingx extends Exchange {
         //         }
         //     }
         //
-        const orderbook = this.safeDict (response, 'data', {}) as Dict;
+        const orderbook = this.safeDict (response, 'data', {});
         const nonce = this.safeInteger (orderbook, 'lastUpdateId');
         const timestamp = this.safeInteger2 (orderbook, 'T', 'ts');
         const result = this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
@@ -1668,7 +1687,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1713,13 +1732,13 @@ export default class bingx extends Exchange {
      * @param {string} [params.subType] "linear" or "inverse" (default is linear)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols, 'swap', true, true, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
-        let subType = 'linear';
+        let subType: Str = 'linear';
         [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRates', firstMarket, params, subType);
         let response: Dict;
         if (subType === 'inverse') {
@@ -1731,7 +1750,7 @@ export default class bingx extends Exchange {
         return this.parseFundingRates (data, symbols);
     }
 
-    parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "BTC-USDT",
@@ -1778,7 +1797,7 @@ export default class bingx extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -1824,7 +1843,7 @@ export default class bingx extends Exchange {
         return this.parseFundingRateHistories (data, market, since, limit) as FundingRateHistory[];
     }
 
-    parseFundingRateHistory (contract, market: Market = undefined) {
+    override parseFundingRateHistory (contract: any, market: Market = undefined) {
         //
         //     {
         //         "symbol": "BTC-USDT",
@@ -1854,7 +1873,7 @@ export default class bingx extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest funding to fetch
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1903,7 +1922,7 @@ export default class bingx extends Exchange {
         return this.parseIncomes (data, market, since, limit) as FundingHistory[];
     }
 
-    parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined) {
         // {
         //     "symbol": "LDO-USDT",
         //     "incomeType": "FUNDING_FEE",
@@ -1939,7 +1958,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    async fetchOpenInterest (symbol: string, params = {}) {
+    override async fetchOpenInterest (symbol: string, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1981,7 +2000,7 @@ export default class bingx extends Exchange {
         //         ]
         //     }
         //
-        let result: NullableDict = {};
+        let result: Dict = {};
         if (market['inverse']) {
             const data = this.safeList (response, 'data', []);
             result = this.safeDict (data, 0, {});
@@ -1991,7 +2010,7 @@ export default class bingx extends Exchange {
         return this.parseOpenInterest (result, market);
     }
 
-    parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         // linear swap
         //
@@ -2036,7 +2055,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2102,7 +2121,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2171,7 +2190,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2232,7 +2251,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2285,7 +2304,7 @@ export default class bingx extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // mark price
         // {
@@ -2401,7 +2420,7 @@ export default class bingx extends Exchange {
      * @param {string} [params.type] the type of balance to fetch (spot, swap, funding) default is `spot`
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2512,7 +2531,7 @@ export default class bingx extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         //
         // standard
         //
@@ -2609,7 +2628,9 @@ export default class bingx extends Exchange {
                 account['free'] = this.safeString2 (balance, 'availableMargin', 'availableBalance');
                 account['used'] = this.safeString (balance, 'usedMargin');
                 account['total'] = this.safeString (balance, 'maxWithdrawAmount');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         } else {
             for (let i = 0; i < spotBalances.length; i++) {
@@ -2619,7 +2640,9 @@ export default class bingx extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'free');
                 account['used'] = this.safeString (balance, 'locked');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance (result);
@@ -2633,11 +2656,11 @@ export default class bingx extends Exchange {
      * @param {string} symbol unified contract symbol
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum amount of records to fetch
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch positions for
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2687,7 +2710,7 @@ export default class bingx extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const records = this.safeList (data, 'positionHistory', []) as List;
+        const records = this.safeList (data, 'positionHistory', []);
         const positions = this.parsePositions (records);
         return this.filterBySymbolSinceLimit (positions, symbol, since, limit);
     }
@@ -2704,7 +2727,7 @@ export default class bingx extends Exchange {
      * @param {boolean} [params.standard] whether to fetch standard contract positions
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2802,7 +2825,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPosition (symbol: string, params = {}) {
+    override async fetchPosition (symbol: string, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2881,7 +2904,7 @@ export default class bingx extends Exchange {
         return this.parsePosition (first, market);
     }
 
-    parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined) {
         //
         // inverse swap
         //
@@ -3014,7 +3037,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
+    override async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params: Dict = {}) {
         params['quoteOrderQty'] = cost;
         return await this.createOrder (symbol, 'market', side, cost, undefined, params);
     }
@@ -3028,7 +3051,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}) {
         params['quoteOrderQty'] = cost;
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
@@ -3042,12 +3065,18 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createMarketSellOrderWithCost (symbol: string, cost: number, params = {}) {
+    override async createMarketSellOrderWithCost (symbol: string, cost: number, params: Dict = {}) {
         params['quoteOrderQty'] = cost;
         return await this.createOrder (symbol, 'market', 'sell', cost, undefined, params);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -3115,7 +3144,7 @@ export default class bingx extends Exchange {
                 request['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
             }
             if (triggerPrice !== undefined) {
-                if (isMarketOrder && this.safeString (request, 'quoteOrderQty') === undefined) {
+                if (isMarketOrder && (side === 'buy') && this.safeString (request, 'quoteOrderQty') === undefined) {
                     throw new ArgumentsRequired (this.id + ' createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders');
                 }
                 request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
@@ -3310,7 +3339,7 @@ export default class bingx extends Exchange {
      * @param {bool} [params.closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3318,7 +3347,7 @@ export default class bingx extends Exchange {
         const test = this.safeBool (params, 'test', false);
         params = this.omit (params, 'test');
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
-        let response = undefined;
+        let response: Dict | string;
         if (market['swap']) {
             if (test) {
                 response = await this.swapV2PrivatePostTradeOrderTest (request);
@@ -3401,7 +3430,8 @@ export default class bingx extends Exchange {
             // and JSON.parse can not handle them in JS, so we have to use .parseJson
             // however, when order has an attached SL/TP, their value types need extra parsing
             response = this.fixStringifiedJsonMembers (response);
-            response = this.parseJson (response);
+            const parsedResponse: Dict = this.parseJson (response);
+            response = parsedResponse;
         }
         const data = this.safeDict (response, 'data', {});
         let result: Dict = {};
@@ -3440,15 +3470,15 @@ export default class bingx extends Exchange {
      * @param {boolean} [params.sync] *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrders (orders: OrderRequest[], params = {}) {
+    override async createOrders (orders: OrderRequest[], params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const ordersRequests = [];
-        const marketIds = [];
+        const ordersRequests: Dict[] = [];
+        const marketIds: string[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
-            const marketId = this.safeString (rawOrder, 'symbol');
+            const marketId = this.safeString (rawOrder, 'symbol', '');
             const type = this.safeString (rawOrder, 'type');
             marketIds.push (marketId);
             const side = this.safeString (rawOrder, 'side');
@@ -3462,7 +3492,7 @@ export default class bingx extends Exchange {
         const symbolsLength = symbols.length;
         const market = this.market (symbols[0]);
         const request: Dict = {};
-        let response = undefined;
+        let response: Dict | string;
         if (market['swap']) {
             if (symbolsLength > 5) {
                 throw new InvalidOrder (this.id + ' createOrders() can not create more than 5 orders at once for swap markets');
@@ -3527,14 +3557,15 @@ export default class bingx extends Exchange {
             // and JSON.parse can not handle them in JS, so we have to use .parseJson
             // however, when order has an attached SL/TP, their value types need extra parsing
             response = this.fixStringifiedJsonMembers (response);
-            response = this.parseJson (response);
+            const parsedResponse: Dict = this.parseJson (response);
+            response = parsedResponse;
         }
         const data = this.safeDict (response, 'data', {});
         const result = this.safeList (data, 'orders', []) as List;
         return this.parseOrders (result, market);
     }
 
-    parseOrderSide (side) {
+    parseOrderSide (side: any) {
         const sides: Dict = {
             'BUY': 'buy',
             'SELL': 'sell',
@@ -3555,10 +3586,10 @@ export default class bingx extends Exchange {
             'take_profit_market': 'market',
             'stop': 'limit',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // spot
         // createOrder, createOrders, cancelOrder
@@ -3966,7 +3997,7 @@ export default class bingx extends Exchange {
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4148,7 +4179,7 @@ export default class bingx extends Exchange {
      * @param {string} [params.subType] 'linear' or 'inverse' for swap markets (default is 'linear' if symbol is not provided)
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4297,7 +4328,7 @@ export default class bingx extends Exchange {
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
@@ -4315,7 +4346,7 @@ export default class bingx extends Exchange {
         if (areClientOrderIds) {
             idsToParse = clientOrderIds;
         }
-        const parsedIds = [];
+        const parsedIds: string[] = [];
         for (let i = 0; i < idsToParse.length; i++) {
             const id = idsToParse[i];
             const stringId = id.toString ();
@@ -4405,7 +4436,7 @@ export default class bingx extends Exchange {
      * @param {string} [params.type] spot or swap market
      * @returns {object} the api result
      */
-    async cancelAllOrdersAfter (timeout: Int, params = {}) {
+    override async cancelAllOrdersAfter (timeout: Int, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4452,7 +4483,7 @@ export default class bingx extends Exchange {
      * @param {boolean} [params.twap] if fetching twap order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4631,7 +4662,7 @@ export default class bingx extends Exchange {
      * @param {int} [params.orderId] Only return subsequent orders, and return the latest order by default
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4726,7 +4757,7 @@ export default class bingx extends Exchange {
      * @param {boolean} [params.twap] if fetching twap open orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4914,7 +4945,7 @@ export default class bingx extends Exchange {
      * @param {boolean} [params.standard] whether to fetch standard contract orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4938,7 +4969,7 @@ export default class bingx extends Exchange {
      * @param {boolean} [params.standard] whether to fetch standard contract orders
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4964,7 +4995,7 @@ export default class bingx extends Exchange {
      * @param {boolean} [params.twap] if fetching twap orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4978,9 +5009,9 @@ export default class bingx extends Exchange {
         let subType: Str = undefined;
         let standard: Bool = undefined;
         let response: Dict;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchClosedOrders', market, params);
-        [ standard, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'standard', false);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchCanceledAndClosedOrders', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchCanceledAndClosedOrders', market, params);
+        [ standard, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'standard', false);
         if (standard) {
             response = await this.contractV1PrivateGetAllOrders (this.extend (request, params));
         } else if (type === 'spot') {
@@ -5156,7 +5187,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5220,7 +5251,7 @@ export default class bingx extends Exchange {
      * @param {boolean} [params.paginate] whether to paginate the results (default false)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5278,7 +5309,7 @@ export default class bingx extends Exchange {
         return this.parseTransfers (rows, currency, since, limit);
     }
 
-    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+    override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         const tranId = this.safeString (transfer, 'transferId');
         const timestamp = this.safeInteger (transfer, 'timestamp');
         const currencyId = this.safeString (transfer, 'asset');
@@ -5318,7 +5349,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/?id=address-structure}, indexed by the network
      */
-    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
+    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5365,7 +5396,7 @@ export default class bingx extends Exchange {
      * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         const network = this.safeString (params, 'network');
         params = this.omit (params, [ 'network' ]);
         const addressStructures = await this.fetchDepositAddressesByNetwork (code, params);
@@ -5384,7 +5415,7 @@ export default class bingx extends Exchange {
         }
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         // {
         //     "coinId":"4",
@@ -5398,9 +5429,18 @@ export default class bingx extends Exchange {
         const currencyId = this.safeString (depositAddress, 'coin');
         currency = this.safeCurrency (currencyId, currency);
         const code = currency['code'];
-        const address = this.safeString (depositAddress, 'addressWithPrefix');
-        const networkdId = this.safeString (depositAddress, 'network');
-        const networkCode = this.networkIdToCode (networkdId, code);
+        let address = this.safeString (depositAddress, 'addressWithPrefix');
+        const networkId = this.safeString (depositAddress, 'network');
+        const networkCode = this.networkIdToCode (networkId, code);
+        // despite its name the addressWithPrefix field sometimes arrives without
+        // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
+        if (address !== undefined) {
+            const isPrefixed = address.startsWith ('0x') || address.startsWith ('0X');
+            const evmNetworks = [ 'BEP20', 'BSC', 'ERC20', 'ETH', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'ARB', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB' ];
+            if (!isPrefixed && this.inArray (networkCode, evmNetworks)) {
+                address = '0x' + address;
+            }
+        }
         this.checkAddress (address);
         return {
             'info': depositAddress,
@@ -5422,7 +5462,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5471,7 +5511,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5511,7 +5551,7 @@ export default class bingx extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -5573,7 +5613,7 @@ export default class bingx extends Exchange {
         const network = this.safeString (transaction, 'network');
         const currencyId = this.safeString (transaction, 'coin');
         let code = this.safeCurrencyCode (currencyId, currency);
-        if ((code !== undefined) && (code !== network) && code.indexOf (network) >= 0) {
+        if ((code !== undefined) && (network !== undefined) && (code !== network) && code.indexOf (network) >= 0) {
             if (network !== undefined) {
                 code = code.replace (network, '');
             }
@@ -5608,7 +5648,7 @@ export default class bingx extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: string) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',
@@ -5639,7 +5679,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    override async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -5670,14 +5710,14 @@ export default class bingx extends Exchange {
         }
     }
 
-    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         const request: Dict = {
             'type': 1,
         };
         return await this.setMargin (symbol, amount, this.extend (request, params));
     }
 
-    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         const request: Dict = {
             'type': 2,
         };
@@ -5691,10 +5731,10 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
-     * @param {object} [params] parameters specific to the bingx api endpoint
+     * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         const type = this.safeInteger (params, 'type'); // 1 increase margin 2 decrease margin
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)');
@@ -5723,7 +5763,7 @@ export default class bingx extends Exchange {
         return this.parseMarginModification (response, market);
     }
 
-    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
+    override parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         //    {
         //        "code": 0,
@@ -5757,7 +5797,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+    override async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5809,7 +5849,7 @@ export default class bingx extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         //
         // linear swap
         //
@@ -5860,7 +5900,7 @@ export default class bingx extends Exchange {
      * @param {string} [params.side] hedged: ['long' or 'short']. one way: ['both']
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -5930,7 +5970,7 @@ export default class bingx extends Exchange {
      * @param {string} params.orderId the order id required for inverse swap
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -6056,7 +6096,7 @@ export default class bingx extends Exchange {
         return this.parseTrades (fills, market, since, limit, params);
     }
 
-    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         // currencie structure
         //
@@ -6101,7 +6141,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<DepositWithdrawFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6131,7 +6171,7 @@ export default class bingx extends Exchange {
      * @param {int} [params.walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         if (this.markets === undefined) {
@@ -6175,7 +6215,7 @@ export default class bingx extends Exchange {
         return this.parseTransaction (data);
     }
 
-    parseParams (params) {
+    parseParams (params: any) {
         // const sortedParams = this.keysort (params);
         const copied = this.clone (params);
         const rawKeys = Object.keys (params);
@@ -6212,7 +6252,7 @@ export default class bingx extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest liquidation
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    async fetchMyLiquidations (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyLiquidations (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6302,7 +6342,7 @@ export default class bingx extends Exchange {
         return this.parseLiquidations (liquidations, market, since, limit);
     }
 
-    parseLiquidation (liquidation, market: Market = undefined) {
+    override parseLiquidation (liquidation: any, market: Market = undefined) {
         //
         //     {
         //         "time": "int64",
@@ -6353,11 +6393,11 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by bingx
-     * @param {object} [params] extra parameters specific to the bingx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} [params.positionId] the id of the position you would like to close
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+    override async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6414,7 +6454,7 @@ export default class bingx extends Exchange {
                 //
             }
         }
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -6424,11 +6464,11 @@ export default class bingx extends Exchange {
      * @description closes open positions for a market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
-     * @param {object} [params] extra parameters specific to the bingx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.recvWindow] request valid time window value
      * @returns {object[]} [a list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async closeAllPositions (params = {}): Promise<Position[]> {
+    override async closeAllPositions (params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6476,7 +6516,7 @@ export default class bingx extends Exchange {
         }
         const data = this.safeDict (response, 'data', {});
         const success = this.safeList (data, 'success', []) as List;
-        const positions = [];
+        const positions: Position[] = [];
         for (let i = 0; i < success.length; i++) {
             const position = this.parsePosition ({ 'positionId': success[i] });
             positions.push (position);
@@ -6493,7 +6533,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    async fetchPositionMode (symbol: Str = undefined, params = {}) {
+    override async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<PositionModeInfo> {
         const response = await this.swapV1PrivateGetPositionSideDual (params);
         //
         //     {
@@ -6519,11 +6559,11 @@ export default class bingx extends Exchange {
      * @description set hedged to true or false for a market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by bingx setPositionMode ()
+     * @param {string} symbol not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         let dualSidePosition: Str = undefined;
         if (hedged) {
             dualSidePosition = 'true';
@@ -6575,7 +6615,7 @@ export default class bingx extends Exchange {
      * @param {string} [params.workingType] *contract only* StopPrice trigger price types, MARK_PRICE (default), CONTRACT_PRICE, or INDEX_PRICE
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6680,7 +6720,7 @@ export default class bingx extends Exchange {
             //    }
             //
         }
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -6694,7 +6734,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+    override async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6734,7 +6774,7 @@ export default class bingx extends Exchange {
         return this.parseMarginMode (data, market);
     }
 
-    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+    override parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
         const marketId = this.safeString (marginMode, 'symbol');
         let marginType = this.safeStringLower (marginMode, 'marginType');
         marginType = (marginType === 'crossed') ? 'cross' : marginType;
@@ -6756,7 +6796,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6834,7 +6874,7 @@ export default class bingx extends Exchange {
         };
     }
 
-    customEncode (params) {
+    customEncode (params: any) {
         // const sortedParams = this.keysort (params);
         const rawKeys = Object.keys (params);
         const keys = this.sort (rawKeys);
@@ -6883,7 +6923,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
-    async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
+    override async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6916,7 +6956,7 @@ export default class bingx extends Exchange {
         return this.parseMarketLeverageTiers (data, market);
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         //
         //     [
         //         {
@@ -6929,7 +6969,7 @@ export default class bingx extends Exchange {
         //         }
         //     ]
         //
-        const tiers = [];
+        const tiers: LeverageTier[] = [];
         for (let i = 0; i < info.length; i++) {
             const tier = this.safeDict (info, i);
             const tierString = this.safeString (tier, 'tier') as string;
@@ -6950,7 +6990,7 @@ export default class bingx extends Exchange {
         return tiers as LeverageTier[];
     }
 
-    sign (path, section = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, section = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let type = section[0];
         let version = section[1];
         let access = section[2];
@@ -6989,7 +7029,7 @@ export default class bingx extends Exchange {
         } else if (access === 'private') {
             this.checkRequiredCredentials ();
             const isJsonContentType = (((type === 'subAccount') || (type === 'account/transfer')) && (method === 'POST'));
-            let parsedParams: Dict = undefined;
+            let parsedParams: NullableDict = undefined;
             let encodeRequest: Str = undefined;
             if (isJsonContentType) {
                 encodeRequest = this.customEncode (params);
@@ -6997,7 +7037,8 @@ export default class bingx extends Exchange {
                 parsedParams = this.parseParams (params);
                 encodeRequest = this.rawencode (parsedParams, true);
             }
-            const signature = this.hmac (this.encode (encodeRequest), this.encode (this.secret), sha256);
+            const encodeRequestSafe = (encodeRequest === undefined) ? '' : encodeRequest;
+            const signature = this.hmac (this.encode (encodeRequestSafe), this.encode (this.secret), sha256);
             headers = {
                 'X-BX-APIKEY': this.apiKey,
                 'X-SOURCE-KEY': this.safeString (this.options, 'broker', 'CCXT'),
@@ -7014,16 +7055,16 @@ export default class bingx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    nonce () {
+    override nonce () {
         return this.milliseconds ();
     }
 
-    setSandboxMode (enable: boolean) {
+    override setSandboxMode (enable: boolean) {
         super.setSandboxMode (enable);
         this.options['sandboxMode'] = enable;
     }
 
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

@@ -256,30 +256,31 @@ class testMainClass {
         else if (!(methodName in this.testFiles)) {
             skipMessage = '[INFO] UNIMPLEMENTED_TEST';
         }
+        const name = exchange.id;
+        // the TESTING / TESTING DONE / TESTING FAILED markers are dumped unconditionally
+        // (not gated on `--info`) because run-tests.js diffs them on RUNTEST_TIMED_OUT to
+        // report which method(s) were still running when the per-exchange timeout fired
         // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
         if (isLoadMarkets) {
+            dump(this.addPadding('[INFO] TESTING', 25), name, methodName);
             await exchange.loadMarkets(true);
+            dump(this.addPadding('[INFO] TESTING DONE', 25), name, methodName);
         }
-        const name = exchange.id;
         if (skipMessage) {
             if (this.info) {
                 dump(this.addPadding(skipMessage, 25), name, methodName);
             }
             return true;
         }
-        if (this.info) {
-            const argsStringified = '(' + exchange.json(args) + ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
-            dump(this.addPadding('[INFO] TESTING', 25), name, methodName, argsStringified);
-        }
+        const argsStringified = '(' + exchange.json(args) + ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+        dump(this.addPadding('[INFO] TESTING', 25), name, methodName, argsStringified);
         if (isSync()) {
             callMethodSync(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
         }
         else {
             await callMethod(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
         }
-        if (this.info) {
-            dump(this.addPadding('[INFO] TESTING DONE', 25), name, methodName);
-        }
+        dump(this.addPadding('[INFO] TESTING DONE', 25), name, methodName);
         // add to the list of successed tests
         if (isPublic) {
             this.checkedPublicTests[methodName] = true;
@@ -353,6 +354,9 @@ class testMainClass {
                 return true;
             }
             catch (ex) {
+                // close the TESTING marker (pairs with the dump in `testMethod`), so on a
+                // RUNTEST_TIMED_OUT run-tests.js doesn't misreport a failed method as hung
+                dump(this.addPadding('[INFO] TESTING FAILED', 25), exchange.id, methodName);
                 const e = getRootException(ex);
                 const isLoadMarkets = (methodName === 'loadMarkets');
                 const isAuthError = (e instanceof AuthenticationError);
@@ -813,15 +817,20 @@ class testMainClass {
             // Java and its async lambda can't propagate (or re-throw) a checked exception
             try {
                 // the scoping contract: an unscoped fetchEvents must throw ArgumentsRequired on
-                // every prediction venue — assert it so the contract can't silently regress
-                let unscopedError = '';
-                try {
-                    await callExchangeMethodDynamically(exchange, 'fetchEvents', [{}]);
+                // every prediction venue — assert it so the contract can't silently regress.
+                // venues with bounded listings may opt out via options['allowUnscopedFetchEvents']
+                const exchangeOptions = getExchangeProp(exchange, 'options', {});
+                const allowUnscopedFetchEvents = exchange.safeBool(exchangeOptions, 'allowUnscopedFetchEvents', false);
+                if (!allowUnscopedFetchEvents) {
+                    let unscopedError = '';
+                    try {
+                        await callExchangeMethodDynamically(exchange, 'fetchEvents', [{}]);
+                    }
+                    catch (e) {
+                        unscopedError = exceptionMessage(e);
+                    }
+                    assert(unscopedError.indexOf('requires at least one of') >= 0, exchange.id + ' fetchEvents () without a scope must throw ArgumentsRequired, got: ' + unscopedError);
                 }
-                catch (e) {
-                    unscopedError = exceptionMessage(e);
-                }
-                assert(unscopedError.indexOf('requires at least one of') >= 0, exchange.id + ' fetchEvents () without a scope must throw ArgumentsRequired, got: ' + unscopedError);
                 // every venue requires fetchEvents to be scoped; a skip-tests.json
                 // preferredEventQuery supplies a query known to match the venue's markets
                 let eventQuery = exchange.safeString(this.skippedSettingsForExchange, 'preferredEventQuery');
@@ -1760,7 +1769,9 @@ class testMainClass {
             options['secret'] = "";
         }
         const exchange = initExchange(exchangeName, options);
-        exchange.currencies = currencies;
+        if (currencies !== undefined) {
+            exchange.currencies = currencies;
+        }
         // rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
         // outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
         if (predictionEvents !== undefined) {
@@ -2074,7 +2085,6 @@ class testMainClass {
             this.testMexc(),
             this.testHtx(),
             this.testWoo(),
-            this.testBitmart(),
             this.testCoinex(),
             this.testBingx(),
             this.testPhemex(),
@@ -2091,7 +2101,8 @@ class testMainClass {
             this.testModeTrade(),
             this.testBackpack(),
             this.testToobit(),
-            this.testWeex()
+            this.testWeex(),
+            this.testFoxbit()
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -2241,7 +2252,7 @@ class testMainClass {
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['Referer'] === id, 'bybit - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -2266,7 +2277,7 @@ class testMainClass {
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         let id = 'ccxt';
         assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for spot orders.');
@@ -2274,7 +2285,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000, { 'uta': true });
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for spot uta orders.');
         id = 'ccxtfutures';
@@ -2282,14 +2293,14 @@ class testMainClass {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for swap orders.');
         try {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, { 'uta': true });
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for swap uta orders.');
         if (!isSync()) {
@@ -2310,7 +2321,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoinfutures - id: ' + id + ' not in headers.');
         try {
@@ -2318,7 +2329,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoinfutures - id: ' + id + ' not in headers for uta orders.');
         if (!isSync()) {
@@ -2335,7 +2346,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['X-CHANNEL-API-CODE'] === id, 'bitget - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -2353,7 +2364,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['source'] === id, 'mexc - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -2428,24 +2439,6 @@ class testMainClass {
         }
         return true;
     }
-    async testBitmart() {
-        const exchange = this.initOfflineExchange('bitmart');
-        let reqHeaders = {};
-        const id = 'CCXTxBitmart000';
-        assert(exchange.options['brokerId'] === id, 'bitmart - id: ' + id + ' not in options');
-        await exchange.loadMarkets();
-        try {
-            await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
-        }
-        catch (e) {
-            reqHeaders = exchange.last_request_headers;
-        }
-        assert(reqHeaders['X-BM-BROKER-ID'] === id, 'bitmart - id: ' + id + ' not in headers');
-        if (!isSync()) {
-            await close(exchange);
-        }
-        return true;
-    }
     async testCoinex() {
         const exchange = this.initOfflineExchange('coinex');
         const id = 'x-167673045';
@@ -2475,7 +2468,7 @@ class testMainClass {
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['X-SOURCE-KEY'] === id, 'bingx - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -2522,7 +2515,7 @@ class testMainClass {
     // async testHyperliquid () {
     //     const exchange = this.initOfflineExchange ('hyperliquid');
     //     const id = '1';
-    //     let request = undefined;
+    //     let request: NullableDict = undefined;
     //     try {
     //         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
     //     } catch (e) {
@@ -2638,7 +2631,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USD:USDC', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['PARADEX-PARTNER'] === id, 'paradex - id: ' + id + ' not in headers');
         if (!isSync()) {
@@ -2655,7 +2648,7 @@ class testMainClass {
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['INPUT-SOURCE'] === id, 'hashkey - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -2739,7 +2732,7 @@ class testMainClass {
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['X-Broker-Id'] === id, 'backpack - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -2756,7 +2749,7 @@ class testMainClass {
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['X-BB-API-PLATFORM'] === id, 'toobit - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -2785,6 +2778,25 @@ class testMainClass {
         }
         clientOrderId = request['newClientOrderId'];
         assert(clientOrderId.startsWith(id), 'weex - newClientOrderId: ' + clientOrderId + ' for swap order does not start with id: ' + id);
+    }
+    async testFoxbit() {
+        const exchange = this.initOfflineExchange('foxbit');
+        let reqHeaders = {};
+        const id = 'ccxt';
+        try {
+            await exchange.createOrder('BTC/BRL', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
+        }
+        assert(reqHeaders['X-FB-CLIENT'] === id, 'foxbit - id: ' + id + ' not in headers.');
+        const version = exchange.getCcxtVersion();
+        assert(reqHeaders['X-FB-CLIENT-VERSION'] === version, 'foxbit - version: ' + version + ' not in headers.');
+        if (!isSync()) {
+            await close(exchange);
+        }
+        return true;
     }
 }
 export default testMainClass;

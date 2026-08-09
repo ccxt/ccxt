@@ -102,103 +102,277 @@ func (this *ToobitCore) Describe() any {
 		"api": map[string]any{
 			"common": map[string]any{
 				"get": map[string]any{
-					"api/v1/time":                         1,
-					"api/v1/ping":                         1,
-					"api/v1/exchangeInfo":                 1,
-					"quote/v1/depth":                      1,
-					"quote/v1/depth/merged":               1,
-					"quote/v1/trades":                     1,
-					"quote/v1/klines":                     1,
-					"quote/v1/index/klines":               1,
-					"quote/v1/indexPriceComponents":       1,
-					"quote/v1/markPrice/klines":           1,
-					"quote/v1/markPrice":                  10,
-					"quote/v1/index":                      1,
-					"quote/v1/ticker/24hr":                40,
-					"quote/v1/contract/ticker/24hr":       40,
-					"quote/v1/ticker/price":               1,
-					"quote/v1/contract/ticker/price":      1,
-					"quote/v1/ticker/bookTicker":          1,
-					"quote/v1/contract/ticker/bookTicker": 1,
-					"api/v1/futures/fundingRate":          1,
-					"api/v1/futures/historyFundingRate":   1,
-					"api/v1/futures/riskLimits":           1,
+					"api/v1/time": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/ping": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/exchangeInfo": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/depth": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/depth/merged": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/trades": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/klines": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/index/klines": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/indexPriceComponents": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/markPrice/klines": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/markPrice": map[string]any{
+						"cost": 10,
+					},
+					"quote/v1/index": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/ticker/24hr": map[string]any{
+						"cost": 40,
+					},
+					"quote/v1/contract/ticker/24hr": map[string]any{
+						"cost": 40,
+					},
+					"quote/v1/ticker/price": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/contract/ticker/price": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/ticker/bookTicker": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/contract/ticker/bookTicker": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/futures/fundingRate": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/futures/historyFundingRate": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/futures/riskLimits": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"api/v1/account":                        5,
-					"api/v1/account/checkApiKey":            1,
-					"api/v1/spot/order":                     Multiply(1, 1.67),
-					"api/v1/spot/openOrders":                Multiply(1, 1.67),
-					"api/v1/futures/openOrders":             Multiply(1, 1.67),
-					"api/v1/spot/tradeOrders":               Multiply(5, 1.67),
-					"api/v1/futures/historyOrders":          Multiply(5, 1.67),
-					"api/v1/account/trades":                 Multiply(5, 1.67),
-					"api/v1/account/balanceFlow":            5,
-					"api/v1/account/depositOrders":          5,
-					"api/v1/account/withdrawOrders":         5,
-					"api/v1/account/deposit/address":        1,
-					"api/v1/subAccount":                     5,
-					"api/v1/account/subAccount":             5,
-					"api/v1/subAccount/list":                5,
-					"api/v1/futures/accountLeverage":        1,
-					"api/v1/futures/order":                  Multiply(1, 1.67),
-					"api/v1/futures/positions":              Multiply(5, 1.67),
-					"api/v1/futures/historyPositions":       5,
-					"api/v1/futures/balance":                5,
-					"api/v1/futures/userTrades":             Multiply(5, 1.67),
-					"api/v1/futures/balanceFlow":            5,
-					"api/v1/futures/commissionRate":         5,
-					"api/v1/futures/todayPnl":               5,
-					"api/v1/account/download/detail":        10,
-					"api/v1/agent/inviteUserList":           1,
-					"api/v1/agent/commissionDataList":       1,
-					"api/v1/agent/commissionDataInfo":       1,
-					"api/v1/agent/inviteRelationCheck":      1,
-					"api/v1/agent/depositDetailList":        1,
-					"api/v1/agent/querySubAgentData":        1,
-					"api/v1/agent/spotOrdersList":           1,
-					"api/v1/agent/futuresOrdersList":        1,
-					"api/v1/agent/futuresPositionsList":     1,
-					"api/v1/agent/invite-commission-detail": 1,
-					"api/v1/agent/user/export":              1,
-					"api/v1/agent/export-list":              1,
-					"api/v1/agent/export-url":               1,
+					"api/v1/account": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/account/checkApiKey": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/spot/order": map[string]any{
+						"cost": Multiply(1, 1.67),
+					},
+					"api/v1/spot/openOrders": map[string]any{
+						"cost": Multiply(1, 1.67),
+					},
+					"api/v1/futures/openOrders": map[string]any{
+						"cost": Multiply(1, 1.67),
+					},
+					"api/v1/spot/tradeOrders": map[string]any{
+						"cost": Multiply(5, 1.67),
+					},
+					"api/v1/futures/historyOrders": map[string]any{
+						"cost": Multiply(5, 1.67),
+					},
+					"api/v1/account/trades": map[string]any{
+						"cost": Multiply(5, 1.67),
+					},
+					"api/v1/account/balanceFlow": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/account/depositOrders": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/account/withdrawOrders": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/account/deposit/address": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/subAccount": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/account/subAccount": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/subAccount/list": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/futures/accountLeverage": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/futures/order": map[string]any{
+						"cost": Multiply(1, 1.67),
+					},
+					"api/v1/futures/positions": map[string]any{
+						"cost": Multiply(5, 1.67),
+					},
+					"api/v1/futures/historyPositions": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/futures/balance": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/futures/userTrades": map[string]any{
+						"cost": Multiply(5, 1.67),
+					},
+					"api/v1/futures/balanceFlow": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/futures/commissionRate": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/futures/todayPnl": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/account/download/detail": map[string]any{
+						"cost": 10,
+					},
+					"api/v1/agent/inviteUserList": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/commissionDataList": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/commissionDataInfo": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/inviteRelationCheck": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/depositDetailList": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/querySubAgentData": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/spotOrdersList": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/futuresOrdersList": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/futuresPositionsList": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/invite-commission-detail": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/user/export": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/export-list": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/export-url": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"api/v1/spot/orderTest":                Multiply(1, 1.67),
-					"api/v1/spot/order":                    Multiply(1, 1.67),
-					"api/v1/futures/order":                 Multiply(1, 1.67),
-					"api/v1/spot/batchOrders":              Multiply(2, 1.67),
-					"api/v1/subAccount/transfer":           1,
-					"api/v1/account/withdraw":              1,
-					"api/v1/futures/marginType":            1,
-					"api/v1/futures/leverage":              1,
-					"api/v1/futures/batchOrders":           Multiply(2, 1.67),
-					"api/v1/futures/position/trading-stop": Multiply(3, 1.67),
-					"api/v1/futures/positionMargin":        1,
-					"api/v1/futures/order/update":          Multiply(2, 1.67),
-					"api/v1/futures/autoAddMargin":         1,
-					"api/v1/futures/flashClose":            1,
-					"api/v1/futures/reversePosition":       5,
-					"api/v1/account/download/apply":        1000,
-					"api/v1/userDataStream":                1,
-					"api/v1/listenKey":                     1,
+					"api/v1/spot/orderTest": map[string]any{
+						"cost": Multiply(1, 1.67),
+					},
+					"api/v1/spot/order": map[string]any{
+						"cost": Multiply(1, 1.67),
+					},
+					"api/v1/futures/order": map[string]any{
+						"cost": Multiply(1, 1.67),
+					},
+					"api/v1/spot/batchOrders": map[string]any{
+						"cost": Multiply(2, 1.67),
+					},
+					"api/v1/subAccount/transfer": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/account/withdraw": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/futures/marginType": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/futures/leverage": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/futures/batchOrders": map[string]any{
+						"cost": Multiply(2, 1.67),
+					},
+					"api/v1/futures/position/trading-stop": map[string]any{
+						"cost": Multiply(3, 1.67),
+					},
+					"api/v1/futures/positionMargin": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/futures/order/update": map[string]any{
+						"cost": Multiply(2, 1.67),
+					},
+					"api/v1/futures/autoAddMargin": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/futures/flashClose": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/futures/reversePosition": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/account/download/apply": map[string]any{
+						"cost": 1000,
+					},
+					"api/v1/userDataStream": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/listenKey": map[string]any{
+						"cost": 1,
+					},
 				},
 				"delete": map[string]any{
-					"api/v1/spot/order":               Multiply(1, 1.67),
-					"api/v1/futures/order":            Multiply(1, 1.67),
-					"api/v1/spot/openOrders":          Multiply(5, 1.67),
-					"api/v1/futures/batchOrders":      Multiply(3, 1.67),
-					"api/v1/spot/cancelOrderByIds":    Multiply(5, 1.67),
-					"api/v1/futures/cancelOrderByIds": Multiply(3, 1.67),
-					"api/v1/userDataStream":           1,
-					"api/v1/listenKey":                1,
+					"api/v1/spot/order": map[string]any{
+						"cost": Multiply(1, 1.67),
+					},
+					"api/v1/futures/order": map[string]any{
+						"cost": Multiply(1, 1.67),
+					},
+					"api/v1/spot/openOrders": map[string]any{
+						"cost": Multiply(5, 1.67),
+					},
+					"api/v1/futures/batchOrders": map[string]any{
+						"cost": Multiply(3, 1.67),
+					},
+					"api/v1/spot/cancelOrderByIds": map[string]any{
+						"cost": Multiply(5, 1.67),
+					},
+					"api/v1/futures/cancelOrderByIds": map[string]any{
+						"cost": Multiply(3, 1.67),
+					},
+					"api/v1/userDataStream": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/listenKey": map[string]any{
+						"cost": 1,
+					},
 				},
 				"put": map[string]any{
-					"api/v1/userDataStream": 1,
-					"api/v1/listenKey":      1,
+					"api/v1/userDataStream": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/listenKey": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -432,33 +606,33 @@ func (this *ToobitCore) Describe() any {
 				"swap": "FUTURES",
 			},
 			"networks": map[string]any{
-				"BTC":    "BTC",
-				"ERC20":  "ETH",
-				"ETH":    "ETH",
-				"BEP20":  "BSC",
-				"TRC20":  "TRX",
-				"SOL":    "SOL",
-				"MATIC":  "MATIC",
-				"ARBONE": "ARBITRUM",
-				"BASE":   "BASE",
-				"TON":    "TON",
-				"AVAXC":  "AVAXC",
-				"DOGE":   "DOGE",
-				"XRP":    "XRP",
-				"DOT":    "DOT",
-				"ADA":    "ADA",
-				"LTC":    "LTC",
-				"APT":    "APT",
-				"ATOM":   "ATOM",
-				"ALGO":   "ALGO",
-				"NEAR":   "NEAR",
-				"XLM":    "XLM",
-				"SUI":    "SUI",
-				"ETC":    "ETC",
-				"EOS":    "EOS",
-				"WAVES":  "WAVES",
-				"ICP":    "ICP",
-				"ONE":    "ONE",
+				"BTC":      "BTC",
+				"ERC20":    "ETH",
+				"ETH":      "ETH",
+				"BEP20":    "BSC",
+				"TRC20":    "TRX",
+				"SOL":      "SOL",
+				"MATIC":    "MATIC",
+				"ARBITRUM": "ARBITRUM",
+				"BASE":     "BASE",
+				"TON":      "TON",
+				"AVAXC":    "AVAXC",
+				"DOGE":     "DOGE",
+				"XRP":      "XRP",
+				"DOT":      "DOT",
+				"ADA":      "ADA",
+				"LTC":      "LTC",
+				"APT":      "APT",
+				"ATOM":     "ATOM",
+				"ALGO":     "ALGO",
+				"NEAR":     "NEAR",
+				"XLM":      "XLM",
+				"SUI":      "SUI",
+				"ETC":      "ETC",
+				"EOS":      "EOS",
+				"WAVES":    "WAVES",
+				"ICP":      "ICP",
+				"ONE":      "ONE",
 			},
 			"networksById": map[string]any{
 				"ETH":   "ERC20",
@@ -776,27 +950,29 @@ func (this *ToobitCore) ParseCurrency(rawCurrency any) any {
 		var rawNetwork any = GetValue(rawNetworks, j)
 		var networkId any = this.SafeString(rawNetwork, "chainType")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
-		AddElementToObject(networks, networkCode, map[string]any{
-			"id":        networkId,
-			"network":   networkCode,
-			"margin":    nil,
-			"deposit":   this.SafeBool(rawNetwork, "allowDeposit"),
-			"withdraw":  this.SafeBool(rawNetwork, "allowWithdraw"),
-			"active":    nil,
-			"fee":       this.SafeNumber(rawNetwork, "withdrawFee"),
-			"precision": nil,
-			"limits": map[string]any{
-				"deposit": map[string]any{
-					"min": this.SafeNumber(rawNetwork, "minDepositQuantity"),
-					"max": nil,
+		if IsTrue(!IsEqual(networkCode, nil)) {
+			AddElementToObject(networks, networkCode, map[string]any{
+				"id":        networkId,
+				"network":   networkCode,
+				"margin":    nil,
+				"deposit":   this.SafeBool(rawNetwork, "allowDeposit"),
+				"withdraw":  this.SafeBool(rawNetwork, "allowWithdraw"),
+				"active":    nil,
+				"fee":       this.SafeNumber(rawNetwork, "withdrawFee"),
+				"precision": nil,
+				"limits": map[string]any{
+					"deposit": map[string]any{
+						"min": this.SafeNumber(rawNetwork, "minDepositQuantity"),
+						"max": nil,
+					},
+					"withdraw": map[string]any{
+						"min": this.SafeNumber(rawNetwork, "minWithdrawQuantity"),
+						"max": this.SafeNumber(rawNetwork, "maxWithdrawQuantity"),
+					},
 				},
-				"withdraw": map[string]any{
-					"min": this.SafeNumber(rawNetwork, "minWithdrawQuantity"),
-					"max": this.SafeNumber(rawNetwork, "maxWithdrawQuantity"),
-				},
-			},
-			"info": rawNetwork,
-		})
+				"info": rawNetwork,
+			})
+		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
@@ -1076,7 +1252,7 @@ func (this *ToobitCore) ParseMarket(market any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *ToobitCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1089,8 +1265,8 @@ func (this *ToobitCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes103912 := (<-this.LoadMarkets())
-			PanicOnError(retRes103912)
+			retRes104112 := (<-this.LoadMarkets())
+			PanicOnError(retRes104112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1163,8 +1339,8 @@ func (this *ToobitCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes109412 := (<-this.LoadMarkets())
-			PanicOnError(retRes109412)
+			retRes109612 := (<-this.LoadMarkets())
+			PanicOnError(retRes109612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1325,8 +1501,8 @@ func (this *ToobitCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes123412 := (<-this.LoadMarkets())
-			PanicOnError(retRes123412)
+			retRes123612 := (<-this.LoadMarkets())
+			PanicOnError(retRes123612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1362,8 +1538,12 @@ func (this *ToobitCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 			response = (<-this.CommonGetQuoteV1Klines(this.Extend(request, params)))
 			PanicOnError(response)
 		}
+		var candles any = []any{}
+		if IsTrue(IsArray(response)) {
+			candles = response
+		}
 
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
 		return nil
 
 	}()
@@ -1396,8 +1576,8 @@ func (this *ToobitCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes134912 := (<-this.LoadMarkets())
-			PanicOnError(retRes134912)
+			retRes135512 := (<-this.LoadMarkets())
+			PanicOnError(retRes135512)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var typeVar any = nil
@@ -1501,8 +1681,8 @@ func (this *ToobitCore) FetchLastPrices(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes143212 := (<-this.LoadMarkets())
-			PanicOnError(retRes143212)
+			retRes143812 := (<-this.LoadMarkets())
+			PanicOnError(retRes143812)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
@@ -1567,8 +1747,8 @@ func (this *ToobitCore) FetchBidsAsks(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes148012 := (<-this.LoadMarkets())
-			PanicOnError(retRes148012)
+			retRes148612 := (<-this.LoadMarkets())
+			PanicOnError(retRes148612)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
@@ -1633,7 +1813,7 @@ func (this *ToobitCore) ParseBidAskCustom(ticker any) any {
  * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#funding-rate
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
+ * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
 func (this *ToobitCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1646,8 +1826,8 @@ func (this *ToobitCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes154012 := (<-this.LoadMarkets())
-			PanicOnError(retRes154012)
+			retRes154612 := (<-this.LoadMarkets())
+			PanicOnError(retRes154612)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
@@ -1733,8 +1913,8 @@ func (this *ToobitCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes160512 := (<-this.LoadMarkets())
-			PanicOnError(retRes160512)
+			retRes161112 := (<-this.LoadMarkets())
+			PanicOnError(retRes161112)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -1742,9 +1922,9 @@ func (this *ToobitCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any 
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes161019 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-			PanicOnError(retRes161019)
-			ch <- retRes161019
+			retRes161619 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+			PanicOnError(retRes161619)
+			ch <- retRes161619
 			return nil
 		}
 		if IsTrue(IsEqual(symbol, nil)) {
@@ -1808,8 +1988,8 @@ func (this *ToobitCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes165812 := (<-this.LoadMarkets())
-			PanicOnError(retRes165812)
+			retRes166412 := (<-this.LoadMarkets())
+			PanicOnError(retRes166412)
 		}
 		var response any = nil
 		var marketType any = nil
@@ -1846,7 +2026,9 @@ func (this *ToobitCore) ParseBalance(response any) any {
 		AddElementToObject(account, "free", this.SafeString2(balance, "free", "availableBalance"))
 		AddElementToObject(account, "total", this.SafeString2(balance, "total", "balance"))
 		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -1876,8 +2058,8 @@ func (this *ToobitCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes173312 := (<-this.LoadMarkets())
-			PanicOnError(retRes173312)
+			retRes174112 := (<-this.LoadMarkets())
+			PanicOnError(retRes174112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
@@ -1932,6 +2114,9 @@ func (this *ToobitCore) CreateOrderRequest(symbol any, typeVar any, side any, am
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
+	if IsTrue(IsEqual(typeVar, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
+	}
 	var market any = this.Market(symbol)
 	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
@@ -1973,6 +2158,12 @@ func (this *ToobitCore) CreateContractOrderRequest(symbol any, typeVar any, side
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
+	if IsTrue(IsEqual(typeVar, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
+	}
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
+	}
 	var market any = this.Market(symbol)
 	var request any = map[string]any{
 		"symbol":   GetValue(market, "id"),
@@ -2256,8 +2447,8 @@ func (this *ToobitCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes205812 := (<-this.LoadMarkets())
-			PanicOnError(retRes205812)
+			retRes207512 := (<-this.LoadMarkets())
+			PanicOnError(retRes207512)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2314,8 +2505,8 @@ func (this *ToobitCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes210312 := (<-this.LoadMarkets())
-			PanicOnError(retRes210312)
+			retRes212012 := (<-this.LoadMarkets())
+			PanicOnError(retRes212012)
 		}
 		var idsString any = Join(ids, ",")
 		var request any = map[string]any{
@@ -2376,8 +2567,8 @@ func (this *ToobitCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes216312 := (<-this.LoadMarkets())
-			PanicOnError(retRes216312)
+			retRes218012 := (<-this.LoadMarkets())
+			PanicOnError(retRes218012)
 		}
 		var request any = map[string]any{
 			"orderId": id,
@@ -2456,8 +2647,8 @@ func (this *ToobitCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes222012 := (<-this.LoadMarkets())
-			PanicOnError(retRes222012)
+			retRes223712 := (<-this.LoadMarkets())
+			PanicOnError(retRes223712)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2469,7 +2660,7 @@ func (this *ToobitCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 			AddElementToObject(request, "limit", limit)
 		}
 		var marketType any = nil
-		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOrders", market, params)
+		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
 		var response any = []any{}
@@ -2516,8 +2707,8 @@ func (this *ToobitCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes228212 := (<-this.LoadMarkets())
-			PanicOnError(retRes228212)
+			retRes229912 := (<-this.LoadMarkets())
+			PanicOnError(retRes229912)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -2581,8 +2772,8 @@ func (this *ToobitCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes234912 := (<-this.LoadMarkets())
-			PanicOnError(retRes234912)
+			retRes236612 := (<-this.LoadMarkets())
+			PanicOnError(retRes236612)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2609,9 +2800,13 @@ func (this *ToobitCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 			PanicOnError(response)
 		}
 		var ordersList any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
+		var responseList any = []any{}
+		if IsTrue(IsArray(response)) {
+			responseList = response
+		}
+		for i := 0; IsLessThan(i, GetArrayLength(responseList)); i++ {
 			AppendToArray(&ordersList, map[string]any{
-				"result": GetValue(response, i),
+				"result": GetValue(responseList, i),
 			})
 		}
 
@@ -2653,8 +2848,8 @@ func (this *ToobitCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes242012 := (<-this.LoadMarkets())
-			PanicOnError(retRes242012)
+			retRes244112 := (<-this.LoadMarkets())
+			PanicOnError(retRes244112)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -2711,8 +2906,8 @@ func (this *ToobitCore) Transfer(code any, amount any, fromAccount any, toAccoun
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes250212 := (<-this.LoadMarkets())
-			PanicOnError(retRes250212)
+			retRes252312 := (<-this.LoadMarkets())
+			PanicOnError(retRes252312)
 		}
 		var currency any = this.Currency(code)
 		var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
@@ -2790,8 +2985,8 @@ func (this *ToobitCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes255912 := (<-this.LoadMarkets())
-			PanicOnError(retRes255912)
+			retRes258012 := (<-this.LoadMarkets())
+			PanicOnError(retRes258012)
 		}
 		var currency any = nil
 		var request any = map[string]any{}
@@ -2809,7 +3004,7 @@ func (this *ToobitCore) FetchLedger(optionalArgs ...any) <-chan any {
 			AddElementToObject(request, "limit", limit)
 		}
 		var marketType any = nil
-		marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrders", nil, params)
+		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchLedger", nil, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
 		var response any = nil
@@ -2903,8 +3098,8 @@ func (this *ToobitCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes265112 := (<-this.LoadMarkets())
-			PanicOnError(retRes265112)
+			retRes267212 := (<-this.LoadMarkets())
+			PanicOnError(retRes267212)
 		}
 		var response any = nil
 		var marketType any = nil
@@ -2990,9 +3185,9 @@ func (this *ToobitCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes271215 := (<-this.FetchDepositsOrWithdrawalsHelper("deposits", code, since, limit, params))
-		PanicOnError(retRes271215)
-		ch <- retRes271215
+		retRes273315 := (<-this.FetchDepositsOrWithdrawalsHelper("deposits", code, since, limit, params))
+		PanicOnError(retRes273315)
+		ch <- retRes273315
 		return nil
 
 	}()
@@ -3024,9 +3219,9 @@ func (this *ToobitCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes272715 := (<-this.FetchDepositsOrWithdrawalsHelper("withdrawals", code, since, limit, params))
-		PanicOnError(retRes272715)
-		ch <- retRes272715
+		retRes274815 := (<-this.FetchDepositsOrWithdrawalsHelper("withdrawals", code, since, limit, params))
+		PanicOnError(retRes274815)
+		ch <- retRes274815
 		return nil
 
 	}()
@@ -3041,8 +3236,8 @@ func (this *ToobitCore) FetchDepositsOrWithdrawalsHelper(typeVar any, code any, 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes273212 := (<-this.LoadMarkets())
-			PanicOnError(retRes273212)
+			retRes275312 := (<-this.LoadMarkets())
+			PanicOnError(retRes275312)
 		}
 		var currency any = nil
 		var request any = map[string]any{}
@@ -3191,8 +3386,8 @@ func (this *ToobitCore) FetchDepositAddress(code any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes291112 := (<-this.LoadMarkets())
-			PanicOnError(retRes291112)
+			retRes293212 := (<-this.LoadMarkets())
+			PanicOnError(retRes293212)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -3272,8 +3467,8 @@ func (this *ToobitCore) Withdraw(code any, amount any, address any, optionalArgs
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes297012 := (<-this.LoadMarkets())
-			PanicOnError(retRes297012)
+			retRes299112 := (<-this.LoadMarkets())
+			PanicOnError(retRes299112)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -3330,8 +3525,8 @@ func (this *ToobitCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes301112 := (<-this.LoadMarkets())
-			PanicOnError(retRes301112)
+			retRes303212 := (<-this.LoadMarkets())
+			PanicOnError(retRes303212)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(!IsEqual(GetValue(market, "type"), "swap")) {
@@ -3380,8 +3575,8 @@ func (this *ToobitCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes304412 := (<-this.LoadMarkets())
-			PanicOnError(retRes304412)
+			retRes306512 := (<-this.LoadMarkets())
+			PanicOnError(retRes306512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -3420,8 +3615,8 @@ func (this *ToobitCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes306912 := (<-this.LoadMarkets())
-			PanicOnError(retRes306912)
+			retRes309012 := (<-this.LoadMarkets())
+			PanicOnError(retRes309012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -3483,8 +3678,8 @@ func (this *ToobitCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes311412 := (<-this.LoadMarkets())
-			PanicOnError(retRes311412)
+			retRes313512 := (<-this.LoadMarkets())
+			PanicOnError(retRes313512)
 		}
 		var request any = map[string]any{}
 		var market any = nil

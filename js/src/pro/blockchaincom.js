@@ -113,7 +113,9 @@ export default class blockchaincom extends blockchaincomRest {
             const account = this.account();
             account['free'] = this.safeString(entry, 'available');
             account['total'] = this.safeString(entry, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         const messageHash = 'balance';
         this.balance = this.safeBalance(result);
@@ -183,7 +185,7 @@ export default class blockchaincom extends blockchaincomRest {
             const symbol = this.safeSymbol(marketId, undefined, '-');
             const messageHash = 'ohlcv:' + symbol;
             const request = this.safeValue(client.subscriptions, messageHash);
-            const timeframeId = this.safeNumber(request, 'granularity');
+            const timeframeId = this.safeString(request, 'granularity');
             const timeframe = this.findTimeframe(timeframeId);
             const ohlcv = this.safeValue(message, 'price', []);
             this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
@@ -519,10 +521,11 @@ export default class blockchaincom extends blockchaincomRest {
         //
         const event = this.safeString(message, 'event');
         const messageHash = 'orders';
-        const cachedOrders = this.orders;
+        let cachedOrders = this.orders;
         if (cachedOrders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById(limit);
+            cachedOrders = new ArrayCacheBySymbolById(limit);
+            this.orders = cachedOrders;
         }
         if (event === 'subscribed') {
             return;
@@ -635,7 +638,7 @@ export default class blockchaincom extends blockchaincomRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {

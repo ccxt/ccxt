@@ -172,51 +172,51 @@ class bitrue extends bitrue$1["default"] {
                     'kline': {
                         'public': {
                             'get': {
-                                'public.json': 0.24,
-                                'public{currency}.json': 0.24,
+                                'public.json': { 'cost': 0.24 },
+                                'public{currency}.json': { 'cost': 0.24 },
                             },
                         },
                     },
                     'v1': {
                         'public': {
                             'get': {
-                                'ping': 0.24,
-                                'time': 0.24,
-                                'exchangeInfo': 0.24,
+                                'ping': { 'cost': 0.24 },
+                                'time': { 'cost': 0.24 },
+                                'exchangeInfo': { 'cost': 0.24 },
                                 'depth': { 'cost': 1, 'byLimit': [[100, 0.24], [500, 1.2], [1000, 2.4]] },
-                                'trades': 0.24,
-                                'historicalTrades': 1.2,
-                                'aggTrades': 0.24,
+                                'trades': { 'cost': 0.24 },
+                                'historicalTrades': { 'cost': 1.2 },
+                                'aggTrades': { 'cost': 0.24 },
                                 'ticker/24hr': { 'cost': 0.24, 'noSymbol': 9.6 },
-                                'ticker/price': 0.24,
-                                'ticker/bookTicker': 0.24,
-                                'market/kline': 0.24,
+                                'ticker/price': { 'cost': 0.24 },
+                                'ticker/bookTicker': { 'cost': 0.24 },
+                                'market/kline': { 'cost': 0.24 },
                             },
                         },
                         'private': {
                             'get': {
-                                'order': 5,
-                                'openOrders': 5,
-                                'allOrders': 25,
-                                'account': 25,
-                                'myTrades': 25,
-                                'etf/net-value/{symbol}': 0.24,
-                                'withdraw/history': 120,
-                                'deposit/history': 120,
+                                'order': { 'cost': 5 },
+                                'openOrders': { 'cost': 5 },
+                                'allOrders': { 'cost': 25 },
+                                'account': { 'cost': 25 },
+                                'myTrades': { 'cost': 25 },
+                                'etf/net-value/{symbol}': { 'cost': 0.24 },
+                                'withdraw/history': { 'cost': 120 },
+                                'deposit/history': { 'cost': 120 },
                             },
                             'post': {
-                                'order': 5,
-                                'withdraw/commit': 120,
+                                'order': { 'cost': 5 },
+                                'withdraw/commit': { 'cost': 120 },
                             },
                             'delete': {
-                                'order': 5,
+                                'order': { 'cost': 5 },
                             },
                         },
                     },
                     'v2': {
                         'private': {
                             'get': {
-                                'myTrades': 1.2,
+                                'myTrades': { 'cost': 1.2 },
                             },
                         },
                     },
@@ -225,34 +225,34 @@ class bitrue extends bitrue$1["default"] {
                     'v1': {
                         'public': {
                             'get': {
-                                'ping': 0.24,
-                                'time': 0.24,
-                                'contracts': 0.24,
-                                'depth': 0.24,
-                                'ticker': 0.24,
-                                'klines': 0.24,
+                                'ping': { 'cost': 0.24 },
+                                'time': { 'cost': 0.24 },
+                                'contracts': { 'cost': 0.24 },
+                                'depth': { 'cost': 0.24 },
+                                'ticker': { 'cost': 0.24 },
+                                'klines': { 'cost': 0.24 },
                             },
                         },
                     },
                     'v2': {
                         'private': {
                             'get': {
-                                'myTrades': 5,
-                                'openOrders': 5,
-                                'order': 5,
-                                'account': 5,
-                                'leverageBracket': 5,
-                                'commissionRate': 5,
-                                'futures_transfer_history': 5,
-                                'forceOrdersHistory': 5,
+                                'myTrades': { 'cost': 5 },
+                                'openOrders': { 'cost': 5 },
+                                'order': { 'cost': 5 },
+                                'account': { 'cost': 5 },
+                                'leverageBracket': { 'cost': 5 },
+                                'commissionRate': { 'cost': 5 },
+                                'futures_transfer_history': { 'cost': 5 },
+                                'forceOrdersHistory': { 'cost': 5 },
                             },
                             'post': {
-                                'positionMargin': 5,
-                                'level_edit': 5,
-                                'cancel': 5,
-                                'order': 25,
-                                'allOpenOrders': 5,
-                                'futures_transfer': 5,
+                                'positionMargin': { 'cost': 5 },
+                                'level_edit': { 'cost': 5 },
+                                'cancel': { 'cost': 5 },
+                                'order': { 'cost': 25 },
+                                'allOpenOrders': { 'cost': 5 },
+                                'futures_transfer': { 'cost': 5 },
                             },
                         },
                     },
@@ -261,34 +261,34 @@ class bitrue extends bitrue$1["default"] {
                     'v1': {
                         'public': {
                             'get': {
-                                'ping': 0.24,
-                                'time': 0.24,
-                                'contracts': 0.24,
-                                'depth': 0.24,
-                                'ticker': 0.24,
-                                'klines': 0.24,
+                                'ping': { 'cost': 0.24 },
+                                'time': { 'cost': 0.24 },
+                                'contracts': { 'cost': 0.24 },
+                                'depth': { 'cost': 0.24 },
+                                'ticker': { 'cost': 0.24 },
+                                'klines': { 'cost': 0.24 },
                             },
                         },
                     },
                     'v2': {
                         'private': {
                             'get': {
-                                'myTrades': 5,
-                                'openOrders': 5,
-                                'order': 5,
-                                'account': 5,
-                                'leverageBracket': 5,
-                                'commissionRate': 5,
-                                'futures_transfer_history': 5,
-                                'forceOrdersHistory': 5,
+                                'myTrades': { 'cost': 5 },
+                                'openOrders': { 'cost': 5 },
+                                'order': { 'cost': 5 },
+                                'account': { 'cost': 5 },
+                                'leverageBracket': { 'cost': 5 },
+                                'commissionRate': { 'cost': 5 },
+                                'futures_transfer_history': { 'cost': 5 },
+                                'forceOrdersHistory': { 'cost': 5 },
                             },
                             'post': {
-                                'positionMargin': 5,
-                                'level_edit': 5,
-                                'cancel': 5,
-                                'order': 5,
-                                'allOpenOrders': 5,
-                                'futures_transfer': 5,
+                                'positionMargin': { 'cost': 5 },
+                                'level_edit': { 'cost': 5 },
+                                'cancel': { 'cost': 5 },
+                                'order': { 'cost': 5 },
+                                'allOpenOrders': { 'cost': 5 },
+                                'futures_transfer': { 'cost': 5 },
                             },
                         },
                     },
@@ -385,8 +385,8 @@ class bitrue extends bitrue$1["default"] {
                 'fetchMyTradesMethod': 'v2PrivateGetMyTrades', // spotV1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'currencyToPrecisionRoundingMode': number.TRUNCATE,
-                'recvWindow': 5 * 1000, // 5 sec, binance default
-                'timeDifference': 0, // the difference between system clock and Binance clock
+                'recvWindow': 5 * 1000, // 5 sec, the exchange default
+                'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'parseOrderToPrecision': false, // force amounts and costs in parseOrder to precision
                 'newOrderRespType': {
@@ -778,22 +778,24 @@ class bitrue extends bitrue$1["default"] {
             const entry = networkDetails[j];
             const networkId = this.safeString(entry, 'chain');
             const network = this.networkIdToCode(networkId, code);
-            networks[network] = {
-                'info': entry,
-                'id': networkId,
-                'network': network,
-                'deposit': this.safeBool(entry, 'enableDeposit'),
-                'withdraw': this.safeBool(entry, 'enableWithdraw'),
-                'active': undefined,
-                'fee': this.safeNumber(entry, 'withdrawFee'),
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(entry, 'minWithdraw'),
-                        'max': this.safeNumber(entry, 'maxWithdraw'),
+            if (network !== undefined) {
+                networks[network] = {
+                    'info': entry,
+                    'id': networkId,
+                    'network': network,
+                    'deposit': this.safeBool(entry, 'enableDeposit'),
+                    'withdraw': this.safeBool(entry, 'enableWithdraw'),
+                    'active': undefined,
+                    'fee': this.safeNumber(entry, 'withdrawFee'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(entry, 'minWithdraw'),
+                            'max': this.safeNumber(entry, 'maxWithdraw'),
+                        },
                     },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -823,7 +825,7 @@ class bitrue extends bitrue$1["default"] {
      * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
      * @see https://www.bitrue.com/api-docs#current-open-contract
      * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
@@ -986,7 +988,7 @@ class bitrue extends bitrue$1["default"] {
             minCost = this.safeNumber(market, 'minOrderMoney');
         }
         const isSpot = (type === 'spot');
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'lowercaseId': lowercaseId,
             'symbol': symbol,
@@ -1035,7 +1037,7 @@ class bitrue extends bitrue$1["default"] {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     parseBalance(response) {
         //
@@ -1096,7 +1098,9 @@ class bitrue extends bitrue$1["default"] {
             const account = this.account();
             account['free'] = this.safeString2(balance, 'free', 'accountNormal');
             account['used'] = this.safeString2(balance, 'locked', 'accountLock');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601(timestamp);
@@ -1227,7 +1231,7 @@ class bitrue extends bitrue$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1662,7 +1666,7 @@ class bitrue extends bitrue$1["default"] {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        let response = undefined;
+        let response = [];
         let data = [];
         const request = {};
         let type = undefined;
@@ -1674,7 +1678,7 @@ class bitrue extends bitrue$1["default"] {
             }
             else if (market['spot']) {
                 response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
-                data = response;
+                data = this.toArray(response);
             }
             else {
                 throw new errors.NotSupported(this.id + ' fetchTickers only support spot & swap markets');
@@ -1686,7 +1690,7 @@ class bitrue extends bitrue$1["default"] {
                 throw new errors.NotSupported(this.id + ' fetchTickers only support spot when symbols are not proved');
             }
             response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
-            data = response;
+            data = this.toArray(response);
         }
         //
         // spot
@@ -1732,7 +1736,13 @@ class bitrue extends bitrue$1["default"] {
         const tickers = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.safeDict(data, i, {});
-            const market = this.safeMarket(this.safeString(ticker, 'symbol'));
+            // skip entries without a symbol: an undefined market id would become a null
+            // dictionary key here, which crashes fetchTickers in the C# build
+            const marketId = this.safeString(ticker, 'symbol');
+            if (marketId === undefined) {
+                continue;
+            }
+            const market = this.safeMarket(marketId);
             tickers[market['id']] = ticker;
         }
         return this.parseTickers(tickers, symbols);
@@ -1972,7 +1982,7 @@ class bitrue extends bitrue$1["default"] {
         const amount = this.safeString(order, 'origQty');
         // - Spot/Margin market: cummulativeQuoteQty
         // - Futures market: cumQuote.
-        //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
+        //   Note this is not the actual cost, since the exchange uses leverage to calculate margins.
         const cost = this.safeString2(order, 'cummulativeQuoteQty', 'cumQuote');
         const id = this.safeString(order, 'orderId');
         let type = this.safeStringLower(order, 'type');
@@ -2503,7 +2513,7 @@ class bitrue extends bitrue$1["default"] {
      * @description cancel all open orders in a market
      * @see https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
      * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
-     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
@@ -2998,10 +3008,12 @@ class bitrue extends bitrue$1["default"] {
                 const networkId = this.safeString(chainDetail, 'chain');
                 const currencyCode = this.safeString(currency, 'code');
                 const networkCode = this.networkIdToCode(networkId, currencyCode);
-                result['networks'][networkCode] = {
-                    'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': this.safeNumber(chainDetail, 'withdrawFee'), 'percentage': false },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'deposit': { 'fee': undefined, 'percentage': undefined },
+                        'withdraw': { 'fee': this.safeNumber(chainDetail, 'withdrawFee'), 'percentage': false },
+                    };
+                }
                 if (chainDetailLength === 1) {
                     result['withdraw']['fee'] = this.safeNumber(chainDetail, 'withdrawFee');
                     result['withdraw']['percentage'] = false;
@@ -3346,7 +3358,7 @@ class bitrue extends bitrue$1["default"] {
             throw new errors.DDoSProtection(this.id + ' ' + code.toString() + ' ' + reason + ' ' + body);
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
-        // following block cointains legacy checks against message patterns in "msg" property
+        // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if (code >= 400) {
             if (body.indexOf('Price * QTY is zero or less') >= 0) {
@@ -3415,7 +3427,7 @@ class bitrue extends bitrue$1["default"] {
         }
         else if (('byLimit' in config) && ('limit' in params)) {
             const limit = params['limit'];
-            const byLimit = config['byLimit'];
+            const byLimit = this.safeList(config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 if (limit <= entry[0]) {

@@ -41,7 +41,7 @@ export default class kalshi extends Exchange {
      * @returns {object} the outcome cache
      */
     fetchOutcomes(outcomeSymbols: string[]): Promise<any>;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     calculateFee(symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker?: string, params?: {}): {
         type: string;
         currency: string;
@@ -78,7 +78,7 @@ export default class kalshi extends Exchange {
      * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
      */
     fetchOpenInterest(outcome: string, params?: {}): Promise<PredictionOpenInterest>;
-    parsePredictionOpenInterest(interest: any, market?: Market): PredictionOpenInterest;
+    parsePredictionOpenInterest(interest: Dict, market?: Market): PredictionOpenInterest;
     /**
      * @ignore
      * @method

@@ -168,7 +168,7 @@ coinsph.fetchTicker (symbol, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.coins.ph/rest-api/#order-book  
 
@@ -339,7 +339,7 @@ fetches information on an order made by the user
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>int</code>, <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by coinsph fetchOrder () |
+| symbol | <code>string</code> | Yes | not used by fetchOrder () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -407,7 +407,7 @@ cancels an open order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by coinsph cancelOrder () |
+| symbol | <code>string</code> | Yes | not used by cancelOrder () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -492,7 +492,7 @@ make a withdrawal to coins_ph account
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
-| address | <code>string</code> | Yes | not used by coinsph withdraw () |
+| address | <code>string</code> | Yes | not used by withdraw () |
 | tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 

@@ -385,7 +385,7 @@ gate.fetchFundingHistory (symbol, since?, limit?, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -950,6 +950,7 @@ fetches information on multiple closed orders made by the user
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used |
 | params.historical | <code>boolean</code> | No | *swap only* true for using historical endpoint |
 | params.unifiedAccount | <code>bool</code> | No | set to true for fetching unified account orders |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
@@ -1061,13 +1062,13 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.unifiedAccount | <code>bool</code> | No | set to true for canceling unified account orders |
 
 
 ```javascript
-gate.cancelAllOrders (symbol, params?)
+gate.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -1648,7 +1649,7 @@ closes open positions for a market
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | Unified CCXT market symbol |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
-| params | <code>object</code> | No | extra parameters specific to the okx api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -1767,7 +1768,7 @@ fetches historical positions
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified conract symbols, must all have the same settle currency and the same market type |
 | since | <code>int</code> | No | the earliest time in ms to fetch positions for |
 | limit | <code>int</code> | No | the maximum amount of records to fetch, default=1000 |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch positions for EXCHANGE SPECIFIC PARAMETERS |
 | params.offset | <code>int</code> | No | list offset, starting from 0 |
 | params.side | <code>string</code> | No | long or short |
@@ -2035,7 +2036,7 @@ gate.fetchOrdersWs (status, symbol, since?, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -2391,6 +2392,8 @@ watches information on multiple orders made by the user
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | spot, margin, swap, future, or option. Required if listening to all symbols. |
 | params.isInverse | <code>boolean</code> | No | if future, listen to inverse or linear contracts |
+| params.trigger | <code>boolean</code> | No | set to true to watch trigger orders, spot.priceorders and futures.autoorders channels, see https://github.com/ccxt/ccxt/issues/27202 |
+| params.stop | <code>boolean</code> | No | alias of params.trigger |
 
 
 ```javascript

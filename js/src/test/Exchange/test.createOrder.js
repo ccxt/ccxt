@@ -253,6 +253,9 @@ function tcoGetMinimumAmountForLimitPrice(exchange, market, price, predefinedAmo
 }
 async function tcoTryCancelOrder(exchange, symbol, order, skippedProperties) {
     const orderFetched = await testSharedMethods.fetchOrder(exchange, symbol, order['id'], skippedProperties);
+    if (orderFetched === undefined) {
+        return true;
+    }
     const needsCancel = exchange.inArray(orderFetched['status'], ['open', 'pending', undefined]);
     // if it was not reported as closed/filled, then try to cancel it
     if (needsCancel) {

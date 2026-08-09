@@ -183,7 +183,7 @@ export default class lighter extends lighterRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -355,7 +355,7 @@ export default class lighter extends lighterRest {
         if (symbols !== undefined) {
             symbolsLength = symbols.length;
         }
-        if (symbolsLength === 0) {
+        if ((symbols === undefined) || (symbolsLength === 0)) {
             messageHashes.push(this.getMessageHash('ticker'));
         }
         else {
@@ -845,6 +845,9 @@ export default class lighter extends lighterRest {
         const price = this.safeString(liquidation, 'price');
         const baseValue = Precise.stringMul(contracts, contractSize);
         const quoteValue = Precise.stringMul(baseValue, price);
+        if (market === undefined) {
+            return undefined;
+        }
         return this.safeLiquidation({
             'info': liquidation,
             'symbol': market['symbol'],
@@ -1039,7 +1042,9 @@ export default class lighter extends lighterRest {
                 const account = this.account();
                 account['used'] = this.safeString(asset, 'locked_balance');
                 account['total'] = this.safeString(asset, 'balance');
-                balance[code] = account;
+                if (code !== undefined) {
+                    balance[code] = account;
+                }
             }
         }
         else {

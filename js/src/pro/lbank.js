@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import lbankRest from '../lbank.js';
-import { ExchangeError } from '../base/errors.js';
+import { ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class lbank extends lbankRest {
@@ -60,6 +60,13 @@ export default class lbank extends lbankRest {
         this.unlockId();
         return newValue;
     }
+    checkContractMarket(market, methodName) {
+        // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
+        // see https://github.com/ccxt/ccxt/issues/26864
+        if ((market !== undefined) && market['contract']) {
+            throw new NotSupported(this.id + ' ' + methodName + '() does not support ' + market['type'] + ' markets yet');
+        }
+    }
     /**
      * @method
      * @name lbank#fetchOHLCVWs
@@ -77,6 +84,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'fetchOHLCVWs');
         const url = this.urls['api']['ws'];
         const watchOHLCVOptions = this.safeValue(this.options, 'watchOHLCV', {});
         const timeframes = this.safeValue(watchOHLCVOptions, 'timeframes', {});
@@ -115,6 +123,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'watchOHLCV');
         const watchOHLCVOptions = this.safeValue(this.options, 'watchOHLCV', {});
         const timeframes = this.safeValue(watchOHLCVOptions, 'timeframes', {});
         const timeframeId = this.safeString(timeframes, timeframe, timeframe);
@@ -244,7 +253,7 @@ export default class lbank extends lbankRest {
      * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the cex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickerWs(symbol, params = {}) {
@@ -252,6 +261,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'fetchTickerWs');
         const url = this.urls['api']['ws'];
         const messageHash = 'fetchTicker:' + market['symbol'];
         const message = {
@@ -269,7 +279,7 @@ export default class lbank extends lbankRest {
      * @see https://www.lbank.com/en-US/docs/index.html#market
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} params extra parameters specific to the lbank api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
@@ -277,6 +287,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'watchTicker');
         const url = this.urls['api']['ws'];
         const messageHash = 'ticker:' + market['symbol'];
         const message = {
@@ -384,6 +395,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'fetchTradesWs');
         const url = this.urls['api']['ws'];
         const messageHash = 'fetchTrades:' + market['symbol'];
         if (limit === undefined) {
@@ -415,6 +427,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'watchTrades');
         const url = this.urls['api']['ws'];
         const messageHash = 'trades:' + market['symbol'];
         const message = {
@@ -527,7 +540,7 @@ export default class lbank extends lbankRest {
      * @param {string} [symbol] unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} params extra parameters specific to the lbank api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -584,6 +597,9 @@ export default class lbank extends lbankRest {
             myOrders = new ArrayCacheBySymbolById(limit);
         }
         const order = this.parseWsOrder(message);
+        if (myOrders === undefined) {
+            return;
+        }
         myOrders.append(order);
         this.orders = myOrders;
         client.resolve(myOrders, 'orders');
@@ -734,7 +750,9 @@ export default class lbank extends lbankRest {
         account['free'] = this.safeString(data, 'free');
         account['used'] = this.safeString(data, 'freeze');
         account['total'] = this.safeString(data, 'asset');
-        this.balance[code] = account;
+        if (code !== undefined) {
+            this.balance[code] = account;
+        }
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, 'balance');
     }
@@ -745,7 +763,7 @@ export default class lbank extends lbankRest {
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int|undefined} limit the maximum amount of order book entries to return
-     * @param {object} params extra parameters specific to the lbank api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
     async fetchOrderBookWs(symbol, limit = undefined, params = {}) {
@@ -753,6 +771,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'fetchOrderBookWs');
         const url = this.urls['api']['ws'];
         const messageHash = 'fetchOrderbook:' + market['symbol'];
         if (limit === undefined) {
@@ -775,14 +794,15 @@ export default class lbank extends lbankRest {
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int|undefined} limit the maximum amount of order book entries to return
-     * @param {object} params extra parameters specific to the lbank api endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        this.checkContractMarket(market, 'watchOrderBook');
         const url = this.urls['api']['ws'];
         const messageHash = 'orderbook:' + market['symbol'];
         params = this.omit(params, 'aggregation');
@@ -927,7 +947,7 @@ export default class lbank extends lbankRest {
     }
     async authenticate(params = {}) {
         // when we implement more private streams, we need to refactor the authentication
-        // to be concurent-safe and respect the same authentication token
+        // to be concurrent-safe and respect the same authentication token
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const now = this.milliseconds();

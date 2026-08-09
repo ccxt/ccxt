@@ -1,5 +1,5 @@
 import Exchange from './abstract/modetrade.js';
-import type { Balances, Currencies, Currency, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, Market, NullableDict, FeeString, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFees, Transaction, int, Status } from './base/types.js';
 /**
  * @class modetrade
  * @augments Exchange
@@ -15,13 +15,7 @@ export default class modetrade extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: any;
-        eta: any;
-        url: any;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name modetrade#fetchTime
@@ -50,8 +44,8 @@ export default class modetrade extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): Currency;
-    parseTokenAndFeeTemp(item: any, feeTokenKey: any, feeAmountKey: any): Dict;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
+    parseTokenAndFeeTemp(item: any, feeTokenKey: any, feeAmountKey: any): FeeString;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -114,12 +108,12 @@ export default class modetrade extends Exchange {
     parseIncome(income: any, market?: Market): {
         info: any;
         symbol: string;
-        code: string;
-        timestamp: number;
-        datetime: string;
-        id: any;
+        code: Str;
+        timestamp: Int;
+        datetime: string | undefined;
+        id: undefined;
         amount: number;
-        rate: number;
+        rate: Num;
     };
     /**
      * @method
@@ -151,7 +145,7 @@ export default class modetrade extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
@@ -169,10 +163,10 @@ export default class modetrade extends Exchange {
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOrder(order: Dict, market?: Market): Order;
-    parseTimeInForce(timeInForce: Str): string;
-    parseOrderStatus(status: Str): string;
-    parseOrderType(type: Str): string;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    parseTimeInForce(timeInForce: Str): Str;
+    parseOrderStatus(status: Str): string | undefined;
+    parseOrderType(type: Str): Str;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
     /**
      * @method
      * @name modetrade#createOrder
@@ -260,7 +254,7 @@ export default class modetrade extends Exchange {
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
      * @description cancel all open orders in a market
-     * @param {string} symbol unified market symbol
+     * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -389,7 +383,7 @@ export default class modetrade extends Exchange {
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): string | undefined;
     /**
      * @method
      * @name modetrade#fetchDeposits
@@ -426,7 +420,7 @@ export default class modetrade extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    getWithdrawNonce(params?: {}): Promise<number>;
+    getWithdrawNonce(params?: {}): Promise<Num>;
     hashMessage(message: any): string;
     signHash(hash: any, privateKey: any): string;
     signMessage(message: any, privateKey: any): string;
@@ -443,7 +437,7 @@ export default class modetrade extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
-    parseLeverage(leverage: any, market?: Market): Leverage;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     /**
      * @method
      * @name modetrade#fetchLeverage
@@ -464,7 +458,7 @@ export default class modetrade extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     parsePosition(position: Dict, market?: Market): Position;
     /**
      * @method
@@ -475,7 +469,7 @@ export default class modetrade extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPosition(symbol: Str, params?: {}): Promise<Position>;
+    fetchPosition(symbol: string, params?: {}): Promise<Position>;
     /**
      * @method
      * @name modetrade#fetchPositions
@@ -487,11 +481,11 @@ export default class modetrade extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     nonce(): number;
-    sign(path: any, section?: string, method?: string, params?: {}, headers?: NullableDict, body?: any): {
+    sign(path: any, section?: string, method?: string, params?: Dict, headers?: NullableDict, body?: any): {
         url: string;
         method: string;
         body: any;
-        headers: Dict;
+        headers: NullableDict;
     };
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

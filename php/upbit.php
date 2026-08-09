@@ -102,67 +102,67 @@ class upbit extends Exchange {
                 // cost = 1000 / (rateLimit * RPS)
                 'public' => array(
                     'get' => array(
-                        'market/all' => 2, // RPS => 10
-                        'candles/{timeframe}' => 2,
-                        'candles/{timeframe}/{unit}' => 2,
-                        'candles/seconds' => 2,
-                        'candles/minutes/{unit}' => 2,
-                        'candles/minutes/1' => 2,
-                        'candles/minutes/3' => 2,
-                        'candles/minutes/5' => 2,
-                        'candles/minutes/10' => 2,
-                        'candles/minutes/15' => 2,
-                        'candles/minutes/30' => 2,
-                        'candles/minutes/60' => 2,
-                        'candles/minutes/240' => 2,
-                        'candles/days' => 2,
-                        'candles/weeks' => 2,
-                        'candles/months' => 2,
-                        'candles/years' => 2,
-                        'trades/ticks' => 2,
-                        'ticker' => 2,
-                        'ticker/all' => 2,
-                        'orderbook' => 2,
-                        'orderbook/instruments' => 2,
+                        'market/all' => array( 'cost' => 2 ), // RPS => 10
+                        'candles/{timeframe}' => array( 'cost' => 2 ),
+                        'candles/{timeframe}/{unit}' => array( 'cost' => 2 ),
+                        'candles/seconds' => array( 'cost' => 2 ),
+                        'candles/minutes/{unit}' => array( 'cost' => 2 ),
+                        'candles/minutes/1' => array( 'cost' => 2 ),
+                        'candles/minutes/3' => array( 'cost' => 2 ),
+                        'candles/minutes/5' => array( 'cost' => 2 ),
+                        'candles/minutes/10' => array( 'cost' => 2 ),
+                        'candles/minutes/15' => array( 'cost' => 2 ),
+                        'candles/minutes/30' => array( 'cost' => 2 ),
+                        'candles/minutes/60' => array( 'cost' => 2 ),
+                        'candles/minutes/240' => array( 'cost' => 2 ),
+                        'candles/days' => array( 'cost' => 2 ),
+                        'candles/weeks' => array( 'cost' => 2 ),
+                        'candles/months' => array( 'cost' => 2 ),
+                        'candles/years' => array( 'cost' => 2 ),
+                        'trades/ticks' => array( 'cost' => 2 ),
+                        'ticker' => array( 'cost' => 2 ),
+                        'ticker/all' => array( 'cost' => 2 ),
+                        'orderbook' => array( 'cost' => 2 ),
+                        'orderbook/instruments' => array( 'cost' => 2 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'accounts' => 0.67, // RPS => 30
-                        'orders/chance' => 0.67,
-                        'order' => 0.67,
-                        'orders/closed' => 0.67,
-                        'orders/open' => 0.67,
-                        'orders/uuids' => 0.67,
-                        'withdraws' => 0.67,
-                        'withdraw' => 0.67,
-                        'withdraws/chance' => 0.67,
-                        'withdraws/coin_addresses' => 0.67,
-                        'deposits' => 0.67,
-                        'deposits/chance/coin' => 0.67,
-                        'deposit' => 0.67,
-                        'deposits/coin_addresses' => 0.67,
-                        'deposits/coin_address' => 0.67,
-                        'travel_rule/vasps' => 0.67,
-                        'status/wallet' => 0.67,
-                        'api_keys' => 0.67, // Upbit KR only
+                        'accounts' => array( 'cost' => 0.67 ), // RPS => 30
+                        'orders/chance' => array( 'cost' => 0.67 ),
+                        'order' => array( 'cost' => 0.67 ),
+                        'orders/closed' => array( 'cost' => 0.67 ),
+                        'orders/open' => array( 'cost' => 0.67 ),
+                        'orders/uuids' => array( 'cost' => 0.67 ),
+                        'withdraws' => array( 'cost' => 0.67 ),
+                        'withdraw' => array( 'cost' => 0.67 ),
+                        'withdraws/chance' => array( 'cost' => 0.67 ),
+                        'withdraws/coin_addresses' => array( 'cost' => 0.67 ),
+                        'deposits' => array( 'cost' => 0.67 ),
+                        'deposits/chance/coin' => array( 'cost' => 0.67 ),
+                        'deposit' => array( 'cost' => 0.67 ),
+                        'deposits/coin_addresses' => array( 'cost' => 0.67 ),
+                        'deposits/coin_address' => array( 'cost' => 0.67 ),
+                        'travel_rule/vasps' => array( 'cost' => 0.67 ),
+                        'status/wallet' => array( 'cost' => 0.67 ),
+                        'api_keys' => array( 'cost' => 0.67 ), // Upbit KR only
                     ),
                     'post' => array(
-                        'orders' => 2.5, // RPS => 8
-                        'orders/test' => 2.5, // RPS => 8
-                        'orders/cancel_and_new' => 2.5, // RPS => 8
-                        'withdraws/coin' => 0.67,
-                        'withdraws/krw' => 0.67, // Upbit KR only.
-                        'deposits/krw' => 0.67, // Upbit KR only.
-                        'deposits/generate_coin_address' => 0.67,
-                        'travel_rule/deposit/uuid' => 0.67, // RPS => 30, but each deposit can only be queried once every 10 minutes
-                        'travel_rule/deposit/txid' => 0.67, // RPS => 30, but each deposit can only be queried once every 10 minutes
+                        'orders' => array( 'cost' => 2.5 ), // RPS => 8
+                        'orders/test' => array( 'cost' => 2.5 ), // RPS => 8
+                        'orders/cancel_and_new' => array( 'cost' => 2.5 ), // RPS => 8
+                        'withdraws/coin' => array( 'cost' => 0.67 ),
+                        'withdraws/krw' => array( 'cost' => 0.67 ), // Upbit KR only.
+                        'deposits/krw' => array( 'cost' => 0.67 ), // Upbit KR only.
+                        'deposits/generate_coin_address' => array( 'cost' => 0.67 ),
+                        'travel_rule/deposit/uuid' => array( 'cost' => 0.67 ), // RPS => 30, but each deposit can only be queried once every 10 minutes
+                        'travel_rule/deposit/txid' => array( 'cost' => 0.67 ), // RPS => 30, but each deposit can only be queried once every 10 minutes
                     ),
                     'delete' => array(
-                        'order' => 0.67,
-                        'orders/open' => 40, // RPS => 0.5
-                        'orders/uuids' => 0.67,
-                        'withdraws/coin' => 0.67,
+                        'order' => array( 'cost' => 0.67 ),
+                        'orders/open' => array( 'cost' => 40 ), // RPS => 0.5
+                        'orders/uuids' => array( 'cost' => 0.67 ),
+                        'withdraws/coin' => array( 'cost' => 0.67 ),
                     ),
                 ),
             ),
@@ -386,7 +386,7 @@ class upbit extends Exchange {
         return $this->fetch_market_by_id($market['id'], $params);
     }
 
-    public function fetch_market_by_id(string $id, $params = array()) {
+    public function fetch_market_by_id(?string $id, $params = array()) {
         // this method is for retrieving trading fees and limits per market
         // it requires private access and API keys properly set up
         $request = array(
@@ -515,6 +515,9 @@ class upbit extends Exchange {
 
     public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'market');
+        if ($id === null) {
+            throw new ExchangeError($this->id . ' parseMarket() missing id');
+        }
         list($quoteId, $baseId) = explode('-', $id);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
@@ -571,7 +574,7 @@ class upbit extends Exchange {
         ));
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -584,7 +587,9 @@ class upbit extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'balance');
             $account['used'] = $this->safe_string($balance, 'locked');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -621,8 +626,8 @@ class upbit extends Exchange {
     public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array()): array {
         /**
          *
-         * @see https://docs.upbit.com/kr/reference/list-orderbooks
-         * @see https://global-docs.upbit.com/reference/list-orderbooks
+         * @see https://docs.upbit.com/kr/reference/list-$orderbooks
+         * @see https://global-docs.upbit.com/reference/list-$orderbooks
          *
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
          * @param {string[]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
@@ -680,8 +685,9 @@ class upbit extends Exchange {
         //                               "bid_size" => 0.4650305 }    ) }   )
         //
         $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $orderbook = $response[$i];
+        $orderbooks = $this->to_array($response);
+        for ($i = 0; $i < count($orderbooks); $i++) {
+            $orderbook = $orderbooks[$i];
             $marketId = $this->safe_string($orderbook, 'market');
             $symbol = $this->safe_symbol($marketId, null, '-');
             $timestamp = $this->safe_integer($orderbook, 'timestamp');
@@ -707,7 +713,7 @@ class upbit extends Exchange {
          * @param {string} $symbol unified $symbol of the market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         $orderbooks = $this->fetch_order_books(array( $symbol ), $limit, $params);
         return $this->safe_value($orderbooks, $symbol);
@@ -825,7 +831,10 @@ class upbit extends Exchange {
         return $this->parse_tickers($concated, $symbols);
     }
 
-    public function ids_query_strings(array $ids, float $maxQueryLength) {
+    public function ids_query_strings(?array $ids, float $maxQueryLength) {
+        if ($ids === null) {
+            return array();
+        }
         $idsString = '';
         $queries = array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -1070,12 +1079,15 @@ class upbit extends Exchange {
             $element['percentage'] = true;
             $element['tierBased'] = false;
             $element['info'] = $fetchMarketResponse[$i];
-            $response[$this->safe_string($fetchMarketResponse[$i], 'symbol')] = $element;
+            $feeSymbol = $this->safe_string($fetchMarketResponse[$i], 'symbol');
+            if ($feeSymbol !== null) {
+                $response[$feeSymbol] = $element;
+            }
         }
         return $response;
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "market" => "BTC-ETH",
@@ -1170,10 +1182,11 @@ class upbit extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        $ohlcvs = $this->to_array($response);
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function calc_order_price(string $symbol, float $amount, ?float $price = null, $params = array()): string {
+    public function calc_order_price(string $symbol, ?float $amount, ?float $price = null, $params = array()): ?string {
         $quoteAmount = null;
         $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice');
         $cost = $this->safe_string($params, 'cost');
@@ -1192,6 +1205,9 @@ class upbit extends Exchange {
                 throw new ArgumentsRequired($this->id . ' When $createMarketBuyOrderRequiresPrice is false, "amount" is required and should be the total quote $amount to spend.');
             }
             $quoteAmount = $this->cost_to_precision($symbol, $amount);
+        }
+        if ($quoteAmount === null) {
+            throw new ArgumentsRequired($this->id . ' calcOrderPrice() could not determine quote amount');
         }
         return $quoteAmount;
     }
@@ -1333,7 +1349,7 @@ class upbit extends Exchange {
          *
          * cancels an open order
          * @param {string} $id order $id
-         * @param {string} $symbol not used by upbit cancelOrder ()
+         * @param {string} $symbol not used by cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -2200,7 +2216,7 @@ class upbit extends Exchange {
         return $this->parse_deposit_addresses($response, $codes);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //    {
         //        $currency => 'XRP',
@@ -2364,7 +2380,7 @@ class upbit extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = $this->implode_params($this->urls['api'][$api], array(
             'hostname' => $this->hostname,
         ));
@@ -2403,7 +2419,7 @@ class upbit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }

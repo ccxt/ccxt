@@ -118,13 +118,174 @@ public partial class delta : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"assets", "indices", "products", "products/{symbol}", "tickers", "tickers/{symbol}", "l2orderbook/{symbol}", "trades/{symbol}", "stats", "history/candles", "history/sparklines", "settings"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "indices", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "products", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "products/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "l2orderbook/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "stats", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "history/candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "history/sparklines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "settings", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"orders", "orders/{order_id}", "orders/client_order_id/{client_oid}", "products/{product_id}/orders/leverage", "positions/margined", "positions", "orders/history", "fills", "fills/history/download/csv", "wallet/balances", "wallet/transactions", "wallet/transactions/download", "wallets/sub_accounts_transfer_history", "users/trading_preferences", "sub_accounts", "profile", "rate_limits/quota", "heartbeat", "deposits/address"} },
-                    { "post", new List<object>() {"orders", "orders/bracket", "orders/batch", "products/{product_id}/orders/leverage", "positions/change_margin", "positions/close_all", "wallets/sub_account_balance_transfer", "heartbeat/create", "heartbeat", "orders/cancel_after", "orders/leverage"} },
-                    { "put", new List<object>() {"orders", "orders/bracket", "orders/batch", "positions/auto_topup", "users/update_mmp", "users/reset_mmp", "users/margin_mode"} },
-                    { "delete", new List<object>() {"orders", "orders/all", "orders/batch"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/client_order_id/{client_oid}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "products/{product_id}/orders/leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions/margined", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fills", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fills/history/download/csv", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallet/balances", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallet/transactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallet/transactions/download", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallets/sub_accounts_transfer_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/trading_preferences", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sub_accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "profile", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rate_limits/quota", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "heartbeat", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deposits/address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/bracket", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/batch", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "products/{product_id}/orders/leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions/change_margin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions/close_all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallets/sub_account_balance_transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "heartbeat/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "heartbeat", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/cancel_after", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "put", new Dictionary<string, object>() {
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/bracket", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/batch", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions/auto_topup", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/update_mmp", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/reset_mmp", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/margin_mode", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "delete", new Dictionary<string, object>() {
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/batch", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -284,7 +445,7 @@ public partial class delta : Exchange
         object datetime = this.convertExpireDate(expiry);
         object timestamp = this.parse8601(datetime);
         object optionTypeUnified = ((bool) isTrue((isEqual(optionType, "C")))) ? "call" : "put";
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", add(add(add(add(add(add(optionType, "-"), bs), "-"), strike), "-"), expiry) },
             { "symbol", add(add(add(add(add(add(add(add(add(add(bs, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType) },
             { "base", bs },
@@ -327,13 +488,13 @@ public partial class delta : Exchange
                 } },
             } },
             { "info", null },
-        };
+        });
     }
 
     public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
         object isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue(isTrue(isTrue((((string)marketId).EndsWith(((string)"-C")))) || isTrue((((string)marketId).EndsWith(((string)"-P"))))) || isTrue((((string)marketId).StartsWith(((string)"C-"))))) || isTrue((((string)marketId).StartsWith(((string)"P-"))))));
-        if (isTrue(isTrue(isOption) && !isTrue((inOp(this.markets_by_id, marketId)))))
+        if (isTrue(isTrue(isOption) && isTrue((isTrue((isEqual(this.markets_by_id, null))) || !isTrue((inOp(this.markets_by_id, marketId)))))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
@@ -510,26 +671,29 @@ public partial class delta : Exchange
             object chain = getValue(chains, j);
             object networkId = this.safeString(chain, "network");
             object networkCode = this.networkIdToCode(networkId, code);
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "name", this.safeString(chain, "name") },
-                { "info", chain },
-                { "active", isEqual(this.safeString(chain, "status"), "enabled") },
-                { "deposit", isEqual(this.safeString(chain, "deposit_status"), "enabled") },
-                { "withdraw", isEqual(this.safeString(chain, "withdrawal_status"), "enabled") },
-                { "fee", this.safeNumber(chain, "base_withdrawal_fee") },
-                { "limits", new Dictionary<string, object>() {
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(chain, "min_deposit_amount") },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "name", this.safeString(chain, "name") },
+                    { "info", chain },
+                    { "active", isEqual(this.safeString(chain, "status"), "enabled") },
+                    { "deposit", isEqual(this.safeString(chain, "deposit_status"), "enabled") },
+                    { "withdraw", isEqual(this.safeString(chain, "withdrawal_status"), "enabled") },
+                    { "fee", this.safeNumber(chain, "base_withdrawal_fee") },
+                    { "limits", new Dictionary<string, object>() {
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(chain, "min_deposit_amount") },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(chain, "min_withdrawal_amount") },
+                            { "max", null },
+                        } },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(chain, "min_withdrawal_amount") },
-                        { "max", null },
-                    } },
-                } },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -793,7 +957,7 @@ public partial class delta : Exchange
         {
             object market = getValue(markets, i);
             object type = this.safeString(market, "contract_type");
-            if (isTrue(isEqual(type, "options_combos")))
+            if (isTrue(isTrue(isTrue((isEqual(type, "options_combos"))) || isTrue((isEqual(type, "binary_call_options")))) || isTrue((isEqual(type, "binary_put_options")))))
             {
                 continue;
             }
@@ -864,7 +1028,7 @@ public partial class delta : Exchange
                 }
             }
             object state = this.safeString(market, "state");
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "numericId", numericId },
                 { "symbol", symbol },
@@ -915,7 +1079,7 @@ public partial class delta : Exchange
                 } },
                 { "created", this.parse8601(this.safeString(market, "launch_time")) },
                 { "info", market },
-            });
+            }));
         }
         return result;
     }
@@ -1363,9 +1527,18 @@ public partial class delta : Exchange
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
-            object ticker = this.parseTicker(getValue(tickers, i));
+            object rawTicker = getValue(tickers, i);
+            object contractType = this.safeString(rawTicker, "contract_type");
+            if (isTrue(isTrue(isTrue((isEqual(contractType, "options_combos"))) || isTrue((isEqual(contractType, "binary_call_options")))) || isTrue((isEqual(contractType, "binary_put_options")))))
+            {
+                continue;
+            }
+            object ticker = this.parseTicker(rawTicker);
             object symbol = getValue(ticker, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = ticker;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers(result, "symbol", symbols);
     }
@@ -1378,7 +1551,7 @@ public partial class delta : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1609,6 +1782,10 @@ public partial class delta : Exchange
         {
             object end = ((bool) isTrue(untilIsDefined)) ? until : this.seconds();
             ((IDictionary<string,object>)request)["end"] = end;
+            if (isTrue(isEqual(end, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " fetchOHLCV() missing end")) ;
+            }
             ((IDictionary<string,object>)request)["start"] = subtract(end, multiply(limit, duration));
         } else
         {
@@ -2091,7 +2268,12 @@ public partial class delta : Exchange
         };
         if (isTrue(!isEqual(amount, null)))
         {
-            ((IDictionary<string,object>)request)["size"] = parseInt(this.amountToPrecision(symbol, amount));
+            object sizeString = this.amountToPrecision(symbol, amount);
+            if (isTrue(isEqual(sizeString, null)))
+            {
+                sizeString = "0";
+            }
+            ((IDictionary<string,object>)request)["size"] = parseInt(sizeString);
         }
         if (isTrue(!isEqual(price, null)))
         {
@@ -2115,7 +2297,7 @@ public partial class delta : Exchange
         //         }
         //     }
         //
-        object result = this.safeDict(response, "result");
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseOrder(result, market);
     }
 
@@ -2179,7 +2361,7 @@ public partial class delta : Exchange
         //         "success":true
         //     }
         //
-        object result = this.safeDict(response, "result");
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseOrder(result, market);
     }
 
@@ -2509,7 +2691,7 @@ public partial class delta : Exchange
             { "referral_bonus", "referral" },
             { "commission_rebate", "rebate" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseLedgerEntry(object item, object currency = null)

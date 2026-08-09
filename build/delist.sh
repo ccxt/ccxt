@@ -87,5 +87,30 @@ java/lib/src/main/java/io/github/ccxt/exchanges/pro/${CAPITALIZED}.java
 java/lib/src/main/java/io/github/ccxt/exchanges/pro/${CAPITALIZED}Core.java
 EOF
 
+# remove the id from exchanges.json (ids / ws / prediction / predictionWs)
+if [ -f exchanges.json ]; then
+    echo "Filtering $EXCHANGE from exchanges.json"
+    if grep -qE "^[[:space:]]*\"${EXCHANGE}\"[,]?[[:space:]]*$" exchanges.json; then
+        tmp=$(mktemp)
+        # drop the matching array entry line, then fix a trailing comma left before ]
+        grep -vE "^[[:space:]]*\"${EXCHANGE}\"[,]?[[:space:]]*$" exchanges.json | sed '/,$/{
+N
+s/,\n\([[:space:]]*]\)/\n\1/
+t
+P
+D
+}' > "$tmp"
+        mv "$tmp" exchanges.json
+        echo "  filtered $EXCHANGE from exchanges.json"
+        if git ls-files --error-unmatch exchanges.json >/dev/null 2>&1; then
+            git add exchanges.json
+        fi
+    else
+        echo "  not present in exchanges.json"
+    fi
+else
+    echo "  skip exchanges.json (not found)"
+fi
+
 echo ""
 echo "Done. Review with: git status"

@@ -146,82 +146,220 @@ public partial class pacifica : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "info", 1 },
-                        { "info/fees", 1 },
-                        { "info/prices", 1 },
-                        { "kline", 12 },
-                        { "kline/mark", 12 },
-                        { "book", 1 },
-                        { "trades", 1 },
-                        { "funding_rate/history", 1 },
-                        { "loan_pool", 1 },
-                        { "account", 1 },
-                        { "account/loan", 1 },
-                        { "account/settings", 1 },
-                        { "positions", 1 },
-                        { "trades/history", 12 },
-                        { "funding/history", 1 },
-                        { "portfolio", 1 },
-                        { "account/balance/history", 12 },
-                        { "account/spot_balance/history", 1 },
-                        { "account/spot_asset/deposit/history", 1 },
-                        { "account/spot_asset/withdraw/history", 1 },
-                        { "account/spot_asset/withdraw/pending", 1 },
-                        { "orders", 1 },
-                        { "orders/history", 12 },
-                        { "orders/history_by_id", 1 },
-                        { "spot_assets", 1 },
-                        { "spot_assets/bridge/info", 1 },
-                        { "spot_assets/bridge/parameters/{symbol}", 1 },
-                        { "lake/list", 1 },
-                        { "account/builder_codes/approvals", 1 },
+                        { "info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "info/fees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "info/prices", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "kline", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "kline/mark", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding_rate/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "loan_pool", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/loan", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/settings", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades/history", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "funding/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "portfolio", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/balance/history", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "account/spot_balance/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/spot_asset/deposit/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/spot_asset/withdraw/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/spot_asset/withdraw/pending", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/history", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "orders/history_by_id", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot_assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot_assets/bridge/info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot_assets/bridge/parameters/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/builder_codes/approvals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "account/leverage", 1 },
-                        { "account/margin", 1 },
-                        { "account/withdraw", 1 },
-                        { "account/settings/auto_lend_disabled", 1 },
-                        { "account/settings/spot", 1 },
-                        { "account/spot_asset/withdraw", 1 },
-                        { "account/subaccount/create", 1 },
-                        { "account/subaccount/list", 1 },
-                        { "account/subaccount/transfer", 1 },
-                        { "account/subaccount/spot_asset/transfer", 1 },
-                        { "positions/add_isolated_margin", 1 },
-                        { "orders/create", 1 },
-                        { "orders/create_market", 1 },
-                        { "orders/stop/create", 1 },
-                        { "positions/tpsl", 1 },
-                        { "orders/cancel", 0.5 },
-                        { "orders/cancel_all", 0.5 },
-                        { "orders/stop/cancel", 0.5 },
-                        { "orders/edit", 1 },
-                        { "orders/batch", 1 },
-                        { "account/builder_codes/approve", 1 },
-                        { "account/builder_codes/revoke", 1 },
-                        { "agent/bind", 1 },
-                        { "account/api_keys/create", 1 },
-                        { "account/api_keys/revoke", 1 },
-                        { "account/api_keys", 1 },
-                        { "lake/add_blacklist", 1 },
-                        { "lake/add_max_leverage", 1 },
-                        { "lake/add_whitelist", 1 },
-                        { "lake/claim_manager", 1 },
-                        { "lake/claim_referral_code", 1 },
-                        { "lake/create", 1 },
-                        { "lake/deposit", 1 },
-                        { "lake/remove_blacklist", 1 },
-                        { "lake/remove_max_leverage", 1 },
-                        { "lake/remove_whitelist", 1 },
-                        { "lake/update_deposit_cap", 1 },
-                        { "lake/withdraw", 1 },
+                        { "account/leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/margin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/settings/auto_lend_disabled", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/settings/spot", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/spot_asset/withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/subaccount/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/subaccount/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/subaccount/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/subaccount/spot_asset/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions/add_isolated_margin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/create_market", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/stop/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions/tpsl", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/cancel", new Dictionary<string, object>() {
+                            { "cost", 0.5 },
+                        } },
+                        { "orders/cancel_all", new Dictionary<string, object>() {
+                            { "cost", 0.5 },
+                        } },
+                        { "orders/stop/cancel", new Dictionary<string, object>() {
+                            { "cost", 0.5 },
+                        } },
+                        { "orders/edit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/batch", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/builder_codes/approve", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/builder_codes/revoke", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "agent/bind", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/api_keys/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/api_keys/revoke", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/api_keys", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/add_blacklist", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/add_max_leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/add_whitelist", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/claim_manager", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/claim_referral_code", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/deposit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/remove_blacklist", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/remove_max_leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/remove_whitelist", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/update_deposit_cap", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
                 { "swap", new Dictionary<string, object>() {
+                    { "taker", this.parseNumber("0.0004") },
+                    { "maker", this.parseNumber("0.00015") },
+                } },
+                { "spot", new Dictionary<string, object>() {
                     { "taker", this.parseNumber("0.0004") },
                     { "maker", this.parseNumber("0.00015") },
                 } },
@@ -677,6 +815,10 @@ public partial class pacifica : Exchange
         object maxLeverage = null;
         object crossMargin = null;
         object isolatedMargin = null;
+        if (isTrue(isEqual(id, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseMarket() missing id")) ;
+        }
         if (isTrue(isSpot))
         {
             object idParts = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
@@ -854,7 +996,7 @@ public partial class pacifica : Exchange
         object settings = null;
         if (isTrue(isEqual(userAccount, cacheAddress)))
         {
-            settings = this.handleOption("fetchLeverage", "settings", null);
+            settings = this.handleOption("fetchLeverage", "settings");
         } else
         {
             object request = new Dictionary<string, object>() {
@@ -862,7 +1004,7 @@ public partial class pacifica : Exchange
             };
             settings = await this.fetchAccountSettings(this.extend(request, parameters));
         }
-        object setting = this.safeDict(settings, symbol, null);
+        object setting = this.safeDict(settings, symbol);
         if (isTrue(isEqual(setting, null)))
         {
             // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -951,7 +1093,7 @@ public partial class pacifica : Exchange
     {
         refresh ??= false;
         parameters ??= new Dictionary<string, object>();
-        object settings = this.handleOption("loadAccountSettings", "settings", null);
+        object settings = this.handleOption("loadAccountSettings", "settings");
         if (isTrue(isTrue((isEqual(settings, null))) || isTrue((isEqual(refresh, true)))))
         {
             ((IDictionary<string,object>)this.options)["settings"] = this.createSafeDictionary();
@@ -1000,7 +1142,7 @@ public partial class pacifica : Exchange
         object settings = null;
         if (isTrue(isEqual(userAccount, cacheAddress)))
         {
-            settings = this.handleOption("fetchMarginMode", "settings", null);
+            settings = this.handleOption("fetchMarginMode", "settings");
         } else
         {
             object request = new Dictionary<string, object>() {
@@ -1017,7 +1159,7 @@ public partial class pacifica : Exchange
         //       "updated_at": 1758086074002
         //    },
         // }
-        object setting = this.safeDict(settings, symbol, null);
+        object setting = this.safeDict(settings, symbol);
         if (isTrue(isEqual(setting, null)))
         {
             // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -1060,7 +1202,7 @@ public partial class pacifica : Exchange
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1613,31 +1755,39 @@ public partial class pacifica : Exchange
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @ignore
-        * @name pacifica#createOrderRequest
-        * @description create a trade order
-        * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-limit-order
-        * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-market-order
-        * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-stop-order
-        * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-position-tp-sl
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, but can be used as limit_price of Trigger Order.
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.triggerPrice] The price a trigger order is triggered at
-        * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at (optional provide stopLossCloid)
-        * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
-        * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
-        * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
-        * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
-        * @param {int} [params.expiryWindow] time to live in milliseconds
-        * @returns {object} an [order structure]
-        */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name pacifica#createOrderRequest
+         * @description create a trade order
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-limit-order
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-market-order
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-stop-order
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-position-tp-sl
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, but can be used as limit_price of Trigger Order.
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+         * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at (optional provide stopLossCloid)
+         * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
+         * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
+         * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
+         * @param {int} [params.expiryWindow] time to live in milliseconds
+         * @returns {object} an [order structure]
+         */
         object market = this.market(symbol);
         object sigPayload = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1859,7 +2009,7 @@ public partial class pacifica : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
             object order = getValue(results, i);
-            object error = this.safeString(order, "error", null);
+            object error = this.safeString(order, "error");
             object success = this.safeBool(order, "success", false);
             object status = null;
             if (isTrue(isTrue((!isEqual(error, null))) || isTrue((!isTrue(success)))))
@@ -1931,7 +2081,7 @@ public partial class pacifica : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
             object order = getValue(results, i);
-            object error = this.safeString(order, "error", null);
+            object error = this.safeString(order, "error");
             object success = this.safeBool(order, "success", false);
             object status = null;
             if (isTrue(isTrue((!isEqual(error, null))) || isTrue((!isTrue(success)))))
@@ -1987,7 +2137,7 @@ public partial class pacifica : Exchange
      * @name pacifica#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/cancel-all-orders
-     * @param {string} symbol (optional) unified market symbol of the market to cancel orders in.
+     * @param {string} [symbol] (optional) unified market symbol of the market to cancel orders in.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.excludeReduceOnly] whether to exclude reduce-only orders
      * @param {int} [params.expiryWindow] time to live in milliseconds
@@ -2168,6 +2318,10 @@ public partial class pacifica : Exchange
     public virtual object editOrderRequest(object id, object symbol, object type, object side, object amount, object price, object market, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         if (isTrue(isEqual(amount, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires an amount!")) ;
@@ -2324,7 +2478,10 @@ public partial class pacifica : Exchange
             object info = getValue(data, i);
             object ticker = this.parseTicker(info);
             object symbol = this.safeString(ticker, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = ticker;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers(result, "symbol", symbols);
     }
@@ -2706,7 +2863,7 @@ public partial class pacifica : Exchange
         {
             tif = ((string)tifRaw).ToUpper();
         }
-        return this.safeString(tifMap, tif, null);
+        return this.safeString(tifMap, tif);
     }
 
     public virtual object mapSide(object sideRaw)
@@ -3378,7 +3535,7 @@ public partial class pacifica : Exchange
             { "airdrop", "airdrop" },
             { "payout", "payout" },
         };
-        return this.safeString(ledgerType, type, type);
+        return this.safeString(ledgerType, ((string)type), type);
     }
 
     /**
@@ -3564,7 +3721,7 @@ public partial class pacifica : Exchange
         parameters ??= new Dictionary<string, object>();
         object finalHeaders = new Dictionary<string, object>() {};
         object agentAddress = null;
-        var agentAddressparametersVariable = this.handleOption("createSubAccount", "agentAddress", null);
+        var agentAddressparametersVariable = this.handleOption("createSubAccount", "agentAddress");
         agentAddress = ((IList<object>)agentAddressparametersVariable)[0];
         parameters = ((IList<object>)agentAddressparametersVariable)[1];
         object originAddress = null;
@@ -3782,7 +3939,7 @@ public partial class pacifica : Exchange
         {
             body = this.json(parameters);
         }
-        if (isTrue(!isEqual(this.handleOption("sign", "apiKey", null), null)))
+        if (isTrue(!isEqual(this.handleOption("sign", "apiKey"), null)))
         {
             ((IDictionary<string,object>)headers)["PF-API-KEY"] = getValue(this.options, "apiKey");
         }
@@ -3802,7 +3959,7 @@ public partial class pacifica : Exchange
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
         if (isTrue(isGreaterThan(costNumber, 1)))
         {
-            if (isTrue(!isEqual(this.handleOption(method, "apiKey", null), null)))
+            if (isTrue(!isEqual(this.handleOption(method, "apiKey"), null)))
             {
                 object costWithKey = this.handleOption(method, "maxCostHugeWithApiKey", 3);
                 return costWithKey;

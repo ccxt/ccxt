@@ -22,8 +22,8 @@ class bullish extends Exchange {
                 'spot' => true,
                 'margin' => false,
                 'swap' => true,
-                'future' => false,
-                'option' => false,
+                'future' => true,
+                'option' => true,
                 'addMargin' => false,
                 'borrowMargin' => false,
                 'cancelAllOrders' => true,
@@ -150,70 +150,70 @@ class bullish extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'v1/nonce' => 1,
-                        'v1/time' => 1,
-                        'v1/assets' => 1,
-                        'v1/assets/{symbol}' => 1,
-                        'v1/markets' => 1,
-                        'v1/markets/{symbol}' => 1,
-                        'v1/history/markets/{symbol}' => 1,
-                        'v1/markets/{symbol}/orderbook/hybrid' => 1,
-                        'v1/markets/{symbol}/trades' => 1,
-                        'v1/markets/{symbol}/tick' => 1,
-                        'v1/markets/{symbol}/candle' => 1,
-                        'v1/history/markets/{symbol}/trades' => 1,
-                        'v1/history/markets/{symbol}/funding-rate' => 1,
-                        'v1/index-prices' => 1,
-                        'v1/index-prices/{assetSymbol}' => 1,
-                        'v1/expiry-prices/{symbol}' => 1,
-                        'v1/option-ladder' => 1,
-                        'v1/option-ladder/{symbol}' => 1,
+                        'v1/nonce' => array( 'cost' => 1 ),
+                        'v1/time' => array( 'cost' => 1 ),
+                        'v1/assets' => array( 'cost' => 1 ),
+                        'v1/assets/{symbol}' => array( 'cost' => 1 ),
+                        'v1/markets' => array( 'cost' => 1 ),
+                        'v1/markets/{symbol}' => array( 'cost' => 1 ),
+                        'v1/history/markets/{symbol}' => array( 'cost' => 1 ),
+                        'v1/markets/{symbol}/orderbook/hybrid' => array( 'cost' => 1 ),
+                        'v1/markets/{symbol}/trades' => array( 'cost' => 1 ),
+                        'v1/markets/{symbol}/tick' => array( 'cost' => 1 ),
+                        'v1/markets/{symbol}/candle' => array( 'cost' => 1 ),
+                        'v1/history/markets/{symbol}/trades' => array( 'cost' => 1 ),
+                        'v1/history/markets/{symbol}/funding-rate' => array( 'cost' => 1 ),
+                        'v1/index-prices' => array( 'cost' => 1 ),
+                        'v1/index-prices/{assetSymbol}' => array( 'cost' => 1 ),
+                        'v1/expiry-prices/{symbol}' => array( 'cost' => 1 ),
+                        'v1/option-ladder' => array( 'cost' => 1 ),
+                        'v1/option-ladder/{symbol}' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'v2/orders' => 1,
-                        'v2/history/orders' => 1,
-                        'v2/orders/{orderId}' => 1,
-                        'v2/amm-instructions' => 1,
-                        'v2/amm-instructions/{instructionId}' => 1,
-                        'v1/wallets/transactions' => 1,
-                        'v1/wallets/limits/{symbol}' => 1,
-                        'v1/wallets/deposit-instructions/crypto/{symbol}' => 1,
-                        'v1/wallets/withdrawal-instructions/crypto/{symbol}' => 1,
-                        'v1/wallets/deposit-instructions/fiat/{symbol}' => 1,
-                        'v1/wallets/withdrawal-instructions/fiat/{symbol}' => 1,
-                        'v1/wallets/self-hosted/verification-attempts' => 1,
-                        'v1/trades' => 5,
-                        'v1/history/trades' => 5,
-                        'v1/trades/{tradeId}' => 5,
-                        'v1/trades/client-order-id/{clientOrderId}' => 1,
-                        'v1/accounts/asset' => 1,
-                        'v1/accounts/asset/{symbol}' => 1,
-                        'v1/users/logout' => 1,
-                        'v1/users/hmac/login' => 1,
-                        'v1/accounts/trading-accounts' => 1,
-                        'v1/accounts/trading-accounts/{tradingAccountId}' => 1,
-                        'v1/derivatives-positions' => 1,
-                        'v1/history/derivatives-settlement' => 1,
-                        'v1/history/transfer' => 1,
-                        'v1/history/borrow-interest' => 1,
-                        'v2/mmp-configuration' => 1,
-                        'v2/otc-trades' => 1,
-                        'v2/otc-trades/{otcTradeId}' => 1,
-                        'v2/otc-trades/unconfirmed-trade' => 1,
+                        'v2/orders' => array( 'cost' => 1 ),
+                        'v2/history/orders' => array( 'cost' => 1 ),
+                        'v2/orders/{orderId}' => array( 'cost' => 1 ),
+                        'v2/amm-instructions' => array( 'cost' => 1 ),
+                        'v2/amm-instructions/{instructionId}' => array( 'cost' => 1 ),
+                        'v1/wallets/transactions' => array( 'cost' => 1 ),
+                        'v1/wallets/limits/{symbol}' => array( 'cost' => 1 ),
+                        'v1/wallets/deposit-instructions/crypto/{symbol}' => array( 'cost' => 1 ),
+                        'v1/wallets/withdrawal-instructions/crypto/{symbol}' => array( 'cost' => 1 ),
+                        'v1/wallets/deposit-instructions/fiat/{symbol}' => array( 'cost' => 1 ),
+                        'v1/wallets/withdrawal-instructions/fiat/{symbol}' => array( 'cost' => 1 ),
+                        'v1/wallets/self-hosted/verification-attempts' => array( 'cost' => 1 ),
+                        'v1/trades' => array( 'cost' => 5 ),
+                        'v1/history/trades' => array( 'cost' => 5 ),
+                        'v1/trades/{tradeId}' => array( 'cost' => 5 ),
+                        'v1/trades/client-order-id/{clientOrderId}' => array( 'cost' => 1 ),
+                        'v1/accounts/asset' => array( 'cost' => 1 ),
+                        'v1/accounts/asset/{symbol}' => array( 'cost' => 1 ),
+                        'v1/users/logout' => array( 'cost' => 1 ),
+                        'v1/users/hmac/login' => array( 'cost' => 1 ),
+                        'v1/accounts/trading-accounts' => array( 'cost' => 1 ),
+                        'v1/accounts/trading-accounts/{tradingAccountId}' => array( 'cost' => 1 ),
+                        'v1/derivatives-positions' => array( 'cost' => 1 ),
+                        'v1/history/derivatives-settlement' => array( 'cost' => 1 ),
+                        'v1/history/transfer' => array( 'cost' => 1 ),
+                        'v1/history/borrow-interest' => array( 'cost' => 1 ),
+                        'v2/mmp-configuration' => array( 'cost' => 1 ),
+                        'v2/otc-trades' => array( 'cost' => 1 ),
+                        'v2/otc-trades/{otcTradeId}' => array( 'cost' => 1 ),
+                        'v2/otc-trades/unconfirmed-trade' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'v2/orders' => 5,
-                        'v2/command' => 5,
-                        'v2/amm-instructions' => 1,
-                        'v1/wallets/withdrawal' => 1,
-                        'v2/users/login' => 1,
-                        'v1/simulate-portfolio-margin' => 1,
-                        'v1/wallets/self-hosted/initiate' => 1,
-                        'v2/mmp-configuration' => 1,
-                        'v2/otc-trades' => 1,
-                        'v2/otc-command' => 1,
+                        'v2/orders' => array( 'cost' => 5 ),
+                        'v2/command' => array( 'cost' => 5 ),
+                        'v2/amm-instructions' => array( 'cost' => 1 ),
+                        'v1/wallets/withdrawal' => array( 'cost' => 1 ),
+                        'v2/users/login' => array( 'cost' => 1 ),
+                        'v1/simulate-portfolio-margin' => array( 'cost' => 1 ),
+                        'v1/wallets/self-hosted/initiate' => array( 'cost' => 1 ),
+                        'v2/mmp-configuration' => array( 'cost' => 1 ),
+                        'v2/otc-trades' => array( 'cost' => 1 ),
+                        'v2/otc-command' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -229,7 +229,7 @@ class bullish extends Exchange {
             'precisionMode' => TICK_SIZE,
             // exchange-specific options
             'options' => array(
-                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'networks' => array(
                     'BTC' => 'BTC',
@@ -903,7 +903,7 @@ class bullish extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return (not used by bullish)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -956,7 +956,7 @@ class bullish extends Exchange {
         }
         $maxLimit = 100;
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
         if ($paginate) {
             $params = $this->handle_pagination_params('fetchTrades', $since, $params);
             return $this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $params, $maxLimit);
@@ -1380,10 +1380,11 @@ class bullish extends Exchange {
         //         ), ...
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        $ohlcvs = $this->to_array($response);
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 'createdAtTimestamp'),
             $this->safe_number($ohlcv, 'open'),
@@ -1540,7 +1541,7 @@ class bullish extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function handle_pagination_params(string $method, ?int $since = null, array $params = array()): array {
+    public function handle_pagination_params(string $method, ?int $since = null, $params = array()): array {
         $ninetyDays = 90 * 24 * 60 * 60 * 1000;
         $now = $this->milliseconds();
         $allowedSince = $now - $ninetyDays;
@@ -1556,7 +1557,7 @@ class bullish extends Exchange {
         return $params;
     }
 
-    public function handle_since_and_until(?int $since = null, array $params = array(), ?string $sinceKey = 'createdAtDatetime[gte]', ?string $untilKey = 'createdAtDatetime[lte]'): array {
+    public function handle_since_and_until(?int $since = null, $params = array(), ?string $sinceKey = 'createdAtDatetime[gte]', ?string $untilKey = 'createdAtDatetime[lte]'): array {
         $until = $this->safe_integer($params, 'until');
         if (($since !== null) || ($until !== null)) {
             $timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -1624,7 +1625,7 @@ class bullish extends Exchange {
          */
         $request = array(
             'status' => 'CANCELLED',
-            'method' => 'privateGetV2Orders', // current endpoint distinquishes between CLOSED and CANCELLED orders
+            'method' => 'privateGetV2Orders', // current endpoint distinguishes between CLOSED and CANCELLED orders
         );
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
@@ -1644,7 +1645,7 @@ class bullish extends Exchange {
          */
         $request = array(
             'status' => 'CLOSED',
-            'method' => 'privateGetV2Orders', // current endpoint distinquishes between CLOSED and CANCELLED orders
+            'method' => 'privateGetV2Orders', // current endpoint distinguishes between CLOSED and CANCELLED orders
         );
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
@@ -2218,7 +2219,7 @@ class bullish extends Exchange {
         );
     }
 
-    public function parse_transaction_type($type) {
+    public function parse_transaction_type(mixed $type) {
         $types = array(
             'DEPOSIT' => 'deposit',
             'WITHDRAW' => 'withdrawal',
@@ -2238,11 +2239,12 @@ class bullish extends Exchange {
 
     public function load_account($params = array()) {
         $tradingAccountId = null;
-        list($tradingAccountId, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'tradingAccountId');
+        list($tradingAccountId, $params) = $this->handle_option_and_params($params, 'loadAccount', 'tradingAccountId');
         if ($tradingAccountId === null) {
             $response = $this->privateGetV1AccountsTradingAccounts($params);
-            for ($i = 0; $i < count($response); $i++) {
-                $account = $response[$i];
+            $accounts = $this->to_array($response);
+            for ($i = 0; $i < count($accounts); $i++) {
+                $account = $accounts[$i];
                 $name = $this->safe_string($account, 'tradingAccountName');
                 if ($name === 'Primary Account') {
                     $tradingAccountId = $this->safe_string($account, 'tradingAccountId');
@@ -2416,7 +2418,7 @@ class bullish extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         $id = $this->safe_string($depositAddress, 'symbol');
         $network = $this->safe_string($depositAddress, 'network');
         $code = $this->safe_currency_code($id, $currency);
@@ -2474,7 +2476,7 @@ class bullish extends Exchange {
         }
     }
 
-    public function parse_balance_for_single_currency($response, ?string $code): array {
+    public function parse_balance_for_single_currency(mixed $response, ?string $code): array {
         $result = array( 'info' => $response );
         $account = $this->account();
         $account['free'] = $this->safe_string($response, 'availableQuantity');
@@ -2483,7 +2485,7 @@ class bullish extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
         );
@@ -2494,7 +2496,9 @@ class bullish extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'availableQuantity');
             $account['used'] = $this->safe_string($balance, 'lockedQuantity');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -2709,7 +2713,7 @@ class bullish extends Exchange {
         return $transfer;
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(mixed $transfer, ?array $currency = null) {
         //
         // fetchTransfers
         //     {
@@ -2750,7 +2754,7 @@ class bullish extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status) {
         $statuses = array(
             'CLOSED' => 'ok',
             'OPEN' => 'pending',
@@ -2810,7 +2814,7 @@ class bullish extends Exchange {
         return $this->parse_borrow_rate_history($response, $code, $since, $limit);
     }
 
-    public function parse_borrow_rate($info, ?array $currency = null) {
+    public function parse_borrow_rate(mixed $info, ?array $currency = null) {
         //
         //     {
         //         "assetId" => "1",
@@ -2896,7 +2900,7 @@ class bullish extends Exchange {
         return $this->parse_open_interest($response, $market);
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
         //         "createdAtDatetime" => "2021-05-20T01:01:01.000Z",
@@ -2948,7 +2952,7 @@ class bullish extends Exchange {
         ), $market);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
@@ -3039,7 +3043,7 @@ class bullish extends Exchange {
         }
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

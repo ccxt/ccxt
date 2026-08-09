@@ -1,5 +1,5 @@
 import Exchange from './abstract/grvt.js';
-import type { Balances, Currencies, Currency, Dict, NullableDict, List, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
 /**
  * @class grvt
  * @augments Exchange
@@ -62,19 +62,19 @@ export default class grvt extends Exchange {
      * @returns response from exchange
      */
     signIn(params?: {}): Promise<boolean>;
-    signInWithApiKey(params?: {}): Promise<any>;
-    signInWithPrivateKey(params?: {}): Promise<any>;
-    initializeClient(params?: {}): Promise<boolean>;
+    signInWithApiKey(params?: {}): Promise<Dict>;
+    signInWithPrivateKey(params?: {}): Promise<Dict>;
+    initializeClient(params?: {}): Promise<boolean | undefined>;
     /**
      * @method
      * @name grvt#fetchMarkets
      * @description retrieves data on all markets
      * @see https://api-docs.grvt.io/market_data_api/#get-instrument-prod
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    parseMarket(market: any): Market;
+    parseMarket(market: Dict): Market;
     /**
      * @method
      * @name grvt#fetchCurrencies
@@ -84,7 +84,7 @@ export default class grvt extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): Currency;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
      * @name grvt#fetchTicker
@@ -105,7 +105,7 @@ export default class grvt extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -155,9 +155,9 @@ export default class grvt extends Exchange {
     parseFundingRateHistory(rawItem: any, market?: Market): {
         info: any;
         symbol: string;
-        fundingRate: number;
-        timestamp: number;
-        datetime: string;
+        fundingRate: Num;
+        timestamp: Int;
+        datetime: string | undefined;
     };
     getSubAccountId(params: any): string;
     /**
@@ -263,16 +263,7 @@ export default class grvt extends Exchange {
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     convertToBigIntCustom(x: any): number;
-    eipMessageForOrder(order: any, structureType: any): {
-        subAccountID: any;
-        isMarket: any;
-        timeInForce: number;
-        postOnly: any;
-        reduceOnly: any;
-        legs: List;
-        nonce: any;
-        expiration: any;
-    };
+    eipMessageForOrder(order: any, structureType: any): Dict;
     /**
      * @method
      * @name grvt#fetchMyTrades
@@ -329,8 +320,8 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    fetchMarginModes(symbols?: Str[], params?: {}): Promise<MarginModes>;
-    parseMarginMode(marginMode: Dict, market?: any): MarginMode;
+    fetchMarginModes(symbols?: Strings, params?: {}): Promise<MarginModes>;
+    parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     /**
      * @method
      * @name grvt#fetchFundingHistory
@@ -348,11 +339,11 @@ export default class grvt extends Exchange {
     parseIncome(income: any, market?: Market): {
         info: any;
         symbol: string;
-        code: string;
-        timestamp: number;
-        datetime: string;
-        id: string;
-        amount: number;
+        code: Str;
+        timestamp: Int;
+        datetime: string | undefined;
+        id: Str;
+        amount: Num;
     };
     /**
      * @method
@@ -394,13 +385,13 @@ export default class grvt extends Exchange {
     parseOrder(order: Dict, market?: Market): Order;
     parseTimeInForce(type: Str): Str;
     timeInForceToInt(timeInForce: Str): Int;
-    parseOrderStatus(status: Str): string;
+    parseOrderStatus(status: Str): Str;
     /**
      * @method
      * @name grvt#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://api-docs.grvt.io/trading_api/#cancel-all-orders
-     * @param {string} symbol cancel alls open orders
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -423,7 +414,7 @@ export default class grvt extends Exchange {
         chainId: number;
     };
     feeAmountMultiplier(): number;
-    createSignedRequest(request: any, structureType: string, currencyObj?: any, signerAddress?: Str): Dict;
+    createSignedRequest(request: any, structureType: string, currencyObj?: Dict | undefined, signerAddress?: Str): Dict;
     formatSignatureRS(value: string): string;
     defaultSignature(): {
         signer: string;
@@ -440,7 +431,7 @@ export default class grvt extends Exchange {
         url: any;
         method: string;
         body: any;
-        headers: Dict;
+        headers: NullableDict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

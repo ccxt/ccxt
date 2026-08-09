@@ -186,7 +186,7 @@ public partial class apex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -405,6 +405,12 @@ public partial class apex
     /// <remarks>
     /// See <see href="https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol of the market to cancel orders in
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>

@@ -292,7 +292,7 @@ func (this *Bitget) FetchDepositAddress(code string, options ...FetchDepositAddr
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Bitget) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -580,9 +580,11 @@ func (this *Bitget) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]O
  * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
  * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
  * @see https://www.bitget.com/api-doc/uta/account/Get-Account
+ * @see https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
  * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {string} [params.type] 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot')
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Bitget) FetchBalance(params ...any) (Balances, error) {
@@ -1665,7 +1667,7 @@ func (this *Bitget) SetMarginMode(marginMode string, options ...SetMarginModeOpt
  * @see https://www.bitget.com/api-doc/contract/account/Change-Hold-Mode
  * @see https://www.bitget.com/api-doc/uta/account/Change-Position-Mode
  * @param {bool} hedged set to true to use dualSidePosition
- * @param {string} symbol not used by bitget setPositionMode ()
+ * @param {string} symbol not used by setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.productType] required if not uta and symbol is undefined: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
@@ -1776,11 +1778,13 @@ func (this *Bitget) FetchTransfers(options ...FetchTransfersOptions) ([]Transfer
  * @name bitget#transfer
  * @description transfer currency internally between wallets on the same account
  * @see https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
+ * @see https://www.bitget.com/api-doc/uta/account/transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true to transfer via the unified trading account v3 endpoint
  * @param {string} [params.symbol] unified CCXT market symbol, required when transferring to or from an account type that is a leveraged position-by-position account
  * @param {string} [params.clientOid] custom id
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -1813,7 +1817,7 @@ func (this *Bitget) Transfer(code string, amount float64, fromAccount string, to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Bitget) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Bitget) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 
 	opts := FetchDepositWithdrawFeesOptionsStruct{}
 
@@ -1832,9 +1836,9 @@ func (this *Bitget) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFees
 	}
 	res := <-this.Core.FetchDepositWithdrawFees(codes, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return DepositWithdrawFees{}, CreateReturnError(res)
 	}
-	return (res).(map[string]any), nil
+	return NewDepositWithdrawFees(res), nil
 }
 
 /**
@@ -2034,7 +2038,7 @@ func (this *Bitget) FetchMarginMode(symbol string, options ...FetchMarginModeOpt
  * @param {string[]} [symbols] unified contract symbols
  * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
  * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
  * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
@@ -2409,7 +2413,7 @@ func (this *Bitget) FetchDepositAddressesByNetwork(code string, options ...Fetch
 func (this *Bitget) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Bitget) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Bitget) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
 func (this *Bitget) FetchFreeBalance(params ...any) (Balance, error) {
@@ -2487,7 +2491,7 @@ func (this *Bitget) FetchPaymentMethods(params ...any) (map[string]any, error) {
 func (this *Bitget) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bitget) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bitget) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bitget) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -2499,7 +2503,7 @@ func (this *Bitget) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Bitget) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bitget) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bitget) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bitget) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
@@ -2598,7 +2602,7 @@ func (this *Bitget) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Bitget) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Bitget) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Bitget) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Bitget) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -2643,7 +2647,7 @@ func (this *Bitget) FetchTradesWs(symbol string, options ...FetchTradesWsOptions
 func (this *Bitget) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Bitget) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Bitget) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Bitget) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

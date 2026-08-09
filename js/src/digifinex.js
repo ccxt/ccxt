@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/digifinex.js';
-import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, NotSupported, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol, ArgumentsRequired } from './base/errors.js';
+import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, NotSupported, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol, ArgumentsRequired, NullResponse } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
@@ -126,114 +126,114 @@ export default class digifinex extends Exchange {
             'api': {
                 'public': {
                     'spot': {
-                        'get': [
-                            '{market}/symbols',
-                            'kline',
-                            'margin/currencies',
-                            'margin/symbols',
-                            'markets',
-                            'order_book',
-                            'ping',
-                            'spot/symbols',
-                            'time',
-                            'trades',
-                            'trades/symbols',
-                            'ticker',
-                            'currencies',
-                        ],
+                        'get': {
+                            '{market}/symbols': { 'cost': 1 },
+                            'kline': { 'cost': 1 },
+                            'margin/currencies': { 'cost': 1 },
+                            'margin/symbols': { 'cost': 1 },
+                            'markets': { 'cost': 1 },
+                            'order_book': { 'cost': 1 },
+                            'ping': { 'cost': 1 },
+                            'spot/symbols': { 'cost': 1 },
+                            'time': { 'cost': 1 },
+                            'trades': { 'cost': 1 },
+                            'trades/symbols': { 'cost': 1 },
+                            'ticker': { 'cost': 1 },
+                            'currencies': { 'cost': 1 },
+                        },
                     },
                     'swap': {
-                        'get': [
-                            'public/api_weight',
-                            'public/candles',
-                            'public/candles_history',
-                            'public/depth',
-                            'public/funding_rate',
-                            'public/funding_rate_history',
-                            'public/instrument',
-                            'public/instruments',
-                            'public/ticker',
-                            'public/tickers',
-                            'public/time',
-                            'public/trades',
-                        ],
+                        'get': {
+                            'public/api_weight': { 'cost': 1 },
+                            'public/candles': { 'cost': 1 },
+                            'public/candles_history': { 'cost': 1 },
+                            'public/depth': { 'cost': 1 },
+                            'public/funding_rate': { 'cost': 1 },
+                            'public/funding_rate_history': { 'cost': 1 },
+                            'public/instrument': { 'cost': 1 },
+                            'public/instruments': { 'cost': 1 },
+                            'public/ticker': { 'cost': 1 },
+                            'public/tickers': { 'cost': 1 },
+                            'public/time': { 'cost': 1 },
+                            'public/trades': { 'cost': 1 },
+                        },
                     },
                 },
                 'private': {
                     'spot': {
-                        'get': [
-                            '{market}/financelog',
-                            '{market}/mytrades',
-                            '{market}/order',
-                            '{market}/order/detail',
-                            '{market}/order/current',
-                            '{market}/order/history',
-                            'margin/assets',
-                            'margin/financelog',
-                            'margin/mytrades',
-                            'margin/order',
-                            'margin/order/current',
-                            'margin/order/history',
-                            'margin/positions',
-                            'otc/financelog',
-                            'spot/assets',
-                            'spot/financelog',
-                            'spot/mytrades',
-                            'spot/order',
-                            'spot/order/current',
-                            'spot/order/history',
-                            'deposit/address',
-                            'deposit/history',
-                            'withdraw/history',
-                        ],
-                        'post': [
-                            '{market}/order/cancel',
-                            '{market}/order/new',
-                            '{market}/order/batch_new',
-                            'margin/order/cancel',
-                            'margin/order/new',
-                            'margin/position/close',
-                            'spot/order/cancel',
-                            'spot/order/new',
-                            'transfer',
-                            'withdraw/new',
-                            'withdraw/cancel',
-                        ],
+                        'get': {
+                            '{market}/financelog': { 'cost': 1 },
+                            '{market}/mytrades': { 'cost': 1 },
+                            '{market}/order': { 'cost': 1 },
+                            '{market}/order/detail': { 'cost': 1 },
+                            '{market}/order/current': { 'cost': 1 },
+                            '{market}/order/history': { 'cost': 1 },
+                            'margin/assets': { 'cost': 1 },
+                            'margin/financelog': { 'cost': 1 },
+                            'margin/mytrades': { 'cost': 1 },
+                            'margin/order': { 'cost': 1 },
+                            'margin/order/current': { 'cost': 1 },
+                            'margin/order/history': { 'cost': 1 },
+                            'margin/positions': { 'cost': 1 },
+                            'otc/financelog': { 'cost': 1 },
+                            'spot/assets': { 'cost': 1 },
+                            'spot/financelog': { 'cost': 1 },
+                            'spot/mytrades': { 'cost': 1 },
+                            'spot/order': { 'cost': 1 },
+                            'spot/order/current': { 'cost': 1 },
+                            'spot/order/history': { 'cost': 1 },
+                            'deposit/address': { 'cost': 1 },
+                            'deposit/history': { 'cost': 1 },
+                            'withdraw/history': { 'cost': 1 },
+                        },
+                        'post': {
+                            '{market}/order/cancel': { 'cost': 1 },
+                            '{market}/order/new': { 'cost': 1 },
+                            '{market}/order/batch_new': { 'cost': 1 },
+                            'margin/order/cancel': { 'cost': 1 },
+                            'margin/order/new': { 'cost': 1 },
+                            'margin/position/close': { 'cost': 1 },
+                            'spot/order/cancel': { 'cost': 1 },
+                            'spot/order/new': { 'cost': 1 },
+                            'transfer': { 'cost': 1 },
+                            'withdraw/new': { 'cost': 1 },
+                            'withdraw/cancel': { 'cost': 1 },
+                        },
                     },
                     'swap': {
-                        'get': [
-                            'account/balance',
-                            'account/positions',
-                            'account/finance_record',
-                            'account/trading_fee_rate',
-                            'account/transfer_record',
-                            'account/funding_fee',
-                            'trade/history_orders',
-                            'trade/history_trades',
-                            'trade/open_orders',
-                            'trade/order_info',
-                        ],
-                        'post': [
-                            'account/transfer',
-                            'account/leverage',
-                            'account/position_mode',
-                            'account/position_margin',
-                            'trade/batch_cancel_order',
-                            'trade/batch_order',
-                            'trade/cancel_order',
-                            'trade/order_place',
-                            'follow/sponsor_order',
-                            'follow/close_order',
-                            'follow/cancel_order',
-                            'follow/user_center_current',
-                            'follow/user_center_history',
-                            'follow/expert_current_open_order',
-                            'follow/add_algo',
-                            'follow/cancel_algo',
-                            'follow/account_available',
-                            'follow/plan_task',
-                            'follow/instrument_list',
-                        ],
+                        'get': {
+                            'account/balance': { 'cost': 1 },
+                            'account/positions': { 'cost': 1 },
+                            'account/finance_record': { 'cost': 1 },
+                            'account/trading_fee_rate': { 'cost': 1 },
+                            'account/transfer_record': { 'cost': 1 },
+                            'account/funding_fee': { 'cost': 1 },
+                            'trade/history_orders': { 'cost': 1 },
+                            'trade/history_trades': { 'cost': 1 },
+                            'trade/open_orders': { 'cost': 1 },
+                            'trade/order_info': { 'cost': 1 },
+                        },
+                        'post': {
+                            'account/transfer': { 'cost': 1 },
+                            'account/leverage': { 'cost': 1 },
+                            'account/position_mode': { 'cost': 1 },
+                            'account/position_margin': { 'cost': 1 },
+                            'trade/batch_cancel_order': { 'cost': 1 },
+                            'trade/batch_order': { 'cost': 1 },
+                            'trade/cancel_order': { 'cost': 1 },
+                            'trade/order_place': { 'cost': 1 },
+                            'follow/sponsor_order': { 'cost': 1 },
+                            'follow/close_order': { 'cost': 1 },
+                            'follow/cancel_order': { 'cost': 1 },
+                            'follow/user_center_current': { 'cost': 1 },
+                            'follow/user_center_history': { 'cost': 1 },
+                            'follow/expert_current_open_order': { 'cost': 1 },
+                            'follow/add_algo': { 'cost': 1 },
+                            'follow/cancel_algo': { 'cost': 1 },
+                            'follow/account_available': { 'cost': 1 },
+                            'follow/plan_task': { 'cost': 1 },
+                            'follow/instrument_list': { 'cost': 1 },
+                        },
                     },
                 },
             },
@@ -415,7 +415,7 @@ export default class digifinex extends Exchange {
                     'OTC': '3',
                 },
                 'networks': {
-                    'ARBONE': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                     'AVALANCEC': 'AVAX-CCHAIN',
                     'AVALANCEX': 'AVAX-XCHAIN',
                     'BEP20': 'BEP20',
@@ -533,26 +533,28 @@ export default class digifinex extends Exchange {
             const networkEntry = networkEntries[j];
             const networkId = this.safeString2(networkEntry, 'chain', 'currency');
             const networkCode = this.networkIdToCode(networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.safeInteger(networkEntry, 'deposit_status') === 1,
-                'withdraw': this.safeInteger(networkEntry, 'withdraw_status') === 1,
-                'fee': this.safeNumber(networkEntry, 'min_withdraw_fee'),
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(networkEntry, 'min_withdraw_amount'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeInteger(networkEntry, 'deposit_status') === 1,
+                    'withdraw': this.safeInteger(networkEntry, 'withdraw_status') === 1,
+                    'fee': this.safeNumber(networkEntry, 'min_withdraw_fee'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(networkEntry, 'min_withdraw_amount'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber(networkEntry, 'min_deposit_amount'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber(networkEntry, 'min_deposit_amount'),
-                        'max': undefined,
-                    },
-                },
-                'info': networkEntry,
-            };
+                    'info': networkEntry,
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -762,6 +764,9 @@ export default class digifinex extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString(market, 'market');
+            if (id === undefined) {
+                throw new ExchangeError(this.id + ' fetchMarketsV1() missing id');
+            }
             const [baseId, quoteId] = id.split('_');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
@@ -852,7 +857,9 @@ export default class digifinex extends Exchange {
             account['free'] = free;
             account['used'] = Precise.stringSub(total, free);
             account['total'] = total;
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -936,7 +943,7 @@ export default class digifinex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1094,7 +1101,9 @@ export default class digifinex extends Exchange {
             }, tickers[i]);
             const ticker = this.parseTicker(rawTicker);
             const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);
     }
@@ -1178,6 +1187,9 @@ export default class digifinex extends Exchange {
         }
         else {
             result = this.extend({ 'date': date }, firstTicker);
+        }
+        if (result === undefined) {
+            throw new NullResponse(this.id + ' fetchTicker() returned empty response');
         }
         return this.parseTicker(result, market);
     }
@@ -1360,6 +1372,9 @@ export default class digifinex extends Exchange {
             }
         }
         else {
+            if (side === undefined) {
+                throw new ExchangeError(this.id + ' parseTrade() returned no side');
+            }
             const parts = side.split('_');
             side = this.safeString(parts, 0);
             type = this.safeString(parts, 1);
@@ -1605,6 +1620,9 @@ export default class digifinex extends Exchange {
                         }
                     }
                     else {
+                        if (limit === undefined) {
+                            throw new ArgumentsRequired(this.id + ' fetchOHLCV() requires a limit argument');
+                        }
                         request['end_time'] = this.sum(startTime, limit * duration);
                     }
                 }
@@ -1703,6 +1721,9 @@ export default class digifinex extends Exchange {
         //         "data": "1590873693003714560"
         //     }
         //
+        if (response === undefined) {
+            throw new NullResponse(this.id + ' createOrder() returned empty response');
+        }
         const order = this.parseOrder(response, market);
         order['symbol'] = market['symbol'];
         order['type'] = type;
@@ -1812,6 +1833,12 @@ export default class digifinex extends Exchange {
         return this.parseOrders(result, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -1955,7 +1982,7 @@ export default class digifinex extends Exchange {
      * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
      * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#cancelorder
      * @param {string} id order id
-     * @param {string} symbol not used by digifinex cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2063,7 +2090,7 @@ export default class digifinex extends Exchange {
      * @description cancel multiple orders
      * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by digifinex cancelOrders ()
+     * @param {string} symbol not used by cancelOrders ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3154,6 +3181,9 @@ export default class digifinex extends Exchange {
             //
             response = await this.privateSpotPostTransfer(this.extend(request, params));
         }
+        if (response === undefined) {
+            throw new NullResponse(this.id + ' transfer() returned empty response');
+        }
         return this.parseTransfer(response, currency);
     }
     /**
@@ -3294,7 +3324,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'list', []);
-        let result = [];
+        let result = undefined;
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             if (this.safeString(entry, 'currency') === code) {
@@ -3372,7 +3402,9 @@ export default class digifinex extends Exchange {
             const currency = this.safeString(item, codeKey);
             const code = this.safeCurrencyCode(currency);
             const borrowRate = this.parseBorrowRate(item);
-            result[code] = borrowRate;
+            if (code !== undefined) {
+                result[code] = borrowRate;
+            }
         }
         return result;
     }
@@ -3962,8 +3994,11 @@ export default class digifinex extends Exchange {
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
-            currency = this.safeCurrencyCode(code);
-            request['currency'] = currency['id'];
+            currency = this.currency(code);
+            if (currency === undefined) {
+                throw new ExchangeError(this.id + ' fetchTransfers() could not resolve currency');
+            }
+            request['currency'] = this.safeString(currency, 'id');
         }
         if (since !== undefined) {
             request['start_timestamp'] = since;
@@ -4235,7 +4270,7 @@ export default class digifinex extends Exchange {
             const entry = response[i];
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            if ((codes === undefined) || (this.inArray(code, codes))) {
+            if ((code !== undefined) && ((codes === undefined) || (this.inArray(code, codes)))) {
                 const depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
@@ -4255,10 +4290,12 @@ export default class digifinex extends Exchange {
                 };
                 if (networkId !== undefined) {
                     const networkCode = this.networkIdToCode(networkId, code);
-                    depositWithdrawFees[code]['networks'][networkCode] = {
-                        'withdraw': withdrawResult,
-                        'deposit': depositResult,
-                    };
+                    if (networkCode !== undefined) {
+                        depositWithdrawFees[code]['networks'][networkCode] = {
+                            'withdraw': withdrawResult,
+                            'deposit': depositResult,
+                        };
+                    }
                 }
                 else {
                     depositWithdrawFees[code]['withdraw'] = withdrawResult;

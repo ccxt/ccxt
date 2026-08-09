@@ -117,7 +117,7 @@ bitso.fetchBalance (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.bitso.com/bitso-api/docs/list-order-book  
 
@@ -281,7 +281,7 @@ cancels an open order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by bitso cancelOrder () |
+| symbol | <code>string</code> | Yes | not used by cancelOrder () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -324,12 +324,12 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>undefined</code> | Yes | bitso does not support canceling orders for only a specific market |
+| symbol | <code>string</code> | No | bitso does not support canceling orders for only a specific market |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitso.cancelAllOrders (symbol, params?)
+bitso.cancelAllOrders (symbol?, params?)
 ```
 
 

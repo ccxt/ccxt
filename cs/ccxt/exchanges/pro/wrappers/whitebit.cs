@@ -60,7 +60,7 @@ public partial class whitebit
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -226,6 +226,18 @@ public partial class whitebit
     /// <term>params.type</term>
     /// <description>
     /// str : spot or contract if not provided this.options['defaultType'] is used
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.fetchBalanceSnapshot</term>
+    /// <description>
+    /// bool : whether to fetch the initial balance snapshot over REST, default is true
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.awaitBalanceSnapshot</term>
+    /// <description>
+    /// bool : whether to wait for the balance snapshot before providing updates, default is true
     /// </description>
     /// </item>
     /// </list>

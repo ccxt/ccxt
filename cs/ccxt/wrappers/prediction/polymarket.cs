@@ -66,7 +66,7 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of raw gamma event objects.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchRawEventsBySearch(List<object> queries, Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchRawEventsBySearch(List<string> queries, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchRawEventsBySearch(queries, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();

@@ -62,6 +62,16 @@ public partial class lbank : ccxt.lbank
         return newValue;
     }
 
+    public virtual void checkContractMarket(object market, object methodName)
+    {
+        // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
+        // see https://github.com/ccxt/ccxt/issues/26864
+        if (isTrue(isTrue((!isEqual(market, null))) && isTrue(getValue(market, "contract"))))
+        {
+            throw new NotSupported ((string)add(add(add(add(add(this.id, " "), methodName), "() does not support "), getValue(market, "type")), " markets yet")) ;
+        }
+    }
+
     /**
      * @method
      * @name lbank#fetchOHLCVWs
@@ -83,6 +93,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "fetchOHLCVWs");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new Dictionary<string, object>() {});
         object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
@@ -128,6 +139,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "watchOHLCV");
         object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new Dictionary<string, object>() {});
         object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
         object timeframeId = this.safeString(timeframes, timeframe, timeframe);
@@ -213,7 +225,7 @@ public partial class lbank : ccxt.lbank
             object timeframeId = this.safeString(message, "kbar");
             object timeframe = this.findTimeframe(timeframeId, timeframes);
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            object stored = this.safeValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
+            object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -231,7 +243,7 @@ public partial class lbank : ccxt.lbank
             object parsed = new List<object> {this.parse8601(datetime), this.safeNumber(rawOHLCV, "o"), this.safeNumber(rawOHLCV, "h"), this.safeNumber(rawOHLCV, "l"), this.safeNumber(rawOHLCV, "c"), this.safeNumber(rawOHLCV, "v")};
             object timeframe = this.findTimeframe(timeframeId, timeframes);
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            object stored = this.safeValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
+            object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -250,7 +262,7 @@ public partial class lbank : ccxt.lbank
      * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the cex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickerWs(object symbol, object parameters = null)
@@ -261,6 +273,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "fetchTickerWs");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = add("fetchTicker:", getValue(market, "symbol"));
         object message = new Dictionary<string, object>() {
@@ -279,7 +292,7 @@ public partial class lbank : ccxt.lbank
      * @see https://www.lbank.com/en-US/docs/index.html#market
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} params extra parameters specific to the lbank api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
@@ -290,6 +303,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "watchTicker");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = add("ticker:", getValue(market, "symbol"));
         object message = new Dictionary<string, object>() {
@@ -405,6 +419,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "fetchTradesWs");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = add("fetchTrades:", getValue(market, "symbol"));
         if (isTrue(isEqual(limit, null)))
@@ -441,6 +456,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "watchTrades");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = add("trades:", getValue(market, "symbol"));
         object message = new Dictionary<string, object>() {
@@ -562,7 +578,7 @@ public partial class lbank : ccxt.lbank
      * @param {string} [symbol] unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} params extra parameters specific to the lbank api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -626,6 +642,10 @@ public partial class lbank : ccxt.lbank
             myOrders = new ArrayCacheBySymbolById(limit);
         }
         object order = this.parseWsOrder(message);
+        if (isTrue(isEqual(myOrders, null)))
+        {
+            return;
+        }
         callDynamically(myOrders, "append", new object[] {order});
         this.orders = myOrders;
         callDynamically(client as WebSocketClient, "resolve", new object[] {myOrders, "orders"});
@@ -788,7 +808,10 @@ public partial class lbank : ccxt.lbank
         ((IDictionary<string,object>)account)["free"] = this.safeString(data, "free");
         ((IDictionary<string,object>)account)["used"] = this.safeString(data, "freeze");
         ((IDictionary<string,object>)account)["total"] = this.safeString(data, "asset");
-        ((IDictionary<string,object>)this.balance)[(string)code] = account;
+        if (isTrue(!isEqual(code, null)))
+        {
+            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+        }
         this.balance = this.safeBalance(this.balance);
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, "balance"});
     }
@@ -800,7 +823,7 @@ public partial class lbank : ccxt.lbank
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int|undefined} limit the maximum amount of order book entries to return
-     * @param {object} params extra parameters specific to the lbank api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBookWs(object symbol, object limit = null, object parameters = null)
@@ -811,6 +834,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "fetchOrderBookWs");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = add("fetchOrderbook:", getValue(market, "symbol"));
         if (isTrue(isEqual(limit, null)))
@@ -835,8 +859,8 @@ public partial class lbank : ccxt.lbank
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int|undefined} limit the maximum amount of order book entries to return
-     * @param {object} params extra parameters specific to the lbank api endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -846,6 +870,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "watchOrderBook");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = add("orderbook:", getValue(market, "symbol"));
         parameters = this.omit(parameters, "aggregation");
@@ -996,7 +1021,7 @@ public partial class lbank : ccxt.lbank
             { "orderUpdate", this.handleOrders },
             { "assetUpdate", this.handleBalance },
         };
-        object handler = this.safeValue(handlers, ((string)type));
+        object handler = this.safeValue(handlers, type);
         if (isTrue(!isEqual(handler, null)))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});
@@ -1006,7 +1031,7 @@ public partial class lbank : ccxt.lbank
     public async virtual Task<object> authenticate(object parameters = null)
     {
         // when we implement more private streams, we need to refactor the authentication
-        // to be concurent-safe and respect the same authentication token
+        // to be concurrent-safe and respect the same authentication token
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(this.urls, "api"), "ws");
         var client = this.client(url);

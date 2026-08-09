@@ -144,65 +144,171 @@ public partial class deepcoin : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "deepcoin/market/books", 1 },
-                        { "deepcoin/market/candles", 1 },
-                        { "deepcoin/market/instruments", 1 },
-                        { "deepcoin/market/tickers", 1 },
-                        { "deepcoin/market/index-candles", 1 },
-                        { "deepcoin/market/trades", 1 },
-                        { "deepcoin/market/mark-price-candles", 1 },
-                        { "deepcoin/market/step-margin", 5 },
-                        { "deepcoin/trade/funding-rate", 5 },
-                        { "deepcoin/trade/fund-rate/current-funding-rate", 5 },
-                        { "deepcoin/trade/fund-rate/history", 5 },
+                        { "deepcoin/market/books", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deepcoin/market/candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deepcoin/market/instruments", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deepcoin/market/tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deepcoin/market/index-candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deepcoin/market/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deepcoin/market/mark-price-candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deepcoin/market/step-margin", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/funding-rate", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/fund-rate/current-funding-rate", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/fund-rate/history", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "deepcoin/account/balances", 5 },
-                        { "deepcoin/account/bills", 5 },
-                        { "deepcoin/account/positions", 5 },
-                        { "deepcoin/trade/fills", 5 },
-                        { "deepcoin/trade/orderByID", 5 },
-                        { "deepcoin/trade/finishOrderByID", 5 },
-                        { "deepcoin/trade/orders-history", 5 },
-                        { "deepcoin/trade/v2/orders-pending", 5 },
-                        { "deepcoin/trade/trigger-orders-pending", 5 },
-                        { "deepcoin/trade/trigger-orders-history", 5 },
-                        { "deepcoin/copytrading/support-contracts", 5 },
-                        { "deepcoin/copytrading/leader-position", 5 },
-                        { "deepcoin/copytrading/estimate-profit", 5 },
-                        { "deepcoin/copytrading/history-profit", 5 },
-                        { "deepcoin/copytrading/follower-rank", 5 },
-                        { "deepcoin/internal-transfer/support", 5 },
-                        { "deepcoin/internal-transfer/history-order", 5 },
-                        { "deepcoin/rebate/config", 5 },
-                        { "deepcoin/agents/users", 5 },
-                        { "deepcoin/agents/users/rebate-list", 5 },
-                        { "deepcoin/agents/users/rebates", 5 },
-                        { "deepcoin/asset/deposit-list", 5 },
-                        { "deepcoin/asset/withdraw-list", 5 },
-                        { "deepcoin/asset/recharge-chain-list", 5 },
-                        { "deepcoin/listenkey/acquire", 5 },
-                        { "deepcoin/listenkey/extend", 5 },
+                        { "deepcoin/account/balances", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/account/bills", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/account/positions", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/fills", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/orderByID", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/finishOrderByID", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/orders-history", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/v2/orders-pending", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/trigger-orders-pending", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/trigger-orders-history", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/copytrading/support-contracts", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/copytrading/leader-position", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/copytrading/estimate-profit", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/copytrading/history-profit", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/copytrading/follower-rank", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/internal-transfer/support", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/internal-transfer/history-order", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/rebate/config", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/agents/users", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/agents/users/rebate-list", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/agents/users/rebates", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/asset/deposit-list", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/asset/withdraw-list", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/asset/recharge-chain-list", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/listenkey/acquire", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/listenkey/extend", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "deepcoin/account/set-leverage", 5 },
-                        { "deepcoin/trade/order", 5 },
-                        { "deepcoin/trade/replace-order", 5 },
-                        { "deepcoin/trade/cancel-order", 5 },
-                        { "deepcoin/trade/batch-cancel-order", 5 },
-                        { "deepcoin/trade/cancel-trigger-order", divide(1, 6) },
-                        { "deepcoin/trade/swap/cancel-all", 5 },
-                        { "deepcoin/trade/trigger-order", 5 },
-                        { "deepcoin/trade/batch-close-position", 5 },
-                        { "deepcoin/trade/replace-order-sltp", 5 },
-                        { "deepcoin/trade/close-position-by-ids", 5 },
-                        { "deepcoin/copytrading/leader-settings", 5 },
-                        { "deepcoin/copytrading/set-contracts", 5 },
-                        { "deepcoin/internal-transfer", 5 },
-                        { "deepcoin/rebate/config", 5 },
-                        { "deepcoin/asset/transfer", 5 },
+                        { "deepcoin/account/set-leverage", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/order", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/replace-order", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/cancel-order", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/batch-cancel-order", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/cancel-trigger-order", new Dictionary<string, object>() {
+                            { "cost", divide(1, 6) },
+                        } },
+                        { "deepcoin/trade/swap/cancel-all", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/trigger-order", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/batch-close-position", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/replace-order-sltp", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/close-position-by-ids", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/copytrading/leader-settings", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/copytrading/set-contracts", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/internal-transfer", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/rebate/config", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/asset/transfer", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                 } },
             } },
@@ -300,7 +406,7 @@ public partial class deepcoin : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ERC20" },
                     { "TRC20", "TRC20" },
-                    { "ARB", "ARBITRUM" },
+                    { "ARBITRUM", "ARBITRUM" },
                     { "BSC", "BSC(BEP20)" },
                     { "SOL", "SOL" },
                     { "BTC", "Bitcoin" },
@@ -374,7 +480,7 @@ public partial class deepcoin : Exchange
     public virtual object convertToInstrumentType(object type)
     {
         object exchangeTypes = this.safeDict(this.options, "exchangeType", new Dictionary<string, object>() {});
-        return this.safeString(exchangeTypes, type, type);
+        return this.safeString(exchangeTypes, ((string)type), type);
     }
 
     /**
@@ -517,7 +623,7 @@ public partial class deepcoin : Exchange
             settle = this.safeCurrencyCode(settleId);
             symbol = add(add(symbol, ":"), settle);
         }
-        object fees = this.safeDict2(this.fees, ((string)type), "trading", new Dictionary<string, object>() {});
+        object fees = this.safeDict2(this.fees, type, "trading", new Dictionary<string, object>() {});
         object maxLeverage = this.safeString(market, "lever", "1");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         object maxMarketSize = this.safeString(market, "maxMktSz");
@@ -579,19 +685,22 @@ public partial class deepcoin : Exchange
 
     public override object setMarkets(object markets, object currencies = null)
     {
-        markets = base.setMarkets(markets, currencies);
-        object symbols = new List<object>(((IDictionary<string,object>)markets).Keys);
+        object result = base.setMarkets(markets, currencies);
+        object symbols = new List<object>(((IDictionary<string,object>)result).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            object market = getValue(markets, symbol);
-            if (isTrue(getValue(market, "swap")))
+            object market = getValue(result, symbol);
+            if (isTrue(isTrue((!isEqual(market, null))) && isTrue(getValue(market, "swap"))))
             {
-                object additionalId = add(getValue(market, "baseId"), getValue(market, "quoteId"));
-                ((IDictionary<string,object>)this.markets_by_id)[(string)additionalId] = new List<object>() {market}; // some endpoints return swap market id as base+quote
+                object additionalId = add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", ""));
+                if (isTrue(!isEqual(this.markets_by_id, null)))
+                {
+                    ((IDictionary<string,object>)this.markets_by_id)[(string)additionalId] = new List<object>() {market}; // some endpoints return swap market id as base+quote
+                }
             }
         }
-        return this.markets;
+        return result;
     }
 
     /**
@@ -602,7 +711,7 @@ public partial class deepcoin : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -703,7 +812,7 @@ public partial class deepcoin : Exchange
             if (isTrue(!isEqual(since, null)))
             {
                 // the exchange do not have a since param for this endpoint
-                // we canlculate until (after) for correct pagination
+                // we calculate until (after) for correct pagination
                 object duration = this.parseTimeframe(timeframe);
                 object numberOfCandles = ((bool) isTrue((isEqual(limit, null)))) ? maxLimit : limit;
                 object endTime = add(since, multiply((multiply(duration, numberOfCandles)), 1000));
@@ -1116,12 +1225,12 @@ public partial class deepcoin : Exchange
             await this.loadMarkets();
         }
         object paginate = false;
-        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "paginate", false);
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "code", null, 1, 50);
+            return await this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, parameters, "code", null, 1, 50);
         }
         object request = new Dictionary<string, object>() {};
         object currency = null;
@@ -1477,7 +1586,7 @@ public partial class deepcoin : Exchange
             { "4", "transfer" },
             { "5", "fee" },
         };
-        return this.safeString(ledgerType, type, type);
+        return this.safeString(ledgerType, ((string)type), type);
     }
 
     /**
@@ -1648,6 +1757,14 @@ public partial class deepcoin : Exchange
         * @description helper function to build request
         */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
         object triggerPrice = this.safeString(parameters, "triggerPrice");
         // const isTriggerOrder = (triggerPrice !== undefined) || this.safeString2 (params, 'stopLossPrice', 'takeProfitPrice') !== undefined;
@@ -1693,6 +1810,14 @@ public partial class deepcoin : Exchange
         * @param {string} [params.mrgPosition] *swap only* 'merge' or 'split', the default is 'merge'
         */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
         object orderType = type;
         var orderTypeparametersVariable = this.handleTypePostOnlyAndTimeInForce(type, parameters);
@@ -1810,6 +1935,14 @@ public partial class deepcoin : Exchange
         * @param {string} [params.marginMode] *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
         */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
@@ -2064,7 +2197,7 @@ public partial class deepcoin : Exchange
         object length = getArrayLength(data);
         if (isTrue(isEqual(length, 0)))
         {
-            return null;
+            throw new OrderNotFound ((string)add(add(this.id, " fetchOpenOrder() could not find order id "), id)) ;
         }
         object entry = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseOrder(entry, market);
@@ -2817,7 +2950,7 @@ public partial class deepcoin : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             object firstSymbol = this.safeString(symbols, 0);
-            market = this.market(((string)firstSymbol));
+            market = this.market(firstSymbol);
         }
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPositions", market, parameters, marketType);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
@@ -3003,7 +3136,7 @@ public partial class deepcoin : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             object firstSymbol = this.safeString(symbols, 0);
-            firstMarket = this.market(((string)firstSymbol));
+            firstMarket = this.market(firstSymbol);
         }
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchFundingRates", firstMarket, parameters, subType);
         subType = ((IList<object>)subTypeparametersVariable)[0];

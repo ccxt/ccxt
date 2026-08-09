@@ -367,7 +367,7 @@ func (this *Derive) CancelOrder(id string, options ...CancelOrderOptions) (Order
  * @see https://docs.derive.xyz/reference/post_private-cancel-by-instrument
  * @see https://docs.derive.xyz/reference/post_private-cancel-all
  * @description cancel all open orders in a market
- * @param {string} symbol unified market symbol
+ * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subaccount_id] *required* the subaccount id
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -681,7 +681,7 @@ func (this *Derive) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
  * @name derive#fetchPositions
  * @description fetch all open positions
  * @see https://docs.derive.xyz/reference/post_private-get-positions
- * @param {string[]} [symbols] not used by kraken fetchPositions ()
+ * @param {string[]} [symbols] not used by fetchPositions ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subaccount_id] *required* the subaccount id
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -1016,10 +1016,10 @@ func (this *Derive) FetchDepositAddressesByNetwork(code string, options ...Fetch
 func (this *Derive) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Derive) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Derive) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Derive) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Derive) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Derive) FetchFreeBalance(params ...any) (Balance, error) {
@@ -1139,7 +1139,7 @@ func (this *Derive) FetchPosition(symbol string, options ...FetchPositionOptions
 func (this *Derive) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Derive) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Derive) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Derive) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1154,7 +1154,7 @@ func (this *Derive) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Derive) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Derive) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Derive) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Derive) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
@@ -1277,7 +1277,7 @@ func (this *Derive) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Derive) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Derive) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Derive) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Derive) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1322,7 +1322,7 @@ func (this *Derive) FetchTradesWs(symbol string, options ...FetchTradesWsOptions
 func (this *Derive) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Derive) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Derive) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Derive) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

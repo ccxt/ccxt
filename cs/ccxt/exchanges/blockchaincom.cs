@@ -87,38 +87,86 @@ public partial class blockchaincom : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "tickers", 1 },
-                        { "tickers/{symbol}", 1 },
-                        { "symbols", 1 },
-                        { "symbols/{symbol}", 1 },
-                        { "l2/{symbol}", 1 },
-                        { "l3/{symbol}", 1 },
+                        { "tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "symbols", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "symbols/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "l2/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "l3/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "fees", 1 },
-                        { "orders", 1 },
-                        { "orders/{orderId}", 1 },
-                        { "trades", 1 },
-                        { "fills", 1 },
-                        { "deposits", 1 },
-                        { "deposits/{depositId}", 1 },
-                        { "accounts", 1 },
-                        { "accounts/{account}/{currency}", 1 },
-                        { "whitelist", 1 },
-                        { "whitelist/{currency}", 1 },
-                        { "withdrawals", 1 },
-                        { "withdrawals/{withdrawalId}", 1 },
+                        { "fees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{orderId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fills", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deposits/{depositId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accounts/{account}/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "whitelist", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "whitelist/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals/{withdrawalId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "orders", 1 },
-                        { "deposits/{currency}", 1 },
-                        { "withdrawals", 1 },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deposits/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "orders", 1 },
-                        { "orders/{orderId}", 1 },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{orderId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -395,7 +443,7 @@ public partial class blockchaincom : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -630,6 +678,10 @@ public partial class blockchaincom : Exchange
         object uppercaseOrderType = ((string)orderType).ToUpper();
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId", this.uuid16());
         parameters = this.omit(parameters, new List<object>() {"ordType", "clientOrderId", "clOrdId"});
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "ordType", uppercaseOrderType },
             { "symbol", getValue(market, "id") },
@@ -706,7 +758,7 @@ public partial class blockchaincom : Exchange
      * @name blockchaincom#cancelAllOrders
      * @description cancel all open orders
      * @see https://api.blockchain.com/v3/#deleteallorders
-     * @param {string} symbol unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -760,9 +812,10 @@ public partial class blockchaincom : Exchange
         object makerFee = this.safeNumber(response, "makerRate");
         object takerFee = this.safeNumber(response, "takerRate");
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -1198,7 +1251,7 @@ public partial class blockchaincom : Exchange
      * @description fetch information on a deposit
      * @see https://api.blockchain.com/v3/#getdepositbyid
      * @param {string} id deposit id
-     * @param {string} code not used by blockchaincom fetchDeposit ()
+     * @param {string} code not used by fetchDeposit ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
@@ -1232,7 +1285,7 @@ public partial class blockchaincom : Exchange
         {
             await this.loadMarkets();
         }
-        object accountName = ((string)this.safeString(parameters, "account", "primary"));
+        object accountName = this.safeString(parameters, "account", "primary");
         parameters = this.omit(parameters, "account");
         object request = new Dictionary<string, object>() {
             { "account", accountName },

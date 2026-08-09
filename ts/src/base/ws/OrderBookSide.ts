@@ -34,7 +34,7 @@ interface IOrderBookSide<T> extends Array<T> {
 }
 
 class OrderBookSide extends Array implements IOrderBookSide<any> {
-    constructor (deltas = [], depth = undefined) {
+    constructor (deltas: object[] = [], depth: number | undefined = undefined) {
         super ()
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty (this, 'index', {
@@ -98,6 +98,14 @@ class OrderBookSide extends Array implements IOrderBookSide<any> {
             this.length = this.depth
         }
     }
+
+    copy () {
+        const copy = new (this.constructor as any)([], this.depth)
+        for (let i = 0; i < this.length; i++) {
+            copy.storeArray (this[i].slice ())
+        }
+        return copy
+    }
 }
 
 // ----------------------------------------------------------------------------
@@ -149,7 +157,7 @@ class CountedOrderBookSide extends OrderBookSide {
 // stores vector arrays indexed by id (3rd value in a bidask delta array)
 
 class IndexedOrderBookSide extends Array implements IOrderBookSide<any> {
-    constructor (deltas = [], depth = Number.MAX_SAFE_INTEGER) {
+    constructor (deltas: object[] = [], depth = Number.MAX_SAFE_INTEGER) {
         super (deltas.length)
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty (this, 'hashmap', {
@@ -261,6 +269,14 @@ class IndexedOrderBookSide extends Array implements IOrderBookSide<any> {
             }
             this.length = this.depth
         }
+    }
+
+    copy () {
+        const copy = new (this.constructor as any)([], this.depth)
+        for (let i = 0; i < this.length; i++) {
+            copy.storeArray (this[i].slice ())
+        }
+        return copy
     }
 }
 

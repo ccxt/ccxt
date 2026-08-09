@@ -240,7 +240,10 @@ public class ArrayCacheBySymbolById : ArrayCache
             item = reference;
             // index = new Queue<int>(index.Where(x => x != (int)reference));
             // this.index.Remove
-            var value = this.Find(x => Exchange.SafeString(x, "id") == itemId);
+            // match on both the key field (e.g. symbol) and id - different symbols can
+            // share an order id (binance uses per-symbol id sequences), and matching on
+            // id alone would remove the wrong row, see ccxt/ccxt#26092
+            var value = this.Find(x => (Exchange.SafeString(x, "id") == itemId) && (Exchange.SafeString(x, this.keyField) == itemSymbol));
             var indexInt = this.IndexOf(value);
             this.RemoveAt(indexInt);
             // this.index.Remove(indexInt);

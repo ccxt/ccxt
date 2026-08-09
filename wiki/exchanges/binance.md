@@ -126,6 +126,7 @@
 * [unWatchTickers](#unwatchtickers)
 * [unWatchMarkPrices](#unwatchmarkprices)
 * [unWatchMarkPrice](#unwatchmarkprice)
+* [unWatchBidsAsks](#unwatchbidsasks)
 * [unWatchTicker](#unwatchticker)
 * [watchBidsAsks](#watchbidsasks)
 * [fetchBalanceWs](#fetchbalancews)
@@ -288,7 +289,7 @@ binance.fetchBalance (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -374,6 +375,7 @@ fetches the bid and ask price and volume for multiple markets
 - https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker   // spot
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // swap
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // future
+- https://developers.binance.com/docs/derivatives/options-trading/market-data/24hr-Ticker-Price-Change-Statistics      // option
 
 
 | Param | Type | Required | Description |
@@ -456,6 +458,7 @@ fetches mark price for the market
 
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+- https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price
 
 
 | Param | Type | Required | Description |
@@ -482,6 +485,7 @@ fetches mark prices for multiple markets
 
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+- https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price
 
 
 | Param | Type | Required | Description |
@@ -1252,7 +1256,7 @@ fetch all dust trades made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | not used by binance fetchMyDustTrades () |
+| symbol | <code>string</code> | Yes | not used by fetchMyDustTrades () |
 | since | <code>int</code> | No | the earliest time in ms to fetch my dust trades for |
 | limit | <code>int</code> | No | the maximum number of dust trades to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -1412,7 +1416,7 @@ please use fetchDepositWithdrawFees instead
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by binance fetchTransactionFees () |
+| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by fetchTransactionFees () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -1433,7 +1437,7 @@ fetch deposit and withdraw fees
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by binance fetchDepositWithdrawFees () |
+| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by fetchDepositWithdrawFees () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -1812,7 +1816,7 @@ set hedged to true or false for a market
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | hedged | <code>bool</code> | Yes | set to true to use dualSidePosition |
-| symbol | <code>string</code> | Yes | not used by binance setPositionMode () |
+| symbol | <code>string</code> | Yes | not used by setPositionMode () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to set the position mode for a portfolio margin account |
 | params.subType | <code>string</code> | No | "linear" or "inverse" |
@@ -2543,7 +2547,7 @@ fetches the history of margin added or reduced from contract isolated positions
 | type | <code>string</code> | No | "add" or "reduce" |
 | since | <code>int</code> | No | timestamp in ms of the earliest change to fetch |
 | limit | <code>int</code> | No | the maximum amount of changes to fetch |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest change to fetch |
 
 
@@ -2833,7 +2837,7 @@ watch the public liquidations of a trading pair
 | symbol | <code>string</code> | Yes | unified CCXT market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
 | limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
-| params | <code>object</code> | No | exchange specific parameters for the bitmex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -2860,7 +2864,7 @@ watch the public liquidations of a trading pair
 | symbols | <code>Array&lt;string&gt;</code> | Yes | list of unified market symbols |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
 | limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
-| params | <code>object</code> | No | exchange specific parameters for the bitmex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -2887,7 +2891,7 @@ watch the private liquidations of a trading pair
 | symbol | <code>string</code> | Yes | unified CCXT market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
 | limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
-| params | <code>object</code> | No | exchange specific parameters for the bitmex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -2914,7 +2918,7 @@ watch the private liquidations of a trading pair
 | symbols | <code>Array&lt;string&gt;</code> | Yes | list of unified market symbols |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
 | limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
-| params | <code>object</code> | No | exchange specific parameters for the bitmex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -2959,7 +2963,7 @@ binance.watchOrderBook (symbol, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -3518,6 +3522,31 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 ```javascript
 binance.unWatchMarkPrice (symbol, params?)
+```
+
+
+<a name="unWatchBidsAsks" id="unwatchbidsasks"></a>
+
+### unWatchBidsAsks{docsify-ignore}
+unWatches best bid & ask for symbols
+
+**Kind**: instance method of [<code>binance</code>](#binance)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**
+
+- https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-book-ticker-streams
+- https://developers.binance.com/docs/derivatives/options-trading/websocket-market-streams/Bookticker
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols |
+| params | <code>object</code> | No | extra parameters |
+
+
+```javascript
+binance.unWatchBidsAsks (symbols?, params?)
 ```
 
 

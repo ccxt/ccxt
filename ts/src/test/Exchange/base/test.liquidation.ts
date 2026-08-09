@@ -3,7 +3,7 @@ import assert from 'assert';
 import testSharedMethods from './test.sharedMethods.js';
 import Precise from '../../../base/Precise.js';
 
-function testLiquidation (exchange, skippedProperties, method, entry, symbol) {
+function testLiquidation (exchange: any, skippedProperties: any, method: string, entry: object, symbol: string) {
     const format = {
         'info': {},
         'symbol': 'ETH/BTC',

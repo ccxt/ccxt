@@ -4,34 +4,33 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5a8858e2764aec0e7fab7f24840952fd",
+    "content-hash": "cfc7d609eed41780269e5df954fe236d",
     "packages": [
         {
             "name": "clue/http-proxy-react",
-            "version": "v1.9.0",
+            "version": "v1.10.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/clue/reactphp-http-proxy.git",
-                "reference": "f3b02835273036a9370ac1c144b55df8e2b98430"
+                "reference": "5bd777a2a55464aa722edde4176504a8875bdbab"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/clue/reactphp-http-proxy/zipball/f3b02835273036a9370ac1c144b55df8e2b98430",
-                "reference": "f3b02835273036a9370ac1c144b55df8e2b98430",
+                "url": "https://api.github.com/repos/clue/reactphp-http-proxy/zipball/5bd777a2a55464aa722edde4176504a8875bdbab",
+                "reference": "5bd777a2a55464aa722edde4176504a8875bdbab",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3",
-                "react/promise": "^3 || ^2.1 || ^1.2.1",
-                "react/socket": "^1.12",
-                "ringcentral/psr7": "^1.2"
+                "react/promise": "^3.3 || ^2.1 || ^1.2.1",
+                "react/socket": "^1.17"
             },
             "require-dev": {
-                "phpunit/phpunit": "^9.6 || ^5.7 || ^4.8.36",
-                "react/async": "^4 || ^3 || ^2",
-                "react/event-loop": "^1.2",
-                "react/http": "^1.5",
-                "react/promise-timer": "^1.10"
+                "phpunit/phpunit": "^9.6 || ^8.5 || ^5.7 || ^4.8.36",
+                "react/async": "^4.3 || ^3 || ^2",
+                "react/event-loop": "^1.6",
+                "react/http": "^1.11",
+                "react/promise-timer": "^1.11"
             },
             "type": "library",
             "autoload": {
@@ -60,7 +59,7 @@
             ],
             "support": {
                 "issues": "https://github.com/clue/reactphp-http-proxy/issues",
-                "source": "https://github.com/clue/reactphp-http-proxy/tree/v1.9.0"
+                "source": "https://github.com/clue/reactphp-http-proxy/tree/v1.10.0"
             },
             "funding": [
                 {
@@ -72,7 +71,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-04-10T14:46:11+00:00"
+            "time": "2026-06-29T09:33:22+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -3895,5 +3894,5 @@
         "ext-gmp": "*"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }

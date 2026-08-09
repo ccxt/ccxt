@@ -147,109 +147,295 @@ func (this *BitmexCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"announcement":                5,
-					"announcement/urgent":         5,
-					"chat":                        5,
-					"chat/channels":               5,
-					"chat/connected":              5,
-					"chat/pinned":                 5,
-					"funding":                     5,
-					"guild":                       5,
-					"instrument":                  5,
-					"instrument/active":           5,
-					"instrument/activeAndIndices": 5,
-					"instrument/activeIntervals":  5,
-					"instrument/compositeIndex":   5,
-					"instrument/indices":          5,
-					"instrument/usdVolume":        5,
-					"insurance":                   5,
-					"leaderboard":                 5,
-					"liquidation":                 5,
-					"orderBook/L2":                5,
-					"porl/nonce":                  5,
-					"quote":                       5,
-					"quote/bucketed":              5,
-					"schema":                      5,
-					"schema/websocketHelp":        5,
-					"settlement":                  5,
-					"stats":                       5,
-					"stats/history":               5,
-					"stats/historyUSD":            5,
-					"trade":                       5,
-					"trade/bucketed":              5,
-					"wallet/assets":               5,
-					"wallet/networks":             5,
+					"announcement": map[string]any{
+						"cost": 5,
+					},
+					"announcement/urgent": map[string]any{
+						"cost": 5,
+					},
+					"chat": map[string]any{
+						"cost": 5,
+					},
+					"chat/channels": map[string]any{
+						"cost": 5,
+					},
+					"chat/connected": map[string]any{
+						"cost": 5,
+					},
+					"chat/pinned": map[string]any{
+						"cost": 5,
+					},
+					"funding": map[string]any{
+						"cost": 5,
+					},
+					"guild": map[string]any{
+						"cost": 5,
+					},
+					"instrument": map[string]any{
+						"cost": 5,
+					},
+					"instrument/active": map[string]any{
+						"cost": 5,
+					},
+					"instrument/activeAndIndices": map[string]any{
+						"cost": 5,
+					},
+					"instrument/activeIntervals": map[string]any{
+						"cost": 5,
+					},
+					"instrument/compositeIndex": map[string]any{
+						"cost": 5,
+					},
+					"instrument/indices": map[string]any{
+						"cost": 5,
+					},
+					"instrument/usdVolume": map[string]any{
+						"cost": 5,
+					},
+					"insurance": map[string]any{
+						"cost": 5,
+					},
+					"leaderboard": map[string]any{
+						"cost": 5,
+					},
+					"liquidation": map[string]any{
+						"cost": 5,
+					},
+					"orderBook/L2": map[string]any{
+						"cost": 5,
+					},
+					"porl/nonce": map[string]any{
+						"cost": 5,
+					},
+					"quote": map[string]any{
+						"cost": 5,
+					},
+					"quote/bucketed": map[string]any{
+						"cost": 5,
+					},
+					"schema": map[string]any{
+						"cost": 5,
+					},
+					"schema/websocketHelp": map[string]any{
+						"cost": 5,
+					},
+					"settlement": map[string]any{
+						"cost": 5,
+					},
+					"stats": map[string]any{
+						"cost": 5,
+					},
+					"stats/history": map[string]any{
+						"cost": 5,
+					},
+					"stats/historyUSD": map[string]any{
+						"cost": 5,
+					},
+					"trade": map[string]any{
+						"cost": 5,
+					},
+					"trade/bucketed": map[string]any{
+						"cost": 5,
+					},
+					"wallet/assets": map[string]any{
+						"cost": 5,
+					},
+					"wallet/networks": map[string]any{
+						"cost": 5,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"address":                        5,
-					"apiKey":                         5,
-					"execution":                      5,
-					"execution/tradeHistory":         5,
-					"globalNotification":             5,
-					"leaderboard/name":               5,
-					"order":                          5,
-					"porl/snapshots":                 5,
-					"position":                       5,
-					"user":                           5,
-					"user/affiliateStatus":           5,
-					"user/checkReferralCode":         5,
-					"user/commission":                5,
-					"user/csa":                       5,
-					"user/depositAddress":            5,
-					"user/executionHistory":          5,
-					"user/getWalletTransferAccounts": 5,
-					"user/margin":                    5,
-					"user/quoteFillRatio":            5,
-					"user/quoteValueRatio":           5,
-					"user/staking":                   5,
-					"user/staking/instruments":       5,
-					"user/staking/tiers":             5,
-					"user/tradingVolume":             5,
-					"user/unstakingRequests":         5,
-					"user/wallet":                    5,
-					"user/walletHistory":             5,
-					"user/walletSummary":             5,
-					"userAffiliates":                 5,
-					"userEvent":                      5,
+					"address": map[string]any{
+						"cost": 5,
+					},
+					"apiKey": map[string]any{
+						"cost": 5,
+					},
+					"execution": map[string]any{
+						"cost": 5,
+					},
+					"execution/tradeHistory": map[string]any{
+						"cost": 5,
+					},
+					"globalNotification": map[string]any{
+						"cost": 5,
+					},
+					"leaderboard/name": map[string]any{
+						"cost": 5,
+					},
+					"order": map[string]any{
+						"cost": 5,
+					},
+					"porl/snapshots": map[string]any{
+						"cost": 5,
+					},
+					"position": map[string]any{
+						"cost": 5,
+					},
+					"user": map[string]any{
+						"cost": 5,
+					},
+					"user/affiliateStatus": map[string]any{
+						"cost": 5,
+					},
+					"user/checkReferralCode": map[string]any{
+						"cost": 5,
+					},
+					"user/commission": map[string]any{
+						"cost": 5,
+					},
+					"user/csa": map[string]any{
+						"cost": 5,
+					},
+					"user/depositAddress": map[string]any{
+						"cost": 5,
+					},
+					"user/executionHistory": map[string]any{
+						"cost": 5,
+					},
+					"user/getWalletTransferAccounts": map[string]any{
+						"cost": 5,
+					},
+					"user/margin": map[string]any{
+						"cost": 5,
+					},
+					"user/quoteFillRatio": map[string]any{
+						"cost": 5,
+					},
+					"user/quoteValueRatio": map[string]any{
+						"cost": 5,
+					},
+					"user/staking": map[string]any{
+						"cost": 5,
+					},
+					"user/staking/instruments": map[string]any{
+						"cost": 5,
+					},
+					"user/staking/tiers": map[string]any{
+						"cost": 5,
+					},
+					"user/tradingVolume": map[string]any{
+						"cost": 5,
+					},
+					"user/unstakingRequests": map[string]any{
+						"cost": 5,
+					},
+					"user/wallet": map[string]any{
+						"cost": 5,
+					},
+					"user/walletHistory": map[string]any{
+						"cost": 5,
+					},
+					"user/walletSummary": map[string]any{
+						"cost": 5,
+					},
+					"userAffiliates": map[string]any{
+						"cost": 5,
+					},
+					"userEvent": map[string]any{
+						"cost": 5,
+					},
 				},
 				"post": map[string]any{
-					"address":                 5,
-					"chat":                    5,
-					"guild":                   5,
-					"guild/archive":           5,
-					"guild/join":              5,
-					"guild/kick":              5,
-					"guild/leave":             5,
-					"guild/sharesTrades":      5,
-					"order":                   1,
-					"order/cancelAllAfter":    5,
-					"order/closePosition":     5,
-					"position/isolate":        1,
-					"position/leverage":       1,
-					"position/riskLimit":      5,
-					"position/transferMargin": 1,
-					"user/addSubaccount":      5,
-					"user/cancelWithdrawal":   5,
-					"user/communicationToken": 5,
-					"user/confirmEmail":       5,
-					"user/confirmWithdrawal":  5,
-					"user/logout":             5,
-					"user/preferences":        5,
-					"user/requestWithdrawal":  5,
-					"user/unstakingRequests":  5,
-					"user/updateSubaccount":   5,
-					"user/walletTransfer":     5,
+					"address": map[string]any{
+						"cost": 5,
+					},
+					"chat": map[string]any{
+						"cost": 5,
+					},
+					"guild": map[string]any{
+						"cost": 5,
+					},
+					"guild/archive": map[string]any{
+						"cost": 5,
+					},
+					"guild/join": map[string]any{
+						"cost": 5,
+					},
+					"guild/kick": map[string]any{
+						"cost": 5,
+					},
+					"guild/leave": map[string]any{
+						"cost": 5,
+					},
+					"guild/sharesTrades": map[string]any{
+						"cost": 5,
+					},
+					"order": map[string]any{
+						"cost": 1,
+					},
+					"order/cancelAllAfter": map[string]any{
+						"cost": 5,
+					},
+					"order/closePosition": map[string]any{
+						"cost": 5,
+					},
+					"position/isolate": map[string]any{
+						"cost": 1,
+					},
+					"position/leverage": map[string]any{
+						"cost": 1,
+					},
+					"position/riskLimit": map[string]any{
+						"cost": 5,
+					},
+					"position/transferMargin": map[string]any{
+						"cost": 1,
+					},
+					"user/addSubaccount": map[string]any{
+						"cost": 5,
+					},
+					"user/cancelWithdrawal": map[string]any{
+						"cost": 5,
+					},
+					"user/communicationToken": map[string]any{
+						"cost": 5,
+					},
+					"user/confirmEmail": map[string]any{
+						"cost": 5,
+					},
+					"user/confirmWithdrawal": map[string]any{
+						"cost": 5,
+					},
+					"user/logout": map[string]any{
+						"cost": 5,
+					},
+					"user/preferences": map[string]any{
+						"cost": 5,
+					},
+					"user/requestWithdrawal": map[string]any{
+						"cost": 5,
+					},
+					"user/unstakingRequests": map[string]any{
+						"cost": 5,
+					},
+					"user/updateSubaccount": map[string]any{
+						"cost": 5,
+					},
+					"user/walletTransfer": map[string]any{
+						"cost": 5,
+					},
 				},
 				"put": map[string]any{
-					"guild": 5,
-					"order": 1,
+					"guild": map[string]any{
+						"cost": 5,
+					},
+					"order": map[string]any{
+						"cost": 1,
+					},
 				},
 				"delete": map[string]any{
-					"order":                  1,
-					"order/all":              1,
-					"user/unstakingRequests": 5,
+					"order": map[string]any{
+						"cost": 1,
+					},
+					"order/all": map[string]any{
+						"cost": 1,
+					},
+					"user/unstakingRequests": map[string]any{
+						"cost": 5,
+					},
 				},
 			},
 		},
@@ -493,26 +679,28 @@ func (this *BitmexCore) ParseCurrency(currency any) any {
 		if IsTrue(isWithdrawEnabled) {
 			withdrawEnabled = true
 		}
-		AddElementToObject(networks, network, map[string]any{
-			"info":      chain,
-			"id":        networkId,
-			"network":   network,
-			"active":    active,
-			"deposit":   isDepositEnabled,
-			"withdraw":  isWithdrawEnabled,
-			"fee":       withdrawalFee,
-			"precision": nil,
-			"limits": map[string]any{
-				"withdraw": map[string]any{
-					"min": nil,
-					"max": nil,
+		if IsTrue(!IsEqual(network, nil)) {
+			AddElementToObject(networks, network, map[string]any{
+				"info":      chain,
+				"id":        networkId,
+				"network":   network,
+				"active":    active,
+				"deposit":   isDepositEnabled,
+				"withdraw":  isWithdrawEnabled,
+				"fee":       withdrawalFee,
+				"precision": nil,
+				"limits": map[string]any{
+					"withdraw": map[string]any{
+						"min": nil,
+						"max": nil,
+					},
+					"deposit": map[string]any{
+						"min": nil,
+						"max": nil,
+					},
 				},
-				"deposit": map[string]any{
-					"min": nil,
-					"max": nil,
-				},
-			},
-		})
+			})
+		}
 	}
 	var currencyEnabled any = this.SafeValue(currency, "enabled")
 	var currencyActive any = IsTrue(currencyEnabled) || IsTrue((IsTrue(depositEnabled) || IsTrue(withdrawEnabled)))
@@ -590,7 +778,7 @@ func (this *BitmexCore) ConvertFromRawQuantity(symbol any, rawQuantity any, opti
 	}
 	var market any = this.Market(symbol)
 	if IsTrue(GetValue(market, "spot")) {
-		return this.ParseNumber(this.ConvertToRealAmount(GetValue(market, currencySide), rawQuantity))
+		return this.ParseNumber(this.ConvertToRealAmount(this.SafeString(market, currencySide), rawQuantity))
 	}
 	return this.ParseNumber(rawQuantity)
 }
@@ -877,7 +1065,10 @@ func (this *BitmexCore) ParseMarket(market any) any {
 		isQuanto = nil
 		linear = nil
 	}
-	return map[string]any{
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " parseMarket() requires a symbol")))
+	}
+	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         symbol,
 		"base":           base,
@@ -928,7 +1119,7 @@ func (this *BitmexCore) ParseMarket(market any) any {
 		},
 		"created": nil,
 		"info":    market,
-	}
+	})
 }
 func (this *BitmexCore) ParseBalance(response any) any {
 	//
@@ -990,7 +1181,9 @@ func (this *BitmexCore) ParseBalance(response any) any {
 		var total any = this.SafeString(balance, "marginBalance")
 		AddElementToObject(account, "free", this.ConvertToRealAmount(code, free))
 		AddElementToObject(account, "total", this.ConvertToRealAmount(code, total))
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -1012,8 +1205,8 @@ func (this *BitmexCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes100212 := (<-this.LoadMarkets())
-			PanicOnError(retRes100212)
+			retRes100912 := (<-this.LoadMarkets())
+			PanicOnError(retRes100912)
 		}
 		var request any = map[string]any{
 			"currency": "all",
@@ -1084,7 +1277,7 @@ func (this *BitmexCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BitmexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1097,8 +1290,8 @@ func (this *BitmexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes107012 := (<-this.LoadMarkets())
-			PanicOnError(retRes107012)
+			retRes107712 := (<-this.LoadMarkets())
+			PanicOnError(retRes107712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1118,8 +1311,9 @@ func (this *BitmexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan a
 			"datetime":  nil,
 			"nonce":     nil,
 		}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var order any = GetValue(response, i)
+		var orders any = this.ToArray(response)
+		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
+			var order any = GetValue(orders, i)
 			var side any = Ternary(IsTrue((IsEqual(GetValue(order, "side"), "Sell"))), "asks", "bids")
 			var amount any = this.ConvertFromRawQuantity(symbol, this.SafeString(order, "size"))
 			var price any = this.SafeNumber(order, "price")
@@ -1127,8 +1321,8 @@ func (this *BitmexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan a
 			// https://github.com/ccxt/ccxt/issues/4927
 			// the exchange sometimes returns null price in the orderbook
 			if IsTrue(!IsEqual(price, nil)) {
-				retRes109716 := GetValue(result, side)
-				AppendToArray(&retRes109716, []any{price, amount})
+				retRes110516 := GetValue(result, side)
+				AppendToArray(&retRes110516, []any{price, amount})
 			}
 		}
 		AddElementToObject(result, "bids", this.SortBy(GetValue(result, "bids"), 0, true))
@@ -1208,8 +1402,8 @@ func (this *BitmexCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes114412 := (<-this.LoadMarkets())
-			PanicOnError(retRes114412)
+			retRes115212 := (<-this.LoadMarkets())
+			PanicOnError(retRes115212)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
@@ -1217,9 +1411,9 @@ func (this *BitmexCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes114919 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params, 100))
-			PanicOnError(retRes114919)
-			ch <- retRes114919
+			retRes115719 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params, 100))
+			PanicOnError(retRes115719)
+			ch <- retRes115719
 			return nil
 		}
 		var market any = nil
@@ -1287,9 +1481,9 @@ func (this *BitmexCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 			},
 		}
 
-		retRes119615 := (<-this.FetchOrders(symbol, since, limit, this.DeepExtend(request, params)))
-		PanicOnError(retRes119615)
-		ch <- retRes119615
+		retRes120415 := (<-this.FetchOrders(symbol, since, limit, this.DeepExtend(request, params)))
+		PanicOnError(retRes120415)
+		ch <- retRes120415
 		return nil
 
 	}()
@@ -1359,8 +1553,8 @@ func (this *BitmexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes123012 := (<-this.LoadMarkets())
-			PanicOnError(retRes123012)
+			retRes123812 := (<-this.LoadMarkets())
+			PanicOnError(retRes123812)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -1368,9 +1562,9 @@ func (this *BitmexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes123519 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, 100))
-			PanicOnError(retRes123519)
-			ch <- retRes123519
+			retRes124319 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, 100))
+			PanicOnError(retRes124319)
+			ch <- retRes124319
 			return nil
 		}
 		var market any = nil
@@ -1600,8 +1794,8 @@ func (this *BitmexCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes144412 := (<-this.LoadMarkets())
-			PanicOnError(retRes144412)
+			retRes145212 := (<-this.LoadMarkets())
+			PanicOnError(retRes145212)
 		}
 		var request any = map[string]any{}
 		//
@@ -1674,8 +1868,8 @@ func (this *BitmexCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes149912 := (<-this.LoadMarkets())
-			PanicOnError(retRes149912)
+			retRes150712 := (<-this.LoadMarkets())
+			PanicOnError(retRes150712)
 		}
 		var request any = map[string]any{
 			"currency": "all",
@@ -1810,8 +2004,8 @@ func (this *BitmexCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes162112 := (<-this.LoadMarkets())
-			PanicOnError(retRes162112)
+			retRes162912 := (<-this.LoadMarkets())
+			PanicOnError(retRes162912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1852,8 +2046,8 @@ func (this *BitmexCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes164612 := (<-this.LoadMarkets())
-			PanicOnError(retRes164612)
+			retRes165412 := (<-this.LoadMarkets())
+			PanicOnError(retRes165412)
 		}
 		symbols = this.MarketSymbols(symbols)
 
@@ -1861,8 +2055,9 @@ func (this *BitmexCore) FetchTickers(optionalArgs ...any) <-chan any {
 		PanicOnError(response)
 		// same response as under "fetchMarkets"
 		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var ticker any = this.ParseTicker(GetValue(response, i))
+		var rawTickers any = this.ToArray(response)
+		for i := 0; IsLessThan(i, GetArrayLength(rawTickers)); i++ {
+			var ticker any = this.ParseTicker(GetValue(rawTickers, i))
 			var symbol any = this.SafeString(ticker, "symbol")
 			if IsTrue(!IsEqual(symbol, nil)) {
 				AddElementToObject(result, symbol, ticker)
@@ -1962,8 +2157,8 @@ func (this *BitmexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes174012 := (<-this.LoadMarkets())
-			PanicOnError(retRes174012)
+			retRes174912 := (<-this.LoadMarkets())
+			PanicOnError(retRes174912)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
@@ -1971,9 +2166,9 @@ func (this *BitmexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes174519 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params))
-			PanicOnError(retRes174519)
-			ch <- retRes174519
+			retRes175419 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params))
+			PanicOnError(retRes175419)
+			ch <- retRes175419
 			return nil
 		}
 		// send JSON key/value pairs, such as {"key": "value"}
@@ -2022,7 +2217,7 @@ func (this *BitmexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		//         {"timestamp":"2015-09-25T13:40:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0}
 		//     ]
 		//
-		var result any = this.ParseOHLCVs(response, market, timeframe, since, limit)
+		var result any = this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
 		if IsTrue(useOpenTimestamp) {
 			// bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
 			// we can emulate the open timestamp by shifting all the timestamps one place
@@ -2229,7 +2424,7 @@ func (this *BitmexCore) ParseOrder(order any, optionalArgs ...any) any {
 		var defaultSubType any = this.SafeString(this.Options, "defaultSubType", "linear")
 		isInverse = (IsEqual(defaultSubType, "inverse"))
 	} else {
-		isInverse = this.SafeBool(market, "inverse", false)
+		isInverse = IsEqual(this.SafeBool(market, "inverse", false), true)
 	}
 	if IsTrue(isInverse) {
 		cost = this.ConvertFromRawQuantity(symbol, qty)
@@ -2305,8 +2500,8 @@ func (this *BitmexCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes206112 := (<-this.LoadMarkets())
-			PanicOnError(retRes206112)
+			retRes207012 := (<-this.LoadMarkets())
+			PanicOnError(retRes207012)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
@@ -2314,9 +2509,9 @@ func (this *BitmexCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes206619 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
-			PanicOnError(retRes206619)
-			ch <- retRes206619
+			retRes207519 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+			PanicOnError(retRes207519)
+			ch <- retRes207519
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -2403,8 +2598,8 @@ func (this *BitmexCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes213612 := (<-this.LoadMarkets())
-			PanicOnError(retRes213612)
+			retRes214512 := (<-this.LoadMarkets())
+			PanicOnError(retRes214512)
 		}
 		var market any = this.Market(symbol)
 		var orderType any = this.Capitalize(typeVar)
@@ -2509,8 +2704,8 @@ func (this *BitmexCore) EditOrder(id any, symbol any, typeVar any, side any, opt
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes222512 := (<-this.LoadMarkets())
-			PanicOnError(retRes222512)
+			retRes223412 := (<-this.LoadMarkets())
+			PanicOnError(retRes223412)
 		}
 		var request any = map[string]any{}
 		var trailingAmount any = this.SafeString2(params, "trailingAmount", "pegOffsetValue")
@@ -2519,7 +2714,7 @@ func (this *BitmexCore) EditOrder(id any, symbol any, typeVar any, side any, opt
 			var triggerDirection any = this.SafeString(params, "triggerDirection")
 			var triggerAbove any = (IsTrue((IsEqual(triggerDirection, "ascending"))) || IsTrue((IsEqual(triggerDirection, "above"))))
 			if IsTrue(IsTrue((IsEqual(typeVar, "limit"))) || IsTrue((IsEqual(typeVar, "market")))) {
-				this.CheckRequiredArgument("createOrder", triggerDirection, "triggerDirection", []any{"above", "below"})
+				this.CheckRequiredArgument("editOrder", triggerDirection, "triggerDirection", []any{"above", "below"})
 			}
 			var orderType any = nil
 			if IsTrue(IsEqual(typeVar, "limit")) {
@@ -2580,7 +2775,7 @@ func (this *BitmexCore) EditOrder(id any, symbol any, typeVar any, side any, opt
  * @description cancels an open order
  * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
  * @param {string} id order id
- * @param {string} symbol not used by bitmex cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -2595,8 +2790,8 @@ func (this *BitmexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes229412 := (<-this.LoadMarkets())
-			PanicOnError(retRes229412)
+			retRes230312 := (<-this.LoadMarkets())
+			PanicOnError(retRes230312)
 		}
 		// https://github.com/ccxt/ccxt/issues/6507
 		var clientOrderId any = this.SafeValue2(params, "clOrdID", "clientOrderId")
@@ -2631,7 +2826,7 @@ func (this *BitmexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @description cancel multiple orders
  * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
  * @param {string[]} ids order ids
- * @param {string} symbol not used by bitmex cancelOrders ()
+ * @param {string} symbol not used by cancelOrders ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -2647,8 +2842,8 @@ func (this *BitmexCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes232912 := (<-this.LoadMarkets())
-			PanicOnError(retRes232912)
+			retRes233812 := (<-this.LoadMarkets())
+			PanicOnError(retRes233812)
 		}
 		// https://github.com/ccxt/ccxt/issues/6507
 		var clientOrderId any = this.SafeValue2(params, "clOrdID", "clientOrderId")
@@ -2675,7 +2870,7 @@ func (this *BitmexCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
  * @name bitmex#cancelAllOrders
  * @description cancel all open orders
  * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAll
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -2690,8 +2885,8 @@ func (this *BitmexCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes235512 := (<-this.LoadMarkets())
-			PanicOnError(retRes235512)
+			retRes236412 := (<-this.LoadMarkets())
+			PanicOnError(retRes236412)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2767,8 +2962,11 @@ func (this *BitmexCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any) <
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes241712 := (<-this.LoadMarkets())
-			PanicOnError(retRes241712)
+			retRes242612 := (<-this.LoadMarkets())
+			PanicOnError(retRes242612)
+		}
+		if IsTrue(IsEqual(timeout, nil)) {
+			panic(ExchangeError(Add(this.Id, " cancelAllOrdersAfter() missing timeout")))
 		}
 		var request any = map[string]any{
 			"timeout": Ternary(IsTrue((IsGreaterThan(timeout, 0))), this.ParseToInt(Divide(timeout, 1000)), 0),
@@ -2810,8 +3008,8 @@ func (this *BitmexCore) FetchLeverages(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes244312 := (<-this.LoadMarkets())
-			PanicOnError(retRes244312)
+			retRes245512 := (<-this.LoadMarkets())
+			PanicOnError(retRes245512)
 		}
 
 		leverages := (<-this.FetchPositions(symbols, params))
@@ -2856,8 +3054,8 @@ func (this *BitmexCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes247112 := (<-this.LoadMarkets())
-			PanicOnError(retRes247112)
+			retRes248312 := (<-this.LoadMarkets())
+			PanicOnError(retRes248312)
 		}
 
 		response := (<-this.PrivateGetPosition(params))
@@ -3143,8 +3341,8 @@ func (this *BitmexCore) Withdraw(code any, amount any, address any, optionalArgs
 		this.CheckAddress(address)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes273812 := (<-this.LoadMarkets())
-			PanicOnError(retRes273812)
+			retRes275012 := (<-this.LoadMarkets())
+			PanicOnError(retRes275012)
 		}
 		var currency any = this.Currency(code)
 		var qty any = this.ConvertFromRealAmount(code, amount)
@@ -3209,16 +3407,17 @@ func (this *BitmexCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes278712 := (<-this.LoadMarkets())
-			PanicOnError(retRes278712)
+			retRes279912 := (<-this.LoadMarkets())
+			PanicOnError(retRes279912)
 		}
 
 		response := (<-this.PublicGetInstrumentActiveAndIndices(params))
 		PanicOnError(response)
 		// same response as under "fetchMarkets"
 		var filteredResponse any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var item any = GetValue(response, i)
+		var rawItems any = this.ToArray(response)
+		for i := 0; IsLessThan(i, GetArrayLength(rawItems)); i++ {
+			var item any = GetValue(rawItems, i)
 			var marketId any = this.SafeString(item, "symbol")
 			var market any = this.SafeMarket(marketId)
 			var swap any = this.SafeBool(market, "swap", false)
@@ -3295,11 +3494,14 @@ func (this *BitmexCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes285112 := (<-this.LoadMarkets())
-			PanicOnError(retRes285112)
+			retRes286412 := (<-this.LoadMarkets())
+			PanicOnError(retRes286412)
 		}
 		var request any = map[string]any{}
 		var market any = nil
+		if IsTrue(IsEqual(symbol, nil)) {
+			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
+		}
 		if IsTrue(InOp(this.Currencies, symbol)) {
 			var code any = this.Currency(symbol)
 			AddElementToObject(request, "symbol", GetValue(code, "id"))
@@ -3401,8 +3603,8 @@ func (this *BitmexCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes293912 := (<-this.LoadMarkets())
-			PanicOnError(retRes293912)
+			retRes295512 := (<-this.LoadMarkets())
+			PanicOnError(retRes295512)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(IsTrue(!IsEqual(GetValue(market, "type"), "swap")) && IsTrue(!IsEqual(GetValue(market, "type"), "future"))) {
@@ -3413,9 +3615,9 @@ func (this *BitmexCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
 			"leverage": leverage,
 		}
 
-		retRes294915 := (<-this.PrivatePostPositionLeverage(this.Extend(request, params)))
-		PanicOnError(retRes294915)
-		ch <- retRes294915
+		retRes296515 := (<-this.PrivatePostPositionLeverage(this.Extend(request, params)))
+		PanicOnError(retRes296515)
+		ch <- retRes296515
 		return nil
 
 	}()
@@ -3450,8 +3652,8 @@ func (this *BitmexCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes297112 := (<-this.LoadMarkets())
-			PanicOnError(retRes297112)
+			retRes298712 := (<-this.LoadMarkets())
+			PanicOnError(retRes298712)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(IsTrue((!IsEqual(GetValue(market, "type"), "swap"))) && IsTrue((!IsEqual(GetValue(market, "type"), "future")))) {
@@ -3463,9 +3665,9 @@ func (this *BitmexCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
 			"enabled": enabled,
 		}
 
-		retRes298215 := (<-this.PrivatePostPositionIsolate(this.Extend(request, params)))
-		PanicOnError(retRes298215)
-		ch <- retRes298215
+		retRes299815 := (<-this.PrivatePostPositionIsolate(this.Extend(request, params)))
+		PanicOnError(retRes299815)
+		ch <- retRes299815
 		return nil
 
 	}()
@@ -3491,8 +3693,8 @@ func (this *BitmexCore) FetchDepositAddress(code any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes299712 := (<-this.LoadMarkets())
-			PanicOnError(retRes299712)
+			retRes301312 := (<-this.LoadMarkets())
+			PanicOnError(retRes301312)
 		}
 		var networkCode any = nil
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
@@ -3580,16 +3782,18 @@ func (this *BitmexCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) an
 			var networkCode any = this.NetworkIdToCode(networkId, currencyCode)
 			var withdrawalFeeId any = this.SafeString(network, "withdrawalFee")
 			var withdrawalFee any = this.ParseNumber(Precise.StringMul(withdrawalFeeId, precision))
-			AddElementToObject(GetValue(result, "networks"), networkCode, map[string]any{
-				"deposit": map[string]any{
-					"fee":        nil,
-					"percentage": nil,
-				},
-				"withdraw": map[string]any{
-					"fee":        withdrawalFee,
-					"percentage": false,
-				},
-			})
+			if IsTrue(!IsEqual(networkCode, nil)) {
+				AddElementToObject(GetValue(result, "networks"), networkCode, map[string]any{
+					"deposit": map[string]any{
+						"fee":        nil,
+						"percentage": nil,
+					},
+					"withdraw": map[string]any{
+						"fee":        withdrawalFee,
+						"percentage": false,
+					},
+				})
+			}
 			if IsTrue(IsEqual(networksLength, 1)) {
 				AddElementToObject(GetValue(result, "withdraw"), "fee", withdrawalFee)
 				AddElementToObject(GetValue(result, "withdraw"), "percentage", false)
@@ -3619,8 +3823,8 @@ func (this *BitmexCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes309912 := (<-this.LoadMarkets())
-			PanicOnError(retRes309912)
+			retRes311712 := (<-this.LoadMarkets())
+			PanicOnError(retRes311712)
 		}
 
 		assets := (<-this.PublicGetWalletAssets(params))
@@ -3682,8 +3886,8 @@ func (this *BitmexCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes314512 := (<-this.LoadMarkets())
-			PanicOnError(retRes314512)
+			retRes316312 := (<-this.LoadMarkets())
+			PanicOnError(retRes316312)
 		}
 		var request any = map[string]any{}
 		var response any = nil
@@ -3788,8 +3992,8 @@ func (this *BitmexCore) FetchLiquidations(symbol any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes323012 := (<-this.LoadMarkets())
-			PanicOnError(retRes323012)
+			retRes324812 := (<-this.LoadMarkets())
+			PanicOnError(retRes324812)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLiquidations", "paginate")
@@ -3797,9 +4001,9 @@ func (this *BitmexCore) FetchLiquidations(symbol any, optionalArgs ...any) <-cha
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes323519 := (<-this.FetchPaginatedCallDynamic("fetchLiquidations", symbol, since, limit, params))
-			PanicOnError(retRes323519)
-			ch <- retRes323519
+			retRes325319 := (<-this.FetchPaginatedCallDynamic("fetchLiquidations", symbol, since, limit, params))
+			PanicOnError(retRes325319)
+			ch <- retRes325319
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -3830,7 +4034,7 @@ func (this *BitmexCore) FetchLiquidations(symbol any, optionalArgs ...any) <-cha
 		//         }
 		//     ]
 		//
-		ch <- this.ParseLiquidations(response, market, since, limit)
+		ch <- this.ParseLiquidations(this.ToArray(response), market, since, limit)
 		return nil
 
 	}()
@@ -3883,8 +4087,8 @@ func (this *BitmexCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes329912 := (<-this.LoadMarkets())
-			PanicOnError(retRes329912)
+			retRes331712 := (<-this.LoadMarkets())
+			PanicOnError(retRes331712)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 
@@ -4178,8 +4382,8 @@ func (this *BitmexCore) FetchSettlementHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes357212 := (<-this.LoadMarkets())
-			PanicOnError(retRes357212)
+			retRes359012 := (<-this.LoadMarkets())
+			PanicOnError(retRes359012)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -4263,7 +4467,7 @@ func (this *BitmexCore) ParseSettlement(settlement any, optionalArgs ...any) any
  * @see https://docs.bitmex.com/api-explorer/order-close-position
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} side the buy or sell side of the closing order, if the position is long set the side to sell, reduceOnly is implied
- * @param {object} [params] extra parameters specific to the bingx api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitmexCore) ClosePosition(symbol any, optionalArgs ...any) <-chan any {
@@ -4277,8 +4481,8 @@ func (this *BitmexCore) ClosePosition(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes365712 := (<-this.LoadMarkets())
-			PanicOnError(retRes365712)
+			retRes367512 := (<-this.LoadMarkets())
+			PanicOnError(retRes367512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -4380,6 +4584,9 @@ func (this *BitmexCore) Sign(path any, optionalArgs ...any) any {
 			"api-key":      this.ApiKey,
 		}
 		expires = this.Sum(this.Seconds(), expires)
+		if IsTrue(IsEqual(expires, nil)) {
+			panic(ExchangeError(Add(this.Id, " sign() missing expires")))
+		}
 		var stringExpires any = ToString(expires)
 		auth = Add(auth, stringExpires)
 		AddElementToObject(headers, "api-expires", stringExpires)

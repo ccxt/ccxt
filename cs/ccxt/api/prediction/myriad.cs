@@ -11,164 +11,228 @@ public partial class myriad : PredictionExchange
 {
     public myriad (object args = null): base(args) {}
 
-    public async Task<object> myriadPublicGetQuestions (object parameters = null)
+    /// <summary>Calls the myriadPublicGetQuestions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicGetQuestions (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicGetQuestions",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicGetQuestions",parameters);
     }
 
-    public async Task<object> myriadPublicGetQuestionsId (object parameters = null)
+    /// <summary>Calls the myriadPublicGetQuestionsId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicGetQuestionsId (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicGetQuestionsId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicGetQuestionsId",parameters);
     }
 
-    public async Task<object> myriadPublicGetMarkets (object parameters = null)
+    /// <summary>Calls the myriadPublicGetMarkets endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicGetMarkets (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicGetMarkets",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicGetMarkets",parameters);
     }
 
-    public async Task<object> myriadPublicGetMarketsId (object parameters = null)
+    /// <summary>Calls the myriadPublicGetMarketsId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicGetMarketsId (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicGetMarketsId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicGetMarketsId",parameters);
     }
 
-    public async Task<object> myriadPublicGetMarketsNetworkIdId (object parameters = null)
+    /// <summary>Calls the myriadPublicGetMarketsNetworkIdId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicGetMarketsNetworkIdId (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicGetMarketsNetworkIdId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicGetMarketsNetworkIdId",parameters);
     }
 
-    public async Task<object> myriadPublicGetMarketsIdEvents (object parameters = null)
+    /// <summary>Calls the myriadPublicGetMarketsIdEvents endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicGetMarketsIdEvents (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicGetMarketsIdEvents",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicGetMarketsIdEvents",parameters);
     }
 
-    public async Task<object> myriadPublicGetMarketsIdOrderbook (object parameters = null)
+    /// <summary>Calls the myriadPublicGetMarketsIdOrderbook endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicGetMarketsIdOrderbook (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicGetMarketsIdOrderbook",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicGetMarketsIdOrderbook",parameters);
     }
 
-    public async Task<object> myriadPublicGetMarketsIdTrades (object parameters = null)
+    /// <summary>Calls the myriadPublicGetMarketsIdTrades endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> myriadPublicGetMarketsIdTrades (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicGetMarketsIdTrades",parameters);
+        return await this.callAsync<List<object>> ("myriadPublicGetMarketsIdTrades",parameters);
     }
 
-    public async Task<object> myriadPublicGetMarketsIdHolders (object parameters = null)
+    /// <summary>Calls the myriadPublicGetMarketsIdHolders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicGetMarketsIdHolders (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicGetMarketsIdHolders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicGetMarketsIdHolders",parameters);
     }
 
-    public async Task<object> myriadPublicGetMarketsIdReferrals (object parameters = null)
+    /// <summary>Calls the myriadPublicGetMarketsIdReferrals endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicGetMarketsIdReferrals (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicGetMarketsIdReferrals",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicGetMarketsIdReferrals",parameters);
     }
 
-    public async Task<object> myriadPublicGetEvents (object parameters = null)
+    /// <summary>Calls the myriadPublicGetEvents endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicGetEvents (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicGetEvents",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicGetEvents",parameters);
     }
 
-    public async Task<object> myriadPublicGetOrders (object parameters = null)
+    /// <summary>Calls the myriadPublicGetOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicGetOrders (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicGetOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicGetOrders",parameters);
     }
 
-    public async Task<object> myriadPublicGetOrdersHash (object parameters = null)
+    /// <summary>Calls the myriadPublicGetOrdersHash endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicGetOrdersHash (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicGetOrdersHash",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicGetOrdersHash",parameters);
     }
 
-    public async Task<object> myriadPublicGetUsersAddressEvents (object parameters = null)
+    /// <summary>Calls the myriadPublicGetUsersAddressEvents endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicGetUsersAddressEvents (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicGetUsersAddressEvents",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicGetUsersAddressEvents",parameters);
     }
 
-    public async Task<object> myriadPublicGetUsersAddressReferrals (object parameters = null)
+    /// <summary>Calls the myriadPublicGetUsersAddressReferrals endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicGetUsersAddressReferrals (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicGetUsersAddressReferrals",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicGetUsersAddressReferrals",parameters);
     }
 
-    public async Task<object> myriadPublicGetUsersAddressPortfolio (object parameters = null)
+    /// <summary>Calls the myriadPublicGetUsersAddressPortfolio endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicGetUsersAddressPortfolio (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicGetUsersAddressPortfolio",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicGetUsersAddressPortfolio",parameters);
     }
 
-    public async Task<object> myriadPublicGetUsersAddressMarkets (object parameters = null)
+    /// <summary>Calls the myriadPublicGetUsersAddressMarkets endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicGetUsersAddressMarkets (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicGetUsersAddressMarkets",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicGetUsersAddressMarkets",parameters);
     }
 
-    public async Task<object> myriadPublicGetTags (object parameters = null)
+    /// <summary>Calls the myriadPublicGetTags endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicGetTags (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicGetTags",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicGetTags",parameters);
     }
 
-    public async Task<object> myriadPublicGetTopics (object parameters = null)
+    /// <summary>Calls the myriadPublicGetTopics endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicGetTopics (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicGetTopics",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicGetTopics",parameters);
     }
 
-    public async Task<object> myriadPublicPostMarketsQuote (object parameters = null)
+    /// <summary>Calls the myriadPublicPostMarketsQuote endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicPostMarketsQuote (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicPostMarketsQuote",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicPostMarketsQuote",parameters);
     }
 
-    public async Task<object> myriadPublicPostMarketsClaim (object parameters = null)
+    /// <summary>Calls the myriadPublicPostMarketsClaim endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicPostMarketsClaim (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicPostMarketsClaim",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicPostMarketsClaim",parameters);
     }
 
-    public async Task<object> myriadPublicPostOrders (object parameters = null)
+    /// <summary>Calls the myriadPublicPostOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicPostOrders (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicPostOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicPostOrders",parameters);
     }
 
-    public async Task<object> myriadPublicPostOrdersCancelBatch (object parameters = null)
+    /// <summary>Calls the myriadPublicPostOrdersCancelBatch endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicPostOrdersCancelBatch (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicPostOrdersCancelBatch",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicPostOrdersCancelBatch",parameters);
     }
 
-    public async Task<object> myriadPublicPostOrdersCancelAll (object parameters = null)
+    /// <summary>Calls the myriadPublicPostOrdersCancelAll endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicPostOrdersCancelAll (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicPostOrdersCancelAll",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicPostOrdersCancelAll",parameters);
     }
 
-    public async Task<object> myriadPublicPostPositionsSplit (object parameters = null)
+    /// <summary>Calls the myriadPublicPostPositionsSplit endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicPostPositionsSplit (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicPostPositionsSplit",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicPostPositionsSplit",parameters);
     }
 
-    public async Task<object> myriadPublicPostPositionsMerge (object parameters = null)
+    /// <summary>Calls the myriadPublicPostPositionsMerge endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicPostPositionsMerge (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicPostPositionsMerge",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicPostPositionsMerge",parameters);
     }
 
-    public async Task<object> myriadPublicPostPositionsRedeem (object parameters = null)
+    /// <summary>Calls the myriadPublicPostPositionsRedeem endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicPostPositionsRedeem (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicPostPositionsRedeem",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicPostPositionsRedeem",parameters);
     }
 
-    public async Task<object> myriadPublicPostPositionsRedeemVoided (object parameters = null)
+    /// <summary>Calls the myriadPublicPostPositionsRedeemVoided endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicPostPositionsRedeemVoided (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicPostPositionsRedeemVoided",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicPostPositionsRedeemVoided",parameters);
     }
 
-    public async Task<object> myriadPublicPostPositionsNegRiskSplit (object parameters = null)
+    /// <summary>Calls the myriadPublicPostPositionsNegRiskSplit endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicPostPositionsNegRiskSplit (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicPostPositionsNegRiskSplit",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicPostPositionsNegRiskSplit",parameters);
     }
 
-    public async Task<object> myriadPublicPostPositionsNegRiskMerge (object parameters = null)
+    /// <summary>Calls the myriadPublicPostPositionsNegRiskMerge endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicPostPositionsNegRiskMerge (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicPostPositionsNegRiskMerge",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicPostPositionsNegRiskMerge",parameters);
     }
 
-    public async Task<object> myriadPublicDeleteOrdersHash (object parameters = null)
+    /// <summary>Calls the myriadPublicDeleteOrdersHash endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPublicDeleteOrdersHash (object parameters = null)
     {
-        return await this.callAsync ("myriadPublicDeleteOrdersHash",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPublicDeleteOrdersHash",parameters);
     }
 
-    public async Task<object> myriadPrivatePostMarketsQuoteWithFee (object parameters = null)
+    /// <summary>Calls the myriadPrivatePostMarketsQuoteWithFee endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> myriadPrivatePostMarketsQuoteWithFee (object parameters = null)
     {
-        return await this.callAsync ("myriadPrivatePostMarketsQuoteWithFee",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("myriadPrivatePostMarketsQuoteWithFee",parameters);
     }
 
 }

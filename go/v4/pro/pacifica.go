@@ -83,7 +83,7 @@ func (this *PacificaCore) SetupApiKeyHeaders(optionalArgs ...any) {
 	if ccxt.IsTrue(!ccxt.IsEqual(key, nil)) {
 		ccxt.AddElementToObject(headers, "PF-API-KEY", key)
 	} else {
-		if ccxt.IsTrue(!ccxt.IsEqual(this.HandleOption("setupApiKeyHeaders", "apiKey", nil), nil)) {
+		if ccxt.IsTrue(!ccxt.IsEqual(this.HandleOption("setupApiKeyHeaders", "apiKey"), nil)) {
 			ccxt.AddElementToObject(headers, "PF-API-KEY", ccxt.GetValue(this.Options, "apiKey"))
 		}
 	}
@@ -355,7 +355,7 @@ func (this *PacificaCore) CancelOrdersWs(ids any, optionalArgs ...any) <-chan an
 		var ordersToReturn any = []any{}
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(results)); i++ {
 			var order any = ccxt.GetValue(results, i)
-			var error any = this.SafeString(order, "error", nil)
+			var error any = this.SafeString(order, "error")
 			var success any = this.SafeBool(order, "success", false)
 			var marketId any = this.SafeString(order, "symbol")
 			var market any = this.SafeMarket(marketId)
@@ -534,7 +534,7 @@ func (this *PacificaCore) CancelAllOrdersWs(optionalArgs ...any) <-chan any {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *PacificaCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -553,7 +553,7 @@ func (this *PacificaCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan
 		}
 		var market any = this.Market(symbol)
 		var aggLevel any = nil
-		aggLevelparamsVariable := this.HandleOptionAndParams(params, "fetchOrderBook", "aggLevel", 1)
+		aggLevelparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "aggLevel", 1)
 		aggLevel = ccxt.GetValue(aggLevelparamsVariable, 0)
 		params = ccxt.GetValue(aggLevelparamsVariable, 1)
 		var messageHash any = ccxt.Add("orderbook:", symbol)
@@ -604,7 +604,7 @@ func (this *PacificaCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <-ch
 		}
 		var market any = this.Market(symbol)
 		var aggLevel any = nil
-		aggLevelparamsVariable := this.HandleOptionAndParams(params, "fetchOrderBook", "aggLevel", 1)
+		aggLevelparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "aggLevel", 1)
 		aggLevel = ccxt.GetValue(aggLevelparamsVariable, 0)
 		params = ccxt.GetValue(aggLevelparamsVariable, 1)
 		var subMessageHash any = ccxt.Add("orderbook:", symbol)
@@ -1009,7 +1009,9 @@ func (this *PacificaCore) HandleMyTrades(client any, message any) {
 		var rawTrade any = ccxt.GetValue(data, i)
 		var parsed any = this.ParseWsTrade(rawTrade)
 		var symbol any = ccxt.GetValue(parsed, "symbol")
-		ccxt.AddElementToObject(symbols, symbol, true)
+		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+			ccxt.AddElementToObject(symbols, symbol, true)
+		}
 		trades.(ccxt.Appender).Append(parsed)
 	}
 	var keys any = ccxt.ObjectKeys(symbols)
@@ -1046,8 +1048,8 @@ func (this *PacificaCore) WatchTrades(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes79412 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes79412)
+			retRes79612 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes79612)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -1095,8 +1097,8 @@ func (this *PacificaCore) UnWatchTrades(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes82812 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes82812)
+			retRes83012 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes83012)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -1114,9 +1116,9 @@ func (this *PacificaCore) UnWatchTrades(symbol any, optionalArgs ...any) <-chan 
 		}
 		var message any = this.Extend(request, params)
 
-		retRes84515 := (<-this.Watch(url, messageHash, message, messageHash))
-		ccxt.PanicOnError(retRes84515)
-		ch <- retRes84515
+		retRes84715 := (<-this.Watch(url, messageHash, message, messageHash))
+		ccxt.PanicOnError(retRes84715)
+		ch <- retRes84715
 		return nil
 
 	}()
@@ -1152,7 +1154,7 @@ func (this *PacificaCore) HandleTrades(client any, message any) {
 	}
 	var trades any = ccxt.GetValue(this.Trades, symbol)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(entry)); i++ {
-		var data any = this.SafeDict(entry, i)
+		var data any = this.SafeDict(entry, i, map[string]any{})
 		var trade any = this.ParseWsTrade(data)
 		trades.(ccxt.Appender).Append(trade)
 	}
@@ -1271,8 +1273,8 @@ func (this *PacificaCore) WatchOHLCV(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes98012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes98012)
+			retRes98212 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes98212)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -1325,8 +1327,8 @@ func (this *PacificaCore) UnWatchOHLCV(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes101712 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes101712)
+			retRes101912 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes101912)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -1345,9 +1347,9 @@ func (this *PacificaCore) UnWatchOHLCV(symbol any, optionalArgs ...any) <-chan a
 		var messagehash any = ccxt.Add("unsubscribe:", subMessageHash)
 		var message any = this.Extend(request, params)
 
-		retRes103515 := (<-this.Watch(url, messagehash, message, messagehash))
-		ccxt.PanicOnError(retRes103515)
-		ch <- retRes103515
+		retRes103715 := (<-this.Watch(url, messagehash, message, messagehash))
+		ccxt.PanicOnError(retRes103715)
+		ch <- retRes103715
 		return nil
 
 	}()
@@ -1376,15 +1378,19 @@ func (this *PacificaCore) HandleOHLCV(client any, message any) {
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var timeframe any = this.SafeString(data, "i")
+	if ccxt.IsTrue(ccxt.IsEqual(timeframe, nil)) {
+		return
+	}
 	if !ccxt.IsTrue((ccxt.InOp(this.Ohlcvs, symbol))) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
 	}
-	if !ccxt.IsTrue((ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe))) {
+	var symbolOhlcvs any = this.SafeValue(this.Ohlcvs, symbol, map[string]any{})
+	var ohlcv any = this.SafeValue(symbolOhlcvs, timeframe)
+	if ccxt.IsTrue(ccxt.IsEqual(ohlcv, nil)) {
 		var limit any = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
-		stored := ccxt.NewArrayCacheByTimestamp(limit)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+		ohlcv = ccxt.NewArrayCacheByTimestamp(limit)
+		ccxt.AddElementToObject(symbolOhlcvs, timeframe, ohlcv)
 	}
-	var ohlcv any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 	var parsed any = this.ParseOHLCV(data)
 	ohlcv.(ccxt.Appender).Append(parsed)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol)
@@ -1418,8 +1424,8 @@ func (this *PacificaCore) WatchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes109012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes109012)
+			retRes109612 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes109612)
 		}
 		var userAddress any = nil
 		userAddressparamsVariable := this.HandleOriginAndSingleAddress("watchOrders", params)
@@ -1478,8 +1484,8 @@ func (this *PacificaCore) UnWatchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes113112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes113112)
+			retRes113712 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes113712)
 		}
 		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
 			panic(ccxt.NotSupported(ccxt.Add(this.Id, " unWatchOrders() does not support a symbol argument, unWatch from all markets only")))
@@ -1501,9 +1507,9 @@ func (this *PacificaCore) UnWatchOrders(optionalArgs ...any) <-chan any {
 		}
 		var message any = this.Extend(request, params)
 
-		retRes115015 := (<-this.Watch(url, messageHash, message, messageHash))
-		ccxt.PanicOnError(retRes115015)
-		ch <- retRes115015
+		retRes115615 := (<-this.Watch(url, messageHash, message, messageHash))
+		ccxt.PanicOnError(retRes115615)
+		ch <- retRes115615
 		return nil
 
 	}()
@@ -1554,7 +1560,9 @@ func (this *PacificaCore) HandleOrder(client any, message any) {
 		var order any = this.ParseOrder(rawOrder)
 		stored.(ccxt.Appender).Append(order)
 		var symbol any = this.SafeString(order, "symbol")
-		ccxt.AddElementToObject(marketSymbols, symbol, true)
+		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+			ccxt.AddElementToObject(marketSymbols, symbol, true)
+		}
 	}
 	var keys any = ccxt.ObjectKeys(marketSymbols)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
@@ -1637,11 +1645,14 @@ func (this *PacificaCore) HandleOHLCVUnsubscription(client any, subscription any
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var interval any = this.SafeString(subscription, "interval")
 	var timeframe any = this.FindTimeframe(interval)
+	if ccxt.IsTrue(ccxt.IsEqual(timeframe, nil)) {
+		return
+	}
 	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 	this.CleanUnsubscription(client.(*ccxt.Client), subMessageHash, messageHash)
-	if ccxt.IsTrue(ccxt.InOp(this.Ohlcvs, symbol)) {
-		if ccxt.IsTrue(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
+	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(symbol, nil))) && ccxt.IsTrue((ccxt.InOp(this.Ohlcvs, symbol)))) {
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(timeframe, nil))) && ccxt.IsTrue((ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)))) {
 			ccxt.Remove(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 		}
 	}
@@ -1721,7 +1732,7 @@ func (this *PacificaCore) HandleMessage(client any, message any) {
 	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
 		return
 	}
-	var postType any = this.SafeString(message, "type", nil)
+	var postType any = this.SafeString(message, "type")
 	var topic any = this.SafeString(message, "channel", "")
 	var methods any = map[string]any{
 		"pong":                  this.HandlePong,

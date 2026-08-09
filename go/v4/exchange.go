@@ -10,6 +10,7 @@ import (
 	"math"
 	"math/big"
 	random2 "math/rand"
+	"net"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -30,6 +31,7 @@ import (
 )
 
 type BaseExchange struct {
+	wsBackoffState map[string][]int64 // per-url reconnect attempts + lastAttempt, see CalculateWsBackoffDelay
 	MarketsMutex *sync.Mutex
 	// cachedCurrenciesMutex  sync.Mutex
 	loadMu                 sync.Mutex
@@ -292,7 +294,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 
 	this.streaming = this.SafeDict(extendedProperties, "streaming", map[string]any{}).(map[string]any)
 	this.transformApiNew(this.Api)
-	transport := &http.Transport{}
+	transport := newDualStackTransport()
 
 	this.httpClient = &http.Client{
 		Timeout:   30 * time.Second,
@@ -312,6 +314,49 @@ func (this *BaseExchange) Init(userConfig map[string]any) {
 		this.MarketsMutex = &sync.Mutex{}
 	}
 	// to do
+}
+
+
+// Dual-stack (IPv4 + IPv6) networking helpers for the hand-written Go base.
+// Every HTTP transport and WebSocket dialer constructed by the base exchange
+// must dial with network "tcp" so that Go's Happy Eyeballs (RFC 8305)
+// implementation can race IPv4 and IPv6 and pick whichever works. Hard-coding
+// a single-stack network like tcp4 (or leaving dialing to components that do)
+// breaks IPv6-only hosts, so these helpers centralize the dialer/transport
+// construction in one place (same file as the exchange HTTP client setup).
+
+// newDualStackDialer returns a *net.Dialer whose Dial/DialContext methods are
+// intended to be called with network "tcp" (the http.Transport and
+// websocket.Dialer defaults), which dials dual-stack via Happy Eyeballs.
+// The deprecated net.Dialer.DualStack field is intentionally not set: since
+// Go 1.20 dual-stack is always enabled when dialing "tcp".
+//
+// FallbackDelay controls Fast Fallback (Happy Eyeballs): a zero value means
+// the 300ms default, and a negative value disables Fast Fallback entirely.
+// 1ns is the smallest positive time.Duration, so it starts racing the other
+// address family as soon as possible. Never set this to a negative value.
+func newDualStackDialer() *net.Dialer {
+	return &net.Dialer{
+		Timeout:       30 * time.Second,
+		KeepAlive:     30 * time.Second,
+		FallbackDelay: 1 * time.Nanosecond,
+	}
+}
+
+// newDualStackTransport returns an *http.Transport with an explicit
+// dual-stack DialContext. Never dial with a single-stack network such as
+// tcp4 — always use "tcp".
+func newDualStackTransport() *http.Transport {
+	return &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		// network "tcp" → dual-stack Happy Eyeballs
+		DialContext:           newDualStackDialer().DialContext,
+		ForceAttemptHTTP2:     false, // keep HTTP/1.1 semantics of the previous bare Transport
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
 }
 
 func NewExchange() ICoreExchange {
@@ -548,7 +593,9 @@ func (this *BaseExchange) callEndpoint(endpoint2 any, parameters any) <-chan any
 			api := endPointData["api"]
 			var cost float64 = 1
 			if valCost, ok := endPointData["cost"]; ok {
-				cost = valCost.(float64)
+				if parsed, ok := toCost(valCost); ok {
+					cost = parsed
+				}
 			}
 			res := <-this.Fetch2(path, api, method, parameters, map[string]any{}, nil, map[string]any{"cost": cost})
 			PanicOnError(res)
@@ -909,14 +956,14 @@ func (this *BaseExchange) transformApiNew(api Dict, paths ...string) {
 					if config, ok := dictValue[endpoint]; ok {
 						if dictConfig, ok := config.(map[string]any); ok {
 							if rl, success := dictConfig["cost"]; success {
-								if rlFloat, ok := rl.(float64); ok {
-									cost = rlFloat
-								} else if rlString, ok := rl.(string); ok {
-									cost = parseCost(rlString)
+								if parsed, ok := toCost(rl); ok {
+									cost = parsed
 								}
 							}
 						} else if config != nil {
-							cost = parseCost(fmt.Sprintf("%v", config))
+							if parsed, ok := toCost(config); ok {
+								cost = parsed
+							}
 						}
 					}
 				}
@@ -976,6 +1023,29 @@ func parseCost(costStr string) float64 {
 	var cost float64
 	fmt.Sscanf(costStr, "%f", &cost)
 	return cost
+}
+
+// toCost reads an api-leaf rate limit cost, which reaches Go as whatever numeric
+// type the transpiler emitted for it: a bare `1` is an int, `0.1` a float64, and
+// a value carried through a map may arrive as a string. Type-asserting float64
+// alone silently fell back to a cost of 1 for every integer cost declared inside
+// an object leaf (e.g. binance dapiPublic depth {"cost": 2, "byLimit": ...}).
+func toCost(value any) (float64, bool) {
+	switch typed := value.(type) {
+	case float64:
+		return typed, true
+	case float32:
+		return float64(typed), true
+	case int:
+		return float64(typed), true
+	case int32:
+		return float64(typed), true
+	case int64:
+		return float64(typed), true
+	case string:
+		return parseCost(typed), true
+	}
+	return 0, false
 }
 
 // func (this *BaseExchange) callInternal(name2 string, args ...any) any {
@@ -1604,8 +1674,9 @@ func (this *BaseExchange) UpdateProxySettings() {
 			proxyURLParsed, _ := url.Parse(proxyUrlStr)
 			this.httpClient.Transport = &http.Transport{
 				Proxy:               http.ProxyURL(proxyURLParsed),
-				MaxConnsPerHost:     8, // hard ceiling per target host
-				MaxIdleConnsPerHost: 4, // reuse pool
+				DialContext:         newDualStackDialer().DialContext, // dual-stack dial to the proxy
+				MaxConnsPerHost:     8,                                // hard ceiling per target host
+				MaxIdleConnsPerHost: 4,                                // reuse pool
 				IdleConnTimeout:     90 * time.Second,
 			}
 			this.lastProxyURL = proxyUrlStr
@@ -1705,6 +1776,10 @@ func (this *BaseExchange) Watch(args ...any) <-chan any {
 	// either with a call to client.resolve or client.reject with
 	//  a proper exception class instance
 	client.ConnectMu.Lock()
+	if !client.StartedConnecting {
+		// count real dials only, see https://github.com/ccxt/ccxt/pull/29627
+		backoffDelay = this.CalculateWsBackoffDelay(url)
+	}
 	connected, err := client.Connect(backoffDelay)
 	client.ConnectMu.Unlock()
 	if err != nil {
@@ -1791,7 +1866,8 @@ func (this *BaseExchange) SetProxyAgents(httpProxy any, httpsProxy any, socksPro
 			return nil, BadRequest(this.Id + " invalid HTTP proxy URL: " + err.Error())
 		}
 		transport = &http.Transport{
-			Proxy: http.ProxyURL(proxyURL),
+			Proxy:       http.ProxyURL(proxyURL),
+			DialContext: newDualStackDialer().DialContext, // dual-stack dial to the proxy
 		}
 	} else if httpsProxy != "" {
 		// Handle HTTPS proxy
@@ -1800,7 +1876,8 @@ func (this *BaseExchange) SetProxyAgents(httpProxy any, httpsProxy any, socksPro
 			return nil, BadRequest(this.Id + " invalid HTTPS proxy URL: " + err.Error())
 		}
 		transport = &http.Transport{
-			Proxy: http.ProxyURL(proxyURL),
+			Proxy:       http.ProxyURL(proxyURL),
+			DialContext: newDualStackDialer().DialContext, // dual-stack dial to the proxy
 		}
 	} else if socksProxy != "" {
 		// Handle SOCKS proxy
@@ -2024,6 +2101,10 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan any {
 	// either with a call to client.resolve or client.reject with
 	//  a proper exception class instance
 	client.ConnectMu.Lock()
+	if !client.StartedConnecting {
+		// count real dials only, see https://github.com/ccxt/ccxt/pull/29627
+		backoffDelay = this.CalculateWsBackoffDelay(url)
+	}
 	connected, err := client.Connect(backoffDelay)
 	client.ConnectMu.Unlock()
 	if err != nil {
@@ -2143,6 +2224,8 @@ func (this *Exchange) LoadOrderBook(client any, messageHash any, symbol any, opt
 		errorMsg := fmt.Sprintf("%s nonce is behind the cache after %v tries.", this.Id, maxRetries)
 		client.(*Client).Reject(ExchangeError(errorMsg), messageHash)
 		delete(this.Clients, client.(*Client).Url)
+		// clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753 (parity with the other ports, see #29399)
+		this.Orderbooks.Store(symbol.(string), this.OrderBook())
 	} else {
 		client.(*Client).Reject(ExchangeError(this.Id+" loadOrderBook() orderbook is not initiated"), messageHash)
 		return nil
@@ -2340,3 +2423,45 @@ func (e *BaseExchange) GetFetchCache() []any {
 }
 
 // #########################################
+
+// CalculateWsBackoffDelay implements exponential reconnect backoff with rng-free jitter,
+// mirroring ts/src/base/Exchange.ts calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
+func (this *BaseExchange) CalculateWsBackoffDelay(url string) int {
+	if this.wsBackoffState == nil {
+		this.wsBackoffState = map[string][]int64{}
+	}
+	wsOptions := SafeValue(this.Options, "ws", map[string]interface{}{})
+	backoff := SafeValue(wsOptions, "backoff", map[string]interface{}{})
+	base := ParseInt(SafeInteger(backoff, "base", 1000))
+	factor := ParseInt(SafeInteger(backoff, "factor", 2))
+	maxDelay := ParseInt(SafeInteger(backoff, "max", 60000))
+	stableAfter := ParseInt(SafeInteger(backoff, "stableAfter", 30000))
+	now := this.Milliseconds()
+	state, ok := this.wsBackoffState[url]
+	if !ok {
+		state = []int64{0, 0} // attempts, lastAttempt
+	}
+	attempts := state[0]
+	lastAttempt := state[1]
+	if lastAttempt > 0 && (now-lastAttempt) > stableAfter {
+		attempts = 0 // the previous connection was healthy long enough, start fresh
+	}
+	this.wsBackoffState[url] = []int64{attempts + 1, now}
+	if attempts == 0 {
+		return 0 // first dial or recovered, connect immediately
+	}
+	delay := base
+	capped := attempts
+	if capped > 20 {
+		capped = 20 // overflow guard
+	}
+	for i := int64(1); i < capped; i++ {
+		delay = delay * factor
+	}
+	jitterMillis := now % 1000 // rng-free jitter
+	jittered := int64(float64(delay) * (0.8 + float64(jitterMillis)/2500.0)) // 0.8x .. 1.2x
+	if jittered > maxDelay {
+		jittered = maxDelay // the ceiling holds regardless of jitter
+	}
+	return int(jittered)
+}

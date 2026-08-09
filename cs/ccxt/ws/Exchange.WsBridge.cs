@@ -5,6 +5,46 @@ using System.Collections.Concurrent;
 
 public partial class BaseExchange
 {
+
+    private Dictionary<string, long[]> wsBackoffState = new Dictionary<string, long[]>();
+
+    // exponential reconnect backoff with rng-free jitter, mirrors ts/src/base/Exchange.ts
+    // calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
+    public int calculateWsBackoffDelay(string url)
+    {
+        var wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>());
+        var backoff = this.safeDict(wsOptions, "backoff", new Dictionary<string, object>());
+        var baseDelay = (long)(this.safeInteger(backoff, "base", 1000));
+        var factor = (long)(this.safeInteger(backoff, "factor", 2));
+        var maxDelay = (long)(this.safeInteger(backoff, "max", 60000));
+        var stableAfter = (long)(this.safeInteger(backoff, "stableAfter", 30000));
+        var now = this.milliseconds();
+        long attempts = 0;
+        long lastAttempt = 0;
+        if (this.wsBackoffState.ContainsKey(url))
+        {
+            attempts = this.wsBackoffState[url][0];
+            lastAttempt = this.wsBackoffState[url][1];
+        }
+        if ((lastAttempt > 0) && ((now - lastAttempt) > stableAfter))
+        {
+            attempts = 0; // the previous connection was healthy long enough, start fresh
+        }
+        this.wsBackoffState[url] = new long[] { attempts + 1, now };
+        if (attempts == 0)
+        {
+            return 0; // first dial or recovered, connect immediately
+        }
+        var delay = baseDelay;
+        var capped = Math.Min(attempts, 20); // overflow guard
+        for (long i = 1; i < capped; i++)
+        {
+            delay = delay * factor;
+        }
+        var jitterMillis = now % 1000; // rng-free jitter
+        var jittered = (long)(delay * (0.8 + (jitterMillis / 2500.0))); // 0.8x .. 1.2x
+        return (int)Math.Min(jittered, maxDelay); // the ceiling holds regardless of jitter
+    }
     public ConcurrentDictionary<string, WebSocketClient> clients = new ConcurrentDictionary<string, WebSocketClient>();
     public static ClientWebSocket ws = null;
 
@@ -75,6 +115,7 @@ public partial class BaseExchange
         }
         object maxRetries = this.handleOption("watchOrderBook", "snapshotMaxRetries", 3);
         object tries = 0;
+        Exception error = null;
         try
         {
             var stored = getValue(this.orderbooks, symbol) as ccxt.pro.IOrderBook;
@@ -94,14 +135,21 @@ public partial class BaseExchange
                 }
                 postFixIncrement(ref tries);
             }
-            (client).reject(new ExchangeError(add(add(add(this.id, " nonce is behind the cache after "), ((object)maxRetries).ToString()), " tries.")), messageHash);
-
+            error = new ExchangeError(add(add(add(this.id, " nonce is behind the cache after "), ((object)maxRetries).ToString()), " tries."));
         }
         catch (Exception e)
         {
-            (client).reject(e, messageHash);
-            await this.loadOrderBook(client, messageHash, symbol, limit, parameters);
+            error = e;
         }
+        // a failed synchronization must not recurse into another attempt with the
+        // same broken state - previously the catch invoked loadOrderBook again,
+        // recursing endlessly when the snapshot request kept failing, see
+        // https://github.com/ccxt/ccxt/pull/24224 and https://github.com/ccxt/ccxt/issues/14567
+        // instead, reject the watcher and drop the connection and the cached
+        // orderbook, so the next watchOrderBook() call resubscribes cleanly
+        (client).reject(error, messageHash);
+        this.clients.TryRemove(client.url, out _);
+        ((System.Collections.Generic.IDictionary<string, object>)this.orderbooks)[(string)symbol] = this.orderBook();
     }
 
 
@@ -196,6 +244,11 @@ public partial class BaseExchange
         {
             (client.subscriptions as ConcurrentDictionary<string, object>).TryAdd(subscribeHash, subscription ?? true);
         }
+        if (!client.startedConnecting)
+        {
+            // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
+            backoffDelay = this.calculateWsBackoffDelay(url);
+        }
         var connected = client.connect(backoffDelay);
         if (!clientSubscriptionExists)
         {
@@ -243,7 +296,13 @@ public partial class BaseExchange
             }
         }
 
-        var connected = client.connect(0);
+        var backoffDelay2 = 0;
+        if (!client.startedConnecting)
+        {
+            // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
+            backoffDelay2 = this.calculateWsBackoffDelay(url);
+        }
+        var connected = client.connect(backoffDelay2);
 
         if (subscribeHashes == null || missingSubscriptions.Count > 0)
         {

@@ -54,12 +54,88 @@ public partial class paymium : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"countries", "currencies", "data/{currency}/ticker", "data/{currency}/trades", "data/{currency}/depth", "bitcoin_charts/{id}/trades", "bitcoin_charts/{id}/depth"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "countries", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currencies", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "data/{currency}/ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "data/{currency}/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "data/{currency}/depth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "bitcoin_charts/{id}/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "bitcoin_charts/{id}/depth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"user", "user/addresses", "user/addresses/{address}", "user/orders", "user/orders/{uuid}", "user/price_alerts", "merchant/get_payment/{uuid}"} },
-                    { "post", new List<object>() {"user/addresses", "user/orders", "user/withdrawals", "user/email_transfers", "user/payment_requests", "user/price_alerts", "merchant/create_payment"} },
-                    { "delete", new List<object>() {"user/orders/{uuid}", "user/orders/{uuid}/cancel", "user/price_alerts/{id}"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "user", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/addresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/addresses/{address}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/orders/{uuid}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/price_alerts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "merchant/get_payment/{uuid}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "user/addresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/email_transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/payment_requests", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/price_alerts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "merchant/create_payment", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "delete", new Dictionary<string, object>() {
+                        { "user/orders/{uuid}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/orders/{uuid}/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/price_alerts/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "markets", new Dictionary<string, object>() {
@@ -177,7 +253,7 @@ public partial class paymium : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -482,7 +558,7 @@ public partial class paymium : Exchange
         object response = await this.privatePostUserOrders(this.extend(request, parameters));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
-            { "id", getValue(response, "uuid") },
+            { "id", this.safeString(response, "uuid") },
         }, market);
     }
 
@@ -492,7 +568,7 @@ public partial class paymium : Exchange
      * @description cancels an open order
      * @see https://paymium.github.io/api-documentation/#tag/Order/operation/cancel-order
      * @param {string} id order id
-     * @param {string} symbol not used by paymium cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */

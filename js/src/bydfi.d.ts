@@ -1,5 +1,5 @@
 import Exchange from './abstract/bydfi.js';
-import type { Balances, Currency, Dict, FundingRate, FundingRateHistory, Int, int, Leverage, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, Ticker, Tickers } from './base/types.js';
+import type { Balances, Currency, Dict, FundingRate, FundingRateHistory, Int, int, Leverage, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, Ticker, Tickers, PositionModeInfo } from './base/types.js';
 /**
  * @class bydfi
  * @augments Exchange
@@ -25,7 +25,7 @@ export default class bydfi extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return, could be 5, 10, 20, 50, 100, 500 or 1000 (default 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     getClosestLimit(limit: Int): Int;
@@ -69,7 +69,7 @@ export default class bydfi extends Exchange {
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (max 500)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -123,9 +123,9 @@ export default class bydfi extends Exchange {
     parseFundingRateHistory(contract: any, market?: Market): {
         info: any;
         symbol: string;
-        fundingRate: number;
-        timestamp: number;
-        datetime: string;
+        fundingRate: Num;
+        timestamp: Int;
+        datetime: string | undefined;
     };
     /**
      * @method
@@ -153,7 +153,7 @@ export default class bydfi extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
     encodeWorkingType(workingType: Str): Str;
     /**
      * @method
@@ -194,7 +194,7 @@ export default class bydfi extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    createEditOrderRequest(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): any;
+    createEditOrderRequest(id: Str, symbol: Str, type: Str, side: Str, amount?: Num, price?: Num, params?: {}): any;
     /**
      * @method
      * @name bydfi#cancelAllOrders
@@ -315,7 +315,7 @@ export default class bydfi extends Exchange {
      * @param {string} symbol a unified market symbol
      * @param {int} [since] timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
      * @param {int} [limit] the maximum amount of records to fetch (default 500, max 500)
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -330,7 +330,7 @@ export default class bydfi extends Exchange {
      * @param {string[]} symbols a list of unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
      * @param {int} [limit] the maximum amount of records to fetch (default 500, max 500)
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -362,21 +362,21 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bydfi#setPositionMode
      * @description set hedged to true or false for a market, hedged for bydfi is set identically for all markets with same settle currency
      * @see https://developers.bydfi.com/en/futures/user#change-position-mode-dual
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} [symbol] not used by bydfi setPositionMode ()
+     * @param {string} [symbol] not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @param {string} [params.settleCoin] The settlement currency - USDT or USDC or USD (default is USDT)
      * @returns {object} response from the exchange
      */
-    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bydfi#fetchPositionMode
@@ -389,10 +389,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.settleCoin] The settlement currency - USDT or USDC or USD (default is USDT or settle currency of the market if market is provided)
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    fetchPositionMode(symbol?: Str, params?: {}): Promise<{
-        info: any;
-        hedged: boolean;
-    }>;
+    fetchPositionMode(symbol?: Str, params?: {}): Promise<PositionModeInfo>;
     /**
      * @method
      * @name bydfi#fetchBalance
@@ -459,7 +456,7 @@ export default class bydfi extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchTransactionsHelper(type: any, code: any, since: any, limit: any, params: any): Promise<any[]>;
+    fetchTransactionsHelper(type: any, code: any, since: any, limit: any, params: any): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatus(status: Str): Str;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
@@ -468,5 +465,5 @@ export default class bydfi extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }
