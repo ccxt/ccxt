@@ -34,7 +34,7 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} nothing
      */
-    upgradeUnifiedTradeAccount(params?: {}): Promise<any>;
+    upgradeUnifiedTradeAccount(params?: {}): Promise<Dict>;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     getBybitType(method: any, market: any, params?: {}): [Str, Dict];
@@ -347,7 +347,7 @@ export default class bybit extends Exchange {
      * @param {string} [params.product] OPTIONS, DERIVATIVES, SPOT, default is 'DERIVATIVES'
      * @returns {object} the api result
      */
-    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bybit#cancelOrdersForSymbols
@@ -702,7 +702,7 @@ export default class bybit extends Exchange {
      * @param {string} [params.sellLeverage] leverage for sell side
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bybit#setPositionMode
@@ -713,7 +713,7 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<Dict>;
     fetchDerivativesOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OpenInterest[]>;
     /**
      * @method

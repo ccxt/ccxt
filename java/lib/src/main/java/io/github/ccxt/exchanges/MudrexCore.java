@@ -102,8 +102,12 @@ public class MudrexCore extends MudrexApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "market", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "price/kline", 1 );
-                        put( "price/mark-kline", 1 );
+                        put( "price/kline", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "price/mark-kline", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "public", new java.util.HashMap<String, Object>() {{
@@ -111,36 +115,84 @@ public class MudrexCore extends MudrexApi
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "futures", 1 );
-                        put( "futures/{asset_id}", 1 );
-                        put( "wallet/funds", 5 );
-                        put( "futures/funds", 5 );
-                        put( "futures/orders", 1 );
-                        put( "futures/orders/history", 1 );
-                        put( "futures/orders/{order_id}", 1 );
-                        put( "futures/positions", 1 );
-                        put( "futures/positions/history", 1 );
-                        put( "futures/fee/history", 1 );
-                        put( "futures/{asset_id}/leverage", 2 );
-                        put( "futures/positions/{position_id}/liq-price", 1 );
+                        put( "futures", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "futures/{asset_id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "wallet/funds", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "futures/funds", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "futures/orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "futures/orders/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "futures/orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "futures/positions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "futures/positions/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "futures/fee/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "futures/{asset_id}/leverage", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 2 );
+                        }} );
+                        put( "futures/positions/{position_id}/liq-price", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "wallet/futures/transfer", 5 );
-                        put( "futures/transfers/inr", 5 );
-                        put( "futures/{asset_id}/order", 2 );
-                        put( "futures/positions/{position_id}/close", 2 );
-                        put( "futures/positions/{position_id}/close/partial", 2 );
-                        put( "futures/positions/{position_id}/reverse", 2 );
-                        put( "futures/positions/{position_id}/add-margin", 2 );
-                        put( "futures/positions/{position_id}/riskorder", 2 );
-                        put( "futures/{asset_id}/leverage", 2 );
+                        put( "wallet/futures/transfer", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "futures/transfers/inr", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "futures/{asset_id}/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 2 );
+                        }} );
+                        put( "futures/positions/{position_id}/close", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 2 );
+                        }} );
+                        put( "futures/positions/{position_id}/close/partial", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 2 );
+                        }} );
+                        put( "futures/positions/{position_id}/reverse", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 2 );
+                        }} );
+                        put( "futures/positions/{position_id}/add-margin", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 2 );
+                        }} );
+                        put( "futures/positions/{position_id}/riskorder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 2 );
+                        }} );
+                        put( "futures/{asset_id}/leverage", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 2 );
+                        }} );
                     }} );
                     put( "patch", new java.util.HashMap<String, Object>() {{
-                        put( "futures/orders/{order_id}", 1 );
-                        put( "futures/positions/{position_id}/riskorder", 2 );
+                        put( "futures/orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "futures/positions/{position_id}/riskorder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 2 );
+                        }} );
                     }} );
                     put( "delete", new java.util.HashMap<String, Object>() {{
-                        put( "futures/orders/{order_id}", 2 );
+                        put( "futures/orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 2 );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -1515,10 +1567,12 @@ public class MudrexCore extends MudrexApi
                     Helpers.addElementToObject(request, "limit_price", lp);
                 }
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("order_type", "limit_price", "amount", "position_id")));
-                return (this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, parameters))).join();
+                Object partialResponse = (this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, parameters))).join();
+                return partialResponse;
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("position_id")));
-            return (this.privatePostFuturesPositionsPositionIdClose(this.extend(request, parameters))).join();
+            Object response = (this.privatePostFuturesPositionsPositionIdClose(this.extend(request, parameters))).join();
+            return response;
         });
 
     }
@@ -1568,7 +1622,8 @@ public class MudrexCore extends MudrexApi
                 put( "margin", MudrexCore.this.costToPrecision(symbol, amount) );
             }};
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("position_id")));
-            return (this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, parameters))).join();
+            Object response = (this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, parameters))).join();
+            return response;
         });
 
     }

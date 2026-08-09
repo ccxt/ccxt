@@ -133,7 +133,7 @@ export default class paradex extends Exchange {
     hashMessage(message: any): string;
     signHash(hash: any, privateKey: any): string;
     signMessage(message: any, privateKey: any): string;
-    getSystemConfig(): Promise<any>;
+    getSystemConfig(): Promise<import("./base/types.js").Dictionary<any>>;
     prepareParadexDomain(l1?: boolean): Promise<{
         name: string;
         chainId: any;
@@ -148,7 +148,7 @@ export default class paradex extends Exchange {
         publicKey: string;
         address: string;
     }>;
-    onboarding(params?: Dict): Promise<any>;
+    onboarding(params?: Dict): Promise<Dict>;
     authenticateRest(params?: Dict): Promise<Str>;
     parseOrder(order: Dict, market?: Market): Order;
     parseTimeInForce(timeInForce: Str): Str;
@@ -407,7 +407,7 @@ export default class paradex extends Exchange {
      * @param {float} [params.leverage] the rate of leverage
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name paradex#fetchLeverage
@@ -431,7 +431,7 @@ export default class paradex extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name paradex#fetchGreeks

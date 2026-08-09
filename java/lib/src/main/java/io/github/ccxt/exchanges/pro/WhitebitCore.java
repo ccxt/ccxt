@@ -875,6 +875,8 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
      * @see https://docs.whitebit.com/private/websocket/#balance-margin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
+     * @param {bool} [params.fetchBalanceSnapshot] whether to fetch the initial balance snapshot over REST, default is true
+     * @param {bool} [params.awaitBalanceSnapshot] whether to wait for the balance snapshot before providing updates, default is true
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchBalance(Object... optionalArgs)
@@ -902,14 +904,71 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 method = "balanceMargin_subscribe";
                 messageHash = Helpers.add(messageHash, "margin");
             }
-            Object currencies = Helpers.objectKeys(this.currencies);
-            return (this.watchPrivate(messageHash, method, currencies, parameters)).join();
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
+            Client client = this.client(url);
+            this.setBalanceCache(client, type, messageHash);
+            Object fetchBalanceSnapshot = null;
+            Object awaitBalanceSnapshot = null;
+            var fetchBalanceSnapshotparametersVariable = this.handleOptionAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
+            fetchBalanceSnapshot = ((java.util.List<Object>) fetchBalanceSnapshotparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) fetchBalanceSnapshotparametersVariable).get(1);
+            var awaitBalanceSnapshotparametersVariable = this.handleOptionAndParams(parameters, "watchBalance", "awaitBalanceSnapshot", true);
+            awaitBalanceSnapshot = ((java.util.List<Object>) awaitBalanceSnapshotparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) awaitBalanceSnapshotparametersVariable).get(1);
+            if (Helpers.isTrue(Helpers.isTrue(fetchBalanceSnapshot) && Helpers.isTrue(awaitBalanceSnapshot)))
+            {
+                client.future((String)Helpers.add(type, ":fetchBalanceSnapshot")).getFuture().join();
+            }
+            // an empty params array subscribes to updates for all assets,
+            // listing all tickers explicitly is rejected with "invalid argument"
+            return (this.watchPrivate(messageHash, method, new java.util.ArrayList<Object>(java.util.Arrays.asList()), parameters)).join();
+        });
+
+    }
+
+    public void setBalanceCache(Client client, Object type, Object subscriptionHash)
+    {
+        if (Helpers.isTrue(Helpers.inOp(client.subscriptions, subscriptionHash)))
+        {
+            return;
+        }
+        Object fetchBalanceSnapshot = this.handleOption("watchBalance", "fetchBalanceSnapshot", true);
+        if (Helpers.isTrue(fetchBalanceSnapshot))
+        {
+            Object messageHash = Helpers.add(type, ":fetchBalanceSnapshot");
+            if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
+            {
+                client.future((String)messageHash);
+                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type, subscriptionHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            }
+        }
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash2, Object type, Object subscriptionHash)
+    {
+        final Object messageHash3 = messageHash2;
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            Object messageHash = messageHash3;
+            Object response = (this.fetchBalance((Object)((Object) new java.util.HashMap<String, Object>() {{
+                put( "type", type );
+            }}))).join();
+            this.balance = this.extend(response, this.balance);
+            // don't remove the future from the .futures cache
+            if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
+            {
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
+                future.resolve();
+                client.resolve(this.balance, subscriptionHash);
+            }
+            return null;
         });
 
     }
 
     public void handleBalance(Client client, Object message)
     {
+        //
+        // spot
         //
         //   {
         //       "method":"balanceSpot_update",
@@ -918,7 +977,27 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         //             "LTC":{
         //                "available":"0.16587",
         //                "freeze":"0"
+        //             },
+        //             "BTC":{
+        //                "available":"0.005",
+        //                "freeze":"0.001"
         //             }
+        //          }
+        //       ],
+        //       "id":null
+        //   }
+        //
+        // margin
+        //
+        //   {
+        //       "method":"balanceMargin_update",
+        //       "params":[
+        //          {
+        //             "a":"USDT",         // asset
+        //             "B":"0.00538073",   // total balance
+        //             "b":"0",            // borrowed
+        //             "av":"0.00538073",  // available without borrowing
+        //             "ab":"28.43739825"  // available with borrowing
         //          }
         //       ],
         //       "id":null
@@ -929,19 +1008,41 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         {
             return;
         }
-        Object data = this.safeValue(message, "params");
-        Object balanceDict = this.safeValue(data, 0);
-        Helpers.addElementToObject(this.balance, "info", balanceDict);
-        Object keys = Helpers.objectKeys(balanceDict);
-        Object currencyId = this.safeValue(keys, 0);
-        Object rawBalance = this.safeValue(balanceDict, currencyId);
-        Object code = this.safeCurrencyCode(currencyId);
-        Object account = this.account();
-        Helpers.addElementToObject(account, "free", this.safeString(rawBalance, "available"));
-        Helpers.addElementToObject(account, "used", this.safeString(rawBalance, "freeze"));
-        if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+        Object isMargin = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(method, "Margin"), 0));
+        Object data = this.safeList(message, "params", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
-            Helpers.addElementToObject(this.balance, code, account);
+            Object balanceDict = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
+            Helpers.addElementToObject(this.balance, "info", balanceDict);
+            if (Helpers.isTrue(isMargin))
+            {
+                Object currencyId = this.safeString(balanceDict, "a");
+                Object code = this.safeCurrencyCode(currencyId);
+                Object account = this.account();
+                Helpers.addElementToObject(account, "free", this.safeString(balanceDict, "av"));
+                Helpers.addElementToObject(account, "total", this.safeString(balanceDict, "B"));
+                Helpers.addElementToObject(account, "debt", this.safeString(balanceDict, "b"));
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(this.balance, code, account);
+                }
+            } else
+            {
+                Object keys = Helpers.objectKeys(balanceDict);
+                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(keys)); j++)
+                {
+                    Object currencyId = Helpers.GetValue(keys, j);
+                    Object rawBalance = this.safeDict(balanceDict, currencyId, new java.util.HashMap<String, Object>() {{}});
+                    Object code = this.safeCurrencyCode(currencyId);
+                    Object account = this.account();
+                    Helpers.addElementToObject(account, "free", this.safeString(rawBalance, "available"));
+                    Helpers.addElementToObject(account, "used", this.safeString(rawBalance, "freeze"));
+                    if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                    {
+                        Helpers.addElementToObject(this.balance, code, account);
+                    }
+                }
+            }
         }
         this.balance = this.safeBalance(this.balance);
         Object messageHash = "wallet:";

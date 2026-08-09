@@ -166,7 +166,7 @@ export default class indodax extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchTransactionFee(code: string, params?: {}): Promise<{
-        info: any;
+        info: Dict;
         rate: Num;
         currency: Str;
     }>;

@@ -185,7 +185,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 },
                 'private': {
                     'post': {
-                        'exchange': 1,
+                        'exchange': {'cost': 1},
                     },
                 },
             },
@@ -574,7 +574,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         perpDexesOffset = {}
         for i in range(1, len(fetchDexes)):
             # builder-deployed perp dexs start at 110000
-            dex = fetchDexes[i]
+            dex = self.safe_dict(fetchDexes, i, {})
             secondPart = (i - 1) * 10000
             offset = self.sum(110000, secondPart)
             perpDexesOffset[dex['name']] = offset
@@ -1470,7 +1470,10 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, originalSince, limit, useTail)
+        candles = []
+        if isinstance(response, list):
+            candles = response
+        return self.parse_ohlcvs(candles, market, timeframe, originalSince, limit, useTail)
 
     def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
@@ -1553,7 +1556,10 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_trades(response, market, since, limit)
+        fills = []
+        if isinstance(response, list):
+            fills = response
+        return self.parse_trades(fills, market, since, limit)
 
     def amount_to_precision(self, symbol: Str, amount: Any):
         market = self.market(symbol)
@@ -1836,7 +1842,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             }
             response = None
             try:
-                response = await self.publicPostInfo(self.extend(request, params))
+                rawResponse = await self.publicPostInfo(self.extend(request, params))
+                if isinstance(rawResponse, str):
+                    response = rawResponse
             except Exception as e:
                 if isinstance(e, InvalidProxySettings):
                     raise e  # reraise self error since it means the user has a problem with their proxy settings that needs to be fixed
@@ -2855,8 +2863,11 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     ]
         #
         result = []
-        for i in range(0, len(response)):
-            entry = response[i]
+        fundings = []
+        if isinstance(response, list):
+            fundings = response
+        for i in range(0, len(fundings)):
+            entry = fundings[i]
             timestamp = self.safe_integer(entry, 'time')
             result.append({
                 'info': entry,
@@ -2924,8 +2935,11 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     ]
         #
         orderWithStatus = []
-        for i in range(0, len(response)):
-            order = response[i]
+        rawOrders = []
+        if isinstance(response, list):
+            rawOrders = response
+        for i in range(0, len(rawOrders)):
+            order = rawOrders[i]
             extendOrder = {}
             if self.safe_string(order, 'status') is None:
                 extendOrder['ccxtStatus'] = 'open'
@@ -3029,8 +3043,11 @@ class hyperliquid(Exchange, ImplicitAPI):
         # so a canceled order appears twice: once as 'open' and once as 'canceled'.
         # Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
         deduplicatedByOid = {}
-        for i in range(0, len(response)):
-            rawOrder = response[i]
+        historicalOrders = []
+        if isinstance(response, list):
+            historicalOrders = response
+        for i in range(0, len(historicalOrders)):
+            rawOrder = historicalOrders[i]
             entry = self.safe_dict(rawOrder, 'order')
             if entry is None:
                 entry = rawOrder
@@ -3357,7 +3374,10 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_trades(response, market, since, limit)
+        myFills = []
+        if isinstance(response, list):
+            myFills = response
+        return self.parse_trades(myFills, market, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -4275,7 +4295,10 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     }
         # ]
         #
-        records = self.extract_type_from_delta(response)
+        depositLedger = []
+        if isinstance(response, list):
+            depositLedger = response
+        records = self.extract_type_from_delta(depositLedger)
         vaultAddress = None
         vaultAddress, params = self.handle_option_and_params(params, 'fetchDepositsWithdrawals', 'vaultAddress')
         vaultAddress = self.format_vault_address(vaultAddress)
@@ -4331,7 +4354,10 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     }
         # ]
         #
-        records = self.extract_type_from_delta(response)
+        withdrawalLedger = []
+        if isinstance(response, list):
+            withdrawalLedger = response
+        records = self.extract_type_from_delta(withdrawalLedger)
         vaultAddress = None
         vaultAddress, params = self.handle_option_and_params(params, 'fetchDepositsWithdrawals', 'vaultAddress')
         vaultAddress = self.format_vault_address(vaultAddress)
@@ -4536,7 +4562,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         response = await self.privatePostExchange(self.extend(request, params))
         return response
 
-    def extract_type_from_delta(self, data=[]):
+    def extract_type_from_delta(self, data: List[dict] = []):
         records = []
         for i in range(0, len(data)):
             record = data[i]

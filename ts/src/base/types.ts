@@ -29,6 +29,26 @@ export type NullableDict = Dict | undefined;
 export type List = Array<any>;
 export type NullableList = List | undefined;
 
+// One endpoint leaf of an exchange's describe()['api'] tree. `Returns` is a
+// phantom type parameter: it carries the TypeScript type that endpoint answers
+// with, without adding any runtime value to the leaf, so the object the rate
+// limiter sees is still exactly the cost-carrying keys it always was.
+//
+//     'klines': { 'cost': 1 } as Endpoint<List>,
+//
+// build/generateImplicitAPI.ts resolves that type argument from the source with
+// the TypeScript compiler API and emits `Promise<List>` for the corresponding
+// generated method. A leaf with no assertion declares no shape and falls back
+// to the generator's permissive default. `Returns` is constrained to the three
+// shapes a decoded JSON body can take, so a type argument the generated file
+// could not import fails here, where it is written, rather than as a dangling
+// reference in a generated one.
+export interface Endpoint<Returns extends Dict | List | string> {
+    cost?: number;
+    // never read at runtime — only the declared type of this member matters
+    returns?: Returns;
+}
+
 /** Request parameters */
 // type Params = Dictionary<string | number | boolean | string[]>;
 
@@ -960,7 +980,17 @@ export type OHLCV = [Num, Num, Num, Num, Num, Num];
 /** [ timestamp, open, high, low, close, volume, count ] */
 export type OHLCVC = [Num, Num, Num, Num, Num, Num, Num];
 
-export type implicitReturnType = any;
+/**
+ * Input type of the safe* accessors in base/functions/type.ts.
+ *
+ * They read a key out of *any* bag: raw endpoint payloads, already parsed
+ * structures, markets, currencies, options, nested fragments, tuples. That is a
+ * genuine external boundary, so the parameter stays `any`. It is a named alias
+ * rather than a bare `any` so it can never be confused with the concrete
+ * return types of the generated implicit API methods, which describe the
+ * opposite direction of data flow.
+ */
+export type safeInputType = any;
 
 export type Market = MarketInterface | undefined;
 export type Currency = CurrencyInterface | undefined;

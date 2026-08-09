@@ -369,7 +369,7 @@ export default class cryptocom extends Exchange {
         timestamp: Int;
         datetime: string | undefined;
     };
-    parseSettlements(settlements: any, market: any): any[];
+    parseSettlements(settlements: any, market: any): Dict[];
     /**
      * @method
      * @name cryptocom#fetchFundingRate

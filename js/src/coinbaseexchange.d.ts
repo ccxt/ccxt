@@ -246,7 +246,7 @@ export default class coinbaseexchange extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
-    fetchPaymentMethods(params?: {}): Promise<any>;
+    fetchPaymentMethods(params?: {}): Promise<Dict>;
     /**
      * @method
      * @name coinbaseexchange#withdraw

@@ -7,6 +7,10 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 
 func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (ccxt.ICoreExchange, bool) {
 	switch exchangeId {
+	case "binance":
+		binanceItf := NewBinanceCore()
+		binanceItf.Init(exchangeArgs)
+		return binanceItf, true
 	case "hyperliquid":
 		hyperliquidItf := NewHyperliquidCore()
 		hyperliquidItf.Init(exchangeArgs)
@@ -23,6 +27,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		myriadItf := NewMyriadCore()
 		myriadItf.Init(exchangeArgs)
 		return myriadItf, true
+	case "opinion":
+		opinionItf := NewOpinionCore()
+		opinionItf.Init(exchangeArgs)
+		return opinionItf, true
 	case "polymarket":
 		polymarketItf := NewPolymarketCore()
 		polymarketItf.Init(exchangeArgs)

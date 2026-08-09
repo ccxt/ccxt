@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/extended.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, Fee, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, NullableDict } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, Fee, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, NullableDict, Endpoint } from './base/types.js';
 import { ArgumentsRequired, BadRequest, InsufficientFunds, InvalidOrder, ExchangeError, AuthenticationError } from './base/errors.js';
 import { DECIMAL_PLACES, NO_PADDING, TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 
@@ -178,71 +178,71 @@ export default class extended extends Exchange {
             'api': {
                 'v1': {
                     'public': {
-                        'get': [
-                            'info/markets',
-                            'info/assets',
-                            'info/assets/{asset}/price',
-                            'info/markets/{market}/stats',
-                            'info/markets/{market}/orderbook',
-                            'info/markets/{market}/trades',
-                            'info/candles/{market}/{candleType}',
-                            'info/{market}/funding',
-                            'info/{market}/open-interests',
-                            'info/builder/dashboard',
-                        ],
+                        'get': {
+                            'info/markets': { 'cost': 1 } as Endpoint<Dict>,
+                            'info/assets': { 'cost': 1 } as Endpoint<Dict>,
+                            'info/assets/{asset}/price': { 'cost': 1 } as Endpoint<Dict>,
+                            'info/markets/{market}/stats': { 'cost': 1 } as Endpoint<Dict>,
+                            'info/markets/{market}/orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                            'info/markets/{market}/trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'info/candles/{market}/{candleType}': { 'cost': 1 } as Endpoint<Dict>,
+                            'info/{market}/funding': { 'cost': 1 } as Endpoint<Dict>,
+                            'info/{market}/open-interests': { 'cost': 1 } as Endpoint<Dict>,
+                            'info/builder/dashboard': { 'cost': 1 } as Endpoint<Dict>,
+                        },
                     },
                     'private': {
-                        'get': [
-                            'user/accounts',
-                            'user/account/info',
-                            'user/balance',
-                            'user/spot/balances',
-                            'user/assetOperations',
-                            'user/positions',
-                            'user/positions/history',
-                            'user/orders',
-                            'user/orders/history',
-                            'user/orders/{id}',
-                            'user/orders/external/{externalId}',
-                            'user/trades',
-                            'user/funding/history',
-                            'user/rebates/stats',
-                            'user/leverage',
-                            'user/fees',
-                            'user/bridge/config',
-                            'user/bridge/quote',
-                            'user/affiliate',
-                            'user/referrals/status',
-                            'user/referrals/links',
-                            'user/referrals/dashboard',
-                            'user/rewards/earned',
-                            'user/rewards/leaderboard/stats',
-                            'portfolio/charts/equities',
-                            'portfolio/charts/pnl',
-                            'vault/public/performance',
-                            'vault/public/summary',
-                            'builder/trades',
-                        ],
-                        'post': [
-                            'user/order',
-                            'user/order/massCancel',
-                            'user/deadmanswitch',
-                            'user/bridge/quote',
-                            'user/withdrawal',
-                            'user/transfer',
-                            'user/referrals/use',
-                            'user/referrals',
-                        ],
-                        'put': [
-                            'user/referrals',
-                        ],
-                        'patch': [
-                            'user/leverage',
-                        ],
-                        'delete': [
-                            'user/order/{id}',
-                            'user/order',
-                        ],
+                        'get': {
+                            'user/accounts': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/account/info': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/balance': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/spot/balances': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/assetOperations': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/positions': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/positions/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/orders/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/orders/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/orders/external/{externalId}': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/funding/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/rebates/stats': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/leverage': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/fees': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/bridge/config': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/bridge/quote': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/affiliate': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/referrals/status': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/referrals/links': { 'cost': 1 } as Endpoint<List>,
+                            'user/referrals/dashboard': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/rewards/earned': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/rewards/leaderboard/stats': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/charts/equities': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/charts/pnl': { 'cost': 1 } as Endpoint<Dict>,
+                            'vault/public/performance': { 'cost': 1 } as Endpoint<Dict>,
+                            'vault/public/summary': { 'cost': 1 } as Endpoint<Dict>,
+                            'builder/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        },
+                        'post': {
+                            'user/order': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/order/massCancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/deadmanswitch': { 'cost': 1 } as Endpoint<string>,
+                            'user/bridge/quote': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/referrals/use': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/referrals': { 'cost': 1 } as Endpoint<Dict>,
+                        },
+                        'put': {
+                            'user/referrals': { 'cost': 1 } as Endpoint<Dict>,
+                        },
+                        'patch': {
+                            'user/leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        },
+                        'delete': {
+                            'user/order/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/order': { 'cost': 1 } as Endpoint<Dict>,
+                        },
                     },
                 },
             },
@@ -2361,7 +2361,7 @@ export default class extended extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchPositionsHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchPositionsHistory', symbols as any, since, limit, params, 'cursor', 'cursor', undefined, 10000) as Position[];
+            return await this.fetchPaginatedCallCursor ('fetchPositionsHistory', symbols, since, limit, params, 'cursor', 'cursor', undefined, 10000) as Position[];
         }
         const request: Dict = {};
         if (symbols !== undefined) {

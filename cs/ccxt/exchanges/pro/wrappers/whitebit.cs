@@ -228,6 +228,18 @@ public partial class whitebit
     /// str : spot or contract if not provided this.options['defaultType'] is used
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.fetchBalanceSnapshot</term>
+    /// <description>
+    /// bool : whether to fetch the initial balance snapshot over REST, default is true
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.awaitBalanceSnapshot</term>
+    /// <description>
+    /// bool : whether to wait for the balance snapshot before providing updates, default is true
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>

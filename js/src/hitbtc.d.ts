@@ -1,5 +1,5 @@
 import Exchange from './abstract/hitbtc.js';
-import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dict, NullableDict, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, CurrencyInterface, MarginModes, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, int, FundingRate, FundingRates, DepositAddress, OrderBooks, OpenInterests, DepositWithdrawFees } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dict, NullableDict, List, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, CurrencyInterface, MarginModes, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, int, FundingRate, FundingRates, DepositAddress, OrderBooks, OpenInterests, DepositWithdrawFees } from './base/types.js';
 /**
  * @class hitbtc
  * @augments Exchange
@@ -371,7 +371,7 @@ export default class hitbtc extends Exchange {
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     convertCurrencyNetwork(code: string, amount: any, fromNetwork: any, toNetwork: any, params: any): Promise<{
-        info: any;
+        info: List;
     }>;
     /**
      * @method
@@ -523,7 +523,7 @@ export default class hitbtc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name hitbtc#fetchDepositWithdrawFees

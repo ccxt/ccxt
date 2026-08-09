@@ -169,68 +169,140 @@ public class BitvavoCore extends BitvavoApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "{market}/book", 1 );
-                        put( "report/{market}/book", 1 );
-                        put( "{market}/trades", 5 );
-                        put( "report/{market}/trades", 5 );
-                        put( "ticker/price", 1 );
-                        put( "ticker/book", 1 );
-                        put( "{market}/candles", 1 );
+                        put( "{market}/book", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "report/{market}/book", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "{market}/trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "report/{market}/trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "ticker/price", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "ticker/book", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "{market}/candles", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "ticker/24h", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                             put( "noMarket", 25 );
                         }} );
-                        put( "time", 1 );
-                        put( "markets", 1 );
-                        put( "assets", 1 );
+                        put( "time", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "markets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "assets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "order", 1 );
+                        put( "order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "ordersOpen", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                             put( "noMarket", 100 );
                         }} );
-                        put( "trades", 5 );
-                        put( "orders", 5 );
-                        put( "deposit", 1 );
-                        put( "depositHistory", 5 );
-                        put( "withdrawalHistory", 5 );
-                        put( "account", 1 );
-                        put( "balance", 5 );
-                        put( "stakingBalance", 1 );
-                        put( "account/fees", 1 );
-                        put( "account/history", 1 );
-                        put( "subaccounts", 5 );
-                        put( "subaccounts/transfers", 5 );
-                        put( "subaccounts/transfers/{transferId}", 5 );
-                        put( "institutional/subaccounts/balance", 5 );
-                        put( "institutional/subaccounts/history", 5 );
+                        put( "trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deposit", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "depositHistory", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "withdrawalHistory", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "account", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "balance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "stakingBalance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/fees", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "subaccounts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "subaccounts/transfers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "subaccounts/transfers/{transferId}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "institutional/subaccounts/balance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "institutional/subaccounts/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                         put( "institutional/subaccounts/orders/open", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                             put( "noMarket", 100 );
                         }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "order", 1 );
-                        put( "cancelOrdersAfter", 5 );
-                        put( "withdrawal", 1 );
-                        put( "crypto/withdrawal", 25 );
-                        put( "subaccounts", 5 );
-                        put( "subaccounts/transfers", 5 );
+                        put( "order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancelOrdersAfter", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "withdrawal", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "crypto/withdrawal", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 25 );
+                        }} );
+                        put( "subaccounts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "subaccounts/transfers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                     }} );
                     put( "put", new java.util.HashMap<String, Object>() {{
-                        put( "order", 1 );
+                        put( "order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "delete", new java.util.HashMap<String, Object>() {{
-                        put( "order", 1 );
+                        put( "order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "orders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 25 );
                             put( "noMarket", 100 );
                         }} );
-                        put( "atomic/orders", 100 );
-                        put( "institutional/subaccounts/order", 1 );
+                        put( "atomic/orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 100 );
+                        }} );
+                        put( "institutional/subaccounts/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "institutional/subaccounts/orders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 25 );
                             put( "noMarket", 100 );
@@ -1284,7 +1356,7 @@ final Object finalBase = base;
             //         [1590383520000,"8090.3","8092.7","8090.3","8092.5","0.04001286"],
             //     ]
             //
-            return this.parseOHLCVs(response, market, timeframe, since, limit);
+            return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
         });
 
     }

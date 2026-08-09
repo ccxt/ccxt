@@ -11,74 +11,102 @@ public partial class nado : Exchange
 {
     public nado (object args = null): base(args) {}
 
-    public async Task<object> gatewayPublicGetSymbols (object parameters = null)
+    /// <summary>Calls the gatewayPublicGetSymbols endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gatewayPublicGetSymbols (object parameters = null)
     {
-        return await this.callAsync ("gatewayPublicGetSymbols",parameters);
+        return await this.callAsync<List<object>> ("gatewayPublicGetSymbols",parameters);
     }
 
-    public async Task<object> gatewayPublicGetQuery (object parameters = null)
+    /// <summary>Calls the gatewayPublicGetQuery endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gatewayPublicGetQuery (object parameters = null)
     {
-        return await this.callAsync ("gatewayPublicGetQuery",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gatewayPublicGetQuery",parameters);
     }
 
-    public async Task<object> gatewayPublicGetEdgeQuery (object parameters = null)
+    /// <summary>Calls the gatewayPublicGetEdgeQuery endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gatewayPublicGetEdgeQuery (object parameters = null)
     {
-        return await this.callAsync ("gatewayPublicGetEdgeQuery",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gatewayPublicGetEdgeQuery",parameters);
     }
 
-    public async Task<object> gatewayPublicPostQuery (object parameters = null)
+    /// <summary>Calls the gatewayPublicPostQuery endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gatewayPublicPostQuery (object parameters = null)
     {
-        return await this.callAsync ("gatewayPublicPostQuery",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gatewayPublicPostQuery",parameters);
     }
 
-    public async Task<object> gatewayPrivatePostExecute (object parameters = null)
+    /// <summary>Calls the gatewayPrivatePostExecute endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gatewayPrivatePostExecute (object parameters = null)
     {
-        return await this.callAsync ("gatewayPrivatePostExecute",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gatewayPrivatePostExecute",parameters);
     }
 
-    public async Task<object> gatewayV2PublicGetAssets (object parameters = null)
+    /// <summary>Calls the gatewayV2PublicGetAssets endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gatewayV2PublicGetAssets (object parameters = null)
     {
-        return await this.callAsync ("gatewayV2PublicGetAssets",parameters);
+        return await this.callAsync<List<object>> ("gatewayV2PublicGetAssets",parameters);
     }
 
-    public async Task<object> gatewayV2PublicGetPairs (object parameters = null)
+    /// <summary>Calls the gatewayV2PublicGetPairs endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> gatewayV2PublicGetPairs (object parameters = null)
     {
-        return await this.callAsync ("gatewayV2PublicGetPairs",parameters);
+        return await this.callAsync<List<object>> ("gatewayV2PublicGetPairs",parameters);
     }
 
-    public async Task<object> gatewayV2PublicGetOrderbook (object parameters = null)
+    /// <summary>Calls the gatewayV2PublicGetOrderbook endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gatewayV2PublicGetOrderbook (object parameters = null)
     {
-        return await this.callAsync ("gatewayV2PublicGetOrderbook",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("gatewayV2PublicGetOrderbook",parameters);
     }
 
-    public async Task<object> archivePost (object parameters = null)
+    /// <summary>Calls the archivePost endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> archivePost (object parameters = null)
     {
-        return await this.callAsync ("archivePost",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("archivePost",parameters);
     }
 
-    public async Task<object> archiveV2PublicGetTickers (object parameters = null)
+    /// <summary>Calls the archiveV2PublicGetTickers endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> archiveV2PublicGetTickers (object parameters = null)
     {
-        return await this.callAsync ("archiveV2PublicGetTickers",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("archiveV2PublicGetTickers",parameters);
     }
 
-    public async Task<object> archiveV2PublicGetContracts (object parameters = null)
+    /// <summary>Calls the archiveV2PublicGetContracts endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> archiveV2PublicGetContracts (object parameters = null)
     {
-        return await this.callAsync ("archiveV2PublicGetContracts",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("archiveV2PublicGetContracts",parameters);
     }
 
-    public async Task<object> archiveV2PublicGetTrades (object parameters = null)
+    /// <summary>Calls the archiveV2PublicGetTrades endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> archiveV2PublicGetTrades (object parameters = null)
     {
-        return await this.callAsync ("archiveV2PublicGetTrades",parameters);
+        return await this.callAsync<List<object>> ("archiveV2PublicGetTrades",parameters);
     }
 
-    public async Task<object> triggerPrivatePostExecute (object parameters = null)
+    /// <summary>Calls the triggerPrivatePostExecute endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> triggerPrivatePostExecute (object parameters = null)
     {
-        return await this.callAsync ("triggerPrivatePostExecute",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("triggerPrivatePostExecute",parameters);
     }
 
-    public async Task<object> triggerPrivatePostQuery (object parameters = null)
+    /// <summary>Calls the triggerPrivatePostQuery endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> triggerPrivatePostQuery (object parameters = null)
     {
-        return await this.callAsync ("triggerPrivatePostQuery",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("triggerPrivatePostQuery",parameters);
     }
 
 }

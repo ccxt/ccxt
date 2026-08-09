@@ -154,19 +154,236 @@ func (this *AlpacaCore) Describe() any {
 			"broker": map[string]any{},
 			"trader": map[string]any{
 				"private": map[string]any{
-					"get":    []any{"v2/account", "v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/account/portfolio/history", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/account/configurations", "v2/account/activities", "v2/account/activities/{activity_type}", "v2/calendar", "v2/clock", "v2/assets", "v2/assets/{symbol_or_asset_id}", "v2/corporate_actions/announcements/{id}", "v2/corporate_actions/announcements", "v2/wallets", "v2/wallets/transfers"},
-					"post":   []any{"v2/orders", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/wallets/transfers"},
-					"put":    []any{"v2/orders/{order_id}", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name"},
-					"patch":  []any{"v2/orders/{order_id}", "v2/account/configurations"},
-					"delete": []any{"v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/watchlists/{watchlist_id}/{symbol}"},
+					"get": map[string]any{
+						"v2/account": map[string]any{
+							"cost": 1,
+						},
+						"v2/orders": map[string]any{
+							"cost": 1,
+						},
+						"v2/orders/{order_id}": map[string]any{
+							"cost": 1,
+						},
+						"v2/positions": map[string]any{
+							"cost": 1,
+						},
+						"v2/positions/{symbol_or_asset_id}": map[string]any{
+							"cost": 1,
+						},
+						"v2/account/portfolio/history": map[string]any{
+							"cost": 1,
+						},
+						"v2/watchlists": map[string]any{
+							"cost": 1,
+						},
+						"v2/watchlists/{watchlist_id}": map[string]any{
+							"cost": 1,
+						},
+						"v2/watchlists:by_name": map[string]any{
+							"cost": 1,
+						},
+						"v2/account/configurations": map[string]any{
+							"cost": 1,
+						},
+						"v2/account/activities": map[string]any{
+							"cost": 1,
+						},
+						"v2/account/activities/{activity_type}": map[string]any{
+							"cost": 1,
+						},
+						"v2/calendar": map[string]any{
+							"cost": 1,
+						},
+						"v2/clock": map[string]any{
+							"cost": 1,
+						},
+						"v2/assets": map[string]any{
+							"cost": 1,
+						},
+						"v2/assets/{symbol_or_asset_id}": map[string]any{
+							"cost": 1,
+						},
+						"v2/corporate_actions/announcements/{id}": map[string]any{
+							"cost": 1,
+						},
+						"v2/corporate_actions/announcements": map[string]any{
+							"cost": 1,
+						},
+						"v2/wallets": map[string]any{
+							"cost": 1,
+						},
+						"v2/wallets/transfers": map[string]any{
+							"cost": 1,
+						},
+					},
+					"post": map[string]any{
+						"v2/orders": map[string]any{
+							"cost": 1,
+						},
+						"v2/watchlists": map[string]any{
+							"cost": 1,
+						},
+						"v2/watchlists/{watchlist_id}": map[string]any{
+							"cost": 1,
+						},
+						"v2/watchlists:by_name": map[string]any{
+							"cost": 1,
+						},
+						"v2/wallets/transfers": map[string]any{
+							"cost": 1,
+						},
+					},
+					"put": map[string]any{
+						"v2/orders/{order_id}": map[string]any{
+							"cost": 1,
+						},
+						"v2/watchlists/{watchlist_id}": map[string]any{
+							"cost": 1,
+						},
+						"v2/watchlists:by_name": map[string]any{
+							"cost": 1,
+						},
+					},
+					"patch": map[string]any{
+						"v2/orders/{order_id}": map[string]any{
+							"cost": 1,
+						},
+						"v2/account/configurations": map[string]any{
+							"cost": 1,
+						},
+					},
+					"delete": map[string]any{
+						"v2/orders": map[string]any{
+							"cost": 1,
+						},
+						"v2/orders/{order_id}": map[string]any{
+							"cost": 1,
+						},
+						"v2/positions": map[string]any{
+							"cost": 1,
+						},
+						"v2/positions/{symbol_or_asset_id}": map[string]any{
+							"cost": 1,
+						},
+						"v2/watchlists/{watchlist_id}": map[string]any{
+							"cost": 1,
+						},
+						"v2/watchlists:by_name": map[string]any{
+							"cost": 1,
+						},
+						"v2/watchlists/{watchlist_id}/{symbol}": map[string]any{
+							"cost": 1,
+						},
+					},
 				},
 			},
 			"market": map[string]any{
 				"public": map[string]any{
-					"get": []any{"v1beta3/crypto/{loc}/bars", "v1beta3/crypto/{loc}/latest/bars", "v1beta3/crypto/{loc}/latest/orderbooks", "v1beta3/crypto/{loc}/latest/quotes", "v1beta3/crypto/{loc}/latest/trades", "v1beta3/crypto/{loc}/quotes", "v1beta3/crypto/{loc}/snapshots", "v1beta3/crypto/{loc}/trades"},
+					"get": map[string]any{
+						"v1beta3/crypto/{loc}/bars": map[string]any{
+							"cost": 1,
+						},
+						"v1beta3/crypto/{loc}/latest/bars": map[string]any{
+							"cost": 1,
+						},
+						"v1beta3/crypto/{loc}/latest/orderbooks": map[string]any{
+							"cost": 1,
+						},
+						"v1beta3/crypto/{loc}/latest/quotes": map[string]any{
+							"cost": 1,
+						},
+						"v1beta3/crypto/{loc}/latest/trades": map[string]any{
+							"cost": 1,
+						},
+						"v1beta3/crypto/{loc}/quotes": map[string]any{
+							"cost": 1,
+						},
+						"v1beta3/crypto/{loc}/snapshots": map[string]any{
+							"cost": 1,
+						},
+						"v1beta3/crypto/{loc}/trades": map[string]any{
+							"cost": 1,
+						},
+					},
 				},
 				"private": map[string]any{
-					"get": []any{"v1beta1/corporate-actions", "v1beta1/forex/latest/rates", "v1beta1/forex/rates", "v1beta1/logos/{symbol}", "v1beta1/news", "v1beta1/screener/stocks/most-actives", "v1beta1/screener/{market_type}/movers", "v2/stocks/auctions", "v2/stocks/bars", "v2/stocks/bars/latest", "v2/stocks/meta/conditions/{ticktype}", "v2/stocks/meta/exchanges", "v2/stocks/quotes", "v2/stocks/quotes/latest", "v2/stocks/snapshots", "v2/stocks/trades", "v2/stocks/trades/latest", "v2/stocks/{symbol}/auctions", "v2/stocks/{symbol}/bars", "v2/stocks/{symbol}/bars/latest", "v2/stocks/{symbol}/quotes", "v2/stocks/{symbol}/quotes/latest", "v2/stocks/{symbol}/snapshot", "v2/stocks/{symbol}/trades", "v2/stocks/{symbol}/trades/latest"},
+					"get": map[string]any{
+						"v1beta1/corporate-actions": map[string]any{
+							"cost": 1,
+						},
+						"v1beta1/forex/latest/rates": map[string]any{
+							"cost": 1,
+						},
+						"v1beta1/forex/rates": map[string]any{
+							"cost": 1,
+						},
+						"v1beta1/logos/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"v1beta1/news": map[string]any{
+							"cost": 1,
+						},
+						"v1beta1/screener/stocks/most-actives": map[string]any{
+							"cost": 1,
+						},
+						"v1beta1/screener/{market_type}/movers": map[string]any{
+							"cost": 1,
+						},
+						"v2/stocks/auctions": map[string]any{
+							"cost": 1,
+						},
+						"v2/stocks/bars": map[string]any{
+							"cost": 1,
+						},
+						"v2/stocks/bars/latest": map[string]any{
+							"cost": 1,
+						},
+						"v2/stocks/meta/conditions/{ticktype}": map[string]any{
+							"cost": 1,
+						},
+						"v2/stocks/meta/exchanges": map[string]any{
+							"cost": 1,
+						},
+						"v2/stocks/quotes": map[string]any{
+							"cost": 1,
+						},
+						"v2/stocks/quotes/latest": map[string]any{
+							"cost": 1,
+						},
+						"v2/stocks/snapshots": map[string]any{
+							"cost": 1,
+						},
+						"v2/stocks/trades": map[string]any{
+							"cost": 1,
+						},
+						"v2/stocks/trades/latest": map[string]any{
+							"cost": 1,
+						},
+						"v2/stocks/{symbol}/auctions": map[string]any{
+							"cost": 1,
+						},
+						"v2/stocks/{symbol}/bars": map[string]any{
+							"cost": 1,
+						},
+						"v2/stocks/{symbol}/bars/latest": map[string]any{
+							"cost": 1,
+						},
+						"v2/stocks/{symbol}/quotes": map[string]any{
+							"cost": 1,
+						},
+						"v2/stocks/{symbol}/quotes/latest": map[string]any{
+							"cost": 1,
+						},
+						"v2/stocks/{symbol}/snapshot": map[string]any{
+							"cost": 1,
+						},
+						"v2/stocks/{symbol}/trades": map[string]any{
+							"cost": 1,
+						},
+						"v2/stocks/{symbol}/trades/latest": map[string]any{
+							"cost": 1,
+						},
+					},
 				},
 			},
 		},
@@ -598,8 +815,8 @@ func (this *AlpacaCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 			//    }
 			//
 			var trades any = this.SafeDict(response, "trades", map[string]any{})
-			symbolTrades = this.SafeDict(trades, marketId, map[string]any{})
-			symbolTrades = []any{symbolTrades}
+			var symbolTrade any = this.SafeDict(trades, marketId, map[string]any{})
+			symbolTrades = []any{symbolTrade}
 		} else {
 			panic(NotSupported(Add(Add(Add(this.Id, " fetchTrades() does not support "), method), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")))
 		}
@@ -804,8 +1021,8 @@ func (this *AlpacaCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 			//     }
 			//
 			var bars any = this.SafeDict(response, "bars", map[string]any{})
-			ohlcvs = this.SafeDict(bars, marketId, map[string]any{})
-			ohlcvs = []any{ohlcvs}
+			var bar any = this.SafeDict(bars, marketId, map[string]any{})
+			ohlcvs = []any{bar}
 		} else {
 			panic(NotSupported(Add(Add(Add(this.Id, " fetchOHLCV() does not support "), method), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")))
 		}
@@ -2021,8 +2238,12 @@ func (this *AlpacaCore) FetchTransactionsHelper(typeVar any, code any, since any
 			//     ]
 			//
 			var filtered any = []any{}
-			for i := 0; IsLessThan(i, GetArrayLength(activities)); i++ {
-				var entry any = GetValue(activities, i)
+			var ledger any = []any{}
+			if IsTrue(IsArray(activities)) {
+				ledger = activities
+			}
+			for i := 0; IsLessThan(i, GetArrayLength(ledger)); i++ {
+				var entry any = GetValue(ledger, i)
 				var activityType any = this.SafeString(entry, "activity_type")
 				var amount any = this.SafeString(entry, "net_amount")
 				var isIncoming any = IsTrue((IsEqual(activityType, "CSD"))) || IsTrue((IsTrue((IsEqual(activityType, "TRANS"))) && !IsTrue(Precise.StringLt(amount, "0"))))
@@ -2056,8 +2277,12 @@ func (this *AlpacaCore) FetchTransactionsHelper(typeVar any, code any, since any
 		//     }
 		//
 		var results any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var entry any = GetValue(response, i)
+		var transfers any = []any{}
+		if IsTrue(IsArray(response)) {
+			transfers = response
+		}
+		for i := 0; IsLessThan(i, GetArrayLength(transfers)); i++ {
+			var entry any = GetValue(transfers, i)
 			var direction any = this.SafeString(entry, "direction")
 			if IsTrue(IsEqual(direction, typeVar)) {
 				AppendToArray(&results, entry)
@@ -2098,9 +2323,9 @@ func (this *AlpacaCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes181115 := (<-this.FetchTransactionsHelper("BOTH", code, since, limit, params))
-		PanicOnError(retRes181115)
-		ch <- retRes181115
+		retRes181915 := (<-this.FetchTransactionsHelper("BOTH", code, since, limit, params))
+		PanicOnError(retRes181915)
+		ch <- retRes181915
 		return nil
 
 	}()
@@ -2132,9 +2357,9 @@ func (this *AlpacaCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes182615 := (<-this.FetchTransactionsHelper("INCOMING", code, since, limit, params))
-		PanicOnError(retRes182615)
-		ch <- retRes182615
+		retRes183415 := (<-this.FetchTransactionsHelper("INCOMING", code, since, limit, params))
+		PanicOnError(retRes183415)
+		ch <- retRes183415
 		return nil
 
 	}()
@@ -2166,9 +2391,9 @@ func (this *AlpacaCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes184115 := (<-this.FetchTransactionsHelper("OUTGOING", code, since, limit, params))
-		PanicOnError(retRes184115)
-		ch <- retRes184115
+		retRes184915 := (<-this.FetchTransactionsHelper("OUTGOING", code, since, limit, params))
+		PanicOnError(retRes184915)
+		ch <- retRes184915
 		return nil
 
 	}()
@@ -2322,8 +2547,8 @@ func (this *AlpacaCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes198712 := (<-this.LoadMarkets())
-			PanicOnError(retRes198712)
+			retRes199512 := (<-this.LoadMarkets())
+			PanicOnError(retRes199512)
 		}
 
 		response := (<-this.TraderPrivateGetV2Account(params))

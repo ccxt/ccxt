@@ -146,77 +146,211 @@ public partial class pacifica : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "info", 1 },
-                        { "info/fees", 1 },
-                        { "info/prices", 1 },
-                        { "kline", 12 },
-                        { "kline/mark", 12 },
-                        { "book", 1 },
-                        { "trades", 1 },
-                        { "funding_rate/history", 1 },
-                        { "loan_pool", 1 },
-                        { "account", 1 },
-                        { "account/loan", 1 },
-                        { "account/settings", 1 },
-                        { "positions", 1 },
-                        { "trades/history", 12 },
-                        { "funding/history", 1 },
-                        { "portfolio", 1 },
-                        { "account/balance/history", 12 },
-                        { "account/spot_balance/history", 1 },
-                        { "account/spot_asset/deposit/history", 1 },
-                        { "account/spot_asset/withdraw/history", 1 },
-                        { "account/spot_asset/withdraw/pending", 1 },
-                        { "orders", 1 },
-                        { "orders/history", 12 },
-                        { "orders/history_by_id", 1 },
-                        { "spot_assets", 1 },
-                        { "spot_assets/bridge/info", 1 },
-                        { "spot_assets/bridge/parameters/{symbol}", 1 },
-                        { "lake/list", 1 },
-                        { "account/builder_codes/approvals", 1 },
+                        { "info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "info/fees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "info/prices", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "kline", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "kline/mark", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding_rate/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "loan_pool", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/loan", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/settings", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades/history", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "funding/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "portfolio", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/balance/history", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "account/spot_balance/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/spot_asset/deposit/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/spot_asset/withdraw/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/spot_asset/withdraw/pending", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/history", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "orders/history_by_id", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot_assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot_assets/bridge/info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot_assets/bridge/parameters/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/builder_codes/approvals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "account/leverage", 1 },
-                        { "account/margin", 1 },
-                        { "account/withdraw", 1 },
-                        { "account/settings/auto_lend_disabled", 1 },
-                        { "account/settings/spot", 1 },
-                        { "account/spot_asset/withdraw", 1 },
-                        { "account/subaccount/create", 1 },
-                        { "account/subaccount/list", 1 },
-                        { "account/subaccount/transfer", 1 },
-                        { "account/subaccount/spot_asset/transfer", 1 },
-                        { "positions/add_isolated_margin", 1 },
-                        { "orders/create", 1 },
-                        { "orders/create_market", 1 },
-                        { "orders/stop/create", 1 },
-                        { "positions/tpsl", 1 },
-                        { "orders/cancel", 0.5 },
-                        { "orders/cancel_all", 0.5 },
-                        { "orders/stop/cancel", 0.5 },
-                        { "orders/edit", 1 },
-                        { "orders/batch", 1 },
-                        { "account/builder_codes/approve", 1 },
-                        { "account/builder_codes/revoke", 1 },
-                        { "agent/bind", 1 },
-                        { "account/api_keys/create", 1 },
-                        { "account/api_keys/revoke", 1 },
-                        { "account/api_keys", 1 },
-                        { "lake/add_blacklist", 1 },
-                        { "lake/add_max_leverage", 1 },
-                        { "lake/add_whitelist", 1 },
-                        { "lake/claim_manager", 1 },
-                        { "lake/claim_referral_code", 1 },
-                        { "lake/create", 1 },
-                        { "lake/deposit", 1 },
-                        { "lake/remove_blacklist", 1 },
-                        { "lake/remove_max_leverage", 1 },
-                        { "lake/remove_whitelist", 1 },
-                        { "lake/update_deposit_cap", 1 },
-                        { "lake/withdraw", 1 },
+                        { "account/leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/margin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/settings/auto_lend_disabled", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/settings/spot", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/spot_asset/withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/subaccount/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/subaccount/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/subaccount/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/subaccount/spot_asset/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions/add_isolated_margin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/create_market", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/stop/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions/tpsl", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/cancel", new Dictionary<string, object>() {
+                            { "cost", 0.5 },
+                        } },
+                        { "orders/cancel_all", new Dictionary<string, object>() {
+                            { "cost", 0.5 },
+                        } },
+                        { "orders/stop/cancel", new Dictionary<string, object>() {
+                            { "cost", 0.5 },
+                        } },
+                        { "orders/edit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/batch", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/builder_codes/approve", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/builder_codes/revoke", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "agent/bind", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/api_keys/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/api_keys/revoke", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/api_keys", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/add_blacklist", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/add_max_leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/add_whitelist", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/claim_manager", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/claim_referral_code", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/deposit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/remove_blacklist", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/remove_max_leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/remove_whitelist", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/update_deposit_cap", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lake/withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },

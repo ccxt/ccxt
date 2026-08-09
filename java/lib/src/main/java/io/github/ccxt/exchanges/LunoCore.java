@@ -139,66 +139,146 @@ public class LunoCore extends LunoApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "exchange", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "markets", 1 );
+                        put( "markets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "exchangePrivate", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "candles", 1 );
-                        put( "move", 1 );
-                        put( "move/list_moves", 1 );
-                        put( "transfers", 1 );
+                        put( "candles", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "move", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "move/list_moves", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "transfers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "convert", 1 );
-                        put( "move", 1 );
+                        put( "convert", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "move", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "orderbook", 1 );
-                        put( "orderbook_top", 1 );
-                        put( "ticker", 1 );
-                        put( "tickers", 1 );
-                        put( "trades", 1 );
+                        put( "orderbook", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orderbook_top", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "ticker", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "tickers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "accounts/{id}/pending", 1 );
-                        put( "accounts/{id}/transactions", 1 );
-                        put( "balance", 1 );
-                        put( "beneficiaries", 1 );
-                        put( "send/networks", 1 );
-                        put( "fee_info", 1 );
-                        put( "funding_address", 1 );
-                        put( "listorders", 1 );
-                        put( "listtrades", 1 );
-                        put( "send_fee", 1 );
-                        put( "orders/{id}", 1 );
-                        put( "withdrawals", 1 );
-                        put( "withdrawals/{id}", 1 );
-                        put( "transfers", 1 );
-                        put( "users/linked", 1 );
+                        put( "accounts/{id}/pending", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "accounts/{id}/transactions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "balance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "beneficiaries", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "send/networks", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "fee_info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "funding_address", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "listorders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "listtrades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "send_fee", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orders/{id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "withdrawals", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "withdrawals/{id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "transfers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "users/linked", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "accounts", 1 );
-                        put( "address/validate", 1 );
-                        put( "postorder", 1 );
-                        put( "marketorder", 1 );
-                        put( "stoporder", 1 );
-                        put( "funding_address", 1 );
-                        put( "withdrawals", 1 );
-                        put( "send", 1 );
-                        put( "oauth2/grant", 1 );
-                        put( "beneficiaries", 1 );
+                        put( "accounts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "address/validate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "postorder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "marketorder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "stoporder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "funding_address", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "withdrawals", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "send", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "oauth2/grant", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "beneficiaries", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "put", new java.util.HashMap<String, Object>() {{
-                        put( "accounts/{id}/name", 1 );
+                        put( "accounts/{id}/name", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "delete", new java.util.HashMap<String, Object>() {{
-                        put( "withdrawals/{id}", 1 );
-                        put( "beneficiaries/{id}", 1 );
+                        put( "withdrawals/{id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "beneficiaries/{id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -218,8 +298,12 @@ public class LunoCore extends LunoApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "taker", LunoCore.this.parseNumber("0.001") );
-                    put( "maker", LunoCore.this.parseNumber("0") );
+                    put( "taker", LunoCore.this.parseNumber("0.006") );
+                    put( "maker", LunoCore.this.parseNumber("0.004") );
+                    put( "tiers", new java.util.HashMap<String, Object>() {{
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("0"), LunoCore.this.parseNumber("0.006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("20000"), LunoCore.this.parseNumber("0.005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("200000"), LunoCore.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("1000000"), LunoCore.this.parseNumber("0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("2000000"), LunoCore.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("5000000"), LunoCore.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("10000000"), LunoCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("20000000"), LunoCore.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("40000000"), LunoCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("80000000"), LunoCore.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("120000000"), LunoCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("160000000"), LunoCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("300000000"), LunoCore.this.parseNumber("0.0005"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("0"), LunoCore.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("20000"), LunoCore.this.parseNumber("0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("200000"), LunoCore.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("1000000"), LunoCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("2000000"), LunoCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("5000000"), LunoCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("10000000"), LunoCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("20000000"), LunoCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("40000000"), LunoCore.this.parseNumber("-0.0001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("80000000"), LunoCore.this.parseNumber("-0.0001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("120000000"), LunoCore.this.parseNumber("-0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("160000000"), LunoCore.this.parseNumber("-0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("300000000"), LunoCore.this.parseNumber("-0.0002"))))) );
+                    }} );
                 }} );
             }} );
             put( "exceptions", new java.util.HashMap<String, Object>() {{
@@ -550,11 +634,45 @@ public class LunoCore extends LunoApi
                 Object base = this.safeCurrencyCode(baseId);
                 Object quote = this.safeCurrencyCode(quoteId);
                 Object status = this.safeString(market, "trading_status");
+                // Luno's published schedule is categorical, not a single pair. Entry-tier
+                // rates below are read from Luno's own Help Centre fee article for the ZAR
+                // market; markets quoted in other fiat currencies are left on the
+                // exchange-wide default until their schedules are verified the same way.
+                Object fiats = new java.util.ArrayList<Object>(java.util.Arrays.asList("ZAR"));
+                // live-but-unverified counters, kept on the exchange-wide default; the market
+                // list is geo-filtered so this is a superset of any one region's view, and
+                // ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
+                Object unverifiedQuotes = new java.util.ArrayList<Object>(java.util.Arrays.asList("MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"));
+                Object stablecoins = new java.util.ArrayList<Object>(java.util.Arrays.asList("USDT", "USDC"));
+                Object taker = null;
+                Object maker = null;
+                if (Helpers.isTrue(this.inArray(quote, fiats)))
+                {
+                    if (Helpers.isTrue(this.inArray(base, stablecoins)))
+                    {
+                        taker = this.parseNumber("0.002");
+                        maker = this.parseNumber("-0.0001"); // a rebate, not a charge
+                    } else
+                    {
+                        taker = this.parseNumber("0.006");
+                        maker = this.parseNumber("0.004");
+                    }
+                } else if (!Helpers.isTrue(this.inArray(quote, unverifiedQuotes)))
+                {
+                    // stablecoin-quoted (BTC/USDT) and crypto-quoted (ETH/BTC, SOL/ADA) books
+                    // are both in Luno's crypto/crypto column
+                    taker = this.parseNumber("0.001");
+                    maker = this.parseNumber("0.0008");
+                }
     final Object finalBase = base;
+                final Object finalTaker = taker;
+                final Object finalMaker = maker;
                 final Object finalStatus = status;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "id", id );
                     put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                    put( "taker", finalTaker );
+                    put( "maker", finalMaker );
                     put( "base", finalBase );
                     put( "quote", quote );
                     put( "settle", null );
@@ -1043,7 +1161,8 @@ public class LunoCore extends LunoApi
             }
             symbols = this.marketSymbols(symbols);
             Object response = (this.publicGetTickers(parameters)).join();
-            Object tickers = this.indexBy(Helpers.GetValue(response, "tickers"), "pair");
+            Object rawTickers = this.safeList(response, "tickers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object tickers = this.indexBy(rawTickers, "pair");
             Object ids = Helpers.objectKeys(tickers);
             Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)

@@ -1510,6 +1510,8 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] spot, margin, swap, future, or option. Required if listening to all symbols.
      * @param {boolean} [params.isInverse] if future, listen to inverse or linear contracts
+     * @param {boolean} [params.trigger] set to true to watch trigger orders, spot.priceorders and futures.autoorders channels, see https://github.com/ccxt/ccxt/issues/27202
+     * @param {boolean} [params.stop] alias of params.trigger
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1532,8 +1534,19 @@ export default class gate extends gateRest {
             'swap': 'futures',
             'option': 'options',
         });
-        const channel = typeId + '.orders';
-        let messageHash = 'orders';
+        let isTrigger = false;
+        [isTrigger, query] = this.handleParamBool2(query, 'trigger', 'stop', false);
+        if (isTrigger && (typeId === 'options')) {
+            throw new NotSupported(this.id + ' watchOrders() does not support trigger orders for options, see https://github.com/ccxt/ccxt/issues/27202');
+        }
+        // gate pushes trigger orders on dedicated channels, spot.priceorders and futures.autoorders,
+        // see https://github.com/ccxt/ccxt/issues/27202
+        let suffix = '.orders';
+        if (isTrigger) {
+            suffix = (typeId === 'spot') ? '.priceorders' : '.autoorders';
+        }
+        const channel = typeId + suffix;
+        let messageHash = isTrigger ? 'triggerOrders' : 'orders';
         let payload = ['!' + 'all'];
         if (market !== undefined) {
             messageHash += ':' + market['id'];
@@ -1598,11 +1611,15 @@ export default class gate extends gateRest {
         //     }
         //
         const orders = this.safeValue(message, 'result', []);
+        const channel = this.safeString(message, 'channel', '');
+        const isTrigger = (channel.indexOf('autoorders') >= 0) || (channel.indexOf('priceorders') >= 0);
+        const hashPrefix = isTrigger ? 'triggerOrders' : 'orders';
         const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
         if (this.orders === undefined) {
             this.orders = new ArrayCacheBySymbolById(limit);
+            this.triggerOrders = new ArrayCacheBySymbolById(limit);
         }
-        const stored = this.orders;
+        const stored = isTrigger ? this.triggerOrders : this.orders;
         const marketIds = {};
         const parsedOrders = this.parseOrders(orders);
         for (let i = 0; i < parsedOrders.length; i++) {
@@ -1629,10 +1646,10 @@ export default class gate extends gateRest {
         }
         const keys = Object.keys(marketIds);
         for (let i = 0; i < keys.length; i++) {
-            const messageHash = 'orders:' + keys[i];
-            client.resolve(this.orders, messageHash);
+            const messageHash = hashPrefix + ':' + keys[i];
+            client.resolve(stored, messageHash);
         }
-        client.resolve(this.orders, 'orders');
+        client.resolve(stored, hashPrefix);
     }
     /**
      * @method
@@ -2091,6 +2108,8 @@ export default class gate extends gateRest {
             'usertrades': this.handleMyTrades,
             'candlesticks': this.handleOHLCV,
             'orders': this.handleOrder,
+            'autoorders': this.handleOrder, // futures trigger orders, see https://github.com/ccxt/ccxt/issues/27202
+            'priceorders': this.handleOrder, // spot trigger orders
             'positions': this.handlePositions,
             'tickers': this.handleTicker,
             'book_ticker': this.handleBidAsk,

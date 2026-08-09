@@ -591,7 +591,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     /**
@@ -630,7 +630,7 @@ export default class bingx extends Exchange {
      * @param {string} [params.side] hedged: ['long' or 'short']. one way: ['both']
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bingx#fetchMyTrades
@@ -734,7 +734,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bingx#editOrder

@@ -299,7 +299,7 @@ export default class poloniex extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
-    fetchTransactionsHelper(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransactionsHelper(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name poloniex#fetchDepositsWithdrawals
@@ -361,7 +361,7 @@ export default class poloniex extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name poloniex#fetchLeverage
@@ -393,7 +393,7 @@ export default class poloniex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name poloniex#fetchPositions
