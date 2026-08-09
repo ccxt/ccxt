@@ -9536,7 +9536,7 @@ export default class bybit extends Exchange {
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const accountTypeDefault = isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
-        [ accountType, params ] = this.handleOptionAndParams (params, 'fetchConvertQuote', 'accountType', accountTypeDefault);
+        [ accountType, params ] = this.handleOptionAndParams (params, 'fetchConvertTrade', 'accountType', accountTypeDefault);
         const request: Dict = {
             'quoteTxId': id,
             'accountType': accountType,

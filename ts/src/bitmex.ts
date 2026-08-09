@@ -2241,7 +2241,7 @@ export default class bitmex extends Exchange {
             const triggerDirection = this.safeString (params, 'triggerDirection');
             const triggerAbove = ((triggerDirection === 'ascending') || (triggerDirection === 'above'));
             if ((type === 'limit') || (type === 'market')) {
-                this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'above', 'below' ]);
+                this.checkRequiredArgument ('editOrder', triggerDirection, 'triggerDirection', [ 'above', 'below' ]);
             }
             let orderType: Str = undefined;
             if (type === 'limit') {

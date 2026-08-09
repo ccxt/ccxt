@@ -2209,7 +2209,7 @@ export default class exmo extends Exchange {
             await this.loadMarkets ();
         }
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrders', params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchCanceledOrders', params);
         if (marginMode === 'cross') {
             throw new BadRequest (this.id + ' only supports isolated margin');
         }

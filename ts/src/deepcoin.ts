@@ -1050,9 +1050,9 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate', false);
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'code', undefined, 1, 50) as Transaction[];
+            return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, params, 'code', undefined, 1, 50) as Transaction[];
         }
         const request: Dict = {};
         let currency: Currency = undefined;
