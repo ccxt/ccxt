@@ -37,6 +37,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 'cancelOrders': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createOrders': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,

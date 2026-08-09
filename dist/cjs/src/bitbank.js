@@ -74,6 +74,7 @@ class bitbank extends bitbank$1["default"] {
                 'fetchMarginMode': false,
                 'fetchMarginModes': false,
                 'fetchMarketLeverageTiers': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMarkPrices': false,
                 'fetchMyLiquidations': false,

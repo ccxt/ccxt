@@ -115,7 +115,7 @@ class htx extends htx$1["default"] {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
-                'fetchStatus': false, // none of `summary.json` endpoint work atm. revise in near future
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,

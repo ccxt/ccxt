@@ -151,6 +151,7 @@ class coinbase extends coinbase$1["default"] {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrdersByStatus': true,
                 'fetchPosition': true,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,

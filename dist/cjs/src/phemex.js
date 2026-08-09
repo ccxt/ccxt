@@ -89,6 +89,7 @@ class phemex extends phemex$1["default"] {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPositionADLRank': true,
+                'fetchPositionHistory': true,
                 'fetchPositions': true,
                 'fetchPositionsADLRank': true,
                 'fetchPositionsRisk': false,

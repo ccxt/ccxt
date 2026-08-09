@@ -90,6 +90,7 @@ export default class phemex extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPositionADLRank': true,
+                'fetchPositionHistory': true,
                 'fetchPositions': true,
                 'fetchPositionsADLRank': true,
                 'fetchPositionsRisk': false,

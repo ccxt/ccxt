@@ -125,7 +125,7 @@ class apex extends apex$1["default"] {
                 'setLeverage': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': false,
             },
             'timeframes': {

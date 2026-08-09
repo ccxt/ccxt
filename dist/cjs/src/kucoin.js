@@ -82,7 +82,7 @@ class kucoin extends kucoin$1["default"] {
                 'fetchL3OrderBook': true,
                 'fetchLedger': true,
                 'fetchLeverage': true,
-                'fetchLeverageTiers': false,
+                'fetchLeverageTiers': true,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': true,

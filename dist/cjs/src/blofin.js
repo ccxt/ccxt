@@ -109,6 +109,7 @@ class blofin extends blofin$1["default"] {
                 'fetchPositions': true,
                 'fetchPositionsADLRank': true,
                 'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,

@@ -133,7 +133,7 @@ class bydfi extends bydfi$1["default"] {
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
-                'fetchOpenOrder': false,
+                'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOption': false,
                 'fetchOptionChain': false,
