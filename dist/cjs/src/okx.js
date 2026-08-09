@@ -7357,7 +7357,7 @@ class okx extends okx$1["default"] {
         return {
             'currency': this.safeCurrencyCode(ccy),
             'rate': this.safeNumber2(info, 'interestRate', 'rate'),
-            'period': 86400000,
+            'period': 3600000, // GET /api/v5/account/interest-rate returns the hourly borrowing interest rate
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': info,
@@ -7384,6 +7384,8 @@ class okx extends okx$1["default"] {
                     borrowRateHistories[code] = [];
                 }
                 const borrowRateStructure = this.parseBorrowRate(item);
+                // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
+                borrowRateStructure['period'] = 31536000000;
                 const borrrowRateCode = borrowRateHistories[code];
                 borrrowRateCode.push(borrowRateStructure);
             }
