@@ -4636,7 +4636,7 @@ public class WooCore extends WooApi
             {
                 Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 Object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchLeverage", parameters, "cross");
+                var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
                 marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
                 Helpers.addElementToObject(request, "marginMode", this.encodeMarginMode(marginMode));

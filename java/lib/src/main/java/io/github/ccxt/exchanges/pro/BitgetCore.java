@@ -503,7 +503,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object market = this.market(Helpers.GetValue(symbols, 0));
             Object instType = null;
             Object uta = null;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "uta", false);
+            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchBidsAsks", "uta", false);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             var instTypeparametersVariable = this.getInstType("watchBidsAsks", market, uta, parameters);

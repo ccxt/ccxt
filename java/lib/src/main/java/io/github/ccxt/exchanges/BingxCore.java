@@ -5511,13 +5511,13 @@ public class BingxCore extends BingxApi
             Object subType = null;
             Object standard = null;
             Object response = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
+            var typeparametersVariable = this.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchClosedOrders", market, parameters);
+            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            var standardparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "standard", false);
+            var standardparametersVariable = this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "standard", false);
             standard = ((java.util.List<Object>) standardparametersVariable).get(0);
             parameters = ((java.util.List<Object>) standardparametersVariable).get(1);
             if (Helpers.isTrue(standard))

@@ -1401,7 +1401,7 @@ public class DydxCore extends DydxApi
             var userAddressparametersVariable = this.handlePublicAddress("fetchPositions", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
-            var subAccountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "subAccountNumber", "0");
+            var subAccountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "subAccountNumber", "0");
             subAccountNumber = ((java.util.List<Object>) subAccountNumberparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subAccountNumberparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2940,11 +2940,11 @@ public class DydxCore extends DydxApi
                 (this.loadMarkets()).join();
             }
             Object userAddress = null;
-            var userAddressparametersVariable = this.handlePublicAddress("fetchAccounts", parameters);
+            var userAddressparametersVariable = this.handlePublicAddress("fetchBalance", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             Object subaccountNumber = null;
-            var subaccountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchAccounts", "subaccountNumber", 0);
+            var subaccountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "subaccountNumber", 0);
             subaccountNumber = ((java.util.List<Object>) subaccountNumberparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountNumberparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
