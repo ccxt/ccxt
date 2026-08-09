@@ -4535,6 +4535,7 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker   // spot
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // swap
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // future
+         * @see https://developers.binance.com/docs/derivatives/options-trading/market-data/24hr-Ticker-Price-Change-Statistics      // option
          *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4551,7 +4552,9 @@ class binance extends Exchange {
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchBidsAsks', $market, $params);
         $response = null;
-        if ($this->is_linear($type, $subType)) {
+        if ($type === 'option') {
+            $response = Async\await($this->eapiPublicGetTicker($params));
+        } elseif ($this->is_linear($type, $subType)) {
             $response = Async\await($this->fapiPublicGetTickerBookTicker($params));
         } elseif ($this->is_inverse($type, $subType)) {
             $response = Async\await($this->dapiPublicGetTickerBookTicker($params));
@@ -4757,6 +4760,7 @@ class binance extends Exchange {
          *
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+         * @see https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4775,7 +4779,9 @@ class binance extends Exchange {
             'symbol' => $market['id'],
         );
         $response = null;
-        if ($this->is_linear($type, $subType)) {
+        if ($market['option']) {
+            $response = Async\await($this->eapiPublicGetMark($this->extend($request, $params)));
+        } elseif ($this->is_linear($type, $subType)) {
             $response = Async\await($this->fapiPublicGetPremiumIndex($this->extend($request, $params)));
         } elseif ($this->is_inverse($type, $subType)) {
             $response = Async\await($this->dapiPublicGetPremiumIndex($this->extend($request, $params)));
@@ -4801,6 +4807,7 @@ class binance extends Exchange {
          *
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+         * @see https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price
          *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4817,7 +4824,9 @@ class binance extends Exchange {
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchMarkPrices', $market, $params, 'linear');
         $response = null;
-        if ($this->is_linear($type, $subType)) {
+        if ($type === 'option') {
+            $response = Async\await($this->eapiPublicGetMark($params));
+        } elseif ($this->is_linear($type, $subType)) {
             $response = Async\await($this->fapiPublicGetPremiumIndex($params));
         } elseif ($this->is_inverse($type, $subType)) {
             $response = Async\await($this->dapiPublicGetPremiumIndex($params));
