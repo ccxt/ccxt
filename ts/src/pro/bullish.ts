@@ -453,7 +453,7 @@ export default class bullish extends bullishRest {
         } else {
             rawOrders = this.safeList (message, 'data', []); // snapshot is a list of orders
         }
-        const numRawOrders = rawOrders.length; // hoisted - inline .length in conditionals transpiles to strlen() in php, fatal on arrays
+        const numRawOrders = rawOrders.length; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         if (numRawOrders > 0) {
             if (this.orders === undefined) {
                 const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -564,7 +564,7 @@ export default class bullish extends bullishRest {
         } else {
             rawTrades = this.safeList (message, 'data', []); // snapshot is a list of trades
         }
-        const numRawTrades = rawTrades.length; // hoisted - inline .length in conditionals transpiles to strlen() in php, fatal on arrays
+        const numRawTrades = rawTrades.length; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         if (numRawTrades > 0) {
             if (this.myTrades === undefined) {
                 const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
