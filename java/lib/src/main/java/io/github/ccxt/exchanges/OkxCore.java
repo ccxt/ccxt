@@ -9091,7 +9091,7 @@ public class OkxCore extends OkxApi
         return new java.util.HashMap<String, Object>() {{
             put( "currency", OkxCore.this.safeCurrencyCode(ccy) );
             put( "rate", OkxCore.this.safeNumber2(info, "interestRate", "rate") );
-            put( "period", 86400000 );
+            put( "period", 3600000 );
             put( "timestamp", timestamp );
             put( "datetime", OkxCore.this.iso8601(timestamp) );
             put( "info", info );
@@ -9123,6 +9123,8 @@ public class OkxCore extends OkxApi
                     Helpers.addElementToObject(borrowRateHistories, code, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 }
                 Object borrowRateStructure = this.parseBorrowRate(item);
+                // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
+                Helpers.addElementToObject(borrowRateStructure, "period", 31536000000L);
                 Object borrrowRateCode = Helpers.GetValue(borrowRateHistories, code);
                 ((java.util.List<Object>)borrrowRateCode).add(borrowRateStructure);
             }
