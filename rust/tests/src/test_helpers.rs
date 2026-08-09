@@ -462,6 +462,7 @@ pub trait ExchangeOps {
     fn parse_timeframe(&self, tf: Value) -> Value;
     fn iso8601(&self, ts: Value) -> Value;
     fn milliseconds(&self) -> Value;
+    fn get_ccxt_version(&self) -> Value;
     fn safeString(&self, d: Value, key: Value, optional_args: &[Value]) -> Value;
     fn exception_message(&self, e: Value) -> Value;
     fn decimal_to_precision(&self, n: Value, rounding: Value, precision: Value, optional_args: &[Value]) -> Value;
@@ -525,6 +526,7 @@ impl ExchangeOps for Value {
     fn parse_timeframe(&self, tf: Value)         -> Value { with_base(|e| e.parse_timeframe(tf)) }
     fn iso8601(&self, ts: Value)                 -> Value { with_base(|e| e.iso8601(ts)) }
     fn milliseconds(&self)                        -> Value { with_base(|e| e.milliseconds()) }
+    fn get_ccxt_version(&self)                     -> Value { with_base(|e| e.get_ccxt_version()) }
     /// Set a field on the exchange Value-map by key. The
     /// transpiled tests use this to inject precision/markets/etc.
     /// Three-arg form matches TS `setProperty(exchange, key, value)`.
