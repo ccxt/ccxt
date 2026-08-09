@@ -263,6 +263,14 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            },
+            {
+                "description": "non-USDT quoted spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://www.tokocrypto.com/open/v1/market/klines?interval=1m&limit=500&symbol=BTC_IDR",
+                "input": [
+                    "BTC/IDR"
+                ]
             }
         ]
     }

@@ -121,6 +121,88 @@
         "lowercaseId": "btc_usdt",
         "delivery": false
     },
+    "BTC/IDR": {
+        "id": "BTC_IDR",
+        "symbol": "BTC/IDR",
+        "base": "BTC",
+        "quote": "IDR",
+        "baseId": "BTC",
+        "quoteId": "IDR",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-05,
+            "price": 1000,
+            "quote": 1e-08
+        },
+        "limits": {
+            "amount": {
+                "min": 1e-05,
+                "max": 9000
+            },
+            "price": {
+                "min": 1000,
+                "max": 20000000000
+            },
+            "cost": {},
+            "leverage": {},
+            "market": {
+                "min": 0,
+                "max": 131.10940558
+            }
+        },
+        "info": {
+            "type": "1",
+            "symbol": "BTC_IDR",
+            "baseAsset": "BTC",
+            "basePrecision": "8",
+            "quoteAsset": "IDR",
+            "quotePrecision": "8",
+            "filters": [
+                {
+                    "filterType": "PRICE_FILTER",
+                    "minPrice": "1000.00000000",
+                    "maxPrice": "20000000000.00000000",
+                    "tickSize": "1000.00000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "LOT_SIZE",
+                    "minQty": "0.00001000",
+                    "maxQty": "9000.00000000",
+                    "stepSize": "0.00001000",
+                    "applyToMarket": false
+                }
+            ],
+            "orderTypes": [
+                "LIMIT",
+                "LIMIT_MAKER",
+                "MARKET",
+                "STOP_LOSS_LIMIT",
+                "TAKE_PROFIT_LIMIT"
+            ],
+            "icebergEnable": "1",
+            "ocoEnable": "1",
+            "spotTradingEnable": "1",
+            "marginTradingEnable": "1",
+            "permissions": [
+                "SPOT",
+                "MARGIN"
+            ]
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0075,
+        "maker": 0.0075,
+        "lowercaseId": "btc_idr",
+        "delivery": false
+    },
     "LTC/USDT": {
         "id": "LTC_USDT",
         "symbol": "LTC/USDT",
