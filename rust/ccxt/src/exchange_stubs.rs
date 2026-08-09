@@ -533,6 +533,18 @@ impl Exchange {
         Value::Str(s.chars().take(n).collect())
     }
 
+    /// Port of `Exchange.getCcxtVersion()`. The TS reads the static
+    /// `Exchange.ccxtVersion` (a class member the release process bumps); the
+    /// transpiler can't lower that `(Exchange as any).ccxtVersion` static access,
+    /// so `getCcxtVersion` is dropped from `exchange_generated.rs` and lives here
+    /// as a hand-written stub instead. Value mirrors `ts/src/base/Exchange.ts`'s
+    /// `static ccxtVersion` (== package.json "version"); only foxbit consumes it
+    /// (the `X-FB-CLIENT-VERSION` request header), and no static fixture asserts
+    /// the header, so a version bump can't break the suites.
+    pub fn get_ccxt_version(&self) -> Value {
+        Value::Str("4.5.71".to_string())
+    }
+
     // ── Hot-path `safe_*_k` variants — take `key: &str` directly so the
     // transpiler can skip wrapping every literal key in a `Value::Str`.
     // Each `_k` saves two String allocations per call (the key Value +
