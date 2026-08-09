@@ -3937,7 +3937,7 @@ class woo extends Exchange {
         } elseif ($this->safe_bool($market, 'swap')) {
             $request['symbol'] = $this->safe_string($market, 'id');
             $marginMode = null;
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverage', $params, 'cross');
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params, 'cross');
             $request['marginMode'] = $this->encode_margin_mode($marginMode);
             return $this->v3PrivatePutFuturesLeverage($this->extend($request, $params));
         } else {

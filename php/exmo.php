@@ -2197,7 +2197,7 @@ class exmo extends Exchange {
             $this->load_markets();
         }
         $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrders', $params);
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchCanceledOrders', $params);
         if ($marginMode === 'cross') {
             throw new BadRequest($this->id . ' only supports isolated margin');
         }

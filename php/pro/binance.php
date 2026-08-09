@@ -923,7 +923,7 @@ class binance extends \ccxt\async\binance {
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         $returnRateLimits = false;
-        list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'createOrderWs', 'returnRateLimits', false);
+        list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchOrderBookWs', 'returnRateLimits', false);
         $payload['returnRateLimits'] = $returnRateLimits;
         $params = $this->omit($params, 'test');
         $message = array(
@@ -4111,7 +4111,7 @@ class binance extends \ccxt\async\binance {
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         $returnRateLimits = false;
-        list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchOrderWs', 'returnRateLimits', false);
+        list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchOrdersWs', 'returnRateLimits', false);
         $payload = array(
             'symbol' => $this->market_id($symbol),
             'returnRateLimits' => $returnRateLimits,
@@ -4183,7 +4183,7 @@ class binance extends \ccxt\async\binance {
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         $returnRateLimits = false;
-        list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchOrderWs', 'returnRateLimits', false);
+        list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchOpenOrdersWs', 'returnRateLimits', false);
         $payload = array(
             'returnRateLimits' => $returnRateLimits,
         );

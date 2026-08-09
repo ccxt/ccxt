@@ -4971,9 +4971,9 @@ class bingx extends Exchange {
         $type = null;
         $subType = null;
         $standard = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
-        list($subType, $params) = $this->handle_sub_type_and_params('fetchClosedOrders', $market, $params);
-        list($standard, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'standard', false);
+        list($type, $params) = $this->handle_market_type_and_params('fetchCanceledAndClosedOrders', $market, $params);
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchCanceledAndClosedOrders', $market, $params);
+        list($standard, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'standard', false);
         if ($standard) {
             $response = $this->contractV1PrivateGetAllOrders($this->extend($request, $params));
         } elseif ($type === 'spot') {

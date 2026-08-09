@@ -2329,7 +2329,7 @@ class toobit extends Exchange {
             $request['limit'] = $limit;
         }
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
         $response = array();
         if ($marketType === 'spot') {
             $response = Async\await($this->privateGetApiV1SpotOpenOrders($this->extend($request, $params)));
@@ -2696,7 +2696,7 @@ class toobit extends Exchange {
             $request['limit'] = $limit;
         }
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', null, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchLedger', null, $params);
         $response = null;
         if ($marketType === 'spot') {
             $response = Async\await($this->privateGetApiV1AccountBalanceFlow($this->extend($request, $params)));

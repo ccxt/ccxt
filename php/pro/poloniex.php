@@ -544,7 +544,7 @@ class poloniex extends \ccxt\async\poloniex {
         }
         $watchOrderBookOptions = $this->safe_value($this->options, 'watchOrderBook');
         $name = $this->safe_string($watchOrderBookOptions, 'name', 'book_lv2');
-        list($name, $params) = $this->handle_option_and_params($params, 'method', 'name', $name);
+        list($name, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'name', $name);
         $orderbook = Async\await($this->subscribe($name, $name, false, array( $symbol ), $params));
         return $orderbook->limit();
     }

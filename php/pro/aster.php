@@ -1857,7 +1857,7 @@ class aster extends \ccxt\async\aster {
         }
         $messageHash = 'myTrades';
         $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params, $type);
+        list($type, $params) = $this->handle_market_type_and_params('watchMyTrades', $market, $params, $type);
         Async\await($this->authenticate($type, $params));
         if ($market !== null) {
             $messageHash .= '::' . $symbol;

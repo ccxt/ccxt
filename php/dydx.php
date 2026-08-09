@@ -1159,7 +1159,7 @@ class dydx extends Exchange {
         $userAddress = null;
         $subAccountNumber = null;
         list($userAddress, $params) = $this->handle_public_address('fetchPositions', $params);
-        list($subAccountNumber, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'subAccountNumber', '0');
+        list($subAccountNumber, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'subAccountNumber', '0');
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2388,9 +2388,9 @@ class dydx extends Exchange {
             $this->load_markets();
         }
         $userAddress = null;
-        list($userAddress, $params) = $this->handle_public_address('fetchAccounts', $params);
+        list($userAddress, $params) = $this->handle_public_address('fetchBalance', $params);
         $subaccountNumber = null;
-        list($subaccountNumber, $params) = $this->handle_option_and_params($params, 'fetchAccounts', 'subaccountNumber', 0);
+        list($subaccountNumber, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'subaccountNumber', 0);
         $request = array(
             'address' => $userAddress,
             'subaccountNumber' => $subaccountNumber,

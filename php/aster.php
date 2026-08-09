@@ -1386,7 +1386,7 @@ class aster extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         if ($since !== null) {
             $request['startTime'] = $since;
         }

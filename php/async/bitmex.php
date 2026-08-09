@@ -2314,7 +2314,7 @@ class bitmex extends Exchange {
             $triggerDirection = $this->safe_string($params, 'triggerDirection');
             $triggerAbove = (($triggerDirection === 'ascending') || ($triggerDirection === 'above'));
             if (($type === 'limit') || ($type === 'market')) {
-                $this->check_required_argument('createOrder', $triggerDirection, 'triggerDirection', array( 'above', 'below' ));
+                $this->check_required_argument('editOrder', $triggerDirection, 'triggerDirection', array( 'above', 'below' ));
             }
             $orderType = null;
             if ($type === 'limit') {

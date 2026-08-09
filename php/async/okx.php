@@ -2460,7 +2460,7 @@ class okx extends Exchange {
         $symbols = $this->market_symbols($symbols);
         $market = $this->get_market_from_symbols($symbols);
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params, 'swap');
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchMarkPrices', $market, $params, 'swap');
         $request = array(
             'instType' => $this->convert_to_instrument_type($marketType),
         );
