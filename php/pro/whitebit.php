@@ -779,6 +779,8 @@ class whitebit extends \ccxt\async\whitebit {
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {str} [$params->type] spot or contract if not provided $this->options['defaultType'] is used
+         * @param {bool} [$params->fetchBalanceSnapshot] whether to fetch the initial balance snapshot over REST, default is true
+         * @param {bool} [$params->awaitBalanceSnapshot] whether to wait for the balance snapshot before providing updates, default is true
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         if ($this->markets === null) {
@@ -795,20 +797,82 @@ class whitebit extends \ccxt\async\whitebit {
             $method = 'balanceMargin_subscribe';
             $messageHash .= 'margin';
         }
-        $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        return Async\await($this->watch_private($messageHash, $method, $currencies, $params));
+        $url = $this->urls['api']['ws'];
+        $client = $this->client($url);
+        $this->set_balance_cache($client, $type, $messageHash);
+        $fetchBalanceSnapshot = null;
+        $awaitBalanceSnapshot = null;
+        list($fetchBalanceSnapshot, $params) = $this->handle_option_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        list($awaitBalanceSnapshot, $params) = $this->handle_option_and_params($params, 'watchBalance', 'awaitBalanceSnapshot', true);
+        if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
+            Async\await($client->future($type . ':fetchBalanceSnapshot'));
+        }
+        // an empty $params array subscribes to updates for all assets,
+        // listing all tickers explicitly is rejected with "invalid argument"
+        return Async\await($this->watch_private($messageHash, $method, array(), $params));
+    }
+
+    public function set_balance_cache(Client $client, mixed $type, mixed $subscriptionHash) {
+        if (is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions)) {
+            return;
+        }
+        $fetchBalanceSnapshot = $this->handle_option('watchBalance', 'fetchBalanceSnapshot', true);
+        if ($fetchBalanceSnapshot) {
+            $messageHash = $type . ':fetchBalanceSnapshot';
+            if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
+                $client->future($messageHash);
+                $this->spawn(array($this, 'load_balance_snapshot'), $client, $messageHash, $type, $subscriptionHash);
+            }
+        }
+    }
+
+    public function load_balance_snapshot(mixed $client, mixed $messageHash, mixed $type, mixed $subscriptionHash) {
+        return Async\async(self::do_load_balance_snapshot(...))($client, $messageHash, $type, $subscriptionHash);
+    }
+
+    private function do_load_balance_snapshot(mixed $client, mixed $messageHash, mixed $type, mixed $subscriptionHash) {
+        $response = Async\await($this->fetch_balance(array( 'type' => $type )));
+        $this->balance = $this->extend($response, $this->balance);
+        // don't remove the $future from the .futures cache
+        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+            $future = $client->futures[$messageHash];
+            $future->resolve();
+            $client->resolve($this->balance, $subscriptionHash);
+        }
     }
 
     public function handle_balance(Client $client, mixed $message) {
+        //
+        // spot
         //
         //   {
         //       "method":"balanceSpot_update",
         //       "params":array(
         //          {
-        //             "LTC":{
+        //             "LTC":array(
         //                "available":"0.16587",
         //                "freeze":"0"
+        //             ),
+        //             "BTC":{
+        //                "available":"0.005",
+        //                "freeze":"0.001"
         //             }
+        //          }
+        //       ),
+        //       "id":null
+        //   }
+        //
+        // margin
+        //
+        //   {
+        //       "method":"balanceMargin_update",
+        //       "params":array(
+        //          {
+        //             "a":"USDT",         // asset
+        //             "B":"0.00538073",   // total balance
+        //             "b":"0",            // borrowed
+        //             "av":"0.00538073",  // available without borrowing
+        //             "ab":"28.43739825"  // available with borrowing
         //          }
         //       ),
         //       "id":null
@@ -818,18 +882,35 @@ class whitebit extends \ccxt\async\whitebit {
         if ($method === null) {
             return;
         }
-        $data = $this->safe_value($message, 'params');
-        $balanceDict = $this->safe_value($data, 0);
-        $this->balance['info'] = $balanceDict;
-        $keys = is_array($balanceDict) ? array_keys($balanceDict) : array();
-        $currencyId = $this->safe_value($keys, 0);
-        $rawBalance = $this->safe_value($balanceDict, $currencyId);
-        $code = $this->safe_currency_code($currencyId);
-        $account = $this->account();
-        $account['free'] = $this->safe_string($rawBalance, 'available');
-        $account['used'] = $this->safe_string($rawBalance, 'freeze');
-        if ($code !== null) {
-            $this->balance[$code] = $account;
+        $isMargin = (mb_strpos($method, 'Margin') !== false);
+        $data = $this->safe_list($message, 'params', array());
+        for ($i = 0; $i < count($data); $i++) {
+            $balanceDict = $this->safe_dict($data, $i, array());
+            $this->balance['info'] = $balanceDict;
+            if ($isMargin) {
+                $currencyId = $this->safe_string($balanceDict, 'a');
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['free'] = $this->safe_string($balanceDict, 'av');
+                $account['total'] = $this->safe_string($balanceDict, 'B');
+                $account['debt'] = $this->safe_string($balanceDict, 'b');
+                if ($code !== null) {
+                    $this->balance[$code] = $account;
+                }
+            } else {
+                $keys = is_array($balanceDict) ? array_keys($balanceDict) : array();
+                for ($j = 0; $j < count($keys); $j++) {
+                    $currencyId = $keys[$j];
+                    $rawBalance = $this->safe_dict($balanceDict, $currencyId, array());
+                    $code = $this->safe_currency_code($currencyId);
+                    $account = $this->account();
+                    $account['free'] = $this->safe_string($rawBalance, 'available');
+                    $account['used'] = $this->safe_string($rawBalance, 'freeze');
+                    if ($code !== null) {
+                        $this->balance[$code] = $account;
+                    }
+                }
+            }
         }
         $this->balance = $this->safe_balance($this->balance);
         $messageHash = 'wallet:';
