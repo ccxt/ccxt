@@ -255,6 +255,7 @@ export default class xt extends Exchange {
                             'future/trade/v1/order/detail': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/order/list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/order/list-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/position/list-history': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/order/trade-list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/account/info': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/balance/bills': { 'cost': 1 } as Endpoint<Dict>,
@@ -300,6 +301,7 @@ export default class xt extends Exchange {
                             'future/trade/v1/order/detail': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/order/list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/order/list-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/position/list-history': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/order/trade-list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/account/info': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/balance/bills': { 'cost': 1 } as Endpoint<Dict>,
@@ -4284,7 +4286,8 @@ export default class xt extends Exchange {
 
     async modifyMarginHelper (symbol: string, amount: any, addOrReduce: any, params = {}): Promise<MarginModification> {
         const positionSide = this.safeString (params, 'positionSide');
-        this.checkRequiredArgument ('setLeverage', positionSide, 'positionSide', [ 'LONG', 'SHORT' ]);
+        const methodName = (addOrReduce === 'ADD') ? 'addMargin' : 'reduceMargin';
+        this.checkRequiredArgument (methodName, positionSide, 'positionSide', [ 'LONG', 'SHORT' ]);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
