@@ -36,6 +36,7 @@ export default class exmo extends Exchange {
                 'createMarketBuyOrder': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': true,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,

@@ -134,6 +134,7 @@ export default class coinbase extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrdersByStatus': true,
                 'fetchPosition': true,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
