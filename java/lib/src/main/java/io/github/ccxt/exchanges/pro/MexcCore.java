@@ -2271,7 +2271,8 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 Object splitHashes = Helpers.split(messageHash, ":");
                 Object symbol = this.safeString(splitHashes, 2);
-                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(splitHashes), 4)))
+                Object splitHashesLength = Helpers.getArrayLength(splitHashes); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+                if (Helpers.isTrue(Helpers.isGreaterThan(splitHashesLength, 4)))
                 {
                     symbol = Helpers.add(symbol, Helpers.add(":", this.safeString(splitHashes, 3)));
                 }
