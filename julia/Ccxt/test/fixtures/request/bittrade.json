@@ -1,0 +1,24 @@
+{
+    "exchange": "huobijp",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://api-cloud.bittrade.co.jp/v1/settings/currencys?language=en-US",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api-cloud.bittrade.co.jp/v1/common/timestamp",
+                "input": []
+            }
+        ]
+    }
+}

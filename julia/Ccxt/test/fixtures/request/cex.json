@@ -1,0 +1,366 @@
+{
+    "exchange": "cex",
+    "skipKeys": [
+        "key",
+        "signature",
+        "nonce"
+    ],
+    "outputType": "json",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "default",
+                "method": "fetchMarkets",
+                "url": "https://trade.cex.io/api/spot/rest-public/get_pairs_info",
+                "input": [],
+                "output": "{}"
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "disabled": "multi urls",
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://trade.cex.io/api/spot/rest-public/get_processing_info",
+                "input": [],
+                "output": "{}"
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "default",
+                "method": "fetchTime",
+                "url": "https://trade.cex.io/api/spot/rest-public/get_server_time",
+                "input": [],
+                "output": "{}"
+             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "default",
+                "method": "fetchTicker",
+                "url": "https://trade.cex.io/api/spot/rest-public/get_ticker",
+                "input": [
+                  "BTC/USDT"
+                ],
+                "output": "{\"pairs\":[\"BTC-USDT\"]}"
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "default",
+                "method": "fetchTickers",
+                "url": "https://trade.cex.io/api/spot/rest-public/get_ticker",
+                "input": [],
+                "output": "{}"
+            },
+            {
+                "description": "with symbols",
+                "method": "fetchTickers",
+                "url": "https://trade.cex.io/api/spot/rest-public/get_ticker",
+                "input": [
+                  [
+                    "BTC/USDT",
+                    "ETH/USDT"
+                  ]
+                ],
+                "output": "{\"pairs\":[\"BTC-USDT\",\"ETH-USDT\"]}"
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "default",
+                "method": "fetchTrades",
+                "url": "https://trade.cex.io/api/spot/rest-public/get_trade_history",
+                "input": [
+                  "BTC/USDT"
+                ],
+                "output": "{\"pair\":\"BTC-USDT\"}"
+            },
+            {
+                "description": "+symbol +since +limit +until",
+                "method": "fetchTrades",
+                "url": "https://trade.cex.io/api/spot/rest-public/get_trade_history",
+                "input": [
+                  "BTC/USDT",
+                  1710000000000,
+                  10,
+                  {
+                    "until": 1710001000000
+                  }
+                ],
+                "output": "{\"pair\":\"BTC-USDT\",\"fromDateISO\":\"2024-03-09T16:00:00.000Z\",\"toDateISO\":\"2024-03-09T16:16:40.000Z\",\"pageSize\":10}"
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "default",
+                "method": "fetchOrderBook",
+                "url": "https://trade.cex.io/api/spot/rest-public/get_order_book",
+                "input": [
+                  "BTC/USDT"
+                ],
+                "output": "{\"pair\":\"BTC-USDT\"}"
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "symbol + timeframe + since + limit + param",
+                "method": "fetchOHLCV",
+                "url": "https://trade.cex.io/api/spot/rest-public/get_candles",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1710000000000,
+                  15,
+                  {
+                    "dataType": "bestAsk"
+                  }
+                ],
+                "output": "{\"pair\":\"BTC-USDT\",\"resolution\":\"1m\",\"dataType\":\"bestAsk\",\"fromISO\":\"2024-03-09T16:00:00.000Z\",\"limit\":15}"
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "default",
+                "method": "fetchTradingFees",
+                "url": "https://trade.cex.io/api/spot/rest/get_my_current_fee",
+                "input": [],
+                "output": "{}"
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "default",
+                "method": "fetchAccounts",
+                "url": "https://trade.cex.io/api/spot/rest/get_my_account_status_v3",
+                "input": [],
+                "output": "{}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "default",
+                "method": "fetchBalance",
+                "url": "https://trade.cex.io/api/spot/rest/get_my_wallet_balance",
+                "input": [],
+                "output": "{}"
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "default",
+                "method": "fetchClosedOrders",
+                "url": "https://trade.cex.io/api/spot/rest/get_my_orders",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "serverCreateTimestampFrom": 1697562534220
+                    }
+                ],
+                "output": "{\"archived\":true,\"serverCreateTimestampFrom\":1697562534220}"
+            },
+            {
+                "description": "with symbol",
+                "method": "fetchClosedOrders",
+                "url": "https://trade.cex.io/api/spot/rest/get_my_orders",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    null,
+                    {
+                        "serverCreateTimestampFrom": 1697562575240
+                    }
+                ],
+                "output": "{\"archived\":true,\"pair\":\"BTC-USDT\",\"serverCreateTimestampFrom\":1697562575240}"     
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "default",
+                "method": "fetchOpenOrders",
+                "url": "https://trade.cex.io/api/spot/rest/get_my_orders",
+                "input": [],
+                "output": "{}"
+            },
+            {
+                "description": "with symbol",
+                "method": "fetchOpenOrders",
+                "url": "https://trade.cex.io/api/spot/rest/get_my_orders",
+                "input": [
+                  "BTC/USDT"
+                ],
+                "output": "{\"pair\":\"BTC-USDT\"}"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "+limit +buy +amount +price +params",
+                "method": "createOrder",
+                "url": "https://trade.cex.io/api/spot/rest/do_my_new_order",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.23,
+                  55,
+                  {
+                    "accountId": "sub1",
+                    "clientOrderId": "91871283-5d2e-4b58-8854-e7b46f9bdf1b",
+                    "timestamp": 1729012587006
+                  }
+                ],
+                "output": "{\"clientOrderId\":\"91871283-5d2e-4b58-8854-e7b46f9bdf1b\",\"currency1\":\"LTC\",\"currency2\":\"USDT\",\"accountId\":\"sub1\",\"orderType\":\"Limit\",\"side\":\"BUY\",\"timestamp\":1729012587006,\"amountCcy1\":\"0.23\",\"price\":\"55\",\"timeInForce\":\"GTC\"}"
+            },
+            {
+                "description": "+market +buy +amount +params",
+                "method": "createOrder",
+                "url": "https://trade.cex.io/api/spot/rest/do_my_new_order",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "buy",
+                  0.25,
+                  null,
+                  {
+                    "accountId": "sub1",
+                    "clientOrderId": "9857f279-1862-4397-a3d1-c5c40b7d1458",
+                    "timestamp": 1729012669606
+                  }
+                ],
+                "output": "{\"clientOrderId\":\"9857f279-1862-4397-a3d1-c5c40b7d1458\",\"currency1\":\"LTC\",\"currency2\":\"USDT\",\"accountId\":\"sub1\",\"orderType\":\"Market\",\"side\":\"BUY\",\"timestamp\":1729012669606,\"amountCcy1\":\"0.25\"}"
+            },
+            {
+                "description": "+limit +sell +amount +price +params",
+                "method": "createOrder",
+                "url": "https://trade.cex.io/api/spot/rest/do_my_new_order",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "sell",
+                  0.23,
+                  55,
+                  {
+                    "accountId": "sub1",
+                    "clientOrderId": "55577f79-103f-435c-b98f-e625a1870155",
+                    "timestamp": 1729012684901
+                  }
+                ],
+                "output": "{\"clientOrderId\":\"55577f79-103f-435c-b98f-e625a1870155\",\"currency1\":\"LTC\",\"currency2\":\"USDT\",\"accountId\":\"sub1\",\"orderType\":\"Limit\",\"side\":\"SELL\",\"timestamp\":1729012684901,\"amountCcy1\":\"0.23\",\"price\":\"55\",\"timeInForce\":\"GTC\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "default",
+                "method": "cancelOrder",
+                "url": "https://trade.cex.io/api/spot/rest/do_cancel_my_order",
+                "input": [
+                  "8",
+                  null,
+                  {
+                    "timestamp": 1729012822601,
+                    "cancelRequestId": "c_1729012822601"
+                  }
+                ],
+                "output": "{\"orderId\":8,\"cancelRequestId\":\"c_1729012822601\",\"timestamp\":1729012822601}"       
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "default",
+                "method": "cancelAllOrders",
+                "url": "https://trade.cex.io/api/spot/rest/do_cancel_all_orders",
+                "input": [],
+                "output": "{}"
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "default",
+                "method": "fetchLedger",
+                "url": "https://trade.cex.io/api/spot/rest/get_my_transaction_history",
+                "input": [],
+                "output": "{}"
+            },
+            {
+                "description": "+code +since +limit +until",
+                "method": "fetchLedger",
+                "url": "https://trade.cex.io/api/spot/rest/get_my_transaction_history",
+                "input": [
+                  "USDT",
+                  1710000000000,
+                  15,
+                  {
+                    "until": 1710000010000
+                  }
+                ],
+                "output": "{\"currency\":\"USDT\",\"dateFrom\":1710000000000,\"pageSize\":15,\"dateTo\":1710000010000}"
+            }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "+code +since +limit +until",
+                "method": "fetchDepositsWithdrawals",
+                "url": "https://trade.cex.io/api/spot/rest/get_my_funding_history",
+                "input": [
+                  "USDT",
+                  1710000000000,
+                  15,
+                  {
+                    "until": 1710000010000
+                  }
+                ],
+                "output": "{\"dateFrom\":1710000000000,\"pageSize\":15,\"dateTo\":1710000010000}"
+            }
+        ],
+        "transfer": [
+            {
+                "description": "main to sub",
+                "method": "transfer",
+                "url": "https://trade.cex.io/api/spot/rest/do_deposit_funds_from_wallet",
+                "input": [
+                  "USDT",
+                  5,
+                  "",
+                  "sub1",
+                  {
+                    "clientTxId": "c23159c6-75a1-4db8-9a5c-d406748c17c4"
+                  }
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"accountId\":\"sub1\",\"clientTxId\":\"c23159c6-75a1-4db8-9a5c-d406748c17c4\"}"
+            },
+            {
+                "description": "sub to main",
+                "method": "transfer",
+                "url": "https://trade.cex.io/api/spot/rest/do_withdrawal_funds_to_wallet",
+                "input": [
+                  "USDT",
+                  5,
+                  "sub1",
+                  "",
+                  {
+                    "clientTxId": "c23159c6-75a1-4db8-9a5c-d406748c77c5"
+                  }
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"accountId\":\"sub1\",\"clientTxId\":\"c23159c6-75a1-4db8-9a5c-d406748c77c5\"}"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "+code +networkCode +accountId",
+                "method": "fetchDepositAddress",
+                "url": "https://trade.cex.io/api/spot/rest/get_deposit_address",
+                "input": [
+                  "USDT",
+                  {
+                    "networkCode": "TRC20",
+                    "accountId": "sub1"
+                  }
+                ],
+                "output": "{\"accountId\":\"sub1\",\"currency\":\"USDT\",\"blockchain\":\"tron\"}"
+            }
+        ]
+    }
+}

@@ -1,0 +1,1422 @@
+@kwdef mutable struct Bitso <: CcxtExchange
+    parent::Union{Exchange, Nothing} = Exchange()
+    describe::Function = describe
+    fetchLedger::Function = fetchLedger
+    parseLedgerEntryType::Function = parseLedgerEntryType
+    parseLedgerEntry::Function = parseLedgerEntry
+    fetchMarkets::Function = fetchMarkets
+    fetchCurrencies::Function = fetchCurrencies
+    parseCurrency::Function = parseCurrency
+    parseBalance::Function = parseBalance
+    fetchBalance::Function = fetchBalance
+    fetchOrderBook::Function = fetchOrderBook
+    parseTicker::Function = parseTicker
+    fetchTicker::Function = fetchTicker
+    fetchOHLCV::Function = fetchOHLCV
+    parseOHLCV::Function = parseOHLCV
+    parseTrade::Function = parseTrade
+    fetchTrades::Function = fetchTrades
+    fetchTradingFees::Function = fetchTradingFees
+    fetchMyTrades::Function = fetchMyTrades
+    createOrder::Function = createOrder
+    cancelOrder::Function = cancelOrder
+    cancelOrders::Function = cancelOrders
+    cancelAllOrders::Function = cancelAllOrders
+    parseOrderStatus::Function = parseOrderStatus
+    parseOrder::Function = parseOrder
+    fetchOpenOrders::Function = fetchOpenOrders
+    fetchOrder::Function = fetchOrder
+    fetchOrderTrades::Function = fetchOrderTrades
+    fetchDeposit::Function = fetchDeposit
+    fetchDeposits::Function = fetchDeposits
+    fetchDepositAddress::Function = fetchDepositAddress
+    fetchTransactionFees::Function = fetchTransactionFees
+    fetchDepositWithdrawFees::Function = fetchDepositWithdrawFees
+    parseDepositWithdrawFees::Function = parseDepositWithdrawFees
+    withdraw::Function = withdraw
+    parseTransaction::Function = parseTransaction
+    parseTransactionStatus::Function = parseTransactionStatus
+    nonce::Function = nonce
+    sign::Function = sign
+    handleErrors::Function = handleErrors
+
+# Generated REST endpoint fields
+    publicGetAvailableBooks::Function = publicGetAvailableBooks
+    publicGetCatalogues::Function = publicGetCatalogues
+    publicGetTicker::Function = publicGetTicker
+    publicGetOrderBook::Function = publicGetOrderBook
+    publicGetTrades::Function = publicGetTrades
+    publicGetOhlc::Function = publicGetOhlc
+    privateGetAccountStatus::Function = privateGetAccountStatus
+    privateGetBalance::Function = privateGetBalance
+    privateGetFees::Function = privateGetFees
+    privateGetFundings::Function = privateGetFundings
+    privateGetFundingsFid::Function = privateGetFundingsFid
+    privateGetFundingDestination::Function = privateGetFundingDestination
+    privateGetKycDocuments::Function = privateGetKycDocuments
+    privateGetLedger::Function = privateGetLedger
+    privateGetLedgerTrades::Function = privateGetLedgerTrades
+    privateGetLedgerFees::Function = privateGetLedgerFees
+    privateGetLedgerFundings::Function = privateGetLedgerFundings
+    privateGetLedgerWithdrawals::Function = privateGetLedgerWithdrawals
+    privateGetMxBankCodes::Function = privateGetMxBankCodes
+    privateGetOpenOrders::Function = privateGetOpenOrders
+    privateGetOrderTradesOid::Function = privateGetOrderTradesOid
+    privateGetOrdersOid::Function = privateGetOrdersOid
+    privateGetUserTrades::Function = privateGetUserTrades
+    privateGetUserTradesTid::Function = privateGetUserTradesTid
+    privateGetWithdrawals::Function = privateGetWithdrawals
+    privateGetWithdrawalsWid::Function = privateGetWithdrawalsWid
+    privatePostBitcoinWithdrawal::Function = privatePostBitcoinWithdrawal
+    privatePostDebitCardWithdrawal::Function = privatePostDebitCardWithdrawal
+    privatePostEtherWithdrawal::Function = privatePostEtherWithdrawal
+    privatePostOrders::Function = privatePostOrders
+    privatePostPhoneNumber::Function = privatePostPhoneNumber
+    privatePostPhoneVerification::Function = privatePostPhoneVerification
+    privatePostPhoneWithdrawal::Function = privatePostPhoneWithdrawal
+    privatePostSpeiWithdrawal::Function = privatePostSpeiWithdrawal
+    privatePostRippleWithdrawal::Function = privatePostRippleWithdrawal
+    privatePostBcashWithdrawal::Function = privatePostBcashWithdrawal
+    privatePostLitecoinWithdrawal::Function = privatePostLitecoinWithdrawal
+    privateDeleteOrders::Function = privateDeleteOrders
+    privateDeleteOrdersOid::Function = privateDeleteOrdersOid
+    privateDeleteOrdersAll::Function = privateDeleteOrdersAll
+
+end
+function describe(self::Bitso, )
+    return deepExtend(describe(self.parent), Dict{Symbol, Any}(
+    Symbol("id") => "bitso",
+    Symbol("name") => "Bitso",
+    Symbol("countries") => ["MX"],
+    Symbol("rateLimit") => 2000,
+    Symbol("version") => "v3",
+    Symbol("has") => Dict{Symbol, Any}(
+        Symbol("CORS") => nothing,
+        Symbol("spot") => true,
+        Symbol("margin") => false,
+        Symbol("swap") => false,
+        Symbol("future") => false,
+        Symbol("option") => false,
+        Symbol("addMargin") => false,
+        Symbol("borrowCrossMargin") => false,
+        Symbol("borrowIsolatedMargin") => false,
+        Symbol("borrowMargin") => false,
+        Symbol("cancelAllOrders") => true,
+        Symbol("cancelOrder") => true,
+        Symbol("cancelOrders") => true,
+        Symbol("closeAllPositions") => false,
+        Symbol("closePosition") => false,
+        Symbol("createDepositAddress") => false,
+        Symbol("createOrder") => true,
+        Symbol("createOrderWithTakeProfitAndStopLoss") => false,
+        Symbol("createOrderWithTakeProfitAndStopLossWs") => false,
+        Symbol("createReduceOnlyOrder") => false,
+        Symbol("fetchAccounts") => false,
+        Symbol("fetchBalance") => true,
+        Symbol("fetchBorrowInterest") => false,
+        Symbol("fetchBorrowRate") => false,
+        Symbol("fetchBorrowRateHistories") => false,
+        Symbol("fetchBorrowRateHistory") => false,
+        Symbol("fetchBorrowRates") => false,
+        Symbol("fetchBorrowRatesPerSymbol") => false,
+        Symbol("fetchCrossBorrowRate") => false,
+        Symbol("fetchCrossBorrowRates") => false,
+        Symbol("fetchCurrencies") => true,
+        Symbol("fetchDeposit") => true,
+        Symbol("fetchDepositAddress") => true,
+        Symbol("fetchDepositAddresses") => false,
+        Symbol("fetchDepositAddressesByNetwork") => false,
+        Symbol("fetchDeposits") => true,
+        Symbol("fetchDepositsWithdrawals") => false,
+        Symbol("fetchDepositWithdrawFee") => "emulated",
+        Symbol("fetchDepositWithdrawFees") => true,
+        Symbol("fetchFundingHistory") => false,
+        Symbol("fetchFundingInterval") => false,
+        Symbol("fetchFundingIntervals") => false,
+        Symbol("fetchFundingRate") => false,
+        Symbol("fetchFundingRateHistory") => false,
+        Symbol("fetchFundingRates") => false,
+        Symbol("fetchGreeks") => false,
+        Symbol("fetchIndexOHLCV") => false,
+        Symbol("fetchIsolatedBorrowRate") => false,
+        Symbol("fetchIsolatedBorrowRates") => false,
+        Symbol("fetchIsolatedPositions") => false,
+        Symbol("fetchLedger") => true,
+        Symbol("fetchLeverage") => false,
+        Symbol("fetchLeverages") => false,
+        Symbol("fetchLeverageTiers") => false,
+        Symbol("fetchLiquidations") => false,
+        Symbol("fetchLongShortRatio") => false,
+        Symbol("fetchLongShortRatioHistory") => false,
+        Symbol("fetchMarginAdjustmentHistory") => false,
+        Symbol("fetchMarginMode") => false,
+        Symbol("fetchMarginModes") => false,
+        Symbol("fetchMarketLeverageTiers") => false,
+        Symbol("fetchMarkets") => true,
+        Symbol("fetchMarkOHLCV") => false,
+        Symbol("fetchMarkPrices") => false,
+        Symbol("fetchMyLiquidations") => false,
+        Symbol("fetchMySettlementHistory") => false,
+        Symbol("fetchMyTrades") => true,
+        Symbol("fetchOHLCV") => true,
+        Symbol("fetchOpenInterest") => false,
+        Symbol("fetchOpenInterestHistory") => false,
+        Symbol("fetchOpenInterests") => false,
+        Symbol("fetchOpenOrders") => true,
+        Symbol("fetchOption") => false,
+        Symbol("fetchOptionChain") => false,
+        Symbol("fetchOrder") => true,
+        Symbol("fetchOrderBook") => true,
+        Symbol("fetchOrderTrades") => true,
+        Symbol("fetchPosition") => false,
+        Symbol("fetchPositionHistory") => false,
+        Symbol("fetchPositionMode") => false,
+        Symbol("fetchPositions") => false,
+        Symbol("fetchPositionsForSymbol") => false,
+        Symbol("fetchPositionsHistory") => false,
+        Symbol("fetchPositionsRisk") => false,
+        Symbol("fetchPremiumIndexOHLCV") => false,
+        Symbol("fetchSettlementHistory") => false,
+        Symbol("fetchTicker") => true,
+        Symbol("fetchTickers") => false,
+        Symbol("fetchTime") => false,
+        Symbol("fetchTrades") => true,
+        Symbol("fetchTradingFee") => false,
+        Symbol("fetchTradingFees") => true,
+        Symbol("fetchTransactionFee") => false,
+        Symbol("fetchTransactionFees") => true,
+        Symbol("fetchTransactions") => false,
+        Symbol("fetchTransfer") => false,
+        Symbol("fetchTransfers") => false,
+        Symbol("fetchVolatilityHistory") => false,
+        Symbol("reduceMargin") => false,
+        Symbol("repayCrossMargin") => false,
+        Symbol("repayIsolatedMargin") => false,
+        Symbol("setLeverage") => false,
+        Symbol("setMargin") => false,
+        Symbol("setMarginMode") => false,
+        Symbol("setPositionMode") => false,
+        Symbol("transfer") => false,
+        Symbol("withdraw") => true
+    ),
+    Symbol("urls") => Dict{Symbol, Any}(
+        Symbol("logo") => "https://github.com/user-attachments/assets/3d0c1e5e-8aaa-419f-968a-2b7409381ce4",
+        Symbol("api") => Dict{Symbol, Any}(
+            Symbol("rest") => "https://bitso.com/api"
+        ),
+        Symbol("test") => Dict{Symbol, Any}(
+            Symbol("rest") => "https://stage.bitso.com/api"
+        ),
+        Symbol("www") => "https://bitso.com",
+        Symbol("doc") => "https://bitso.com/api_info",
+        Symbol("fees") => "https://bitso.com/fees",
+        Symbol("referral") => "https://bitso.com/?ref=itej"
+    ),
+    Symbol("precisionMode") => TICK_SIZE,
+    Symbol("options") => Dict{Symbol, Any}(
+        Symbol("networks") => Dict{Symbol, Any}(
+            Symbol("TRC20") => "trx",
+            Symbol("ERC20") => "erc20",
+            Symbol("BEP20") => "bsc",
+            Symbol("BEP2") => "bep2"
+        )
+    ),
+    Symbol("timeframes") => Dict{Symbol, Any}(
+        Symbol("1m") => "60",
+        Symbol("5m") => "300",
+        Symbol("15m") => "900",
+        Symbol("30m") => "1800",
+        Symbol("1h") => "3600",
+        Symbol("4h") => "14400",
+        Symbol("12h") => "43200",
+        Symbol("1d") => "86400",
+        Symbol("1w") => "604800"
+    ),
+    Symbol("api") => Dict{Symbol, Any}(
+        Symbol("public") => Dict{Symbol, Any}(
+            Symbol("get") => ["available_books", "catalogues", "ticker", "order_book", "trades", "ohlc"]
+        ),
+        Symbol("private") => Dict{Symbol, Any}(
+            Symbol("get") => ["account_status", "balance", "fees", "fundings", "fundings/{fid}", "funding_destination", "kyc_documents", "ledger", "ledger/trades", "ledger/fees", "ledger/fundings", "ledger/withdrawals", "mx_bank_codes", "open_orders", "order_trades/{oid}", "orders/{oid}", "user_trades", "user_trades/{tid}", "withdrawals/", "withdrawals/{wid}"],
+            Symbol("post") => ["bitcoin_withdrawal", "debit_card_withdrawal", "ether_withdrawal", "orders", "phone_number", "phone_verification", "phone_withdrawal", "spei_withdrawal", "ripple_withdrawal", "bcash_withdrawal", "litecoin_withdrawal"],
+            Symbol("delete") => ["orders", "orders/{oid}", "orders/all"]
+        )
+    ),
+    Symbol("features") => Dict{Symbol, Any}(
+        Symbol("spot") => Dict{Symbol, Any}(
+            Symbol("sandbox") => false,
+            Symbol("createOrder") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("triggerPrice") => true,
+                Symbol("triggerPriceType") => nothing,
+                Symbol("triggerDirection") => nothing,
+                Symbol("stopLossPrice") => false,
+                Symbol("takeProfitPrice") => false,
+                Symbol("attachedStopLossTakeProfit") => nothing,
+                Symbol("timeInForce") => Dict{Symbol, Any}(
+                    Symbol("IOC") => true,
+                    Symbol("FOK") => true,
+                    Symbol("PO") => true,
+                    Symbol("GTD") => false
+                ),
+                Symbol("hedged") => false,
+                Symbol("trailing") => false,
+                Symbol("leverage") => false,
+                Symbol("marketBuyRequiresPrice") => false,
+                Symbol("marketBuyByCost") => false,
+                Symbol("selfTradePrevention") => false,
+                Symbol("iceberg") => false
+            ),
+            Symbol("createOrders") => nothing,
+            Symbol("fetchMyTrades") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("limit") => 100,
+                Symbol("daysBack") => nothing,
+                Symbol("untilDays") => nothing,
+                Symbol("symbolRequired") => true
+            ),
+            Symbol("fetchOrder") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("trigger") => false,
+                Symbol("trailing") => false,
+                Symbol("symbolRequired") => true
+            ),
+            Symbol("fetchOpenOrders") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("limit") => 500,
+                Symbol("trigger") => false,
+                Symbol("trailing") => false,
+                Symbol("symbolRequired") => true
+            ),
+            Symbol("fetchOrders") => nothing,
+            Symbol("fetchClosedOrders") => nothing,
+            Symbol("fetchOHLCV") => Dict{Symbol, Any}(
+                Symbol("limit") => 300
+            )
+        ),
+        Symbol("swap") => Dict{Symbol, Any}(
+            Symbol("linear") => nothing,
+            Symbol("inverse") => nothing
+        ),
+        Symbol("future") => Dict{Symbol, Any}(
+            Symbol("linear") => nothing,
+            Symbol("inverse") => nothing
+        )
+    ),
+    Symbol("exceptions") => Dict{Symbol, Any}(
+        Symbol("0201") => AuthenticationError,
+        Symbol("104") => InvalidNonce,
+        Symbol("0304") => BadRequest
+    )
+))
+
+end
+function fetchLedger(self::Bitso, code=nothing, since=nothing, limit=nothing, params=Dict())
+    request = Dict{Symbol, Any}();
+    if functions.ccxtruthy(limit != nothing)
+        request[Symbol("limit")] = limit;
+    end
+    response = Base.fetch(self.privateGetLedger(extend(request, params)));
+    payload = safeValue(response, "payload", []);
+    currency = self.safeCurrency(code);
+    return self.parseLedger(payload, currency, since, limit)
+
+end
+function parseLedgerEntryType(self::Bitso, type_var)
+    types = Dict{Symbol, Any}(
+        Symbol("funding") => "transaction",
+        Symbol("withdrawal") => "transaction",
+        Symbol("trade") => "trade",
+        Symbol("fee") => "fee"
+    );
+    return safeString(types, type_var, type_var)
+
+end
+function parseLedgerEntry(self::Bitso, item, currency=nothing)
+    operation = safeString(item, "operation");
+    type_var = self.parseLedgerEntryType(operation);
+    balanceUpdates = safeValue(item, "balance_updates", []);
+    firstBalance = safeValue(balanceUpdates, 0, Dict{Symbol, Any}());
+    direction = nothing;
+    fee = nothing;
+    amount = safeString(firstBalance, "amount");
+    currencyId = safeString(firstBalance, "currency");
+    code = self.safeCurrencyCode(currencyId, currency);
+    currency = self.safeCurrency(currencyId, currency);
+    details = safeValue(item, "details", Dict{Symbol, Any}());
+    referenceId = safeString2(details, "fid", "wid");
+    if functions.ccxtruthy(referenceId == nothing)
+        referenceId = safeString(details, "tid");
+    end
+    if functions.ccxtruthy(operation == "funding")
+        direction = "in";
+    elseif functions.ccxtruthy(operation == "withdrawal")
+        direction = "out";
+    else
+        if functions.ccxtruthy(operation == "trade")
+            direction = nothing;
+        elseif functions.ccxtruthy(operation == "fee")
+            direction = "out";
+            cost = stringAbs(amount);
+            fee = Dict{Symbol, Any}(
+                Symbol("cost") => cost,
+                Symbol("currency") => currency
+            );
+        end
+
+    end
+    timestamp = self.parse8601(safeString(item, "created_at"));
+    return self.safeLedgerEntry(Dict{Symbol, Any}(
+    Symbol("info") => item,
+    Symbol("id") => safeString(item, "eid"),
+    Symbol("direction") => direction,
+    Symbol("account") => nothing,
+    Symbol("referenceId") => referenceId,
+    Symbol("referenceAccount") => nothing,
+    Symbol("type") => type_var,
+    Symbol("currency") => code,
+    Symbol("amount") => amount,
+    Symbol("timestamp") => timestamp,
+    Symbol("datetime") => self.iso8601(timestamp),
+    Symbol("before") => nothing,
+    Symbol("after") => nothing,
+    Symbol("status") => "ok",
+    Symbol("fee") => fee
+), currency)
+
+end
+function fetchMarkets(self::Bitso, params=Dict())
+    response = Base.fetch(self.publicGetAvailableBooks(params));
+    markets = safeValue(response, "payload", []);
+    currencies = self.safeDict(self.options, "cachedCurrencies");
+    result = [];
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(markets)))
+        market = get(markets, i + 1, nothing);
+        id = safeString(market, "book");
+        (baseId, quoteId) = split(id, "_");
+        base = uppercase(baseId);
+        quote_var = uppercase(quoteId);
+        base = self.safeCurrencyCode(base);
+        quote_var = self.safeCurrencyCode(quote_var);
+        fees = safeValue(market, "fees", Dict{Symbol, Any}());
+        flatRate = safeValue(fees, "flat_rate", Dict{Symbol, Any}());
+        takerString = safeString(flatRate, "taker");
+        makerString = safeString(flatRate, "maker");
+        taker = self.parseNumber(stringDiv(takerString, "100"));
+        maker = self.parseNumber(stringDiv(makerString, "100"));
+        feeTiers = safeValue(fees, "structure", []);
+        fee = Dict{Symbol, Any}(
+            Symbol("taker") => taker,
+            Symbol("maker") => maker,
+            Symbol("percentage") => true,
+            Symbol("tierBased") => true
+        );
+        takerFees = [];
+        makerFees = [];
+        j = 0
+        while functions.ccxtruthy(functions.ccxt_lt(j, length(feeTiers)))
+            tier = get(feeTiers, j + 1, nothing);
+            volume = self.safeNumber(tier, "volume");
+            takerFee = self.safeNumber(tier, "taker");
+            makerFee = self.safeNumber(tier, "maker");
+            push!(takerFees, [volume, takerFee]);
+            push!(makerFees, [volume, makerFee]);
+            if functions.ccxtruthy(j == 0)
+                fee[Symbol("taker")] = takerFee;
+                fee[Symbol("maker")] = makerFee;
+            end
+            j += 1
+        end
+        tiers = Dict{Symbol, Any}(
+            Symbol("taker") => takerFees,
+            Symbol("maker") => makerFees
+        );
+        fee[Symbol("tiers")] = tiers;
+        baseCurrency = self.safeDict(currencies, base);
+        push!(result, extend(Dict{Symbol, Any}(
+    Symbol("id") => id,
+    Symbol("symbol") => string(base, "/", quote_var),
+    Symbol("base") => base,
+    Symbol("quote") => quote_var,
+    Symbol("settle") => nothing,
+    Symbol("baseId") => baseId,
+    Symbol("quoteId") => quoteId,
+    Symbol("settleId") => nothing,
+    Symbol("type") => "spot",
+    Symbol("spot") => true,
+    Symbol("margin") => false,
+    Symbol("swap") => false,
+    Symbol("future") => false,
+    Symbol("option") => false,
+    Symbol("active") => nothing,
+    Symbol("contract") => false,
+    Symbol("linear") => nothing,
+    Symbol("inverse") => nothing,
+    Symbol("taker") => taker,
+    Symbol("maker") => maker,
+    Symbol("contractSize") => nothing,
+    Symbol("expiry") => nothing,
+    Symbol("expiryDatetime") => nothing,
+    Symbol("strike") => nothing,
+    Symbol("optionType") => nothing,
+    Symbol("precision") => Dict{Symbol, Any}(
+        Symbol("amount") => self.safeNumber(baseCurrency, "precision"),
+        Symbol("price") => self.safeNumber(market, "tick_size")
+    ),
+    Symbol("limits") => Dict{Symbol, Any}(
+        Symbol("leverage") => Dict{Symbol, Any}(
+            Symbol("min") => nothing,
+            Symbol("max") => nothing
+        ),
+        Symbol("amount") => Dict{Symbol, Any}(
+            Symbol("min") => self.safeNumber(market, "minimum_amount"),
+            Symbol("max") => self.safeNumber(market, "maximum_amount")
+        ),
+        Symbol("price") => Dict{Symbol, Any}(
+            Symbol("min") => self.safeNumber(market, "minimum_price"),
+            Symbol("max") => self.safeNumber(market, "maximum_price")
+        ),
+        Symbol("cost") => Dict{Symbol, Any}(
+            Symbol("min") => self.safeNumber(market, "minimum_value"),
+            Symbol("max") => self.safeNumber(market, "maximum_value")
+        )
+    ),
+    Symbol("created") => nothing,
+    Symbol("info") => market
+), fee));
+        i += 1
+    end
+    return result
+
+end
+function fetchCurrencies(self::Bitso, params=Dict())
+    catalogues = Base.fetch(self.publicGetCatalogues(params));
+    payload = self.safeDict(catalogues, "payload");
+    currencies = self.safeDict(payload, "currencies");
+    metadata = self.safeList(currencies, "metadata", []);
+    return self.parseCurrencies(metadata)
+
+end
+function parseCurrency(self::Bitso, rawCurrency)
+    currencyId = safeString(rawCurrency, "code");
+    code = self.safeCurrencyCode(currencyId);
+    return self.safeCurrencyStructure(Dict{Symbol, Any}(
+    Symbol("info") => rawCurrency,
+    Symbol("code") => code,
+    Symbol("id") => currencyId,
+    Symbol("name") => safeString(rawCurrency, "full_name"),
+    Symbol("active") => nothing,
+    Symbol("deposit") => nothing,
+    Symbol("withdraw") => nothing,
+    Symbol("fee") => nothing,
+    Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(rawCurrency, "precision"))),
+    Symbol("margin") => self.safeBool(rawCurrency, "marginAvailable"),
+    Symbol("limits") => Dict{Symbol, Any}(
+        Symbol("amount") => Dict{Symbol, Any}(
+            Symbol("min") => nothing,
+            Symbol("max") => nothing
+        ),
+        Symbol("withdraw") => Dict{Symbol, Any}(
+            Symbol("min") => nothing,
+            Symbol("max") => nothing
+        ),
+        Symbol("deposit") => Dict{Symbol, Any}(
+            Symbol("min") => nothing,
+            Symbol("max") => nothing
+        )
+    ),
+    Symbol("networks") => nothing,
+    Symbol("type") => safeString(rawCurrency, "type")
+))
+
+end
+function parseBalance(self::Bitso, response)
+    payload = safeValue(response, "payload", Dict{Symbol, Any}());
+    balances = safeValue(payload, "balances", []);
+    result = Dict{Symbol, Any}(
+        Symbol("info") => response,
+        Symbol("timestamp") => nothing,
+        Symbol("datetime") => nothing
+    );
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(balances)))
+        balance = get(balances, i + 1, nothing);
+        currencyId = safeString(balance, "currency");
+        code = self.safeCurrencyCode(currencyId);
+        account = self.account();
+        account[Symbol("free")] = safeString(balance, "available");
+        account[Symbol("used")] = safeString(balance, "locked");
+        account[Symbol("total")] = safeString(balance, "total");
+        result[Symbol(code)] = account;
+        i += 1
+    end
+    return self.safeBalance(result)
+
+end
+function fetchBalance(self::Bitso, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    response = Base.fetch(self.privateGetBalance(params));
+    return self.parseBalance(response)
+
+end
+function fetchOrderBook(self::Bitso, symbol, limit=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    market = self.market(symbol);
+    request = Dict{Symbol, Any}(
+        Symbol("book") => get(market, Symbol("id"), nothing)
+    );
+    response = Base.fetch(self.publicGetOrderBook(extend(request, params)));
+    orderbook = safeValue(response, "payload");
+    timestamp = self.parse8601(safeString(orderbook, "updated_at"));
+    return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), timestamp, "bids", "asks", "price", "amount")
+
+end
+function parseTicker(self::Bitso, ticker, market=nothing)
+    symbol = self.safeSymbol(nothing, market);
+    timestamp = self.parse8601(safeString(ticker, "created_at"));
+    vwap = safeString(ticker, "vwap");
+    baseVolume = safeString(ticker, "volume");
+    quoteVolume = stringMul(baseVolume, vwap);
+    last_var = safeString(ticker, "last");
+    return self.safeTicker(Dict{Symbol, Any}(
+    Symbol("symbol") => symbol,
+    Symbol("timestamp") => timestamp,
+    Symbol("datetime") => self.iso8601(timestamp),
+    Symbol("high") => safeString(ticker, "high"),
+    Symbol("low") => safeString(ticker, "low"),
+    Symbol("bid") => safeString(ticker, "bid"),
+    Symbol("bidVolume") => nothing,
+    Symbol("ask") => safeString(ticker, "ask"),
+    Symbol("askVolume") => nothing,
+    Symbol("vwap") => vwap,
+    Symbol("open") => nothing,
+    Symbol("close") => last_var,
+    Symbol("last") => last_var,
+    Symbol("previousClose") => nothing,
+    Symbol("change") => nothing,
+    Symbol("percentage") => nothing,
+    Symbol("average") => nothing,
+    Symbol("baseVolume") => baseVolume,
+    Symbol("quoteVolume") => quoteVolume,
+    Symbol("info") => ticker
+), market)
+
+end
+function fetchTicker(self::Bitso, symbol, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    market = self.market(symbol);
+    request = Dict{Symbol, Any}(
+        Symbol("book") => get(market, Symbol("id"), nothing)
+    );
+    response = Base.fetch(self.publicGetTicker(extend(request, params)));
+    ticker = safeValue(response, "payload");
+    return self.parseTicker(ticker, market)
+
+end
+function fetchOHLCV(self::Bitso, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    market = self.market(symbol);
+    request = Dict{Symbol, Any}(
+        Symbol("book") => get(market, Symbol("id"), nothing),
+        Symbol("time_bucket") => safeString(self.timeframes, timeframe, timeframe)
+    );
+    if functions.ccxtruthy(since != nothing)
+        request[Symbol("start")] = since;
+        if functions.ccxtruthy(limit != nothing)
+            duration = self.parseTimeframe(timeframe);
+            request[Symbol("end")] = self.sum(since, duration * limit * 1000);
+        end
+    elseif functions.ccxtruthy(limit != nothing)
+        now = milliseconds();
+        request[Symbol("end")] = now;
+        request[Symbol("start")] = now - self.parseTimeframe(timeframe) * 1000 * limit;
+    end
+    response = Base.fetch(self.publicGetOhlc(extend(request, params)));
+    payload = self.safeList(response, "payload", []);
+    return self.parseOHLCVs(payload, market, timeframe, since, limit)
+
+end
+function parseOHLCV(self::Bitso, ohlcv, market=nothing)
+    return [safeInteger(ohlcv, "bucket_start_time"), self.safeNumber(ohlcv, "first_rate"), self.safeNumber(ohlcv, "max_rate"), self.safeNumber(ohlcv, "min_rate"), self.safeNumber(ohlcv, "last_rate"), self.safeNumber(ohlcv, "volume")]
+
+end
+function parseTrade(self::Bitso, trade, market=nothing)
+    timestamp = self.parse8601(safeString(trade, "created_at"));
+    marketId = safeString(trade, "book");
+    symbol = self.safeSymbol(marketId, market, "_");
+    side = safeString(trade, "side");
+    makerSide = safeString(trade, "maker_side");
+    takerOrMaker = nothing;
+    if functions.ccxtruthy(side != nothing)
+        if functions.ccxtruthy(side == makerSide)
+            takerOrMaker = "maker";
+        else
+            takerOrMaker = "taker";
+        end
+    else
+        if functions.ccxtruthy(makerSide == "buy")
+            side = "sell";
+        else
+            side = "buy";
+        end
+    end
+    amount = safeString2(trade, "amount", "major");
+    if functions.ccxtruthy(amount != nothing)
+        amount = stringAbs(amount);
+    end
+    fee = nothing;
+    feeCost = safeString(trade, "fees_amount");
+    if functions.ccxtruthy(feeCost != nothing)
+        feeCurrencyId = safeString(trade, "fees_currency");
+        feeCurrency = self.safeCurrencyCode(feeCurrencyId);
+        fee = Dict{Symbol, Any}(
+            Symbol("cost") => feeCost,
+            Symbol("currency") => feeCurrency
+        );
+    end
+    cost = safeString(trade, "minor");
+    if functions.ccxtruthy(cost != nothing)
+        cost = stringAbs(cost);
+    end
+    price = safeString(trade, "price");
+    orderId = safeString(trade, "oid");
+    id = safeString(trade, "tid");
+    return self.safeTrade(Dict{Symbol, Any}(
+    Symbol("id") => id,
+    Symbol("info") => trade,
+    Symbol("timestamp") => timestamp,
+    Symbol("datetime") => self.iso8601(timestamp),
+    Symbol("symbol") => symbol,
+    Symbol("order") => orderId,
+    Symbol("type") => nothing,
+    Symbol("side") => side,
+    Symbol("takerOrMaker") => takerOrMaker,
+    Symbol("price") => price,
+    Symbol("amount") => amount,
+    Symbol("cost") => cost,
+    Symbol("fee") => fee
+), market)
+
+end
+function fetchTrades(self::Bitso, symbol, since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    market = self.market(symbol);
+    request = Dict{Symbol, Any}(
+        Symbol("book") => get(market, Symbol("id"), nothing)
+    );
+    response = Base.fetch(self.publicGetTrades(extend(request, params)));
+    return self.parseTrades(get(response, Symbol("payload"), nothing), market, since, limit)
+
+end
+function fetchTradingFees(self::Bitso, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    response = Base.fetch(self.privateGetFees(params));
+    payload = safeValue(response, "payload", Dict{Symbol, Any}());
+    fees = safeValue(payload, "fees", []);
+    result = Dict{Symbol, Any}();
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(fees)))
+        fee = get(fees, i + 1, nothing);
+        marketId = safeString(fee, "book");
+        symbol = self.safeSymbol(marketId, nothing, "_");
+        result[Symbol(symbol)] = Dict{Symbol, Any}(
+            Symbol("info") => fee,
+            Symbol("symbol") => symbol,
+            Symbol("maker") => self.safeNumber(fee, "maker_fee_decimal"),
+            Symbol("taker") => self.safeNumber(fee, "taker_fee_decimal"),
+            Symbol("percentage") => true,
+            Symbol("tierBased") => true
+        );
+        i += 1
+    end
+    return result
+
+end
+function fetchMyTrades(self::Bitso, symbol=nothing, since=nothing, limit=25, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    market = self.market(symbol);
+    markerInParams = (ccxt_in("marker", params));
+    if functions.ccxtruthy(@functions.ccxt_and((since != nothing), !functions.ccxtruthy(markerInParams)))
+        throw(ExchangeError(string(self.id, " fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")));
+    end
+    if functions.ccxtruthy(markerInParams)
+        marker = ccxt_parseInt(get(params, Symbol("marker"), nothing));
+        params = extend(params, Dict{Symbol, Any}(
+    Symbol("marker") => marker
+));
+    end
+    request = Dict{Symbol, Any}(
+        Symbol("book") => get(market, Symbol("id"), nothing),
+        Symbol("limit") => limit
+    );
+    response = Base.fetch(self.privateGetUserTrades(extend(request, params)));
+    return self.parseTrades(get(response, Symbol("payload"), nothing), market, since, limit)
+
+end
+function createOrder(self::Bitso, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    market = self.market(symbol);
+    request = Dict{Symbol, Any}(
+        Symbol("book") => get(market, Symbol("id"), nothing),
+        Symbol("side") => side,
+        Symbol("type") => type_var,
+        Symbol("major") => self.amountToPrecision(get(market, Symbol("symbol"), nothing), amount)
+    );
+    if functions.ccxtruthy(type_var == "limit")
+        request[Symbol("price")] = self.priceToPrecision(get(market, Symbol("symbol"), nothing), price);
+    end
+    response = Base.fetch(self.privatePostOrders(extend(request, params)));
+    id = safeString(get(response, Symbol("payload"), nothing), "oid");
+    return self.safeOrder(Dict{Symbol, Any}(
+    Symbol("info") => response,
+    Symbol("id") => id
+), market)
+
+end
+function cancelOrder(self::Bitso, id, symbol=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    request = Dict{Symbol, Any}(
+        Symbol("oid") => id
+    );
+    response = Base.fetch(self.privateDeleteOrdersOid(extend(request, params)));
+    payload = self.safeList(response, "payload", []);
+    orderId = safeString(payload, 0);
+    return self.safeOrder(Dict{Symbol, Any}(
+    Symbol("info") => response,
+    Symbol("id") => orderId
+))
+
+end
+function cancelOrders(self::Bitso, ids, symbol=nothing, params=Dict())
+    if functions.ccxtruthy(!functions.ccxtruthy(functions.ccxt_isArray(ids)))
+        throw(ArgumentsRequired(string(self.id, " cancelOrders() ids argument should be an array")));
+    end
+    market = nothing;
+    if functions.ccxtruthy(symbol != nothing)
+        market = self.market(symbol);
+    end
+    oids = join(ids, ",");
+    request = Dict{Symbol, Any}(
+        Symbol("oids") => oids
+    );
+    response = Base.fetch(self.privateDeleteOrders(extend(request, params)));
+    payload = safeValue(response, "payload", []);
+    orders = [];
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(payload)))
+        id = get(payload, i + 1, nothing);
+        push!(orders, self.parseOrder(id, market));
+        i += 1
+    end
+    return orders
+
+end
+function cancelAllOrders(self::Bitso, symbol=nothing, params=Dict())
+    if functions.ccxtruthy(symbol != nothing)
+        throw(NotSupported(string(self.id, " cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.")));
+    end
+    response = Base.fetch(self.privateDeleteOrdersAll(params));
+    payload = safeValue(response, "payload", []);
+    canceledOrders = [];
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(payload)))
+        order = self.parseOrder(get(payload, i + 1, nothing));
+        push!(canceledOrders, order);
+        i += 1
+    end
+    return canceledOrders
+
+end
+function parseOrderStatus(self::Bitso, status)
+    statuses = Dict{Symbol, Any}(
+        Symbol("partial-fill") => "open",
+        Symbol("partially filled") => "open",
+        Symbol("queued") => "open",
+        Symbol("completed") => "closed"
+    );
+    return safeString(statuses, status, status)
+
+end
+function parseOrder(self::Bitso, order, market=nothing)
+    id = nothing;
+    if functions.ccxtruthy(isa(order, AbstractString))
+        id = order;
+    else
+        id = safeString(order, "oid");
+    end
+    side = safeString(order, "side");
+    status = self.parseOrderStatus(safeString(order, "status"));
+    marketId = safeString(order, "book");
+    symbol = self.safeSymbol(marketId, market, "_");
+    orderType = safeString(order, "type");
+    timestamp = self.parse8601(safeString(order, "created_at"));
+    price = safeString(order, "price");
+    amount = safeString(order, "original_amount");
+    remaining = safeString(order, "unfilled_amount");
+    clientOrderId = safeString(order, "client_id");
+    return self.safeOrder(Dict{Symbol, Any}(
+    Symbol("info") => order,
+    Symbol("id") => id,
+    Symbol("clientOrderId") => clientOrderId,
+    Symbol("timestamp") => timestamp,
+    Symbol("datetime") => self.iso8601(timestamp),
+    Symbol("lastTradeTimestamp") => nothing,
+    Symbol("symbol") => symbol,
+    Symbol("type") => orderType,
+    Symbol("timeInForce") => nothing,
+    Symbol("postOnly") => nothing,
+    Symbol("side") => side,
+    Symbol("price") => price,
+    Symbol("triggerPrice") => nothing,
+    Symbol("amount") => amount,
+    Symbol("cost") => nothing,
+    Symbol("remaining") => remaining,
+    Symbol("filled") => nothing,
+    Symbol("status") => status,
+    Symbol("fee") => nothing,
+    Symbol("average") => nothing,
+    Symbol("trades") => nothing
+), market)
+
+end
+function fetchOpenOrders(self::Bitso, symbol=nothing, since=nothing, limit=25, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    market = self.market(symbol);
+    markerInParams = (ccxt_in("marker", params));
+    if functions.ccxtruthy(@functions.ccxt_and((since != nothing), !functions.ccxtruthy(markerInParams)))
+        throw(ExchangeError(string(self.id, " fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")));
+    end
+    if functions.ccxtruthy(markerInParams)
+        marker = ccxt_parseInt(get(params, Symbol("marker"), nothing));
+        params = extend(params, Dict{Symbol, Any}(
+    Symbol("marker") => marker
+));
+    end
+    request = Dict{Symbol, Any}(
+        Symbol("book") => get(market, Symbol("id"), nothing),
+        Symbol("limit") => limit
+    );
+    response = Base.fetch(self.privateGetOpenOrders(extend(request, params)));
+    orders = self.parseOrders(get(response, Symbol("payload"), nothing), market, since, limit);
+    return orders
+
+end
+function fetchOrder(self::Bitso, id, symbol=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    response = Base.fetch(self.privateGetOrdersOid(Dict{Symbol, Any}(
+        Symbol("oid") => id
+    )));
+    payload = safeValue(response, "payload");
+    if functions.ccxtruthy(functions.ccxt_isArray(payload))
+        numOrders = length(get(response, Symbol("payload"), nothing));
+        if functions.ccxtruthy(numOrders == 1)
+                return self.parseOrder(get(payload, 1, nothing))
+        end
+    end
+    throw(OrderNotFound(string(self.id, ": The order ", id, " not found.")));
+
+end
+function fetchOrderTrades(self::Bitso, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    market = self.market(symbol);
+    request = Dict{Symbol, Any}(
+        Symbol("oid") => id
+    );
+    response = Base.fetch(self.privateGetOrderTradesOid(extend(request, params)));
+    return self.parseTrades(get(response, Symbol("payload"), nothing), market)
+
+end
+function fetchDeposit(self::Bitso, id, code=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    request = Dict{Symbol, Any}(
+        Symbol("fid") => id
+    );
+    response = Base.fetch(self.privateGetFundingsFid(extend(request, params)));
+    transactions = safeValue(response, "payload", []);
+    first_var = self.safeDict(transactions, 0, Dict{Symbol, Any}());
+    return self.parseTransaction(first_var)
+
+end
+function fetchDeposits(self::Bitso, code=nothing, since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    currency = nothing;
+    if functions.ccxtruthy(code != nothing)
+        currency = self.currency(code);
+    end
+    response = Base.fetch(self.privateGetFundings(params));
+    transactions = self.safeList(response, "payload", []);
+    return self.parseTransactions(transactions, currency, since, limit, params)
+
+end
+function fetchDepositAddress(self::Bitso, code, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    currency = self.currency(code);
+    request = Dict{Symbol, Any}(
+        Symbol("fund_currency") => get(currency, Symbol("id"), nothing)
+    );
+    response = Base.fetch(self.privateGetFundingDestination(extend(request, params)));
+    address = safeString(get(response, Symbol("payload"), nothing), "account_identifier");
+    tag = nothing;
+    if functions.ccxtruthy(findfirst("?dt=", address) !== nothing)
+        parts = split(address, "?dt=");
+        address = safeString(parts, 0);
+        tag = safeString(parts, 1);
+    end
+    self.checkAddress(address);
+    return Dict{Symbol, Any}(
+    Symbol("info") => response,
+    Symbol("currency") => code,
+    Symbol("network") => nothing,
+    Symbol("address") => address,
+    Symbol("tag") => tag
+)
+
+end
+function fetchTransactionFees(self::Bitso, codes=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    response = Base.fetch(self.privateGetFees(params));
+    result = Dict{Symbol, Any}();
+    payload = safeValue(response, "payload", Dict{Symbol, Any}());
+    depositFees = safeValue(payload, "deposit_fees", []);
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(depositFees)))
+        depositFee = get(depositFees, i + 1, nothing);
+        currencyId = safeString(depositFee, "currency");
+        code = self.safeCurrencyCode(currencyId);
+        if functions.ccxtruthy(@functions.ccxt_and((codes != nothing), !functions.ccxtruthy(inArray(code, codes))))
+            i += 1; continue
+        end
+        result[Symbol(code)] = Dict{Symbol, Any}(
+            Symbol("deposit") => self.safeNumber(depositFee, "fee"),
+            Symbol("withdraw") => nothing,
+            Symbol("info") => Dict{Symbol, Any}(
+                Symbol("deposit") => depositFee,
+                Symbol("withdraw") => nothing
+            )
+        );
+        i += 1
+    end
+    withdrawalFees = safeValue(payload, "withdrawal_fees", []);
+    currencyIds = objectKeys(withdrawalFees);
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(currencyIds)))
+        currencyId = get(currencyIds, i + 1, nothing);
+        code = self.safeCurrencyCode(currencyId);
+        if functions.ccxtruthy(@functions.ccxt_and((codes != nothing), !functions.ccxtruthy(inArray(code, codes))))
+            i += 1; continue
+        end
+        result[Symbol(code)] = Dict{Symbol, Any}(
+            Symbol("deposit") => safeValue(get(result, Symbol(code), nothing), "deposit"),
+            Symbol("withdraw") => self.safeNumber(withdrawalFees, currencyId),
+            Symbol("info") => Dict{Symbol, Any}(
+                Symbol("deposit") => safeValue(get(get(result, Symbol(code), nothing), Symbol("info"), nothing), "deposit"),
+                Symbol("withdraw") => self.safeNumber(withdrawalFees, currencyId)
+            )
+        );
+        i += 1
+    end
+    return result
+
+end
+function fetchDepositWithdrawFees(self::Bitso, codes=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    response = Base.fetch(self.privateGetFees(params));
+    payload = self.safeList(response, "payload", []);
+    return self.parseDepositWithdrawFees(payload, codes)
+
+end
+function parseDepositWithdrawFees(self::Bitso, response, codes=nothing, currencyIdKey=nothing)
+    result = Dict{Symbol, Any}();
+    depositResponse = safeValue(response, "deposit_fees", []);
+    withdrawalResponse = safeValue(response, "withdrawal_fees", []);
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(depositResponse)))
+        entry = get(depositResponse, i + 1, nothing);
+        currencyId = safeString(entry, "currency");
+        code = self.safeCurrencyCode(currencyId);
+        if functions.ccxtruthy(@functions.ccxt_or((codes == nothing), (ccxt_in(code, codes))))
+            result[Symbol(code)] = Dict{Symbol, Any}(
+                Symbol("deposit") => Dict{Symbol, Any}(
+                    Symbol("fee") => self.safeNumber(entry, "fee"),
+                    Symbol("percentage") => !functions.ccxtruthy(safeValue(entry, "is_fixed"))
+                ),
+                Symbol("withdraw") => Dict{Symbol, Any}(
+                    Symbol("fee") => nothing,
+                    Symbol("percentage") => nothing
+                ),
+                Symbol("networks") => Dict{Symbol, Any}(),
+                Symbol("info") => entry
+            );
+        end
+        i += 1
+    end
+    withdrawalKeys = objectKeys(withdrawalResponse);
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(withdrawalKeys)))
+        currencyId = get(withdrawalKeys, i + 1, nothing);
+        code = self.safeCurrencyCode(currencyId);
+        if functions.ccxtruthy(@functions.ccxt_or((codes == nothing), (ccxt_in(code, codes))))
+            withdrawFee = self.parseNumber(get(withdrawalResponse, Symbol(currencyId), nothing));
+            resultValue = safeValue(result, code);
+            if functions.ccxtruthy(resultValue == nothing)
+                result[Symbol(code)] = self.depositWithdrawFee(Dict{Symbol, Any}());
+            end
+            result[Symbol(code)][Symbol("withdraw")][Symbol("fee")] = withdrawFee;
+            result[Symbol(code)][Symbol("info")][Symbol(code)] = withdrawFee;
+        end
+        i += 1
+    end
+    return result
+
+end
+function withdraw(self::Bitso, code, amount, address, tag=nothing, params=Dict())
+    (tag, params) = self.handleWithdrawTagAndParams(tag, params);
+    self.checkAddress(address);
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    methods = Dict{Symbol, Any}(
+        Symbol("BTC") => "Bitcoin",
+        Symbol("ETH") => "Ether",
+        Symbol("XRP") => "Ripple",
+        Symbol("BCH") => "Bcash",
+        Symbol("LTC") => "Litecoin"
+    );
+    currency = self.currency(code);
+    method = functions.ccxtruthy((ccxt_in(code, methods))) ? get(methods, Symbol(code), nothing) : nothing;
+    if functions.ccxtruthy(method == nothing)
+        throw(ExchangeError(string(self.id, " not valid withdraw coin: ", code)));
+    end
+    request = Dict{Symbol, Any}(
+        Symbol("amount") => amount,
+        Symbol("address") => address,
+        Symbol("destination_tag") => tag
+    );
+    classMethod = string("privatePost", method, "Withdrawal");
+    response = Base.fetch(getproperty(self, Symbol(classMethod))(self, extend(request, params)));
+    payload = safeValue(response, "payload", []);
+    first_var = self.safeDict(payload, 0);
+    return self.parseTransaction(first_var, currency)
+
+end
+function parseTransaction(self::Bitso, transaction, currency=nothing)
+    currencyId = safeString2(transaction, "currency", "asset");
+    currency = self.safeCurrency(currencyId, currency);
+    details = safeValue(transaction, "details", Dict{Symbol, Any}());
+    datetime = safeString(transaction, "created_at");
+    withdrawalAddress = safeString(details, "withdrawal_address");
+    receivingAddress = safeString(details, "receiving_address");
+    networkId = safeString2(transaction, "network", "method");
+    status = safeString(transaction, "status");
+    withdrawId = safeString(transaction, "wid");
+    networkCode = self.networkIdToCode(networkId, get(currency, Symbol("code"), nothing));
+    networkCodeUpper = functions.ccxtruthy((networkCode != nothing)) ? uppercase(networkCode) : nothing;
+    return Dict{Symbol, Any}(
+    Symbol("id") => safeString2(transaction, "wid", "fid"),
+    Symbol("txid") => safeString(details, "tx_hash"),
+    Symbol("timestamp") => self.parse8601(datetime),
+    Symbol("datetime") => datetime,
+    Symbol("network") => networkCodeUpper,
+    Symbol("addressFrom") => receivingAddress,
+    Symbol("address") => functions.ccxtruthy((withdrawalAddress != nothing)) ? withdrawalAddress : receivingAddress,
+    Symbol("addressTo") => withdrawalAddress,
+    Symbol("amount") => self.safeNumber(transaction, "amount"),
+    Symbol("type") => functions.ccxtruthy((withdrawId == nothing)) ? "deposit" : "withdrawal",
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("status") => self.parseTransactionStatus(status),
+    Symbol("updated") => nothing,
+    Symbol("tagFrom") => nothing,
+    Symbol("tag") => nothing,
+    Symbol("tagTo") => nothing,
+    Symbol("comment") => nothing,
+    Symbol("internal") => nothing,
+    Symbol("fee") => nothing,
+    Symbol("info") => transaction
+)
+
+end
+function parseTransactionStatus(self::Bitso, status)
+    statuses = Dict{Symbol, Any}(
+        Symbol("pending") => "pending",
+        Symbol("in_progress") => "pending",
+        Symbol("complete") => "ok",
+        Symbol("failed") => "failed"
+    );
+    return safeString(statuses, status, status)
+
+end
+function nonce(self::Bitso, )
+    return milliseconds()
+
+end
+function sign(self::Bitso, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+    endpoint = string("/", self.version, "/", self.implodeParams(path, params));
+    query = omit(params, self.extractParams(path));
+    if functions.ccxtruthy(@functions.ccxt_or(method == "GET", method == "DELETE"))
+        if functions.ccxtruthy(length(objectKeys(query)))
+            endpoint += string("?", self.urlencode(query));
+        end
+    end
+    url = string(get(get(self.urls, Symbol("api"), nothing), Symbol("rest"), nothing), endpoint);
+    if functions.ccxtruthy(api == "private")
+        self.checkRequiredCredentials();
+        nonce = string(self.nonce());
+        endpoint = string("/api", endpoint);
+        content = [nonce, method, endpoint];
+        request = join(content, "");
+        if functions.ccxtruthy(@functions.ccxt_and(method != "GET", method != "DELETE"))
+            if functions.ccxtruthy(length(objectKeys(query)))
+                body = json(query);
+                request += body;
+            end
+        end
+        signature = self.hmac(self.encode(request), self.encode(self.secret), sha256);
+        auth = string(self.apiKey, ":", nonce, ":", signature);
+        headers = Dict{Symbol, Any}(
+            Symbol("Authorization") => string("Bitso ", auth)
+        );
+    end
+    return Dict{Symbol, Any}(
+    Symbol("url") => url,
+    Symbol("method") => method,
+    Symbol("body") => body,
+    Symbol("headers") => headers
+)
+
+end
+function handleErrors(self::Bitso, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody)
+    if functions.ccxtruthy(response == nothing)
+            return nothing
+    end
+    if functions.ccxtruthy(ccxt_in("success", response))
+        success = self.safeBool(response, "success", false);
+        if functions.ccxtruthy(isa(success, AbstractString))
+            if functions.ccxtruthy(@functions.ccxt_or((success == "true"), (success == "1")))
+                success = true;
+            else
+                success = false;
+            end
+        end
+        if functions.ccxtruthy(!functions.ccxtruthy(success))
+            feedback = string(self.id, " ", json(response));
+            error = safeValue(response, "error");
+            if functions.ccxtruthy(error == nothing)
+                throw(ExchangeError(feedback));
+            end
+            code = safeString(error, "code");
+            self.throwExactlyMatchedException(self.exceptions, code, feedback);
+            throw(ExchangeError(feedback));
+        end
+    end
+    return nothing
+
+end
+
+# Property resolution is shared by every generated exchange; see
+# `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
+Base.getproperty(self::Bitso, name::Symbol) = ccxt_getproperty(self, name)
+
+# Implicit REST endpoint methods (generated from describe().api)
+function publicGetAvailableBooks(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "available_books", "public", "GET", params, nothing, nothing, Dict())
+end
+
+function publicGetCatalogues(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "catalogues", "public", "GET", params, nothing, nothing, Dict())
+end
+
+function publicGetTicker(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
+end
+
+function publicGetOrderBook(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "order_book", "public", "GET", params, nothing, nothing, Dict())
+end
+
+function publicGetTrades(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict())
+end
+
+function publicGetOhlc(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "ohlc", "public", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetAccountStatus(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "account_status", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetBalance(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "balance", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetFees(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "fees", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetFundings(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "fundings", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetFundingsFid(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "fundings/{fid}", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetFundingDestination(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "funding_destination", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetKycDocuments(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "kyc_documents", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetLedger(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "ledger", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetLedgerTrades(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "ledger/trades", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetLedgerFees(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "ledger/fees", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetLedgerFundings(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "ledger/fundings", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetLedgerWithdrawals(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "ledger/withdrawals", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetMxBankCodes(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "mx_bank_codes", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetOpenOrders(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "open_orders", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetOrderTradesOid(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "order_trades/{oid}", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetOrdersOid(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "orders/{oid}", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetUserTrades(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "user_trades", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetUserTradesTid(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "user_trades/{tid}", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetWithdrawals(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "withdrawals/", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetWithdrawalsWid(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "withdrawals/{wid}", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privatePostBitcoinWithdrawal(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "bitcoin_withdrawal", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostDebitCardWithdrawal(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "debit_card_withdrawal", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostEtherWithdrawal(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "ether_withdrawal", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostOrders(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostPhoneNumber(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "phone_number", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostPhoneVerification(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "phone_verification", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostPhoneWithdrawal(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "phone_withdrawal", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostSpeiWithdrawal(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "spei_withdrawal", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostRippleWithdrawal(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "ripple_withdrawal", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostBcashWithdrawal(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "bcash_withdrawal", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostLitecoinWithdrawal(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "litecoin_withdrawal", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privateDeleteOrders(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "orders", "private", "DELETE", params, nothing, nothing, Dict())
+end
+
+function privateDeleteOrdersOid(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "orders/{oid}", "private", "DELETE", params, nothing, nothing, Dict())
+end
+
+function privateDeleteOrdersAll(self::Bitso, params=Dict(), context=Dict())
+    return request(self, "orders/all", "private", "DELETE", params, nothing, nothing, Dict())
+end
+
+function Bitso(; kwargs...)
+    inst = Bitso(Exchange(), describe, fetchLedger, parseLedgerEntryType, parseLedgerEntry, fetchMarkets, fetchCurrencies, parseCurrency, parseBalance, fetchBalance, fetchOrderBook, parseTicker, fetchTicker, fetchOHLCV, parseOHLCV, parseTrade, fetchTrades, fetchTradingFees, fetchMyTrades, createOrder, cancelOrder, cancelOrders, cancelAllOrders, parseOrderStatus, parseOrder, fetchOpenOrders, fetchOrder, fetchOrderTrades, fetchDeposit, fetchDeposits, fetchDepositAddress, fetchTransactionFees, fetchDepositWithdrawFees, parseDepositWithdrawFees, withdraw, parseTransaction, parseTransactionStatus, nonce, sign, handleErrors, publicGetAvailableBooks, publicGetCatalogues, publicGetTicker, publicGetOrderBook, publicGetTrades, publicGetOhlc, privateGetAccountStatus, privateGetBalance, privateGetFees, privateGetFundings, privateGetFundingsFid, privateGetFundingDestination, privateGetKycDocuments, privateGetLedger, privateGetLedgerTrades, privateGetLedgerFees, privateGetLedgerFundings, privateGetLedgerWithdrawals, privateGetMxBankCodes, privateGetOpenOrders, privateGetOrderTradesOid, privateGetOrdersOid, privateGetUserTrades, privateGetUserTradesTid, privateGetWithdrawals, privateGetWithdrawalsWid, privatePostBitcoinWithdrawal, privatePostDebitCardWithdrawal, privatePostEtherWithdrawal, privatePostOrders, privatePostPhoneNumber, privatePostPhoneVerification, privatePostPhoneWithdrawal, privatePostSpeiWithdrawal, privatePostRippleWithdrawal, privatePostBcashWithdrawal, privatePostLitecoinWithdrawal, privateDeleteOrders, privateDeleteOrdersOid, privateDeleteOrdersAll)
+    desc = inst.describe()
+    for (k, v) in desc
+        inst[Symbol(k)] = v
+    end
+    return inst
+end

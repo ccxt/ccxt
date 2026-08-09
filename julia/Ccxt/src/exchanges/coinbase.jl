@@ -1,0 +1,3497 @@
+@kwdef mutable struct Coinbase <: CcxtExchange
+    parent::Union{Exchange, Nothing} = Exchange()
+    describe::Function = describe
+    fetchTime::Function = fetchTime
+    fetchAccounts::Function = fetchAccounts
+    fetchAccountsV2::Function = fetchAccountsV2
+    fetchAccountsV3::Function = fetchAccountsV3
+    fetchPortfolios::Function = fetchPortfolios
+    parseAccount::Function = parseAccount
+    createDepositAddress::Function = createDepositAddress
+    fetchMySells::Function = fetchMySells
+    fetchMyBuys::Function = fetchMyBuys
+    fetchTransactionsWithMethod::Function = fetchTransactionsWithMethod
+    fetchWithdrawals::Function = fetchWithdrawals
+    fetchDeposits::Function = fetchDeposits
+    fetchDepositsWithdrawals::Function = fetchDepositsWithdrawals
+    parseTransactionStatus::Function = parseTransactionStatus
+    parseTransaction::Function = parseTransaction
+    parseTrade::Function = parseTrade
+    fetchMarkets::Function = fetchMarkets
+    fetchMarketsV2::Function = fetchMarketsV2
+    fetchMarketsV3::Function = fetchMarketsV3
+    parseSpotMarket::Function = parseSpotMarket
+    parseContractMarket::Function = parseContractMarket
+    fetchCurrenciesFromCache::Function = fetchCurrenciesFromCache
+    fetchCurrencies::Function = fetchCurrencies
+    fetchTickers::Function = fetchTickers
+    fetchTickersV2::Function = fetchTickersV2
+    fetchTickersV3::Function = fetchTickersV3
+    fetchTicker::Function = fetchTicker
+    fetchTickerV2::Function = fetchTickerV2
+    fetchTickerV3::Function = fetchTickerV3
+    parseTicker::Function = parseTicker
+    parseCustomBalance::Function = parseCustomBalance
+    fetchBalance::Function = fetchBalance
+    fetchLedger::Function = fetchLedger
+    parseLedgerEntryStatus::Function = parseLedgerEntryStatus
+    parseLedgerEntryType::Function = parseLedgerEntryType
+    parseLedgerEntry::Function = parseLedgerEntry
+    findAccountId::Function = findAccountId
+    prepareAccountRequest::Function = prepareAccountRequest
+    prepareAccountRequestWithCurrencyCode::Function = prepareAccountRequestWithCurrencyCode
+    createMarketBuyOrderWithCost::Function = createMarketBuyOrderWithCost
+    createOrder::Function = createOrder
+    parseOrder::Function = parseOrder
+    parseOrderStatus::Function = parseOrderStatus
+    parseOrderType::Function = parseOrderType
+    parseTimeInForce::Function = parseTimeInForce
+    cancelOrder::Function = cancelOrder
+    cancelOrders::Function = cancelOrders
+    editOrder::Function = editOrder
+    fetchOrder::Function = fetchOrder
+    fetchOrders::Function = fetchOrders
+    fetchOrdersByStatus::Function = fetchOrdersByStatus
+    fetchOpenOrders::Function = fetchOpenOrders
+    fetchClosedOrders::Function = fetchClosedOrders
+    fetchCanceledOrders::Function = fetchCanceledOrders
+    fetchOHLCV::Function = fetchOHLCV
+    parseOHLCV::Function = parseOHLCV
+    fetchTrades::Function = fetchTrades
+    fetchMyTrades::Function = fetchMyTrades
+    fetchOrderBook::Function = fetchOrderBook
+    fetchBidsAsks::Function = fetchBidsAsks
+    withdraw::Function = withdraw
+    fetchDepositAddressesByNetwork::Function = fetchDepositAddressesByNetwork
+    parseDepositAddress::Function = parseDepositAddress
+    deposit::Function = deposit
+    fetchDeposit::Function = fetchDeposit
+    fetchDepositMethodIds::Function = fetchDepositMethodIds
+    fetchDepositMethodId::Function = fetchDepositMethodId
+    parseDepositMethodIds::Function = parseDepositMethodIds
+    parseDepositMethodId::Function = parseDepositMethodId
+    fetchConvertQuote::Function = fetchConvertQuote
+    createConvertTrade::Function = createConvertTrade
+    fetchConvertTrade::Function = fetchConvertTrade
+    parseConversion::Function = parseConversion
+    closePosition::Function = closePosition
+    fetchPositions::Function = fetchPositions
+    fetchPosition::Function = fetchPosition
+    parsePosition::Function = parsePosition
+    fetchTradingFees::Function = fetchTradingFees
+    fetchPortfolioDetails::Function = fetchPortfolioDetails
+    parsePortfolioDetails::Function = parsePortfolioDetails
+    createAuthToken::Function = createAuthToken
+    nonce::Function = nonce
+    sign::Function = sign
+    handleErrors::Function = handleErrors
+    fetchDepositAddresses::Function = fetchDepositAddresses
+
+# Generated REST endpoint fields
+    v2PublicGetCurrencies::Function = v2PublicGetCurrencies
+    v2PublicGetCurrenciesCrypto::Function = v2PublicGetCurrenciesCrypto
+    v2PublicGetTime::Function = v2PublicGetTime
+    v2PublicGetExchangeRates::Function = v2PublicGetExchangeRates
+    v2PublicGetUsersUserId::Function = v2PublicGetUsersUserId
+    v2PublicGetPricesSymbolBuy::Function = v2PublicGetPricesSymbolBuy
+    v2PublicGetPricesSymbolSell::Function = v2PublicGetPricesSymbolSell
+    v2PublicGetPricesSymbolSpot::Function = v2PublicGetPricesSymbolSpot
+    v2PrivateGetAccounts::Function = v2PrivateGetAccounts
+    v2PrivateGetAccountsAccountId::Function = v2PrivateGetAccountsAccountId
+    v2PrivateGetAccountsAccountIdAddresses::Function = v2PrivateGetAccountsAccountIdAddresses
+    v2PrivateGetAccountsAccountIdAddressesAddressId::Function = v2PrivateGetAccountsAccountIdAddressesAddressId
+    v2PrivateGetAccountsAccountIdAddressesAddressIdTransactions::Function = v2PrivateGetAccountsAccountIdAddressesAddressIdTransactions
+    v2PrivateGetAccountsAccountIdTransactions::Function = v2PrivateGetAccountsAccountIdTransactions
+    v2PrivateGetAccountsAccountIdTransactionsTransactionId::Function = v2PrivateGetAccountsAccountIdTransactionsTransactionId
+    v2PrivateGetAccountsAccountIdBuys::Function = v2PrivateGetAccountsAccountIdBuys
+    v2PrivateGetAccountsAccountIdBuysBuyId::Function = v2PrivateGetAccountsAccountIdBuysBuyId
+    v2PrivateGetAccountsAccountIdSells::Function = v2PrivateGetAccountsAccountIdSells
+    v2PrivateGetAccountsAccountIdSellsSellId::Function = v2PrivateGetAccountsAccountIdSellsSellId
+    v2PrivateGetAccountsAccountIdDeposits::Function = v2PrivateGetAccountsAccountIdDeposits
+    v2PrivateGetAccountsAccountIdDepositsDepositId::Function = v2PrivateGetAccountsAccountIdDepositsDepositId
+    v2PrivateGetAccountsAccountIdWithdrawals::Function = v2PrivateGetAccountsAccountIdWithdrawals
+    v2PrivateGetAccountsAccountIdWithdrawalsWithdrawalId::Function = v2PrivateGetAccountsAccountIdWithdrawalsWithdrawalId
+    v2PrivateGetPaymentMethods::Function = v2PrivateGetPaymentMethods
+    v2PrivateGetPaymentMethodsPaymentMethodId::Function = v2PrivateGetPaymentMethodsPaymentMethodId
+    v2PrivateGetUser::Function = v2PrivateGetUser
+    v2PrivateGetUserAuth::Function = v2PrivateGetUserAuth
+    v2PrivatePostAccounts::Function = v2PrivatePostAccounts
+    v2PrivatePostAccountsAccountIdPrimary::Function = v2PrivatePostAccountsAccountIdPrimary
+    v2PrivatePostAccountsAccountIdAddresses::Function = v2PrivatePostAccountsAccountIdAddresses
+    v2PrivatePostAccountsAccountIdTransactions::Function = v2PrivatePostAccountsAccountIdTransactions
+    v2PrivatePostAccountsAccountIdTransactionsTransactionIdComplete::Function = v2PrivatePostAccountsAccountIdTransactionsTransactionIdComplete
+    v2PrivatePostAccountsAccountIdTransactionsTransactionIdResend::Function = v2PrivatePostAccountsAccountIdTransactionsTransactionIdResend
+    v2PrivatePostAccountsAccountIdBuys::Function = v2PrivatePostAccountsAccountIdBuys
+    v2PrivatePostAccountsAccountIdBuysBuyIdCommit::Function = v2PrivatePostAccountsAccountIdBuysBuyIdCommit
+    v2PrivatePostAccountsAccountIdSells::Function = v2PrivatePostAccountsAccountIdSells
+    v2PrivatePostAccountsAccountIdSellsSellIdCommit::Function = v2PrivatePostAccountsAccountIdSellsSellIdCommit
+    v2PrivatePostAccountsAccountIdDeposits::Function = v2PrivatePostAccountsAccountIdDeposits
+    v2PrivatePostAccountsAccountIdDepositsDepositIdCommit::Function = v2PrivatePostAccountsAccountIdDepositsDepositIdCommit
+    v2PrivatePostAccountsAccountIdWithdrawals::Function = v2PrivatePostAccountsAccountIdWithdrawals
+    v2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit::Function = v2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit
+    v2PrivatePutAccountsAccountId::Function = v2PrivatePutAccountsAccountId
+    v2PrivatePutUser::Function = v2PrivatePutUser
+    v2PrivateDeleteAccountsId::Function = v2PrivateDeleteAccountsId
+    v2PrivateDeleteAccountsAccountIdTransactionsTransactionId::Function = v2PrivateDeleteAccountsAccountIdTransactionsTransactionId
+    v3PublicGetBrokerageTime::Function = v3PublicGetBrokerageTime
+    v3PublicGetBrokerageMarketProductBook::Function = v3PublicGetBrokerageMarketProductBook
+    v3PublicGetBrokerageMarketProducts::Function = v3PublicGetBrokerageMarketProducts
+    v3PublicGetBrokerageMarketProductsProductId::Function = v3PublicGetBrokerageMarketProductsProductId
+    v3PublicGetBrokerageMarketProductsProductIdCandles::Function = v3PublicGetBrokerageMarketProductsProductIdCandles
+    v3PublicGetBrokerageMarketProductsProductIdTicker::Function = v3PublicGetBrokerageMarketProductsProductIdTicker
+    v3PrivateGetBrokerageAccounts::Function = v3PrivateGetBrokerageAccounts
+    v3PrivateGetBrokerageAccountsAccountUuid::Function = v3PrivateGetBrokerageAccountsAccountUuid
+    v3PrivateGetBrokerageOrdersHistoricalBatch::Function = v3PrivateGetBrokerageOrdersHistoricalBatch
+    v3PrivateGetBrokerageOrdersHistoricalFills::Function = v3PrivateGetBrokerageOrdersHistoricalFills
+    v3PrivateGetBrokerageOrdersHistoricalOrderId::Function = v3PrivateGetBrokerageOrdersHistoricalOrderId
+    v3PrivateGetBrokerageProducts::Function = v3PrivateGetBrokerageProducts
+    v3PrivateGetBrokerageProductsProductId::Function = v3PrivateGetBrokerageProductsProductId
+    v3PrivateGetBrokerageProductsProductIdCandles::Function = v3PrivateGetBrokerageProductsProductIdCandles
+    v3PrivateGetBrokerageProductsProductIdTicker::Function = v3PrivateGetBrokerageProductsProductIdTicker
+    v3PrivateGetBrokerageBestBidAsk::Function = v3PrivateGetBrokerageBestBidAsk
+    v3PrivateGetBrokerageProductBook::Function = v3PrivateGetBrokerageProductBook
+    v3PrivateGetBrokerageTransactionSummary::Function = v3PrivateGetBrokerageTransactionSummary
+    v3PrivateGetBrokeragePortfolios::Function = v3PrivateGetBrokeragePortfolios
+    v3PrivateGetBrokeragePortfoliosPortfolioUuid::Function = v3PrivateGetBrokeragePortfoliosPortfolioUuid
+    v3PrivateGetBrokerageConvertTradeTradeId::Function = v3PrivateGetBrokerageConvertTradeTradeId
+    v3PrivateGetBrokerageCfmBalanceSummary::Function = v3PrivateGetBrokerageCfmBalanceSummary
+    v3PrivateGetBrokerageCfmPositions::Function = v3PrivateGetBrokerageCfmPositions
+    v3PrivateGetBrokerageCfmPositionsProductId::Function = v3PrivateGetBrokerageCfmPositionsProductId
+    v3PrivateGetBrokerageCfmSweeps::Function = v3PrivateGetBrokerageCfmSweeps
+    v3PrivateGetBrokerageIntxPortfolioPortfolioUuid::Function = v3PrivateGetBrokerageIntxPortfolioPortfolioUuid
+    v3PrivateGetBrokerageIntxPositionsPortfolioUuid::Function = v3PrivateGetBrokerageIntxPositionsPortfolioUuid
+    v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol::Function = v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol
+    v3PrivateGetBrokeragePaymentMethods::Function = v3PrivateGetBrokeragePaymentMethods
+    v3PrivateGetBrokeragePaymentMethodsPaymentMethodId::Function = v3PrivateGetBrokeragePaymentMethodsPaymentMethodId
+    v3PrivateGetBrokerageKeyPermissions::Function = v3PrivateGetBrokerageKeyPermissions
+    v3PrivatePostBrokerageOrders::Function = v3PrivatePostBrokerageOrders
+    v3PrivatePostBrokerageOrdersBatchCancel::Function = v3PrivatePostBrokerageOrdersBatchCancel
+    v3PrivatePostBrokerageOrdersEdit::Function = v3PrivatePostBrokerageOrdersEdit
+    v3PrivatePostBrokerageOrdersEditPreview::Function = v3PrivatePostBrokerageOrdersEditPreview
+    v3PrivatePostBrokerageOrdersPreview::Function = v3PrivatePostBrokerageOrdersPreview
+    v3PrivatePostBrokeragePortfolios::Function = v3PrivatePostBrokeragePortfolios
+    v3PrivatePostBrokeragePortfoliosMoveFunds::Function = v3PrivatePostBrokeragePortfoliosMoveFunds
+    v3PrivatePostBrokerageConvertQuote::Function = v3PrivatePostBrokerageConvertQuote
+    v3PrivatePostBrokerageConvertTradeTradeId::Function = v3PrivatePostBrokerageConvertTradeTradeId
+    v3PrivatePostBrokerageCfmSweepsSchedule::Function = v3PrivatePostBrokerageCfmSweepsSchedule
+    v3PrivatePostBrokerageIntxAllocate::Function = v3PrivatePostBrokerageIntxAllocate
+    v3PrivatePostBrokerageOrdersClosePosition::Function = v3PrivatePostBrokerageOrdersClosePosition
+    v3PrivatePutBrokeragePortfoliosPortfolioUuid::Function = v3PrivatePutBrokeragePortfoliosPortfolioUuid
+    v3PrivateDeleteBrokeragePortfoliosPortfolioUuid::Function = v3PrivateDeleteBrokeragePortfoliosPortfolioUuid
+    v3PrivateDeleteBrokerageCfmSweeps::Function = v3PrivateDeleteBrokerageCfmSweeps
+
+end
+function describe(self::Coinbase, )
+    return deepExtend(describe(self.parent), Dict{Symbol, Any}(
+    Symbol("id") => "coinbase",
+    Symbol("name") => "Coinbase Advanced",
+    Symbol("countries") => ["US"],
+    Symbol("pro") => true,
+    Symbol("certified") => false,
+    Symbol("rateLimit") => 34,
+    Symbol("version") => "v2",
+    Symbol("userAgent") => get(self.userAgents, Symbol("chrome"), nothing),
+    Symbol("headers") => Dict{Symbol, Any}(
+        Symbol("CB-VERSION") => "2018-05-30"
+    ),
+    Symbol("has") => Dict{Symbol, Any}(
+        Symbol("CORS") => true,
+        Symbol("spot") => true,
+        Symbol("margin") => false,
+        Symbol("swap") => false,
+        Symbol("future") => false,
+        Symbol("option") => false,
+        Symbol("addMargin") => false,
+        Symbol("borrowCrossMargin") => false,
+        Symbol("borrowIsolatedMargin") => false,
+        Symbol("borrowMargin") => false,
+        Symbol("cancelOrder") => true,
+        Symbol("cancelOrders") => true,
+        Symbol("closeAllPositions") => false,
+        Symbol("closePosition") => true,
+        Symbol("createConvertTrade") => true,
+        Symbol("createDepositAddress") => true,
+        Symbol("createLimitBuyOrder") => true,
+        Symbol("createLimitSellOrder") => true,
+        Symbol("createMarketBuyOrder") => true,
+        Symbol("createMarketBuyOrderWithCost") => true,
+        Symbol("createMarketOrderWithCost") => false,
+        Symbol("createMarketSellOrder") => true,
+        Symbol("createMarketSellOrderWithCost") => false,
+        Symbol("createOrder") => true,
+        Symbol("createOrderWithTakeProfitAndStopLoss") => false,
+        Symbol("createOrderWithTakeProfitAndStopLossWs") => false,
+        Symbol("createPostOnlyOrder") => true,
+        Symbol("createReduceOnlyOrder") => false,
+        Symbol("createStopLimitOrder") => true,
+        Symbol("createStopMarketOrder") => false,
+        Symbol("createStopOrder") => true,
+        Symbol("deposit") => true,
+        Symbol("editOrder") => true,
+        Symbol("fetchAccounts") => true,
+        Symbol("fetchBalance") => true,
+        Symbol("fetchBidsAsks") => true,
+        Symbol("fetchBorrowInterest") => false,
+        Symbol("fetchBorrowRate") => false,
+        Symbol("fetchBorrowRateHistories") => false,
+        Symbol("fetchBorrowRateHistory") => false,
+        Symbol("fetchBorrowRates") => false,
+        Symbol("fetchBorrowRatesPerSymbol") => false,
+        Symbol("fetchCanceledOrders") => true,
+        Symbol("fetchClosedOrders") => true,
+        Symbol("fetchConvertQuote") => true,
+        Symbol("fetchConvertTrade") => true,
+        Symbol("fetchConvertTradeHistory") => false,
+        Symbol("fetchCrossBorrowRate") => false,
+        Symbol("fetchCrossBorrowRates") => false,
+        Symbol("fetchCurrencies") => true,
+        Symbol("fetchDeposit") => true,
+        Symbol("fetchDepositAddress") => "emulated",
+        Symbol("fetchDepositAddresses") => true,
+        Symbol("fetchDepositAddressesByNetwork") => true,
+        Symbol("fetchDepositMethodId") => true,
+        Symbol("fetchDepositMethodIds") => true,
+        Symbol("fetchDeposits") => true,
+        Symbol("fetchDepositsWithdrawals") => true,
+        Symbol("fetchFundingHistory") => false,
+        Symbol("fetchFundingInterval") => false,
+        Symbol("fetchFundingIntervals") => false,
+        Symbol("fetchFundingRate") => false,
+        Symbol("fetchFundingRateHistory") => false,
+        Symbol("fetchFundingRates") => false,
+        Symbol("fetchGreeks") => false,
+        Symbol("fetchIndexOHLCV") => false,
+        Symbol("fetchIsolatedBorrowRate") => false,
+        Symbol("fetchIsolatedBorrowRates") => false,
+        Symbol("fetchIsolatedPositions") => false,
+        Symbol("fetchL2OrderBook") => false,
+        Symbol("fetchLedger") => true,
+        Symbol("fetchLeverage") => false,
+        Symbol("fetchLeverages") => false,
+        Symbol("fetchLeverageTiers") => false,
+        Symbol("fetchLiquidations") => false,
+        Symbol("fetchLongShortRatio") => false,
+        Symbol("fetchLongShortRatioHistory") => false,
+        Symbol("fetchMarginAdjustmentHistory") => false,
+        Symbol("fetchMarginMode") => false,
+        Symbol("fetchMarginModes") => false,
+        Symbol("fetchMarketLeverageTiers") => false,
+        Symbol("fetchMarkets") => true,
+        Symbol("fetchMarkOHLCV") => false,
+        Symbol("fetchMarkPrices") => false,
+        Symbol("fetchMyBuys") => true,
+        Symbol("fetchMyLiquidations") => false,
+        Symbol("fetchMySells") => true,
+        Symbol("fetchMySettlementHistory") => false,
+        Symbol("fetchMyTrades") => true,
+        Symbol("fetchOHLCV") => true,
+        Symbol("fetchOpenInterest") => false,
+        Symbol("fetchOpenInterestHistory") => false,
+        Symbol("fetchOpenInterests") => false,
+        Symbol("fetchOpenOrders") => true,
+        Symbol("fetchOption") => false,
+        Symbol("fetchOptionChain") => false,
+        Symbol("fetchOrder") => true,
+        Symbol("fetchOrderBook") => true,
+        Symbol("fetchOrders") => true,
+        Symbol("fetchPosition") => true,
+        Symbol("fetchPositionHistory") => false,
+        Symbol("fetchPositionMode") => false,
+        Symbol("fetchPositions") => true,
+        Symbol("fetchPositionsForSymbol") => false,
+        Symbol("fetchPositionsHistory") => false,
+        Symbol("fetchPositionsRisk") => false,
+        Symbol("fetchPremiumIndexOHLCV") => false,
+        Symbol("fetchSettlementHistory") => false,
+        Symbol("fetchTicker") => true,
+        Symbol("fetchTickers") => true,
+        Symbol("fetchTime") => true,
+        Symbol("fetchTrades") => true,
+        Symbol("fetchTradingFee") => "emulated",
+        Symbol("fetchTradingFees") => true,
+        Symbol("fetchVolatilityHistory") => false,
+        Symbol("fetchWithdrawals") => true,
+        Symbol("reduceMargin") => false,
+        Symbol("repayCrossMargin") => false,
+        Symbol("repayIsolatedMargin") => false,
+        Symbol("repayMargin") => false,
+        Symbol("setLeverage") => false,
+        Symbol("setMargin") => false,
+        Symbol("setMarginMode") => false,
+        Symbol("setPositionMode") => false,
+        Symbol("withdraw") => true
+    ),
+    Symbol("urls") => Dict{Symbol, Any}(
+        Symbol("logo") => "https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg",
+        Symbol("api") => Dict{Symbol, Any}(
+            Symbol("rest") => "https://api.coinbase.com"
+        ),
+        Symbol("www") => "https://www.coinbase.com",
+        Symbol("doc") => ["https://docs.cdp.coinbase.com/coinbase-app/introduction/welcome", "https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/api-reference"],
+        Symbol("fees") => ["https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees", "https://www.coinbase.com/advanced-fees"],
+        Symbol("referral") => "https://www.coinbase.com/join/58cbe25a355148797479dbd2"
+    ),
+    Symbol("requiredCredentials") => Dict{Symbol, Any}(
+        Symbol("apiKey") => true,
+        Symbol("secret") => true
+    ),
+    Symbol("api") => Dict{Symbol, Any}(
+        Symbol("v2") => Dict{Symbol, Any}(
+            Symbol("public") => Dict{Symbol, Any}(
+                Symbol("get") => Dict{Symbol, Any}(
+                    Symbol("currencies") => 10.6,
+                    Symbol("currencies/crypto") => 10.6,
+                    Symbol("time") => 10.6,
+                    Symbol("exchange-rates") => 10.6,
+                    Symbol("users/{user_id}") => 10.6,
+                    Symbol("prices/{symbol}/buy") => 10.6,
+                    Symbol("prices/{symbol}/sell") => 10.6,
+                    Symbol("prices/{symbol}/spot") => 10.6
+                )
+            ),
+            Symbol("private") => Dict{Symbol, Any}(
+                Symbol("get") => Dict{Symbol, Any}(
+                    Symbol("accounts") => 10.6,
+                    Symbol("accounts/{account_id}") => 10.6,
+                    Symbol("accounts/{account_id}/addresses") => 10.6,
+                    Symbol("accounts/{account_id}/addresses/{address_id}") => 10.6,
+                    Symbol("accounts/{account_id}/addresses/{address_id}/transactions") => 10.6,
+                    Symbol("accounts/{account_id}/transactions") => 10.6,
+                    Symbol("accounts/{account_id}/transactions/{transaction_id}") => 10.6,
+                    Symbol("accounts/{account_id}/buys") => 10.6,
+                    Symbol("accounts/{account_id}/buys/{buy_id}") => 10.6,
+                    Symbol("accounts/{account_id}/sells") => 10.6,
+                    Symbol("accounts/{account_id}/sells/{sell_id}") => 10.6,
+                    Symbol("accounts/{account_id}/deposits") => 10.6,
+                    Symbol("accounts/{account_id}/deposits/{deposit_id}") => 10.6,
+                    Symbol("accounts/{account_id}/withdrawals") => 10.6,
+                    Symbol("accounts/{account_id}/withdrawals/{withdrawal_id}") => 10.6,
+                    Symbol("payment-methods") => 10.6,
+                    Symbol("payment-methods/{payment_method_id}") => 10.6,
+                    Symbol("user") => 10.6,
+                    Symbol("user/auth") => 10.6
+                ),
+                Symbol("post") => Dict{Symbol, Any}(
+                    Symbol("accounts") => 10.6,
+                    Symbol("accounts/{account_id}/primary") => 10.6,
+                    Symbol("accounts/{account_id}/addresses") => 10.6,
+                    Symbol("accounts/{account_id}/transactions") => 10.6,
+                    Symbol("accounts/{account_id}/transactions/{transaction_id}/complete") => 10.6,
+                    Symbol("accounts/{account_id}/transactions/{transaction_id}/resend") => 10.6,
+                    Symbol("accounts/{account_id}/buys") => 10.6,
+                    Symbol("accounts/{account_id}/buys/{buy_id}/commit") => 10.6,
+                    Symbol("accounts/{account_id}/sells") => 10.6,
+                    Symbol("accounts/{account_id}/sells/{sell_id}/commit") => 10.6,
+                    Symbol("accounts/{account_id}/deposits") => 10.6,
+                    Symbol("accounts/{account_id}/deposits/{deposit_id}/commit") => 10.6,
+                    Symbol("accounts/{account_id}/withdrawals") => 10.6,
+                    Symbol("accounts/{account_id}/withdrawals/{withdrawal_id}/commit") => 10.6
+                ),
+                Symbol("put") => Dict{Symbol, Any}(
+                    Symbol("accounts/{account_id}") => 10.6,
+                    Symbol("user") => 10.6
+                ),
+                Symbol("delete") => Dict{Symbol, Any}(
+                    Symbol("accounts/{id}") => 10.6,
+                    Symbol("accounts/{account_id}/transactions/{transaction_id}") => 10.6
+                )
+            )
+        ),
+        Symbol("v3") => Dict{Symbol, Any}(
+            Symbol("public") => Dict{Symbol, Any}(
+                Symbol("get") => Dict{Symbol, Any}(
+                    Symbol("brokerage/time") => 3,
+                    Symbol("brokerage/market/product_book") => 3,
+                    Symbol("brokerage/market/products") => 3,
+                    Symbol("brokerage/market/products/{product_id}") => 3,
+                    Symbol("brokerage/market/products/{product_id}/candles") => 3,
+                    Symbol("brokerage/market/products/{product_id}/ticker") => 3
+                )
+            ),
+            Symbol("private") => Dict{Symbol, Any}(
+                Symbol("get") => Dict{Symbol, Any}(
+                    Symbol("brokerage/accounts") => 1,
+                    Symbol("brokerage/accounts/{account_uuid}") => 1,
+                    Symbol("brokerage/orders/historical/batch") => 1,
+                    Symbol("brokerage/orders/historical/fills") => 1,
+                    Symbol("brokerage/orders/historical/{order_id}") => 1,
+                    Symbol("brokerage/products") => 3,
+                    Symbol("brokerage/products/{product_id}") => 3,
+                    Symbol("brokerage/products/{product_id}/candles") => 3,
+                    Symbol("brokerage/products/{product_id}/ticker") => 3,
+                    Symbol("brokerage/best_bid_ask") => 3,
+                    Symbol("brokerage/product_book") => 3,
+                    Symbol("brokerage/transaction_summary") => 3,
+                    Symbol("brokerage/portfolios") => 1,
+                    Symbol("brokerage/portfolios/{portfolio_uuid}") => 1,
+                    Symbol("brokerage/convert/trade/{trade_id}") => 1,
+                    Symbol("brokerage/cfm/balance_summary") => 1,
+                    Symbol("brokerage/cfm/positions") => 1,
+                    Symbol("brokerage/cfm/positions/{product_id}") => 1,
+                    Symbol("brokerage/cfm/sweeps") => 1,
+                    Symbol("brokerage/intx/portfolio/{portfolio_uuid}") => 1,
+                    Symbol("brokerage/intx/positions/{portfolio_uuid}") => 1,
+                    Symbol("brokerage/intx/positions/{portfolio_uuid}/{symbol}") => 1,
+                    Symbol("brokerage/payment_methods") => 1,
+                    Symbol("brokerage/payment_methods/{payment_method_id}") => 1,
+                    Symbol("brokerage/key_permissions") => 1
+                ),
+                Symbol("post") => Dict{Symbol, Any}(
+                    Symbol("brokerage/orders") => 1,
+                    Symbol("brokerage/orders/batch_cancel") => 1,
+                    Symbol("brokerage/orders/edit") => 1,
+                    Symbol("brokerage/orders/edit_preview") => 1,
+                    Symbol("brokerage/orders/preview") => 1,
+                    Symbol("brokerage/portfolios") => 1,
+                    Symbol("brokerage/portfolios/move_funds") => 1,
+                    Symbol("brokerage/convert/quote") => 1,
+                    Symbol("brokerage/convert/trade/{trade_id}") => 1,
+                    Symbol("brokerage/cfm/sweeps/schedule") => 1,
+                    Symbol("brokerage/intx/allocate") => 1,
+                    Symbol("brokerage/orders/close_position") => 1
+                ),
+                Symbol("put") => Dict{Symbol, Any}(
+                    Symbol("brokerage/portfolios/{portfolio_uuid}") => 1
+                ),
+                Symbol("delete") => Dict{Symbol, Any}(
+                    Symbol("brokerage/portfolios/{portfolio_uuid}") => 1,
+                    Symbol("brokerage/cfm/sweeps") => 1
+                )
+            )
+        )
+    ),
+    Symbol("fees") => Dict{Symbol, Any}(
+        Symbol("trading") => Dict{Symbol, Any}(
+            Symbol("taker") => self.parseNumber("0.012"),
+            Symbol("maker") => self.parseNumber("0.006"),
+            Symbol("tierBased") => true,
+            Symbol("percentage") => true,
+            Symbol("tiers") => Dict{Symbol, Any}(
+                Symbol("taker") => [[self.parseNumber("0"), self.parseNumber("0.006")], [self.parseNumber("10000"), self.parseNumber("0.004")], [self.parseNumber("50000"), self.parseNumber("0.0025")], [self.parseNumber("100000"), self.parseNumber("0.002")], [self.parseNumber("1000000"), self.parseNumber("0.0018")], [self.parseNumber("15000000"), self.parseNumber("0.0016")], [self.parseNumber("75000000"), self.parseNumber("0.0012")], [self.parseNumber("250000000"), self.parseNumber("0.0008")], [self.parseNumber("400000000"), self.parseNumber("0.0005")]],
+                Symbol("maker") => [[self.parseNumber("0"), self.parseNumber("0.004")], [self.parseNumber("10000"), self.parseNumber("0.0025")], [self.parseNumber("50000"), self.parseNumber("0.0015")], [self.parseNumber("100000"), self.parseNumber("0.001")], [self.parseNumber("1000000"), self.parseNumber("0.0008")], [self.parseNumber("15000000"), self.parseNumber("0.0006")], [self.parseNumber("75000000"), self.parseNumber("0.0003")], [self.parseNumber("250000000"), self.parseNumber("0.0")], [self.parseNumber("400000000"), self.parseNumber("0.0")]]
+            )
+        )
+    ),
+    Symbol("precisionMode") => TICK_SIZE,
+    Symbol("exceptions") => Dict{Symbol, Any}(
+        Symbol("exact") => Dict{Symbol, Any}(
+            Symbol("two_factor_required") => AuthenticationError,
+            Symbol("param_required") => ExchangeError,
+            Symbol("validation_error") => ExchangeError,
+            Symbol("invalid_request") => ExchangeError,
+            Symbol("personal_details_required") => AuthenticationError,
+            Symbol("identity_verification_required") => AuthenticationError,
+            Symbol("jumio_verification_required") => AuthenticationError,
+            Symbol("jumio_face_match_verification_required") => AuthenticationError,
+            Symbol("unverified_email") => AuthenticationError,
+            Symbol("authentication_error") => AuthenticationError,
+            Symbol("unauthorized") => AuthenticationError,
+            Symbol("invalid_authentication_method") => AuthenticationError,
+            Symbol("invalid_token") => AuthenticationError,
+            Symbol("revoked_token") => AuthenticationError,
+            Symbol("expired_token") => AuthenticationError,
+            Symbol("invalid_scope") => AuthenticationError,
+            Symbol("not_found") => ExchangeError,
+            Symbol("rate_limit_exceeded") => RateLimitExceeded,
+            Symbol("resource_exhausted") => RateLimitExceeded,
+            Symbol("internal_server_error") => ExchangeError,
+            Symbol("UNSUPPORTED_ORDER_CONFIGURATION") => BadRequest,
+            Symbol("INSUFFICIENT_FUND") => InsufficientFunds,
+            Symbol("PERMISSION_DENIED") => PermissionDenied,
+            Symbol("INVALID_ARGUMENT") => BadRequest,
+            Symbol("PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE") => InvalidOrder,
+            Symbol("PREVIEW_INSUFFICIENT_FUND") => InsufficientFunds
+        ),
+        Symbol("broad") => Dict{Symbol, Any}(
+            Symbol("Insufficient balance in source account") => InsufficientFunds,
+            Symbol("request timestamp expired") => InvalidNonce,
+            Symbol("order with this orderID was not found") => OrderNotFound
+        )
+    ),
+    Symbol("timeframes") => Dict{Symbol, Any}(
+        Symbol("1m") => "ONE_MINUTE",
+        Symbol("5m") => "FIVE_MINUTE",
+        Symbol("15m") => "FIFTEEN_MINUTE",
+        Symbol("30m") => "THIRTY_MINUTE",
+        Symbol("1h") => "ONE_HOUR",
+        Symbol("2h") => "TWO_HOUR",
+        Symbol("6h") => "SIX_HOUR",
+        Symbol("1d") => "ONE_DAY"
+    ),
+    Symbol("commonCurrencies") => Dict{Symbol, Any}(
+        Symbol("CGLD") => "CELO"
+    ),
+    Symbol("options") => Dict{Symbol, Any}(
+        Symbol("mica") => true,
+        Symbol("usePrivate") => false,
+        Symbol("brokerId") => "ccxt",
+        Symbol("stablePairs") => ["BUSD-USD", "CBETH-ETH", "DAI-USD", "GUSD-USD", "GYEN-USD", "PAX-USD", "PAX-USDT", "USDC-EUR", "USDC-GBP", "USDT-EUR", "USDT-GBP", "USDT-USD", "USDT-USDC", "WBTC-BTC"],
+        Symbol("fetchCurrencies") => Dict{Symbol, Any}(
+            Symbol("expires") => 5000
+        ),
+        Symbol("accounts") => ["wallet", "fiat"],
+        Symbol("v3Accounts") => ["ACCOUNT_TYPE_CRYPTO", "ACCOUNT_TYPE_FIAT"],
+        Symbol("networks") => Dict{Symbol, Any}(
+            Symbol("ERC20") => "ethereum",
+            Symbol("XLM") => "stellar"
+        ),
+        Symbol("createMarketBuyOrderRequiresPrice") => true,
+        Symbol("advanced") => true,
+        Symbol("fetchMarkets") => "fetchMarketsV3",
+        Symbol("timeDifference") => 0,
+        Symbol("adjustForTimeDifference") => false,
+        Symbol("fetchTicker") => "fetchTickerV3",
+        Symbol("fetchTickers") => "fetchTickersV3",
+        Symbol("fetchAccounts") => "fetchAccountsV3",
+        Symbol("fetchBalance") => "v2PrivateGetAccounts",
+        Symbol("fetchTime") => "v2PublicGetTime",
+        Symbol("user_native_currency") => "USD"
+    ),
+    Symbol("features") => Dict{Symbol, Any}(
+        Symbol("default") => Dict{Symbol, Any}(
+            Symbol("sandbox") => false,
+            Symbol("createOrder") => Dict{Symbol, Any}(
+                Symbol("marginMode") => true,
+                Symbol("triggerPrice") => true,
+                Symbol("triggerPriceType") => nothing,
+                Symbol("triggerDirection") => true,
+                Symbol("stopLossPrice") => true,
+                Symbol("takeProfitPrice") => true,
+                Symbol("attachedStopLossTakeProfit") => nothing,
+                Symbol("timeInForce") => Dict{Symbol, Any}(
+                    Symbol("IOC") => true,
+                    Symbol("FOK") => true,
+                    Symbol("PO") => true,
+                    Symbol("GTD") => true
+                ),
+                Symbol("hedged") => false,
+                Symbol("trailing") => false,
+                Symbol("leverage") => true,
+                Symbol("marketBuyByCost") => true,
+                Symbol("marketBuyRequiresPrice") => true,
+                Symbol("selfTradePrevention") => false,
+                Symbol("iceberg") => false
+            ),
+            Symbol("createOrders") => nothing,
+            Symbol("fetchMyTrades") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("limit") => 3000,
+                Symbol("daysBack") => nothing,
+                Symbol("untilDays") => 10000,
+                Symbol("symbolRequired") => false
+            ),
+            Symbol("fetchOrder") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("trigger") => false,
+                Symbol("trailing") => false,
+                Symbol("symbolRequired") => false
+            ),
+            Symbol("fetchOpenOrders") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("limit") => nothing,
+                Symbol("trigger") => false,
+                Symbol("trailing") => false,
+                Symbol("symbolRequired") => false
+            ),
+            Symbol("fetchOrders") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("limit") => nothing,
+                Symbol("daysBack") => nothing,
+                Symbol("untilDays") => 10000,
+                Symbol("trigger") => false,
+                Symbol("trailing") => false,
+                Symbol("symbolRequired") => false
+            ),
+            Symbol("fetchClosedOrders") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("limit") => nothing,
+                Symbol("daysBack") => nothing,
+                Symbol("daysBackCanceled") => nothing,
+                Symbol("untilDays") => 10000,
+                Symbol("trigger") => false,
+                Symbol("trailing") => false,
+                Symbol("symbolRequired") => false
+            ),
+            Symbol("fetchOHLCV") => Dict{Symbol, Any}(
+                Symbol("limit") => 300
+            )
+        ),
+        Symbol("spot") => Dict{Symbol, Any}(
+            Symbol("extends") => "default"
+        ),
+        Symbol("swap") => Dict{Symbol, Any}(
+            Symbol("linear") => Dict{Symbol, Any}(
+                Symbol("extends") => "default"
+            ),
+            Symbol("inverse") => nothing
+        ),
+        Symbol("future") => Dict{Symbol, Any}(
+            Symbol("linear") => Dict{Symbol, Any}(
+                Symbol("extends") => "default"
+            ),
+            Symbol("inverse") => nothing
+        )
+    )
+))
+
+end
+function fetchTime(self::Coinbase, params=Dict())
+    defaultMethod = safeString(self.options, "fetchTime", "v2PublicGetTime");
+    method = safeString(params, "method", defaultMethod);
+    params = omit(params, "method");
+    response = nothing;
+    if functions.ccxtruthy(method == "v2PublicGetTime")
+        response = self.v2PublicGetTime(params);
+        response = self.safeDict(response, "data", Dict{Symbol, Any}());
+    else
+        response = self.v3PublicGetBrokerageTime(params);
+    end
+    return safeTimestamp2(response, "epoch", "epochSeconds")
+
+end
+function fetchAccounts(self::Coinbase, params=Dict())
+    method = safeString(self.options, "fetchAccounts", "fetchAccountsV3");
+    if functions.ccxtruthy(method == "fetchAccountsV3")
+            return self.fetchAccountsV3(params)
+    end
+    return self.fetchAccountsV2(params)
+
+end
+function fetchAccountsV2(self::Coinbase, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    paginate = false;
+    (paginate, params) = self.handleOptionAndParams(params, "fetchAccounts", "paginate");
+    if functions.ccxtruthy(paginate)
+            return self.fetchPaginatedCallCursor("fetchAccounts", nothing, nothing, nothing, params, "next_starting_after", "starting_after", nothing, 100)
+    end
+    request = Dict{Symbol, Any}(
+        Symbol("limit") => 100
+    );
+    response = self.v2PrivateGetAccounts(extend(request, params));
+    data = self.safeList(response, "data", []);
+    pagination = self.safeDict(response, "pagination", Dict{Symbol, Any}());
+    cursor = safeString(pagination, "next_starting_after");
+    accounts = self.safeList(response, "data", []);
+    len = length(accounts);
+    lastIndex = len - 1;
+    last_var = self.safeDict(accounts, lastIndex, Dict{Symbol, Any}());
+    if functions.ccxtruthy(@functions.ccxt_and((cursor != nothing), (cursor != "")))
+        last_var[Symbol("next_starting_after")] = cursor;
+        accounts[lastIndex + 1] = last_var;
+    end
+    return self.parseAccounts(data, params)
+
+end
+function fetchAccountsV3(self::Coinbase, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    paginate = false;
+    (paginate, params) = self.handleOptionAndParams(params, "fetchAccounts", "paginate");
+    if functions.ccxtruthy(paginate)
+            return self.fetchPaginatedCallCursor("fetchAccounts", nothing, nothing, nothing, params, "cursor", "cursor", nothing, 250)
+    end
+    request = Dict{Symbol, Any}(
+        Symbol("limit") => 250
+    );
+    response = self.v3PrivateGetBrokerageAccounts(extend(request, params));
+    accounts = self.safeList(response, "accounts", []);
+    accountsLength = length(accounts);
+    cursor = safeString(response, "cursor");
+    if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and((functions.ccxt_gt(accountsLength, 0)), (cursor != nothing)), (cursor != "")))
+        lastIndex = accountsLength - 1;
+        last_var = self.safeDict(accounts, lastIndex, Dict{Symbol, Any}());
+        last_var[Symbol("cursor")] = cursor;
+        accounts[lastIndex + 1] = last_var;
+    end
+    return self.parseAccounts(accounts, params)
+
+end
+function fetchPortfolios(self::Coinbase, params=Dict())
+    response = self.v3PrivateGetBrokeragePortfolios(params);
+    portfolios = self.safeList(response, "portfolios", []);
+    result = [];
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(portfolios)))
+        portfolio = get(portfolios, i + 1, nothing);
+        push!(result, Dict{Symbol, Any}(
+    Symbol("id") => safeString(portfolio, "uuid"),
+    Symbol("type") => safeString(portfolio, "type"),
+    Symbol("code") => nothing,
+    Symbol("info") => portfolio
+));
+        i += 1
+    end
+    return result
+
+end
+function parseAccount(self::Coinbase, account)
+    active = self.safeBool(account, "active");
+    currencyIdV3 = safeString(account, "currency");
+    currency = self.safeDict(account, "currency", Dict{Symbol, Any}());
+    currencyId = safeString(currency, "code", currencyIdV3);
+    typeV3 = safeString(account, "name");
+    typeV2 = safeString(account, "type");
+    parts = split(typeV3, " ");
+    return Dict{Symbol, Any}(
+    Symbol("id") => safeString2(account, "id", "uuid"),
+    Symbol("type") => functions.ccxtruthy((active != nothing)) ? safeStringLower(parts, 1) : typeV2,
+    Symbol("code") => self.safeCurrencyCode(currencyId),
+    Symbol("info") => account
+)
+
+end
+function createDepositAddress(self::Coinbase, code, params=Dict())
+    accountId = safeString(params, "account_id");
+    params = omit(params, "account_id");
+    if functions.ccxtruthy(accountId == nothing)
+        self.loadAccounts();
+        i = 0
+        while functions.ccxtruthy(functions.ccxt_lt(i, length(self.accounts)))
+            account = get(self.accounts, i + 1, nothing);
+            if functions.ccxtruthy(@functions.ccxt_and(get(account, Symbol("code"), nothing) == code, get(account, Symbol("type"), nothing) == "wallet"))
+                accountId = get(account, Symbol("id"), nothing);
+                break
+            end
+            i += 1
+        end
+
+    end
+    if functions.ccxtruthy(accountId == nothing)
+        throw(ExchangeError(string(self.id, " createDepositAddress() could not find the account with matching currency code ", code, ", specify an `account_id` extra param to target specific wallet")));
+    end
+    request = Dict{Symbol, Any}(
+        Symbol("account_id") => accountId
+    );
+    response = self.v2PrivatePostAccountsAccountIdAddresses(extend(request, params));
+    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    tag = safeString(data, "destination_tag");
+    address = safeString(data, "address");
+    return Dict{Symbol, Any}(
+    Symbol("currency") => code,
+    Symbol("tag") => tag,
+    Symbol("address") => address,
+    Symbol("network") => nothing,
+    Symbol("info") => response
+)
+
+end
+function fetchMySells(self::Coinbase, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    request = self.prepareAccountRequest(limit, params);
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    query = omit(params, ["account_id", "accountId"]);
+    sells = self.v2PrivateGetAccountsAccountIdSells(extend(request, query));
+    return self.parseTrades(get(sells, Symbol("data"), nothing), nothing, since, limit)
+
+end
+function fetchMyBuys(self::Coinbase, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    request = self.prepareAccountRequest(limit, params);
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    query = omit(params, ["account_id", "accountId"]);
+    buys = self.v2PrivateGetAccountsAccountIdBuys(extend(request, query));
+    return self.parseTrades(get(buys, Symbol("data"), nothing), nothing, since, limit)
+
+end
+function fetchTransactionsWithMethod(self::Coinbase, method, code=nothing, since=nothing, limit=nothing, params=Dict())
+    request = nothing;
+    (request, params) = self.prepareAccountRequestWithCurrencyCode(code, limit, params);
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    response = getproperty(self, Symbol(method))(extend(request, params));
+    return self.parseTransactions(get(response, Symbol("data"), nothing), nothing, since, limit)
+
+end
+function fetchWithdrawals(self::Coinbase, code=nothing, since=nothing, limit=nothing, params=Dict())
+    currencyType = nothing;
+    (currencyType, params) = self.handleOptionAndParams(params, "fetchWithdrawals", "currencyType");
+    if functions.ccxtruthy(currencyType == "crypto")
+        results = self.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, params);
+            return self.filterByArray(results, "type", "withdrawal", false)
+    end
+    return self.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdWithdrawals", code, since, limit, params)
+
+end
+function fetchDeposits(self::Coinbase, code=nothing, since=nothing, limit=nothing, params=Dict())
+    currencyType = nothing;
+    (currencyType, params) = self.handleOptionAndParams(params, "fetchWithdrawals", "currencyType");
+    if functions.ccxtruthy(currencyType == "crypto")
+        results = self.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, params);
+            return self.filterByArray(results, "type", "deposit", false)
+    end
+    return self.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdDeposits", code, since, limit, params)
+
+end
+function fetchDepositsWithdrawals(self::Coinbase, code=nothing, since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    results = self.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, params);
+    return self.filterByArray(results, "type", ["deposit", "withdrawal"], false)
+
+end
+function parseTransactionStatus(self::Coinbase, status)
+    statuses = Dict{Symbol, Any}(
+        Symbol("created") => "pending",
+        Symbol("completed") => "ok",
+        Symbol("canceled") => "canceled"
+    );
+    return safeString(statuses, status, status)
+
+end
+function parseTransaction(self::Coinbase, transaction, currency=nothing)
+    transactionType = safeString(transaction, "type");
+    amountAndCurrencyObject = nothing;
+    feeObject = nothing;
+    network = self.safeDict(transaction, "network", Dict{Symbol, Any}());
+    if functions.ccxtruthy(transactionType == "send")
+        amountAndCurrencyObject = self.safeDict(network, "transaction_amount");
+        feeObject = self.safeDict(network, "transaction_fee", Dict{Symbol, Any}());
+    else
+        amountAndCurrencyObject = self.safeDict(transaction, "subtotal");
+        feeObject = self.safeDict(transaction, "fee", Dict{Symbol, Any}());
+    end
+    if functions.ccxtruthy(amountAndCurrencyObject == nothing)
+        amountAndCurrencyObject = self.safeDict(transaction, "amount");
+    end
+    amountString = safeString(amountAndCurrencyObject, "amount");
+    amountStringAbs = stringAbs(amountString);
+    status = self.parseTransactionStatus(safeString(transaction, "status"));
+    if functions.ccxtruthy(status == nothing)
+        committed = self.safeBool(transaction, "committed");
+        status = functions.ccxtruthy(committed) ? "ok" : "pending";
+    end
+    id = safeString(transaction, "id");
+    currencyId = safeString(amountAndCurrencyObject, "currency");
+    feeCurrencyId = safeString(feeObject, "currency");
+    datetime = safeString(transaction, "created_at");
+    resource = safeString(transaction, "resource");
+    type_var = resource;
+    if functions.ccxtruthy(!functions.ccxtruthy(inArray(type_var, ["deposit", "withdrawal"])))
+        if functions.ccxtruthy(stringGt(amountString, "0"))
+            type_var = "deposit";
+        elseif functions.ccxtruthy(stringLt(amountString, "0"))
+            type_var = "withdrawal";
+        end
+    end
+    toObject = self.safeDict(transaction, "to");
+    addressTo = safeString(toObject, "address");
+    networkId = safeString(network, "network_name");
+    code = self.safeCurrencyCode(currencyId, currency);
+    return Dict{Symbol, Any}(
+    Symbol("info") => transaction,
+    Symbol("id") => id,
+    Symbol("txid") => safeString(network, "hash", id),
+    Symbol("timestamp") => self.parse8601(datetime),
+    Symbol("datetime") => datetime,
+    Symbol("network") => self.networkIdToCode(networkId, code),
+    Symbol("address") => addressTo,
+    Symbol("addressTo") => addressTo,
+    Symbol("addressFrom") => nothing,
+    Symbol("tag") => nothing,
+    Symbol("tagTo") => nothing,
+    Symbol("tagFrom") => nothing,
+    Symbol("type") => type_var,
+    Symbol("amount") => self.parseNumber(amountStringAbs),
+    Symbol("currency") => code,
+    Symbol("status") => status,
+    Symbol("updated") => self.parse8601(safeString(transaction, "updated_at")),
+    Symbol("fee") => Dict{Symbol, Any}(
+        Symbol("cost") => self.safeNumber(feeObject, "amount"),
+        Symbol("currency") => self.safeCurrencyCode(feeCurrencyId)
+    )
+)
+
+end
+function parseTrade(self::Coinbase, trade, market=nothing)
+    symbol = nothing;
+    totalObject = self.safeDict(trade, "total", Dict{Symbol, Any}());
+    amountObject = self.safeDict(trade, "amount", Dict{Symbol, Any}());
+    subtotalObject = self.safeDict(trade, "subtotal", Dict{Symbol, Any}());
+    feeObject = self.safeDict(trade, "fee", Dict{Symbol, Any}());
+    marketId = safeString(trade, "product_id");
+    market = self.safeMarket(marketId, market, "-");
+    if functions.ccxtruthy(market != nothing)
+        symbol = get(market, Symbol("symbol"), nothing);
+    else
+        baseId = safeString(amountObject, "currency");
+        quoteId = safeString(totalObject, "currency");
+        if functions.ccxtruthy(@functions.ccxt_and((baseId != nothing), (quoteId != nothing)))
+            base = self.safeCurrencyCode(baseId);
+            quote_var = self.safeCurrencyCode(quoteId);
+            symbol = string(base, "/", quote_var);
+        end
+    end
+    sizeInQuote = self.safeBool(trade, "size_in_quote");
+    v3Price = safeString(trade, "price");
+    v3Cost = nothing;
+    v3Amount = safeString(trade, "size");
+    if functions.ccxtruthy(sizeInQuote)
+        v3Cost = v3Amount;
+        v3Amount = stringDiv(v3Amount, v3Price);
+    end
+    v3FeeCost = safeString(trade, "commission");
+    amountString = safeString(amountObject, "amount", v3Amount);
+    costString = safeString(subtotalObject, "amount", v3Cost);
+    priceString = nothing;
+    cost = nothing;
+    if functions.ccxtruthy(@functions.ccxt_and((costString != nothing), (amountString != nothing)))
+        priceString = stringDiv(costString, amountString);
+    else
+        priceString = v3Price;
+    end
+    if functions.ccxtruthy(@functions.ccxt_and((priceString != nothing), (amountString != nothing)))
+        cost = stringMul(priceString, amountString);
+    else
+        cost = costString;
+    end
+    feeCurrencyId = safeString(feeObject, "currency");
+    feeCost = self.safeNumber(feeObject, "amount", self.parseNumber(v3FeeCost));
+    if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and((feeCurrencyId == nothing), (market != nothing)), (feeCost != nothing)))
+        feeCurrencyId = get(market, Symbol("quote"), nothing);
+    end
+    datetime = safeStringN(trade, ["created_at", "trade_time", "time"]);
+    side = safeStringLower2(trade, "resource", "side");
+    takerOrMaker = safeStringLower(trade, "liquidity_indicator");
+    return self.safeTrade(Dict{Symbol, Any}(
+    Symbol("info") => trade,
+    Symbol("id") => safeString2(trade, "id", "trade_id"),
+    Symbol("order") => safeString(trade, "order_id"),
+    Symbol("timestamp") => self.parse8601(datetime),
+    Symbol("datetime") => datetime,
+    Symbol("symbol") => symbol,
+    Symbol("type") => nothing,
+    Symbol("side") => functions.ccxtruthy((side == "unknown_order_side")) ? nothing : side,
+    Symbol("takerOrMaker") => functions.ccxtruthy((takerOrMaker == "unknown_liquidity_indicator")) ? nothing : takerOrMaker,
+    Symbol("price") => priceString,
+    Symbol("amount") => amountString,
+    Symbol("cost") => cost,
+    Symbol("fee") => Dict{Symbol, Any}(
+        Symbol("cost") => feeCost,
+        Symbol("currency") => self.safeCurrencyCode(feeCurrencyId)
+    )
+))
+
+end
+function fetchMarkets(self::Coinbase, params=Dict())
+    if functions.ccxtruthy(get(self.options, Symbol("adjustForTimeDifference"), nothing))
+        self.loadTimeDifference();
+    end
+    method = safeString(self.options, "fetchMarkets", "fetchMarketsV3");
+    if functions.ccxtruthy(method == "fetchMarketsV3")
+            return self.fetchMarketsV3(params)
+    end
+    return self.fetchMarketsV2(params)
+
+end
+function fetchMarketsV2(self::Coinbase, params=Dict())
+    response = self.fetchCurrenciesFromCache(params);
+    currencies = self.safeDict(response, "currencies", Dict{Symbol, Any}());
+    exchangeRates = self.safeDict(response, "exchangeRates", Dict{Symbol, Any}());
+    data = self.safeList(currencies, "data", []);
+    dataById = indexBy(data, "id");
+    rates = self.safeDict(self.safeDict(exchangeRates, "data", Dict{Symbol, Any}()), "rates", Dict{Symbol, Any}());
+    baseIds = objectKeys(rates);
+    result = [];
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(baseIds)))
+        baseId = get(baseIds, i + 1, nothing);
+        base = self.safeCurrencyCode(baseId);
+        type_var = functions.ccxtruthy((ccxt_in(baseId, dataById))) ? "fiat" : "crypto";
+        if functions.ccxtruthy(type_var == "crypto")
+            j = 0
+            while functions.ccxtruthy(functions.ccxt_lt(j, length(data)))
+                quoteCurrency = get(data, j + 1, nothing);
+                quoteId = safeString(quoteCurrency, "id");
+                quote_var = self.safeCurrencyCode(quoteId);
+                push!(result, self.safeMarketStructure(Dict{Symbol, Any}(
+    Symbol("id") => string(baseId, "-", quoteId),
+    Symbol("symbol") => string(base, "/", quote_var),
+    Symbol("base") => base,
+    Symbol("quote") => quote_var,
+    Symbol("settle") => nothing,
+    Symbol("baseId") => baseId,
+    Symbol("quoteId") => quoteId,
+    Symbol("settleId") => nothing,
+    Symbol("type") => "spot",
+    Symbol("spot") => true,
+    Symbol("margin") => false,
+    Symbol("swap") => true,
+    Symbol("future") => true,
+    Symbol("option") => false,
+    Symbol("active") => nothing,
+    Symbol("contract") => false,
+    Symbol("linear") => nothing,
+    Symbol("inverse") => nothing,
+    Symbol("contractSize") => nothing,
+    Symbol("expiry") => nothing,
+    Symbol("expiryDatetime") => nothing,
+    Symbol("strike") => nothing,
+    Symbol("optionType") => nothing,
+    Symbol("precision") => Dict{Symbol, Any}(
+        Symbol("amount") => nothing,
+        Symbol("price") => nothing
+    ),
+    Symbol("limits") => Dict{Symbol, Any}(
+        Symbol("leverage") => Dict{Symbol, Any}(
+            Symbol("min") => nothing,
+            Symbol("max") => nothing
+        ),
+        Symbol("amount") => Dict{Symbol, Any}(
+            Symbol("min") => nothing,
+            Symbol("max") => nothing
+        ),
+        Symbol("price") => Dict{Symbol, Any}(
+            Symbol("min") => nothing,
+            Symbol("max") => nothing
+        ),
+        Symbol("cost") => Dict{Symbol, Any}(
+            Symbol("min") => self.safeNumber(quoteCurrency, "min_size"),
+            Symbol("max") => nothing
+        )
+    ),
+    Symbol("info") => quoteCurrency
+)));
+                j += 1
+            end
+
+        end
+        i += 1
+    end
+    return result
+
+end
+function fetchMarketsV3(self::Coinbase, params=Dict())
+    usePrivate = false;
+    (usePrivate, params) = self.handleOptionAndParams(params, "fetchMarkets", "usePrivate", false);
+    spotUnresolvedPromises = [];
+    if functions.ccxtruthy(usePrivate)
+                push!(spotUnresolvedPromises, self.v3PrivateGetBrokerageProducts(params));
+    else
+        push!(spotUnresolvedPromises, self.v3PublicGetBrokerageMarketProducts(params));
+    end
+    if functions.ccxtruthy(self.checkRequiredCredentials(false))
+                push!(spotUnresolvedPromises, self.v3PrivateGetBrokerageTransactionSummary(params));
+    end
+    promises = asyncmap(Base.fetch, spotUnresolvedPromises);
+    unresolvedContractPromises = [];
+    try
+        unresolvedContractPromises = [self.v3PublicGetBrokerageMarketProducts(extend(params, Dict{Symbol, Any}(
+    Symbol("product_type") => "FUTURE"
+))), self.v3PublicGetBrokerageMarketProducts(extend(params, Dict{Symbol, Any}(
+    Symbol("product_type") => "FUTURE",
+    Symbol("contract_expiry_type") => "PERPETUAL"
+)))];
+    catch e
+        unresolvedContractPromises = [];
+
+    end
+    contractPromises = nothing;
+    try
+        contractPromises = asyncmap(Base.fetch, unresolvedContractPromises);
+    catch e
+        contractPromises = [];
+
+    end
+    spot = self.safeDict(promises, 0, Dict{Symbol, Any}());
+    fees = self.safeDict(promises, 1, Dict{Symbol, Any}());
+    expiringFutures = self.safeDict(contractPromises, 0, Dict{Symbol, Any}());
+    perpetualFutures = self.safeDict(contractPromises, 1, Dict{Symbol, Any}());
+    expiringFees = self.safeDict(contractPromises, 0, Dict{Symbol, Any}());
+    perpetualFees = self.safeDict(contractPromises, 1, Dict{Symbol, Any}());
+    feeTier = self.safeDict(fees, "fee_tier", Dict{Symbol, Any}());
+    expiringFeeTier = self.safeDict(expiringFees, "fee_tier", Dict{Symbol, Any}());
+    perpetualFeeTier = self.safeDict(perpetualFees, "fee_tier", Dict{Symbol, Any}());
+    data = self.safeList(spot, "products", []);
+    result = [];
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
+        push!(result, self.parseSpotMarket(get(data, i + 1, nothing), feeTier));
+        i += 1
+    end
+    futureData = self.safeList(expiringFutures, "products", []);
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(futureData)))
+        push!(result, self.parseContractMarket(get(futureData, i + 1, nothing), expiringFeeTier));
+        i += 1
+    end
+    perpetualData = self.safeList(perpetualFutures, "products", []);
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(perpetualData)))
+        push!(result, self.parseContractMarket(get(perpetualData, i + 1, nothing), perpetualFeeTier));
+        i += 1
+    end
+    newMarkets = [];
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(result)))
+        market = get(result, i + 1, nothing);
+        info = safeValue(market, "info", Dict{Symbol, Any}());
+        realMarketIds = self.safeList(info, "alias_to", []);
+        len = length(realMarketIds);
+        if functions.ccxtruthy(functions.ccxt_gt(len, 0))
+            market[Symbol("alias")] = get(realMarketIds, 1, nothing);
+        else
+            market[Symbol("alias")] = nothing;
+        end
+        push!(newMarkets, market);
+        i += 1
+    end
+    return newMarkets
+
+end
+function parseSpotMarket(self::Coinbase, market, feeTier)
+    id = safeString(market, "product_id");
+    baseId = safeString(market, "base_currency_id");
+    quoteId = safeString(market, "quote_currency_id");
+    base = self.safeCurrencyCode(baseId);
+    quote_var = self.safeCurrencyCode(quoteId);
+    marketType = safeStringLower(market, "product_type");
+    tradingDisabled = self.safeBool(market, "trading_disabled");
+    stablePairs = self.safeList(self.options, "stablePairs", []);
+    defaultTakerFee = self.safeNumber(get(self.fees, Symbol("trading"), nothing), "taker");
+    defaultMakerFee = self.safeNumber(get(self.fees, Symbol("trading"), nothing), "maker");
+    takerFee = functions.ccxtruthy(inArray(id, stablePairs)) ? 0.00001 : self.safeNumber(feeTier, "taker_fee_rate", defaultTakerFee);
+    makerFee = functions.ccxtruthy(inArray(id, stablePairs)) ? 0 : self.safeNumber(feeTier, "maker_fee_rate", defaultMakerFee);
+    return self.safeMarketStructure(Dict{Symbol, Any}(
+    Symbol("id") => id,
+    Symbol("symbol") => string(base, "/", quote_var),
+    Symbol("base") => base,
+    Symbol("quote") => quote_var,
+    Symbol("settle") => nothing,
+    Symbol("baseId") => baseId,
+    Symbol("quoteId") => quoteId,
+    Symbol("settleId") => nothing,
+    Symbol("type") => marketType,
+    Symbol("spot") => (marketType == "spot"),
+    Symbol("margin") => nothing,
+    Symbol("swap") => false,
+    Symbol("future") => false,
+    Symbol("option") => false,
+    Symbol("active") => !functions.ccxtruthy(tradingDisabled),
+    Symbol("contract") => false,
+    Symbol("linear") => nothing,
+    Symbol("inverse") => nothing,
+    Symbol("taker") => takerFee,
+    Symbol("maker") => makerFee,
+    Symbol("contractSize") => nothing,
+    Symbol("expiry") => nothing,
+    Symbol("expiryDatetime") => nothing,
+    Symbol("strike") => nothing,
+    Symbol("optionType") => nothing,
+    Symbol("precision") => Dict{Symbol, Any}(
+        Symbol("amount") => self.safeNumber(market, "base_increment"),
+        Symbol("price") => self.safeNumber2(market, "price_increment", "quote_increment")
+    ),
+    Symbol("limits") => Dict{Symbol, Any}(
+        Symbol("leverage") => Dict{Symbol, Any}(
+            Symbol("min") => nothing,
+            Symbol("max") => nothing
+        ),
+        Symbol("amount") => Dict{Symbol, Any}(
+            Symbol("min") => self.safeNumber(market, "base_min_size"),
+            Symbol("max") => self.safeNumber(market, "base_max_size")
+        ),
+        Symbol("price") => Dict{Symbol, Any}(
+            Symbol("min") => nothing,
+            Symbol("max") => nothing
+        ),
+        Symbol("cost") => Dict{Symbol, Any}(
+            Symbol("min") => self.safeNumber(market, "quote_min_size"),
+            Symbol("max") => self.safeNumber(market, "quote_max_size")
+        )
+    ),
+    Symbol("created") => nothing,
+    Symbol("info") => market
+))
+
+end
+function parseContractMarket(self::Coinbase, market, feeTier)
+    id = safeString(market, "product_id");
+    futureProductDetails = self.safeDict(market, "future_product_details", Dict{Symbol, Any}());
+    contractExpiryType = safeString(futureProductDetails, "contract_expiry_type");
+    contractSize = self.safeNumber(futureProductDetails, "contract_size");
+    contractExpire = safeString(futureProductDetails, "contract_expiry");
+    expireTimestamp = self.parse8601(contractExpire);
+    expireDateTime = self.iso8601(expireTimestamp);
+    isSwap = (contractExpiryType == "PERPETUAL");
+    baseId = safeString(futureProductDetails, "contract_root_unit");
+    quoteId = safeString(market, "quote_currency_id");
+    base = self.safeCurrencyCode(baseId);
+    quote_var = self.safeCurrencyCode(quoteId);
+    tradingDisabled = self.safeBool(market, "is_disabled");
+    symbol = string(base, "/", quote_var);
+    type_var = nothing;
+    if functions.ccxtruthy(isSwap)
+        type_var = "swap";
+        symbol = string(symbol, ":", quote_var);
+    else
+        type_var = "future";
+        symbol = string(symbol, ":", quote_var, "-", self.yymmdd(expireTimestamp));
+    end
+    takerFeeRate = self.safeNumber(feeTier, "taker_fee_rate");
+    makerFeeRate = self.safeNumber(feeTier, "maker_fee_rate");
+    taker = functions.ccxtruthy(takerFeeRate) ? takerFeeRate : self.parseNumber("0.06");
+    maker = functions.ccxtruthy(makerFeeRate) ? makerFeeRate : self.parseNumber("0.04");
+    return self.safeMarketStructure(Dict{Symbol, Any}(
+    Symbol("id") => id,
+    Symbol("symbol") => symbol,
+    Symbol("base") => base,
+    Symbol("quote") => quote_var,
+    Symbol("settle") => quote_var,
+    Symbol("baseId") => baseId,
+    Symbol("quoteId") => quoteId,
+    Symbol("settleId") => quoteId,
+    Symbol("type") => type_var,
+    Symbol("spot") => false,
+    Symbol("margin") => false,
+    Symbol("swap") => isSwap,
+    Symbol("future") => !functions.ccxtruthy(isSwap),
+    Symbol("option") => false,
+    Symbol("active") => !functions.ccxtruthy(tradingDisabled),
+    Symbol("contract") => true,
+    Symbol("linear") => true,
+    Symbol("inverse") => false,
+    Symbol("taker") => taker,
+    Symbol("maker") => maker,
+    Symbol("contractSize") => contractSize,
+    Symbol("expiry") => expireTimestamp,
+    Symbol("expiryDatetime") => expireDateTime,
+    Symbol("strike") => nothing,
+    Symbol("optionType") => nothing,
+    Symbol("precision") => Dict{Symbol, Any}(
+        Symbol("amount") => self.safeNumber(market, "base_increment"),
+        Symbol("price") => self.safeNumber2(market, "price_increment", "quote_increment")
+    ),
+    Symbol("limits") => Dict{Symbol, Any}(
+        Symbol("leverage") => Dict{Symbol, Any}(
+            Symbol("min") => nothing,
+            Symbol("max") => nothing
+        ),
+        Symbol("amount") => Dict{Symbol, Any}(
+            Symbol("min") => self.safeNumber(market, "base_min_size"),
+            Symbol("max") => self.safeNumber(market, "base_max_size")
+        ),
+        Symbol("price") => Dict{Symbol, Any}(
+            Symbol("min") => nothing,
+            Symbol("max") => nothing
+        ),
+        Symbol("cost") => Dict{Symbol, Any}(
+            Symbol("min") => self.safeNumber(market, "quote_min_size"),
+            Symbol("max") => self.safeNumber(market, "quote_max_size")
+        )
+    ),
+    Symbol("created") => nothing,
+    Symbol("info") => market
+))
+
+end
+function fetchCurrenciesFromCache(self::Coinbase, params=Dict())
+    options = self.safeDict(self.options, "fetchCurrencies", Dict{Symbol, Any}());
+    timestamp = safeInteger(options, "timestamp");
+    expires = safeInteger(options, "expires", 1000);
+    now = milliseconds();
+    if functions.ccxtruthy(@functions.ccxt_or((timestamp == nothing), (functions.ccxt_gt((now - timestamp), expires))))
+        promises = [self.v2PublicGetCurrencies(params), self.v2PublicGetCurrenciesCrypto(params)];
+        promisesResult = asyncmap(Base.fetch, promises);
+        fiatResponse = self.safeDict(promisesResult, 0, Dict{Symbol, Any}());
+        cryptoResponse = self.safeDict(promisesResult, 1, Dict{Symbol, Any}());
+        fiatData = self.safeList(fiatResponse, "data", []);
+        cryptoData = self.safeList(cryptoResponse, "data", []);
+        exchangeRates = self.v2PublicGetExchangeRates(params);
+        self.options[Symbol("fetchCurrencies")] = extend(options, Dict{Symbol, Any}(
+    Symbol("currencies") => arrayConcat(fiatData, cryptoData),
+    Symbol("exchangeRates") => exchangeRates,
+    Symbol("timestamp") => now
+));
+    end
+    return self.safeDict(self.options, "fetchCurrencies", Dict{Symbol, Any}())
+
+end
+function fetchCurrencies(self::Coinbase, params=Dict())
+    promises = [self.v2PublicGetCurrencies(params), self.v2PublicGetCurrenciesCrypto(params), self.v2PublicGetExchangeRates(params)];
+    promisesResult = asyncmap(Base.fetch, promises);
+    fiatResponse = self.safeDict(promisesResult, 0, Dict{Symbol, Any}());
+    cryptoResponse = self.safeDict(promisesResult, 1, Dict{Symbol, Any}());
+    ratesResponse = self.safeDict(promisesResult, 2, Dict{Symbol, Any}());
+    fiatData = self.safeList(fiatResponse, "data", []);
+    cryptoData = self.safeList(cryptoResponse, "data", []);
+    ratesData = self.safeDict(ratesResponse, "data", Dict{Symbol, Any}());
+    rates = self.safeDict(ratesData, "rates", Dict{Symbol, Any}());
+    ratesIds = objectKeys(rates);
+    currencies = arrayConcat(fiatData, cryptoData);
+    result = Dict{Symbol, Any}();
+    networks = Dict{Symbol, Any}();
+    networksById = Dict{Symbol, Any}();
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(currencies)))
+        currency = get(currencies, i + 1, nothing);
+        assetId = safeString(currency, "asset_id");
+        id = safeString2(currency, "id", "code");
+        code = self.safeCurrencyCode(id);
+        name = safeString(currency, "name");
+        self.options[Symbol("networks")][Symbol(code)] =         lowercase(name);
+        self.options[Symbol("networksById")][Symbol(code)] =         lowercase(name);
+        type_var = functions.ccxtruthy((assetId != nothing)) ? "crypto" : "fiat";
+        result[Symbol(code)] = self.safeCurrencyStructure(Dict{Symbol, Any}(
+    Symbol("info") => currency,
+    Symbol("id") => id,
+    Symbol("code") => code,
+    Symbol("type") => type_var,
+    Symbol("name") => name,
+    Symbol("active") => true,
+    Symbol("deposit") => nothing,
+    Symbol("withdraw") => nothing,
+    Symbol("fee") => nothing,
+    Symbol("precision") => nothing,
+    Symbol("networks") => Dict{Symbol, Any}(),
+    Symbol("limits") => Dict{Symbol, Any}(
+        Symbol("amount") => Dict{Symbol, Any}(
+            Symbol("min") => self.safeNumber(currency, "min_size"),
+            Symbol("max") => nothing
+        ),
+        Symbol("withdraw") => Dict{Symbol, Any}(
+            Symbol("min") => nothing,
+            Symbol("max") => nothing
+        )
+    )
+));
+        if functions.ccxtruthy(assetId != nothing)
+            lowerCaseName = lowercase(name);
+            networks[Symbol(code)] = lowerCaseName;
+            networksById[Symbol(lowerCaseName)] = code;
+        end
+        i += 1
+    end
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(ratesIds)))
+        currencyId = get(ratesIds, i + 1, nothing);
+        code = self.safeCurrencyCode(currencyId);
+        if functions.ccxtruthy(!functions.ccxtruthy((ccxt_in(code, result))))
+            result[Symbol(code)] = self.safeCurrencyStructure(Dict{Symbol, Any}(
+    Symbol("info") => Dict{Symbol, Any}(),
+    Symbol("id") => currencyId,
+    Symbol("code") => code,
+    Symbol("type") => "crypto",
+    Symbol("networks") => Dict{Symbol, Any}()
+));
+        end
+        i += 1
+    end
+    self.options[Symbol("networks")] = extend(networks, get(self.options, Symbol("networks"), nothing));
+    self.options[Symbol("networksById")] = extend(networksById, get(self.options, Symbol("networksById"), nothing));
+    return result
+
+end
+function fetchTickers(self::Coinbase, symbols=nothing, params=Dict())
+    method = safeString(self.options, "fetchTickers", "fetchTickersV3");
+    if functions.ccxtruthy(method == "fetchTickersV3")
+            return self.fetchTickersV3(symbols, params)
+    end
+    return self.fetchTickersV2(symbols, params)
+
+end
+function fetchTickersV2(self::Coinbase, symbols=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    symbols = self.marketSymbols(symbols);
+    request = Dict{Symbol, Any}();
+    response = self.v2PublicGetExchangeRates(extend(request, params));
+    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    rates = self.safeDict(data, "rates", Dict{Symbol, Any}());
+    quoteId = safeString(data, "currency");
+    result = Dict{Symbol, Any}();
+    baseIds = objectKeys(rates);
+    delimiter = "-";
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(baseIds)))
+        baseId = get(baseIds, i + 1, nothing);
+        marketId = string(baseId, delimiter, quoteId);
+        market = self.safeMarket(marketId, nothing, delimiter);
+        symbol = get(market, Symbol("symbol"), nothing);
+        result[Symbol(symbol)] = self.parseTicker(get(rates, Symbol(baseId), nothing), market);
+        i += 1
+    end
+    return self.filterByArrayTickers(result, "symbol", symbols)
+
+end
+function fetchTickersV3(self::Coinbase, symbols=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    symbols = self.marketSymbols(symbols);
+    request = Dict{Symbol, Any}();
+    if functions.ccxtruthy(symbols != nothing)
+        request[Symbol("product_ids")] = self.marketIds(symbols);
+    end
+    marketType = nothing;
+    (marketType, params) = self.handleMarketTypeAndParams("fetchTickers", self.getMarketFromSymbols(symbols), params, "default");
+    if functions.ccxtruthy(@functions.ccxt_and(marketType != nothing, marketType != "default"))
+        request[Symbol("product_type")] = functions.ccxtruthy((marketType == "swap")) ? "FUTURE" : "SPOT";
+    end
+    response = nothing;
+    usePrivate = false;
+    (usePrivate, params) = self.handleOptionAndParams(params, "fetchTickers", "usePrivate", false);
+    if functions.ccxtruthy(usePrivate)
+        response = self.v3PrivateGetBrokerageProducts(extend(request, params));
+    else
+        response = self.v3PublicGetBrokerageMarketProducts(extend(request, params));
+    end
+    data = self.safeList(response, "products", []);
+    result = Dict{Symbol, Any}();
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
+        entry = get(data, i + 1, nothing);
+        marketId = safeString(entry, "product_id");
+        market = self.safeMarket(marketId, nothing, "-");
+        symbol = get(market, Symbol("symbol"), nothing);
+        result[Symbol(symbol)] = self.parseTicker(entry, market);
+        i += 1
+    end
+    return self.filterByArrayTickers(result, "symbol", symbols)
+
+end
+function fetchTicker(self::Coinbase, symbol, params=Dict())
+    method = safeString(self.options, "fetchTicker", "fetchTickerV3");
+    if functions.ccxtruthy(method == "fetchTickerV3")
+            return self.fetchTickerV3(symbol, params)
+    end
+    return self.fetchTickerV2(symbol, params)
+
+end
+function fetchTickerV2(self::Coinbase, symbol, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    market = self.market(symbol);
+    request = extend(Dict{Symbol, Any}(
+        Symbol("symbol") => get(market, Symbol("id"), nothing)
+    ), params);
+    spot = self.v2PublicGetPricesSymbolSpot(request);
+    ask = self.v2PublicGetPricesSymbolBuy(request);
+    bid = self.v2PublicGetPricesSymbolSell(request);
+    spotData = self.safeDict(spot, "data", Dict{Symbol, Any}());
+    askData = self.safeDict(ask, "data", Dict{Symbol, Any}());
+    bidData = self.safeDict(bid, "data", Dict{Symbol, Any}());
+    bidAskLast = Dict{Symbol, Any}(
+        Symbol("bid") => self.safeNumber(bidData, "amount"),
+        Symbol("ask") => self.safeNumber(askData, "amount"),
+        Symbol("price") => self.safeNumber(spotData, "amount")
+    );
+    return self.parseTicker(bidAskLast, market)
+
+end
+function fetchTickerV3(self::Coinbase, symbol, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    market = self.market(symbol);
+    request = Dict{Symbol, Any}(
+        Symbol("product_id") => get(market, Symbol("id"), nothing),
+        Symbol("limit") => 1
+    );
+    usePrivate = false;
+    (usePrivate, params) = self.handleOptionAndParams(params, "fetchTicker", "usePrivate", false);
+    response = nothing;
+    if functions.ccxtruthy(usePrivate)
+        response = self.v3PrivateGetBrokerageProductsProductIdTicker(extend(request, params));
+    else
+        response = self.v3PublicGetBrokerageMarketProductsProductIdTicker(extend(request, params));
+    end
+    data = self.safeList(response, "trades", []);
+    first_var = self.safeDict(data, 0, Dict{Symbol, Any}());
+    ticker = self.parseTicker(first_var, market);
+    ticker[Symbol("bid")] = self.safeNumber(response, "best_bid");
+    ticker[Symbol("ask")] = self.safeNumber(response, "best_ask");
+    return ticker
+
+end
+function parseTicker(self::Coinbase, ticker, market=nothing)
+    bid = self.safeNumber(ticker, "bid");
+    ask = self.safeNumber(ticker, "ask");
+    bidVolume = nothing;
+    askVolume = nothing;
+    if functions.ccxtruthy((ccxt_in("bids", ticker)))
+        bids = self.safeList(ticker, "bids", []);
+        asks = self.safeList(ticker, "asks", []);
+        firstBid = self.safeDict(bids, 0, Dict{Symbol, Any}());
+        firstAsk = self.safeDict(asks, 0, Dict{Symbol, Any}());
+        bid = self.safeNumber(firstBid, "price");
+        bidVolume = self.safeNumber(firstBid, "size");
+        ask = self.safeNumber(firstAsk, "price");
+        askVolume = self.safeNumber(firstAsk, "size");
+    end
+    marketId = safeString(ticker, "product_id");
+    market = self.safeMarket(marketId, market);
+    last_var = self.safeNumber(ticker, "price");
+    datetime = safeString(ticker, "time");
+    return self.safeTicker(Dict{Symbol, Any}(
+    Symbol("symbol") => get(market, Symbol("symbol"), nothing),
+    Symbol("timestamp") => self.parse8601(datetime),
+    Symbol("datetime") => datetime,
+    Symbol("bid") => bid,
+    Symbol("ask") => ask,
+    Symbol("last") => last_var,
+    Symbol("high") => nothing,
+    Symbol("low") => nothing,
+    Symbol("bidVolume") => bidVolume,
+    Symbol("askVolume") => askVolume,
+    Symbol("vwap") => nothing,
+    Symbol("open") => nothing,
+    Symbol("close") => last_var,
+    Symbol("previousClose") => nothing,
+    Symbol("change") => nothing,
+    Symbol("percentage") => self.safeNumber(ticker, "price_percentage_change_24h"),
+    Symbol("average") => nothing,
+    Symbol("baseVolume") => self.safeNumber(ticker, "volume_24h"),
+    Symbol("quoteVolume") => self.safeNumber(ticker, "approximate_quote_24h_volume"),
+    Symbol("info") => ticker
+), market)
+
+end
+function parseCustomBalance(self::Coinbase, response, params=Dict())
+    balances = self.safeList2(response, "data", "accounts", []);
+    accounts = self.safeList(params, "type", get(self.options, Symbol("accounts"), nothing));
+    v3Accounts = self.safeList(params, "type", get(self.options, Symbol("v3Accounts"), nothing));
+    result = Dict{Symbol, Any}(
+        Symbol("info") => response
+    );
+    b = 0
+    while functions.ccxtruthy(functions.ccxt_lt(b, length(balances)))
+        balance = get(balances, b + 1, nothing);
+        type_var = safeString(balance, "type");
+        if functions.ccxtruthy(inArray(type_var, accounts))
+            value = self.safeDict(balance, "balance");
+            if functions.ccxtruthy(value != nothing)
+                currencyId = safeString(value, "currency");
+                code = self.safeCurrencyCode(currencyId);
+                total = safeString(value, "amount");
+                free = total;
+                account = self.safeDict(result, code);
+                if functions.ccxtruthy(account == nothing)
+                    account = self.account();
+                    account[Symbol("free")] = free;
+                    account[Symbol("total")] = total;
+                else
+                    account[Symbol("free")] = stringAdd(get(account, Symbol("free"), nothing), total);
+                    account[Symbol("total")] = stringAdd(get(account, Symbol("total"), nothing), total);
+                end
+                result[Symbol(code)] = account;
+            end
+        elseif functions.ccxtruthy(inArray(type_var, v3Accounts))
+            available = self.safeDict(balance, "available_balance");
+            hold = self.safeDict(balance, "hold");
+            if functions.ccxtruthy(@functions.ccxt_and(available != nothing, hold != nothing))
+                currencyId = safeString(available, "currency");
+                code = self.safeCurrencyCode(currencyId);
+                used = safeString(hold, "value");
+                free = safeString(available, "value");
+                total = stringAdd(used, free);
+                account = self.safeDict(result, code);
+                if functions.ccxtruthy(account == nothing)
+                    account = self.account();
+                    account[Symbol("free")] = free;
+                    account[Symbol("used")] = used;
+                    account[Symbol("total")] = total;
+                else
+                    account[Symbol("free")] = stringAdd(get(account, Symbol("free"), nothing), free);
+                    account[Symbol("used")] = stringAdd(get(account, Symbol("used"), nothing), used);
+                    account[Symbol("total")] = stringAdd(get(account, Symbol("total"), nothing), total);
+                end
+                result[Symbol(code)] = account;
+            end
+        end
+        b += 1
+    end
+    return self.safeBalance(result)
+
+end
+function fetchBalance(self::Coinbase, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    request = Dict{Symbol, Any}();
+    response = nothing;
+    isV3 = self.safeBool(params, "v3", false);
+    params = omit(params, ["v3"]);
+    marketType = nothing;
+    (marketType, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
+    method = safeString(self.options, "fetchBalance", "v3PrivateGetBrokerageAccounts");
+    if functions.ccxtruthy(marketType == "future")
+        response = self.v3PrivateGetBrokerageCfmBalanceSummary(extend(request, params));
+    elseif functions.ccxtruthy(@functions.ccxt_or((isV3), (method == "v3PrivateGetBrokerageAccounts")))
+        request[Symbol("limit")] = 250;
+        response = self.v3PrivateGetBrokerageAccounts(extend(request, params));
+    else
+        request[Symbol("limit")] = 250;
+        response = self.v2PrivateGetAccounts(extend(request, params));
+    end
+    params[Symbol("type")] = marketType;
+    return self.parseCustomBalance(response, params)
+
+end
+function fetchLedger(self::Coinbase, code=nothing, since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    paginate = false;
+    (paginate, params) = self.handleOptionAndParams(params, "fetchLedger", "paginate");
+    if functions.ccxtruthy(paginate)
+            return self.fetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "next_starting_after", "starting_after", nothing, 100)
+    end
+    currency = nothing;
+    if functions.ccxtruthy(code != nothing)
+        currency = self.currency(code);
+    end
+    request = nothing;
+    (request, params) = self.prepareAccountRequestWithCurrencyCode(code, limit, params);
+    response = self.v2PrivateGetAccountsAccountIdTransactions(extend(request, params));
+    ledger = self.parseLedger(get(response, Symbol("data"), nothing), currency, since, limit);
+    len = length(ledger);
+    if functions.ccxtruthy(len == 0)
+            return ledger
+    end
+    lastIndex = len - 1;
+    last_var = self.safeDict(ledger, lastIndex);
+    pagination = self.safeDict(response, "pagination", Dict{Symbol, Any}());
+    cursor = safeString(pagination, "next_starting_after");
+    if functions.ccxtruthy(@functions.ccxt_and((cursor != nothing), (cursor != "")))
+        last_var[Symbol("info")][Symbol("next_starting_after")] = cursor;
+        ledger[lastIndex + 1] = last_var;
+    end
+    return ledger
+
+end
+function parseLedgerEntryStatus(self::Coinbase, status)
+    types = Dict{Symbol, Any}(
+        Symbol("completed") => "ok"
+    );
+    return safeString(types, status, status)
+
+end
+function parseLedgerEntryType(self::Coinbase, type_var)
+    types = Dict{Symbol, Any}(
+        Symbol("buy") => "trade",
+        Symbol("sell") => "trade",
+        Symbol("fiat_deposit") => "transaction",
+        Symbol("fiat_withdrawal") => "transaction",
+        Symbol("exchange_deposit") => "transaction",
+        Symbol("exchange_withdrawal") => "transaction",
+        Symbol("send") => "transaction",
+        Symbol("pro_deposit") => "transaction",
+        Symbol("pro_withdrawal") => "transaction"
+    );
+    return safeString(types, type_var, type_var)
+
+end
+function parseLedgerEntry(self::Coinbase, item, currency=nothing)
+    amountInfo = self.safeDict(item, "amount", Dict{Symbol, Any}());
+    amount = safeString(amountInfo, "amount");
+    direction = nothing;
+    if functions.ccxtruthy(stringLt(amount, "0"))
+        direction = "out";
+        amount = stringNeg(amount);
+    else
+        direction = "in";
+    end
+    currencyId = safeString(amountInfo, "currency");
+    code = self.safeCurrencyCode(currencyId, currency);
+    currency = self.safeCurrency(currencyId, currency);
+    fee = nothing;
+    networkInfo = self.safeDict(item, "network", Dict{Symbol, Any}());
+    feeInfo = self.safeDict(networkInfo, "transaction_fee");
+    if functions.ccxtruthy(feeInfo != nothing)
+        feeCurrencyId = safeString(feeInfo, "currency");
+        feeCurrencyCode = self.safeCurrencyCode(feeCurrencyId, currency);
+        feeAmount = self.safeNumber(feeInfo, "amount");
+        fee = Dict{Symbol, Any}(
+            Symbol("cost") => feeAmount,
+            Symbol("currency") => feeCurrencyCode
+        );
+    end
+    timestamp = self.parse8601(safeString(item, "created_at"));
+    id = safeString(item, "id");
+    type_var = self.parseLedgerEntryType(safeString(item, "type"));
+    status = self.parseLedgerEntryStatus(safeString(item, "status"));
+    path = safeString(item, "resource_path");
+    accountId = nothing;
+    if functions.ccxtruthy(path != nothing)
+        parts = split(path, "/");
+        numParts = length(parts);
+        if functions.ccxtruthy(functions.ccxt_gt(numParts, 3))
+            accountId = get(parts, 4, nothing);
+        end
+    end
+    return self.safeLedgerEntry(Dict{Symbol, Any}(
+    Symbol("info") => item,
+    Symbol("id") => id,
+    Symbol("timestamp") => timestamp,
+    Symbol("datetime") => self.iso8601(timestamp),
+    Symbol("direction") => direction,
+    Symbol("account") => accountId,
+    Symbol("referenceId") => nothing,
+    Symbol("referenceAccount") => nothing,
+    Symbol("type") => type_var,
+    Symbol("currency") => code,
+    Symbol("amount") => self.parseNumber(amount),
+    Symbol("before") => nothing,
+    Symbol("after") => nothing,
+    Symbol("status") => status,
+    Symbol("fee") => fee
+), currency)
+
+end
+function findAccountId(self::Coinbase, code, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    self.loadAccounts(false, params);
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(self.accounts)))
+        account = get(self.accounts, i + 1, nothing);
+        if functions.ccxtruthy(get(account, Symbol("code"), nothing) == code)
+                return get(account, Symbol("id"), nothing)
+        end
+        i += 1
+    end
+    return nothing
+
+end
+function prepareAccountRequest(self::Coinbase, limit=nothing, params=Dict())
+    accountId = safeString2(params, "account_id", "accountId");
+    if functions.ccxtruthy(accountId == nothing)
+        throw(ArgumentsRequired(string(self.id, " prepareAccountRequest() method requires an account_id (or accountId) parameter")));
+    end
+    request = Dict{Symbol, Any}(
+        Symbol("account_id") => accountId
+    );
+    if functions.ccxtruthy(limit != nothing)
+        request[Symbol("limit")] = limit;
+    end
+    return request
+
+end
+function prepareAccountRequestWithCurrencyCode(self::Coinbase, code=nothing, limit=nothing, params=Dict())
+    accountId = safeString2(params, "account_id", "accountId");
+    params = omit(params, ["account_id", "accountId"]);
+    if functions.ccxtruthy(accountId == nothing)
+        if functions.ccxtruthy(code == nothing)
+            throw(ArgumentsRequired(string(self.id, " prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument")));
+        end
+        accountId = self.findAccountId(code, params);
+        if functions.ccxtruthy(accountId == nothing)
+            throw(ExchangeError(string(self.id, " prepareAccountRequestWithCurrencyCode() could not find account id for ", code, ". You might try to generate the deposit address in the website for that coin first.")));
+        end
+    end
+    request = Dict{Symbol, Any}(
+        Symbol("account_id") => accountId
+    );
+    if functions.ccxtruthy(limit != nothing)
+        request[Symbol("limit")] = limit;
+    end
+    return [request, params]
+
+end
+function createMarketBuyOrderWithCost(self::Coinbase, symbol, cost, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    market = self.market(symbol);
+    if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("spot"), nothing)))
+        throw(NotSupported(string(self.id, " createMarketBuyOrderWithCost() supports spot orders only")));
+    end
+    params[Symbol("createMarketBuyOrderRequiresPrice")] = false;
+    return self.createOrder(symbol, "market", "buy", cost, nothing, params)
+
+end
+function createOrder(self::Coinbase, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    market = self.market(symbol);
+    id = safeString(self.options, "brokerId", "ccxt");
+    request = Dict{Symbol, Any}(
+        Symbol("client_order_id") => string(id, "-", uuid()),
+        Symbol("product_id") => get(market, Symbol("id"), nothing),
+        Symbol("side") => uppercase(side)
+    );
+    reduceOnly = self.safeBool(params, "reduceOnly");
+    if functions.ccxtruthy(reduceOnly)
+        params = omit(params, "reduceOnly");
+        params[Symbol("amount")] = amount;
+            return self.closePosition(symbol, side, params)
+    end
+    triggerPrice = self.safeNumberN(params, ["stopPrice", "stop_price", "triggerPrice"]);
+    stopLossPrice = self.safeNumber(params, "stopLossPrice");
+    takeProfitPrice = self.safeNumber(params, "takeProfitPrice");
+    isStop = triggerPrice != nothing;
+    isStopLoss = stopLossPrice != nothing;
+    isTakeProfit = takeProfitPrice != nothing;
+    timeInForce = safeString(params, "timeInForce");
+    postOnly = functions.ccxtruthy((timeInForce == "PO")) ? true : self.safeBool2(params, "postOnly", "post_only", false);
+    endTime = safeString(params, "end_time");
+    stopDirection = safeString(params, "stop_direction");
+    if functions.ccxtruthy(type_var == "limit")
+        if functions.ccxtruthy(isStop)
+            if functions.ccxtruthy(stopDirection == nothing)
+                stopDirection = functions.ccxtruthy((side == "buy")) ? "STOP_DIRECTION_STOP_DOWN" : "STOP_DIRECTION_STOP_UP";
+            end
+            if functions.ccxtruthy(@functions.ccxt_or((timeInForce == "GTD"), (endTime != nothing)))
+                if functions.ccxtruthy(endTime == nothing)
+                    throw(ExchangeError(string(self.id, " createOrder() requires an end_time parameter for a GTD order")));
+                end
+                request[Symbol("order_configuration")] = Dict{Symbol, Any}(
+                    Symbol("stop_limit_stop_limit_gtd") => Dict{Symbol, Any}(
+                        Symbol("base_size") => self.amountToPrecision(symbol, amount),
+                        Symbol("limit_price") => self.priceToPrecision(symbol, price),
+                        Symbol("stop_price") => self.priceToPrecision(symbol, triggerPrice),
+                        Symbol("stop_direction") => stopDirection,
+                        Symbol("end_time") => endTime
+                    )
+                );
+            else
+                request[Symbol("order_configuration")] = Dict{Symbol, Any}(
+                    Symbol("stop_limit_stop_limit_gtc") => Dict{Symbol, Any}(
+                        Symbol("base_size") => self.amountToPrecision(symbol, amount),
+                        Symbol("limit_price") => self.priceToPrecision(symbol, price),
+                        Symbol("stop_price") => self.priceToPrecision(symbol, triggerPrice),
+                        Symbol("stop_direction") => stopDirection
+                    )
+                );
+            end
+        elseif functions.ccxtruthy(@functions.ccxt_or(isStopLoss, isTakeProfit))
+            tpslPrice = nothing;
+            if functions.ccxtruthy(isStopLoss)
+                if functions.ccxtruthy(stopDirection == nothing)
+                    stopDirection = functions.ccxtruthy((side == "buy")) ? "STOP_DIRECTION_STOP_UP" : "STOP_DIRECTION_STOP_DOWN";
+                end
+                tpslPrice = self.priceToPrecision(symbol, stopLossPrice);
+            else
+                if functions.ccxtruthy(stopDirection == nothing)
+                    stopDirection = functions.ccxtruthy((side == "buy")) ? "STOP_DIRECTION_STOP_DOWN" : "STOP_DIRECTION_STOP_UP";
+                end
+                tpslPrice = self.priceToPrecision(symbol, takeProfitPrice);
+            end
+            request[Symbol("order_configuration")] = Dict{Symbol, Any}(
+                Symbol("stop_limit_stop_limit_gtc") => Dict{Symbol, Any}(
+                    Symbol("base_size") => self.amountToPrecision(symbol, amount),
+                    Symbol("limit_price") => self.priceToPrecision(symbol, price),
+                    Symbol("stop_price") => tpslPrice,
+                    Symbol("stop_direction") => stopDirection
+                )
+            );
+        else
+            if functions.ccxtruthy(@functions.ccxt_or((timeInForce == "GTD"), (endTime != nothing)))
+                if functions.ccxtruthy(endTime == nothing)
+                    throw(ExchangeError(string(self.id, " createOrder() requires an end_time parameter for a GTD order")));
+                end
+                request[Symbol("order_configuration")] = Dict{Symbol, Any}(
+                    Symbol("limit_limit_gtd") => Dict{Symbol, Any}(
+                        Symbol("base_size") => self.amountToPrecision(symbol, amount),
+                        Symbol("limit_price") => self.priceToPrecision(symbol, price),
+                        Symbol("end_time") => endTime,
+                        Symbol("post_only") => postOnly
+                    )
+                );
+            elseif functions.ccxtruthy(timeInForce == "IOC")
+                request[Symbol("order_configuration")] = Dict{Symbol, Any}(
+                    Symbol("sor_limit_ioc") => Dict{Symbol, Any}(
+                        Symbol("base_size") => self.amountToPrecision(symbol, amount),
+                        Symbol("limit_price") => self.priceToPrecision(symbol, price)
+                    )
+                );
+            else
+                if functions.ccxtruthy(timeInForce == "FOK")
+                    request[Symbol("order_configuration")] = Dict{Symbol, Any}(
+                        Symbol("limit_limit_fok") => Dict{Symbol, Any}(
+                            Symbol("base_size") => self.amountToPrecision(symbol, amount),
+                            Symbol("limit_price") => self.priceToPrecision(symbol, price)
+                        )
+                    );
+                else
+                    request[Symbol("order_configuration")] = Dict{Symbol, Any}(
+                        Symbol("limit_limit_gtc") => Dict{Symbol, Any}(
+                            Symbol("base_size") => self.amountToPrecision(symbol, amount),
+                            Symbol("limit_price") => self.priceToPrecision(symbol, price),
+                            Symbol("post_only") => postOnly
+                        )
+                    );
+                end
+
+            end
+        end
+    else
+        if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(isStop, isStopLoss), isTakeProfit))
+            throw(NotSupported(string(self.id, " createOrder() only stop limit orders are supported")));
+        end
+        if functions.ccxtruthy(@functions.ccxt_and(get(market, Symbol("spot"), nothing), (side == "buy")))
+            total = nothing;
+            createMarketBuyOrderRequiresPrice = true;
+            (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            cost = self.safeNumber(params, "cost");
+            params = omit(params, "cost");
+            if functions.ccxtruthy(cost != nothing)
+                total = self.costToPrecision(symbol, cost);
+            elseif functions.ccxtruthy(createMarketBuyOrderRequiresPrice)
+                if functions.ccxtruthy(price == nothing)
+                    throw(InvalidOrder(string(self.id, " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
+                else
+                    amountString = numberToString(amount);
+                    priceString = numberToString(price);
+                    costRequest = stringMul(amountString, priceString);
+                    total = self.costToPrecision(symbol, costRequest);
+                end
+            else
+                total = self.costToPrecision(symbol, amount);
+            end
+            request[Symbol("order_configuration")] = Dict{Symbol, Any}(
+                Symbol("market_market_ioc") => Dict{Symbol, Any}(
+                    Symbol("quote_size") => total
+                )
+            );
+        else
+            request[Symbol("order_configuration")] = Dict{Symbol, Any}(
+                Symbol("market_market_ioc") => Dict{Symbol, Any}(
+                    Symbol("base_size") => self.amountToPrecision(symbol, amount)
+                )
+            );
+        end
+    end
+    marginMode = safeString(params, "marginMode");
+    if functions.ccxtruthy(marginMode != nothing)
+        if functions.ccxtruthy(marginMode == "isolated")
+            request[Symbol("margin_type")] = "ISOLATED";
+        elseif functions.ccxtruthy(marginMode == "cross")
+            request[Symbol("margin_type")] = "CROSS";
+        end
+    end
+    params = omit(params, ["timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPrice", "stop_price", "stopDirection", "stop_direction", "clientOrderId", "postOnly", "post_only", "end_time", "marginMode"]);
+    preview = self.safeBool2(params, "preview", "test", false);
+    response = nothing;
+    if functions.ccxtruthy(preview)
+        params = omit(params, ["preview", "test"]);
+        request = omit(request, "client_order_id");
+        response = self.v3PrivatePostBrokerageOrdersPreview(extend(request, params));
+    else
+        response = self.v3PrivatePostBrokerageOrders(extend(request, params));
+    end
+    success = self.safeBool(response, "success");
+    if functions.ccxtruthy(success != true)
+        errorResponse = self.safeDict(response, "error_response");
+        errorTitle = safeString(errorResponse, "error");
+        errorMessage = safeString(errorResponse, "message");
+        if functions.ccxtruthy(errorResponse != nothing)
+            self.throwExactlyMatchedException(get(self.exceptions, Symbol("exact"), nothing), errorTitle, errorMessage);
+            self.throwBroadlyMatchedException(get(self.exceptions, Symbol("broad"), nothing), errorTitle, errorMessage);
+            throw(ExchangeError(                errorMessage));
+        end
+    end
+    data = self.safeDict(response, "success_response", Dict{Symbol, Any}());
+    return self.parseOrder(data, market)
+
+end
+function parseOrder(self::Coinbase, order, market=nothing)
+    marketId = safeString(order, "product_id");
+    symbol = self.safeSymbol(marketId, market, "-");
+    if functions.ccxtruthy(symbol != nothing)
+        market = self.safeMarket(symbol, market);
+    end
+    orderConfiguration = self.safeDict(order, "order_configuration", Dict{Symbol, Any}());
+    limitGTC = self.safeDict(orderConfiguration, "limit_limit_gtc");
+    limitGTD = self.safeDict(orderConfiguration, "limit_limit_gtd");
+    limitIOC = self.safeDict(orderConfiguration, "sor_limit_ioc");
+    stopLimitGTC = self.safeDict(orderConfiguration, "stop_limit_stop_limit_gtc");
+    stopLimitGTD = self.safeDict(orderConfiguration, "stop_limit_stop_limit_gtd");
+    marketIOC = self.safeDict(orderConfiguration, "market_market_ioc");
+    isLimit = (@functions.ccxt_or(@functions.ccxt_or((limitGTC != nothing), (limitGTD != nothing)), (limitIOC != nothing)));
+    isStop = (@functions.ccxt_or((stopLimitGTC != nothing), (stopLimitGTD != nothing)));
+    price = nothing;
+    amount = nothing;
+    postOnly = nothing;
+    triggerPrice = nothing;
+    if functions.ccxtruthy(isLimit)
+        target = nothing;
+        if functions.ccxtruthy(limitGTC != nothing)
+            target = limitGTC;
+        elseif functions.ccxtruthy(limitGTD != nothing)
+            target = limitGTD;
+        else
+            target = limitIOC;
+        end
+        price = safeString(target, "limit_price");
+        amount = safeString(target, "base_size");
+        postOnly = self.safeBool(target, "post_only");
+    elseif functions.ccxtruthy(isStop)
+        stopTarget = functions.ccxtruthy((stopLimitGTC != nothing)) ? stopLimitGTC : stopLimitGTD;
+        price = safeString(stopTarget, "limit_price");
+        amount = safeString(stopTarget, "base_size");
+        postOnly = self.safeBool(stopTarget, "post_only");
+        triggerPrice = safeString(stopTarget, "stop_price");
+    else
+        amount = safeString(marketIOC, "base_size");
+    end
+    datetime = safeString(order, "created_time");
+    totalFees = safeString(order, "total_fees");
+    currencyFee = nothing;
+    if functions.ccxtruthy(@functions.ccxt_and((totalFees != nothing), (market != nothing)))
+        currencyFee = get(market, Symbol("quote"), nothing);
+    end
+    return self.safeOrder(Dict{Symbol, Any}(
+    Symbol("info") => order,
+    Symbol("id") => safeString(order, "order_id"),
+    Symbol("clientOrderId") => safeString(order, "client_order_id"),
+    Symbol("timestamp") => self.parse8601(datetime),
+    Symbol("datetime") => datetime,
+    Symbol("lastTradeTimestamp") => nothing,
+    Symbol("symbol") => symbol,
+    Symbol("type") => self.parseOrderType(safeString(order, "order_type")),
+    Symbol("timeInForce") => self.parseTimeInForce(safeString(order, "time_in_force")),
+    Symbol("postOnly") => postOnly,
+    Symbol("side") => safeStringLower(order, "side"),
+    Symbol("price") => price,
+    Symbol("triggerPrice") => triggerPrice,
+    Symbol("amount") => amount,
+    Symbol("filled") => safeString(order, "filled_size"),
+    Symbol("remaining") => nothing,
+    Symbol("cost") => nothing,
+    Symbol("average") => safeString(order, "average_filled_price"),
+    Symbol("status") => self.parseOrderStatus(safeString(order, "status")),
+    Symbol("fee") => Dict{Symbol, Any}(
+        Symbol("cost") => safeString(order, "total_fees"),
+        Symbol("currency") => currencyFee
+    ),
+    Symbol("trades") => nothing
+), market)
+
+end
+function parseOrderStatus(self::Coinbase, status)
+    statuses = Dict{Symbol, Any}(
+        Symbol("OPEN") => "open",
+        Symbol("FILLED") => "closed",
+        Symbol("CANCELLED") => "canceled",
+        Symbol("EXPIRED") => "canceled",
+        Symbol("FAILED") => "canceled",
+        Symbol("UNKNOWN_ORDER_STATUS") => nothing
+    );
+    return safeString(statuses, status, status)
+
+end
+function parseOrderType(self::Coinbase, type_var)
+    if functions.ccxtruthy(type_var == "UNKNOWN_ORDER_TYPE")
+            return nothing
+    end
+    types = Dict{Symbol, Any}(
+        Symbol("MARKET") => "market",
+        Symbol("LIMIT") => "limit",
+        Symbol("STOP") => "limit",
+        Symbol("STOP_LIMIT") => "limit"
+    );
+    return safeString(types, type_var, type_var)
+
+end
+function parseTimeInForce(self::Coinbase, timeInForce)
+    timeInForces = Dict{Symbol, Any}(
+        Symbol("GOOD_UNTIL_CANCELLED") => "GTC",
+        Symbol("GOOD_UNTIL_DATE_TIME") => "GTD",
+        Symbol("IMMEDIATE_OR_CANCEL") => "IOC",
+        Symbol("FILL_OR_KILL") => "FOK",
+        Symbol("UNKNOWN_TIME_IN_FORCE") => nothing
+    );
+    return safeString(timeInForces, timeInForce, timeInForce)
+
+end
+function cancelOrder(self::Coinbase, id, symbol=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    orders = self.cancelOrders([id], symbol, params);
+    return self.safeDict(orders, 0, Dict{Symbol, Any}())
+
+end
+function cancelOrders(self::Coinbase, ids, symbol=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    market = nothing;
+    if functions.ccxtruthy(symbol != nothing)
+        market = self.market(symbol);
+    end
+    request = Dict{Symbol, Any}(
+        Symbol("order_ids") => ids
+    );
+    response = self.v3PrivatePostBrokerageOrdersBatchCancel(extend(request, params));
+    orders = self.safeList(response, "results", []);
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(orders)))
+        success = self.safeBool(get(orders, i + 1, nothing), "success");
+        if functions.ccxtruthy(success != true)
+            throw(BadRequest(string(self.id, " cancelOrders() has failed, check your arguments and parameters")));
+        end
+        i += 1
+    end
+    return self.parseOrders(orders, market)
+
+end
+function editOrder(self::Coinbase, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    market = self.market(symbol);
+    request = Dict{Symbol, Any}(
+        Symbol("order_id") => id
+    );
+    if functions.ccxtruthy(amount != nothing)
+        request[Symbol("size")] = self.amountToPrecision(symbol, amount);
+    end
+    if functions.ccxtruthy(price != nothing)
+        request[Symbol("price")] = self.priceToPrecision(symbol, price);
+    end
+    preview = self.safeBool2(params, "preview", "test", false);
+    response = nothing;
+    if functions.ccxtruthy(preview)
+        params = omit(params, ["preview", "test"]);
+        response = self.v3PrivatePostBrokerageOrdersEditPreview(extend(request, params));
+    else
+        response = self.v3PrivatePostBrokerageOrdersEdit(extend(request, params));
+    end
+    return self.parseOrder(response, market)
+
+end
+function fetchOrder(self::Coinbase, id, symbol=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    market = nothing;
+    if functions.ccxtruthy(symbol != nothing)
+        market = self.market(symbol);
+    end
+    request = Dict{Symbol, Any}(
+        Symbol("order_id") => id
+    );
+    response = self.v3PrivateGetBrokerageOrdersHistoricalOrderId(extend(request, params));
+    order = self.safeDict(response, "order", Dict{Symbol, Any}());
+    return self.parseOrder(order, market)
+
+end
+function fetchOrders(self::Coinbase, symbol=nothing, since=nothing, limit=100, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    paginate = false;
+    (paginate, params) = self.handleOptionAndParams(params, "fetchOrders", "paginate");
+    if functions.ccxtruthy(paginate)
+            return self.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "cursor", "cursor", nothing, 1000)
+    end
+    market = nothing;
+    if functions.ccxtruthy(symbol != nothing)
+        market = self.market(symbol);
+    end
+    request = Dict{Symbol, Any}();
+    if functions.ccxtruthy(market != nothing)
+        request[Symbol("product_id")] = get(market, Symbol("id"), nothing);
+    end
+    if functions.ccxtruthy(limit != nothing)
+        request[Symbol("limit")] = limit;
+    end
+    if functions.ccxtruthy(since != nothing)
+        request[Symbol("start_date")] = self.iso8601(since);
+    end
+    until = safeIntegerN(params, ["until"]);
+    if functions.ccxtruthy(until != nothing)
+        params = omit(params, ["until"]);
+        request[Symbol("end_date")] = self.iso8601(until);
+    end
+    response = self.v3PrivateGetBrokerageOrdersHistoricalBatch(extend(request, params));
+    orders = self.safeList(response, "orders", []);
+    first_var = self.safeDict(orders, 0, Dict{Symbol, Any}());
+    cursor = safeString(response, "cursor");
+    if functions.ccxtruthy(@functions.ccxt_and((cursor != nothing), (cursor != "")))
+        first_var[Symbol("cursor")] = cursor;
+        orders[1] = first_var;
+    end
+    return self.parseOrders(orders, market, since, limit)
+
+end
+function fetchOrdersByStatus(self::Coinbase, status, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    market = nothing;
+    if functions.ccxtruthy(symbol != nothing)
+        market = self.market(symbol);
+    end
+    request = Dict{Symbol, Any}(
+        Symbol("order_status") => status
+    );
+    if functions.ccxtruthy(market != nothing)
+        request[Symbol("product_id")] = get(market, Symbol("id"), nothing);
+    end
+    if functions.ccxtruthy(limit == nothing)
+        limit = 100;
+    end
+    request[Symbol("limit")] = limit;
+    if functions.ccxtruthy(since != nothing)
+        request[Symbol("start_date")] = self.iso8601(since);
+    end
+    until = safeIntegerN(params, ["until"]);
+    if functions.ccxtruthy(until != nothing)
+        params = omit(params, ["until"]);
+        request[Symbol("end_date")] = self.iso8601(until);
+    end
+    response = self.v3PrivateGetBrokerageOrdersHistoricalBatch(extend(request, params));
+    orders = self.safeList(response, "orders", []);
+    first_var = self.safeDict(orders, 0, Dict{Symbol, Any}());
+    cursor = safeString(response, "cursor");
+    if functions.ccxtruthy(@functions.ccxt_and((cursor != nothing), (cursor != "")))
+        first_var[Symbol("cursor")] = cursor;
+        orders[1] = first_var;
+    end
+    return self.parseOrders(orders, market, since, limit)
+
+end
+function fetchOpenOrders(self::Coinbase, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    paginate = false;
+    (paginate, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "paginate");
+    if functions.ccxtruthy(paginate)
+            return self.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, params, "cursor", "cursor", nothing, 100)
+    end
+    return self.fetchOrdersByStatus("OPEN", symbol, since, limit, params)
+
+end
+function fetchClosedOrders(self::Coinbase, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    paginate = false;
+    (paginate, params) = self.handleOptionAndParams(params, "fetchClosedOrders", "paginate");
+    if functions.ccxtruthy(paginate)
+            return self.fetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, params, "cursor", "cursor", nothing, 100)
+    end
+    return self.fetchOrdersByStatus("FILLED", symbol, since, limit, params)
+
+end
+function fetchCanceledOrders(self::Coinbase, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return self.fetchOrdersByStatus("CANCELLED", symbol, since, limit, params)
+
+end
+function fetchOHLCV(self::Coinbase, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    maxLimit = 300;
+    limit = functions.ccxtruthy((limit == nothing)) ? maxLimit : min(limit, maxLimit);
+    paginate = false;
+    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", false);
+    if functions.ccxtruthy(paginate)
+            return self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit - 1)
+    end
+    market = self.market(symbol);
+    request = Dict{Symbol, Any}(
+        Symbol("product_id") => get(market, Symbol("id"), nothing),
+        Symbol("granularity") => safeString(self.timeframes, timeframe, timeframe)
+    );
+    until = safeIntegerN(params, ["until", "end"]);
+    params = omit(params, ["until"]);
+    duration = self.parseTimeframe(timeframe);
+    requestedDuration = limit * duration;
+    sinceString = nothing;
+    if functions.ccxtruthy(since != nothing)
+        sinceString = numberToString(self.parseToInt(since / 1000));
+    else
+        now = string(seconds());
+        sinceString = stringSub(now, string(requestedDuration));
+    end
+    request[Symbol("start")] = sinceString;
+    if functions.ccxtruthy(until != nothing)
+        request[Symbol("end")] = numberToString(self.parseToInt(until / 1000));
+    else
+        request[Symbol("end")] = stringAdd(sinceString, string(requestedDuration));
+    end
+    response = nothing;
+    usePrivate = false;
+    (usePrivate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "usePrivate", false);
+    if functions.ccxtruthy(usePrivate)
+        response = self.v3PrivateGetBrokerageProductsProductIdCandles(extend(request, params));
+    else
+        response = self.v3PublicGetBrokerageMarketProductsProductIdCandles(extend(request, params));
+    end
+    candles = self.safeList(response, "candles", []);
+    return self.parseOHLCVs(candles, market, timeframe, since, limit)
+
+end
+function parseOHLCV(self::Coinbase, ohlcv, market=nothing)
+    return [safeTimestamp(ohlcv, "start"), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, "volume")]
+
+end
+function fetchTrades(self::Coinbase, symbol, since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    market = self.market(symbol);
+    request = Dict{Symbol, Any}(
+        Symbol("product_id") => get(market, Symbol("id"), nothing)
+    );
+    if functions.ccxtruthy(since != nothing)
+        request[Symbol("start")] = numberToString(self.parseToInt(since / 1000));
+    end
+    if functions.ccxtruthy(limit != nothing)
+        request[Symbol("limit")] = min(limit, 1000);
+    end
+    until = nothing;
+    (until, params) = self.handleOptionAndParams(params, "fetchTrades", "until");
+    if functions.ccxtruthy(until != nothing)
+        request[Symbol("end")] = numberToString(self.parseToInt(until / 1000));
+    elseif functions.ccxtruthy(since != nothing)
+        throw(ArgumentsRequired(string(self.id, " fetchTrades() requires a `until` parameter when you use `since` argument")));
+    end
+    response = nothing;
+    usePrivate = false;
+    (usePrivate, params) = self.handleOptionAndParams(params, "fetchTrades", "usePrivate", false);
+    if functions.ccxtruthy(usePrivate)
+        response = self.v3PrivateGetBrokerageProductsProductIdTicker(extend(request, params));
+    else
+        response = self.v3PublicGetBrokerageMarketProductsProductIdTicker(extend(request, params));
+    end
+    trades = self.safeList(response, "trades", []);
+    return self.parseTrades(trades, market, since, limit)
+
+end
+function fetchMyTrades(self::Coinbase, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    paginate = false;
+    (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
+    if functions.ccxtruthy(paginate)
+            return self.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "cursor", "cursor", nothing, 250)
+    end
+    market = nothing;
+    if functions.ccxtruthy(symbol != nothing)
+        market = self.market(symbol);
+    end
+    request = Dict{Symbol, Any}();
+    if functions.ccxtruthy(market != nothing)
+        request[Symbol("product_id")] = get(market, Symbol("id"), nothing);
+    end
+    if functions.ccxtruthy(limit != nothing)
+        request[Symbol("limit")] = limit;
+    end
+    if functions.ccxtruthy(since != nothing)
+        request[Symbol("start_sequence_timestamp")] = self.iso8601(since);
+    end
+    until = safeIntegerN(params, ["until"]);
+    if functions.ccxtruthy(until != nothing)
+        params = omit(params, ["until"]);
+        request[Symbol("end_sequence_timestamp")] = self.iso8601(until);
+    end
+    response = self.v3PrivateGetBrokerageOrdersHistoricalFills(extend(request, params));
+    trades = self.safeList(response, "fills", []);
+    first_var = self.safeDict(trades, 0, Dict{Symbol, Any}());
+    cursor = safeString(response, "cursor");
+    if functions.ccxtruthy(@functions.ccxt_and((cursor != nothing), (cursor != "")))
+        first_var[Symbol("cursor")] = cursor;
+        trades[1] = first_var;
+    end
+    return self.parseTrades(trades, market, since, limit)
+
+end
+function fetchOrderBook(self::Coinbase, symbol, limit=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    market = self.market(symbol);
+    request = Dict{Symbol, Any}(
+        Symbol("product_id") => get(market, Symbol("id"), nothing)
+    );
+    if functions.ccxtruthy(limit != nothing)
+        request[Symbol("limit")] = limit;
+    end
+    response = nothing;
+    usePrivate = false;
+    (usePrivate, params) = self.handleOptionAndParams(params, "fetchOrderBook", "usePrivate", false);
+    if functions.ccxtruthy(usePrivate)
+        response = self.v3PrivateGetBrokerageProductBook(extend(request, params));
+    else
+        response = self.v3PublicGetBrokerageMarketProductBook(extend(request, params));
+    end
+    data = self.safeDict(response, "pricebook", Dict{Symbol, Any}());
+    time = safeString(data, "time");
+    timestamp = self.parse8601(time);
+    return self.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size")
+
+end
+function fetchBidsAsks(self::Coinbase, symbols=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    symbols = self.marketSymbols(symbols);
+    request = Dict{Symbol, Any}();
+    if functions.ccxtruthy(symbols != nothing)
+        request[Symbol("product_ids")] = self.marketIds(symbols);
+    end
+    response = self.v3PrivateGetBrokerageBestBidAsk(extend(request, params));
+    tickers = self.safeList(response, "pricebooks", []);
+    return self.parseTickers(tickers, symbols)
+
+end
+function withdraw(self::Coinbase, code, amount, address, tag=nothing, params=Dict())
+    (tag, params) = self.handleWithdrawTagAndParams(tag, params);
+    self.checkAddress(address);
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    currency = self.currency(code);
+    request = Dict{Symbol, Any}(
+        Symbol("type") => "send",
+        Symbol("to") => address,
+        Symbol("amount") => numberToString(amount),
+        Symbol("currency") => get(currency, Symbol("id"), nothing)
+    );
+    accountId = safeString2(params, "account_id", "accountId");
+    params = omit(params, ["account_id", "accountId"]);
+    if functions.ccxtruthy(accountId == nothing)
+        if functions.ccxtruthy(code == nothing)
+            throw(ArgumentsRequired(string(self.id, " withdraw() requires an account_id (or accountId) parameter OR a currency code argument")));
+        end
+        accountId = self.findAccountId(code, params);
+        if functions.ccxtruthy(accountId == nothing)
+            throw(ExchangeError(string(self.id, " withdraw() could not find account id for ", code)));
+        end
+        request[Symbol("account_id")] = accountId;
+    else
+        request[Symbol("account_id")] = accountId;
+    end
+    if functions.ccxtruthy(tag != nothing)
+        request[Symbol("destination_tag")] = tag;
+    end
+    response = self.v2PrivatePostAccountsAccountIdTransactions(extend(request, params));
+    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    return self.parseTransaction(data, currency)
+
+end
+function fetchDepositAddressesByNetwork(self::Coinbase, code, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    currency = self.currency(code);
+    request = nothing;
+    (request, params) = self.prepareAccountRequestWithCurrencyCode(get(currency, Symbol("code"), nothing), nothing, params);
+    response = self.v2PrivateGetAccountsAccountIdAddresses(extend(request, params));
+    data = self.safeList(response, "data", []);
+    addressStructures = self.parseDepositAddresses(data, nothing, false);
+    return indexBy(addressStructures, "network")
+
+end
+function parseDepositAddress(self::Coinbase, depositAddress, currency=nothing)
+    address = safeString(depositAddress, "address");
+    self.checkAddress(address);
+    networkId = safeString(depositAddress, "network");
+    code = self.safeCurrencyCode(nothing, currency);
+    addressLabel = safeString(depositAddress, "address_label");
+    currencyId = nothing;
+    if functions.ccxtruthy(addressLabel != nothing)
+        splitAddressLabel = split(addressLabel, " ");
+        currencyId = safeString(splitAddressLabel, 0);
+    else
+        currencyId = safeString(depositAddress, "currency");
+    end
+    addressInfo = self.safeDict(depositAddress, "address_info");
+    return Dict{Symbol, Any}(
+    Symbol("info") => depositAddress,
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("network") => self.networkIdToCode(networkId, code),
+    Symbol("address") => address,
+    Symbol("tag") => safeString(addressInfo, "destination_tag")
+)
+
+end
+function deposit(self::Coinbase, code, amount, id, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    accountId = safeString2(params, "account_id", "accountId");
+    params = omit(params, ["account_id", "accountId"]);
+    if functions.ccxtruthy(accountId == nothing)
+        if functions.ccxtruthy(code == nothing)
+            throw(ArgumentsRequired(string(self.id, " deposit() requires an account_id (or accountId) parameter OR a currency code argument")));
+        end
+        accountId = self.findAccountId(code, params);
+        if functions.ccxtruthy(accountId == nothing)
+            throw(ExchangeError(string(self.id, " deposit() could not find account id for ", code)));
+        end
+    end
+    request = Dict{Symbol, Any}(
+        Symbol("account_id") => accountId,
+        Symbol("amount") => numberToString(amount),
+        Symbol("currency") => uppercase(code),
+        Symbol("payment_method") => id,
+        Symbol("commit") => true
+    );
+    response = self.v2PrivatePostAccountsAccountIdDeposits(extend(request, params));
+    data = self.safeDict2(response, "data", "transfer", Dict{Symbol, Any}());
+    return self.parseTransaction(data)
+
+end
+function fetchDeposit(self::Coinbase, id, code=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    accountId = safeString2(params, "account_id", "accountId");
+    params = omit(params, ["account_id", "accountId"]);
+    if functions.ccxtruthy(accountId == nothing)
+        if functions.ccxtruthy(code == nothing)
+            throw(ArgumentsRequired(string(self.id, " fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument")));
+        end
+        accountId = self.findAccountId(code, params);
+        if functions.ccxtruthy(accountId == nothing)
+            throw(ExchangeError(string(self.id, " fetchDeposit() could not find account id for ", code)));
+        end
+    end
+    request = Dict{Symbol, Any}(
+        Symbol("account_id") => accountId,
+        Symbol("deposit_id") => id
+    );
+    response = self.v2PrivateGetAccountsAccountIdDepositsDepositId(extend(request, params));
+    data = self.safeDict2(response, "data", "transfer", Dict{Symbol, Any}());
+    return self.parseTransaction(data)
+
+end
+function fetchDepositMethodIds(self::Coinbase, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    response = self.v3PrivateGetBrokeragePaymentMethods(params);
+    result = self.safeList(response, "payment_methods", []);
+    return self.parseDepositMethodIds(result)
+
+end
+function fetchDepositMethodId(self::Coinbase, id, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    request = Dict{Symbol, Any}(
+        Symbol("payment_method_id") => id
+    );
+    response = self.v3PrivateGetBrokeragePaymentMethodsPaymentMethodId(extend(request, params));
+    result = self.safeDict(response, "payment_method", Dict{Symbol, Any}());
+    return self.parseDepositMethodId(result)
+
+end
+function parseDepositMethodIds(self::Coinbase, ids, params=Dict())
+    result = [];
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(ids)))
+        id = extend(self.parseDepositMethodId(get(ids, i + 1, nothing)), params);
+        push!(result, id);
+        i += 1
+    end
+    return result
+
+end
+function parseDepositMethodId(self::Coinbase, depositId)
+    return Dict{Symbol, Any}(
+    Symbol("info") => depositId,
+    Symbol("id") => safeString(depositId, "id"),
+    Symbol("currency") => safeString(depositId, "currency"),
+    Symbol("verified") => self.safeBool(depositId, "verified"),
+    Symbol("tag") => safeString(depositId, "name")
+)
+
+end
+function fetchConvertQuote(self::Coinbase, fromCode, toCode, amount=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    request = Dict{Symbol, Any}(
+        Symbol("from_account") => fromCode,
+        Symbol("to_account") => toCode,
+        Symbol("amount") => numberToString(amount)
+    );
+    response = self.v3PrivatePostBrokerageConvertQuote(extend(request, params));
+    data = self.safeDict(response, "trade", Dict{Symbol, Any}());
+    return self.parseConversion(data)
+
+end
+function createConvertTrade(self::Coinbase, id, fromCode, toCode, amount=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    request = Dict{Symbol, Any}(
+        Symbol("trade_id") => id,
+        Symbol("from_account") => fromCode,
+        Symbol("to_account") => toCode
+    );
+    response = self.v3PrivatePostBrokerageConvertTradeTradeId(extend(request, params));
+    data = self.safeDict(response, "trade", Dict{Symbol, Any}());
+    return self.parseConversion(data)
+
+end
+function fetchConvertTrade(self::Coinbase, id, code=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    if functions.ccxtruthy(code == nothing)
+        throw(ArgumentsRequired(string(self.id, " fetchConvertTrade() requires a code argument")));
+    end
+    toCode = safeString(params, "toCode");
+    if functions.ccxtruthy(toCode == nothing)
+        throw(ArgumentsRequired(string(self.id, " fetchConvertTrade() requires a toCode parameter")));
+    end
+    params = omit(params, "toCode");
+    request = Dict{Symbol, Any}(
+        Symbol("trade_id") => id,
+        Symbol("from_account") => code,
+        Symbol("to_account") => toCode
+    );
+    response = self.v3PrivateGetBrokerageConvertTradeTradeId(extend(request, params));
+    data = self.safeDict(response, "trade", Dict{Symbol, Any}());
+    return self.parseConversion(data)
+
+end
+function parseConversion(self::Coinbase, conversion, fromCurrency=nothing, toCurrency=nothing)
+    fromCoin = safeString(conversion, "source_currency");
+    fromCode = self.safeCurrencyCode(fromCoin, fromCurrency);
+    to = safeString(conversion, "target_currency");
+    toCode = self.safeCurrencyCode(to, toCurrency);
+    fromAmountStructure = self.safeDict(conversion, "user_entered_amount");
+    feeStructure = self.safeDict(conversion, "total_fee");
+    feeAmountStructure = self.safeDict(feeStructure, "amount");
+    return Dict{Symbol, Any}(
+    Symbol("info") => conversion,
+    Symbol("timestamp") => nothing,
+    Symbol("datetime") => nothing,
+    Symbol("id") => safeString(conversion, "id"),
+    Symbol("fromCurrency") => fromCode,
+    Symbol("fromAmount") => self.safeNumber(fromAmountStructure, "value"),
+    Symbol("toCurrency") => toCode,
+    Symbol("toAmount") => nothing,
+    Symbol("price") => nothing,
+    Symbol("fee") => self.safeNumber(feeAmountStructure, "value")
+)
+
+end
+function closePosition(self::Coinbase, symbol, side=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    market = self.market(symbol);
+    clientOrderId = safeString2(params, "client_order_id", "clientOrderId");
+    params = omit(params, "clientOrderId");
+    request = Dict{Symbol, Any}(
+        Symbol("product_id") => get(market, Symbol("id"), nothing)
+    );
+    if functions.ccxtruthy(clientOrderId == nothing)
+        throw(ArgumentsRequired(string(self.id, " closePosition() requires a clientOrderId parameter")));
+    end
+    request[Symbol("client_order_id")] = clientOrderId;
+    response = self.v3PrivatePostBrokerageOrdersClosePosition(extend(request, params));
+    order = self.safeDict(response, "success_response", Dict{Symbol, Any}());
+    return self.parseOrder(order)
+
+end
+function fetchPositions(self::Coinbase, symbols=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    symbols = self.marketSymbols(symbols);
+    market = nothing;
+    if functions.ccxtruthy(symbols != nothing)
+        market = self.market(get(symbols, 1, nothing));
+    end
+    type_var = nothing;
+    (type_var, params) = self.handleMarketTypeAndParams("fetchPositions", market, params);
+    response = nothing;
+    if functions.ccxtruthy(type_var == "future")
+        response = self.v3PrivateGetBrokerageCfmPositions(params);
+    else
+        portfolio = nothing;
+        (portfolio, params) = self.handleOptionAndParams(params, "fetchPositions", "portfolio");
+        if functions.ccxtruthy(portfolio == nothing)
+            throw(ArgumentsRequired(string(self.id, " fetchPositions() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()")));
+        end
+        request = Dict{Symbol, Any}(
+            Symbol("portfolio_uuid") => portfolio
+        );
+        response = self.v3PrivateGetBrokerageIntxPositionsPortfolioUuid(extend(request, params));
+    end
+    positions = self.safeList(response, "positions", []);
+    return self.parsePositions(positions, symbols)
+
+end
+function fetchPosition(self::Coinbase, symbol, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    market = self.market(symbol);
+    response = nothing;
+    if functions.ccxtruthy(get(market, Symbol("future"), nothing))
+        productId = safeString(market, "product_id");
+        if functions.ccxtruthy(productId == nothing)
+            throw(ArgumentsRequired(string(self.id, " fetchPosition() requires a \"product_id\" in params")));
+        end
+        futureRequest = Dict{Symbol, Any}(
+            Symbol("product_id") => productId
+        );
+        response = self.v3PrivateGetBrokerageCfmPositionsProductId(extend(futureRequest, params));
+    else
+        portfolio = nothing;
+        (portfolio, params) = self.handleOptionAndParams(params, "fetchPositions", "portfolio");
+        if functions.ccxtruthy(portfolio == nothing)
+            throw(ArgumentsRequired(string(self.id, " fetchPosition() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()")));
+        end
+        request = Dict{Symbol, Any}(
+            Symbol("symbol") => get(market, Symbol("id"), nothing),
+            Symbol("portfolio_uuid") => portfolio
+        );
+        response = self.v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(extend(request, params));
+    end
+    position = self.safeDict(response, "position", Dict{Symbol, Any}());
+    return self.parsePosition(position, market)
+
+end
+function parsePosition(self::Coinbase, position, market=nothing)
+    marketId = safeString(position, "symbol", "");
+    market = self.safeMarket(marketId, market);
+    rawMargin = safeString(position, "margin_type");
+    marginMode = nothing;
+    if functions.ccxtruthy(rawMargin != nothing)
+        marginMode = functions.ccxtruthy((rawMargin == "MARGIN_TYPE_CROSS")) ? "cross" : "isolated";
+    end
+    notionalObject = self.safeDict(position, "position_notional", Dict{Symbol, Any}());
+    positionSide = safeString(position, "position_side");
+    side = functions.ccxtruthy((positionSide == "POSITION_SIDE_LONG")) ? "long" : "short";
+    unrealizedPNLObject = self.safeDict(position, "unrealized_pnl", Dict{Symbol, Any}());
+    liquidationPriceObject = self.safeDict(position, "liquidation_price", Dict{Symbol, Any}());
+    liquidationPrice = self.safeNumber(liquidationPriceObject, "value");
+    vwapObject = self.safeDict(position, "vwap", Dict{Symbol, Any}());
+    summaryObject = self.safeDict(position, "portfolio_summary", Dict{Symbol, Any}());
+    return self.safePosition(Dict{Symbol, Any}(
+    Symbol("info") => position,
+    Symbol("id") => safeString(position, "product_id"),
+    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("notional") => self.safeNumber(notionalObject, "value"),
+    Symbol("marginMode") => marginMode,
+    Symbol("liquidationPrice") => liquidationPrice,
+    Symbol("entryPrice") => self.safeNumber(vwapObject, "value"),
+    Symbol("unrealizedPnl") => self.safeNumber(unrealizedPNLObject, "value"),
+    Symbol("realizedPnl") => nothing,
+    Symbol("percentage") => nothing,
+    Symbol("contracts") => self.safeNumber(position, "net_size"),
+    Symbol("contractSize") => get(market, Symbol("contractSize"), nothing),
+    Symbol("markPrice") => nothing,
+    Symbol("lastPrice") => nothing,
+    Symbol("side") => side,
+    Symbol("hedged") => nothing,
+    Symbol("timestamp") => nothing,
+    Symbol("datetime") => nothing,
+    Symbol("lastUpdateTimestamp") => nothing,
+    Symbol("maintenanceMargin") => nothing,
+    Symbol("maintenanceMarginPercentage") => nothing,
+    Symbol("collateral") => self.safeNumber(summaryObject, "collateral"),
+    Symbol("initialMargin") => nothing,
+    Symbol("initialMarginPercentage") => nothing,
+    Symbol("leverage") => self.safeNumber(position, "leverage"),
+    Symbol("marginRatio") => nothing,
+    Symbol("stopLossPrice") => nothing,
+    Symbol("takeProfitPrice") => nothing
+))
+
+end
+function fetchTradingFees(self::Coinbase, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    type_var = nothing;
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTradingFees", nothing, params);
+    isSpot = (type_var == "spot");
+    productType = functions.ccxtruthy(isSpot) ? "SPOT" : "FUTURE";
+    request = Dict{Symbol, Any}(
+        Symbol("product_type") => productType
+    );
+    response = self.v3PrivateGetBrokerageTransactionSummary(extend(request, params));
+    data = self.safeDict(response, "fee_tier", Dict{Symbol, Any}());
+    taker_fee = self.safeNumber(data, "taker_fee_rate");
+    maker_fee = self.safeNumber(data, "maker_fee_rate");
+    result = Dict{Symbol, Any}();
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(self.symbols)))
+        symbol = get(self.symbols, i + 1, nothing);
+        market = self.market(symbol);
+        if functions.ccxtruthy(@functions.ccxt_or((@functions.ccxt_and(isSpot, get(market, Symbol("spot"), nothing))), (@functions.ccxt_and(!functions.ccxtruthy(isSpot), !functions.ccxtruthy(get(market, Symbol("spot"), nothing))))))
+            result[Symbol(symbol)] = Dict{Symbol, Any}(
+                Symbol("info") => response,
+                Symbol("symbol") => symbol,
+                Symbol("maker") => maker_fee,
+                Symbol("taker") => taker_fee,
+                Symbol("percentage") => true
+            );
+        end
+        i += 1
+    end
+    return result
+
+end
+function fetchPortfolioDetails(self::Coinbase, portfolioUuid, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    request = Dict{Symbol, Any}(
+        Symbol("portfolio_uuid") => portfolioUuid
+    );
+    response = self.v3PrivateGetBrokeragePortfoliosPortfolioUuid(extend(request, params));
+    result = self.parsePortfolioDetails(response);
+    return result
+
+end
+function parsePortfolioDetails(self::Coinbase, portfolioData)
+    breakdown = get(portfolioData, Symbol("breakdown"), nothing);
+    portfolioInfo = self.safeDict(breakdown, "portfolio", Dict{Symbol, Any}());
+    portfolioName = safeString(portfolioInfo, "name", "Unknown");
+    portfolioUuid = safeString(portfolioInfo, "uuid", "");
+    spotPositions = self.safeList(breakdown, "spot_positions", []);
+    parsedPositions = [];
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(spotPositions)))
+        position = get(spotPositions, i + 1, nothing);
+        currencyCode = safeString(position, "asset", "Unknown");
+        availableBalanceStr = safeString(position, "available_to_trade_fiat", "0");
+        availableBalance = self.parseNumber(availableBalanceStr);
+        totalBalanceFiatStr = safeString(position, "total_balance_fiat", "0");
+        totalBalanceFiat = self.parseNumber(totalBalanceFiatStr);
+        holdAmount = totalBalanceFiat - availableBalance;
+        costBasisDict = self.safeDict(position, "cost_basis", Dict{Symbol, Any}());
+        costBasisStr = safeString(costBasisDict, "value", "0");
+        averageEntryPriceDict = self.safeDict(position, "average_entry_price", Dict{Symbol, Any}());
+        averageEntryPriceStr = safeString(averageEntryPriceDict, "value", "0");
+        positionData = Dict{Symbol, Any}(
+            Symbol("currency") => currencyCode,
+            Symbol("available_balance") => availableBalance,
+            Symbol("hold_amount") => functions.ccxtruthy(functions.ccxt_gt(holdAmount, 0)) ? holdAmount : 0,
+            Symbol("wallet_name") => portfolioName,
+            Symbol("account_id") => portfolioUuid,
+            Symbol("account_uuid") => safeString(position, "account_uuid", ""),
+            Symbol("total_balance_fiat") => totalBalanceFiat,
+            Symbol("total_balance_crypto") => self.parseNumber(safeString(position, "total_balance_crypto", "0")),
+            Symbol("available_to_trade_fiat") => self.parseNumber(safeString(position, "available_to_trade_fiat", "0")),
+            Symbol("available_to_trade_crypto") => self.parseNumber(safeString(position, "available_to_trade_crypto", "0")),
+            Symbol("available_to_transfer_fiat") => self.parseNumber(safeString(position, "available_to_transfer_fiat", "0")),
+            Symbol("available_to_transfer_crypto") => self.parseNumber(safeString(position, "available_to_trade_crypto", "0")),
+            Symbol("allocation") => self.parseNumber(safeString(position, "allocation", "0")),
+            Symbol("cost_basis") => self.parseNumber(costBasisStr),
+            Symbol("cost_basis_currency") => safeString(costBasisDict, "currency", "USD"),
+            Symbol("is_cash") => self.safeBool(position, "is_cash", false),
+            Symbol("average_entry_price") => self.parseNumber(averageEntryPriceStr),
+            Symbol("average_entry_price_currency") => safeString(averageEntryPriceDict, "currency", "USD"),
+            Symbol("asset_uuid") => safeString(position, "asset_uuid", ""),
+            Symbol("unrealized_pnl") => self.parseNumber(safeString(position, "unrealized_pnl", "0")),
+            Symbol("asset_color") => safeString(position, "asset_color", ""),
+            Symbol("account_type") => safeString(position, "account_type", "")
+        );
+        push!(parsedPositions, positionData);
+        i += 1
+    end
+    return parsedPositions
+
+end
+function createAuthToken(self::Coinbase, seconds, method=nothing, url=nothing, useEddsa=false)
+    uri = nothing;
+    if functions.ccxtruthy(url != nothing)
+        uri = string(method, " ", replace(url, "https://" => ""));
+        quesPos = ccxt_indexOf("?", uri);
+        if functions.ccxtruthy(functions.ccxt_gt(quesPos, 0))
+            uri = functions.ccxt_slice(uri, 0, quesPos);
+        end
+    end
+    nonce = self.randomBytes(16);
+    aud = functions.ccxtruthy(useEddsa) ? "cdp_service" : "retail_rest_api_proxy";
+    iss = functions.ccxtruthy(useEddsa) ? "cdp" : "coinbase-cloud";
+    request = Dict{Symbol, Any}(
+        Symbol("aud") => [aud],
+        Symbol("iss") => iss,
+        Symbol("nbf") => seconds,
+        Symbol("exp") => seconds + 120,
+        Symbol("sub") => self.apiKey,
+        Symbol("iat") => seconds
+    );
+    if functions.ccxtruthy(uri != nothing)
+        if functions.ccxtruthy(!functions.ccxtruthy(useEddsa))
+            request[Symbol("uri")] = uri;
+        else
+            request[Symbol("uris")] = [uri];
+        end
+    end
+    if functions.ccxtruthy(useEddsa)
+        byteArray = self.base64ToBinary(self.secret);
+        seed = self.arraySlice(byteArray, 0, 32);
+            return jwt(request, seed, sha256, false, Dict{Symbol, Any}(
+    Symbol("kid") => self.apiKey,
+    Symbol("nonce") => nonce,
+    Symbol("alg") => "EdDSA"
+))
+    else
+        return jwt(request, self.encode(self.secret), sha256, false, Dict{Symbol, Any}(
+    Symbol("kid") => self.apiKey,
+    Symbol("nonce") => nonce,
+    Symbol("alg") => "ES256"
+))
+    end
+
+end
+function nonce(self::Coinbase, )
+    return milliseconds() - get(self.options, Symbol("timeDifference"), nothing)
+
+end
+function sign(self::Coinbase, path, api=[], method="GET", params=Dict(), headers=nothing, body=nothing)
+    version = get(api, 1, nothing);
+    signed = get(api, 2, nothing) == "private";
+    isV3 = version == "v3";
+    pathPart = functions.ccxtruthy((isV3)) ? "api/v3" : "v2";
+    fullPath = string("/", pathPart, "/", self.implodeParams(path, params));
+    query = omit(params, self.extractParams(path));
+    savedPath = fullPath;
+    if functions.ccxtruthy(method == "GET")
+        if functions.ccxtruthy(length(objectKeys(query)))
+            fullPath += string("?", self.urlencodeWithArrayRepeat(query));
+        end
+    end
+    url = string(get(get(self.urls, Symbol("api"), nothing), Symbol("rest"), nothing), fullPath);
+    if functions.ccxtruthy(signed)
+        authorization = safeString(self.headers, "Authorization");
+        authorizationString = nothing;
+        if functions.ccxtruthy(authorization != nothing)
+            authorizationString = authorization;
+        elseif functions.ccxtruthy(@functions.ccxt_and(self.token, !functions.ccxtruthy(self.checkRequiredCredentials(false))))
+            authorizationString = string("Bearer ", self.token);
+        else
+            self.checkRequiredCredentials();
+            seconds = Ccxt.seconds();
+            payload = "";
+            if functions.ccxtruthy(method != "GET")
+                if functions.ccxtruthy(length(objectKeys(query)))
+                    body = json(query);
+                    payload = body;
+                end
+            else
+                if functions.ccxtruthy(!functions.ccxtruthy(isV3))
+                    if functions.ccxtruthy(length(objectKeys(query)))
+                        payload += string("?", self.urlencode(query));
+                    end
+                end
+            end
+            isCloudAPiKey = @functions.ccxt_or((findfirst("organizations/", self.apiKey) !== nothing), (startswith(self.secret, "-----BEGIN")));
+            isV2CloudAPiKey = @functions.ccxt_or(@functions.ccxt_or(length(self.secret) == 88, self.safeBool(self.options, "v2CloudAPiKey", false)), endswith(self.secret, "="));
+            if functions.ccxtruthy(@functions.ccxt_or(isCloudAPiKey, isV2CloudAPiKey))
+                if functions.ccxtruthy(@functions.ccxt_and(isCloudAPiKey, startswith(self.apiKey, "-----BEGIN")))
+                    throw(ArgumentsRequired(string(self.id, " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")));
+                end
+                token = self.createAuthToken(seconds, method, url, isV2CloudAPiKey);
+                authorizationString = string("Bearer ", token);
+            else
+                nonce = self.nonce();
+                timestamp = self.parseToInt(nonce / 1000);
+                timestampString = string(timestamp);
+                auth = string(timestampString, method, savedPath, payload);
+                signature = self.hmac(self.encode(auth), self.encode(self.secret), sha256);
+                headers = Dict{Symbol, Any}(
+                    Symbol("CB-ACCESS-KEY") => self.apiKey,
+                    Symbol("CB-ACCESS-SIGN") => signature,
+                    Symbol("CB-ACCESS-TIMESTAMP") => timestampString,
+                    Symbol("Content-Type") => "application/json"
+                );
+            end
+        end
+        if functions.ccxtruthy(authorizationString != nothing)
+            headers = Dict{Symbol, Any}(
+                Symbol("Authorization") => authorizationString,
+                Symbol("Content-Type") => "application/json"
+            );
+            if functions.ccxtruthy(method != "GET")
+                if functions.ccxtruthy(length(objectKeys(query)))
+                    body = json(query);
+                end
+            end
+        end
+    end
+    return Dict{Symbol, Any}(
+    Symbol("url") => url,
+    Symbol("method") => method,
+    Symbol("body") => body,
+    Symbol("headers") => headers
+)
+
+end
+function handleErrors(self::Coinbase, code, reason, url, method, headers, body, response, requestHeaders, requestBody)
+    if functions.ccxtruthy(response == nothing)
+            return nothing
+    end
+    feedback = string(self.id, " ", body);
+    errorCode = safeString(response, "error");
+    if functions.ccxtruthy(errorCode != nothing)
+        errorMessage = safeString2(response, "error_description", "error");
+        self.throwExactlyMatchedException(get(self.exceptions, Symbol("exact"), nothing), errorCode, feedback);
+        self.throwBroadlyMatchedException(get(self.exceptions, Symbol("broad"), nothing), errorMessage, feedback);
+        throw(ExchangeError(feedback));
+    end
+    errorResponse = self.safeDict(response, "error_response");
+    if functions.ccxtruthy(errorResponse != nothing)
+        errorMessageInner = safeString2(errorResponse, "preview_failure_reason", "preview_failure_reason");
+        self.throwExactlyMatchedException(get(self.exceptions, Symbol("exact"), nothing), errorMessageInner, feedback);
+        self.throwBroadlyMatchedException(get(self.exceptions, Symbol("broad"), nothing), errorMessageInner, feedback);
+        throw(ExchangeError(feedback));
+    end
+    errors = self.safeList(response, "errors");
+    if functions.ccxtruthy(errors != nothing)
+        if functions.ccxtruthy(functions.ccxt_isArray(errors))
+            numErrors = length(errors);
+            if functions.ccxtruthy(functions.ccxt_gt(numErrors, 0))
+                errorCode = safeString(get(errors, 1, nothing), "id");
+                errorMessage = safeString(get(errors, 1, nothing), "message");
+                if functions.ccxtruthy(errorCode != nothing)
+                    self.throwExactlyMatchedException(get(self.exceptions, Symbol("exact"), nothing), errorCode, feedback);
+                    self.throwBroadlyMatchedException(get(self.exceptions, Symbol("broad"), nothing), errorMessage, feedback);
+                    throw(ExchangeError(feedback));
+                end
+            end
+        end
+    end
+    advancedTrade = get(self.options, Symbol("advanced"), nothing);
+    if functions.ccxtruthy(@functions.ccxt_and(!functions.ccxtruthy((ccxt_in("data", response))), (!functions.ccxtruthy(advancedTrade))))
+        throw(ExchangeError(string(self.id, " failed due to a malformed response ", json(response))));
+    end
+    return nothing
+
+end
+function fetchDepositAddresses(self::Coinbase, codes=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        self.loadMarkets();
+    end
+    request = self.prepareAccountRequest(nothing, params);
+    response = self.v2PrivateGetAccountsAccountIdAddresses(extend(request, params));
+    data = self.safeList(response, "data", []);
+    return self.parseDepositAddresses(data, codes, false, Dict{Symbol, Any}())
+
+end
+
+# Property resolution is centralised so every exchange shares one order; see
+# `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
+Base.getproperty(self::Coinbase, name::Symbol) = ccxt_getproperty(self, name)
+
+# Implicit REST endpoint methods (generated from describe().api)
+function v2PublicGetCurrencies(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "currencies", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PublicGetCurrenciesCrypto(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "currencies/crypto", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PublicGetTime(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "time", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PublicGetExchangeRates(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "exchange-rates", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PublicGetUsersUserId(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "users/{user_id}", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PublicGetPricesSymbolBuy(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "prices/{symbol}/buy", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PublicGetPricesSymbolSell(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "prices/{symbol}/sell", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PublicGetPricesSymbolSpot(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "prices/{symbol}/spot", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivateGetAccounts(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivateGetAccountsAccountId(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivateGetAccountsAccountIdAddresses(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/addresses", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivateGetAccountsAccountIdAddressesAddressId(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/addresses/{address_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivateGetAccountsAccountIdAddressesAddressIdTransactions(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/addresses/{address_id}/transactions", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivateGetAccountsAccountIdTransactions(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/transactions", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivateGetAccountsAccountIdTransactionsTransactionId(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/transactions/{transaction_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivateGetAccountsAccountIdBuys(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/buys", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivateGetAccountsAccountIdBuysBuyId(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/buys/{buy_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivateGetAccountsAccountIdSells(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/sells", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivateGetAccountsAccountIdSellsSellId(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/sells/{sell_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivateGetAccountsAccountIdDeposits(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/deposits", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivateGetAccountsAccountIdDepositsDepositId(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/deposits/{deposit_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivateGetAccountsAccountIdWithdrawals(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/withdrawals", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivateGetAccountsAccountIdWithdrawalsWithdrawalId(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/withdrawals/{withdrawal_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivateGetPaymentMethods(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "payment-methods", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivateGetPaymentMethodsPaymentMethodId(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "payment-methods/{payment_method_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivateGetUser(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "user", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivateGetUserAuth(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "user/auth", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivatePostAccounts(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivatePostAccountsAccountIdPrimary(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/primary", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivatePostAccountsAccountIdAddresses(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/addresses", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivatePostAccountsAccountIdTransactions(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/transactions", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivatePostAccountsAccountIdTransactionsTransactionIdComplete(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/transactions/{transaction_id}/complete", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivatePostAccountsAccountIdTransactionsTransactionIdResend(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/transactions/{transaction_id}/resend", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivatePostAccountsAccountIdBuys(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/buys", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivatePostAccountsAccountIdBuysBuyIdCommit(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/buys/{buy_id}/commit", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivatePostAccountsAccountIdSells(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/sells", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivatePostAccountsAccountIdSellsSellIdCommit(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/sells/{sell_id}/commit", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivatePostAccountsAccountIdDeposits(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/deposits", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivatePostAccountsAccountIdDepositsDepositIdCommit(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/deposits/{deposit_id}/commit", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivatePostAccountsAccountIdWithdrawals(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/withdrawals", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/withdrawals/{withdrawal_id}/commit", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivatePutAccountsAccountId(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}", ["v2", "private"], "PUT", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivatePutUser(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "user", ["v2", "private"], "PUT", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivateDeleteAccountsId(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{id}", ["v2", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v2PrivateDeleteAccountsAccountIdTransactionsTransactionId(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "accounts/{account_id}/transactions/{transaction_id}", ["v2", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+end
+
+function v3PublicGetBrokerageTime(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/time", ["v3", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+end
+
+function v3PublicGetBrokerageMarketProductBook(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/market/product_book", ["v3", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+end
+
+function v3PublicGetBrokerageMarketProducts(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/market/products", ["v3", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+end
+
+function v3PublicGetBrokerageMarketProductsProductId(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/market/products/{product_id}", ["v3", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+end
+
+function v3PublicGetBrokerageMarketProductsProductIdCandles(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/market/products/{product_id}/candles", ["v3", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+end
+
+function v3PublicGetBrokerageMarketProductsProductIdTicker(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/market/products/{product_id}/ticker", ["v3", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+end
+
+function v3PrivateGetBrokerageAccounts(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/accounts", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivateGetBrokerageAccountsAccountUuid(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/accounts/{account_uuid}", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivateGetBrokerageOrdersHistoricalBatch(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/orders/historical/batch", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivateGetBrokerageOrdersHistoricalFills(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/orders/historical/fills", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivateGetBrokerageOrdersHistoricalOrderId(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/orders/historical/{order_id}", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivateGetBrokerageProducts(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/products", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+end
+
+function v3PrivateGetBrokerageProductsProductId(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/products/{product_id}", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+end
+
+function v3PrivateGetBrokerageProductsProductIdCandles(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/products/{product_id}/candles", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+end
+
+function v3PrivateGetBrokerageProductsProductIdTicker(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/products/{product_id}/ticker", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+end
+
+function v3PrivateGetBrokerageBestBidAsk(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/best_bid_ask", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+end
+
+function v3PrivateGetBrokerageProductBook(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/product_book", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+end
+
+function v3PrivateGetBrokerageTransactionSummary(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/transaction_summary", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+end
+
+function v3PrivateGetBrokeragePortfolios(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/portfolios", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivateGetBrokeragePortfoliosPortfolioUuid(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/portfolios/{portfolio_uuid}", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivateGetBrokerageConvertTradeTradeId(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/convert/trade/{trade_id}", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivateGetBrokerageCfmBalanceSummary(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/cfm/balance_summary", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivateGetBrokerageCfmPositions(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/cfm/positions", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivateGetBrokerageCfmPositionsProductId(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/cfm/positions/{product_id}", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivateGetBrokerageCfmSweeps(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/cfm/sweeps", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivateGetBrokerageIntxPortfolioPortfolioUuid(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/intx/portfolio/{portfolio_uuid}", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivateGetBrokerageIntxPositionsPortfolioUuid(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/intx/positions/{portfolio_uuid}", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/intx/positions/{portfolio_uuid}/{symbol}", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivateGetBrokeragePaymentMethods(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/payment_methods", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivateGetBrokeragePaymentMethodsPaymentMethodId(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/payment_methods/{payment_method_id}", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivateGetBrokerageKeyPermissions(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/key_permissions", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivatePostBrokerageOrders(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/orders", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivatePostBrokerageOrdersBatchCancel(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/orders/batch_cancel", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivatePostBrokerageOrdersEdit(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/orders/edit", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivatePostBrokerageOrdersEditPreview(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/orders/edit_preview", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivatePostBrokerageOrdersPreview(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/orders/preview", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivatePostBrokeragePortfolios(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/portfolios", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivatePostBrokeragePortfoliosMoveFunds(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/portfolios/move_funds", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivatePostBrokerageConvertQuote(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/convert/quote", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivatePostBrokerageConvertTradeTradeId(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/convert/trade/{trade_id}", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivatePostBrokerageCfmSweepsSchedule(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/cfm/sweeps/schedule", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivatePostBrokerageIntxAllocate(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/intx/allocate", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivatePostBrokerageOrdersClosePosition(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/orders/close_position", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivatePutBrokeragePortfoliosPortfolioUuid(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/portfolios/{portfolio_uuid}", ["v3", "private"], "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivateDeleteBrokeragePortfoliosPortfolioUuid(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/portfolios/{portfolio_uuid}", ["v3", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function v3PrivateDeleteBrokerageCfmSweeps(self::Coinbase, params=Dict(), context=Dict())
+    return request(self, "brokerage/cfm/sweeps", ["v3", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+end
+
+function Coinbase(; kwargs...)
+    inst = Coinbase(Exchange(), describe, fetchTime, fetchAccounts, fetchAccountsV2, fetchAccountsV3, fetchPortfolios, parseAccount, createDepositAddress, fetchMySells, fetchMyBuys, fetchTransactionsWithMethod, fetchWithdrawals, fetchDeposits, fetchDepositsWithdrawals, parseTransactionStatus, parseTransaction, parseTrade, fetchMarkets, fetchMarketsV2, fetchMarketsV3, parseSpotMarket, parseContractMarket, fetchCurrenciesFromCache, fetchCurrencies, fetchTickers, fetchTickersV2, fetchTickersV3, fetchTicker, fetchTickerV2, fetchTickerV3, parseTicker, parseCustomBalance, fetchBalance, fetchLedger, parseLedgerEntryStatus, parseLedgerEntryType, parseLedgerEntry, findAccountId, prepareAccountRequest, prepareAccountRequestWithCurrencyCode, createMarketBuyOrderWithCost, createOrder, parseOrder, parseOrderStatus, parseOrderType, parseTimeInForce, cancelOrder, cancelOrders, editOrder, fetchOrder, fetchOrders, fetchOrdersByStatus, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchOHLCV, parseOHLCV, fetchTrades, fetchMyTrades, fetchOrderBook, fetchBidsAsks, withdraw, fetchDepositAddressesByNetwork, parseDepositAddress, deposit, fetchDeposit, fetchDepositMethodIds, fetchDepositMethodId, parseDepositMethodIds, parseDepositMethodId, fetchConvertQuote, createConvertTrade, fetchConvertTrade, parseConversion, closePosition, fetchPositions, fetchPosition, parsePosition, fetchTradingFees, fetchPortfolioDetails, parsePortfolioDetails, createAuthToken, nonce, sign, handleErrors, fetchDepositAddresses, v2PublicGetCurrencies, v2PublicGetCurrenciesCrypto, v2PublicGetTime, v2PublicGetExchangeRates, v2PublicGetUsersUserId, v2PublicGetPricesSymbolBuy, v2PublicGetPricesSymbolSell, v2PublicGetPricesSymbolSpot, v2PrivateGetAccounts, v2PrivateGetAccountsAccountId, v2PrivateGetAccountsAccountIdAddresses, v2PrivateGetAccountsAccountIdAddressesAddressId, v2PrivateGetAccountsAccountIdAddressesAddressIdTransactions, v2PrivateGetAccountsAccountIdTransactions, v2PrivateGetAccountsAccountIdTransactionsTransactionId, v2PrivateGetAccountsAccountIdBuys, v2PrivateGetAccountsAccountIdBuysBuyId, v2PrivateGetAccountsAccountIdSells, v2PrivateGetAccountsAccountIdSellsSellId, v2PrivateGetAccountsAccountIdDeposits, v2PrivateGetAccountsAccountIdDepositsDepositId, v2PrivateGetAccountsAccountIdWithdrawals, v2PrivateGetAccountsAccountIdWithdrawalsWithdrawalId, v2PrivateGetPaymentMethods, v2PrivateGetPaymentMethodsPaymentMethodId, v2PrivateGetUser, v2PrivateGetUserAuth, v2PrivatePostAccounts, v2PrivatePostAccountsAccountIdPrimary, v2PrivatePostAccountsAccountIdAddresses, v2PrivatePostAccountsAccountIdTransactions, v2PrivatePostAccountsAccountIdTransactionsTransactionIdComplete, v2PrivatePostAccountsAccountIdTransactionsTransactionIdResend, v2PrivatePostAccountsAccountIdBuys, v2PrivatePostAccountsAccountIdBuysBuyIdCommit, v2PrivatePostAccountsAccountIdSells, v2PrivatePostAccountsAccountIdSellsSellIdCommit, v2PrivatePostAccountsAccountIdDeposits, v2PrivatePostAccountsAccountIdDepositsDepositIdCommit, v2PrivatePostAccountsAccountIdWithdrawals, v2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit, v2PrivatePutAccountsAccountId, v2PrivatePutUser, v2PrivateDeleteAccountsId, v2PrivateDeleteAccountsAccountIdTransactionsTransactionId, v3PublicGetBrokerageTime, v3PublicGetBrokerageMarketProductBook, v3PublicGetBrokerageMarketProducts, v3PublicGetBrokerageMarketProductsProductId, v3PublicGetBrokerageMarketProductsProductIdCandles, v3PublicGetBrokerageMarketProductsProductIdTicker, v3PrivateGetBrokerageAccounts, v3PrivateGetBrokerageAccountsAccountUuid, v3PrivateGetBrokerageOrdersHistoricalBatch, v3PrivateGetBrokerageOrdersHistoricalFills, v3PrivateGetBrokerageOrdersHistoricalOrderId, v3PrivateGetBrokerageProducts, v3PrivateGetBrokerageProductsProductId, v3PrivateGetBrokerageProductsProductIdCandles, v3PrivateGetBrokerageProductsProductIdTicker, v3PrivateGetBrokerageBestBidAsk, v3PrivateGetBrokerageProductBook, v3PrivateGetBrokerageTransactionSummary, v3PrivateGetBrokeragePortfolios, v3PrivateGetBrokeragePortfoliosPortfolioUuid, v3PrivateGetBrokerageConvertTradeTradeId, v3PrivateGetBrokerageCfmBalanceSummary, v3PrivateGetBrokerageCfmPositions, v3PrivateGetBrokerageCfmPositionsProductId, v3PrivateGetBrokerageCfmSweeps, v3PrivateGetBrokerageIntxPortfolioPortfolioUuid, v3PrivateGetBrokerageIntxPositionsPortfolioUuid, v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol, v3PrivateGetBrokeragePaymentMethods, v3PrivateGetBrokeragePaymentMethodsPaymentMethodId, v3PrivateGetBrokerageKeyPermissions, v3PrivatePostBrokerageOrders, v3PrivatePostBrokerageOrdersBatchCancel, v3PrivatePostBrokerageOrdersEdit, v3PrivatePostBrokerageOrdersEditPreview, v3PrivatePostBrokerageOrdersPreview, v3PrivatePostBrokeragePortfolios, v3PrivatePostBrokeragePortfoliosMoveFunds, v3PrivatePostBrokerageConvertQuote, v3PrivatePostBrokerageConvertTradeTradeId, v3PrivatePostBrokerageCfmSweepsSchedule, v3PrivatePostBrokerageIntxAllocate, v3PrivatePostBrokerageOrdersClosePosition, v3PrivatePutBrokeragePortfoliosPortfolioUuid, v3PrivateDeleteBrokeragePortfoliosPortfolioUuid, v3PrivateDeleteBrokerageCfmSweeps)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    desc = inst.describe()
+    for (k, v) in desc
+        key = Symbol(k)
+        if v isa AbstractDict
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
+    end
+    for (k, v) in kwargs
+        if v isa AbstractDict
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    inst.afterConstruct()
+    if ccxtruthy(inst.safeBool2(inst.options, "sandbox", "testnet", false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
+    return inst
+end
