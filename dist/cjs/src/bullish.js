@@ -956,7 +956,7 @@ class bullish extends bullish$1["default"] {
         }
         const maxLimit = 100;
         let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
         if (paginate) {
             params = this.handlePaginationParams('fetchTrades', since, params);
             return await this.fetchPaginatedCallDynamic('fetchTrades', symbol, since, limit, params, maxLimit);
@@ -2222,7 +2222,7 @@ class bullish extends bullish$1["default"] {
     }
     async loadAccount(params = {}) {
         let tradingAccountId = undefined;
-        [tradingAccountId, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'tradingAccountId');
+        [tradingAccountId, params] = this.handleOptionAndParams(params, 'loadAccount', 'tradingAccountId');
         if (tradingAccountId === undefined) {
             const response = await this.privateGetV1AccountsTradingAccounts(params);
             const accounts = this.toArray(response);

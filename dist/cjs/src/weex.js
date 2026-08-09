@@ -1201,7 +1201,7 @@ class weex extends weex$1["default"] {
         symbols = this.marketSymbols(symbols, undefined, true, true);
         const market = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchBidsAsks', market, params);
         let response = undefined;
         if (marketType === 'spot') {
             response = await this.publicGetApiV3MarketTickerBookTicker(params);
@@ -2809,15 +2809,15 @@ class weex extends weex$1["default"] {
             market = this.market(symbol);
         }
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchOrders', market, params);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchCanceledAndClosedOrders', market, params);
         if (marketType === 'spot') {
             throw new errors.NotSupported(this.id + ' fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status "canceled" or "closed"');
         }
         let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate', false);
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchCanceledAndClosedOrders', 'paginate', false);
         const maxLimit = 1000;
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchOrders', symbol, since, limit, params, maxLimit);
+            return await this.fetchPaginatedCallDynamic('fetchCanceledAndClosedOrders', symbol, since, limit, params, maxLimit);
         }
         let request = {};
         if (symbol !== undefined) {

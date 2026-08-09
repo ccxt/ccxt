@@ -9435,7 +9435,7 @@ export default class bitget extends Exchange {
         if (uta) {
             if (productType === 'SPOT') {
                 let marginMode = undefined;
-                [marginMode, params] = this.handleMarginModeAndParams('fetchTrades', params);
+                [marginMode, params] = this.handleMarginModeAndParams('setLeverage', params);
                 if (marginMode !== undefined) {
                     productType = 'MARGIN';
                 }

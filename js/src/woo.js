@@ -3913,7 +3913,7 @@ export default class woo extends Exchange {
         else if (this.safeBool(market, 'swap')) {
             request['symbol'] = this.safeString(market, 'id');
             let marginMode = undefined;
-            [marginMode, params] = this.handleMarginModeAndParams('fetchLeverage', params, 'cross');
+            [marginMode, params] = this.handleMarginModeAndParams('setLeverage', params, 'cross');
             request['marginMode'] = this.encodeMarginMode(marginMode);
             return await this.v3PrivatePutFuturesLeverage(this.extend(request, params));
         }

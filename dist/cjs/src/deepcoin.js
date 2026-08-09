@@ -1035,9 +1035,9 @@ class deepcoin extends deepcoin$1["default"] {
             await this.loadMarkets();
         }
         let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'paginate', false);
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchDeposits', code, since, limit, params, 'code', undefined, 1, 50);
+            return await this.fetchPaginatedCallCursor('fetchWithdrawals', code, since, limit, params, 'code', undefined, 1, 50);
         }
         const request = {};
         let currency = undefined;

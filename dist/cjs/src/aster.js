@@ -1394,7 +1394,7 @@ class aster extends aster$1["default"] {
             request['symbol'] = market['id'];
         }
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
         if (since !== undefined) {
             request['startTime'] = since;
         }

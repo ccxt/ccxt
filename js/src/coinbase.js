@@ -968,7 +968,7 @@ export default class coinbase extends Exchange {
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         let currencyType = undefined;
-        [currencyType, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'currencyType');
+        [currencyType, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'currencyType');
         if (currencyType === 'crypto') {
             const results = await this.fetchTransactionsWithMethod('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params);
             return this.filterByArray(results, 'type', 'deposit', false);

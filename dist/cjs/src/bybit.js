@@ -9509,7 +9509,7 @@ class bybit extends bybit$1["default"] {
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const accountTypeDefault = isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
-        [accountType, params] = this.handleOptionAndParams(params, 'fetchConvertQuote', 'accountType', accountTypeDefault);
+        [accountType, params] = this.handleOptionAndParams(params, 'fetchConvertTrade', 'accountType', accountTypeDefault);
         const request = {
             'quoteTxId': id,
             'accountType': accountType,

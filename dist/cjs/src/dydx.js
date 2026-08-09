@@ -1148,7 +1148,7 @@ class dydx extends dydx$1["default"] {
         let userAddress = undefined;
         let subAccountNumber = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchPositions', params);
-        [subAccountNumber, params] = this.handleOptionAndParams(params, 'fetchOrders', 'subAccountNumber', '0');
+        [subAccountNumber, params] = this.handleOptionAndParams(params, 'fetchPositions', 'subAccountNumber', '0');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -2363,9 +2363,9 @@ class dydx extends dydx$1["default"] {
             await this.loadMarkets();
         }
         let userAddress = undefined;
-        [userAddress, params] = this.handlePublicAddress('fetchAccounts', params);
+        [userAddress, params] = this.handlePublicAddress('fetchBalance', params);
         let subaccountNumber = undefined;
-        [subaccountNumber, params] = this.handleOptionAndParams(params, 'fetchAccounts', 'subaccountNumber', 0);
+        [subaccountNumber, params] = this.handleOptionAndParams(params, 'fetchBalance', 'subaccountNumber', 0);
         const request = {
             'address': userAddress,
             'subaccountNumber': subaccountNumber,

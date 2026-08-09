@@ -130,7 +130,7 @@ class p2b extends p2b$1["default"] {
         }
         const watchTickerOptions = this.safeDict(this.options, 'watchTicker');
         let name = this.safeString(watchTickerOptions, 'name', 'state'); // or price
-        [name, params] = this.handleOptionAndParams(params, 'method', 'name', name);
+        [name, params] = this.handleOptionAndParams(params, 'watchTicker', 'name', name);
         const market = this.market(symbol);
         symbol = market['symbol'];
         this.options['tickerSubs'][market['id']] = true; // we need to re-subscribe to all tickers upon watching a new ticker
@@ -157,7 +157,7 @@ class p2b extends p2b$1["default"] {
         symbols = this.marketSymbols(symbols, undefined, false);
         const watchTickerOptions = this.safeDict(this.options, 'watchTicker');
         let name = this.safeString(watchTickerOptions, 'name', 'state'); // or price
-        [name, params] = this.handleOptionAndParams(params, 'method', 'name', name);
+        [name, params] = this.handleOptionAndParams(params, 'watchTickers', 'name', name);
         const messageHashes = [];
         const args = [];
         for (let i = 0; i < symbols.length; i++) {

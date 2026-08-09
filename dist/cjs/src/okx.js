@@ -2397,7 +2397,7 @@ class okx extends okx$1["default"] {
         symbols = this.marketSymbols(symbols);
         const market = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', market, params, 'swap');
+        [marketType, params] = this.handleMarketTypeAndParams('fetchMarkPrices', market, params, 'swap');
         const request = {
             'instType': this.convertToInstrumentType(marketType),
         };

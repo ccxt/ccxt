@@ -5024,9 +5024,9 @@ class bingx extends bingx$1["default"] {
         let subType = undefined;
         let standard = undefined;
         let response;
-        [type, params] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params);
-        [subType, params] = this.handleSubTypeAndParams('fetchClosedOrders', market, params);
-        [standard, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'standard', false);
+        [type, params] = this.handleMarketTypeAndParams('fetchCanceledAndClosedOrders', market, params);
+        [subType, params] = this.handleSubTypeAndParams('fetchCanceledAndClosedOrders', market, params);
+        [standard, params] = this.handleOptionAndParams(params, 'fetchCanceledAndClosedOrders', 'standard', false);
         if (standard) {
             response = await this.contractV1PrivateGetAllOrders(this.extend(request, params));
         }
