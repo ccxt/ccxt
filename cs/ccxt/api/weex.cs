@@ -431,6 +431,27 @@ public partial class weex : Exchange
         return await this.callAsync<Dictionary<string, object>> ("contractPrivateGetCapiV3AllAlgoOrders",parameters);
     }
 
+    /// <summary>Calls the contractPrivateGetCapiV3SimBalance endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> contractPrivateGetCapiV3SimBalance (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("contractPrivateGetCapiV3SimBalance",parameters);
+    }
+
+    /// <summary>Calls the contractPrivateGetCapiV3SimPositionAllPosition endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> contractPrivateGetCapiV3SimPositionAllPosition (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("contractPrivateGetCapiV3SimPositionAllPosition",parameters);
+    }
+
+    /// <summary>Calls the contractPrivateGetCapiV3SimOrderHistory endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> contractPrivateGetCapiV3SimOrderHistory (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("contractPrivateGetCapiV3SimOrderHistory",parameters);
+    }
+
     /// <summary>Calls the contractPrivatePostCapiV3AccountIncome endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> contractPrivatePostCapiV3AccountIncome (object parameters = null)
@@ -506,6 +527,13 @@ public partial class weex : Exchange
     public async Task<Dictionary<string, object>> contractPrivatePostCapiV3ModifyTpSlOrder (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("contractPrivatePostCapiV3ModifyTpSlOrder",parameters);
+    }
+
+    /// <summary>Calls the contractPrivatePostCapiV3SimOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> contractPrivatePostCapiV3SimOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("contractPrivatePostCapiV3SimOrder",parameters);
     }
 
     /// <summary>Calls the contractPrivateDeleteCapiV3Order endpoint.</summary>
