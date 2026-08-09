@@ -758,8 +758,9 @@ export default class whitebit extends whitebitRest {
             method = 'balanceMargin_subscribe';
             messageHash += 'margin';
         }
-        const currencies = Object.keys (this.currencies);
-        return await this.watchPrivate (messageHash, method, currencies, params);
+        // an empty params array subscribes to updates for all assets,
+        // listing all tickers explicitly is rejected with "invalid argument"
+        return await this.watchPrivate (messageHash, method, [], params);
     }
 
     handleBalance (client: Client, message: any) {
@@ -771,6 +772,10 @@ export default class whitebit extends whitebitRest {
         //             "LTC":{
         //                "available":"0.16587",
         //                "freeze":"0"
+        //             },
+        //             "BTC":{
+        //                "available":"0.005",
+        //                "freeze":"0.001"
         //             }
         //          }
         //       ],
@@ -781,18 +786,22 @@ export default class whitebit extends whitebitRest {
         if (method === undefined) {
             return;
         }
-        const data = this.safeValue (message, 'params');
-        const balanceDict = this.safeValue (data, 0);
-        this.balance['info'] = balanceDict;
-        const keys = Object.keys (balanceDict);
-        const currencyId = this.safeValue (keys, 0);
-        const rawBalance = this.safeValue (balanceDict, currencyId);
-        const code = this.safeCurrencyCode (currencyId);
-        const account = this.account ();
-        account['free'] = this.safeString (rawBalance, 'available');
-        account['used'] = this.safeString (rawBalance, 'freeze');
-        if (code !== undefined) {
-            this.balance[code] = account;
+        const data = this.safeList (message, 'params', []);
+        for (let i = 0; i < data.length; i++) {
+            const balanceDict = this.safeDict (data, i, {});
+            this.balance['info'] = balanceDict;
+            const keys = Object.keys (balanceDict);
+            for (let j = 0; j < keys.length; j++) {
+                const currencyId = keys[j];
+                const rawBalance = this.safeDict (balanceDict, currencyId, {});
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (rawBalance, 'available');
+                account['used'] = this.safeString (rawBalance, 'freeze');
+                if (code !== undefined) {
+                    this.balance[code] = account;
+                }
+            }
         }
         this.balance = this.safeBalance (this.balance);
         let messageHash = 'wallet:';
