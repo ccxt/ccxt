@@ -1002,12 +1002,12 @@
                 "active": "is undefined"
             },
             "orderBook": {
-                "bid":"ask should be less than next ask"
+                "compareToNextItem":"ask should be less than next ask"
             },
             "fetchTrades": {
                 "emptyResponse": "sometimes response is empty",
                 "compareToNextItem":"ask should be less than next ask",
-                "bid":"ask should be less than next ask"
+                "sideSequence":"ask should be less than next ask"
             }
         }
     },
@@ -2265,7 +2265,7 @@
                 "type": "todo"
             },
             "fetchTrades": {
-                "fees": "missingn from structure"
+                "fees": "missing from structure"
             },
             "fetchTickers": "temporary issues"
         }
@@ -2346,7 +2346,7 @@
                 "side": "not set"
             },
             "fetchTrades": {
-                "fees": "missingn from structure",
+                "fees": "missing from structure",
                 "side": "only sell sides are returned"
             },
             "watchOrderBook": {
