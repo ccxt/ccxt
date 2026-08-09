@@ -490,7 +490,8 @@ public partial class bullish : ccxt.bullish
         {
             rawOrders = this.safeList(message, "data", new List<object>() {}); // snapshot is a list of orders
         }
-        if (isTrue(isGreaterThan(getArrayLength(rawOrders), 0)))
+        object numRawOrders = getArrayLength(rawOrders); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if (isTrue(isGreaterThan(numRawOrders, 0)))
         {
             if (isTrue(isEqual(this.orders, null)))
             {
@@ -614,7 +615,8 @@ public partial class bullish : ccxt.bullish
         {
             rawTrades = this.safeList(message, "data", new List<object>() {}); // snapshot is a list of trades
         }
-        if (isTrue(isGreaterThan(getArrayLength(rawTrades), 0)))
+        object numRawTrades = getArrayLength(rawTrades); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if (isTrue(isGreaterThan(numRawTrades, 0)))
         {
             if (isTrue(isEqual(this.myTrades, null)))
             {

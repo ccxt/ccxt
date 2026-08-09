@@ -2128,7 +2128,8 @@ public partial class mexc : ccxt.mexc
             {
                 object splitHashes = ((string)messageHash).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
                 object symbol = this.safeString(splitHashes, 2);
-                if (isTrue(isGreaterThan(getArrayLength(splitHashes), 4)))
+                object splitHashesLength = getArrayLength(splitHashes); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+                if (isTrue(isGreaterThan(splitHashesLength, 4)))
                 {
                     symbol = add(symbol, add(":", this.safeString(splitHashes, 3)));
                 }
