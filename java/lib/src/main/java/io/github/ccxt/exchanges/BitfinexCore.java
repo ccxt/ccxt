@@ -2047,7 +2047,7 @@ public class BitfinexCore extends BitfinexApi
             put( "4096", new java.util.ArrayList<Object>(java.util.Arrays.asList("postOnly")) );
             put( "5120", new java.util.ArrayList<Object>(java.util.Arrays.asList("reduceOnly", "postOnly")) );
         }};
-        return this.safeValue(flagValues, flags, null);
+        return this.safeValue(flagValues, flags);
     }
 
     public Object parseTimeInForce(Object orderType)

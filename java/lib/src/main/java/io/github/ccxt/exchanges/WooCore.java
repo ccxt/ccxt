@@ -1984,10 +1984,8 @@ public class WooCore extends WooApi
      * @method
      * @name woo#editOrder
      * @description edit a trade order
-     * @see https://docs.woox.io/#edit-order
-     * @see https://docs.woox.io/#edit-order-by-client_order_id
-     * @see https://docs.woox.io/#edit-algo-order
-     * @see https://docs.woox.io/#edit-algo-order-by-client_order_id
+     * @see https://developer.woox.io/api-reference/endpoint/trading/edit_order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/edit_algo_order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -1995,6 +1993,8 @@ public class WooCore extends WooApi
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id of the order to edit, used instead of the id argument
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order, set to true to edit an algo order without passing trigger parameters
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
@@ -2054,44 +2054,50 @@ public class WooCore extends WooApi
                     Helpers.addElementToObject(request, "callbackRate", convertedTrailingPercent);
                 }
             }
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent")));
-            Object isConditional = Helpers.isTrue(Helpers.isTrue(isTrailing) || Helpers.isTrue((!Helpers.isEqual(triggerPrice, null)))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "childOrders"), null)));
+            Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent", "trigger", "stop")));
+            Object isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isTrigger) || Helpers.isTrue(isTrailing)) || Helpers.isTrue((!Helpers.isEqual(triggerPrice, null)))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "childOrders"), null)));
             Object response = null;
-            if (Helpers.isTrue(isByClientOrder))
+            if (Helpers.isTrue(isConditional))
             {
-                Helpers.addElementToObject(request, "client_order_id", clientOrderIdExchangeSpecific);
-                if (Helpers.isTrue(isConditional))
+                if (Helpers.isTrue(isByClientOrder))
                 {
-                    response = (this.v3PrivatePutAlgoOrderClientClientOrderId(this.extend(request, parameters))).join();
+                    Helpers.addElementToObject(request, "clientAlgoOrderId", clientOrderIdExchangeSpecific);
                 } else
                 {
-                    response = (this.v3PrivatePutOrderClientClientOrderId(this.extend(request, parameters))).join();
+                    Helpers.addElementToObject(request, "algoOrderId", id);
                 }
+                response = (this.v3PrivatePutTradeAlgoOrder(this.extend(request, parameters))).join();
             } else
             {
-                Helpers.addElementToObject(request, "oid", id);
-                if (Helpers.isTrue(isConditional))
+                if (Helpers.isTrue(isByClientOrder))
                 {
-                    response = (this.v3PrivatePutAlgoOrderOid(this.extend(request, parameters))).join();
+                    Helpers.addElementToObject(request, "clientOrderId", clientOrderIdExchangeSpecific);
                 } else
                 {
-                    response = (this.v3PrivatePutOrderOid(this.extend(request, parameters))).join();
+                    Helpers.addElementToObject(request, "orderId", id);
                 }
+                response = (this.v3PrivatePutTradeOrder(this.extend(request, parameters))).join();
             }
             //
             //     {
-            //         "code": 0,
-            //         "data": {
-            //             "status": "string",
-            //             "success": true
-            //         },
-            //         "message": "string",
             //         "success": true,
-            //         "timestamp": 0
+            //         "data": {
+            //             "status": "EDIT_SENT"
+            //         },
+            //         "timestamp": 1786038156772
             //     }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            return this.parseOrder(data, market);
+            Object order = this.extend(response, data);
+            if (Helpers.isTrue(isByClientOrder))
+            {
+                Helpers.addElementToObject(order, "clientOrderId", clientOrderIdExchangeSpecific);
+            } else
+            {
+                Helpers.addElementToObject(order, "orderId", id);
+            }
+            return this.parseOrder(order, market);
         });
 
     }
@@ -2664,6 +2670,7 @@ public class WooCore extends WooApi
             Object statuses = new java.util.HashMap<String, Object>() {{
                 put( "NEW", "open" );
                 put( "FILLED", "closed" );
+                put( "EDIT_SENT", "open" );
                 put( "CANCEL_SENT", "canceled" );
                 put( "CANCEL_ALL_SENT", "canceled" );
                 put( "CANCELLED", "canceled" );

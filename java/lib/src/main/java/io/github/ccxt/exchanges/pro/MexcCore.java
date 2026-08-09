@@ -239,7 +239,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null);
+            symbols = this.marketSymbols(symbols);
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object firstSymbol = this.safeString(symbols, 0);
             Object market = null;
@@ -2004,7 +2004,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null);
+            symbols = this.marketSymbols(symbols);
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object firstSymbol = this.safeString(symbols, 0);
             Object market = null;

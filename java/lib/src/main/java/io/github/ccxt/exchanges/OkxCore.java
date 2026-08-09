@@ -3645,7 +3645,7 @@ public class OkxCore extends OkxApi
         //     ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object res = this.handleMarketTypeAndParams("fetchOHLCV", market, null);
+        Object res = this.handleMarketTypeAndParams("fetchOHLCV", market);
         Object type = Helpers.GetValue(res, 0);
         Object volumeIndex = ((Helpers.isTrue((Helpers.isEqual(type, "spot"))))) ? 5 : 6;
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)));

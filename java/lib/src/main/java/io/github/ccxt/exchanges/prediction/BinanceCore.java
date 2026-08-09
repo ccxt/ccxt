@@ -1606,7 +1606,7 @@ final Object finalMarketSymbol = marketSymbol;
             //
             Object positions = this.safeList(response, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object parsedPositions = this.parsePredictionPositions(positions);
-            Object filteredPositions = this.filterByOutcomeSinceLimit(parsedPositions, outcome, null, null);
+            Object filteredPositions = this.filterByOutcomeSinceLimit(parsedPositions, outcome, null);
             return this.safeDict(filteredPositions, 0);
         });
 

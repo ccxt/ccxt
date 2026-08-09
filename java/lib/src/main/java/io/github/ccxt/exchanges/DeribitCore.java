@@ -4159,7 +4159,7 @@ public class DeribitCore extends DeribitApi
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, parameters, "continuation", "continuation", null)).join();
+                return (this.fetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, parameters, "continuation", "continuation")).join();
             }
             Object market = this.market(symbol);
             if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
