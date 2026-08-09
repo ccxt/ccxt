@@ -4396,6 +4396,7 @@ class binance(Exchange, ImplicitAPI):
         https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker   # spot
         https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker  # swap
         https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker  # future
+        https://developers.binance.com/docs/derivatives/options-trading/market-data/24hr-Ticker-Price-Change-Statistics      # option
 
         :param str[]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4411,7 +4412,9 @@ class binance(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchBidsAsks', market, params)
         response = None
-        if self.is_linear(type, subType):
+        if type == 'option':
+            response = await self.eapiPublicGetTicker(params)
+        elif self.is_linear(type, subType):
             response = await self.fapiPublicGetTickerBookTicker(params)
         elif self.is_inverse(type, subType):
             response = await self.dapiPublicGetTickerBookTicker(params)
@@ -4591,6 +4594,7 @@ class binance(Exchange, ImplicitAPI):
 
         https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
         https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+        https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4608,7 +4612,9 @@ class binance(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = None
-        if self.is_linear(type, subType):
+        if market['option']:
+            response = await self.eapiPublicGetMark(self.extend(request, params))
+        elif self.is_linear(type, subType):
             response = await self.fapiPublicGetPremiumIndex(self.extend(request, params))
         elif self.is_inverse(type, subType):
             response = await self.dapiPublicGetPremiumIndex(self.extend(request, params))
@@ -4626,6 +4632,7 @@ class binance(Exchange, ImplicitAPI):
 
         https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
         https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+        https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price
 
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4641,7 +4648,9 @@ class binance(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchMarkPrices', market, params, 'linear')
         response = None
-        if self.is_linear(type, subType):
+        if type == 'option':
+            response = await self.eapiPublicGetMark(params)
+        elif self.is_linear(type, subType):
             response = await self.fapiPublicGetPremiumIndex(params)
         elif self.is_inverse(type, subType):
             response = await self.dapiPublicGetPremiumIndex(params)
