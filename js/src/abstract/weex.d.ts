@@ -61,6 +61,9 @@ interface Exchange {
     contractPrivateGetCapiV3UserTrades(params?: {}): Promise<List>;
     contractPrivateGetCapiV3OpenAlgoOrders(params?: {}): Promise<List>;
     contractPrivateGetCapiV3AllAlgoOrders(params?: {}): Promise<Dict>;
+    contractPrivateGetCapiV3SimBalance(params?: {}): Promise<List>;
+    contractPrivateGetCapiV3SimPositionAllPosition(params?: {}): Promise<List>;
+    contractPrivateGetCapiV3SimOrderHistory(params?: {}): Promise<List>;
     contractPrivatePostCapiV3AccountIncome(params?: {}): Promise<Dict>;
     contractPrivatePostCapiV3AccountMarginType(params?: {}): Promise<Dict>;
     contractPrivatePostCapiV3AccountLeverage(params?: {}): Promise<Dict>;
@@ -72,6 +75,7 @@ interface Exchange {
     contractPrivatePostCapiV3AlgoOrder(params?: {}): Promise<Dict>;
     contractPrivatePostCapiV3PlaceTpSlOrder(params?: {}): Promise<List>;
     contractPrivatePostCapiV3ModifyTpSlOrder(params?: {}): Promise<Dict>;
+    contractPrivatePostCapiV3SimOrder(params?: {}): Promise<Dict>;
     contractPrivateDeleteCapiV3Order(params?: {}): Promise<Dict>;
     contractPrivateDeleteCapiV3BatchOrders(params?: {}): Promise<Dict>;
     contractPrivateDeleteCapiV3AllOpenOrders(params?: {}): Promise<List>;
