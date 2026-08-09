@@ -6936,7 +6936,7 @@ class okx(Exchange, ImplicitAPI):
         return {
             'currency': self.safe_currency_code(ccy),
             'rate': self.safe_number_2(info, 'interestRate', 'rate'),
-            'period': 86400000,
+            'period': 3600000,  # GET /api/v5/account/interest-rate returns the hourly borrowing interest rate
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': info,
@@ -6962,6 +6962,8 @@ class okx(Exchange, ImplicitAPI):
                 if not (code in borrowRateHistories):
                     borrowRateHistories[code] = []
                 borrowRateStructure = self.parse_borrow_rate(item)
+                # GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
+                borrowRateStructure['period'] = 31536000000
                 borrrowRateCode = borrowRateHistories[code]
                 borrrowRateCode.append(borrowRateStructure)
         keys = list(borrowRateHistories.keys())
