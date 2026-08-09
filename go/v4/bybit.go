@@ -186,416 +186,1224 @@ func (this *BybitCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"spot/v3/public/symbols":                             1,
-					"spot/v3/public/quote/depth":                         1,
-					"spot/v3/public/quote/depth/merged":                  1,
-					"spot/v3/public/quote/trades":                        1,
-					"spot/v3/public/quote/kline":                         1,
-					"spot/v3/public/quote/ticker/24hr":                   1,
-					"spot/v3/public/quote/ticker/price":                  1,
-					"spot/v3/public/quote/ticker/bookTicker":             1,
-					"spot/v3/public/server-time":                         1,
-					"spot/v3/public/infos":                               1,
-					"spot/v3/public/margin-product-infos":                1,
-					"spot/v3/public/margin-ensure-tokens":                1,
-					"v3/public/time":                                     1,
-					"contract/v3/public/copytrading/symbol/list":         1,
-					"derivatives/v3/public/order-book/L2":                1,
-					"derivatives/v3/public/kline":                        1,
-					"derivatives/v3/public/tickers":                      1,
-					"derivatives/v3/public/instruments-info":             1,
-					"derivatives/v3/public/mark-price-kline":             1,
-					"derivatives/v3/public/index-price-kline":            1,
-					"derivatives/v3/public/funding/history-funding-rate": 1,
-					"derivatives/v3/public/risk-limit/list":              1,
-					"derivatives/v3/public/delivery-price":               1,
-					"derivatives/v3/public/recent-trade":                 1,
-					"derivatives/v3/public/open-interest":                1,
-					"derivatives/v3/public/insurance":                    1,
-					"v5/announcements/index":                             5,
-					"v5/system/status":                                   5,
-					"v5/market/time":                                     5,
-					"v5/market/kline":                                    5,
-					"v5/market/mark-price-kline":                         5,
-					"v5/market/index-price-kline":                        5,
-					"v5/market/premium-index-price-kline":                5,
-					"v5/market/instruments-info":                         5,
-					"v5/market/orderbook":                                5,
-					"v5/market/rpi_orderbook":                            5,
-					"v5/market/full_orderbook":                           5,
-					"v5/market/tickers":                                  5,
-					"v5/market/funding/history":                          5,
-					"v5/market/recent-trade":                             5,
-					"v5/market/open-interest":                            5,
-					"v5/market/historical-volatility":                    5,
-					"v5/market/insurance":                                5,
-					"v5/market/risk-limit":                               5,
-					"v5/market/delivery-price":                           5,
-					"v5/market/new-delivery-price":                       5,
-					"v5/market/account-ratio":                            5,
-					"v5/market/index-price-components":                   5,
-					"v5/market/price-limit":                              5,
-					"v5/market/adlAlert":                                 5,
-					"v5/market/fee-group-info":                           5,
-					"v5/spot-lever-token/info":                           5,
-					"v5/spot-lever-token/reference":                      5,
-					"v5/spot-margin-trade/data":                          5,
-					"v5/spot-margin-trade/collateral":                    5,
-					"v5/spot-cross-margin-trade/data":                    5,
-					"v5/spot-cross-margin-trade/pledge-token":            5,
-					"v5/spot-cross-margin-trade/borrow-token":            5,
-					"v5/crypto-loan/collateral-data":                     5,
-					"v5/crypto-loan/loanable-data":                       5,
-					"v5/crypto-loan-common/loanable-data":                5,
-					"v5/crypto-loan-common/collateral-data":              5,
-					"v5/crypto-loan-fixed/supply-order-quote":            5,
-					"v5/crypto-loan-fixed/borrow-order-quote":            5,
-					"v5/ins-loan/product-infos":                          5,
-					"v5/ins-loan/ensure-tokens-convert":                  5,
-					"v5/earn/product":                                    5,
+					"spot/v3/public/symbols": map[string]any{
+						"cost": 1,
+					},
+					"spot/v3/public/quote/depth": map[string]any{
+						"cost": 1,
+					},
+					"spot/v3/public/quote/depth/merged": map[string]any{
+						"cost": 1,
+					},
+					"spot/v3/public/quote/trades": map[string]any{
+						"cost": 1,
+					},
+					"spot/v3/public/quote/kline": map[string]any{
+						"cost": 1,
+					},
+					"spot/v3/public/quote/ticker/24hr": map[string]any{
+						"cost": 1,
+					},
+					"spot/v3/public/quote/ticker/price": map[string]any{
+						"cost": 1,
+					},
+					"spot/v3/public/quote/ticker/bookTicker": map[string]any{
+						"cost": 1,
+					},
+					"spot/v3/public/server-time": map[string]any{
+						"cost": 1,
+					},
+					"spot/v3/public/infos": map[string]any{
+						"cost": 1,
+					},
+					"spot/v3/public/margin-product-infos": map[string]any{
+						"cost": 1,
+					},
+					"spot/v3/public/margin-ensure-tokens": map[string]any{
+						"cost": 1,
+					},
+					"v3/public/time": map[string]any{
+						"cost": 1,
+					},
+					"contract/v3/public/copytrading/symbol/list": map[string]any{
+						"cost": 1,
+					},
+					"derivatives/v3/public/order-book/L2": map[string]any{
+						"cost": 1,
+					},
+					"derivatives/v3/public/kline": map[string]any{
+						"cost": 1,
+					},
+					"derivatives/v3/public/tickers": map[string]any{
+						"cost": 1,
+					},
+					"derivatives/v3/public/instruments-info": map[string]any{
+						"cost": 1,
+					},
+					"derivatives/v3/public/mark-price-kline": map[string]any{
+						"cost": 1,
+					},
+					"derivatives/v3/public/index-price-kline": map[string]any{
+						"cost": 1,
+					},
+					"derivatives/v3/public/funding/history-funding-rate": map[string]any{
+						"cost": 1,
+					},
+					"derivatives/v3/public/risk-limit/list": map[string]any{
+						"cost": 1,
+					},
+					"derivatives/v3/public/delivery-price": map[string]any{
+						"cost": 1,
+					},
+					"derivatives/v3/public/recent-trade": map[string]any{
+						"cost": 1,
+					},
+					"derivatives/v3/public/open-interest": map[string]any{
+						"cost": 1,
+					},
+					"derivatives/v3/public/insurance": map[string]any{
+						"cost": 1,
+					},
+					"v5/announcements/index": map[string]any{
+						"cost": 5,
+					},
+					"v5/system/status": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/time": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/kline": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/mark-price-kline": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/index-price-kline": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/premium-index-price-kline": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/instruments-info": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/orderbook": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/rpi_orderbook": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/full_orderbook": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/tickers": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/funding/history": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/recent-trade": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/open-interest": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/historical-volatility": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/insurance": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/risk-limit": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/delivery-price": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/new-delivery-price": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/account-ratio": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/index-price-components": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/price-limit": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/adlAlert": map[string]any{
+						"cost": 5,
+					},
+					"v5/market/fee-group-info": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-lever-token/info": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-lever-token/reference": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-margin-trade/data": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-margin-trade/collateral": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-cross-margin-trade/data": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-cross-margin-trade/pledge-token": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-cross-margin-trade/borrow-token": map[string]any{
+						"cost": 5,
+					},
+					"v5/crypto-loan/collateral-data": map[string]any{
+						"cost": 5,
+					},
+					"v5/crypto-loan/loanable-data": map[string]any{
+						"cost": 5,
+					},
+					"v5/crypto-loan-common/loanable-data": map[string]any{
+						"cost": 5,
+					},
+					"v5/crypto-loan-common/collateral-data": map[string]any{
+						"cost": 5,
+					},
+					"v5/crypto-loan-fixed/supply-order-quote": map[string]any{
+						"cost": 5,
+					},
+					"v5/crypto-loan-fixed/borrow-order-quote": map[string]any{
+						"cost": 5,
+					},
+					"v5/ins-loan/product-infos": map[string]any{
+						"cost": 5,
+					},
+					"v5/ins-loan/ensure-tokens-convert": map[string]any{
+						"cost": 5,
+					},
+					"v5/earn/product": map[string]any{
+						"cost": 5,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"v5/market/instruments-info":                               5,
-					"v2/private/wallet/fund/records":                           25,
-					"spot/v3/private/order":                                    2.5,
-					"spot/v3/private/open-orders":                              2.5,
-					"spot/v3/private/history-orders":                           2.5,
-					"spot/v3/private/my-trades":                                2.5,
-					"spot/v3/private/account":                                  2.5,
-					"spot/v3/private/reference":                                2.5,
-					"spot/v3/private/record":                                   2.5,
-					"spot/v3/private/cross-margin-orders":                      10,
-					"spot/v3/private/cross-margin-account":                     10,
-					"spot/v3/private/cross-margin-loan-info":                   10,
-					"spot/v3/private/cross-margin-repay-history":               10,
-					"spot/v3/private/margin-loan-infos":                        10,
-					"spot/v3/private/margin-repaid-infos":                      10,
-					"spot/v3/private/margin-ltv":                               10,
-					"asset/v3/private/transfer/inter-transfer/list/query":      50,
-					"asset/v3/private/transfer/sub-member/list/query":          50,
-					"asset/v3/private/transfer/sub-member-transfer/list/query": 50,
-					"asset/v3/private/transfer/universal-transfer/list/query":  25,
-					"asset/v3/private/coin-info/query":                         25,
-					"asset/v3/private/deposit/address/query":                   10,
-					"contract/v3/private/copytrading/order/list":               30,
-					"contract/v3/private/copytrading/position/list":            40,
-					"contract/v3/private/copytrading/wallet/balance":           25,
-					"contract/v3/private/position/limit-info":                  25,
-					"contract/v3/private/order/unfilled-orders":                1,
-					"contract/v3/private/order/list":                           1,
-					"contract/v3/private/position/list":                        1,
-					"contract/v3/private/execution/list":                       1,
-					"contract/v3/private/position/closed-pnl":                  1,
-					"contract/v3/private/account/wallet/balance":               1,
-					"contract/v3/private/account/fee-rate":                     1,
-					"contract/v3/private/account/wallet/fund-records":          1,
-					"unified/v3/private/order/unfilled-orders":                 1,
-					"unified/v3/private/order/list":                            1,
-					"unified/v3/private/position/list":                         1,
-					"unified/v3/private/execution/list":                        1,
-					"unified/v3/private/delivery-record":                       1,
-					"unified/v3/private/settlement-record":                     1,
-					"unified/v3/private/account/wallet/balance":                1,
-					"unified/v3/private/account/transaction-log":               1,
-					"unified/v3/private/account/borrow-history":                1,
-					"unified/v3/private/account/borrow-rate":                   1,
-					"unified/v3/private/account/info":                          1,
-					"user/v3/private/frozen-sub-member":                        10,
-					"user/v3/private/query-sub-members":                        5,
-					"user/v3/private/query-api":                                5,
-					"user/v3/private/get-member-type":                          1,
-					"asset/v3/private/transfer/transfer-coin/list/query":       50,
-					"asset/v3/private/transfer/account-coin/balance/query":     50,
-					"asset/v3/private/transfer/account-coins/balance/query":    25,
-					"asset/v3/private/transfer/asset-info/query":               50,
-					"asset/v3/public/deposit/allowed-deposit-list/query":       0.17,
-					"asset/v3/private/deposit/record/query":                    10,
-					"asset/v3/private/withdraw/record/query":                   10,
-					"v5/order/realtime":                                        5,
-					"v5/order/history":                                         5,
-					"v5/order/spot-borrow-check":                               1,
-					"v5/position/list":                                         5,
-					"v5/execution/list":                                        5,
-					"v5/position/closed-pnl":                                   5,
-					"v5/position/get-closed-positions":                         5,
-					"v5/position/move-history":                                 5,
-					"v5/position/symbol-info":                                  5,
-					"v5/pre-upgrade/order/history":                             5,
-					"v5/pre-upgrade/execution/list":                            5,
-					"v5/pre-upgrade/position/closed-pnl":                       5,
-					"v5/pre-upgrade/account/transaction-log":                   5,
-					"v5/pre-upgrade/asset/delivery-record":                     5,
-					"v5/pre-upgrade/asset/settlement-record":                   5,
-					"v5/account/wallet-balance":                                1,
-					"v5/account/borrow-history":                                1,
-					"v5/account/instruments-info":                              1,
-					"v5/account/collateral-info":                               1,
-					"v5/account/option-asset-info":                             1,
-					"v5/asset/coin-greeks":                                     1,
-					"v5/account/fee-rate":                                      10,
-					"v5/account/info":                                          5,
-					"v5/account/transaction-log":                               1.66,
-					"v5/account/contract-transaction-log":                      1,
-					"v5/account/query-dcp-info":                                5,
-					"v5/account/user-setting-config":                           5,
-					"v5/account/pay-info":                                      5,
-					"v5/account/trade-info-for-analysis":                       5,
-					"v5/account/smp-group":                                     1,
-					"v5/account/mmp-state":                                     5,
-					"v5/account/withdrawal":                                    5,
-					"v5/asset/asset-overview":                                  5,
-					"v5/asset/exchange/query-coin-list":                        0.5,
-					"v5/asset/exchange/convert-result-query":                   0.5,
-					"v5/asset/exchange/query-convert-history":                  0.5,
-					"v5/asset/exchange/order-record":                           5,
-					"v5/asset/fundinghistory":                                  5,
-					"v5/asset/portfolio-margin":                                5,
-					"v5/asset/total-members-assets":                            5,
-					"v5/asset/delivery-record":                                 5,
-					"v5/asset/settlement-record":                               5,
-					"v5/asset/transfer/query-asset-info":                       50,
-					"v5/asset/transfer/query-account-coins-balance":            25,
-					"v5/asset/transfer/query-account-coin-balance":             50,
-					"v5/asset/transfer/query-transfer-coin-list":               50,
-					"v5/asset/transfer/query-inter-transfer-list":              50,
-					"v5/asset/transfer/query-sub-member-list":                  50,
-					"v5/asset/transfer/query-universal-transfer-list":          25,
-					"v5/asset/deposit/query-allowed-list":                      5,
-					"v5/asset/deposit/query-record":                            10,
-					"v5/asset/deposit/query-sub-member-record":                 10,
-					"v5/asset/deposit/query-internal-record":                   5,
-					"v5/asset/deposit/query-address":                           10,
-					"v5/asset/deposit/query-sub-member-address":                10,
-					"v5/asset/coin/query-info":                                 28,
-					"v5/asset/withdraw/query-address":                          10,
-					"v5/asset/withdraw/query-record":                           10,
-					"v5/asset/withdraw/withdrawable-amount":                    5,
-					"v5/asset/withdraw/vasp/list":                              5,
-					"v5/asset/covert/small-balance-list":                       5,
-					"v5/asset/covert/small-balance-history":                    5,
-					"v5/asset/convert/small-balance-list":                      5,
-					"v5/asset/convert/small-balance-history":                   5,
-					"v5/fiat/query-coin-list":                                  5,
-					"v5/fiat/reference-price":                                  5,
-					"v5/fiat/trade-query":                                      5,
-					"v5/fiat/query-trade-history":                              5,
-					"v5/fiat/balance-query":                                    5,
-					"v5/user/query-sub-members":                                5,
-					"v5/user/query-api":                                        5,
-					"v5/user/sub-apikeys":                                      5,
-					"v5/user/get-member-type":                                  5,
-					"v5/user/aff-customer-info":                                5,
-					"v5/user/del-submember":                                    5,
-					"v5/user/submembers":                                       5,
-					"v5/user/escrow_sub_members":                               5,
-					"v5/user/invitation/referrals":                             5,
-					"v5/affiliate/aff-user-list":                               5,
-					"v5/affiliate/affiliate-sub-list":                          5,
-					"v5/spot-lever-token/order-record":                         1,
-					"v5/spot-margin-trade/flexible-available-inventory":        5,
-					"v5/spot-margin-trade/interest-rate-history":               5,
-					"v5/spot-margin-trade/state":                               5,
-					"v5/spot-margin-trade/max-borrowable":                      5,
-					"v5/spot-margin-trade/position-tiers":                      5,
-					"v5/spot-margin-trade/coinstate":                           5,
-					"v5/spot-margin-trade/currency-data":                       5,
-					"v5/spot-margin-trade/fixedborrow-contract-info":           5,
-					"v5/spot-margin-trade/fixedborrow-order-info":              5,
-					"v5/spot-margin-trade/fixedborrow-order-quote":             5,
-					"v5/spot-margin-trade/liability":                           5,
-					"v5/spot-margin-trade/repayment-available-amount":          5,
-					"v5/spot-margin-trade/get-auto-repay-mode":                 5,
-					"v5/spot-cross-margin-trade/loan-info":                     1,
-					"v5/spot-cross-margin-trade/account":                       1,
-					"v5/spot-cross-margin-trade/orders":                        1,
-					"v5/spot-cross-margin-trade/repay-history":                 1,
-					"v5/crypto-loan/borrowable-collateralisable-number":        5,
-					"v5/crypto-loan/ongoing-orders":                            5,
-					"v5/crypto-loan/repayment-history":                         5,
-					"v5/crypto-loan/borrow-history":                            5,
-					"v5/crypto-loan/max-collateral-amount":                     5,
-					"v5/crypto-loan/adjustment-history":                        5,
-					"v5/crypto-loan-common/max-collateral-amount":              10,
-					"v5/crypto-loan-common/adjustment-history":                 10,
-					"v5/crypto-loan-common/position":                           10,
-					"v5/crypto-loan-flexible/ongoing-coin":                     10,
-					"v5/crypto-loan-flexible/borrow-history":                   10,
-					"v5/crypto-loan-flexible/repayment-history":                10,
-					"v5/crypto-loan-fixed/borrow-contract-info":                10,
-					"v5/crypto-loan-fixed/supply-contract-info":                10,
-					"v5/crypto-loan-fixed/borrow-order-info":                   10,
-					"v5/crypto-loan-fixed/renew-info":                          10,
-					"v5/crypto-loan-fixed/supply-order-info":                   10,
-					"v5/crypto-loan-fixed/repayment-history":                   10,
-					"v5/ins-loan/product-infos":                                5,
-					"v5/ins-loan/ensure-tokens":                                5,
-					"v5/ins-loan/ensure-tokens-convert":                        5,
-					"v5/ins-loan/loan-order":                                   5,
-					"v5/ins-loan/repaid-history":                               5,
-					"v5/ins-loan/ltv":                                          5,
-					"v5/ins-loan/ltv-convert":                                  5,
-					"v5/ins-loan/coin-delta-amount":                            5,
-					"v5/lending/info":                                          5,
-					"v5/lending/history-order":                                 5,
-					"v5/lending/account":                                       5,
-					"v5/broker/earning-record":                                 5,
-					"v5/broker/earnings-info":                                  5,
-					"v5/broker/account-info":                                   5,
-					"v5/broker/asset/query-sub-member-deposit-record":          10,
-					"v5/earn/product":                                          5,
-					"v5/earn/order":                                            5,
-					"v5/earn/position":                                         5,
-					"v5/earn/yield":                                            5,
-					"v5/earn/hourly-yield":                                     5,
+					"v5/market/instruments-info": map[string]any{
+						"cost": 5,
+					},
+					"v2/private/wallet/fund/records": map[string]any{
+						"cost": 25,
+					},
+					"spot/v3/private/order": map[string]any{
+						"cost": 2.5,
+					},
+					"spot/v3/private/open-orders": map[string]any{
+						"cost": 2.5,
+					},
+					"spot/v3/private/history-orders": map[string]any{
+						"cost": 2.5,
+					},
+					"spot/v3/private/my-trades": map[string]any{
+						"cost": 2.5,
+					},
+					"spot/v3/private/account": map[string]any{
+						"cost": 2.5,
+					},
+					"spot/v3/private/reference": map[string]any{
+						"cost": 2.5,
+					},
+					"spot/v3/private/record": map[string]any{
+						"cost": 2.5,
+					},
+					"spot/v3/private/cross-margin-orders": map[string]any{
+						"cost": 10,
+					},
+					"spot/v3/private/cross-margin-account": map[string]any{
+						"cost": 10,
+					},
+					"spot/v3/private/cross-margin-loan-info": map[string]any{
+						"cost": 10,
+					},
+					"spot/v3/private/cross-margin-repay-history": map[string]any{
+						"cost": 10,
+					},
+					"spot/v3/private/margin-loan-infos": map[string]any{
+						"cost": 10,
+					},
+					"spot/v3/private/margin-repaid-infos": map[string]any{
+						"cost": 10,
+					},
+					"spot/v3/private/margin-ltv": map[string]any{
+						"cost": 10,
+					},
+					"asset/v3/private/transfer/inter-transfer/list/query": map[string]any{
+						"cost": 50,
+					},
+					"asset/v3/private/transfer/sub-member/list/query": map[string]any{
+						"cost": 50,
+					},
+					"asset/v3/private/transfer/sub-member-transfer/list/query": map[string]any{
+						"cost": 50,
+					},
+					"asset/v3/private/transfer/universal-transfer/list/query": map[string]any{
+						"cost": 25,
+					},
+					"asset/v3/private/coin-info/query": map[string]any{
+						"cost": 25,
+					},
+					"asset/v3/private/deposit/address/query": map[string]any{
+						"cost": 10,
+					},
+					"contract/v3/private/copytrading/order/list": map[string]any{
+						"cost": 30,
+					},
+					"contract/v3/private/copytrading/position/list": map[string]any{
+						"cost": 40,
+					},
+					"contract/v3/private/copytrading/wallet/balance": map[string]any{
+						"cost": 25,
+					},
+					"contract/v3/private/position/limit-info": map[string]any{
+						"cost": 25,
+					},
+					"contract/v3/private/order/unfilled-orders": map[string]any{
+						"cost": 1,
+					},
+					"contract/v3/private/order/list": map[string]any{
+						"cost": 1,
+					},
+					"contract/v3/private/position/list": map[string]any{
+						"cost": 1,
+					},
+					"contract/v3/private/execution/list": map[string]any{
+						"cost": 1,
+					},
+					"contract/v3/private/position/closed-pnl": map[string]any{
+						"cost": 1,
+					},
+					"contract/v3/private/account/wallet/balance": map[string]any{
+						"cost": 1,
+					},
+					"contract/v3/private/account/fee-rate": map[string]any{
+						"cost": 1,
+					},
+					"contract/v3/private/account/wallet/fund-records": map[string]any{
+						"cost": 1,
+					},
+					"unified/v3/private/order/unfilled-orders": map[string]any{
+						"cost": 1,
+					},
+					"unified/v3/private/order/list": map[string]any{
+						"cost": 1,
+					},
+					"unified/v3/private/position/list": map[string]any{
+						"cost": 1,
+					},
+					"unified/v3/private/execution/list": map[string]any{
+						"cost": 1,
+					},
+					"unified/v3/private/delivery-record": map[string]any{
+						"cost": 1,
+					},
+					"unified/v3/private/settlement-record": map[string]any{
+						"cost": 1,
+					},
+					"unified/v3/private/account/wallet/balance": map[string]any{
+						"cost": 1,
+					},
+					"unified/v3/private/account/transaction-log": map[string]any{
+						"cost": 1,
+					},
+					"unified/v3/private/account/borrow-history": map[string]any{
+						"cost": 1,
+					},
+					"unified/v3/private/account/borrow-rate": map[string]any{
+						"cost": 1,
+					},
+					"unified/v3/private/account/info": map[string]any{
+						"cost": 1,
+					},
+					"user/v3/private/frozen-sub-member": map[string]any{
+						"cost": 10,
+					},
+					"user/v3/private/query-sub-members": map[string]any{
+						"cost": 5,
+					},
+					"user/v3/private/query-api": map[string]any{
+						"cost": 5,
+					},
+					"user/v3/private/get-member-type": map[string]any{
+						"cost": 1,
+					},
+					"asset/v3/private/transfer/transfer-coin/list/query": map[string]any{
+						"cost": 50,
+					},
+					"asset/v3/private/transfer/account-coin/balance/query": map[string]any{
+						"cost": 50,
+					},
+					"asset/v3/private/transfer/account-coins/balance/query": map[string]any{
+						"cost": 25,
+					},
+					"asset/v3/private/transfer/asset-info/query": map[string]any{
+						"cost": 50,
+					},
+					"asset/v3/public/deposit/allowed-deposit-list/query": map[string]any{
+						"cost": 0.17,
+					},
+					"asset/v3/private/deposit/record/query": map[string]any{
+						"cost": 10,
+					},
+					"asset/v3/private/withdraw/record/query": map[string]any{
+						"cost": 10,
+					},
+					"v5/order/realtime": map[string]any{
+						"cost": 5,
+					},
+					"v5/order/history": map[string]any{
+						"cost": 5,
+					},
+					"v5/order/spot-borrow-check": map[string]any{
+						"cost": 1,
+					},
+					"v5/position/list": map[string]any{
+						"cost": 5,
+					},
+					"v5/execution/list": map[string]any{
+						"cost": 5,
+					},
+					"v5/position/closed-pnl": map[string]any{
+						"cost": 5,
+					},
+					"v5/position/get-closed-positions": map[string]any{
+						"cost": 5,
+					},
+					"v5/position/move-history": map[string]any{
+						"cost": 5,
+					},
+					"v5/position/symbol-info": map[string]any{
+						"cost": 5,
+					},
+					"v5/pre-upgrade/order/history": map[string]any{
+						"cost": 5,
+					},
+					"v5/pre-upgrade/execution/list": map[string]any{
+						"cost": 5,
+					},
+					"v5/pre-upgrade/position/closed-pnl": map[string]any{
+						"cost": 5,
+					},
+					"v5/pre-upgrade/account/transaction-log": map[string]any{
+						"cost": 5,
+					},
+					"v5/pre-upgrade/asset/delivery-record": map[string]any{
+						"cost": 5,
+					},
+					"v5/pre-upgrade/asset/settlement-record": map[string]any{
+						"cost": 5,
+					},
+					"v5/account/wallet-balance": map[string]any{
+						"cost": 1,
+					},
+					"v5/account/borrow-history": map[string]any{
+						"cost": 1,
+					},
+					"v5/account/instruments-info": map[string]any{
+						"cost": 1,
+					},
+					"v5/account/collateral-info": map[string]any{
+						"cost": 1,
+					},
+					"v5/account/option-asset-info": map[string]any{
+						"cost": 1,
+					},
+					"v5/asset/coin-greeks": map[string]any{
+						"cost": 1,
+					},
+					"v5/account/fee-rate": map[string]any{
+						"cost": 10,
+					},
+					"v5/account/info": map[string]any{
+						"cost": 5,
+					},
+					"v5/account/transaction-log": map[string]any{
+						"cost": 1.66,
+					},
+					"v5/account/contract-transaction-log": map[string]any{
+						"cost": 1,
+					},
+					"v5/account/query-dcp-info": map[string]any{
+						"cost": 5,
+					},
+					"v5/account/user-setting-config": map[string]any{
+						"cost": 5,
+					},
+					"v5/account/pay-info": map[string]any{
+						"cost": 5,
+					},
+					"v5/account/trade-info-for-analysis": map[string]any{
+						"cost": 5,
+					},
+					"v5/account/smp-group": map[string]any{
+						"cost": 1,
+					},
+					"v5/account/mmp-state": map[string]any{
+						"cost": 5,
+					},
+					"v5/account/withdrawal": map[string]any{
+						"cost": 5,
+					},
+					"v5/asset/asset-overview": map[string]any{
+						"cost": 5,
+					},
+					"v5/asset/exchange/query-coin-list": map[string]any{
+						"cost": 0.5,
+					},
+					"v5/asset/exchange/convert-result-query": map[string]any{
+						"cost": 0.5,
+					},
+					"v5/asset/exchange/query-convert-history": map[string]any{
+						"cost": 0.5,
+					},
+					"v5/asset/exchange/order-record": map[string]any{
+						"cost": 5,
+					},
+					"v5/asset/fundinghistory": map[string]any{
+						"cost": 5,
+					},
+					"v5/asset/portfolio-margin": map[string]any{
+						"cost": 5,
+					},
+					"v5/asset/total-members-assets": map[string]any{
+						"cost": 5,
+					},
+					"v5/asset/delivery-record": map[string]any{
+						"cost": 5,
+					},
+					"v5/asset/settlement-record": map[string]any{
+						"cost": 5,
+					},
+					"v5/asset/transfer/query-asset-info": map[string]any{
+						"cost": 50,
+					},
+					"v5/asset/transfer/query-account-coins-balance": map[string]any{
+						"cost": 25,
+					},
+					"v5/asset/transfer/query-account-coin-balance": map[string]any{
+						"cost": 50,
+					},
+					"v5/asset/transfer/query-transfer-coin-list": map[string]any{
+						"cost": 50,
+					},
+					"v5/asset/transfer/query-inter-transfer-list": map[string]any{
+						"cost": 50,
+					},
+					"v5/asset/transfer/query-sub-member-list": map[string]any{
+						"cost": 50,
+					},
+					"v5/asset/transfer/query-universal-transfer-list": map[string]any{
+						"cost": 25,
+					},
+					"v5/asset/deposit/query-allowed-list": map[string]any{
+						"cost": 5,
+					},
+					"v5/asset/deposit/query-record": map[string]any{
+						"cost": 10,
+					},
+					"v5/asset/deposit/query-sub-member-record": map[string]any{
+						"cost": 10,
+					},
+					"v5/asset/deposit/query-internal-record": map[string]any{
+						"cost": 5,
+					},
+					"v5/asset/deposit/query-address": map[string]any{
+						"cost": 10,
+					},
+					"v5/asset/deposit/query-sub-member-address": map[string]any{
+						"cost": 10,
+					},
+					"v5/asset/coin/query-info": map[string]any{
+						"cost": 28,
+					},
+					"v5/asset/withdraw/query-address": map[string]any{
+						"cost": 10,
+					},
+					"v5/asset/withdraw/query-record": map[string]any{
+						"cost": 10,
+					},
+					"v5/asset/withdraw/withdrawable-amount": map[string]any{
+						"cost": 5,
+					},
+					"v5/asset/withdraw/vasp/list": map[string]any{
+						"cost": 5,
+					},
+					"v5/asset/covert/small-balance-list": map[string]any{
+						"cost": 5,
+					},
+					"v5/asset/covert/small-balance-history": map[string]any{
+						"cost": 5,
+					},
+					"v5/asset/convert/small-balance-list": map[string]any{
+						"cost": 5,
+					},
+					"v5/asset/convert/small-balance-history": map[string]any{
+						"cost": 5,
+					},
+					"v5/fiat/query-coin-list": map[string]any{
+						"cost": 5,
+					},
+					"v5/fiat/reference-price": map[string]any{
+						"cost": 5,
+					},
+					"v5/fiat/trade-query": map[string]any{
+						"cost": 5,
+					},
+					"v5/fiat/query-trade-history": map[string]any{
+						"cost": 5,
+					},
+					"v5/fiat/balance-query": map[string]any{
+						"cost": 5,
+					},
+					"v5/user/query-sub-members": map[string]any{
+						"cost": 5,
+					},
+					"v5/user/query-api": map[string]any{
+						"cost": 5,
+					},
+					"v5/user/sub-apikeys": map[string]any{
+						"cost": 5,
+					},
+					"v5/user/get-member-type": map[string]any{
+						"cost": 5,
+					},
+					"v5/user/aff-customer-info": map[string]any{
+						"cost": 5,
+					},
+					"v5/user/del-submember": map[string]any{
+						"cost": 5,
+					},
+					"v5/user/submembers": map[string]any{
+						"cost": 5,
+					},
+					"v5/user/escrow_sub_members": map[string]any{
+						"cost": 5,
+					},
+					"v5/user/invitation/referrals": map[string]any{
+						"cost": 5,
+					},
+					"v5/affiliate/aff-user-list": map[string]any{
+						"cost": 5,
+					},
+					"v5/affiliate/affiliate-sub-list": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-lever-token/order-record": map[string]any{
+						"cost": 1,
+					},
+					"v5/spot-margin-trade/flexible-available-inventory": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-margin-trade/interest-rate-history": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-margin-trade/state": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-margin-trade/max-borrowable": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-margin-trade/position-tiers": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-margin-trade/coinstate": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-margin-trade/currency-data": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-margin-trade/fixedborrow-contract-info": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-margin-trade/fixedborrow-order-info": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-margin-trade/fixedborrow-order-quote": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-margin-trade/liability": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-margin-trade/repayment-available-amount": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-margin-trade/get-auto-repay-mode": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-cross-margin-trade/loan-info": map[string]any{
+						"cost": 1,
+					},
+					"v5/spot-cross-margin-trade/account": map[string]any{
+						"cost": 1,
+					},
+					"v5/spot-cross-margin-trade/orders": map[string]any{
+						"cost": 1,
+					},
+					"v5/spot-cross-margin-trade/repay-history": map[string]any{
+						"cost": 1,
+					},
+					"v5/crypto-loan/borrowable-collateralisable-number": map[string]any{
+						"cost": 5,
+					},
+					"v5/crypto-loan/ongoing-orders": map[string]any{
+						"cost": 5,
+					},
+					"v5/crypto-loan/repayment-history": map[string]any{
+						"cost": 5,
+					},
+					"v5/crypto-loan/borrow-history": map[string]any{
+						"cost": 5,
+					},
+					"v5/crypto-loan/max-collateral-amount": map[string]any{
+						"cost": 5,
+					},
+					"v5/crypto-loan/adjustment-history": map[string]any{
+						"cost": 5,
+					},
+					"v5/crypto-loan-common/max-collateral-amount": map[string]any{
+						"cost": 10,
+					},
+					"v5/crypto-loan-common/adjustment-history": map[string]any{
+						"cost": 10,
+					},
+					"v5/crypto-loan-common/position": map[string]any{
+						"cost": 10,
+					},
+					"v5/crypto-loan-flexible/ongoing-coin": map[string]any{
+						"cost": 10,
+					},
+					"v5/crypto-loan-flexible/borrow-history": map[string]any{
+						"cost": 10,
+					},
+					"v5/crypto-loan-flexible/repayment-history": map[string]any{
+						"cost": 10,
+					},
+					"v5/crypto-loan-fixed/borrow-contract-info": map[string]any{
+						"cost": 10,
+					},
+					"v5/crypto-loan-fixed/supply-contract-info": map[string]any{
+						"cost": 10,
+					},
+					"v5/crypto-loan-fixed/borrow-order-info": map[string]any{
+						"cost": 10,
+					},
+					"v5/crypto-loan-fixed/renew-info": map[string]any{
+						"cost": 10,
+					},
+					"v5/crypto-loan-fixed/supply-order-info": map[string]any{
+						"cost": 10,
+					},
+					"v5/crypto-loan-fixed/repayment-history": map[string]any{
+						"cost": 10,
+					},
+					"v5/ins-loan/product-infos": map[string]any{
+						"cost": 5,
+					},
+					"v5/ins-loan/ensure-tokens": map[string]any{
+						"cost": 5,
+					},
+					"v5/ins-loan/ensure-tokens-convert": map[string]any{
+						"cost": 5,
+					},
+					"v5/ins-loan/loan-order": map[string]any{
+						"cost": 5,
+					},
+					"v5/ins-loan/repaid-history": map[string]any{
+						"cost": 5,
+					},
+					"v5/ins-loan/ltv": map[string]any{
+						"cost": 5,
+					},
+					"v5/ins-loan/ltv-convert": map[string]any{
+						"cost": 5,
+					},
+					"v5/ins-loan/coin-delta-amount": map[string]any{
+						"cost": 5,
+					},
+					"v5/lending/info": map[string]any{
+						"cost": 5,
+					},
+					"v5/lending/history-order": map[string]any{
+						"cost": 5,
+					},
+					"v5/lending/account": map[string]any{
+						"cost": 5,
+					},
+					"v5/broker/earning-record": map[string]any{
+						"cost": 5,
+					},
+					"v5/broker/earnings-info": map[string]any{
+						"cost": 5,
+					},
+					"v5/broker/account-info": map[string]any{
+						"cost": 5,
+					},
+					"v5/broker/asset/query-sub-member-deposit-record": map[string]any{
+						"cost": 10,
+					},
+					"v5/earn/product": map[string]any{
+						"cost": 5,
+					},
+					"v5/earn/order": map[string]any{
+						"cost": 5,
+					},
+					"v5/earn/position": map[string]any{
+						"cost": 5,
+					},
+					"v5/earn/yield": map[string]any{
+						"cost": 5,
+					},
+					"v5/earn/hourly-yield": map[string]any{
+						"cost": 5,
+					},
 				},
 				"post": map[string]any{
-					"spot/v3/private/order":                                 2.5,
-					"spot/v3/private/cancel-order":                          2.5,
-					"spot/v3/private/cancel-orders":                         2.5,
-					"spot/v3/private/cancel-orders-by-ids":                  2.5,
-					"spot/v3/private/purchase":                              2.5,
-					"spot/v3/private/redeem":                                2.5,
-					"spot/v3/private/cross-margin-loan":                     10,
-					"spot/v3/private/cross-margin-repay":                    10,
-					"asset/v3/private/transfer/inter-transfer":              150,
-					"asset/v3/private/withdraw/create":                      300,
-					"asset/v3/private/withdraw/cancel":                      50,
-					"asset/v3/private/transfer/sub-member-transfer":         150,
-					"asset/v3/private/transfer/transfer-sub-member-save":    150,
-					"asset/v3/private/transfer/universal-transfer":          10,
-					"user/v3/private/create-sub-member":                     10,
-					"user/v3/private/create-sub-api":                        10,
-					"user/v3/private/update-api":                            10,
-					"user/v3/private/delete-api":                            10,
-					"user/v3/private/update-sub-api":                        10,
-					"user/v3/private/delete-sub-api":                        10,
-					"contract/v3/private/copytrading/order/create":          30,
-					"contract/v3/private/copytrading/order/cancel":          30,
-					"contract/v3/private/copytrading/order/close":           30,
-					"contract/v3/private/copytrading/position/close":        40,
-					"contract/v3/private/copytrading/position/set-leverage": 40,
-					"contract/v3/private/copytrading/wallet/transfer":       25,
-					"contract/v3/private/copytrading/order/trading-stop":    2.5,
-					"contract/v3/private/order/create":                      1,
-					"contract/v3/private/order/cancel":                      1,
-					"contract/v3/private/order/cancel-all":                  1,
-					"contract/v3/private/order/replace":                     1,
-					"contract/v3/private/position/set-auto-add-margin":      1,
-					"contract/v3/private/position/switch-isolated":          1,
-					"contract/v3/private/position/switch-mode":              1,
-					"contract/v3/private/position/switch-tpsl-mode":         1,
-					"contract/v3/private/position/set-leverage":             1,
-					"contract/v3/private/position/trading-stop":             1,
-					"contract/v3/private/position/set-risk-limit":           1,
-					"contract/v3/private/account/setMarginMode":             1,
-					"unified/v3/private/order/create":                       30,
-					"unified/v3/private/order/replace":                      30,
-					"unified/v3/private/order/cancel":                       30,
-					"unified/v3/private/order/create-batch":                 30,
-					"unified/v3/private/order/replace-batch":                30,
-					"unified/v3/private/order/cancel-batch":                 30,
-					"unified/v3/private/order/cancel-all":                   30,
-					"unified/v3/private/position/set-leverage":              2.5,
-					"unified/v3/private/position/tpsl/switch-mode":          2.5,
-					"unified/v3/private/position/set-risk-limit":            2.5,
-					"unified/v3/private/position/trading-stop":              2.5,
-					"unified/v3/private/account/upgrade-unified-account":    2.5,
-					"unified/v3/private/account/setMarginMode":              2.5,
-					"fht/compliance/tax/v3/private/registertime":            50,
-					"fht/compliance/tax/v3/private/create":                  50,
-					"fht/compliance/tax/v3/private/status":                  50,
-					"fht/compliance/tax/v3/private/url":                     50,
-					"v5/order/create":                                       2.5,
-					"v5/order/amend":                                        5,
-					"v5/order/cancel":                                       2.5,
-					"v5/order/cancel-all":                                   50,
-					"v5/order/create-batch":                                 5,
-					"v5/order/amend-batch":                                  5,
-					"v5/order/cancel-batch":                                 5,
-					"v5/order/disconnected-cancel-all":                      5,
-					"v5/order/pre-check":                                    5,
-					"v5/position/set-leverage":                              5,
-					"v5/position/switch-isolated":                           5,
-					"v5/position/set-tpsl-mode":                             5,
-					"v5/position/switch-mode":                               5,
-					"v5/position/set-risk-limit":                            5,
-					"v5/position/trading-stop":                              5,
-					"v5/position/set-auto-add-margin":                       5,
-					"v5/position/add-margin":                                5,
-					"v5/position/move-positions":                            5,
-					"v5/position/confirm-pending-mmr":                       5,
-					"v5/account/upgrade-to-uta":                             5,
-					"v5/account/quick-repayment":                            5,
-					"v5/account/set-margin-mode":                            5,
-					"v5/account/set-hedging-mode":                           5,
-					"v5/account/mmp-modify":                                 5,
-					"v5/account/mmp-reset":                                  5,
-					"v5/account/borrow":                                     5,
-					"v5/account/repay":                                      5,
-					"v5/account/no-convert-repay":                           5,
-					"v5/account/set-limit-px-action":                        5,
-					"v5/account/set-delta-mode":                             5,
-					"v5/asset/exchange/quote-apply":                         1,
-					"v5/asset/exchange/convert-execute":                     1,
-					"v5/asset/transfer/inter-transfer":                      50,
-					"v5/asset/transfer/save-transfer-sub-member":            150,
-					"v5/asset/transfer/universal-transfer":                  10,
-					"v5/asset/deposit/deposit-to-account":                   5,
-					"v5/asset/travel-rule/deposit/submit":                   5,
-					"v5/asset/withdraw/create":                              50,
-					"v5/asset/withdraw/cancel":                              50,
-					"v5/asset/covert/get-quote":                             10,
-					"v5/asset/covert/small-balance-execute":                 10,
-					"v5/fiat/quote-apply":                                   10,
-					"v5/fiat/trade-execute":                                 10,
-					"v5/user/create-sub-member":                             10,
-					"v5/user/create-sub-api":                                10,
-					"v5/user/frozen-sub-member":                             10,
-					"v5/user/update-api":                                    10,
-					"v5/user/update-sub-api":                                10,
-					"v5/user/delete-api":                                    10,
-					"v5/user/delete-sub-api":                                10,
-					"v5/user/agreement":                                     10,
-					"v5/user/create-demo-member":                            10,
-					"v5/spot-lever-token/purchase":                          2.5,
-					"v5/spot-lever-token/redeem":                            2.5,
-					"v5/spot-margin-trade/switch-mode":                      5,
-					"v5/spot-margin-trade/set-leverage":                     5,
-					"v5/spot-margin-trade/set-auto-repay-mode":              5,
-					"v5/spot-margin-trade/fixedborrow":                      5,
-					"v5/spot-margin-trade/fixedborrow-renew":                5,
-					"v5/spot-cross-margin-trade/loan":                       2.5,
-					"v5/spot-cross-margin-trade/repay":                      2.5,
-					"v5/spot-cross-margin-trade/switch":                     2.5,
-					"v5/crypto-loan/borrow":                                 5,
-					"v5/crypto-loan/repay":                                  5,
-					"v5/crypto-loan/adjust-ltv":                             5,
-					"v5/crypto-loan-common/adjust-ltv":                      50,
-					"v5/crypto-loan-common/max-loan":                        10,
-					"v5/crypto-loan-flexible/borrow":                        50,
-					"v5/crypto-loan-flexible/repay":                         50,
-					"v5/crypto-loan-flexible/repay-collateral":              50,
-					"v5/crypto-loan-fixed/borrow":                           50,
-					"v5/crypto-loan-fixed/renew":                            50,
-					"v5/crypto-loan-fixed/supply":                           50,
-					"v5/crypto-loan-fixed/borrow-order-cancel":              50,
-					"v5/crypto-loan-fixed/supply-order-cancel":              50,
-					"v5/crypto-loan-fixed/fully-repay":                      50,
-					"v5/crypto-loan-fixed/repay-collateral":                 50,
-					"v5/ins-loan/association-uid":                           5,
-					"v5/ins-loan/repay-loan":                                5,
-					"v5/lending/purchase":                                   5,
-					"v5/lending/redeem":                                     5,
-					"v5/lending/redeem-cancel":                              5,
-					"v5/account/set-collateral-switch":                      5,
-					"v5/account/set-collateral-switch-batch":                5,
-					"v5/account/demo-apply-money":                           5,
-					"v5/broker/award/info":                                  5,
-					"v5/broker/award/distribute-award":                      5,
-					"v5/broker/award/distribution-record":                   5,
-					"v5/earn/place-order":                                   5,
+					"spot/v3/private/order": map[string]any{
+						"cost": 2.5,
+					},
+					"spot/v3/private/cancel-order": map[string]any{
+						"cost": 2.5,
+					},
+					"spot/v3/private/cancel-orders": map[string]any{
+						"cost": 2.5,
+					},
+					"spot/v3/private/cancel-orders-by-ids": map[string]any{
+						"cost": 2.5,
+					},
+					"spot/v3/private/purchase": map[string]any{
+						"cost": 2.5,
+					},
+					"spot/v3/private/redeem": map[string]any{
+						"cost": 2.5,
+					},
+					"spot/v3/private/cross-margin-loan": map[string]any{
+						"cost": 10,
+					},
+					"spot/v3/private/cross-margin-repay": map[string]any{
+						"cost": 10,
+					},
+					"asset/v3/private/transfer/inter-transfer": map[string]any{
+						"cost": 150,
+					},
+					"asset/v3/private/withdraw/create": map[string]any{
+						"cost": 300,
+					},
+					"asset/v3/private/withdraw/cancel": map[string]any{
+						"cost": 50,
+					},
+					"asset/v3/private/transfer/sub-member-transfer": map[string]any{
+						"cost": 150,
+					},
+					"asset/v3/private/transfer/transfer-sub-member-save": map[string]any{
+						"cost": 150,
+					},
+					"asset/v3/private/transfer/universal-transfer": map[string]any{
+						"cost": 10,
+					},
+					"user/v3/private/create-sub-member": map[string]any{
+						"cost": 10,
+					},
+					"user/v3/private/create-sub-api": map[string]any{
+						"cost": 10,
+					},
+					"user/v3/private/update-api": map[string]any{
+						"cost": 10,
+					},
+					"user/v3/private/delete-api": map[string]any{
+						"cost": 10,
+					},
+					"user/v3/private/update-sub-api": map[string]any{
+						"cost": 10,
+					},
+					"user/v3/private/delete-sub-api": map[string]any{
+						"cost": 10,
+					},
+					"contract/v3/private/copytrading/order/create": map[string]any{
+						"cost": 30,
+					},
+					"contract/v3/private/copytrading/order/cancel": map[string]any{
+						"cost": 30,
+					},
+					"contract/v3/private/copytrading/order/close": map[string]any{
+						"cost": 30,
+					},
+					"contract/v3/private/copytrading/position/close": map[string]any{
+						"cost": 40,
+					},
+					"contract/v3/private/copytrading/position/set-leverage": map[string]any{
+						"cost": 40,
+					},
+					"contract/v3/private/copytrading/wallet/transfer": map[string]any{
+						"cost": 25,
+					},
+					"contract/v3/private/copytrading/order/trading-stop": map[string]any{
+						"cost": 2.5,
+					},
+					"contract/v3/private/order/create": map[string]any{
+						"cost": 1,
+					},
+					"contract/v3/private/order/cancel": map[string]any{
+						"cost": 1,
+					},
+					"contract/v3/private/order/cancel-all": map[string]any{
+						"cost": 1,
+					},
+					"contract/v3/private/order/replace": map[string]any{
+						"cost": 1,
+					},
+					"contract/v3/private/position/set-auto-add-margin": map[string]any{
+						"cost": 1,
+					},
+					"contract/v3/private/position/switch-isolated": map[string]any{
+						"cost": 1,
+					},
+					"contract/v3/private/position/switch-mode": map[string]any{
+						"cost": 1,
+					},
+					"contract/v3/private/position/switch-tpsl-mode": map[string]any{
+						"cost": 1,
+					},
+					"contract/v3/private/position/set-leverage": map[string]any{
+						"cost": 1,
+					},
+					"contract/v3/private/position/trading-stop": map[string]any{
+						"cost": 1,
+					},
+					"contract/v3/private/position/set-risk-limit": map[string]any{
+						"cost": 1,
+					},
+					"contract/v3/private/account/setMarginMode": map[string]any{
+						"cost": 1,
+					},
+					"unified/v3/private/order/create": map[string]any{
+						"cost": 30,
+					},
+					"unified/v3/private/order/replace": map[string]any{
+						"cost": 30,
+					},
+					"unified/v3/private/order/cancel": map[string]any{
+						"cost": 30,
+					},
+					"unified/v3/private/order/create-batch": map[string]any{
+						"cost": 30,
+					},
+					"unified/v3/private/order/replace-batch": map[string]any{
+						"cost": 30,
+					},
+					"unified/v3/private/order/cancel-batch": map[string]any{
+						"cost": 30,
+					},
+					"unified/v3/private/order/cancel-all": map[string]any{
+						"cost": 30,
+					},
+					"unified/v3/private/position/set-leverage": map[string]any{
+						"cost": 2.5,
+					},
+					"unified/v3/private/position/tpsl/switch-mode": map[string]any{
+						"cost": 2.5,
+					},
+					"unified/v3/private/position/set-risk-limit": map[string]any{
+						"cost": 2.5,
+					},
+					"unified/v3/private/position/trading-stop": map[string]any{
+						"cost": 2.5,
+					},
+					"unified/v3/private/account/upgrade-unified-account": map[string]any{
+						"cost": 2.5,
+					},
+					"unified/v3/private/account/setMarginMode": map[string]any{
+						"cost": 2.5,
+					},
+					"fht/compliance/tax/v3/private/registertime": map[string]any{
+						"cost": 50,
+					},
+					"fht/compliance/tax/v3/private/create": map[string]any{
+						"cost": 50,
+					},
+					"fht/compliance/tax/v3/private/status": map[string]any{
+						"cost": 50,
+					},
+					"fht/compliance/tax/v3/private/url": map[string]any{
+						"cost": 50,
+					},
+					"v5/order/create": map[string]any{
+						"cost": 2.5,
+					},
+					"v5/order/amend": map[string]any{
+						"cost": 5,
+					},
+					"v5/order/cancel": map[string]any{
+						"cost": 2.5,
+					},
+					"v5/order/cancel-all": map[string]any{
+						"cost": 50,
+					},
+					"v5/order/create-batch": map[string]any{
+						"cost": 5,
+					},
+					"v5/order/amend-batch": map[string]any{
+						"cost": 5,
+					},
+					"v5/order/cancel-batch": map[string]any{
+						"cost": 5,
+					},
+					"v5/order/disconnected-cancel-all": map[string]any{
+						"cost": 5,
+					},
+					"v5/order/pre-check": map[string]any{
+						"cost": 5,
+					},
+					"v5/position/set-leverage": map[string]any{
+						"cost": 5,
+					},
+					"v5/position/switch-isolated": map[string]any{
+						"cost": 5,
+					},
+					"v5/position/set-tpsl-mode": map[string]any{
+						"cost": 5,
+					},
+					"v5/position/switch-mode": map[string]any{
+						"cost": 5,
+					},
+					"v5/position/set-risk-limit": map[string]any{
+						"cost": 5,
+					},
+					"v5/position/trading-stop": map[string]any{
+						"cost": 5,
+					},
+					"v5/position/set-auto-add-margin": map[string]any{
+						"cost": 5,
+					},
+					"v5/position/add-margin": map[string]any{
+						"cost": 5,
+					},
+					"v5/position/move-positions": map[string]any{
+						"cost": 5,
+					},
+					"v5/position/confirm-pending-mmr": map[string]any{
+						"cost": 5,
+					},
+					"v5/account/upgrade-to-uta": map[string]any{
+						"cost": 5,
+					},
+					"v5/account/quick-repayment": map[string]any{
+						"cost": 5,
+					},
+					"v5/account/set-margin-mode": map[string]any{
+						"cost": 5,
+					},
+					"v5/account/set-hedging-mode": map[string]any{
+						"cost": 5,
+					},
+					"v5/account/mmp-modify": map[string]any{
+						"cost": 5,
+					},
+					"v5/account/mmp-reset": map[string]any{
+						"cost": 5,
+					},
+					"v5/account/borrow": map[string]any{
+						"cost": 5,
+					},
+					"v5/account/repay": map[string]any{
+						"cost": 5,
+					},
+					"v5/account/no-convert-repay": map[string]any{
+						"cost": 5,
+					},
+					"v5/account/set-limit-px-action": map[string]any{
+						"cost": 5,
+					},
+					"v5/account/set-delta-mode": map[string]any{
+						"cost": 5,
+					},
+					"v5/asset/exchange/quote-apply": map[string]any{
+						"cost": 1,
+					},
+					"v5/asset/exchange/convert-execute": map[string]any{
+						"cost": 1,
+					},
+					"v5/asset/transfer/inter-transfer": map[string]any{
+						"cost": 50,
+					},
+					"v5/asset/transfer/save-transfer-sub-member": map[string]any{
+						"cost": 150,
+					},
+					"v5/asset/transfer/universal-transfer": map[string]any{
+						"cost": 10,
+					},
+					"v5/asset/deposit/deposit-to-account": map[string]any{
+						"cost": 5,
+					},
+					"v5/asset/travel-rule/deposit/submit": map[string]any{
+						"cost": 5,
+					},
+					"v5/asset/withdraw/create": map[string]any{
+						"cost": 50,
+					},
+					"v5/asset/withdraw/cancel": map[string]any{
+						"cost": 50,
+					},
+					"v5/asset/covert/get-quote": map[string]any{
+						"cost": 10,
+					},
+					"v5/asset/covert/small-balance-execute": map[string]any{
+						"cost": 10,
+					},
+					"v5/fiat/quote-apply": map[string]any{
+						"cost": 10,
+					},
+					"v5/fiat/trade-execute": map[string]any{
+						"cost": 10,
+					},
+					"v5/user/create-sub-member": map[string]any{
+						"cost": 10,
+					},
+					"v5/user/create-sub-api": map[string]any{
+						"cost": 10,
+					},
+					"v5/user/frozen-sub-member": map[string]any{
+						"cost": 10,
+					},
+					"v5/user/update-api": map[string]any{
+						"cost": 10,
+					},
+					"v5/user/update-sub-api": map[string]any{
+						"cost": 10,
+					},
+					"v5/user/delete-api": map[string]any{
+						"cost": 10,
+					},
+					"v5/user/delete-sub-api": map[string]any{
+						"cost": 10,
+					},
+					"v5/user/agreement": map[string]any{
+						"cost": 10,
+					},
+					"v5/user/create-demo-member": map[string]any{
+						"cost": 10,
+					},
+					"v5/spot-lever-token/purchase": map[string]any{
+						"cost": 2.5,
+					},
+					"v5/spot-lever-token/redeem": map[string]any{
+						"cost": 2.5,
+					},
+					"v5/spot-margin-trade/switch-mode": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-margin-trade/set-leverage": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-margin-trade/set-auto-repay-mode": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-margin-trade/fixedborrow": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-margin-trade/fixedborrow-renew": map[string]any{
+						"cost": 5,
+					},
+					"v5/spot-cross-margin-trade/loan": map[string]any{
+						"cost": 2.5,
+					},
+					"v5/spot-cross-margin-trade/repay": map[string]any{
+						"cost": 2.5,
+					},
+					"v5/spot-cross-margin-trade/switch": map[string]any{
+						"cost": 2.5,
+					},
+					"v5/crypto-loan/borrow": map[string]any{
+						"cost": 5,
+					},
+					"v5/crypto-loan/repay": map[string]any{
+						"cost": 5,
+					},
+					"v5/crypto-loan/adjust-ltv": map[string]any{
+						"cost": 5,
+					},
+					"v5/crypto-loan-common/adjust-ltv": map[string]any{
+						"cost": 50,
+					},
+					"v5/crypto-loan-common/max-loan": map[string]any{
+						"cost": 10,
+					},
+					"v5/crypto-loan-flexible/borrow": map[string]any{
+						"cost": 50,
+					},
+					"v5/crypto-loan-flexible/repay": map[string]any{
+						"cost": 50,
+					},
+					"v5/crypto-loan-flexible/repay-collateral": map[string]any{
+						"cost": 50,
+					},
+					"v5/crypto-loan-fixed/borrow": map[string]any{
+						"cost": 50,
+					},
+					"v5/crypto-loan-fixed/renew": map[string]any{
+						"cost": 50,
+					},
+					"v5/crypto-loan-fixed/supply": map[string]any{
+						"cost": 50,
+					},
+					"v5/crypto-loan-fixed/borrow-order-cancel": map[string]any{
+						"cost": 50,
+					},
+					"v5/crypto-loan-fixed/supply-order-cancel": map[string]any{
+						"cost": 50,
+					},
+					"v5/crypto-loan-fixed/fully-repay": map[string]any{
+						"cost": 50,
+					},
+					"v5/crypto-loan-fixed/repay-collateral": map[string]any{
+						"cost": 50,
+					},
+					"v5/ins-loan/association-uid": map[string]any{
+						"cost": 5,
+					},
+					"v5/ins-loan/repay-loan": map[string]any{
+						"cost": 5,
+					},
+					"v5/lending/purchase": map[string]any{
+						"cost": 5,
+					},
+					"v5/lending/redeem": map[string]any{
+						"cost": 5,
+					},
+					"v5/lending/redeem-cancel": map[string]any{
+						"cost": 5,
+					},
+					"v5/account/set-collateral-switch": map[string]any{
+						"cost": 5,
+					},
+					"v5/account/set-collateral-switch-batch": map[string]any{
+						"cost": 5,
+					},
+					"v5/account/demo-apply-money": map[string]any{
+						"cost": 5,
+					},
+					"v5/broker/award/info": map[string]any{
+						"cost": 5,
+					},
+					"v5/broker/award/distribute-award": map[string]any{
+						"cost": 5,
+					},
+					"v5/broker/award/distribution-record": map[string]any{
+						"cost": 5,
+					},
+					"v5/earn/place-order": map[string]any{
+						"cost": 5,
+					},
 				},
 			},
 		},

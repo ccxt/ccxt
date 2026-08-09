@@ -1,27 +1,27 @@
-import { implicitReturnType } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
-    publicGetCoins(params?: {}): Promise<implicitReturnType>;
-    publicGetCoinOrderbook(params?: {}): Promise<implicitReturnType>;
-    publicGetCoinTicker(params?: {}): Promise<implicitReturnType>;
-    publicGetCoinTrades(params?: {}): Promise<implicitReturnType>;
-    publicGetCoinTradesFrom(params?: {}): Promise<implicitReturnType>;
-    publicGetCoinTradesFromTo(params?: {}): Promise<implicitReturnType>;
-    publicGetCoinDaySummaryYearMonthDay(params?: {}): Promise<implicitReturnType>;
-    privatePostCancelOrder(params?: {}): Promise<implicitReturnType>;
-    privatePostGetAccountInfo(params?: {}): Promise<implicitReturnType>;
-    privatePostGetOrder(params?: {}): Promise<implicitReturnType>;
-    privatePostGetWithdrawal(params?: {}): Promise<implicitReturnType>;
-    privatePostListSystemMessages(params?: {}): Promise<implicitReturnType>;
-    privatePostListOrders(params?: {}): Promise<implicitReturnType>;
-    privatePostListOrderbook(params?: {}): Promise<implicitReturnType>;
-    privatePostPlaceBuyOrder(params?: {}): Promise<implicitReturnType>;
-    privatePostPlaceSellOrder(params?: {}): Promise<implicitReturnType>;
-    privatePostPlaceMarketBuyOrder(params?: {}): Promise<implicitReturnType>;
-    privatePostPlaceMarketSellOrder(params?: {}): Promise<implicitReturnType>;
-    privatePostWithdrawCoin(params?: {}): Promise<implicitReturnType>;
-    v4PublicGetCoinCandle(params?: {}): Promise<implicitReturnType>;
-    v4PublicNetGetCandles(params?: {}): Promise<implicitReturnType>;
+    publicGetCoins(params?: {}): Promise<List>;
+    publicGetCoinOrderbook(params?: {}): Promise<Dict>;
+    publicGetCoinTicker(params?: {}): Promise<Dict>;
+    publicGetCoinTrades(params?: {}): Promise<List>;
+    publicGetCoinTradesFrom(params?: {}): Promise<List>;
+    publicGetCoinTradesFromTo(params?: {}): Promise<List>;
+    publicGetCoinDaySummaryYearMonthDay(params?: {}): Promise<Dict>;
+    privatePostCancelOrder(params?: {}): Promise<Dict>;
+    privatePostGetAccountInfo(params?: {}): Promise<Dict>;
+    privatePostGetOrder(params?: {}): Promise<Dict>;
+    privatePostGetWithdrawal(params?: {}): Promise<Dict>;
+    privatePostListSystemMessages(params?: {}): Promise<Dict>;
+    privatePostListOrders(params?: {}): Promise<Dict>;
+    privatePostListOrderbook(params?: {}): Promise<Dict>;
+    privatePostPlaceBuyOrder(params?: {}): Promise<Dict>;
+    privatePostPlaceSellOrder(params?: {}): Promise<Dict>;
+    privatePostPlaceMarketBuyOrder(params?: {}): Promise<Dict>;
+    privatePostPlaceMarketSellOrder(params?: {}): Promise<Dict>;
+    privatePostWithdrawCoin(params?: {}): Promise<Dict>;
+    v4PublicGetCoinCandle(params?: {}): Promise<Dict>;
+    v4PublicNetGetCandles(params?: {}): Promise<Dict>;
 }
 declare abstract class Exchange extends _Exchange {
 }

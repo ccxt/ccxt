@@ -1,0 +1,3503 @@
+{
+    "exchange": "opinion",
+    "asyncOnly": true,
+    "skipKeys": [
+        "timestamp",
+        "datetime",
+        "remaining"
+    ],
+    "walletAddress": "0xabababababababababababababababababababab",
+    "outputType": "json",
+    "options": {
+        "multiSignAddress": "0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+        "quoteTokens": {
+            "0x55d398326f99059ff775485246999027b3197955": {
+                "chainId": "56",
+                "createdAt": 0,
+                "ctfExchangeAddress": "0x5f45344126d6488025b0b84a3a8189f2487a7246",
+                "decimal": 18,
+                "id": 4,
+                "quoteTokenAddress": "0x55d398326f99059fF775485246999027B3197955",
+                "quoteTokenName": "USDT",
+                "symbol": "USDT"
+            }
+        }
+    },
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets flattens a categorical parent into its child binary markets",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": {
+                    "errmsg": "",
+                    "errno": 0,
+                    "result": {
+                        "list": [
+                            {
+                                "chainId": "56",
+                                "childMarkets": [
+                                    {
+                                        "chainId": "56",
+                                        "conditionId": "633f6e26eefbbab9f160ee788a72f5e0aefee94b9a5eb3aeada63011799ff0e1",
+                                        "createdAt": 1785561444,
+                                        "cutoffAt": 1788235200,
+                                        "incentiveFactor": {},
+                                        "isResolvableByAI": false,
+                                        "marketId": 26356,
+                                        "marketTitle": "↑ 100,000",
+                                        "noLabel": "NO",
+                                        "noTokenId": "81447026761115188343367959687303728187295938954381398014369803888796907513647",
+                                        "questionId": "4c0e572fa87dec41193f384a26d7abb26f7793ba1e3716f2c45affdba0fa9e23",
+                                        "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                        "rebate": {
+                                            "maker": 0.5
+                                        },
+                                        "resolvedAt": 0,
+                                        "resultTokenId": "",
+                                        "rules": "",
+                                        "slug": "what-price-will-bitcoin-hit-in-august-up-100000",
+                                        "status": 2,
+                                        "statusEnum": "Activated",
+                                        "volume": "34.27",
+                                        "yesLabel": "YES",
+                                        "yesTokenId": "28693516923723830335610225677829403677173535256277787397410382793775279999599"
+                                    },
+                                    {
+                                        "chainId": "56",
+                                        "conditionId": "aea6f67e6b4c4cb8df3a60ad84f16d0870396bad77071c57c6a7f5f02b9a2a73",
+                                        "createdAt": 1785561451,
+                                        "cutoffAt": 1788235200,
+                                        "incentiveFactor": {},
+                                        "isResolvableByAI": false,
+                                        "marketId": 26362,
+                                        "marketTitle": "↑ 72,500",
+                                        "noLabel": "NO",
+                                        "noTokenId": "24983359404493863290495099390867853342570109607033093358391203377814168291712",
+                                        "questionId": "5857489c92d798f1d842ed7cd320bd699958bb8593f0273460927e3c24b835e4",
+                                        "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                        "rebate": {
+                                            "maker": 0.5
+                                        },
+                                        "resolvedAt": 0,
+                                        "resultTokenId": "",
+                                        "rules": "",
+                                        "slug": "what-price-will-bitcoin-hit-in-august-up-72500",
+                                        "status": 2,
+                                        "statusEnum": "Activated",
+                                        "volume": "6.25",
+                                        "yesLabel": "YES",
+                                        "yesTokenId": "94459459064252451242963483607912368941104030299125469604089248225216600139606"
+                                    }
+                                ],
+                                "conditionId": "",
+                                "coverUrl": "",
+                                "createdAt": 1785561444,
+                                "cutoffAt": 1788235200,
+                                "incentiveFactor": {},
+                                "isResolvableByAI": false,
+                                "labelIds": [
+                                    3
+                                ],
+                                "labels": [
+                                    "Crypto"
+                                ],
+                                "marketId": 1277,
+                                "marketTitle": "What price will Bitcoin hit in August?",
+                                "marketType": 1,
+                                "noLabel": "",
+                                "noTokenId": "",
+                                "questionId": "4c0e572fa87dec41193f384a26d7abb26f7793ba1e3716f2c45affdba0fa9e23",
+                                "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                "rebate": {
+                                    "maker": 0.5
+                                },
+                                "resolvedAt": 0,
+                                "resultTokenId": "",
+                                "rules": "This market will immediately resolve to \"Yes\" if, during the date range specified in the title (from 12:00 AM ET on the first date to 11:59 PM ET on the last date), any Binance 1-minute candle for BTC/USDT reaches the price specified in the title in the specified direction — for an \"above\" market, a final \"High\" price equal to or greater than that price; for a \"below\" market, a final \"Low\" price equal to or less than that price. Otherwise, this market will resolve to \"No\".\n\nThe resolution source for this market is Binance, specifically the BTC/USDT prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.",
+                                "slug": "what-price-will-bitcoin-hit-in-august",
+                                "status": 1,
+                                "statusEnum": "Created",
+                                "thumbnailUrl": "https://images.opinion.trade/0xb23171ebd5a7f9fb479eff628d844b79d9fdc02f/0xb608c4b57747c0bc5ee8b237e8f8ed21f61543d4c9d4076f4f2a471e90d5363a",
+                                "volume": "40.52",
+                                "volume24h": "40.52",
+                                "volume7d": "40.52",
+                                "yesLabel": "",
+                                "yesTokenId": ""
+                            }
+                        ],
+                        "total": 1
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "26356",
+                        "market": "PRICE_BITCOIN_HIT_AUGUST_UP_100000",
+                        "base": "USDT",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "26356",
+                        "quoteId": "USDT",
+                        "settleId": null,
+                        "type": "prediction",
+                        "marketType": "binary",
+                        "executionModel": "clob",
+                        "spot": false,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "prediction": true,
+                        "active": true,
+                        "resolved": false,
+                        "resolvedOutcome": null,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": 1788235200000,
+                        "expiryDatetime": "2026-09-01T04:00:00.000Z",
+                        "strike": null,
+                        "optionType": null,
+                        "taker": 0.04,
+                        "maker": -0.02,
+                        "percentage": true,
+                        "tierBased": false,
+                        "feeSide": "get",
+                        "precision": {
+                            "amount": null,
+                            "price": null
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": 0,
+                                "max": 1
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "outcomes": [
+                            {
+                                "id": "28693516923723830335610225677829403677173535256277787397410382793775279999599",
+                                "outcomeId": "28693516923723830335610225677829403677173535256277787397410382793775279999599",
+                                "outcome": "PRICE_BITCOIN_HIT_AUGUST_UP_100000:YES",
+                                "market": "PRICE_BITCOIN_HIT_AUGUST_UP_100000",
+                                "label": "YES",
+                                "active": true,
+                                "winner": null,
+                                "settleFraction": null,
+                                "info": {
+                                    "chainId": "56",
+                                    "conditionId": "633f6e26eefbbab9f160ee788a72f5e0aefee94b9a5eb3aeada63011799ff0e1",
+                                    "createdAt": 1785561444,
+                                    "cutoffAt": 1788235200,
+                                    "incentiveFactor": {},
+                                    "isResolvableByAI": false,
+                                    "marketId": 26356,
+                                    "marketTitle": "↑ 100,000",
+                                    "noLabel": "NO",
+                                    "noTokenId": "81447026761115188343367959687303728187295938954381398014369803888796907513647",
+                                    "questionId": "4c0e572fa87dec41193f384a26d7abb26f7793ba1e3716f2c45affdba0fa9e23",
+                                    "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                    "rebate": {
+                                        "maker": 0.5
+                                    },
+                                    "resolvedAt": 0,
+                                    "resultTokenId": "",
+                                    "rules": "",
+                                    "slug": "what-price-will-bitcoin-hit-in-august-up-100000",
+                                    "status": 2,
+                                    "statusEnum": "Activated",
+                                    "volume": "34.27",
+                                    "yesLabel": "YES",
+                                    "yesTokenId": "28693516923723830335610225677829403677173535256277787397410382793775279999599"
+                                }
+                            },
+                            {
+                                "id": "81447026761115188343367959687303728187295938954381398014369803888796907513647",
+                                "outcomeId": "81447026761115188343367959687303728187295938954381398014369803888796907513647",
+                                "outcome": "PRICE_BITCOIN_HIT_AUGUST_UP_100000:NO",
+                                "market": "PRICE_BITCOIN_HIT_AUGUST_UP_100000",
+                                "label": "NO",
+                                "active": true,
+                                "winner": null,
+                                "settleFraction": null,
+                                "info": {
+                                    "chainId": "56",
+                                    "conditionId": "633f6e26eefbbab9f160ee788a72f5e0aefee94b9a5eb3aeada63011799ff0e1",
+                                    "createdAt": 1785561444,
+                                    "cutoffAt": 1788235200,
+                                    "incentiveFactor": {},
+                                    "isResolvableByAI": false,
+                                    "marketId": 26356,
+                                    "marketTitle": "↑ 100,000",
+                                    "noLabel": "NO",
+                                    "noTokenId": "81447026761115188343367959687303728187295938954381398014369803888796907513647",
+                                    "questionId": "4c0e572fa87dec41193f384a26d7abb26f7793ba1e3716f2c45affdba0fa9e23",
+                                    "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                    "rebate": {
+                                        "maker": 0.5
+                                    },
+                                    "resolvedAt": 0,
+                                    "resultTokenId": "",
+                                    "rules": "",
+                                    "slug": "what-price-will-bitcoin-hit-in-august-up-100000",
+                                    "status": 2,
+                                    "statusEnum": "Activated",
+                                    "volume": "34.27",
+                                    "yesLabel": "YES",
+                                    "yesTokenId": "28693516923723830335610225677829403677173535256277787397410382793775279999599"
+                                }
+                            }
+                        ],
+                        "info": {
+                            "chainId": "56",
+                            "conditionId": "633f6e26eefbbab9f160ee788a72f5e0aefee94b9a5eb3aeada63011799ff0e1",
+                            "createdAt": 1785561444,
+                            "cutoffAt": 1788235200,
+                            "incentiveFactor": {},
+                            "isResolvableByAI": false,
+                            "marketId": 26356,
+                            "marketTitle": "↑ 100,000",
+                            "noLabel": "NO",
+                            "noTokenId": "81447026761115188343367959687303728187295938954381398014369803888796907513647",
+                            "questionId": "4c0e572fa87dec41193f384a26d7abb26f7793ba1e3716f2c45affdba0fa9e23",
+                            "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                            "rebate": {
+                                "maker": 0.5
+                            },
+                            "resolvedAt": 0,
+                            "resultTokenId": "",
+                            "rules": "",
+                            "slug": "what-price-will-bitcoin-hit-in-august-up-100000",
+                            "status": 2,
+                            "statusEnum": "Activated",
+                            "volume": "34.27",
+                            "yesLabel": "YES",
+                            "yesTokenId": "28693516923723830335610225677829403677173535256277787397410382793775279999599"
+                        },
+                        "created": 1785561444000
+                    },
+                    {
+                        "id": "26362",
+                        "market": "PRICE_BITCOIN_HIT_AUGUST_UP_72500",
+                        "base": "USDT",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "26362",
+                        "quoteId": "USDT",
+                        "settleId": null,
+                        "type": "prediction",
+                        "marketType": "binary",
+                        "executionModel": "clob",
+                        "spot": false,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "prediction": true,
+                        "active": true,
+                        "resolved": false,
+                        "resolvedOutcome": null,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": 1788235200000,
+                        "expiryDatetime": "2026-09-01T04:00:00.000Z",
+                        "strike": null,
+                        "optionType": null,
+                        "taker": 0.04,
+                        "maker": -0.02,
+                        "percentage": true,
+                        "tierBased": false,
+                        "feeSide": "get",
+                        "precision": {
+                            "amount": null,
+                            "price": null
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": 0,
+                                "max": 1
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "outcomes": [
+                            {
+                                "id": "94459459064252451242963483607912368941104030299125469604089248225216600139606",
+                                "outcomeId": "94459459064252451242963483607912368941104030299125469604089248225216600139606",
+                                "outcome": "PRICE_BITCOIN_HIT_AUGUST_UP_72500:YES",
+                                "market": "PRICE_BITCOIN_HIT_AUGUST_UP_72500",
+                                "label": "YES",
+                                "active": true,
+                                "winner": null,
+                                "settleFraction": null,
+                                "info": {
+                                    "chainId": "56",
+                                    "conditionId": "aea6f67e6b4c4cb8df3a60ad84f16d0870396bad77071c57c6a7f5f02b9a2a73",
+                                    "createdAt": 1785561451,
+                                    "cutoffAt": 1788235200,
+                                    "incentiveFactor": {},
+                                    "isResolvableByAI": false,
+                                    "marketId": 26362,
+                                    "marketTitle": "↑ 72,500",
+                                    "noLabel": "NO",
+                                    "noTokenId": "24983359404493863290495099390867853342570109607033093358391203377814168291712",
+                                    "questionId": "5857489c92d798f1d842ed7cd320bd699958bb8593f0273460927e3c24b835e4",
+                                    "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                    "rebate": {
+                                        "maker": 0.5
+                                    },
+                                    "resolvedAt": 0,
+                                    "resultTokenId": "",
+                                    "rules": "",
+                                    "slug": "what-price-will-bitcoin-hit-in-august-up-72500",
+                                    "status": 2,
+                                    "statusEnum": "Activated",
+                                    "volume": "6.25",
+                                    "yesLabel": "YES",
+                                    "yesTokenId": "94459459064252451242963483607912368941104030299125469604089248225216600139606"
+                                }
+                            },
+                            {
+                                "id": "24983359404493863290495099390867853342570109607033093358391203377814168291712",
+                                "outcomeId": "24983359404493863290495099390867853342570109607033093358391203377814168291712",
+                                "outcome": "PRICE_BITCOIN_HIT_AUGUST_UP_72500:NO",
+                                "market": "PRICE_BITCOIN_HIT_AUGUST_UP_72500",
+                                "label": "NO",
+                                "active": true,
+                                "winner": null,
+                                "settleFraction": null,
+                                "info": {
+                                    "chainId": "56",
+                                    "conditionId": "aea6f67e6b4c4cb8df3a60ad84f16d0870396bad77071c57c6a7f5f02b9a2a73",
+                                    "createdAt": 1785561451,
+                                    "cutoffAt": 1788235200,
+                                    "incentiveFactor": {},
+                                    "isResolvableByAI": false,
+                                    "marketId": 26362,
+                                    "marketTitle": "↑ 72,500",
+                                    "noLabel": "NO",
+                                    "noTokenId": "24983359404493863290495099390867853342570109607033093358391203377814168291712",
+                                    "questionId": "5857489c92d798f1d842ed7cd320bd699958bb8593f0273460927e3c24b835e4",
+                                    "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                    "rebate": {
+                                        "maker": 0.5
+                                    },
+                                    "resolvedAt": 0,
+                                    "resultTokenId": "",
+                                    "rules": "",
+                                    "slug": "what-price-will-bitcoin-hit-in-august-up-72500",
+                                    "status": 2,
+                                    "statusEnum": "Activated",
+                                    "volume": "6.25",
+                                    "yesLabel": "YES",
+                                    "yesTokenId": "94459459064252451242963483607912368941104030299125469604089248225216600139606"
+                                }
+                            }
+                        ],
+                        "info": {
+                            "chainId": "56",
+                            "conditionId": "aea6f67e6b4c4cb8df3a60ad84f16d0870396bad77071c57c6a7f5f02b9a2a73",
+                            "createdAt": 1785561451,
+                            "cutoffAt": 1788235200,
+                            "incentiveFactor": {},
+                            "isResolvableByAI": false,
+                            "marketId": 26362,
+                            "marketTitle": "↑ 72,500",
+                            "noLabel": "NO",
+                            "noTokenId": "24983359404493863290495099390867853342570109607033093358391203377814168291712",
+                            "questionId": "5857489c92d798f1d842ed7cd320bd699958bb8593f0273460927e3c24b835e4",
+                            "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                            "rebate": {
+                                "maker": 0.5
+                            },
+                            "resolvedAt": 0,
+                            "resultTokenId": "",
+                            "rules": "",
+                            "slug": "what-price-will-bitcoin-hit-in-august-up-72500",
+                            "status": 2,
+                            "statusEnum": "Activated",
+                            "volume": "6.25",
+                            "yesLabel": "YES",
+                            "yesTokenId": "94459459064252451242963483607912368941104030299125469604089248225216600139606"
+                        },
+                        "created": 1785561451000
+                    }
+                ]
+            }
+        ],
+        "fetchEvents": [
+            {
+                "description": "fetchEvents scoped by query",
+                "method": "fetchEvents",
+                "input": [
+                    {
+                        "query": "bitcoin"
+                    }
+                ],
+                "httpResponse": {
+                    "errmsg": "",
+                    "errno": 0,
+                    "result": {
+                        "list": [
+                            {
+                                "chainId": "56",
+                                "childMarkets": [
+                                    {
+                                        "chainId": "56",
+                                        "conditionId": "633f6e26eefbbab9f160ee788a72f5e0aefee94b9a5eb3aeada63011799ff0e1",
+                                        "createdAt": 1785561444,
+                                        "cutoffAt": 1788235200,
+                                        "incentiveFactor": {},
+                                        "isResolvableByAI": false,
+                                        "marketId": 26356,
+                                        "marketTitle": "↑ 100,000",
+                                        "noLabel": "NO",
+                                        "noTokenId": "81447026761115188343367959687303728187295938954381398014369803888796907513647",
+                                        "questionId": "4c0e572fa87dec41193f384a26d7abb26f7793ba1e3716f2c45affdba0fa9e23",
+                                        "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                        "rebate": {
+                                            "maker": 0.5
+                                        },
+                                        "resolvedAt": 0,
+                                        "resultTokenId": "",
+                                        "rules": "",
+                                        "slug": "what-price-will-bitcoin-hit-in-august-up-100000",
+                                        "status": 2,
+                                        "statusEnum": "Activated",
+                                        "volume": "34.27",
+                                        "yesLabel": "YES",
+                                        "yesTokenId": "28693516923723830335610225677829403677173535256277787397410382793775279999599"
+                                    },
+                                    {
+                                        "chainId": "56",
+                                        "conditionId": "aea6f67e6b4c4cb8df3a60ad84f16d0870396bad77071c57c6a7f5f02b9a2a73",
+                                        "createdAt": 1785561451,
+                                        "cutoffAt": 1788235200,
+                                        "incentiveFactor": {},
+                                        "isResolvableByAI": false,
+                                        "marketId": 26362,
+                                        "marketTitle": "↑ 72,500",
+                                        "noLabel": "NO",
+                                        "noTokenId": "24983359404493863290495099390867853342570109607033093358391203377814168291712",
+                                        "questionId": "5857489c92d798f1d842ed7cd320bd699958bb8593f0273460927e3c24b835e4",
+                                        "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                        "rebate": {
+                                            "maker": 0.5
+                                        },
+                                        "resolvedAt": 0,
+                                        "resultTokenId": "",
+                                        "rules": "",
+                                        "slug": "what-price-will-bitcoin-hit-in-august-up-72500",
+                                        "status": 2,
+                                        "statusEnum": "Activated",
+                                        "volume": "6.25",
+                                        "yesLabel": "YES",
+                                        "yesTokenId": "94459459064252451242963483607912368941104030299125469604089248225216600139606"
+                                    }
+                                ],
+                                "conditionId": "",
+                                "coverUrl": "",
+                                "createdAt": 1785561444,
+                                "cutoffAt": 1788235200,
+                                "incentiveFactor": {},
+                                "isResolvableByAI": false,
+                                "labelIds": [
+                                    3
+                                ],
+                                "labels": [
+                                    "Crypto"
+                                ],
+                                "marketId": 1277,
+                                "marketTitle": "What price will Bitcoin hit in August?",
+                                "marketType": 1,
+                                "noLabel": "",
+                                "noTokenId": "",
+                                "questionId": "4c0e572fa87dec41193f384a26d7abb26f7793ba1e3716f2c45affdba0fa9e23",
+                                "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                "rebate": {
+                                    "maker": 0.5
+                                },
+                                "resolvedAt": 0,
+                                "resultTokenId": "",
+                                "rules": "This market will immediately resolve to \"Yes\" if, during the date range specified in the title (from 12:00 AM ET on the first date to 11:59 PM ET on the last date), any Binance 1-minute candle for BTC/USDT reaches the price specified in the title in the specified direction — for an \"above\" market, a final \"High\" price equal to or greater than that price; for a \"below\" market, a final \"Low\" price equal to or less than that price. Otherwise, this market will resolve to \"No\".\n\nThe resolution source for this market is Binance, specifically the BTC/USDT prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.",
+                                "slug": "what-price-will-bitcoin-hit-in-august",
+                                "status": 1,
+                                "statusEnum": "Created",
+                                "thumbnailUrl": "https://images.opinion.trade/0xb23171ebd5a7f9fb479eff628d844b79d9fdc02f/0xb608c4b57747c0bc5ee8b237e8f8ed21f61543d4c9d4076f4f2a471e90d5363a",
+                                "volume": "40.52",
+                                "volume24h": "40.52",
+                                "volume7d": "40.52",
+                                "yesLabel": "",
+                                "yesTokenId": ""
+                            }
+                        ],
+                        "total": 1
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1277",
+                        "event": "PRICE_BITCOIN_HIT_AUGUST",
+                        "title": "What price will Bitcoin hit in August?",
+                        "description": "This market will immediately resolve to \"Yes\" if, during the date range specified in the title (from 12:00 AM ET on the first date to 11:59 PM ET on the last date), any Binance 1-minute candle for BTC/USDT reaches the price specified in the title in the specified direction — for an \"above\" market, a final \"High\" price equal to or greater than that price; for a \"below\" market, a final \"Low\" price equal to or less than that price. Otherwise, this market will resolve to \"No\".\n\nThe resolution source for this market is Binance, specifically the BTC/USDT prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.",
+                        "slug": "what-price-will-bitcoin-hit-in-august",
+                        "category": "Crypto",
+                        "tags": [
+                            "Crypto"
+                        ],
+                        "markets": [
+                            {
+                                "id": "26356",
+                                "market": "PRICE_BITCOIN_HIT_AUGUST_UP_100000",
+                                "base": "USDT",
+                                "quote": "USDT",
+                                "settle": null,
+                                "baseId": "26356",
+                                "quoteId": "USDT",
+                                "settleId": null,
+                                "type": "prediction",
+                                "marketType": "binary",
+                                "executionModel": "clob",
+                                "spot": false,
+                                "margin": false,
+                                "swap": false,
+                                "future": false,
+                                "option": false,
+                                "prediction": true,
+                                "active": true,
+                                "resolved": false,
+                                "resolvedOutcome": null,
+                                "contract": false,
+                                "linear": null,
+                                "inverse": null,
+                                "contractSize": null,
+                                "expiry": 1788235200000,
+                                "expiryDatetime": "2026-09-01T04:00:00.000Z",
+                                "strike": null,
+                                "optionType": null,
+                                "taker": 0.04,
+                                "maker": -0.02,
+                                "percentage": true,
+                                "tierBased": false,
+                                "feeSide": "get",
+                                "precision": {
+                                    "amount": null,
+                                    "price": null
+                                },
+                                "limits": {
+                                    "leverage": {
+                                        "min": 1,
+                                        "max": 1
+                                    },
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "price": {
+                                        "min": 0,
+                                        "max": 1
+                                    },
+                                    "cost": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                },
+                                "outcomes": [
+                                    {
+                                        "id": "28693516923723830335610225677829403677173535256277787397410382793775279999599",
+                                        "outcomeId": "28693516923723830335610225677829403677173535256277787397410382793775279999599",
+                                        "outcome": "PRICE_BITCOIN_HIT_AUGUST_UP_100000:YES",
+                                        "market": "PRICE_BITCOIN_HIT_AUGUST_UP_100000",
+                                        "label": "YES",
+                                        "active": true,
+                                        "winner": null,
+                                        "settleFraction": null,
+                                        "info": {
+                                            "chainId": "56",
+                                            "conditionId": "633f6e26eefbbab9f160ee788a72f5e0aefee94b9a5eb3aeada63011799ff0e1",
+                                            "createdAt": 1785561444,
+                                            "cutoffAt": 1788235200,
+                                            "incentiveFactor": {},
+                                            "isResolvableByAI": false,
+                                            "marketId": 26356,
+                                            "marketTitle": "↑ 100,000",
+                                            "noLabel": "NO",
+                                            "noTokenId": "81447026761115188343367959687303728187295938954381398014369803888796907513647",
+                                            "questionId": "4c0e572fa87dec41193f384a26d7abb26f7793ba1e3716f2c45affdba0fa9e23",
+                                            "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                            "rebate": {
+                                                "maker": 0.5
+                                            },
+                                            "resolvedAt": 0,
+                                            "resultTokenId": "",
+                                            "rules": "",
+                                            "slug": "what-price-will-bitcoin-hit-in-august-up-100000",
+                                            "status": 2,
+                                            "statusEnum": "Activated",
+                                            "volume": "34.27",
+                                            "yesLabel": "YES",
+                                            "yesTokenId": "28693516923723830335610225677829403677173535256277787397410382793775279999599"
+                                        }
+                                    },
+                                    {
+                                        "id": "81447026761115188343367959687303728187295938954381398014369803888796907513647",
+                                        "outcomeId": "81447026761115188343367959687303728187295938954381398014369803888796907513647",
+                                        "outcome": "PRICE_BITCOIN_HIT_AUGUST_UP_100000:NO",
+                                        "market": "PRICE_BITCOIN_HIT_AUGUST_UP_100000",
+                                        "label": "NO",
+                                        "active": true,
+                                        "winner": null,
+                                        "settleFraction": null,
+                                        "info": {
+                                            "chainId": "56",
+                                            "conditionId": "633f6e26eefbbab9f160ee788a72f5e0aefee94b9a5eb3aeada63011799ff0e1",
+                                            "createdAt": 1785561444,
+                                            "cutoffAt": 1788235200,
+                                            "incentiveFactor": {},
+                                            "isResolvableByAI": false,
+                                            "marketId": 26356,
+                                            "marketTitle": "↑ 100,000",
+                                            "noLabel": "NO",
+                                            "noTokenId": "81447026761115188343367959687303728187295938954381398014369803888796907513647",
+                                            "questionId": "4c0e572fa87dec41193f384a26d7abb26f7793ba1e3716f2c45affdba0fa9e23",
+                                            "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                            "rebate": {
+                                                "maker": 0.5
+                                            },
+                                            "resolvedAt": 0,
+                                            "resultTokenId": "",
+                                            "rules": "",
+                                            "slug": "what-price-will-bitcoin-hit-in-august-up-100000",
+                                            "status": 2,
+                                            "statusEnum": "Activated",
+                                            "volume": "34.27",
+                                            "yesLabel": "YES",
+                                            "yesTokenId": "28693516923723830335610225677829403677173535256277787397410382793775279999599"
+                                        }
+                                    }
+                                ],
+                                "info": {
+                                    "chainId": "56",
+                                    "conditionId": "633f6e26eefbbab9f160ee788a72f5e0aefee94b9a5eb3aeada63011799ff0e1",
+                                    "createdAt": 1785561444,
+                                    "cutoffAt": 1788235200,
+                                    "incentiveFactor": {},
+                                    "isResolvableByAI": false,
+                                    "marketId": 26356,
+                                    "marketTitle": "↑ 100,000",
+                                    "noLabel": "NO",
+                                    "noTokenId": "81447026761115188343367959687303728187295938954381398014369803888796907513647",
+                                    "questionId": "4c0e572fa87dec41193f384a26d7abb26f7793ba1e3716f2c45affdba0fa9e23",
+                                    "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                    "rebate": {
+                                        "maker": 0.5
+                                    },
+                                    "resolvedAt": 0,
+                                    "resultTokenId": "",
+                                    "rules": "",
+                                    "slug": "what-price-will-bitcoin-hit-in-august-up-100000",
+                                    "status": 2,
+                                    "statusEnum": "Activated",
+                                    "volume": "34.27",
+                                    "yesLabel": "YES",
+                                    "yesTokenId": "28693516923723830335610225677829403677173535256277787397410382793775279999599"
+                                },
+                                "created": 1785561444000
+                            },
+                            {
+                                "id": "26362",
+                                "market": "PRICE_BITCOIN_HIT_AUGUST_UP_72500",
+                                "base": "USDT",
+                                "quote": "USDT",
+                                "settle": null,
+                                "baseId": "26362",
+                                "quoteId": "USDT",
+                                "settleId": null,
+                                "type": "prediction",
+                                "marketType": "binary",
+                                "executionModel": "clob",
+                                "spot": false,
+                                "margin": false,
+                                "swap": false,
+                                "future": false,
+                                "option": false,
+                                "prediction": true,
+                                "active": true,
+                                "resolved": false,
+                                "resolvedOutcome": null,
+                                "contract": false,
+                                "linear": null,
+                                "inverse": null,
+                                "contractSize": null,
+                                "expiry": 1788235200000,
+                                "expiryDatetime": "2026-09-01T04:00:00.000Z",
+                                "strike": null,
+                                "optionType": null,
+                                "taker": 0.04,
+                                "maker": -0.02,
+                                "percentage": true,
+                                "tierBased": false,
+                                "feeSide": "get",
+                                "precision": {
+                                    "amount": null,
+                                    "price": null
+                                },
+                                "limits": {
+                                    "leverage": {
+                                        "min": 1,
+                                        "max": 1
+                                    },
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "price": {
+                                        "min": 0,
+                                        "max": 1
+                                    },
+                                    "cost": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                },
+                                "outcomes": [
+                                    {
+                                        "id": "94459459064252451242963483607912368941104030299125469604089248225216600139606",
+                                        "outcomeId": "94459459064252451242963483607912368941104030299125469604089248225216600139606",
+                                        "outcome": "PRICE_BITCOIN_HIT_AUGUST_UP_72500:YES",
+                                        "market": "PRICE_BITCOIN_HIT_AUGUST_UP_72500",
+                                        "label": "YES",
+                                        "active": true,
+                                        "winner": null,
+                                        "settleFraction": null,
+                                        "info": {
+                                            "chainId": "56",
+                                            "conditionId": "aea6f67e6b4c4cb8df3a60ad84f16d0870396bad77071c57c6a7f5f02b9a2a73",
+                                            "createdAt": 1785561451,
+                                            "cutoffAt": 1788235200,
+                                            "incentiveFactor": {},
+                                            "isResolvableByAI": false,
+                                            "marketId": 26362,
+                                            "marketTitle": "↑ 72,500",
+                                            "noLabel": "NO",
+                                            "noTokenId": "24983359404493863290495099390867853342570109607033093358391203377814168291712",
+                                            "questionId": "5857489c92d798f1d842ed7cd320bd699958bb8593f0273460927e3c24b835e4",
+                                            "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                            "rebate": {
+                                                "maker": 0.5
+                                            },
+                                            "resolvedAt": 0,
+                                            "resultTokenId": "",
+                                            "rules": "",
+                                            "slug": "what-price-will-bitcoin-hit-in-august-up-72500",
+                                            "status": 2,
+                                            "statusEnum": "Activated",
+                                            "volume": "6.25",
+                                            "yesLabel": "YES",
+                                            "yesTokenId": "94459459064252451242963483607912368941104030299125469604089248225216600139606"
+                                        }
+                                    },
+                                    {
+                                        "id": "24983359404493863290495099390867853342570109607033093358391203377814168291712",
+                                        "outcomeId": "24983359404493863290495099390867853342570109607033093358391203377814168291712",
+                                        "outcome": "PRICE_BITCOIN_HIT_AUGUST_UP_72500:NO",
+                                        "market": "PRICE_BITCOIN_HIT_AUGUST_UP_72500",
+                                        "label": "NO",
+                                        "active": true,
+                                        "winner": null,
+                                        "settleFraction": null,
+                                        "info": {
+                                            "chainId": "56",
+                                            "conditionId": "aea6f67e6b4c4cb8df3a60ad84f16d0870396bad77071c57c6a7f5f02b9a2a73",
+                                            "createdAt": 1785561451,
+                                            "cutoffAt": 1788235200,
+                                            "incentiveFactor": {},
+                                            "isResolvableByAI": false,
+                                            "marketId": 26362,
+                                            "marketTitle": "↑ 72,500",
+                                            "noLabel": "NO",
+                                            "noTokenId": "24983359404493863290495099390867853342570109607033093358391203377814168291712",
+                                            "questionId": "5857489c92d798f1d842ed7cd320bd699958bb8593f0273460927e3c24b835e4",
+                                            "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                            "rebate": {
+                                                "maker": 0.5
+                                            },
+                                            "resolvedAt": 0,
+                                            "resultTokenId": "",
+                                            "rules": "",
+                                            "slug": "what-price-will-bitcoin-hit-in-august-up-72500",
+                                            "status": 2,
+                                            "statusEnum": "Activated",
+                                            "volume": "6.25",
+                                            "yesLabel": "YES",
+                                            "yesTokenId": "94459459064252451242963483607912368941104030299125469604089248225216600139606"
+                                        }
+                                    }
+                                ],
+                                "info": {
+                                    "chainId": "56",
+                                    "conditionId": "aea6f67e6b4c4cb8df3a60ad84f16d0870396bad77071c57c6a7f5f02b9a2a73",
+                                    "createdAt": 1785561451,
+                                    "cutoffAt": 1788235200,
+                                    "incentiveFactor": {},
+                                    "isResolvableByAI": false,
+                                    "marketId": 26362,
+                                    "marketTitle": "↑ 72,500",
+                                    "noLabel": "NO",
+                                    "noTokenId": "24983359404493863290495099390867853342570109607033093358391203377814168291712",
+                                    "questionId": "5857489c92d798f1d842ed7cd320bd699958bb8593f0273460927e3c24b835e4",
+                                    "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                    "rebate": {
+                                        "maker": 0.5
+                                    },
+                                    "resolvedAt": 0,
+                                    "resultTokenId": "",
+                                    "rules": "",
+                                    "slug": "what-price-will-bitcoin-hit-in-august-up-72500",
+                                    "status": 2,
+                                    "statusEnum": "Activated",
+                                    "volume": "6.25",
+                                    "yesLabel": "YES",
+                                    "yesTokenId": "94459459064252451242963483607912368941104030299125469604089248225216600139606"
+                                },
+                                "created": 1785561451000
+                            }
+                        ],
+                        "active": false,
+                        "resolved": false,
+                        "volume": 40.52,
+                        "created": 1785561444000,
+                        "createdDatetime": "2026-08-01T05:17:24.000Z",
+                        "end": 1788235200000,
+                        "endDatetime": "2026-09-01T04:00:00.000Z",
+                        "image": "https://images.opinion.trade/0xb23171ebd5a7f9fb479eff628d844b79d9fdc02f/0xb608c4b57747c0bc5ee8b237e8f8ed21f61543d4c9d4076f4f2a471e90d5363a",
+                        "info": {
+                            "chainId": "56",
+                            "childMarkets": [
+                                {
+                                    "chainId": "56",
+                                    "conditionId": "633f6e26eefbbab9f160ee788a72f5e0aefee94b9a5eb3aeada63011799ff0e1",
+                                    "createdAt": 1785561444,
+                                    "cutoffAt": 1788235200,
+                                    "incentiveFactor": {},
+                                    "isResolvableByAI": false,
+                                    "marketId": 26356,
+                                    "marketTitle": "↑ 100,000",
+                                    "noLabel": "NO",
+                                    "noTokenId": "81447026761115188343367959687303728187295938954381398014369803888796907513647",
+                                    "questionId": "4c0e572fa87dec41193f384a26d7abb26f7793ba1e3716f2c45affdba0fa9e23",
+                                    "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                    "rebate": {
+                                        "maker": 0.5
+                                    },
+                                    "resolvedAt": 0,
+                                    "resultTokenId": "",
+                                    "rules": "",
+                                    "slug": "what-price-will-bitcoin-hit-in-august-up-100000",
+                                    "status": 2,
+                                    "statusEnum": "Activated",
+                                    "volume": "34.27",
+                                    "yesLabel": "YES",
+                                    "yesTokenId": "28693516923723830335610225677829403677173535256277787397410382793775279999599"
+                                },
+                                {
+                                    "chainId": "56",
+                                    "conditionId": "aea6f67e6b4c4cb8df3a60ad84f16d0870396bad77071c57c6a7f5f02b9a2a73",
+                                    "createdAt": 1785561451,
+                                    "cutoffAt": 1788235200,
+                                    "incentiveFactor": {},
+                                    "isResolvableByAI": false,
+                                    "marketId": 26362,
+                                    "marketTitle": "↑ 72,500",
+                                    "noLabel": "NO",
+                                    "noTokenId": "24983359404493863290495099390867853342570109607033093358391203377814168291712",
+                                    "questionId": "5857489c92d798f1d842ed7cd320bd699958bb8593f0273460927e3c24b835e4",
+                                    "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                    "rebate": {
+                                        "maker": 0.5
+                                    },
+                                    "resolvedAt": 0,
+                                    "resultTokenId": "",
+                                    "rules": "",
+                                    "slug": "what-price-will-bitcoin-hit-in-august-up-72500",
+                                    "status": 2,
+                                    "statusEnum": "Activated",
+                                    "volume": "6.25",
+                                    "yesLabel": "YES",
+                                    "yesTokenId": "94459459064252451242963483607912368941104030299125469604089248225216600139606"
+                                }
+                            ],
+                            "conditionId": "",
+                            "coverUrl": "",
+                            "createdAt": 1785561444,
+                            "cutoffAt": 1788235200,
+                            "incentiveFactor": {},
+                            "isResolvableByAI": false,
+                            "labelIds": [
+                                3
+                            ],
+                            "labels": [
+                                "Crypto"
+                            ],
+                            "marketId": 1277,
+                            "marketTitle": "What price will Bitcoin hit in August?",
+                            "marketType": 1,
+                            "noLabel": "",
+                            "noTokenId": "",
+                            "questionId": "4c0e572fa87dec41193f384a26d7abb26f7793ba1e3716f2c45affdba0fa9e23",
+                            "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                            "rebate": {
+                                "maker": 0.5
+                            },
+                            "resolvedAt": 0,
+                            "resultTokenId": "",
+                            "rules": "This market will immediately resolve to \"Yes\" if, during the date range specified in the title (from 12:00 AM ET on the first date to 11:59 PM ET on the last date), any Binance 1-minute candle for BTC/USDT reaches the price specified in the title in the specified direction — for an \"above\" market, a final \"High\" price equal to or greater than that price; for a \"below\" market, a final \"Low\" price equal to or less than that price. Otherwise, this market will resolve to \"No\".\n\nThe resolution source for this market is Binance, specifically the BTC/USDT prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.",
+                            "slug": "what-price-will-bitcoin-hit-in-august",
+                            "status": 1,
+                            "statusEnum": "Created",
+                            "thumbnailUrl": "https://images.opinion.trade/0xb23171ebd5a7f9fb479eff628d844b79d9fdc02f/0xb608c4b57747c0bc5ee8b237e8f8ed21f61543d4c9d4076f4f2a471e90d5363a",
+                            "volume": "40.52",
+                            "volume24h": "40.52",
+                            "volume7d": "40.52",
+                            "yesLabel": "",
+                            "yesTokenId": ""
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchEvent": [
+            {
+                "description": "fetchEvent by numeric marketId",
+                "method": "fetchEvent",
+                "input": [
+                    "1277"
+                ],
+                "httpResponse": {
+                    "errmsg": "",
+                    "errno": 0,
+                    "result": {
+                        "data": {
+                            "chainId": "56",
+                            "childMarkets": [
+                                {
+                                    "chainId": "56",
+                                    "conditionId": "633f6e26eefbbab9f160ee788a72f5e0aefee94b9a5eb3aeada63011799ff0e1",
+                                    "createdAt": 1785561444,
+                                    "cutoffAt": 1788235200,
+                                    "incentiveFactor": {},
+                                    "isResolvableByAI": false,
+                                    "marketId": 26356,
+                                    "marketTitle": "↑ 100,000",
+                                    "noLabel": "NO",
+                                    "noTokenId": "81447026761115188343367959687303728187295938954381398014369803888796907513647",
+                                    "questionId": "4c0e572fa87dec41193f384a26d7abb26f7793ba1e3716f2c45affdba0fa9e23",
+                                    "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                    "rebate": {
+                                        "maker": 0.5
+                                    },
+                                    "resolvedAt": 0,
+                                    "resultTokenId": "",
+                                    "rules": "",
+                                    "slug": "what-price-will-bitcoin-hit-in-august-up-100000",
+                                    "status": 2,
+                                    "statusEnum": "Activated",
+                                    "volume": "34.27",
+                                    "yesLabel": "YES",
+                                    "yesTokenId": "28693516923723830335610225677829403677173535256277787397410382793775279999599"
+                                },
+                                {
+                                    "chainId": "56",
+                                    "conditionId": "aea6f67e6b4c4cb8df3a60ad84f16d0870396bad77071c57c6a7f5f02b9a2a73",
+                                    "createdAt": 1785561451,
+                                    "cutoffAt": 1788235200,
+                                    "incentiveFactor": {},
+                                    "isResolvableByAI": false,
+                                    "marketId": 26362,
+                                    "marketTitle": "↑ 72,500",
+                                    "noLabel": "NO",
+                                    "noTokenId": "24983359404493863290495099390867853342570109607033093358391203377814168291712",
+                                    "questionId": "5857489c92d798f1d842ed7cd320bd699958bb8593f0273460927e3c24b835e4",
+                                    "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                    "rebate": {
+                                        "maker": 0.5
+                                    },
+                                    "resolvedAt": 0,
+                                    "resultTokenId": "",
+                                    "rules": "",
+                                    "slug": "what-price-will-bitcoin-hit-in-august-up-72500",
+                                    "status": 2,
+                                    "statusEnum": "Activated",
+                                    "volume": "6.25",
+                                    "yesLabel": "YES",
+                                    "yesTokenId": "94459459064252451242963483607912368941104030299125469604089248225216600139606"
+                                }
+                            ],
+                            "conditionId": "",
+                            "coverUrl": "",
+                            "createdAt": 1785561444,
+                            "cutoffAt": 1788235200,
+                            "incentiveFactor": {},
+                            "isResolvableByAI": false,
+                            "labelIds": [
+                                3
+                            ],
+                            "labels": [
+                                "Crypto"
+                            ],
+                            "marketId": 1277,
+                            "marketTitle": "What price will Bitcoin hit in August?",
+                            "marketType": 1,
+                            "noLabel": "",
+                            "noTokenId": "",
+                            "questionId": "4c0e572fa87dec41193f384a26d7abb26f7793ba1e3716f2c45affdba0fa9e23",
+                            "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                            "rebate": {
+                                "maker": 0.5
+                            },
+                            "resolvedAt": 0,
+                            "resultTokenId": "",
+                            "rules": "This market will immediately resolve to \"Yes\" if, during the date range specified in the title (from 12:00 AM ET on the first date to 11:59 PM ET on the last date), any Binance 1-minute candle for BTC/USDT reaches the price specified in the title in the specified direction — for an \"above\" market, a final \"High\" price equal to or greater than that price; for a \"below\" market, a final \"Low\" price equal to or less than that price. Otherwise, this market will resolve to \"No\".\n\nThe resolution source for this market is Binance, specifically the BTC/USDT prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.",
+                            "slug": "what-price-will-bitcoin-hit-in-august",
+                            "status": 1,
+                            "statusEnum": "Created",
+                            "thumbnailUrl": "https://images.opinion.trade/0xb23171ebd5a7f9fb479eff628d844b79d9fdc02f/0xb608c4b57747c0bc5ee8b237e8f8ed21f61543d4c9d4076f4f2a471e90d5363a",
+                            "volume": "40.52",
+                            "volume24h": "40.52",
+                            "volume7d": "40.52",
+                            "yesLabel": "",
+                            "yesTokenId": ""
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "id": "1277",
+                    "event": "PRICE_BITCOIN_HIT_AUGUST",
+                    "title": "What price will Bitcoin hit in August?",
+                    "description": "This market will immediately resolve to \"Yes\" if, during the date range specified in the title (from 12:00 AM ET on the first date to 11:59 PM ET on the last date), any Binance 1-minute candle for BTC/USDT reaches the price specified in the title in the specified direction — for an \"above\" market, a final \"High\" price equal to or greater than that price; for a \"below\" market, a final \"Low\" price equal to or less than that price. Otherwise, this market will resolve to \"No\".\n\nThe resolution source for this market is Binance, specifically the BTC/USDT prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.",
+                    "slug": "what-price-will-bitcoin-hit-in-august",
+                    "category": "Crypto",
+                    "tags": [
+                        "Crypto"
+                    ],
+                    "markets": [
+                        {
+                            "id": "26356",
+                            "market": "PRICE_BITCOIN_HIT_AUGUST_UP_100000",
+                            "base": "USDT",
+                            "quote": "USDT",
+                            "settle": null,
+                            "baseId": "26356",
+                            "quoteId": "USDT",
+                            "settleId": null,
+                            "type": "prediction",
+                            "marketType": "binary",
+                            "executionModel": "clob",
+                            "spot": false,
+                            "margin": false,
+                            "swap": false,
+                            "future": false,
+                            "option": false,
+                            "prediction": true,
+                            "active": true,
+                            "resolved": false,
+                            "resolvedOutcome": null,
+                            "contract": false,
+                            "linear": null,
+                            "inverse": null,
+                            "contractSize": null,
+                            "expiry": 1788235200000,
+                            "expiryDatetime": "2026-09-01T04:00:00.000Z",
+                            "strike": null,
+                            "optionType": null,
+                            "taker": 0.04,
+                            "maker": -0.02,
+                            "percentage": true,
+                            "tierBased": false,
+                            "feeSide": "get",
+                            "precision": {
+                                "amount": null,
+                                "price": null
+                            },
+                            "limits": {
+                                "leverage": {
+                                    "min": 1,
+                                    "max": 1
+                                },
+                                "amount": {
+                                    "min": null,
+                                    "max": null
+                                },
+                                "price": {
+                                    "min": 0,
+                                    "max": 1
+                                },
+                                "cost": {
+                                    "min": null,
+                                    "max": null
+                                }
+                            },
+                            "outcomes": [
+                                {
+                                    "id": "28693516923723830335610225677829403677173535256277787397410382793775279999599",
+                                    "outcomeId": "28693516923723830335610225677829403677173535256277787397410382793775279999599",
+                                    "outcome": "PRICE_BITCOIN_HIT_AUGUST_UP_100000:YES",
+                                    "market": "PRICE_BITCOIN_HIT_AUGUST_UP_100000",
+                                    "label": "YES",
+                                    "active": true,
+                                    "winner": null,
+                                    "settleFraction": null,
+                                    "info": {
+                                        "chainId": "56",
+                                        "conditionId": "633f6e26eefbbab9f160ee788a72f5e0aefee94b9a5eb3aeada63011799ff0e1",
+                                        "createdAt": 1785561444,
+                                        "cutoffAt": 1788235200,
+                                        "incentiveFactor": {},
+                                        "isResolvableByAI": false,
+                                        "marketId": 26356,
+                                        "marketTitle": "↑ 100,000",
+                                        "noLabel": "NO",
+                                        "noTokenId": "81447026761115188343367959687303728187295938954381398014369803888796907513647",
+                                        "questionId": "4c0e572fa87dec41193f384a26d7abb26f7793ba1e3716f2c45affdba0fa9e23",
+                                        "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                        "rebate": {
+                                            "maker": 0.5
+                                        },
+                                        "resolvedAt": 0,
+                                        "resultTokenId": "",
+                                        "rules": "",
+                                        "slug": "what-price-will-bitcoin-hit-in-august-up-100000",
+                                        "status": 2,
+                                        "statusEnum": "Activated",
+                                        "volume": "34.27",
+                                        "yesLabel": "YES",
+                                        "yesTokenId": "28693516923723830335610225677829403677173535256277787397410382793775279999599"
+                                    }
+                                },
+                                {
+                                    "id": "81447026761115188343367959687303728187295938954381398014369803888796907513647",
+                                    "outcomeId": "81447026761115188343367959687303728187295938954381398014369803888796907513647",
+                                    "outcome": "PRICE_BITCOIN_HIT_AUGUST_UP_100000:NO",
+                                    "market": "PRICE_BITCOIN_HIT_AUGUST_UP_100000",
+                                    "label": "NO",
+                                    "active": true,
+                                    "winner": null,
+                                    "settleFraction": null,
+                                    "info": {
+                                        "chainId": "56",
+                                        "conditionId": "633f6e26eefbbab9f160ee788a72f5e0aefee94b9a5eb3aeada63011799ff0e1",
+                                        "createdAt": 1785561444,
+                                        "cutoffAt": 1788235200,
+                                        "incentiveFactor": {},
+                                        "isResolvableByAI": false,
+                                        "marketId": 26356,
+                                        "marketTitle": "↑ 100,000",
+                                        "noLabel": "NO",
+                                        "noTokenId": "81447026761115188343367959687303728187295938954381398014369803888796907513647",
+                                        "questionId": "4c0e572fa87dec41193f384a26d7abb26f7793ba1e3716f2c45affdba0fa9e23",
+                                        "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                        "rebate": {
+                                            "maker": 0.5
+                                        },
+                                        "resolvedAt": 0,
+                                        "resultTokenId": "",
+                                        "rules": "",
+                                        "slug": "what-price-will-bitcoin-hit-in-august-up-100000",
+                                        "status": 2,
+                                        "statusEnum": "Activated",
+                                        "volume": "34.27",
+                                        "yesLabel": "YES",
+                                        "yesTokenId": "28693516923723830335610225677829403677173535256277787397410382793775279999599"
+                                    }
+                                }
+                            ],
+                            "info": {
+                                "chainId": "56",
+                                "conditionId": "633f6e26eefbbab9f160ee788a72f5e0aefee94b9a5eb3aeada63011799ff0e1",
+                                "createdAt": 1785561444,
+                                "cutoffAt": 1788235200,
+                                "incentiveFactor": {},
+                                "isResolvableByAI": false,
+                                "marketId": 26356,
+                                "marketTitle": "↑ 100,000",
+                                "noLabel": "NO",
+                                "noTokenId": "81447026761115188343367959687303728187295938954381398014369803888796907513647",
+                                "questionId": "4c0e572fa87dec41193f384a26d7abb26f7793ba1e3716f2c45affdba0fa9e23",
+                                "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                "rebate": {
+                                    "maker": 0.5
+                                },
+                                "resolvedAt": 0,
+                                "resultTokenId": "",
+                                "rules": "",
+                                "slug": "what-price-will-bitcoin-hit-in-august-up-100000",
+                                "status": 2,
+                                "statusEnum": "Activated",
+                                "volume": "34.27",
+                                "yesLabel": "YES",
+                                "yesTokenId": "28693516923723830335610225677829403677173535256277787397410382793775279999599"
+                            },
+                            "created": 1785561444000
+                        },
+                        {
+                            "id": "26362",
+                            "market": "PRICE_BITCOIN_HIT_AUGUST_UP_72500",
+                            "base": "USDT",
+                            "quote": "USDT",
+                            "settle": null,
+                            "baseId": "26362",
+                            "quoteId": "USDT",
+                            "settleId": null,
+                            "type": "prediction",
+                            "marketType": "binary",
+                            "executionModel": "clob",
+                            "spot": false,
+                            "margin": false,
+                            "swap": false,
+                            "future": false,
+                            "option": false,
+                            "prediction": true,
+                            "active": true,
+                            "resolved": false,
+                            "resolvedOutcome": null,
+                            "contract": false,
+                            "linear": null,
+                            "inverse": null,
+                            "contractSize": null,
+                            "expiry": 1788235200000,
+                            "expiryDatetime": "2026-09-01T04:00:00.000Z",
+                            "strike": null,
+                            "optionType": null,
+                            "taker": 0.04,
+                            "maker": -0.02,
+                            "percentage": true,
+                            "tierBased": false,
+                            "feeSide": "get",
+                            "precision": {
+                                "amount": null,
+                                "price": null
+                            },
+                            "limits": {
+                                "leverage": {
+                                    "min": 1,
+                                    "max": 1
+                                },
+                                "amount": {
+                                    "min": null,
+                                    "max": null
+                                },
+                                "price": {
+                                    "min": 0,
+                                    "max": 1
+                                },
+                                "cost": {
+                                    "min": null,
+                                    "max": null
+                                }
+                            },
+                            "outcomes": [
+                                {
+                                    "id": "94459459064252451242963483607912368941104030299125469604089248225216600139606",
+                                    "outcomeId": "94459459064252451242963483607912368941104030299125469604089248225216600139606",
+                                    "outcome": "PRICE_BITCOIN_HIT_AUGUST_UP_72500:YES",
+                                    "market": "PRICE_BITCOIN_HIT_AUGUST_UP_72500",
+                                    "label": "YES",
+                                    "active": true,
+                                    "winner": null,
+                                    "settleFraction": null,
+                                    "info": {
+                                        "chainId": "56",
+                                        "conditionId": "aea6f67e6b4c4cb8df3a60ad84f16d0870396bad77071c57c6a7f5f02b9a2a73",
+                                        "createdAt": 1785561451,
+                                        "cutoffAt": 1788235200,
+                                        "incentiveFactor": {},
+                                        "isResolvableByAI": false,
+                                        "marketId": 26362,
+                                        "marketTitle": "↑ 72,500",
+                                        "noLabel": "NO",
+                                        "noTokenId": "24983359404493863290495099390867853342570109607033093358391203377814168291712",
+                                        "questionId": "5857489c92d798f1d842ed7cd320bd699958bb8593f0273460927e3c24b835e4",
+                                        "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                        "rebate": {
+                                            "maker": 0.5
+                                        },
+                                        "resolvedAt": 0,
+                                        "resultTokenId": "",
+                                        "rules": "",
+                                        "slug": "what-price-will-bitcoin-hit-in-august-up-72500",
+                                        "status": 2,
+                                        "statusEnum": "Activated",
+                                        "volume": "6.25",
+                                        "yesLabel": "YES",
+                                        "yesTokenId": "94459459064252451242963483607912368941104030299125469604089248225216600139606"
+                                    }
+                                },
+                                {
+                                    "id": "24983359404493863290495099390867853342570109607033093358391203377814168291712",
+                                    "outcomeId": "24983359404493863290495099390867853342570109607033093358391203377814168291712",
+                                    "outcome": "PRICE_BITCOIN_HIT_AUGUST_UP_72500:NO",
+                                    "market": "PRICE_BITCOIN_HIT_AUGUST_UP_72500",
+                                    "label": "NO",
+                                    "active": true,
+                                    "winner": null,
+                                    "settleFraction": null,
+                                    "info": {
+                                        "chainId": "56",
+                                        "conditionId": "aea6f67e6b4c4cb8df3a60ad84f16d0870396bad77071c57c6a7f5f02b9a2a73",
+                                        "createdAt": 1785561451,
+                                        "cutoffAt": 1788235200,
+                                        "incentiveFactor": {},
+                                        "isResolvableByAI": false,
+                                        "marketId": 26362,
+                                        "marketTitle": "↑ 72,500",
+                                        "noLabel": "NO",
+                                        "noTokenId": "24983359404493863290495099390867853342570109607033093358391203377814168291712",
+                                        "questionId": "5857489c92d798f1d842ed7cd320bd699958bb8593f0273460927e3c24b835e4",
+                                        "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                        "rebate": {
+                                            "maker": 0.5
+                                        },
+                                        "resolvedAt": 0,
+                                        "resultTokenId": "",
+                                        "rules": "",
+                                        "slug": "what-price-will-bitcoin-hit-in-august-up-72500",
+                                        "status": 2,
+                                        "statusEnum": "Activated",
+                                        "volume": "6.25",
+                                        "yesLabel": "YES",
+                                        "yesTokenId": "94459459064252451242963483607912368941104030299125469604089248225216600139606"
+                                    }
+                                }
+                            ],
+                            "info": {
+                                "chainId": "56",
+                                "conditionId": "aea6f67e6b4c4cb8df3a60ad84f16d0870396bad77071c57c6a7f5f02b9a2a73",
+                                "createdAt": 1785561451,
+                                "cutoffAt": 1788235200,
+                                "incentiveFactor": {},
+                                "isResolvableByAI": false,
+                                "marketId": 26362,
+                                "marketTitle": "↑ 72,500",
+                                "noLabel": "NO",
+                                "noTokenId": "24983359404493863290495099390867853342570109607033093358391203377814168291712",
+                                "questionId": "5857489c92d798f1d842ed7cd320bd699958bb8593f0273460927e3c24b835e4",
+                                "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                "rebate": {
+                                    "maker": 0.5
+                                },
+                                "resolvedAt": 0,
+                                "resultTokenId": "",
+                                "rules": "",
+                                "slug": "what-price-will-bitcoin-hit-in-august-up-72500",
+                                "status": 2,
+                                "statusEnum": "Activated",
+                                "volume": "6.25",
+                                "yesLabel": "YES",
+                                "yesTokenId": "94459459064252451242963483607912368941104030299125469604089248225216600139606"
+                            },
+                            "created": 1785561451000
+                        }
+                    ],
+                    "active": false,
+                    "resolved": false,
+                    "volume": 40.52,
+                    "created": 1785561444000,
+                    "createdDatetime": "2026-08-01T05:17:24.000Z",
+                    "end": 1788235200000,
+                    "endDatetime": "2026-09-01T04:00:00.000Z",
+                    "image": "https://images.opinion.trade/0xb23171ebd5a7f9fb479eff628d844b79d9fdc02f/0xb608c4b57747c0bc5ee8b237e8f8ed21f61543d4c9d4076f4f2a471e90d5363a",
+                    "info": {
+                        "chainId": "56",
+                        "childMarkets": [
+                            {
+                                "chainId": "56",
+                                "conditionId": "633f6e26eefbbab9f160ee788a72f5e0aefee94b9a5eb3aeada63011799ff0e1",
+                                "createdAt": 1785561444,
+                                "cutoffAt": 1788235200,
+                                "incentiveFactor": {},
+                                "isResolvableByAI": false,
+                                "marketId": 26356,
+                                "marketTitle": "↑ 100,000",
+                                "noLabel": "NO",
+                                "noTokenId": "81447026761115188343367959687303728187295938954381398014369803888796907513647",
+                                "questionId": "4c0e572fa87dec41193f384a26d7abb26f7793ba1e3716f2c45affdba0fa9e23",
+                                "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                "rebate": {
+                                    "maker": 0.5
+                                },
+                                "resolvedAt": 0,
+                                "resultTokenId": "",
+                                "rules": "",
+                                "slug": "what-price-will-bitcoin-hit-in-august-up-100000",
+                                "status": 2,
+                                "statusEnum": "Activated",
+                                "volume": "34.27",
+                                "yesLabel": "YES",
+                                "yesTokenId": "28693516923723830335610225677829403677173535256277787397410382793775279999599"
+                            },
+                            {
+                                "chainId": "56",
+                                "conditionId": "aea6f67e6b4c4cb8df3a60ad84f16d0870396bad77071c57c6a7f5f02b9a2a73",
+                                "createdAt": 1785561451,
+                                "cutoffAt": 1788235200,
+                                "incentiveFactor": {},
+                                "isResolvableByAI": false,
+                                "marketId": 26362,
+                                "marketTitle": "↑ 72,500",
+                                "noLabel": "NO",
+                                "noTokenId": "24983359404493863290495099390867853342570109607033093358391203377814168291712",
+                                "questionId": "5857489c92d798f1d842ed7cd320bd699958bb8593f0273460927e3c24b835e4",
+                                "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                "rebate": {
+                                    "maker": 0.5
+                                },
+                                "resolvedAt": 0,
+                                "resultTokenId": "",
+                                "rules": "",
+                                "slug": "what-price-will-bitcoin-hit-in-august-up-72500",
+                                "status": 2,
+                                "statusEnum": "Activated",
+                                "volume": "6.25",
+                                "yesLabel": "YES",
+                                "yesTokenId": "94459459064252451242963483607912368941104030299125469604089248225216600139606"
+                            }
+                        ],
+                        "conditionId": "",
+                        "coverUrl": "",
+                        "createdAt": 1785561444,
+                        "cutoffAt": 1788235200,
+                        "incentiveFactor": {},
+                        "isResolvableByAI": false,
+                        "labelIds": [
+                            3
+                        ],
+                        "labels": [
+                            "Crypto"
+                        ],
+                        "marketId": 1277,
+                        "marketTitle": "What price will Bitcoin hit in August?",
+                        "marketType": 1,
+                        "noLabel": "",
+                        "noTokenId": "",
+                        "questionId": "4c0e572fa87dec41193f384a26d7abb26f7793ba1e3716f2c45affdba0fa9e23",
+                        "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                        "rebate": {
+                            "maker": 0.5
+                        },
+                        "resolvedAt": 0,
+                        "resultTokenId": "",
+                        "rules": "This market will immediately resolve to \"Yes\" if, during the date range specified in the title (from 12:00 AM ET on the first date to 11:59 PM ET on the last date), any Binance 1-minute candle for BTC/USDT reaches the price specified in the title in the specified direction — for an \"above\" market, a final \"High\" price equal to or greater than that price; for a \"below\" market, a final \"Low\" price equal to or less than that price. Otherwise, this market will resolve to \"No\".\n\nThe resolution source for this market is Binance, specifically the BTC/USDT prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.",
+                        "slug": "what-price-will-bitcoin-hit-in-august",
+                        "status": 1,
+                        "statusEnum": "Created",
+                        "thumbnailUrl": "https://images.opinion.trade/0xb23171ebd5a7f9fb479eff628d844b79d9fdc02f/0xb608c4b57747c0bc5ee8b237e8f8ed21f61543d4c9d4076f4f2a471e90d5363a",
+                        "volume": "40.52",
+                        "volume24h": "40.52",
+                        "volume7d": "40.52",
+                        "yesLabel": "",
+                        "yesTokenId": ""
+                    }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook for a yes outcome",
+                "method": "fetchOrderBook",
+                "input": [
+                    "PRICE_BITCOIN_HIT_AUGUST_UP_100000:YES"
+                ],
+                "httpResponse": {
+                    "errmsg": "",
+                    "errno": 0,
+                    "result": {
+                        "asks": [
+                            {
+                                "price": "0.023",
+                                "size": "4.80962128966223"
+                            },
+                            {
+                                "price": "0.027",
+                                "size": "40.50359712230216"
+                            },
+                            {
+                                "price": "0.029",
+                                "size": "30.90089577473486"
+                            },
+                            {
+                                "price": "0.03",
+                                "size": "62.49484536082474"
+                            },
+                            {
+                                "price": "0.032",
+                                "size": "62.5"
+                            },
+                            {
+                                "price": "0.999",
+                                "size": "2000"
+                            }
+                        ],
+                        "bids": [],
+                        "market": "4c0e572fa87dec41193f384a26d7abb26f7793ba1e3716f2c45affdba0fa9e23",
+                        "timestamp": 1785581581414,
+                        "tokenId": "28693516923723830335610225677829403677173535256277787397410382793775279999599"
+                    }
+                },
+                "parsedResponse": {
+                    "bids": [],
+                    "asks": [
+                        [
+                            0.023,
+                            4.80962128966223
+                        ],
+                        [
+                            0.027,
+                            40.50359712230216
+                        ],
+                        [
+                            0.029,
+                            30.90089577473486
+                        ],
+                        [
+                            0.03,
+                            62.49484536082474
+                        ],
+                        [
+                            0.032,
+                            62.5
+                        ],
+                        [
+                            0.999,
+                            2000
+                        ]
+                    ],
+                    "timestamp": 1785581581414,
+                    "datetime": "2026-08-01T10:53:01.414Z",
+                    "nonce": null,
+                    "outcome": "PRICE_BITCOIN_HIT_AUGUST_UP_100000:YES",
+                    "outcomeId": "28693516923723830335610225677829403677173535256277787397410382793775279999599",
+                    "market": "PRICE_BITCOIN_HIT_AUGUST_UP_100000"
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV daily",
+                "method": "fetchOHLCV",
+                "input": [
+                    "PRICE_BITCOIN_HIT_AUGUST_UP_100000:YES",
+                    "1d"
+                ],
+                "httpResponse": {
+                    "errmsg": "",
+                    "errno": 0,
+                    "result": {
+                        "history": [
+                            {
+                                "p": "0.029",
+                                "t": 1785542400
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1785456000
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1785369600
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1785283200
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1785196800
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1785110400
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1785024000
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1784937600
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1784851200
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1784764800
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1784678400
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1784592000
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1784505600
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1784419200
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1784332800
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1784246400
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1784160000
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1784073600
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1783987200
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1783900800
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1783814400
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1783728000
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1783641600
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1783555200
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1783468800
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1783382400
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1783296000
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1783209600
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1783123200
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1783036800
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1782950400
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1782864000
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1782777600
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1782691200
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1782604800
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1782518400
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1782432000
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1782345600
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1782259200
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1782172800
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1782086400
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1782000000
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1781913600
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1781827200
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1781740800
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1781654400
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1781568000
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1781481600
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1781395200
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1781308800
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1781222400
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1781136000
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1781049600
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1780963200
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1780876800
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1780790400
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1780704000
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1780617600
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1780531200
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1780444800
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1780358400
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1780272000
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1780185600
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1780099200
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1780012800
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1779926400
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1779840000
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1779753600
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1779667200
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1779580800
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1779494400
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1779408000
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1779321600
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1779235200
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1779148800
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1779062400
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1778976000
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1778889600
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1778803200
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1778716800
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1778630400
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1778544000
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1778457600
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1778371200
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1778284800
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1778198400
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1778112000
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1778025600
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1777939200
+                            },
+                            {
+                                "p": "0.029",
+                                "t": 1777852800
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    [
+                        1777852800000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1777939200000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1778025600000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1778112000000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1778198400000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1778284800000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1778371200000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1778457600000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1778544000000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1778630400000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1778716800000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1778803200000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1778889600000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1778976000000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1779062400000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1779148800000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1779235200000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1779321600000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1779408000000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1779494400000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1779580800000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1779667200000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1779753600000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1779840000000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1779926400000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1780012800000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1780099200000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1780185600000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1780272000000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1780358400000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1780444800000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1780531200000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1780617600000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1780704000000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1780790400000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1780876800000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1780963200000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1781049600000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1781136000000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1781222400000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1781308800000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1781395200000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1781481600000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1781568000000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1781654400000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1781740800000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1781827200000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1781913600000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1782000000000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1782086400000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1782172800000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1782259200000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1782345600000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1782432000000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1782518400000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1782604800000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1782691200000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1782777600000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1782864000000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1782950400000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1783036800000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1783123200000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1783209600000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1783296000000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1783382400000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1783468800000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1783555200000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1783641600000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1783728000000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1783814400000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1783900800000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1783987200000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1784073600000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1784160000000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1784246400000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1784332800000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1784419200000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1784505600000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1784592000000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1784678400000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1784764800000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1784851200000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1784937600000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1785024000000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1785110400000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1785196800000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1785283200000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1785369600000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1785456000000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ],
+                    [
+                        1785542400000,
+                        0.029,
+                        0.029,
+                        0.029,
+                        0.029,
+                        null
+                    ]
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders for a specific outcome",
+                "method": "fetchOrders",
+                "input": [
+                    "PRICE_BITCOIN_HIT_AUGUST_UP_100000:YES"
+                ],
+                "httpResponse": {
+                    "errmsg": "",
+                    "errno": 0,
+                    "result": {
+                        "list": [
+                            {
+                                "createdAt": 1785575704,
+                                "expiresAt": 0,
+                                "filledAmount": "1.905668000000000000",
+                                "filledShares": "68.540000000000000000",
+                                "marketId": 26356,
+                                "marketTitle": "↑ 100,000",
+                                "orderAmount": "2.000000000000000000",
+                                "orderId": "7b8c00ec-8d89-11f1-adf9-0a58a9feac02",
+                                "orderShares": "71.932781575804295",
+                                "outcome": "YES",
+                                "outcomeSide": 1,
+                                "outcomeSideEnum": "Yes",
+                                "postOnly": false,
+                                "price": "0.0278037350452291",
+                                "profit": "",
+                                "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                "rootMarketId": 1277,
+                                "rootMarketTitle": "What price will Bitcoin hit in August?",
+                                "side": 1,
+                                "sideEnum": "Buy",
+                                "status": 2,
+                                "statusEnum": "Finished",
+                                "trades": [],
+                                "tradingMethod": 1,
+                                "tradingMethodEnum": "Market",
+                                "tradingUnit": 1,
+                                "tradingUnitEnum": "quote",
+                                "transNo": "7b8c00ec-8d89-11f1-adf9-0a58a9feac02"
+                            }
+                        ],
+                        "total": 1
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "7b8c00ec-8d89-11f1-adf9-0a58a9feac02",
+                        "clientOrderId": null,
+                        "timestamp": 1785575704000,
+                        "datetime": "2026-08-01T09:15:04.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "status": "closed",
+                        "type": "market",
+                        "timeInForce": "IOC",
+                        "side": "buy",
+                        "price": 0.0278037350452291,
+                        "average": 0.027803735045229063,
+                        "amount": 71.9327815758043,
+                        "filled": 68.54,
+                        "remaining": 3.3927815758043,
+                        "cost": 1.905668,
+                        "fee": null,
+                        "reduceOnly": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "outcome": "PRICE_BITCOIN_HIT_AUGUST_UP_100000:YES",
+                        "outcomeId": "28693516923723830335610225677829403677173535256277787397410382793775279999599",
+                        "label": "YES",
+                        "market": "PRICE_BITCOIN_HIT_AUGUST_UP_100000",
+                        "event": null,
+                        "info": {
+                            "createdAt": 1785575704,
+                            "expiresAt": 0,
+                            "filledAmount": "1.905668000000000000",
+                            "filledShares": "68.540000000000000000",
+                            "marketId": 26356,
+                            "marketTitle": "↑ 100,000",
+                            "orderAmount": "2.000000000000000000",
+                            "orderId": "7b8c00ec-8d89-11f1-adf9-0a58a9feac02",
+                            "orderShares": "71.932781575804295",
+                            "outcome": "YES",
+                            "outcomeSide": 1,
+                            "outcomeSideEnum": "Yes",
+                            "postOnly": false,
+                            "price": "0.0278037350452291",
+                            "profit": "",
+                            "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                            "rootMarketId": 1277,
+                            "rootMarketTitle": "What price will Bitcoin hit in August?",
+                            "side": 1,
+                            "sideEnum": "Buy",
+                            "status": 2,
+                            "statusEnum": "Finished",
+                            "trades": [],
+                            "tradingMethod": 1,
+                            "tradingMethodEnum": "Market",
+                            "tradingUnit": 1,
+                            "tradingUnitEnum": "quote",
+                            "transNo": "7b8c00ec-8d89-11f1-adf9-0a58a9feac02"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders for the authenticated wallet",
+                "method": "fetchOpenOrders",
+                "input": [],
+                "httpResponse": {
+                    "errmsg": "",
+                    "errno": 0,
+                    "result": {
+                        "list": [
+                            {
+                                "createdAt": 1785581372,
+                                "expiresAt": 0,
+                                "filledAmount": "0",
+                                "filledShares": "0",
+                                "marketId": 26356,
+                                "marketTitle": "↑ 100,000",
+                                "orderAmount": "2.5",
+                                "orderId": "101d4cdd-8d03-11f1-934a-0a58a9feac02",
+                                "orderShares": "5",
+                                "outcome": "YES",
+                                "outcomeSide": 1,
+                                "outcomeSideEnum": "Yes",
+                                "postOnly": false,
+                                "price": "0.5",
+                                "profit": "0",
+                                "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                "rootMarketId": 1277,
+                                "rootMarketTitle": "What price will Bitcoin hit in August?",
+                                "side": 1,
+                                "sideEnum": "Buy",
+                                "status": 1,
+                                "statusEnum": "Pending",
+                                "trades": [],
+                                "tradingMethod": 2,
+                                "tradingMethodEnum": "Limit",
+                                "tradingUnit": 1,
+                                "tradingUnitEnum": "quote",
+                                "transNo": "101d4cdd-8d03-11f1-934a-0a58a9feac02"
+                            }
+                        ],
+                        "total": 1
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "101d4cdd-8d03-11f1-934a-0a58a9feac02",
+                        "clientOrderId": null,
+                        "timestamp": 1785581372000,
+                        "datetime": "2026-08-01T10:49:32.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "status": "open",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "side": "buy",
+                        "price": 0.5,
+                        "average": null,
+                        "amount": 5,
+                        "filled": 0,
+                        "remaining": 5,
+                        "cost": 0,
+                        "fee": null,
+                        "reduceOnly": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "outcome": null,
+                        "outcomeId": null,
+                        "label": null,
+                        "market": null,
+                        "event": null,
+                        "info": {
+                            "createdAt": 1785581372,
+                            "expiresAt": 0,
+                            "filledAmount": "0",
+                            "filledShares": "0",
+                            "marketId": 26356,
+                            "marketTitle": "↑ 100,000",
+                            "orderAmount": "2.5",
+                            "orderId": "101d4cdd-8d03-11f1-934a-0a58a9feac02",
+                            "orderShares": "5",
+                            "outcome": "YES",
+                            "outcomeSide": 1,
+                            "outcomeSideEnum": "Yes",
+                            "postOnly": false,
+                            "price": "0.5",
+                            "profit": "0",
+                            "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                            "rootMarketId": 1277,
+                            "rootMarketTitle": "What price will Bitcoin hit in August?",
+                            "side": 1,
+                            "sideEnum": "Buy",
+                            "status": 1,
+                            "statusEnum": "Pending",
+                            "trades": [],
+                            "tradingMethod": 2,
+                            "tradingMethodEnum": "Limit",
+                            "tradingUnit": 1,
+                            "tradingUnitEnum": "quote",
+                            "transNo": "101d4cdd-8d03-11f1-934a-0a58a9feac02"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetchClosedOrders for the authenticated wallet",
+                "method": "fetchClosedOrders",
+                "input": [],
+                "httpResponse": {
+                    "errmsg": "",
+                    "errno": 0,
+                    "result": {
+                        "list": [
+                            {
+                                "createdAt": 1785575704,
+                                "expiresAt": 0,
+                                "filledAmount": "1.905668000000000000",
+                                "filledShares": "68.540000000000000000",
+                                "marketId": 26356,
+                                "marketTitle": "↑ 100,000",
+                                "orderAmount": "2.000000000000000000",
+                                "orderId": "7b8c00ec-8d89-11f1-adf9-0a58a9feac02",
+                                "orderShares": "71.932781575804295",
+                                "outcome": "YES",
+                                "outcomeSide": 1,
+                                "outcomeSideEnum": "Yes",
+                                "postOnly": false,
+                                "price": "0.0278037350452291",
+                                "profit": "",
+                                "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                "rootMarketId": 1277,
+                                "rootMarketTitle": "What price will Bitcoin hit in August?",
+                                "side": 1,
+                                "sideEnum": "Buy",
+                                "status": 2,
+                                "statusEnum": "Finished",
+                                "trades": [],
+                                "tradingMethod": 1,
+                                "tradingMethodEnum": "Market",
+                                "tradingUnit": 1,
+                                "tradingUnitEnum": "quote",
+                                "transNo": "7b8c00ec-8d89-11f1-adf9-0a58a9feac02"
+                            }
+                        ],
+                        "total": 1
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "7b8c00ec-8d89-11f1-adf9-0a58a9feac02",
+                        "clientOrderId": null,
+                        "timestamp": 1785575704000,
+                        "datetime": "2026-08-01T09:15:04.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "status": "closed",
+                        "type": "market",
+                        "timeInForce": "IOC",
+                        "side": "buy",
+                        "price": 0.0278037350452291,
+                        "average": 0.027803735045229063,
+                        "amount": 71.9327815758043,
+                        "filled": 68.54,
+                        "remaining": 3.3927815758043,
+                        "cost": 1.905668,
+                        "fee": null,
+                        "reduceOnly": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "outcome": null,
+                        "outcomeId": null,
+                        "label": null,
+                        "market": null,
+                        "event": null,
+                        "info": {
+                            "createdAt": 1785575704,
+                            "expiresAt": 0,
+                            "filledAmount": "1.905668000000000000",
+                            "filledShares": "68.540000000000000000",
+                            "marketId": 26356,
+                            "marketTitle": "↑ 100,000",
+                            "orderAmount": "2.000000000000000000",
+                            "orderId": "7b8c00ec-8d89-11f1-adf9-0a58a9feac02",
+                            "orderShares": "71.932781575804295",
+                            "outcome": "YES",
+                            "outcomeSide": 1,
+                            "outcomeSideEnum": "Yes",
+                            "postOnly": false,
+                            "price": "0.0278037350452291",
+                            "profit": "",
+                            "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                            "rootMarketId": 1277,
+                            "rootMarketTitle": "What price will Bitcoin hit in August?",
+                            "side": 1,
+                            "sideEnum": "Buy",
+                            "status": 2,
+                            "statusEnum": "Finished",
+                            "trades": [],
+                            "tradingMethod": 1,
+                            "tradingMethodEnum": "Market",
+                            "tradingUnit": 1,
+                            "tradingUnitEnum": "quote",
+                            "transNo": "7b8c00ec-8d89-11f1-adf9-0a58a9feac02"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades without an outcome filter",
+                "method": "fetchMyTrades",
+                "input": [],
+                "httpResponse": {
+                    "errmsg": "",
+                    "errno": 0,
+                    "result": {
+                        "list": [
+                            {
+                                "amount": "0.798776",
+                                "chainId": "56",
+                                "createdAt": 1785575705,
+                                "fee": "0.250000000000000001",
+                                "marketId": 26356,
+                                "marketTitle": "↑ 100,000",
+                                "outcome": "YES",
+                                "outcomeSide": 1,
+                                "outcomeSideEnum": "Yes",
+                                "price": "0.029000000000000000",
+                                "profit": "0.000000000000000000",
+                                "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                "quoteTokenUsdPrice": "1.000000000000000000",
+                                "rootMarketId": 1277,
+                                "rootMarketTitle": "What price will Bitcoin hit in August?",
+                                "shares": "18.9233103448275862",
+                                "side": "Buy",
+                                "status": 2,
+                                "statusEnum": "Finished",
+                                "txHash": "0xdb3d455a7e6a10ab300f1a4519578fe85c3375f984e9e31d406a00c0a374d5e0",
+                                "usdAmount": "798776000000000000.000000000000000000",
+                                "tokenId": "28693516923723830335610225677829403677173535256277787397410382793775279999599"
+                            },
+                            {
+                                "amount": "1.106892",
+                                "chainId": "56",
+                                "createdAt": 1785575705,
+                                "fee": "0.001163166389280000",
+                                "marketId": 26356,
+                                "marketTitle": "↑ 100,000",
+                                "outcome": "YES",
+                                "outcomeSide": 1,
+                                "outcomeSideEnum": "Yes",
+                                "price": "0.027000000000000000",
+                                "profit": "0.000000000000000000",
+                                "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                "quoteTokenUsdPrice": "1.000000000000000000",
+                                "rootMarketId": 1277,
+                                "rootMarketTitle": "What price will Bitcoin hit in August?",
+                                "shares": "40.95291976336",
+                                "side": "Buy",
+                                "status": 2,
+                                "statusEnum": "Finished",
+                                "txHash": "0x5cc3516f6159f907acb9c3aca285f8af31672238231111c5a0c9dcbf256a3671",
+                                "usdAmount": "1106892000000000000.000000000000000000",
+                                "tokenId": "28693516923723830335610225677829403677173535256277787397410382793775279999599"
+                            }
+                        ],
+                        "total": 2,
+                        "data": {
+                            "chainId": "56",
+                            "conditionId": "",
+                            "createdAt": 1785514633,
+                            "cutoffAt": 1788322800,
+                            "isResolvableByAI": false,
+                            "marketId": 26356,
+                            "marketTitle": "↑ 100,000",
+                            "noLabel": "NO",
+                            "noTokenId": "81447026761115188343367959687303728187295938954381398014369803888796907513647",
+                            "questionId": "",
+                            "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                            "rebate": {
+                                "maker": 0.5
+                            },
+                            "resolvedAt": 0,
+                            "resultTokenId": "",
+                            "rules": "",
+                            "slug": "price-bitcoin-hit-august-up-100000",
+                            "status": 2,
+                            "statusEnum": "Activated",
+                            "volume": "0",
+                            "volume24h": "0",
+                            "volume7d": "0",
+                            "yesLabel": "YES",
+                            "yesLabelShort": "YES",
+                            "yesTokenId": "28693516923723830335610225677829403677173535256277787397410382793775279999599"
+                        }
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "0x5cc3516f6159f907acb9c3aca285f8af31672238231111c5a0c9dcbf256a3671",
+                        "order": null,
+                        "timestamp": 1785575705000,
+                        "datetime": "2026-08-01T09:15:05.000Z",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 0.027,
+                        "amount": 40.95291976336,
+                        "cost": 1.106892,
+                        "fee": {
+                            "cost": 0.00116316638928,
+                            "currency": "USDT"
+                        },
+                        "realizedPnl": null,
+                        "outcome": "PRICE_BITCOIN_HIT_AUGUST_UP_100000:YES",
+                        "outcomeId": "28693516923723830335610225677829403677173535256277787397410382793775279999599",
+                        "label": "YES",
+                        "market": "PRICE_BITCOIN_HIT_AUGUST_UP_100000",
+                        "info": {
+                            "id": "0x5cc3516f6159f907acb9c3aca285f8af31672238231111c5a0c9dcbf256a3671",
+                            "timestamp": 1785575705000,
+                            "side": "buy",
+                            "price": 0.027,
+                            "amount": 40.95291976336,
+                            "cost": 1.106892,
+                            "fee": {
+                                "cost": 0.00116316638928,
+                                "currency": "USDT"
+                            },
+                            "outcome": "PRICE_BITCOIN_HIT_AUGUST_UP_100000:YES",
+                            "outcomeId": "28693516923723830335610225677829403677173535256277787397410382793775279999599",
+                            "label": "YES",
+                            "market": "PRICE_BITCOIN_HIT_AUGUST_UP_100000"
+                        }
+                    },
+                    {
+                        "id": "0xdb3d455a7e6a10ab300f1a4519578fe85c3375f984e9e31d406a00c0a374d5e0",
+                        "order": null,
+                        "timestamp": 1785575705000,
+                        "datetime": "2026-08-01T09:15:05.000Z",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 0.029,
+                        "amount": 18.923310344827588,
+                        "cost": 0.798776,
+                        "fee": {
+                            "cost": 0.25,
+                            "currency": "USDT"
+                        },
+                        "realizedPnl": null,
+                        "outcome": "PRICE_BITCOIN_HIT_AUGUST_UP_100000:YES",
+                        "outcomeId": "28693516923723830335610225677829403677173535256277787397410382793775279999599",
+                        "label": "YES",
+                        "market": "PRICE_BITCOIN_HIT_AUGUST_UP_100000",
+                        "info": {
+                            "id": "0xdb3d455a7e6a10ab300f1a4519578fe85c3375f984e9e31d406a00c0a374d5e0",
+                            "timestamp": 1785575705000,
+                            "side": "buy",
+                            "price": 0.029,
+                            "amount": 18.923310344827588,
+                            "cost": 0.798776,
+                            "fee": {
+                                "cost": 0.25,
+                                "currency": "USDT"
+                            },
+                            "outcome": "PRICE_BITCOIN_HIT_AUGUST_UP_100000:YES",
+                            "outcomeId": "28693516923723830335610225677829403677173535256277787397410382793775279999599",
+                            "label": "YES",
+                            "market": "PRICE_BITCOIN_HIT_AUGUST_UP_100000"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "errmsg": "",
+                    "errno": 0,
+                    "result": {
+                        "balances": [
+                            {
+                                "availableBalance": "15.235535",
+                                "frozenBalance": "0",
+                                "quoteToken": "0x55d398326f99059ff775485246999027b3197955",
+                                "tokenDecimals": 18,
+                                "totalBalance": "15.235535",
+                                "symbol": "USDT"
+                            }
+                        ],
+                        "chainId": "56",
+                        "multiSignAddress": "0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+                        "walletAddress": "0xabababababababababababababababababababab"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "errmsg": "",
+                        "errno": 0,
+                        "result": {
+                            "balances": [
+                                {
+                                    "availableBalance": "15.235535",
+                                    "frozenBalance": "0",
+                                    "quoteToken": "0x55d398326f99059ff775485246999027b3197955",
+                                    "tokenDecimals": 18,
+                                    "totalBalance": "15.235535",
+                                    "symbol": "USDT"
+                                }
+                            ],
+                            "chainId": "56",
+                            "multiSignAddress": "0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+                            "walletAddress": "0xabababababababababababababababababababab"
+                        }
+                    },
+                    "USDT": {
+                        "free": 15.235535,
+                        "used": 0,
+                        "total": 15.235535
+                    },
+                    "free": {
+                        "USDT": 15.235535
+                    },
+                    "used": {
+                        "USDT": 0
+                    },
+                    "total": {
+                        "USDT": 15.235535
+                    }
+                }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions for the authenticated wallet",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "errmsg": "",
+                    "errno": 0,
+                    "result": {
+                        "list": [
+                            {
+                                "avgEntryPrice": "0.0276320808878794",
+                                "claimStatus": 0,
+                                "claimStatusEnum": "CanNotClaim",
+                                "conditionId": "633f6e26eefbbab9f160ee788a72f5e0aefee94b9a5eb3aeada63011799ff0e1",
+                                "currentValueInQuoteToken": "1.736410673137439999945",
+                                "dailyPnlChange": "",
+                                "dailyPnlChangePercent": "",
+                                "marketCutoffAt": 1788235200,
+                                "marketId": 26356,
+                                "marketStatus": 2,
+                                "marketStatusEnum": "Activated",
+                                "marketTitle": "↑ 100,000",
+                                "outcome": "YES",
+                                "outcomeSide": 1,
+                                "outcomeSideEnum": "Yes",
+                                "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                                "rootMarketId": 1277,
+                                "rootMarketTitle": "What price will Bitcoin hit in August?",
+                                "sharesFrozen": "0",
+                                "sharesOwned": "59.876230108187586205",
+                                "tokenId": "28693516923723830335610225677829403677173535256277787397410382793775279999599",
+                                "unrealizedPnl": "0.081905839526720700202014472856323",
+                                "unrealizedPnlPercent": "0.0495047447809342"
+                            }
+                        ],
+                        "total": 1
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "contracts": 59.876230108187585,
+                        "contractSize": null,
+                        "side": "yes",
+                        "notional": null,
+                        "unrealizedPnl": 0.0819058395267207,
+                        "realizedPnl": null,
+                        "collateral": null,
+                        "entryPrice": 0.0276320808878794,
+                        "markPrice": null,
+                        "lastPrice": null,
+                        "percentage": null,
+                        "resolved": null,
+                        "won": null,
+                        "settleFraction": null,
+                        "payout": null,
+                        "outcome": "PRICE_BITCOIN_HIT_AUGUST_UP_100000:YES",
+                        "outcomeId": "28693516923723830335610225677829403677173535256277787397410382793775279999599",
+                        "label": "YES",
+                        "market": "PRICE_BITCOIN_HIT_AUGUST_UP_100000",
+                        "event": null,
+                        "info": {
+                            "avgEntryPrice": "0.0276320808878794",
+                            "claimStatus": 0,
+                            "claimStatusEnum": "CanNotClaim",
+                            "conditionId": "633f6e26eefbbab9f160ee788a72f5e0aefee94b9a5eb3aeada63011799ff0e1",
+                            "currentValueInQuoteToken": "1.736410673137439999945",
+                            "dailyPnlChange": "",
+                            "dailyPnlChangePercent": "",
+                            "marketCutoffAt": 1788235200,
+                            "marketId": 26356,
+                            "marketStatus": 2,
+                            "marketStatusEnum": "Activated",
+                            "marketTitle": "↑ 100,000",
+                            "outcome": "YES",
+                            "outcomeSide": 1,
+                            "outcomeSideEnum": "Yes",
+                            "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                            "rootMarketId": 1277,
+                            "rootMarketTitle": "What price will Bitcoin hit in August?",
+                            "sharesFrozen": "0",
+                            "sharesOwned": "59.876230108187586205",
+                            "tokenId": "28693516923723830335610225677829403677173535256277787397410382793775279999599",
+                            "unrealizedPnl": "0.081905839526720700202014472856323",
+                            "unrealizedPnlPercent": "0.0495047447809342"
+                        }
+                    }
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder limit buy",
+                "method": "createOrder",
+                "input": [
+                    "PRICE_BITCOIN_HIT_AUGUST_UP_100000:YES",
+                    "limit",
+                    "buy",
+                    5,
+                    0.5
+                ],
+                "httpResponse": {
+                    "errmsg": "",
+                    "errno": 0,
+                    "result": {
+                        "orderData": {
+                            "createdAt": 1785581372,
+                            "expiresAt": 0,
+                            "filledAmount": "0",
+                            "filledShares": "0",
+                            "marketId": 26356,
+                            "marketTitle": "↑ 100,000",
+                            "orderAmount": "2.5",
+                            "orderId": "101d4cdd-8d03-11f1-934a-0a58a9feac02",
+                            "orderShares": "5",
+                            "outcome": "YES",
+                            "outcomeSide": 1,
+                            "outcomeSideEnum": "Yes",
+                            "postOnly": false,
+                            "price": "0.5",
+                            "profit": "0",
+                            "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                            "rootMarketId": 1277,
+                            "rootMarketTitle": "What price will Bitcoin hit in August?",
+                            "side": 1,
+                            "sideEnum": "Buy",
+                            "status": 1,
+                            "statusEnum": "Pending",
+                            "trades": [],
+                            "tradingMethod": 2,
+                            "tradingMethodEnum": "Limit",
+                            "tradingUnit": 1,
+                            "tradingUnitEnum": "quote",
+                            "transNo": "101d4cdd-8d03-11f1-934a-0a58a9feac02"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "id": "101d4cdd-8d03-11f1-934a-0a58a9feac02",
+                    "clientOrderId": null,
+                    "timestamp": 1785581372000,
+                    "datetime": "2026-08-01T10:49:32.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "open",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "side": "buy",
+                    "price": 0.5,
+                    "average": null,
+                    "amount": 5,
+                    "filled": 0,
+                    "remaining": 5,
+                    "cost": 0,
+                    "fee": null,
+                    "reduceOnly": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "outcome": "PRICE_BITCOIN_HIT_AUGUST_UP_100000:YES",
+                    "outcomeId": "28693516923723830335610225677829403677173535256277787397410382793775279999599",
+                    "label": "YES",
+                    "market": "PRICE_BITCOIN_HIT_AUGUST_UP_100000",
+                    "event": null,
+                    "info": {
+                        "createdAt": 1785581372,
+                        "expiresAt": 0,
+                        "filledAmount": "0",
+                        "filledShares": "0",
+                        "marketId": 26356,
+                        "marketTitle": "↑ 100,000",
+                        "orderAmount": "2.5",
+                        "orderId": "101d4cdd-8d03-11f1-934a-0a58a9feac02",
+                        "orderShares": "5",
+                        "outcome": "YES",
+                        "outcomeSide": 1,
+                        "outcomeSideEnum": "Yes",
+                        "postOnly": false,
+                        "price": "0.5",
+                        "profit": "0",
+                        "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+                        "rootMarketId": 1277,
+                        "rootMarketTitle": "What price will Bitcoin hit in August?",
+                        "side": 1,
+                        "sideEnum": "Buy",
+                        "status": 1,
+                        "statusEnum": "Pending",
+                        "trades": [],
+                        "tradingMethod": 2,
+                        "tradingMethodEnum": "Limit",
+                        "tradingUnit": 1,
+                        "tradingUnitEnum": "quote",
+                        "transNo": "101d4cdd-8d03-11f1-934a-0a58a9feac02"
+                    }
+                }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder by id",
+                "method": "cancelOrder",
+                "input": [
+                    "101d4cdd-8d03-11f1-934a-0a58a9feac02"
+                ],
+                "httpResponse": {
+                    "errmsg": "",
+                    "errno": 0,
+                    "result": {
+                        "result": true
+                    }
+                },
+                "parsedResponse": {
+                    "id": "101d4cdd-8d03-11f1-934a-0a58a9feac02",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "canceled",
+                    "type": null,
+                    "timeInForce": null,
+                    "side": null,
+                    "price": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "fee": null,
+                    "reduceOnly": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "outcome": null,
+                    "outcomeId": null,
+                    "label": null,
+                    "market": null,
+                    "event": null,
+                    "info": {
+                        "errmsg": "",
+                        "errno": 0,
+                        "result": {
+                            "result": true
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

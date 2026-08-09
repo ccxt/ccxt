@@ -1508,6 +1508,40 @@ while (true) {
 ```
 <!-- tabs:end -->
 
+#### Watching Orders Across Multiple Account Types
+
+Some exchanges route order updates through separate user-data streams per account type. On binance, spot, cross margin, isolated margin and portfolio margin each map to their own listenKey and stream — one `watchOrders` subscription per account type, selected via params, run as concurrent tasks:
+
+- **spot** — the default: `watchOrders ()`
+- **cross margin** — `watchOrders (undefined, undefined, undefined, { 'type': 'margin', 'marginMode': 'cross' })`, shares the spot user-data stream
+- **isolated margin** — `watchOrders (symbol, undefined, undefined, { 'marginMode': 'isolated' })`, binance issues a **separate listenKey per symbol**, so a symbol is required and N isolated pairs mean N subscriptions — an exchange design constraint, not a ccxt limit
+- **portfolio margin** — `watchOrders (undefined, undefined, undefined, { 'portfolioMargin': true })`
+
+Each subscription keeps its own stream and resolves into the shared orders cache. A multi-account setup is a set of concurrent per-account loops, see https://github.com/ccxt/ccxt/issues/24737:
+
+```python
+import asyncio
+import ccxt.pro as ccxtpro
+
+async def account_loop(exchange, symbol, params):
+    while True:
+        orders = await exchange.watch_orders(symbol, params=params)
+        print(params, orders[-1]['id'], orders[-1]['status'])
+
+async def main():
+    exchange = ccxtpro.binance({'apiKey': '...', 'secret': '...'})
+    await exchange.load_markets()
+    subscriptions = [
+        (None, {}),                                                # spot
+        (None, {'type': 'margin', 'marginMode': 'cross'}),         # cross margin
+        ('BTC/USDT', {'marginMode': 'isolated'}),                  # one per isolated pair
+        ('ETH/USDT', {'marginMode': 'isolated'}),
+    ]
+    await asyncio.gather(*(account_loop(exchange, s, p) for s, p in subscriptions))
+
+asyncio.run(main())
+```
+
 ### watchMyTrades
 <!-- tabs:start -->
 #### **JavaScript**

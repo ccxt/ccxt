@@ -94,38 +94,86 @@ func (this *BlockchaincomCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"tickers":          1,
-					"tickers/{symbol}": 1,
-					"symbols":          1,
-					"symbols/{symbol}": 1,
-					"l2/{symbol}":      1,
-					"l3/{symbol}":      1,
+					"tickers": map[string]any{
+						"cost": 1,
+					},
+					"tickers/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"symbols": map[string]any{
+						"cost": 1,
+					},
+					"symbols/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"l2/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"l3/{symbol}": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"fees":                          1,
-					"orders":                        1,
-					"orders/{orderId}":              1,
-					"trades":                        1,
-					"fills":                         1,
-					"deposits":                      1,
-					"deposits/{depositId}":          1,
-					"accounts":                      1,
-					"accounts/{account}/{currency}": 1,
-					"whitelist":                     1,
-					"whitelist/{currency}":          1,
-					"withdrawals":                   1,
-					"withdrawals/{withdrawalId}":    1,
+					"fees": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/{orderId}": map[string]any{
+						"cost": 1,
+					},
+					"trades": map[string]any{
+						"cost": 1,
+					},
+					"fills": map[string]any{
+						"cost": 1,
+					},
+					"deposits": map[string]any{
+						"cost": 1,
+					},
+					"deposits/{depositId}": map[string]any{
+						"cost": 1,
+					},
+					"accounts": map[string]any{
+						"cost": 1,
+					},
+					"accounts/{account}/{currency}": map[string]any{
+						"cost": 1,
+					},
+					"whitelist": map[string]any{
+						"cost": 1,
+					},
+					"whitelist/{currency}": map[string]any{
+						"cost": 1,
+					},
+					"withdrawals": map[string]any{
+						"cost": 1,
+					},
+					"withdrawals/{withdrawalId}": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"orders":              1,
-					"deposits/{currency}": 1,
-					"withdrawals":         1,
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"deposits/{currency}": map[string]any{
+						"cost": 1,
+					},
+					"withdrawals": map[string]any{
+						"cost": 1,
+					},
 				},
 				"delete": map[string]any{
-					"orders":           1,
-					"orders/{orderId}": 1,
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"orders/{orderId}": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},

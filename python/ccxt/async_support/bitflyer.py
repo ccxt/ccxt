@@ -92,49 +92,49 @@ class bitflyer(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'getmarkets/usa',  # new(wip)
-                        'getmarkets/eu',  # new(wip)
-                        'getmarkets',     # or 'markets'
-                        'getboard',       # ...
-                        'getticker',
-                        'getexecutions',
-                        'gethealth',
-                        'getboardstate',
-                        'getchats',
-                        'getfundingrate',
-                    ],
+                    'get': {
+                        'getmarkets/usa': {'cost': 1},
+                        'getmarkets/eu': {'cost': 1},
+                        'getmarkets': {'cost': 1},
+                        'getboard': {'cost': 1},
+                        'getticker': {'cost': 1},
+                        'getexecutions': {'cost': 1},
+                        'gethealth': {'cost': 1},
+                        'getboardstate': {'cost': 1},
+                        'getchats': {'cost': 1},
+                        'getfundingrate': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'get': [
-                        'getpermissions',
-                        'getbalance',
-                        'getbalancehistory',
-                        'getcollateral',
-                        'getcollateralhistory',
-                        'getcollateralaccounts',
-                        'getaddresses',
-                        'getcoinins',
-                        'getcoinouts',
-                        'getbankaccounts',
-                        'getdeposits',
-                        'getwithdrawals',
-                        'getchildorders',
-                        'getparentorders',
-                        'getparentorder',
-                        'getexecutions',
-                        'getpositions',
-                        'gettradingcommission',
-                    ],
-                    'post': [
-                        'sendcoin',
-                        'withdraw',
-                        'sendchildorder',
-                        'cancelchildorder',
-                        'sendparentorder',
-                        'cancelparentorder',
-                        'cancelallchildorders',
-                    ],
+                    'get': {
+                        'getpermissions': {'cost': 1},
+                        'getbalance': {'cost': 1},
+                        'getbalancehistory': {'cost': 1},
+                        'getcollateral': {'cost': 1},
+                        'getcollateralhistory': {'cost': 1},
+                        'getcollateralaccounts': {'cost': 1},
+                        'getaddresses': {'cost': 1},
+                        'getcoinins': {'cost': 1},
+                        'getcoinouts': {'cost': 1},
+                        'getbankaccounts': {'cost': 1},
+                        'getdeposits': {'cost': 1},
+                        'getwithdrawals': {'cost': 1},
+                        'getchildorders': {'cost': 1},
+                        'getparentorders': {'cost': 1},
+                        'getparentorder': {'cost': 1},
+                        'getexecutions': {'cost': 1},
+                        'getpositions': {'cost': 1},
+                        'gettradingcommission': {'cost': 1},
+                    },
+                    'post': {
+                        'sendcoin': {'cost': 1},
+                        'withdraw': {'cost': 1},
+                        'sendchildorder': {'cost': 1},
+                        'cancelchildorder': {'cost': 1},
+                        'sendparentorder': {'cost': 1},
+                        'cancelparentorder': {'cost': 1},
+                        'cancelallchildorders': {'cost': 1},
+                    },
                 },
             },
             'fees': {
@@ -294,8 +294,8 @@ class bitflyer(Exchange, ImplicitAPI):
         #         {"product_code": "BTC_JPY", "market_type": "Spot"},
         #     ]
         #
-        markets = self.array_concat(jp_markets, us_markets)
-        markets = self.array_concat(markets, eu_markets)
+        markets = self.array_concat(self.to_array(jp_markets), self.to_array(us_markets))
+        markets = self.array_concat(markets, self.to_array(eu_markets))
         result = []
         for i in range(0, len(markets)):
             market = markets[i]

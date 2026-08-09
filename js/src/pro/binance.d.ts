@@ -60,6 +60,7 @@ export default class binance extends binanceRest {
             unWatchPositions: boolean;
             unWatchMarkPrices: boolean;
             unWatchMarkPrice: boolean;
+            unWatchBidsAsks: boolean;
         };
         urls: {
             test: {
@@ -94,6 +95,9 @@ export default class binance extends binanceRest {
                     margin: string;
                     future: string;
                     delivery: string;
+                    option: string;
+                    optionMarket: string;
+                    optionPrivate: string;
                     'ws-api': {
                         spot: string;
                         future: string;
@@ -114,12 +118,16 @@ export default class binance extends binanceRest {
                 margin: number;
                 future: number;
                 delivery: number;
+                option: number;
+                optionMarket: number;
             };
             subscriptionLimitByStream: {
                 spot: number;
                 margin: number;
                 future: number;
                 delivery: number;
+                option: number;
+                optionMarket: number;
             };
             streamBySubscriptionsHash: {};
             streamIndex: number;
@@ -147,6 +155,10 @@ export default class binance extends binanceRest {
                 maxRetries: number;
                 checksum: boolean;
             };
+            option: {
+                listenKey: undefined;
+                lastAuthenticatedTime: number;
+            };
             watchBalance: {
                 fetchBalanceSnapshot: boolean;
                 awaitBalanceSnapshot: boolean;
@@ -167,6 +179,7 @@ export default class binance extends binanceRest {
                 '24hrTicker': string;
                 '24hrMiniTicker': string;
                 markPriceUpdate: string;
+                markPrice: string;
                 '1hTicker': string;
                 '4hTicker': string;
                 '1dTicker': string;
@@ -561,6 +574,17 @@ export default class binance extends binanceRest {
     unWatchMarkPrice(symbol: string, params?: {}): Promise<any>;
     /**
      * @method
+     * @name binance#unWatchBidsAsks
+     * @description unWatches best bid & ask for symbols
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-book-ticker-streams
+     * @see https://developers.binance.com/docs/derivatives/options-trading/websocket-market-streams/Bookticker
+     * @param {string[]} [symbols] unified symbols
+     * @param {object} [params] extra parameters
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
+    /**
+     * @method
      * @name binance#unWatchTicker
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
@@ -810,6 +834,7 @@ export default class binance extends binanceRest {
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseWsOrder(order: any, market?: Market): Order;
     handleOrderUpdate(client: Client, message: any): void;
+    handleOptionsOrderUpdate(client: Client, message: any): void;
     /**
      * @method
      * @name binance#watchPositions
@@ -826,6 +851,7 @@ export default class binance extends binanceRest {
     loadPositionsSnapshot(client: Client, messageHash: any, type: any, isPortfolioMargin: any): Promise<void>;
     handlePositions(client: any, message: any): void;
     parseWsPosition(position: any, market?: Market): Position;
+    parseWsOptionsPosition(position: any, market?: any): Position;
     /**
      * @method
      * @name binance#fetchMyTradesWs
@@ -871,6 +897,7 @@ export default class binance extends binanceRest {
     handleMyTrade(client: Client, message: any): void;
     handleOrder(client: Client, message: any): void;
     handleAcountUpdate(client: Client, message: any): void;
+    handleOptionsAccountUpdate(client: Client, message: any): void;
     handleWsError(client: Client, message: any): void;
     handleEventStreamTerminated(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;

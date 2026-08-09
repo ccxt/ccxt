@@ -994,6 +994,40 @@ func (this *Binance) UnWatchMarkPrice(symbol string, options ...ccxt.UnWatchMark
 
 /**
  * @method
+ * @name binance#unWatchBidsAsks
+ * @description unWatches best bid & ask for symbols
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-book-ticker-streams
+ * @see https://developers.binance.com/docs/derivatives/options-trading/websocket-market-streams/Bookticker
+ * @param {string[]} [symbols] unified symbols
+ * @param {object} [params] extra parameters
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Binance) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {
+
+	opts := ccxt.UnWatchBidsAsksOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.UnWatchBidsAsks(symbols, params)
+	if ccxt.IsError(res) {
+		return nil, ccxt.CreateReturnError(res)
+	}
+	return res, nil
+}
+
+/**
+ * @method
  * @name binance#unWatchTicker
  * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
@@ -2201,9 +2235,6 @@ func (this *Binance) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error)
 }
 func (this *Binance) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
-}
-func (this *Binance) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {
-	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
 func (this *Binance) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)

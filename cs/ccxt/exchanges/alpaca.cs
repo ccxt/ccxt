@@ -147,19 +147,236 @@ public partial class alpaca : Exchange
                 { "broker", new Dictionary<string, object>() {} },
                 { "trader", new Dictionary<string, object>() {
                     { "private", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"v2/account", "v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/account/portfolio/history", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/account/configurations", "v2/account/activities", "v2/account/activities/{activity_type}", "v2/calendar", "v2/clock", "v2/assets", "v2/assets/{symbol_or_asset_id}", "v2/corporate_actions/announcements/{id}", "v2/corporate_actions/announcements", "v2/wallets", "v2/wallets/transfers"} },
-                        { "post", new List<object>() {"v2/orders", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/wallets/transfers"} },
-                        { "put", new List<object>() {"v2/orders/{order_id}", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name"} },
-                        { "patch", new List<object>() {"v2/orders/{order_id}", "v2/account/configurations"} },
-                        { "delete", new List<object>() {"v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/watchlists/{watchlist_id}/{symbol}"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "v2/account", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/orders/{order_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/positions/{symbol_or_asset_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/account/portfolio/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/watchlists", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/watchlists/{watchlist_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/watchlists:by_name", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/account/configurations", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/account/activities", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/account/activities/{activity_type}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/calendar", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/clock", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/assets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/assets/{symbol_or_asset_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/corporate_actions/announcements/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/corporate_actions/announcements", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/wallets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/wallets/transfers", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "post", new Dictionary<string, object>() {
+                            { "v2/orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/watchlists", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/watchlists/{watchlist_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/watchlists:by_name", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/wallets/transfers", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "put", new Dictionary<string, object>() {
+                            { "v2/orders/{order_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/watchlists/{watchlist_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/watchlists:by_name", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "patch", new Dictionary<string, object>() {
+                            { "v2/orders/{order_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/account/configurations", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "delete", new Dictionary<string, object>() {
+                            { "v2/orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/orders/{order_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/positions/{symbol_or_asset_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/watchlists/{watchlist_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/watchlists:by_name", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/watchlists/{watchlist_id}/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                 } },
                 { "market", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"v1beta3/crypto/{loc}/bars", "v1beta3/crypto/{loc}/latest/bars", "v1beta3/crypto/{loc}/latest/orderbooks", "v1beta3/crypto/{loc}/latest/quotes", "v1beta3/crypto/{loc}/latest/trades", "v1beta3/crypto/{loc}/quotes", "v1beta3/crypto/{loc}/snapshots", "v1beta3/crypto/{loc}/trades"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "v1beta3/crypto/{loc}/bars", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta3/crypto/{loc}/latest/bars", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta3/crypto/{loc}/latest/orderbooks", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta3/crypto/{loc}/latest/quotes", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta3/crypto/{loc}/latest/trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta3/crypto/{loc}/quotes", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta3/crypto/{loc}/snapshots", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta3/crypto/{loc}/trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                     { "private", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"v1beta1/corporate-actions", "v1beta1/forex/latest/rates", "v1beta1/forex/rates", "v1beta1/logos/{symbol}", "v1beta1/news", "v1beta1/screener/stocks/most-actives", "v1beta1/screener/{market_type}/movers", "v2/stocks/auctions", "v2/stocks/bars", "v2/stocks/bars/latest", "v2/stocks/meta/conditions/{ticktype}", "v2/stocks/meta/exchanges", "v2/stocks/quotes", "v2/stocks/quotes/latest", "v2/stocks/snapshots", "v2/stocks/trades", "v2/stocks/trades/latest", "v2/stocks/{symbol}/auctions", "v2/stocks/{symbol}/bars", "v2/stocks/{symbol}/bars/latest", "v2/stocks/{symbol}/quotes", "v2/stocks/{symbol}/quotes/latest", "v2/stocks/{symbol}/snapshot", "v2/stocks/{symbol}/trades", "v2/stocks/{symbol}/trades/latest"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "v1beta1/corporate-actions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta1/forex/latest/rates", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta1/forex/rates", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta1/logos/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta1/news", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta1/screener/stocks/most-actives", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta1/screener/{market_type}/movers", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/stocks/auctions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/stocks/bars", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/stocks/bars/latest", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/stocks/meta/conditions/{ticktype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/stocks/meta/exchanges", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/stocks/quotes", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/stocks/quotes/latest", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/stocks/snapshots", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/stocks/trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/stocks/trades/latest", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/stocks/{symbol}/auctions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/stocks/{symbol}/bars", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/stocks/{symbol}/bars/latest", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/stocks/{symbol}/quotes", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/stocks/{symbol}/quotes/latest", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/stocks/{symbol}/snapshot", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/stocks/{symbol}/trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/stocks/{symbol}/trades/latest", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                 } },
             } },
@@ -568,8 +785,8 @@ public partial class alpaca : Exchange
             //    }
             //
             object trades = this.safeDict(response, "trades", new Dictionary<string, object>() {});
-            symbolTrades = this.safeDict(trades, marketId, new Dictionary<string, object>() {});
-            symbolTrades = new List<object>() {symbolTrades};
+            object symbolTrade = this.safeDict(trades, marketId, new Dictionary<string, object>() {});
+            symbolTrades = new List<object>() {symbolTrade};
         } else
         {
             throw new NotSupported ((string)add(add(add(this.id, " fetchTrades() does not support "), method), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")) ;
@@ -747,8 +964,8 @@ public partial class alpaca : Exchange
             //     }
             //
             object bars = this.safeDict(response, "bars", new Dictionary<string, object>() {});
-            ohlcvs = this.safeDict(bars, marketId, new Dictionary<string, object>() {});
-            ohlcvs = new List<object>() {ohlcvs};
+            object bar = this.safeDict(bars, marketId, new Dictionary<string, object>() {});
+            ohlcvs = new List<object>() {bar};
         } else
         {
             throw new NotSupported ((string)add(add(add(this.id, " fetchOHLCV() does not support "), method), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")) ;
@@ -1764,9 +1981,14 @@ public partial class alpaca : Exchange
             //     ]
             //
             object filtered = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(activities)); postFixIncrement(ref i))
+            object ledger = new List<object>() {};
+            if (isTrue(((activities is IList<object>) || (activities.GetType().IsGenericType && activities.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
-                object entry = getValue(activities, i);
+                ledger = activities;
+            }
+            for (object i = 0; isLessThan(i, getArrayLength(ledger)); postFixIncrement(ref i))
+            {
+                object entry = getValue(ledger, i);
                 object activityType = this.safeString(entry, "activity_type");
                 object amount = this.safeString(entry, "net_amount");
                 object isIncoming = isTrue((isEqual(activityType, "CSD"))) || isTrue((isTrue((isEqual(activityType, "TRANS"))) && !isTrue(Precise.stringLt(amount, "0"))));
@@ -1797,9 +2019,14 @@ public partial class alpaca : Exchange
         //     }
         //
         object results = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object transfers = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            object entry = getValue(response, i);
+            transfers = response;
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(transfers)); postFixIncrement(ref i))
+        {
+            object entry = getValue(transfers, i);
             object direction = this.safeString(entry, "direction");
             if (isTrue(isEqual(direction, type)))
             {

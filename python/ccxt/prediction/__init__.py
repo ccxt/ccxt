@@ -57,16 +57,20 @@ from ccxt.base.errors import UnsubscribeError                         # noqa: F4
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 # DO_NOT_REMOVE__ERROR_IMPORTS_END
 
+from ccxt.prediction.binance import binance                                     # noqa: F401
 from ccxt.prediction.hyperliquid import hyperliquid                             # noqa: F401
 from ccxt.prediction.kalshi import kalshi                                       # noqa: F401
 from ccxt.prediction.limitless import limitless                                 # noqa: F401
 from ccxt.prediction.myriad import myriad                                       # noqa: F401
+from ccxt.prediction.opinion import opinion                                     # noqa: F401
 from ccxt.prediction.polymarket import polymarket                               # noqa: F401
 
 exchanges = [
+    'binance',
     'hyperliquid',
     'kalshi',
     'limitless',
     'myriad',
+    'opinion',
     'polymarket',
 ]

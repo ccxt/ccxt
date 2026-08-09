@@ -228,6 +228,7 @@ type ICoreExchange interface {
 	Init(params map[string]any)
 	FetchDeposits(optionalArgs ...any) <-chan any
 	Milliseconds() int64
+	GetCcxtVersion() string
 	ParseNumber(v any, a ...any) any
 	OmitZero(v any) any
 	FetchOHLCV(symbol any, optionalArgs ...any) <-chan any

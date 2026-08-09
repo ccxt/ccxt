@@ -793,11 +793,11 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-        trades = this.toArray(trades);
+        Object tradesArray = this.toArray(trades);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tradesArray)); i++)
         {
-            Object trade = this.extend(this.parseWsTrade(Helpers.GetValue(trades, i), market), parameters);
+            Object trade = this.extend(this.parseWsTrade(Helpers.GetValue(tradesArray, i), market), parameters);
             ((java.util.List<Object>)result).add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");

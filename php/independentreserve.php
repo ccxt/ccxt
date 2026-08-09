@@ -124,49 +124,49 @@ class independentreserve extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'GetValidPrimaryCurrencyCodes',
-                        'GetValidSecondaryCurrencyCodes',
-                        'GetValidLimitOrderTypes',
-                        'GetValidMarketOrderTypes',
-                        'GetValidOrderTypes',
-                        'GetValidTransactionTypes',
-                        'GetMarketSummary',
-                        'GetOrderBook',
-                        'GetAllOrders',
-                        'GetTradeHistorySummary',
-                        'GetRecentTrades',
-                        'GetFxRates',
-                        'GetOrderMinimumVolumes',
-                        'GetCryptoWithdrawalFees', // deprecated - replaced by GetCryptoWithdrawalFees2 (docs removed)
-                        'GetCryptoWithdrawalFees2',
-                        'GetNetworks',
-                        'GetPrimaryCurrencyConfig2',
+                        'GetValidPrimaryCurrencyCodes' => array( 'cost' => 1 ),
+                        'GetValidSecondaryCurrencyCodes' => array( 'cost' => 1 ),
+                        'GetValidLimitOrderTypes' => array( 'cost' => 1 ),
+                        'GetValidMarketOrderTypes' => array( 'cost' => 1 ),
+                        'GetValidOrderTypes' => array( 'cost' => 1 ),
+                        'GetValidTransactionTypes' => array( 'cost' => 1 ),
+                        'GetMarketSummary' => array( 'cost' => 1 ),
+                        'GetOrderBook' => array( 'cost' => 1 ),
+                        'GetAllOrders' => array( 'cost' => 1 ),
+                        'GetTradeHistorySummary' => array( 'cost' => 1 ),
+                        'GetRecentTrades' => array( 'cost' => 1 ),
+                        'GetFxRates' => array( 'cost' => 1 ),
+                        'GetOrderMinimumVolumes' => array( 'cost' => 1 ),
+                        'GetCryptoWithdrawalFees' => array( 'cost' => 1 ),
+                        'GetCryptoWithdrawalFees2' => array( 'cost' => 1 ),
+                        'GetNetworks' => array( 'cost' => 1 ),
+                        'GetPrimaryCurrencyConfig2' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'GetOpenOrders',
-                        'GetClosedOrders',
-                        'GetClosedFilledOrders',
-                        'GetOrderDetails',
-                        'GetAccounts',
-                        'GetTransactions',
-                        'GetFiatBankAccounts',
-                        'GetDigitalCurrencyDepositAddress', // deprecated - replaced by GetDigitalCurrencyDepositAddress2 (docs removed)
-                        'GetDigitalCurrencyDepositAddress2',
-                        'GetDigitalCurrencyDepositAddresses', // deprecated - replaced by GetDigitalCurrencyDepositAddresses2 (docs removed)
-                        'GetDigitalCurrencyDepositAddresses2',
-                        'GetTrades',
-                        'GetBrokerageFees',
-                        'GetDigitalCurrencyWithdrawal',
-                        'PlaceLimitOrder',
-                        'PlaceMarketOrder',
-                        'CancelOrder',
-                        'SynchDigitalCurrencyDepositAddressWithBlockchain',
-                        'RequestFiatWithdrawal',
-                        'WithdrawFiatCurrency',
-                        'WithdrawDigitalCurrency', // deprecated - replaced by WithdrawCrypto (docs removed)
-                        'WithdrawCrypto',
+                        'GetOpenOrders' => array( 'cost' => 1 ),
+                        'GetClosedOrders' => array( 'cost' => 1 ),
+                        'GetClosedFilledOrders' => array( 'cost' => 1 ),
+                        'GetOrderDetails' => array( 'cost' => 1 ),
+                        'GetAccounts' => array( 'cost' => 1 ),
+                        'GetTransactions' => array( 'cost' => 1 ),
+                        'GetFiatBankAccounts' => array( 'cost' => 1 ),
+                        'GetDigitalCurrencyDepositAddress' => array( 'cost' => 1 ),
+                        'GetDigitalCurrencyDepositAddress2' => array( 'cost' => 1 ),
+                        'GetDigitalCurrencyDepositAddresses' => array( 'cost' => 1 ),
+                        'GetDigitalCurrencyDepositAddresses2' => array( 'cost' => 1 ),
+                        'GetTrades' => array( 'cost' => 1 ),
+                        'GetBrokerageFees' => array( 'cost' => 1 ),
+                        'GetDigitalCurrencyWithdrawal' => array( 'cost' => 1 ),
+                        'PlaceLimitOrder' => array( 'cost' => 1 ),
+                        'PlaceMarketOrder' => array( 'cost' => 1 ),
+                        'CancelOrder' => array( 'cost' => 1 ),
+                        'SynchDigitalCurrencyDepositAddressWithBlockchain' => array( 'cost' => 1 ),
+                        'RequestFiatWithdrawal' => array( 'cost' => 1 ),
+                        'WithdrawFiatCurrency' => array( 'cost' => 1 ),
+                        'WithdrawDigitalCurrency' => array( 'cost' => 1 ),
+                        'WithdrawCrypto' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -329,12 +329,14 @@ class independentreserve extends Exchange {
         //     }
         //
         $result = array();
-        for ($i = 0; $i < count($baseCurrencies); $i++) {
-            $baseId = $baseCurrencies[$i];
+        $baseCurrencyIds = $this->to_array($baseCurrencies);
+        $quoteCurrencyIds = $this->to_array($quoteCurrencies);
+        for ($i = 0; $i < count($baseCurrencyIds); $i++) {
+            $baseId = $baseCurrencyIds[$i];
             $base = $this->safe_currency_code($baseId);
             $minAmount = $this->safe_number($limits, $baseId);
-            for ($j = 0; $j < count($quoteCurrencies); $j++) {
-                $quoteId = $quoteCurrencies[$j];
+            for ($j = 0; $j < count($quoteCurrencyIds); $j++) {
+                $quoteId = $quoteCurrencyIds[$j];
                 $quote = $this->safe_currency_code($quoteId);
                 $id = $baseId . '/' . $quoteId;
                 $result[] = array(
@@ -763,7 +765,8 @@ class independentreserve extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        return $this->parse_trades($response['Data'], $market, $since, $limit);
+        $data = $this->safe_list($response, 'Data', array());
+        return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -809,12 +812,12 @@ class independentreserve extends Exchange {
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
-         * get the list of most recent trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * get the list of most recent $trades for a particular $symbol
+         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -826,7 +829,8 @@ class independentreserve extends Exchange {
             'numberOfRecentTradesToRetrieve' => 50, // max = 50
         );
         $response = $this->publicGetGetRecentTrades($this->extend($request, $params));
-        return $this->parse_trades($response['Trades'], $market, $since, $limit);
+        $trades = $this->safe_list($response, 'Trades', array());
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_trading_fees($params = array()): array {
@@ -849,8 +853,9 @@ class independentreserve extends Exchange {
         //     )
         //
         $fees = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $fee = $response[$i];
+        $rows = $this->to_array($response);
+        for ($i = 0; $i < count($rows); $i++) {
+            $fee = $rows[$i];
             $currencyId = $this->safe_string($fee, 'CurrencyCode');
             $code = $this->safe_currency_code($currencyId);
             $tradingFee = $this->safe_number($fee, 'Fee');

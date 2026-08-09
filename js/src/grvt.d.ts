@@ -62,8 +62,8 @@ export default class grvt extends Exchange {
      * @returns response from exchange
      */
     signIn(params?: {}): Promise<boolean>;
-    signInWithApiKey(params?: {}): Promise<any>;
-    signInWithPrivateKey(params?: {}): Promise<any>;
+    signInWithApiKey(params?: {}): Promise<Dict>;
+    signInWithPrivateKey(params?: {}): Promise<Dict>;
     initializeClient(params?: {}): Promise<boolean | undefined>;
     /**
      * @method

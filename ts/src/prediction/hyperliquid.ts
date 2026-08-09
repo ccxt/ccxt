@@ -8,7 +8,7 @@ import type {
     Market, PredictionOrderBook, OHLCV,
     Balances, fetchEventsParams,
     Strings,
-    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict} from '../base/types.js';
+    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict, List, Endpoint} from '../base/types.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, RateLimitExceeded } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -96,12 +96,12 @@ export default class hyperliquid extends Exchange {
                                 'candleSnapshot': 4,
                                 'orderStatus': 2,
                             },
-                        },
+                        } as Endpoint<Dict | List | string>,
                     },
                 },
                 'private': {
                     'post': {
-                        'exchange': 1,
+                        'exchange': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -683,7 +683,11 @@ export default class hyperliquid extends Exchange {
         //
         // { "mids": { "#10": "0.45", "#11": "0.55", ... } }
         //
-        const mids = this.safeDict (response, 'mids', response);
+        let allMids: Dict = {};
+        if ((typeof response !== 'string') && !Array.isArray (response)) {
+            allMids = response;
+        }
+        const mids = this.safeDict (allMids, 'mids', allMids);
         const tickers: PredictionTickers = {};
         const outcomesMap = (this.outcomes !== undefined) ? this.outcomes : {};
         const outcomeHandles = Object.keys (outcomesMap);
@@ -884,7 +888,11 @@ export default class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        let candles: List = [];
+        if (Array.isArray (response)) {
+            candles = response;
+        }
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     /**
@@ -1009,7 +1017,11 @@ export default class hyperliquid extends Exchange {
         const response = results[0];
         const midsResponse = results[1];
         const balances = this.safeList (response, 'balances', []);
-        const mids = this.safeDict (midsResponse, 'mids', midsResponse);
+        let allMids: Dict = {};
+        if ((typeof midsResponse !== 'string') && !Array.isArray (midsResponse)) {
+            allMids = midsResponse;
+        }
+        const mids = this.safeDict (allMids, 'mids', allMids);
         const positions: PredictionPosition[] = [];
         for (let i = 0; i < balances.length; i++) {
             const balance = this.safeDict (balances, i, {});
@@ -1469,8 +1481,12 @@ export default class hyperliquid extends Exchange {
         const request = { 'type': method, 'user': userAddress };
         const response = await this.publicPostInfo (this.extend (request, params));
         const ordersWithStatus: Dict[] = [];
-        for (let i = 0; i < response.length; i++) {
-            const order = response[i];
+        let rawOrders: List = [];
+        if (Array.isArray (response)) {
+            rawOrders = response;
+        }
+        for (let i = 0; i < rawOrders.length; i++) {
+            const order = rawOrders[i];
             ordersWithStatus.push (this.extend (order, { 'ccxtStatus': 'open' }));
         }
         const parsed = this.parsePredictionOrders (ordersWithStatus, undefined, since);
@@ -1502,8 +1518,12 @@ export default class hyperliquid extends Exchange {
         const response = await this.publicPostInfo (this.extend (request, params));
         // Deduplicate by oid keeping most recent statusTimestamp
         const deduped: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const raw = response[i];
+        let historicalOrders: List = [];
+        if (Array.isArray (response)) {
+            historicalOrders = response;
+        }
+        for (let i = 0; i < historicalOrders.length; i++) {
+            const raw = historicalOrders[i];
             let entry = this.safeDict (raw, 'order');
             if (entry === undefined) {
                 entry = raw;
@@ -1557,7 +1577,11 @@ export default class hyperliquid extends Exchange {
             request['oid'] = isCloid ? id : this.parseToNumeric (id);
         }
         const response = await this.publicPostInfo (this.extend (request, params));
-        const orderWrapper = this.safeDict (response, 'order', response);
+        let orderStatus: Dict = {};
+        if ((typeof response !== 'string') && !Array.isArray (response)) {
+            orderStatus = response;
+        }
+        const orderWrapper = this.safeDict (orderStatus, 'order', orderStatus);
         const parsed = this.parsePredictionOrder (orderWrapper, undefined);
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
@@ -1708,7 +1732,12 @@ export default class hyperliquid extends Exchange {
         };
         // recentTrades returns the coin's most recent public trades (newest first)
         const response = await this.publicPostInfo (this.extend (request, params));
-        const trades = (response) ? response : [];
+        let trades: List = [];
+        if (Array.isArray (response)) {
+            trades = response;
+        } else if (typeof response !== 'string') {
+            trades = this.toArray (response);
+        }
         return this.parsePredictionTrades (trades, outcomeObj, since, limit);
     }
 
@@ -1750,7 +1779,12 @@ export default class hyperliquid extends Exchange {
             request['endTime'] = until;
         }
         const response = await this.publicPostInfo (this.extend (request, params));
-        const fills = (response) ? response : [];
+        let fills: List = [];
+        if (Array.isArray (response)) {
+            fills = response;
+        } else if (typeof response !== 'string') {
+            fills = this.toArray (response);
+        }
         // parse without an outcome fallback — fills span every market the wallet traded, so a
         // requested-outcome fallback would mislabel fills whose market is no longer listed
         const parsedTrades = this.parsePredictionTrades (fills, undefined);

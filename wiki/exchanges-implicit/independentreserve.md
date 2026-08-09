@@ -63,23 +63,23 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `publicGetGetValidPrimaryCurrencyCodes` | GET | `GetValidPrimaryCurrencyCodes` |  |
-| `publicGetGetValidSecondaryCurrencyCodes` | GET | `GetValidSecondaryCurrencyCodes` |  |
-| `publicGetGetValidLimitOrderTypes` | GET | `GetValidLimitOrderTypes` |  |
-| `publicGetGetValidMarketOrderTypes` | GET | `GetValidMarketOrderTypes` |  |
-| `publicGetGetValidOrderTypes` | GET | `GetValidOrderTypes` |  |
-| `publicGetGetValidTransactionTypes` | GET | `GetValidTransactionTypes` |  |
-| `publicGetGetMarketSummary` | GET | `GetMarketSummary` |  |
-| `publicGetGetOrderBook` | GET | `GetOrderBook` |  |
-| `publicGetGetAllOrders` | GET | `GetAllOrders` |  |
-| `publicGetGetTradeHistorySummary` | GET | `GetTradeHistorySummary` |  |
-| `publicGetGetRecentTrades` | GET | `GetRecentTrades` |  |
-| `publicGetGetFxRates` | GET | `GetFxRates` |  |
-| `publicGetGetOrderMinimumVolumes` | GET | `GetOrderMinimumVolumes` |  |
-| `publicGetGetCryptoWithdrawalFees` | GET | `GetCryptoWithdrawalFees` |  |
-| `publicGetGetCryptoWithdrawalFees2` | GET | `GetCryptoWithdrawalFees2` |  |
-| `publicGetGetNetworks` | GET | `GetNetworks` |  |
-| `publicGetGetPrimaryCurrencyConfig2` | GET | `GetPrimaryCurrencyConfig2` |  |
+| `publicGetGetValidPrimaryCurrencyCodes` | GET | `GetValidPrimaryCurrencyCodes` | 1 |
+| `publicGetGetValidSecondaryCurrencyCodes` | GET | `GetValidSecondaryCurrencyCodes` | 1 |
+| `publicGetGetValidLimitOrderTypes` | GET | `GetValidLimitOrderTypes` | 1 |
+| `publicGetGetValidMarketOrderTypes` | GET | `GetValidMarketOrderTypes` | 1 |
+| `publicGetGetValidOrderTypes` | GET | `GetValidOrderTypes` | 1 |
+| `publicGetGetValidTransactionTypes` | GET | `GetValidTransactionTypes` | 1 |
+| `publicGetGetMarketSummary` | GET | `GetMarketSummary` | 1 |
+| `publicGetGetOrderBook` | GET | `GetOrderBook` | 1 |
+| `publicGetGetAllOrders` | GET | `GetAllOrders` | 1 |
+| `publicGetGetTradeHistorySummary` | GET | `GetTradeHistorySummary` | 1 |
+| `publicGetGetRecentTrades` | GET | `GetRecentTrades` | 1 |
+| `publicGetGetFxRates` | GET | `GetFxRates` | 1 |
+| `publicGetGetOrderMinimumVolumes` | GET | `GetOrderMinimumVolumes` | 1 |
+| `publicGetGetCryptoWithdrawalFees` | GET | `GetCryptoWithdrawalFees` | 1 |
+| `publicGetGetCryptoWithdrawalFees2` | GET | `GetCryptoWithdrawalFees2` | 1 |
+| `publicGetGetNetworks` | GET | `GetNetworks` | 1 |
+| `publicGetGetPrimaryCurrencyConfig2` | GET | `GetPrimaryCurrencyConfig2` | 1 |
 
 ## private
 
@@ -87,26 +87,26 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `privatePostGetOpenOrders` | POST | `GetOpenOrders` |  |
-| `privatePostGetClosedOrders` | POST | `GetClosedOrders` |  |
-| `privatePostGetClosedFilledOrders` | POST | `GetClosedFilledOrders` |  |
-| `privatePostGetOrderDetails` | POST | `GetOrderDetails` |  |
-| `privatePostGetAccounts` | POST | `GetAccounts` |  |
-| `privatePostGetTransactions` | POST | `GetTransactions` |  |
-| `privatePostGetFiatBankAccounts` | POST | `GetFiatBankAccounts` |  |
-| `privatePostGetDigitalCurrencyDepositAddress` | POST | `GetDigitalCurrencyDepositAddress` |  |
-| `privatePostGetDigitalCurrencyDepositAddress2` | POST | `GetDigitalCurrencyDepositAddress2` |  |
-| `privatePostGetDigitalCurrencyDepositAddresses` | POST | `GetDigitalCurrencyDepositAddresses` |  |
-| `privatePostGetDigitalCurrencyDepositAddresses2` | POST | `GetDigitalCurrencyDepositAddresses2` |  |
-| `privatePostGetTrades` | POST | `GetTrades` |  |
-| `privatePostGetBrokerageFees` | POST | `GetBrokerageFees` |  |
-| `privatePostGetDigitalCurrencyWithdrawal` | POST | `GetDigitalCurrencyWithdrawal` |  |
-| `privatePostPlaceLimitOrder` | POST | `PlaceLimitOrder` |  |
-| `privatePostPlaceMarketOrder` | POST | `PlaceMarketOrder` |  |
-| `privatePostCancelOrder` | POST | `CancelOrder` |  |
-| `privatePostSynchDigitalCurrencyDepositAddressWithBlockchain` | POST | `SynchDigitalCurrencyDepositAddressWithBlockchain` |  |
-| `privatePostRequestFiatWithdrawal` | POST | `RequestFiatWithdrawal` |  |
-| `privatePostWithdrawFiatCurrency` | POST | `WithdrawFiatCurrency` |  |
-| `privatePostWithdrawDigitalCurrency` | POST | `WithdrawDigitalCurrency` |  |
-| `privatePostWithdrawCrypto` | POST | `WithdrawCrypto` |  |
+| `privatePostGetOpenOrders` | POST | `GetOpenOrders` | 1 |
+| `privatePostGetClosedOrders` | POST | `GetClosedOrders` | 1 |
+| `privatePostGetClosedFilledOrders` | POST | `GetClosedFilledOrders` | 1 |
+| `privatePostGetOrderDetails` | POST | `GetOrderDetails` | 1 |
+| `privatePostGetAccounts` | POST | `GetAccounts` | 1 |
+| `privatePostGetTransactions` | POST | `GetTransactions` | 1 |
+| `privatePostGetFiatBankAccounts` | POST | `GetFiatBankAccounts` | 1 |
+| `privatePostGetDigitalCurrencyDepositAddress` | POST | `GetDigitalCurrencyDepositAddress` | 1 |
+| `privatePostGetDigitalCurrencyDepositAddress2` | POST | `GetDigitalCurrencyDepositAddress2` | 1 |
+| `privatePostGetDigitalCurrencyDepositAddresses` | POST | `GetDigitalCurrencyDepositAddresses` | 1 |
+| `privatePostGetDigitalCurrencyDepositAddresses2` | POST | `GetDigitalCurrencyDepositAddresses2` | 1 |
+| `privatePostGetTrades` | POST | `GetTrades` | 1 |
+| `privatePostGetBrokerageFees` | POST | `GetBrokerageFees` | 1 |
+| `privatePostGetDigitalCurrencyWithdrawal` | POST | `GetDigitalCurrencyWithdrawal` | 1 |
+| `privatePostPlaceLimitOrder` | POST | `PlaceLimitOrder` | 1 |
+| `privatePostPlaceMarketOrder` | POST | `PlaceMarketOrder` | 1 |
+| `privatePostCancelOrder` | POST | `CancelOrder` | 1 |
+| `privatePostSynchDigitalCurrencyDepositAddressWithBlockchain` | POST | `SynchDigitalCurrencyDepositAddressWithBlockchain` | 1 |
+| `privatePostRequestFiatWithdrawal` | POST | `RequestFiatWithdrawal` | 1 |
+| `privatePostWithdrawFiatCurrency` | POST | `WithdrawFiatCurrency` | 1 |
+| `privatePostWithdrawDigitalCurrency` | POST | `WithdrawDigitalCurrency` | 1 |
+| `privatePostWithdrawCrypto` | POST | `WithdrawCrypto` | 1 |
 

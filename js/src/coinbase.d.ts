@@ -512,7 +512,7 @@ export default class coinbase extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/?id=deposit-id-structure}
      */
-    fetchDepositMethodIds(params?: {}): Promise<any[]>;
+    fetchDepositMethodIds(params?: {}): Promise<Dict[]>;
     /**
      * @method
      * @name coinbase#fetchDepositMethodId
@@ -529,7 +529,7 @@ export default class coinbase extends Exchange {
         verified: boolean | undefined;
         tag: Str;
     }>;
-    parseDepositMethodIds(ids: any, params?: {}): any[];
+    parseDepositMethodIds(ids: any, params?: {}): Dict[];
     parseDepositMethodId(depositId: any): {
         info: any;
         id: Str;
@@ -651,7 +651,7 @@ export default class coinbase extends Exchange {
      * @returns {any[]} An account structure <https://docs.ccxt.com/?id=account-structure>
      */
     fetchPortfolioDetails(portfolioUuid: string, params?: {}): Promise<any[]>;
-    parsePortfolioDetails(portfolioData: Dict): any[];
+    parsePortfolioDetails(portfolioData: Dict): Dict[];
     createAuthToken(seconds: Int, method?: Str, url?: Str, useEddsa?: boolean): string;
     nonce(): number;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {

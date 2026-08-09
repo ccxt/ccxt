@@ -3,7 +3,7 @@ import WsClient from './ws/WsClient.js';
 import type Client from './ws/Client.js';
 import { type FutureInterface } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook as Ob } from './ws/OrderBook.js';
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, Status, PositionModeInfo, MarginLoan } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, List, Status, PositionModeInfo, MarginLoan } from './types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL } from './types.js';
 /**
@@ -315,6 +315,13 @@ export declare class BaseExchange {
     loadExchangeSpecificFiles(): Promise<void>;
     uuid5(namespace: string, name: string): string;
     encodeURIComponent(...args: any[]): string;
+    /**
+     * @method
+     * @name Exchange#getCcxtVersion
+     * @description returns the version of the ccxt library, e.g. "4.5.54", or "unknown" when the version constant is not initialized (e.g. when an exchange module is imported directly, bypassing the ccxt entry point)
+     * @returns {string} the semver version of the ccxt library, or "unknown" when unavailable
+     */
+    getCcxtVersion(): string;
     throttle(cost?: Num): any;
     initThrottler(): void;
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
@@ -471,6 +478,7 @@ export declare class BaseExchange {
     handleMessage(client: any, message: any): void;
     ping(client: Client): Dict | Str;
     client(url: Str): WsClient;
+    calculateWsBackoffDelay(url: string): number;
     watchMultiple(url: Str, messageHashes: string[], message?: any, subscribeHashes?: Strings, subscription?: any): FutureInterface;
     watch(url: Str, messageHash: Str, message?: any, subscribeHash?: any, subscription?: any): any;
     onConnected(client: any, message?: any): void;
@@ -809,15 +817,15 @@ export declare class BaseExchange {
     parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: Str): LeverageTiers;
     loadTradingLimits(symbols?: Strings, reload?: boolean, params?: {}): Promise<Dictionary<any> | undefined>;
     safePosition(position: Dict): Position;
-    parsePositions(positions: any[], symbols?: Strings, params?: {}): Position[];
+    parsePositions(positions: List, symbols?: Strings, params?: {}): Position[];
     parseADLRank(info: Dict, market?: Market): ADL;
-    parseADLRanks(ranks: any[], symbols?: Strings, params?: {}): ADL[];
-    parseAccounts(accounts: any[], params?: {}): Account[];
-    parseTradesHelper(isWs: boolean, trades: any[], market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
-    parseTrades(trades: any[], market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
-    parseWsTrades(trades: any[], market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
-    parseTransactions(transactions: any[], currency?: Currency, since?: Int, limit?: Int, params?: {}): Transaction[];
-    parseTransfers(transfers: any[], currency?: Currency, since?: Int, limit?: Int, params?: {}): TransferEntry[];
+    parseADLRanks(ranks: List, symbols?: Strings, params?: {}): ADL[];
+    parseAccounts(accounts: List, params?: {}): Account[];
+    parseTradesHelper(isWs: boolean, trades: List, market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
+    parseTrades(trades: List, market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
+    parseWsTrades(trades: List, market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
+    parseTransactions(transactions: List, currency?: Currency, since?: Int, limit?: Int, params?: {}): Transaction[];
+    parseTransfers(transfers: List, currency?: Currency, since?: Int, limit?: Int, params?: {}): TransferEntry[];
     parseLedger(data: any, currency?: Currency, since?: Int, limit?: Int, params?: {}): LedgerEntry[];
     nonce(): number;
     setHeaders(headers: any): any;
@@ -1010,7 +1018,7 @@ export declare class BaseExchange {
     fetchPaginatedCallDynamic(method: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict, maxEntriesPerRequest?: Int, removeRepeated?: boolean): Promise<any>;
     safeDeterministicCall(method: string, symbol?: Str, since?: Int, limit?: Int, timeframe?: Str, params?: {}): Promise<any>;
     fetchPaginatedCallDeterministic(method: string, symbol?: Str, since?: Int, limit?: Int, timeframe?: Str, params?: {}, maxEntriesPerRequest?: Int): Promise<any>;
-    fetchPaginatedCallCursor(method: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict, cursorReceived?: Str, cursorSent?: Str, cursorIncrement?: Int, maxEntriesPerRequest?: Int): Promise<any>;
+    fetchPaginatedCallCursor(method: string, symbol?: Str | Strings, since?: Int, limit?: Int, params?: Dict, cursorReceived?: Str, cursorSent?: Str, cursorIncrement?: Int, maxEntriesPerRequest?: Int): Promise<any>;
     fetchPaginatedCallIncremental(method: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict, pageKey?: Str, maxEntriesPerRequest?: Int): Promise<any>;
     sortCursorPaginatedResult(result: any): any;
     removeRepeatedElementsFromArray(input: any, fallbackToTimestamp?: boolean): any;
@@ -1028,7 +1036,7 @@ export declare class BaseExchange {
     parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     parseLeverages(response: object[], symbols?: Strings, symbolKey?: Str, marketType?: MarketType | undefined): Leverages;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
-    parseConversions(conversions: any[], code?: Str, fromCurrencyKey?: Str, toCurrencyKey?: Str, since?: Int, limit?: Int, params?: {}): Conversion[];
+    parseConversions(conversions: List, code?: Str, fromCurrencyKey?: Str, toCurrencyKey?: Str, since?: Int, limit?: Int, params?: {}): Conversion[];
     parseConversion(conversion: Dict, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
     convertExpireDate(date: Str): Str;
     convertExpireDateToMarketIdDate(date: Str): Str;

@@ -139,206 +139,522 @@ func (this *XtCore) Describe() any {
 			"public": map[string]any{
 				"spot": map[string]any{
 					"get": map[string]any{
-						"currencies":              1,
-						"depth":                   10,
-						"kline":                   1,
-						"symbol":                  1,
-						"ticker":                  1,
-						"ticker/book":             1,
-						"ticker/price":            1,
-						"ticker/24h":              1,
-						"time":                    1,
-						"trade/history":           1,
-						"trade/recent":            1,
-						"wallet/support/currency": 1,
+						"currencies": map[string]any{
+							"cost": 1,
+						},
+						"depth": map[string]any{
+							"cost": 10,
+						},
+						"kline": map[string]any{
+							"cost": 1,
+						},
+						"symbol": map[string]any{
+							"cost": 1,
+						},
+						"ticker": map[string]any{
+							"cost": 1,
+						},
+						"ticker/book": map[string]any{
+							"cost": 1,
+						},
+						"ticker/price": map[string]any{
+							"cost": 1,
+						},
+						"ticker/24h": map[string]any{
+							"cost": 1,
+						},
+						"time": map[string]any{
+							"cost": 1,
+						},
+						"trade/history": map[string]any{
+							"cost": 1,
+						},
+						"trade/recent": map[string]any{
+							"cost": 1,
+						},
+						"wallet/support/currency": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"linear": map[string]any{
 					"get": map[string]any{
-						"future/market/v1/public/contract/risk-balance":   1,
-						"future/market/v1/public/contract/open-interest":  1,
-						"future/market/v1/public/leverage/bracket/detail": 1,
-						"future/market/v1/public/leverage/bracket/list":   1,
-						"future/market/v1/public/q/agg-ticker":            1,
-						"future/market/v1/public/q/agg-tickers":           1,
-						"future/market/v1/public/q/deal":                  1,
-						"future/market/v1/public/q/depth":                 1,
-						"future/market/v1/public/q/funding-rate":          1,
-						"future/market/v1/public/q/funding-rate-record":   1,
-						"future/market/v1/public/q/index-price":           1,
-						"future/market/v1/public/q/kline":                 1,
-						"future/market/v1/public/q/mark-price":            1,
-						"future/market/v1/public/q/symbol-index-price":    1,
-						"future/market/v1/public/q/symbol-mark-price":     1,
-						"future/market/v1/public/q/ticker":                1,
-						"future/market/v1/public/q/ticker/books":          1,
-						"future/market/v1/public/q/tickers":               1,
-						"future/market/v1/public/symbol/coins":            3.33,
-						"future/market/v1/public/symbol/detail":           3.33,
-						"future/market/v1/public/symbol/list":             1,
+						"future/market/v1/public/contract/risk-balance": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/contract/open-interest": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/leverage/bracket/detail": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/leverage/bracket/list": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/agg-ticker": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/agg-tickers": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/deal": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/depth": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/funding-rate": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/funding-rate-record": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/index-price": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/kline": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/mark-price": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/symbol-index-price": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/symbol-mark-price": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/ticker": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/ticker/books": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/tickers": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/symbol/coins": map[string]any{
+							"cost": 3.33,
+						},
+						"future/market/v1/public/symbol/detail": map[string]any{
+							"cost": 3.33,
+						},
+						"future/market/v1/public/symbol/list": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"inverse": map[string]any{
 					"get": map[string]any{
-						"future/market/v1/public/contract/risk-balance":   1,
-						"future/market/v1/public/contract/open-interest":  1,
-						"future/market/v1/public/leverage/bracket/detail": 1,
-						"future/market/v1/public/leverage/bracket/list":   1,
-						"future/market/v1/public/q/agg-ticker":            1,
-						"future/market/v1/public/q/agg-tickers":           1,
-						"future/market/v1/public/q/deal":                  1,
-						"future/market/v1/public/q/depth":                 1,
-						"future/market/v1/public/q/funding-rate":          1,
-						"future/market/v1/public/q/funding-rate-record":   1,
-						"future/market/v1/public/q/index-price":           1,
-						"future/market/v1/public/q/kline":                 1,
-						"future/market/v1/public/q/mark-price":            1,
-						"future/market/v1/public/q/symbol-index-price":    1,
-						"future/market/v1/public/q/symbol-mark-price":     1,
-						"future/market/v1/public/q/ticker":                1,
-						"future/market/v1/public/q/ticker/books":          1,
-						"future/market/v1/public/q/tickers":               1,
-						"future/market/v1/public/symbol/coins":            3.33,
-						"future/market/v1/public/symbol/detail":           3.33,
-						"future/market/v1/public/symbol/list":             1,
+						"future/market/v1/public/contract/risk-balance": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/contract/open-interest": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/leverage/bracket/detail": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/leverage/bracket/list": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/agg-ticker": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/agg-tickers": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/deal": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/depth": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/funding-rate": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/funding-rate-record": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/index-price": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/kline": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/mark-price": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/symbol-index-price": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/symbol-mark-price": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/ticker": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/ticker/books": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/tickers": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/symbol/coins": map[string]any{
+							"cost": 3.33,
+						},
+						"future/market/v1/public/symbol/detail": map[string]any{
+							"cost": 3.33,
+						},
+						"future/market/v1/public/symbol/list": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
 			"private": map[string]any{
 				"spot": map[string]any{
 					"get": map[string]any{
-						"balance":          1,
-						"balances":         1,
-						"batch-order":      1,
-						"deposit/address":  1,
-						"deposit/history":  1,
-						"history-order":    1,
-						"open-order":       1,
-						"order":            1,
-						"order/{orderId}":  1,
-						"trade":            1,
-						"withdraw/history": 1,
+						"balance": map[string]any{
+							"cost": 1,
+						},
+						"balances": map[string]any{
+							"cost": 1,
+						},
+						"batch-order": map[string]any{
+							"cost": 1,
+						},
+						"deposit/address": map[string]any{
+							"cost": 1,
+						},
+						"deposit/history": map[string]any{
+							"cost": 1,
+						},
+						"history-order": map[string]any{
+							"cost": 1,
+						},
+						"open-order": map[string]any{
+							"cost": 1,
+						},
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"order/{orderId}": map[string]any{
+							"cost": 1,
+						},
+						"trade": map[string]any{
+							"cost": 1,
+						},
+						"withdraw/history": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"order":                    0.2,
-						"withdraw":                 10,
-						"balance/transfer":         1,
-						"balance/account/transfer": 1,
-						"ws-token":                 1,
+						"order": map[string]any{
+							"cost": 0.2,
+						},
+						"withdraw": map[string]any{
+							"cost": 10,
+						},
+						"balance/transfer": map[string]any{
+							"cost": 1,
+						},
+						"balance/account/transfer": map[string]any{
+							"cost": 1,
+						},
+						"ws-token": map[string]any{
+							"cost": 1,
+						},
 					},
 					"delete": map[string]any{
-						"batch-order":     1,
-						"open-order":      1,
-						"order/{orderId}": 1,
+						"batch-order": map[string]any{
+							"cost": 1,
+						},
+						"open-order": map[string]any{
+							"cost": 1,
+						},
+						"order/{orderId}": map[string]any{
+							"cost": 1,
+						},
 					},
 					"put": map[string]any{
-						"order/{orderId}": 1,
+						"order/{orderId}": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"linear": map[string]any{
 					"get": map[string]any{
-						"future/trade/v1/entrust/plan-detail":       1,
-						"future/trade/v1/entrust/plan-list":         1,
-						"future/trade/v1/entrust/plan-list-history": 1,
-						"future/trade/v1/entrust/profit-detail":     1,
-						"future/trade/v1/entrust/profit-list":       1,
-						"future/trade/v1/order/detail":              1,
-						"future/trade/v1/order/list":                1,
-						"future/trade/v1/order/list-history":        1,
-						"future/trade/v1/order/trade-list":          1,
-						"future/user/v1/account/info":               1,
-						"future/user/v1/balance/bills":              1,
-						"future/user/v1/balance/detail":             1,
-						"future/user/v1/balance/funding-rate-list":  1,
-						"future/user/v1/balance/list":               1,
-						"future/user/v1/position/adl":               1,
-						"future/user/v1/position/break-list":        1,
-						"future/user/v1/position/list":              1,
-						"future/user/v1/user/collection/list":       1,
-						"future/user/v1/user/listen-key":            1,
+						"future/trade/v1/entrust/plan-detail": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/plan-list": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/plan-list-history": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/profit-detail": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/profit-list": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/detail": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/list": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/list-history": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/trade-list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/account/info": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/balance/bills": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/balance/detail": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/balance/funding-rate-list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/balance/list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/adl": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/break-list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/user/collection/list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/user/listen-key": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"future/trade/v1/entrust/cancel-all-plan":        1,
-						"future/trade/v1/entrust/cancel-all-profit-stop": 1,
-						"future/trade/v1/entrust/cancel-plan":            1,
-						"future/trade/v1/entrust/cancel-profit-stop":     1,
-						"future/trade/v1/entrust/create-plan":            1,
-						"future/trade/v1/entrust/create-profit":          1,
-						"future/trade/v1/entrust/update-profit-stop":     1,
-						"future/trade/v1/order/cancel":                   1,
-						"future/trade/v1/order/cancel-all":               1,
-						"future/trade/v1/order/create":                   1,
-						"future/trade/v1/order/create-batch":             1,
-						"future/trade/v1/order/update":                   1,
-						"future/user/v1/account/open":                    1,
-						"future/user/v1/position/adjust-leverage":        1,
-						"future/user/v1/position/auto-margin":            1,
-						"future/user/v1/position/close-all":              1,
-						"future/user/v1/position/margin":                 1,
-						"future/user/v1/user/collection/add":             1,
-						"future/user/v1/user/collection/cancel":          1,
-						"future/user/v1/position/change-type":            1,
+						"future/trade/v1/entrust/cancel-all-plan": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/cancel-all-profit-stop": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/cancel-plan": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/cancel-profit-stop": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/create-plan": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/create-profit": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/update-profit-stop": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/cancel": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/cancel-all": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/create": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/create-batch": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/update": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/account/open": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/adjust-leverage": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/auto-margin": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/close-all": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/margin": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/user/collection/add": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/user/collection/cancel": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/change-type": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"inverse": map[string]any{
 					"get": map[string]any{
-						"future/trade/v1/entrust/plan-detail":       1,
-						"future/trade/v1/entrust/plan-list":         1,
-						"future/trade/v1/entrust/plan-list-history": 1,
-						"future/trade/v1/entrust/profit-detail":     1,
-						"future/trade/v1/entrust/profit-list":       1,
-						"future/trade/v1/order/detail":              1,
-						"future/trade/v1/order/list":                1,
-						"future/trade/v1/order/list-history":        1,
-						"future/trade/v1/order/trade-list":          1,
-						"future/user/v1/account/info":               1,
-						"future/user/v1/balance/bills":              1,
-						"future/user/v1/balance/detail":             1,
-						"future/user/v1/balance/funding-rate-list":  1,
-						"future/user/v1/balance/list":               1,
-						"future/user/v1/position/adl":               1,
-						"future/user/v1/position/break-list":        1,
-						"future/user/v1/position/list":              1,
-						"future/user/v1/user/collection/list":       1,
-						"future/user/v1/user/listen-key":            1,
+						"future/trade/v1/entrust/plan-detail": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/plan-list": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/plan-list-history": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/profit-detail": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/profit-list": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/detail": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/list": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/list-history": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/trade-list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/account/info": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/balance/bills": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/balance/detail": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/balance/funding-rate-list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/balance/list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/adl": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/break-list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/user/collection/list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/user/listen-key": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"future/trade/v1/entrust/cancel-all-plan":        1,
-						"future/trade/v1/entrust/cancel-all-profit-stop": 1,
-						"future/trade/v1/entrust/cancel-plan":            1,
-						"future/trade/v1/entrust/cancel-profit-stop":     1,
-						"future/trade/v1/entrust/create-plan":            1,
-						"future/trade/v1/entrust/create-profit":          1,
-						"future/trade/v1/entrust/update-profit-stop":     1,
-						"future/trade/v1/order/cancel":                   1,
-						"future/trade/v1/order/cancel-all":               1,
-						"future/trade/v1/order/create":                   1,
-						"future/trade/v1/order/create-batch":             1,
-						"future/trade/v1/order/update":                   1,
-						"future/user/v1/account/open":                    1,
-						"future/user/v1/position/adjust-leverage":        1,
-						"future/user/v1/position/auto-margin":            1,
-						"future/user/v1/position/close-all":              1,
-						"future/user/v1/position/margin":                 1,
-						"future/user/v1/user/collection/add":             1,
-						"future/user/v1/user/collection/cancel":          1,
-						"future/user/v1/position/change-type":            1,
+						"future/trade/v1/entrust/cancel-all-plan": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/cancel-all-profit-stop": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/cancel-plan": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/cancel-profit-stop": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/create-plan": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/create-profit": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/update-profit-stop": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/cancel": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/cancel-all": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/create": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/create-batch": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/update": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/account/open": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/adjust-leverage": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/auto-margin": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/close-all": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/margin": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/user/collection/add": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/user/collection/cancel": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/change-type": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"user": map[string]any{
 					"get": map[string]any{
-						"user/account":         1,
-						"user/account/api-key": 1,
+						"user/account": map[string]any{
+							"cost": 1,
+						},
+						"user/account/api-key": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"user/account":         1,
-						"user/account/api-key": 1,
+						"user/account": map[string]any{
+							"cost": 1,
+						},
+						"user/account/api-key": map[string]any{
+							"cost": 1,
+						},
 					},
 					"put": map[string]any{
-						"user/account/api-key": 1,
+						"user/account/api-key": map[string]any{
+							"cost": 1,
+						},
 					},
 					"delete": map[string]any{
-						"user/account/{apiKeyId}": 1,
+						"user/account/{apiKeyId}": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
@@ -1946,11 +2262,11 @@ func (this *XtCore) FetchBidsAsks(optionalArgs ...any) <-chan any {
 		var response any = nil
 		if IsTrue(isInverse) {
 
-			response = (<-this.CallDynamically("publicInverseGetFutureMarketV1PublicQTickerBooks", this.Extend(request, params)))
+			response = (<-this.PublicInverseGetFutureMarketV1PublicQTickerBooks(this.Extend(request, params)))
 			PanicOnError(response)
 		} else if IsTrue(isLinear) {
 
-			response = (<-this.CallDynamically("publicLinearGetFutureMarketV1PublicQTickerBooks", this.Extend(request, params)))
+			response = (<-this.PublicLinearGetFutureMarketV1PublicQTickerBooks(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
 
@@ -2875,7 +3191,7 @@ func (this *XtCore) CreateContractOrder(symbol any, typeVar any, side any, amoun
 			var requestType any = Ternary(IsTrue((reduceOnly)), "LONG", "SHORT")
 			AddElementToObject(request, "positionSide", requestType)
 		}
-		var response any = nil
+		var response any = map[string]any{}
 		var triggerPrice any = this.SafeNumber2(params, "triggerPrice", "stopPrice")
 		var stopLoss any = this.SafeNumber2(params, "stopLoss", "triggerStopPrice")
 		var takeProfit any = this.SafeNumber2(params, "takeProfit", "triggerProfitPrice")

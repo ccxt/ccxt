@@ -1627,7 +1627,7 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex(), self.test_foxbit()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -2219,3 +2219,19 @@ class testMainClass:
             request = json_parse(exchange.last_request_body)
         client_order_id = request['newClientOrderId']
         assert client_order_id.startswith(id), 'weex - newClientOrderId: ' + client_order_id + ' for swap order does not start with id: ' + id
+
+    def test_foxbit(self):
+        exchange = self.init_offline_exchange('foxbit')
+        req_headers = {}
+        id = 'ccxt'
+        try:
+            exchange.create_order('BTC/BRL', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            # we expect an error here, we're only interested in the headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
+        assert req_headers['X-FB-CLIENT'] == id, 'foxbit - id: ' + id + ' not in headers.'
+        version = exchange.get_ccxt_version()
+        assert req_headers['X-FB-CLIENT-VERSION'] == version, 'foxbit - version: ' + version + ' not in headers.'
+        if not is_sync():
+            close(exchange)
+        return True

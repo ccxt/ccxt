@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official weex API documentation:** [weex.com](https://www.weex.com/api-doc)
 
-> 76 implicit endpoints across 4 access groups.
+> 80 implicit endpoints across 4 access groups.
 
 ## public
 
@@ -144,6 +144,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `contractPrivateGetCapiV3UserTrades` | GET | `capi/v3/userTrades` | 5 |
 | `contractPrivateGetCapiV3OpenAlgoOrders` | GET | `capi/v3/openAlgoOrders` | 3 |
 | `contractPrivateGetCapiV3AllAlgoOrders` | GET | `capi/v3/allAlgoOrders` | 10 |
+| `contractPrivateGetCapiV3SimBalance` | GET | `capi/v3/sim/balance` | 10 |
+| `contractPrivateGetCapiV3SimPositionAllPosition` | GET | `capi/v3/sim/position/allPosition` | 15 |
+| `contractPrivateGetCapiV3SimOrderHistory` | GET | `capi/v3/sim/order/history` | 10 |
 | `contractPrivatePostCapiV3AccountIncome` | POST | `capi/v3/account/income` | 5 |
 | `contractPrivatePostCapiV3AccountMarginType` | POST | `capi/v3/account/marginType` | 50 |
 | `contractPrivatePostCapiV3AccountLeverage` | POST | `capi/v3/account/leverage` | 20 |
@@ -155,6 +158,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `contractPrivatePostCapiV3AlgoOrder` | POST | `capi/v3/algoOrder` | 5 |
 | `contractPrivatePostCapiV3PlaceTpSlOrder` | POST | `capi/v3/placeTpSlOrder` | 5 |
 | `contractPrivatePostCapiV3ModifyTpSlOrder` | POST | `capi/v3/modifyTpSlOrder` | 5 |
+| `contractPrivatePostCapiV3SimOrder` | POST | `capi/v3/sim/order` | 5 |
 | `contractPrivateDeleteCapiV3Order` | DELETE | `capi/v3/order` | 3 |
 | `contractPrivateDeleteCapiV3BatchOrders` | DELETE | `capi/v3/batchOrders` | 10 |
 | `contractPrivateDeleteCapiV3AllOpenOrders` | DELETE | `capi/v3/allOpenOrders` | 10 |
