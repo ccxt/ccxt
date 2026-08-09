@@ -184,6 +184,11 @@ public partial class BaseExchange
 
                 while (this.keepAlive != null && this.isConnected)
                 {
+                    // refresh on every iteration - a timestamp captured once before the loop
+                    // freezes the staleness comparison below and the pong-timeout branch can
+                    // never fire, leaving dead connections undetected,
+                    // see https://github.com/ccxt/ccxt/issues/23490
+                    now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
                     if (this.lastPong == null)
                     {
