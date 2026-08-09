@@ -88,6 +88,7 @@ public partial class coinmate : Exchange
                 { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
+                { "fetchTime", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
                 { "fetchTradingFees", false },

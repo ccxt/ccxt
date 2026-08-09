@@ -27,6 +27,7 @@ public partial class exmo : Exchange
                 { "createMarketBuyOrder", true },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrderWithCost", true },
+                { "createMarketSellOrderWithCost", true },
                 { "createOrder", true },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },

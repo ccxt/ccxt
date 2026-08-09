@@ -66,6 +66,7 @@ public partial class bitbank : Exchange
                 { "fetchMarginMode", false },
                 { "fetchMarginModes", false },
                 { "fetchMarketLeverageTiers", false },
+                { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
                 { "fetchMarkPrices", false },
                 { "fetchMyLiquidations", false },

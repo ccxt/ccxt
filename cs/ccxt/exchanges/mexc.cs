@@ -28,7 +28,7 @@ public partial class mexc : Exchange
                 { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
-                { "cancelOrders", null },
+                { "cancelOrders", true },
                 { "closeAllPositions", true },
                 { "closePosition", false },
                 { "createDepositAddress", true },
@@ -128,7 +128,7 @@ public partial class mexc : Exchange
                 { "setMarginMode", true },
                 { "setPositionMode", true },
                 { "signIn", null },
-                { "transfer", null },
+                { "transfer", true },
                 { "withdraw", true },
             } },
             { "urls", new Dictionary<string, object>() {

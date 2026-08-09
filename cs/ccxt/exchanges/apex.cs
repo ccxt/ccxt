@@ -116,7 +116,7 @@ public partial class apex : Exchange
                 { "setLeverage", true },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
-                { "transfer", false },
+                { "transfer", true },
                 { "withdraw", false },
             } },
             { "timeframes", new Dictionary<string, object>() {

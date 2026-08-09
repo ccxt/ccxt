@@ -83,6 +83,7 @@ public partial class hibachi : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", false },
+                { "fetchOrdersByStatus", true },
                 { "fetchOrderTrades", false },
                 { "fetchPosition", false },
                 { "fetchPositionMode", false },
