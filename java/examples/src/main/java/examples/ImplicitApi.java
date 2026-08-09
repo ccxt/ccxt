@@ -88,7 +88,7 @@ public class ImplicitApi {
         System.out.println("  top bid: " + bids.get(0));
 
         // Binance publicGetExchangeInfo — server info
-        Object rawInfo = exchange.publicGetExchangeInfo(null).join();
+        Object rawInfo = exchange.publicGetExchangeInfo().join();
         Map<String, Object> infoMap = (Map<String, Object>) rawInfo;
         System.out.println("\npublicGetExchangeInfo:");
         System.out.println("  timezone:    " + infoMap.get("timezone"));
