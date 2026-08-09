@@ -489,9 +489,10 @@ export default class mudrex extends Exchange {
             if (numItems < pageLimit) {
                 paging = false;
             } else {
-                // plain addition - the php transpiler rewrites '+= identifier' into
-                // string concatenation ('.='), which breaks the offset after page two
-                offset = offset + pageLimit;
+                // this.sum - the php transpile cascade rewrites both '+= identifier'
+                // ('.=') and '+ identifier' ('.') into string concatenation; only the
+                // numeric helper escapes it, cf. ts/src/prediction/binance.ts
+                offset = this.sum (offset, pageLimit);
             }
         }
         const result: Market[] = [];
