@@ -802,6 +802,8 @@ export default class whitebit extends whitebitRest {
 
     handleBalance (client: Client, message: any) {
         //
+        // spot
+        //
         //   {
         //       "method":"balanceSpot_update",
         //       "params":[
@@ -819,24 +821,53 @@ export default class whitebit extends whitebitRest {
         //       "id":null
         //   }
         //
+        // margin
+        //
+        //   {
+        //       "method":"balanceMargin_update",
+        //       "params":[
+        //          {
+        //             "a":"USDT",         // asset
+        //             "B":"0.00538073",   // total balance
+        //             "b":"0",            // borrowed
+        //             "av":"0.00538073",  // available without borrowing
+        //             "ab":"28.43739825"  // available with borrowing
+        //          }
+        //       ],
+        //       "id":null
+        //   }
+        //
         const method = this.safeString (message, 'method');
         if (method === undefined) {
             return;
         }
+        const isMargin = (method.indexOf ('Margin') >= 0);
         const data = this.safeList (message, 'params', []);
         for (let i = 0; i < data.length; i++) {
             const balanceDict = this.safeDict (data, i, {});
             this.balance['info'] = balanceDict;
-            const keys = Object.keys (balanceDict);
-            for (let j = 0; j < keys.length; j++) {
-                const currencyId = keys[j];
-                const rawBalance = this.safeDict (balanceDict, currencyId, {});
+            if (isMargin) {
+                const currencyId = this.safeString (balanceDict, 'a');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
-                account['free'] = this.safeString (rawBalance, 'available');
-                account['used'] = this.safeString (rawBalance, 'freeze');
+                account['free'] = this.safeString (balanceDict, 'av');
+                account['total'] = this.safeString (balanceDict, 'B');
+                account['debt'] = this.safeString (balanceDict, 'b');
                 if (code !== undefined) {
                     this.balance[code] = account;
+                }
+            } else {
+                const keys = Object.keys (balanceDict);
+                for (let j = 0; j < keys.length; j++) {
+                    const currencyId = keys[j];
+                    const rawBalance = this.safeDict (balanceDict, currencyId, {});
+                    const code = this.safeCurrencyCode (currencyId);
+                    const account = this.account ();
+                    account['free'] = this.safeString (rawBalance, 'available');
+                    account['used'] = this.safeString (rawBalance, 'freeze');
+                    if (code !== undefined) {
+                        this.balance[code] = account;
+                    }
                 }
             }
         }
