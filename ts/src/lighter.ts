@@ -848,7 +848,7 @@ export default class lighter extends Exchange {
             // group order
             orders[0]['client_order_index'] = 0; // client order index should be 0
             let triggerOrderSide = '';
-            if (side === 'BUY') {
+            if (orderSide === 'BUY') {
                 triggerOrderSide = 'sell';
             } else {
                 triggerOrderSide = 'buy';
