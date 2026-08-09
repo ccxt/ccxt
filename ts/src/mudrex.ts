@@ -464,9 +464,7 @@ export default class mudrex extends Exchange {
             let items: Dict[] = [];
             if (typeof data === 'object' && !Array.isArray (data)) {
                 items = this.safeList (data, 'items', []);
-                // hoisted .length reads - the php transpiler's regex cascade emits
-                // strlen() for inline .length inside conditionals, which fatals on
-                // arrays under php 8; the statement form transpiles to count()
+                // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 let itemsLength = items.length;
                 if (!itemsLength) {
                     items = this.safeList (data, 'results', []);
@@ -489,9 +487,7 @@ export default class mudrex extends Exchange {
             if (numItems < pageLimit) {
                 paging = false;
             } else {
-                // this.sum - the php transpile cascade rewrites both '+= identifier'
-                // ('.=') and '+ identifier' ('.') into string concatenation; only the
-                // numeric helper escapes it, cf. ts/src/prediction/binance.ts
+                // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
                 offset = this.sum (offset, pageLimit);
             }
         }
