@@ -4293,7 +4293,7 @@ public partial class woo : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchLeverage", parameters, "cross");
+            var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
             marginMode = ((IList<object>)marginModeparametersVariable)[0];
             parameters = ((IList<object>)marginModeparametersVariable)[1];
             ((IDictionary<string,object>)request)["marginMode"] = this.encodeMarginMode(marginMode);

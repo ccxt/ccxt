@@ -482,7 +482,7 @@ public partial class pacifica : ccxt.pacifica
         }
         object market = this.market(symbol);
         object aggLevel = null;
-        var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "aggLevel", 1);
+        var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
         aggLevel = ((IList<object>)aggLevelparametersVariable)[0];
         parameters = ((IList<object>)aggLevelparametersVariable)[1];
         object messageHash = add("orderbook:", symbol);
@@ -521,7 +521,7 @@ public partial class pacifica : ccxt.pacifica
         }
         object market = this.market(symbol);
         object aggLevel = null;
-        var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "aggLevel", 1);
+        var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
         aggLevel = ((IList<object>)aggLevelparametersVariable)[0];
         parameters = ((IList<object>)aggLevelparametersVariable)[1];
         object subMessageHash = add("orderbook:", symbol);

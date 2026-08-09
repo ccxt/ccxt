@@ -2388,7 +2388,7 @@ public partial class exmo : Exchange
             await this.loadMarkets();
         }
         object marginMode = null;
-        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrders", parameters);
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchCanceledOrders", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         if (isTrue(isEqual(marginMode, "cross")))

@@ -1946,7 +1946,7 @@ public partial class aster : ccxt.aster
         }
         object messageHash = "myTrades";
         object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, type);
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, type);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         await this.authenticate(type, parameters);
