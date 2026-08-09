@@ -371,10 +371,8 @@ edit a trade order
 
 **See**
 
-- https://docs.woox.io/#edit-order
-- https://docs.woox.io/#edit-order-by-client_order_id
-- https://docs.woox.io/#edit-algo-order
-- https://docs.woox.io/#edit-algo-order-by-client_order_id
+- https://developer.woox.io/api-reference/endpoint/trading/edit_order
+- https://developer.woox.io/api-reference/endpoint/trading/edit_algo_order
 
 
 | Param | Type | Required | Description |
@@ -386,6 +384,8 @@ edit a trade order
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderId | <code>string</code> | No | client order id of the order to edit, used instead of the id argument |
+| params.trigger | <code>boolean</code> | No | whether the order is a trigger/algo order, set to true to edit an algo order without passing trigger parameters |
 | params.triggerPrice | <code>float</code> | No | The price a trigger order is triggered at |
 | params.stopLossPrice | <code>float</code> | No | price to trigger stop-loss orders |
 | params.takeProfitPrice | <code>float</code> | No | price to trigger take-profit orders |
