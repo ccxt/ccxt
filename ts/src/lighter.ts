@@ -789,7 +789,6 @@ export default class lighter extends Exchange {
         }
         if (postOnly) {
             timeInForceNum = 2;
-            orderExpiry = -1;
         } else {
             if (!isMarketOrder) {
                 if (timeInForce === 'ioc') {
@@ -797,9 +796,12 @@ export default class lighter extends Exchange {
                     orderExpiry = 0;
                 } else if (timeInForce === 'gtt') {
                     timeInForceNum = 1;
-                    orderExpiry = -1;
                 }
             }
+        }
+        if (postOnly || (!isMarketOrder && (timeInForce === 'gtt'))) {
+            // postOnly and gtt limit orders require a non-nil expiry; -1 tells the signer to fill in its default expiry
+            orderExpiry = -1;
         }
         const marketInfo = this.safeDict (market, 'info', {});
         let amountStr: Str = undefined;
