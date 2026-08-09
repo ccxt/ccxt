@@ -2132,7 +2132,7 @@ class toobit(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchOrders', market, params)
+        marketType, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         response = []
         if marketType == 'spot':
             response = await self.privateGetApiV1SpotOpenOrders(self.extend(request, params))
@@ -2451,7 +2451,7 @@ class toobit(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         marketType = None
-        marketType, params = self.handle_market_type_and_params('cancelAllOrders', None, params)
+        marketType, params = self.handle_market_type_and_params('fetchLedger', None, params)
         response = None
         if marketType == 'spot':
             response = await self.privateGetApiV1AccountBalanceFlow(self.extend(request, params))

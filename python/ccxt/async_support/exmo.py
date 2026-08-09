@@ -2072,7 +2072,7 @@ class exmo(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchOrders', params)
+        marginMode, params = self.handle_margin_mode_and_params('fetchCanceledOrders', params)
         if marginMode == 'cross':
             raise BadRequest(self.id + ' only supports isolated margin')
         if limit is None:

@@ -3725,7 +3725,7 @@ class woo(Exchange, ImplicitAPI):
         elif self.safe_bool(market, 'swap'):
             request['symbol'] = self.safe_string(market, 'id')
             marginMode = None
-            marginMode, params = self.handle_margin_mode_and_params('fetchLeverage', params, 'cross')
+            marginMode, params = self.handle_margin_mode_and_params('setLeverage', params, 'cross')
             request['marginMode'] = self.encode_margin_mode(marginMode)
             return self.v3PrivatePutFuturesLeverage(self.extend(request, params))
         else:

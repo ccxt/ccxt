@@ -1131,7 +1131,7 @@ class dydx(Exchange, ImplicitAPI):
         userAddress = None
         subAccountNumber = None
         userAddress, params = self.handle_public_address('fetchPositions', params)
-        subAccountNumber, params = self.handle_option_and_params(params, 'fetchOrders', 'subAccountNumber', '0')
+        subAccountNumber, params = self.handle_option_and_params(params, 'fetchPositions', 'subAccountNumber', '0')
         if self.markets is None:
             self.load_markets()
         request = {
@@ -2263,9 +2263,9 @@ class dydx(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         userAddress = None
-        userAddress, params = self.handle_public_address('fetchAccounts', params)
+        userAddress, params = self.handle_public_address('fetchBalance', params)
         subaccountNumber = None
-        subaccountNumber, params = self.handle_option_and_params(params, 'fetchAccounts', 'subaccountNumber', 0)
+        subaccountNumber, params = self.handle_option_and_params(params, 'fetchBalance', 'subaccountNumber', 0)
         request = {
             'address': userAddress,
             'subaccountNumber': subaccountNumber,

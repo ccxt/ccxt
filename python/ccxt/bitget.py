@@ -8817,7 +8817,7 @@ class bitget(Exchange, ImplicitAPI):
         if uta:
             if productType == 'SPOT':
                 marginMode = None
-                marginMode, params = self.handle_margin_mode_and_params('fetchTrades', params)
+                marginMode, params = self.handle_margin_mode_and_params('setLeverage', params)
                 if marginMode is not None:
                     productType = 'MARGIN'
             request['coin'] = market['settleId']

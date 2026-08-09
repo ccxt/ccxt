@@ -1580,7 +1580,7 @@ class aster(ccxt.async_support.aster):
             symbol = market['symbol']
         messageHash = 'myTrades'
         type = None
-        type, params = self.handle_market_type_and_params('watchOrders', market, params, type)
+        type, params = self.handle_market_type_and_params('watchMyTrades', market, params, type)
         await self.authenticate(type, params)
         if market is not None:
             messageHash += '::' + symbol
