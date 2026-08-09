@@ -64,9 +64,9 @@ public class BybitCore extends BybitApi
                 put( "fetchAllGreeks", true );
                 put( "fetchBalance", true );
                 put( "fetchBidsAsks", "emulated" );
-                put( "fetchBorrowInterest", false );
+                put( "fetchBorrowInterest", true );
                 put( "fetchBorrowRateHistories", false );
-                put( "fetchBorrowRateHistory", false );
+                put( "fetchBorrowRateHistory", true );
                 put( "fetchCanceledAndClosedOrders", true );
                 put( "fetchCanceledOrders", true );
                 put( "fetchClosedOrder", true );
@@ -115,7 +115,7 @@ public class BybitCore extends BybitApi
                 put( "fetchOptionChain", true );
                 put( "fetchOrder", true );
                 put( "fetchOrderBook", true );
-                put( "fetchOrders", false );
+                put( "fetchOrders", true );
                 put( "fetchOrderTrades", true );
                 put( "fetchPosition", true );
                 put( "fetchPositionADLRank", true );

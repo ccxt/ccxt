@@ -39,6 +39,7 @@ public class ExmoCore extends ExmoApi
                 put( "createMarketBuyOrder", true );
                 put( "createMarketBuyOrderWithCost", true );
                 put( "createMarketOrderWithCost", true );
+                put( "createMarketSellOrderWithCost", true );
                 put( "createOrder", true );
                 put( "createStopLimitOrder", true );
                 put( "createStopMarketOrder", true );

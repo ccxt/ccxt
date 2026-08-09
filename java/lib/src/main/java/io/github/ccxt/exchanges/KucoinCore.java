@@ -85,7 +85,7 @@ public class KucoinCore extends KucoinApi
                 put( "fetchL3OrderBook", true );
                 put( "fetchLedger", true );
                 put( "fetchLeverage", true );
-                put( "fetchLeverageTiers", false );
+                put( "fetchLeverageTiers", true );
                 put( "fetchMarginAdjustmentHistory", false );
                 put( "fetchMarginMode", true );
                 put( "fetchMarketLeverageTiers", true );

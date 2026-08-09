@@ -98,6 +98,7 @@ public class CexCore extends CexApi
                 put( "fetchOption", false );
                 put( "fetchOptionChain", false );
                 put( "fetchOrderBook", true );
+                put( "fetchOrdersByStatus", true );
                 put( "fetchPosition", false );
                 put( "fetchPositionHistory", false );
                 put( "fetchPositionMode", false );

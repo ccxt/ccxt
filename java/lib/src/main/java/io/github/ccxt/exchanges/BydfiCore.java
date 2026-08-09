@@ -136,7 +136,7 @@ public class BydfiCore extends BydfiApi
                 put( "fetchOpenInterest", false );
                 put( "fetchOpenInterestHistory", false );
                 put( "fetchOpenInterests", false );
-                put( "fetchOpenOrder", false );
+                put( "fetchOpenOrder", true );
                 put( "fetchOpenOrders", true );
                 put( "fetchOption", false );
                 put( "fetchOptionChain", false );

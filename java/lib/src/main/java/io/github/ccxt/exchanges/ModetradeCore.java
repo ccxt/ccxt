@@ -49,6 +49,7 @@ public class ModetradeCore extends ModetradeApi
                 put( "createMarketOrderWithCost", false );
                 put( "createMarketSellOrderWithCost", false );
                 put( "createOrder", true );
+                put( "createOrders", true );
                 put( "createOrderWithTakeProfitAndStopLoss", true );
                 put( "createReduceOnlyOrder", true );
                 put( "createStopLimitOrder", true );
@@ -59,6 +60,7 @@ public class ModetradeCore extends ModetradeApi
                 put( "createTrailingAmountOrder", false );
                 put( "createTrailingPercentOrder", false );
                 put( "createTriggerOrder", true );
+                put( "editOrder", true );
                 put( "fetchAccounts", false );
                 put( "fetchBalance", true );
                 put( "fetchCanceledOrders", false );

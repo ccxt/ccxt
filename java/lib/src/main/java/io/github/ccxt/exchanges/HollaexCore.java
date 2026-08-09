@@ -57,6 +57,7 @@ public class HollaexCore extends HollaexApi
                 put( "fetchDepositAddresses", true );
                 put( "fetchDepositAddressesByNetwork", false );
                 put( "fetchDeposits", true );
+                put( "fetchDepositWithdrawFees", true );
                 put( "fetchFundingHistory", false );
                 put( "fetchFundingRate", false );
                 put( "fetchFundingRateHistory", false );

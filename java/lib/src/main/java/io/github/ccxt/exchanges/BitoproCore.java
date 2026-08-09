@@ -101,7 +101,7 @@ public class BitoproCore extends BitoproApi
                 put( "fetchOptionChain", false );
                 put( "fetchOrder", true );
                 put( "fetchOrderBook", true );
-                put( "fetchOrders", false );
+                put( "fetchOrders", true );
                 put( "fetchOrderTrades", false );
                 put( "fetchPosition", false );
                 put( "fetchPositionHistory", false );

@@ -112,6 +112,7 @@ public class BlofinCore extends BlofinApi
                 put( "fetchPositions", true );
                 put( "fetchPositionsADLRank", true );
                 put( "fetchPositionsForSymbol", false );
+                put( "fetchPositionsHistory", true );
                 put( "fetchPositionsRisk", false );
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchSettlementHistory", false );

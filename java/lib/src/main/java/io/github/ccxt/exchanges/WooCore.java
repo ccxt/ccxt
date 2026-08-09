@@ -59,6 +59,7 @@ public class WooCore extends WooApi
                 put( "createTrailingAmountOrder", true );
                 put( "createTrailingPercentOrder", true );
                 put( "createTriggerOrder", true );
+                put( "editOrder", true );
                 put( "fetchAccounts", true );
                 put( "fetchBalance", true );
                 put( "fetchCanceledOrders", false );
@@ -114,7 +115,7 @@ public class WooCore extends WooApi
                 put( "fetchTransactions", "emulated" );
                 put( "fetchTransfers", true );
                 put( "fetchWithdrawals", true );
-                put( "reduceMargin", false );
+                put( "reduceMargin", true );
                 put( "sandbox", true );
                 put( "setLeverage", true );
                 put( "setMargin", false );

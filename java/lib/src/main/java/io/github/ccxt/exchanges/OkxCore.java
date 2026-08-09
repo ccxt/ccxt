@@ -35,6 +35,7 @@ public class OkxCore extends OkxApi
                 put( "future", true );
                 put( "option", true );
                 put( "addMargin", true );
+                put( "borrowCrossMargin", true );
                 put( "cancelAllOrders", false );
                 put( "cancelAllOrdersAfter", true );
                 put( "cancelOrder", true );
@@ -124,6 +125,7 @@ public class OkxCore extends OkxApi
                 put( "fetchOrderTrades", true );
                 put( "fetchPosition", true );
                 put( "fetchPositionHistory", "emulated" );
+                put( "fetchPositionMode", true );
                 put( "fetchPositions", true );
                 put( "fetchPositionsForSymbol", true );
                 put( "fetchPositionsHistory", true );

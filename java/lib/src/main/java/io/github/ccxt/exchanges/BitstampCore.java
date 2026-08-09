@@ -49,6 +49,7 @@ public class BitstampCore extends BitstampApi
                 put( "createStopLimitOrder", false );
                 put( "createStopMarketOrder", false );
                 put( "createStopOrder", false );
+                put( "editOrder", true );
                 put( "fetchBalance", true );
                 put( "fetchBorrowInterest", false );
                 put( "fetchBorrowRate", false );
@@ -68,8 +69,8 @@ public class BitstampCore extends BitstampApi
                 put( "fetchFundingHistory", false );
                 put( "fetchFundingInterval", false );
                 put( "fetchFundingIntervals", false );
-                put( "fetchFundingRate", false );
-                put( "fetchFundingRateHistory", false );
+                put( "fetchFundingRate", true );
+                put( "fetchFundingRateHistory", true );
                 put( "fetchFundingRates", false );
                 put( "fetchGreeks", false );
                 put( "fetchIndexOHLCV", false );

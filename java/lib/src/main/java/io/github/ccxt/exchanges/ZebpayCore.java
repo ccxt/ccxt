@@ -65,10 +65,13 @@ public class ZebpayCore extends ZebpayApi
                 put( "fetchOrderBook", true );
                 put( "fetchOrderTrades", true );
                 put( "fetchPositions", true );
+                put( "fetchStatus", true );
                 put( "fetchTicker", true );
                 put( "fetchTickers", true );
+                put( "fetchTime", true );
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", true );
+                put( "fetchTradingFees", true );
                 put( "reduceMargin", true );
                 put( "repayCrossMargin", false );
                 put( "repayIsolatedMargin", false );

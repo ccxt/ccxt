@@ -66,6 +66,7 @@ public class BingxCore extends BingxApi
                 put( "fetchBorrowRateHistory", false );
                 put( "fetchBorrowRates", false );
                 put( "fetchBorrowRatesPerSymbol", false );
+                put( "fetchCanceledAndClosedOrders", true );
                 put( "fetchCanceledOrders", true );
                 put( "fetchClosedOrders", true );
                 put( "fetchCrossBorrowRate", false );
@@ -104,7 +105,7 @@ public class BingxCore extends BingxApi
                 put( "fetchOrderBook", true );
                 put( "fetchOrders", true );
                 put( "fetchPosition", true );
-                put( "fetchPositionHistory", false );
+                put( "fetchPositionHistory", true );
                 put( "fetchPositionMode", true );
                 put( "fetchPositions", true );
                 put( "fetchPositionsHistory", true );
@@ -125,6 +126,7 @@ public class BingxCore extends BingxApi
                 put( "setMarginMode", true );
                 put( "setPositionMode", true );
                 put( "transfer", true );
+                put( "withdraw", true );
             }} );
             put( "hostname", "bingx.com" );
             put( "urls", new java.util.HashMap<String, Object>() {{

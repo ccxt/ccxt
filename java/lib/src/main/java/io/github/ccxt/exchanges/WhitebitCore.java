@@ -40,7 +40,7 @@ public class WhitebitCore extends WhitebitApi
                 put( "createConvertTrade", true );
                 put( "createDepositAddress", true );
                 put( "createMarketBuyOrderWithCost", true );
-                put( "createMarketOrderWithCost", false );
+                put( "createMarketOrderWithCost", true );
                 put( "createMarketSellOrderWithCost", false );
                 put( "createOrder", true );
                 put( "createPostOnlyOrder", true );
@@ -51,6 +51,7 @@ public class WhitebitCore extends WhitebitApi
                 put( "editOrder", true );
                 put( "fetchAccounts", true );
                 put( "fetchBalance", true );
+                put( "fetchBorrowInterest", true );
                 put( "fetchBorrowRateHistories", false );
                 put( "fetchBorrowRateHistory", false );
                 put( "fetchClosedOrders", true );

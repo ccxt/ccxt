@@ -52,6 +52,7 @@ public class WoofiproCore extends WoofiproApi
                 put( "createMarketOrderWithCost", false );
                 put( "createMarketSellOrderWithCost", false );
                 put( "createOrder", true );
+                put( "createOrders", true );
                 put( "createOrderWithTakeProfitAndStopLoss", true );
                 put( "createReduceOnlyOrder", true );
                 put( "createStopLimitOrder", false );
@@ -62,6 +63,7 @@ public class WoofiproCore extends WoofiproApi
                 put( "createTrailingAmountOrder", false );
                 put( "createTrailingPercentOrder", false );
                 put( "createTriggerOrder", true );
+                put( "editOrder", true );
                 put( "fetchAccounts", false );
                 put( "fetchAllGreeks", false );
                 put( "fetchBalance", true );

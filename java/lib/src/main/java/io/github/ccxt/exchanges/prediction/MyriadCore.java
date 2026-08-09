@@ -38,6 +38,7 @@ public class MyriadCore extends MyriadApi
                 put( "cancelAllOrders", true );
                 put( "cancelOrder", true );
                 put( "cancelOrders", true );
+                put( "createMarketBuyOrderWithCost", true );
                 put( "createOrder", true );
                 put( "createOrders", true );
                 put( "editOrder", true );

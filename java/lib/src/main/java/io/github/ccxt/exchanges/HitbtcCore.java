@@ -35,7 +35,7 @@ public class HitbtcCore extends HitbtcApi
                 put( "addMargin", true );
                 put( "cancelAllOrders", true );
                 put( "cancelOrder", true );
-                put( "closePosition", false );
+                put( "closePosition", true );
                 put( "createDepositAddress", true );
                 put( "createOrder", true );
                 put( "createPostOnlyOrder", true );

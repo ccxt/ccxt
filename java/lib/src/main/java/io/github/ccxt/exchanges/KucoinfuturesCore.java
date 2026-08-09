@@ -35,6 +35,7 @@ public class KucoinfuturesCore extends KucoinfuturesApi
                 put( "future", true );
                 put( "option", null );
                 put( "fetchBidsAsks", true );
+                put( "transfer", true );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
                 put( "fetchMarkets", new java.util.HashMap<String, Object>() {{

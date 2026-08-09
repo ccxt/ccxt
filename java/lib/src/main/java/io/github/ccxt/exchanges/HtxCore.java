@@ -118,7 +118,7 @@ public class HtxCore extends HtxApi
                 put( "fetchPositionsRisk", false );
                 put( "fetchPremiumIndexOHLCV", true );
                 put( "fetchSettlementHistory", true );
-                put( "fetchStatus", false );
+                put( "fetchStatus", true );
                 put( "fetchTicker", true );
                 put( "fetchTickers", true );
                 put( "fetchTime", true );

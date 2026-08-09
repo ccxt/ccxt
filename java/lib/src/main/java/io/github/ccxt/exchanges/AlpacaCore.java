@@ -60,6 +60,7 @@ public class AlpacaCore extends AlpacaApi
                 put( "createMarketBuyOrder", true );
                 put( "createMarketBuyOrderWithCost", true );
                 put( "createMarketOrderWithCost", true );
+                put( "createMarketSellOrderWithCost", true );
                 put( "createOrder", true );
                 put( "createOrderWithTakeProfitAndStopLoss", false );
                 put( "createOrderWithTakeProfitAndStopLossWs", false );

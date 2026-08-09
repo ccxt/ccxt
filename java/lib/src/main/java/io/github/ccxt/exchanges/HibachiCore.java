@@ -95,6 +95,7 @@ public class HibachiCore extends HibachiApi
                 put( "fetchOrder", true );
                 put( "fetchOrderBook", true );
                 put( "fetchOrders", false );
+                put( "fetchOrdersByStatus", true );
                 put( "fetchOrderTrades", false );
                 put( "fetchPosition", false );
                 put( "fetchPositionMode", false );

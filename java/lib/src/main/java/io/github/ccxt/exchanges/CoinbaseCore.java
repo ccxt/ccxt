@@ -131,6 +131,7 @@ public class CoinbaseCore extends CoinbaseApi
                 put( "fetchOrder", true );
                 put( "fetchOrderBook", true );
                 put( "fetchOrders", true );
+                put( "fetchOrdersByStatus", true );
                 put( "fetchPosition", true );
                 put( "fetchPositionHistory", false );
                 put( "fetchPositionMode", false );

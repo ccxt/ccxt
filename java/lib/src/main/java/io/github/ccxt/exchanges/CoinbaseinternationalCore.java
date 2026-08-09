@@ -70,6 +70,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "fetchCrossBorrowRates", false );
                 put( "fetchCurrencies", true );
                 put( "fetchDeposits", true );
+                put( "fetchDepositsWithdrawals", true );
                 put( "fetchFundingHistory", true );
                 put( "fetchFundingRate", false );
                 put( "fetchFundingRateHistory", true );
@@ -115,6 +116,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "setMargin", true );
                 put( "setMarginMode", false );
                 put( "setPositionMode", false );
+                put( "transfer", true );
                 put( "withdraw", true );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
