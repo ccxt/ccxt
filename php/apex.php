@@ -119,7 +119,7 @@ class apex extends Exchange {
                 'setLeverage' => true,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
-                'transfer' => false,
+                'transfer' => true,
                 'withdraw' => false,
             ),
             'timeframes' => array(

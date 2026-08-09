@@ -92,7 +92,7 @@ class bitopro extends Exchange {
                 'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => false,
+                'fetchOrders' => true,
                 'fetchOrderTrades' => false,
                 'fetchPosition' => false,
                 'fetchPositionHistory' => false,

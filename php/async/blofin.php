@@ -112,6 +112,7 @@ class blofin extends Exchange {
                 'fetchPositions' => true,
                 'fetchPositionsADLRank' => true,
                 'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchSettlementHistory' => false,

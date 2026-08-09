@@ -31,7 +31,7 @@ class mexc extends Exchange {
                 'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'cancelOrders' => null,
+                'cancelOrders' => true,
                 'closeAllPositions' => true,
                 'closePosition' => false,
                 'createDepositAddress' => true,
@@ -131,7 +131,7 @@ class mexc extends Exchange {
                 'setMarginMode' => true,
                 'setPositionMode' => true,
                 'signIn' => null,
-                'transfer' => null,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
