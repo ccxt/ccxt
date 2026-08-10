@@ -1,0 +1,860 @@
+{
+ "BTC/USDT:USDT-230630": {
+  "id": "btc_usdt_230630",
+  "symbol": "BTC/USDT:USDT-230630",
+  "base": "BTC",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "btc",
+  "quoteId": "usdt",
+  "settleId": "btc",
+  "type": "future",
+  "spot": false,
+  "swap": false,
+  "future": true,
+  "option": false,
+  "active": false,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.0006,
+  "maker": 0.0004,
+  "contractSize": 0.001,
+  "expiry": 1688112000000,
+  "expiryDatetime": "2023-06-30T08:00:00.000Z",
+  "precision": {
+   "price": 0.01,
+   "amount": 1,
+   "base": 1e-8,
+   "quote": 1e-8
+  },
+  "limits": {
+   "leverage": {
+    "min": 1
+   },
+   "amount": {
+    "min": 1
+   },
+   "price": {
+    "min": 0,
+    "max": 1
+   },
+   "cost": {
+    "min": 5,
+    "max": 5000000
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "id": 223,
+   "symbol": "btc_usdt_230630",
+   "symbolId": 223,
+   "symbolGroupId": 80,
+   "pair": "btc_usdt",
+   "contractType": "CURRENT_QUARTER",
+   "productType": "futures",
+   "predictEventType": null,
+   "predictEventParam": null,
+   "predictEventSort": null,
+   "underlyingType": "U_BASED",
+   "contractSize": "0.001",
+   "thanosSwitch": false,
+   "tradeSwitch": false,
+   "openSwitch": true,
+   "isDisplay": false,
+   "isOpenApi": false,
+   "state": 0,
+   "initLeverage": 20,
+   "initPositionType": "CROSSED",
+   "baseCoin": "btc",
+   "spotCoin": "btc",
+   "quoteCoin": "usdt",
+   "baseCoinPrecision": 8,
+   "baseCoinDisplayPrecision": 4,
+   "quoteCoinPrecision": 8,
+   "quoteCoinDisplayPrecision": 4,
+   "quantityPrecision": 0,
+   "pricePrecision": 2,
+   "supportOrderType": "LIMIT,MARKET",
+   "supportTimeInForce": "GTC,FOK,IOC,GTX",
+   "supportEntrustType": "TAKE_PROFIT,STOP,TAKE_PROFIT_MARKET,STOP_MARKET,TRAILING_STOP_MARKET",
+   "supportPositionType": "CROSSED,ISOLATED",
+   "minQty": "1",
+   "minNotional": "5",
+   "maxNotional": "5000000",
+   "maxMarketOrderQty": null,
+   "maxLimitOrderQty": null,
+   "maxMarketOrderNotional": null,
+   "maxLimitOrderNotional": null,
+   "multiplierDown": "0.01",
+   "multiplierUp": "0.01",
+   "maxOpenOrders": 200,
+   "maxEntrusts": 200,
+   "makerFee": "0.0004",
+   "takerFee": "0.0006",
+   "liquidationFee": "0.015",
+   "useIndependentFeeRate": false,
+   "marketTakeBound": "0.01",
+   "depthPrecisionMerge": 5,
+   "labels": [
+    "HOT"
+   ],
+   "onboardDate": 1680170400000,
+   "enName": "btc_usdt quarterly 230630",
+   "cnName": "btc_usdt 当季 230630",
+   "tags": null,
+   "minStepPrice": "0.05",
+   "minPrice": "0",
+   "maxPrice": "1",
+   "deliveryDate": 1688112000000,
+   "deliveryPrice": "30732.67",
+   "deliveryCompletion": true,
+   "cnDesc": null,
+   "enDesc": null,
+   "cnRemark": null,
+   "enRemark": null,
+   "plates": [],
+   "fastTrackCallbackRate1": "0.01",
+   "fastTrackCallbackRate2": "0.02",
+   "minTrackCallbackRate": "0.001",
+   "maxTrackCallbackRate": "0.1",
+   "latestPriceDeviation": 0.01,
+   "marketOpenTakeBound": 0.01,
+   "marketCloseTakeBound": 0.01,
+   "offTime": null,
+   "updatedTime": "2025-09-04T12:06:39",
+   "displaySwitch": true,
+   "curMaxLeverage": null,
+   "riskNominalValueCoefficient": 1,
+   "riskExpireTime": null,
+   "nextOpenTime": 0,
+   "preMarket": null,
+   "preMarketPhase": null,
+   "preMarketPhaseDesc": null,
+   "preMarketNoMarketOrderUntil": null,
+   "noMarketOrderMinutes": null,
+   "preMarketEnabled": null,
+   "inPreMarket": false,
+   "inPreMarketNoMarketOrder": false,
+   "businessName": null
+  }
+ },
+ "BTC/USDT": {
+  "id": "btc_usdt",
+  "symbol": "BTC/USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "baseId": "btc",
+  "quoteId": "usdt",
+  "type": "spot",
+  "spot": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "precision": {
+   "price": 0.01,
+   "amount": 0.00001
+  },
+  "limits": {
+   "leverage": {
+    "min": 1
+   },
+   "amount": {},
+   "price": {},
+   "cost": {
+    "min": 1
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "id": 614,
+   "symbol": "btc_usdt",
+   "displayName": "BTC/USDT",
+   "type": "normal",
+   "state": "ONLINE",
+   "stateTime": 1554048000000,
+   "tradingEnabled": true,
+   "openapiEnabled": true,
+   "nextStateTime": null,
+   "nextState": null,
+   "depthMergePrecision": 5,
+   "baseCurrency": "btc",
+   "baseCurrencyPrecision": 10,
+   "baseCurrencyId": 2,
+   "baseCurrencyLogo": "https://a.static-global.com/1/currency/2766ded1-6427-4258-85ef-3179d183c404-1732260170319.png",
+   "quoteCurrency": "usdt",
+   "quoteCurrencyPrecision": 8,
+   "quoteCurrencyId": 11,
+   "pricePrecision": 2,
+   "quantityPrecision": 5,
+   "orderTypes": [
+    "LIMIT",
+    "MARKET"
+   ],
+   "timeInForces": [
+    "GTC",
+    "IOC"
+   ],
+   "displayWeight": 10001,
+   "displayLevel": "FULL",
+   "plates": [
+    283,
+    282
+   ],
+   "businessNameI18n": null,
+   "tags": [],
+   "filters": [
+    {
+     "filter": "PROTECTION_LIMIT",
+     "sellPriceLimitCoefficient": "0.8",
+     "buyMaxDeviation": "0.8",
+     "buyPriceLimitCoefficient": "4",
+     "sellMaxDeviation": "4"
+    },
+    {
+     "filter": "PROTECTION_MARKET",
+     "maxDeviation": "0.02"
+    },
+    {
+     "filter": "QUOTE_QTY",
+     "min": "1",
+     "avgPriceMins": "5"
+    }
+   ],
+   "takerFeeRate": "0.002",
+   "makerFeeRate": "0.002",
+   "chainRelation": [
+    {
+     "chainId": 2,
+     "contract": ""
+    },
+    {
+     "chainId": 1105,
+     "contract": "1PLkYmBWchh8cFaNVb57senBzfcjFmByHi"
+    },
+    {
+     "chainId": 715,
+     "contract": "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c"
+    },
+    {
+     "chainId": 5,
+     "contract": "0x9BE89D2a4cd102D8Fecc6BF9dA793be995C22541"
+    },
+    {
+     "chainId": 2245,
+     "contract": ""
+    },
+    {
+     "chainId": 2395,
+     "contract": ""
+    }
+   ]
+  }
+ },
+ "BTC/USDT:USDT": {
+  "id": "btc_usdt",
+  "symbol": "BTC/USDT:USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "btc",
+  "quoteId": "usdt",
+  "settleId": "btc",
+  "type": "swap",
+  "spot": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.0006,
+  "maker": 0.0004,
+  "contractSize": 0.0001,
+  "precision": {
+   "price": 0.1,
+   "amount": 1,
+   "base": 1e-8,
+   "quote": 1e-8
+  },
+  "limits": {
+   "leverage": {
+    "min": 1
+   },
+   "amount": {
+    "min": 1
+   },
+   "price": {},
+   "cost": {
+    "min": 10,
+    "max": 25000000
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "id": 8,
+   "symbol": "btc_usdt",
+   "symbolId": 8,
+   "symbolGroupId": 1,
+   "pair": "btc_usdt",
+   "contractType": "PERPETUAL",
+   "productType": "perpetual",
+   "predictEventType": null,
+   "predictEventParam": null,
+   "predictEventSort": null,
+   "underlyingType": "U_BASED",
+   "contractSize": "0.0001",
+   "thanosSwitch": true,
+   "tradeSwitch": true,
+   "openSwitch": true,
+   "isDisplay": true,
+   "isOpenApi": true,
+   "state": 0,
+   "initLeverage": 20,
+   "initPositionType": "CROSSED",
+   "baseCoin": "btc",
+   "spotCoin": "btc",
+   "quoteCoin": "usdt",
+   "baseCoinPrecision": 8,
+   "baseCoinDisplayPrecision": 4,
+   "quoteCoinPrecision": 8,
+   "quoteCoinDisplayPrecision": 4,
+   "quantityPrecision": 0,
+   "pricePrecision": 1,
+   "supportOrderType": "LIMIT,MARKET",
+   "supportTimeInForce": "GTC,FOK,IOC,GTX",
+   "supportEntrustType": "TAKE_PROFIT,STOP,TAKE_PROFIT_MARKET,STOP_MARKET,TRAILING_STOP_MARKET",
+   "supportPositionType": "CROSSED,ISOLATED",
+   "minQty": "1",
+   "minNotional": "10",
+   "maxNotional": "25000000",
+   "maxMarketOrderQty": "50",
+   "maxLimitOrderQty": "1000",
+   "maxMarketOrderNotional": null,
+   "maxLimitOrderNotional": null,
+   "multiplierDown": "0.05",
+   "multiplierUp": "0.05",
+   "maxOpenOrders": 200,
+   "maxEntrusts": 120,
+   "makerFee": "0.0004",
+   "takerFee": "0.0006",
+   "liquidationFee": "0.0125",
+   "useIndependentFeeRate": false,
+   "marketTakeBound": "0.03",
+   "depthPrecisionMerge": 5,
+   "labels": [
+    "HOT"
+   ],
+   "onboardDate": 1654857001000,
+   "enName": "BTCUSDT ",
+   "cnName": "BTCUSDT ",
+   "tags": null,
+   "minStepPrice": "0.1",
+   "minPrice": null,
+   "maxPrice": null,
+   "deliveryDate": null,
+   "deliveryPrice": null,
+   "deliveryCompletion": false,
+   "cnDesc": null,
+   "enDesc": null,
+   "cnRemark": null,
+   "enRemark": null,
+   "plates": [
+    1,
+    13,
+    30
+   ],
+   "fastTrackCallbackRate1": "0.01",
+   "fastTrackCallbackRate2": "0.02",
+   "minTrackCallbackRate": "0.001",
+   "maxTrackCallbackRate": "0.1",
+   "latestPriceDeviation": 0.05,
+   "marketOpenTakeBound": 0.03,
+   "marketCloseTakeBound": 0.05,
+   "offTime": null,
+   "updatedTime": "2026-07-22T14:08:10",
+   "displaySwitch": true,
+   "curMaxLeverage": null,
+   "riskNominalValueCoefficient": 1,
+   "riskExpireTime": null,
+   "nextOpenTime": null,
+   "preMarket": null,
+   "preMarketPhase": null,
+   "preMarketPhaseDesc": null,
+   "preMarketNoMarketOrderUntil": null,
+   "noMarketOrderMinutes": null,
+   "preMarketEnabled": null,
+   "inPreMarket": false,
+   "inPreMarketNoMarketOrder": false,
+   "businessName": null
+  }
+ },
+ "BTC/USDT:USDT-230929": {
+  "id": "btc_usdt_230929",
+  "symbol": "BTC/USDT:USDT-230929",
+  "base": "BTC",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "btc",
+  "quoteId": "usdt",
+  "settleId": "btc",
+  "type": "future",
+  "spot": false,
+  "swap": false,
+  "future": true,
+  "option": false,
+  "active": false,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.0006,
+  "maker": 0.0004,
+  "contractSize": 0.001,
+  "expiry": 1695974400000,
+  "expiryDatetime": "2023-09-29T08:00:00.000Z",
+  "precision": {
+   "price": 0.01,
+   "amount": 1,
+   "base": 1e-8,
+   "quote": 1e-8
+  },
+  "limits": {
+   "leverage": {
+    "min": 1
+   },
+   "amount": {
+    "min": 1
+   },
+   "price": {
+    "min": 0,
+    "max": 1
+   },
+   "cost": {
+    "min": 5,
+    "max": 5000000
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "id": 484,
+   "symbol": "btc_usdt_230929",
+   "symbolId": 484,
+   "symbolGroupId": 80,
+   "pair": "btc_usdt",
+   "contractType": "CURRENT_QUARTER",
+   "productType": "futures",
+   "predictEventType": null,
+   "predictEventParam": null,
+   "predictEventSort": null,
+   "underlyingType": "U_BASED",
+   "contractSize": "0.001",
+   "thanosSwitch": false,
+   "tradeSwitch": false,
+   "openSwitch": true,
+   "isDisplay": false,
+   "isOpenApi": false,
+   "state": 0,
+   "initLeverage": 20,
+   "initPositionType": "CROSSED",
+   "baseCoin": "btc",
+   "spotCoin": "btc",
+   "quoteCoin": "usdt",
+   "baseCoinPrecision": 8,
+   "baseCoinDisplayPrecision": 4,
+   "quoteCoinPrecision": 8,
+   "quoteCoinDisplayPrecision": 4,
+   "quantityPrecision": 0,
+   "pricePrecision": 2,
+   "supportOrderType": "LIMIT,MARKET",
+   "supportTimeInForce": "GTC,FOK,IOC,GTX",
+   "supportEntrustType": "TAKE_PROFIT,STOP,TAKE_PROFIT_MARKET,STOP_MARKET,TRAILING_STOP_MARKET",
+   "supportPositionType": "CROSSED,ISOLATED",
+   "minQty": "1",
+   "minNotional": "5",
+   "maxNotional": "5000000",
+   "maxMarketOrderQty": null,
+   "maxLimitOrderQty": null,
+   "maxMarketOrderNotional": null,
+   "maxLimitOrderNotional": null,
+   "multiplierDown": "0.05",
+   "multiplierUp": "0.05",
+   "maxOpenOrders": 200,
+   "maxEntrusts": 200,
+   "makerFee": "0.0004",
+   "takerFee": "0.0006",
+   "liquidationFee": "0.015",
+   "useIndependentFeeRate": false,
+   "marketTakeBound": "0.03",
+   "depthPrecisionMerge": 5,
+   "labels": [],
+   "onboardDate": 1673229600000,
+   "enName": "btc_usdt quarterly 230929",
+   "cnName": "btc_usdt 当季 230929",
+   "tags": null,
+   "minStepPrice": "0.01",
+   "minPrice": "0",
+   "maxPrice": "1",
+   "deliveryDate": 1695974400000,
+   "deliveryPrice": "27101.42",
+   "deliveryCompletion": true,
+   "cnDesc": null,
+   "enDesc": null,
+   "cnRemark": null,
+   "enRemark": null,
+   "plates": [],
+   "fastTrackCallbackRate1": "0.01",
+   "fastTrackCallbackRate2": "0.02",
+   "minTrackCallbackRate": "0.001",
+   "maxTrackCallbackRate": "0.1",
+   "latestPriceDeviation": 0.01,
+   "marketOpenTakeBound": 0.03,
+   "marketCloseTakeBound": 0.03,
+   "offTime": null,
+   "updatedTime": "2025-04-07T09:34:29",
+   "displaySwitch": true,
+   "curMaxLeverage": null,
+   "riskNominalValueCoefficient": 1,
+   "riskExpireTime": null,
+   "nextOpenTime": 0,
+   "preMarket": null,
+   "preMarketPhase": null,
+   "preMarketPhaseDesc": null,
+   "preMarketNoMarketOrderUntil": null,
+   "noMarketOrderMinutes": null,
+   "preMarketEnabled": null,
+   "inPreMarket": false,
+   "inPreMarketNoMarketOrder": false,
+   "businessName": null
+  }
+ },
+ "ETH/USDT": {
+  "id": "eth_usdt",
+  "symbol": "ETH/USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "baseId": "eth",
+  "quoteId": "usdt",
+  "type": "spot",
+  "spot": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "precision": {
+   "price": 0.01,
+   "amount": 0.0001
+  },
+  "limits": {
+   "leverage": {
+    "min": 1
+   },
+   "amount": {},
+   "price": {},
+   "cost": {
+    "min": 1
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "id": 616,
+   "symbol": "eth_usdt",
+   "displayName": "ETH/USDT",
+   "type": "normal",
+   "state": "ONLINE",
+   "stateTime": 1554048000000,
+   "tradingEnabled": true,
+   "openapiEnabled": true,
+   "nextStateTime": null,
+   "nextState": null,
+   "depthMergePrecision": 5,
+   "baseCurrency": "eth",
+   "baseCurrencyPrecision": 8,
+   "baseCurrencyId": 5,
+   "baseCurrencyLogo": "https://a.static-global.com/1/currency/5416a750-95fe-4ea7-8fd1-0e4780594251-1732260189379.png",
+   "quoteCurrency": "usdt",
+   "quoteCurrencyPrecision": 8,
+   "quoteCurrencyId": 11,
+   "pricePrecision": 2,
+   "quantityPrecision": 4,
+   "orderTypes": [
+    "LIMIT",
+    "MARKET"
+   ],
+   "timeInForces": [
+    "GTC",
+    "IOC"
+   ],
+   "displayWeight": 10000,
+   "displayLevel": "FULL",
+   "plates": [
+    283,
+    282
+   ],
+   "businessNameI18n": null,
+   "tags": [],
+   "filters": [
+    {
+     "filter": "PROTECTION_LIMIT",
+     "sellPriceLimitCoefficient": "0.8",
+     "buyMaxDeviation": "0.8",
+     "buyPriceLimitCoefficient": "4",
+     "sellMaxDeviation": "4"
+    },
+    {
+     "filter": "PROTECTION_MARKET",
+     "maxDeviation": "0.02"
+    },
+    {
+     "filter": "QUOTE_QTY",
+     "min": "1",
+     "avgPriceMins": "5"
+    }
+   ],
+   "takerFeeRate": "0.002",
+   "makerFeeRate": "0.002",
+   "chainRelation": [
+    {
+     "chainId": 5,
+     "contract": ""
+    },
+    {
+     "chainId": 1105,
+     "contract": "0xe0a616c3659be29567e08819772e6905307adf21"
+    },
+    {
+     "chainId": 1464,
+     "contract": "0xb21E5773d8e8dCB1F4ca28b3F076171c5A440bd1"
+    },
+    {
+     "chainId": 2178,
+     "contract": ""
+    },
+    {
+     "chainId": 1664,
+     "contract": ""
+    },
+    {
+     "chainId": 2227,
+     "contract": ""
+    },
+    {
+     "chainId": 2232,
+     "contract": ""
+    },
+    {
+     "chainId": 2238,
+     "contract": ""
+    },
+    {
+     "chainId": 2225,
+     "contract": ""
+    },
+    {
+     "chainId": 2258,
+     "contract": ""
+    },
+    {
+     "chainId": 2264,
+     "contract": ""
+    },
+    {
+     "chainId": 2268,
+     "contract": ""
+    },
+    {
+     "chainId": 268,
+     "contract": ""
+    },
+    {
+     "chainId": 2247,
+     "contract": ""
+    },
+    {
+     "chainId": 2284,
+     "contract": ""
+    },
+    {
+     "chainId": 1769,
+     "contract": ""
+    },
+    {
+     "chainId": 2287,
+     "contract": ""
+    },
+    {
+     "chainId": 2289,
+     "contract": ""
+    },
+    {
+     "chainId": 715,
+     "contract": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8  "
+    },
+    {
+     "chainId": 2304,
+     "contract": ""
+    },
+    {
+     "chainId": 2330,
+     "contract": ""
+    },
+    {
+     "chainId": 2391,
+     "contract": ""
+    },
+    {
+     "chainId": 2403,
+     "contract": ""
+    }
+   ]
+  }
+ },
+ "ETH/USDT:USDT": {
+  "id": "eth_usdt",
+  "symbol": "ETH/USDT:USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "eth",
+  "quoteId": "usdt",
+  "settleId": "eth",
+  "type": "swap",
+  "spot": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.0006,
+  "maker": 0.0004,
+  "contractSize": 0.01,
+  "precision": {
+   "price": 0.01,
+   "amount": 1,
+   "base": 1e-8,
+   "quote": 1e-8
+  },
+  "limits": {
+   "leverage": {
+    "min": 1
+   },
+   "amount": {
+    "min": 1
+   },
+   "price": {},
+   "cost": {
+    "min": 5,
+    "max": 25000000
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "id": 9,
+   "symbol": "eth_usdt",
+   "symbolId": 9,
+   "symbolGroupId": 21,
+   "pair": "eth_usdt",
+   "contractType": "PERPETUAL",
+   "productType": "perpetual",
+   "predictEventType": null,
+   "predictEventParam": null,
+   "predictEventSort": null,
+   "underlyingType": "U_BASED",
+   "contractSize": "0.01",
+   "thanosSwitch": true,
+   "tradeSwitch": true,
+   "openSwitch": true,
+   "isDisplay": true,
+   "isOpenApi": true,
+   "state": 0,
+   "initLeverage": 20,
+   "initPositionType": "CROSSED",
+   "baseCoin": "eth",
+   "spotCoin": "eth",
+   "quoteCoin": "usdt",
+   "baseCoinPrecision": 8,
+   "baseCoinDisplayPrecision": 4,
+   "quoteCoinPrecision": 8,
+   "quoteCoinDisplayPrecision": 4,
+   "quantityPrecision": 0,
+   "pricePrecision": 2,
+   "supportOrderType": "LIMIT,MARKET",
+   "supportTimeInForce": "GTC,FOK,IOC,GTX",
+   "supportEntrustType": "TAKE_PROFIT,STOP,TAKE_PROFIT_MARKET,STOP_MARKET,TRAILING_STOP_MARKET",
+   "supportPositionType": "CROSSED,ISOLATED",
+   "minQty": "1",
+   "minNotional": "5",
+   "maxNotional": "25000000",
+   "maxMarketOrderQty": "2000",
+   "maxLimitOrderQty": "10000",
+   "maxMarketOrderNotional": null,
+   "maxLimitOrderNotional": null,
+   "multiplierDown": "0.05",
+   "multiplierUp": "0.05",
+   "maxOpenOrders": 200,
+   "maxEntrusts": 120,
+   "makerFee": "0.0004",
+   "takerFee": "0.0006",
+   "liquidationFee": "0.0125",
+   "useIndependentFeeRate": false,
+   "marketTakeBound": "0.03",
+   "depthPrecisionMerge": 5,
+   "labels": [
+    "HOT"
+   ],
+   "onboardDate": 1654858201000,
+   "enName": "ETHUSDT",
+   "cnName": "ETHUSDT",
+   "tags": null,
+   "minStepPrice": "0.01",
+   "minPrice": null,
+   "maxPrice": null,
+   "deliveryDate": null,
+   "deliveryPrice": null,
+   "deliveryCompletion": false,
+   "cnDesc": null,
+   "enDesc": null,
+   "cnRemark": null,
+   "enRemark": null,
+   "plates": [
+    1,
+    9,
+    30
+   ],
+   "fastTrackCallbackRate1": "0.01",
+   "fastTrackCallbackRate2": "0.02",
+   "minTrackCallbackRate": "0.001",
+   "maxTrackCallbackRate": "0.1",
+   "latestPriceDeviation": 0.05,
+   "marketOpenTakeBound": 0.03,
+   "marketCloseTakeBound": 0.05,
+   "offTime": null,
+   "updatedTime": "2026-07-22T14:08:33",
+   "displaySwitch": true,
+   "curMaxLeverage": null,
+   "riskNominalValueCoefficient": 1,
+   "riskExpireTime": null,
+   "nextOpenTime": null,
+   "preMarket": null,
+   "preMarketPhase": null,
+   "preMarketPhaseDesc": null,
+   "preMarketNoMarketOrderUntil": null,
+   "noMarketOrderMinutes": null,
+   "preMarketEnabled": null,
+   "inPreMarket": false,
+   "inPreMarketNoMarketOrder": false,
+   "businessName": null
+  }
+ }
+}

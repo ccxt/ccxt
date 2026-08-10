@@ -1,0 +1,674 @@
+{
+ "BTC": {
+  "info": {
+   "id": 2,
+   "fullname": "Bitcoin",
+   "symbol": "btc",
+   "active": true,
+   "verified": true,
+   "allow_deposit": true,
+   "allow_withdrawal": true,
+   "withdrawal_fee": 0,
+   "min": 0.00001,
+   "max": 100,
+   "increment_unit": 1e-8,
+   "logo": "https://resources.hollaex.com/icons/btc.svg",
+   "code": "btc",
+   "is_public": true,
+   "meta": {
+    "color": "#fe9d00",
+    "website": "https://bitcoin.org",
+    "explorer": "https://blockstream.info",
+    "estimated_price_last_updated": "2026-08-07T00:29:03.000Z"
+   },
+   "estimated_price": 64245.89738995159,
+   "description": "<p>Bitcoin is the first widely used decentralized digital currency. It uses cryptography for security and is based on a peer-to-peer network. It was created in 2009 by an unknown individual or group of individuals using the pseudonym \"Satoshi Nakamoto.\" Transactions with bitcoin are recorded on a public ledger called the &lsquo;blockchain&rsquo; which Satoshi first coined and popularized. Users can manage their bitcoin using a wallet that stores their private keys. Bitcoin can be used for a variety of purposes, including purchasing goods and services, trading, and investing.</p>\r\n<p><a href=\"https://www.blockchain.com/explorer?view=btc\" target=\"_blank\" rel=\"noopener\">View blockchain activity</a></p>",
+   "type": "blockchain",
+   "network": "btc",
+   "standard": null,
+   "issuer": "HollaEx",
+   "withdrawal_fees": {
+    "btc": {
+     "value": 0.00005,
+     "symbol": "btc"
+    }
+   },
+   "display_name": null,
+   "deposit_fees": null,
+   "is_risky": false,
+   "market_cap": 1349163845188.98,
+   "category": null,
+   "created_at": "2019-08-09T10:45:43.367Z",
+   "updated_at": "2026-08-07T00:30:04.077Z",
+   "created_by": 1,
+   "owner_id": 1
+  },
+  "id": "btc",
+  "numericId": 2,
+  "code": "BTC",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Bitcoin",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0,
+  "fees": {},
+  "networks": {
+   "BTC": {
+    "id": "btc",
+    "network": "BTC",
+    "fee": 0.00005,
+    "limits": {
+     "withdraw": {}
+    },
+    "info": {
+     "value": 0.00005,
+     "symbol": "btc"
+    }
+   }
+  },
+  "limits": {
+   "amount": {
+    "min": 0.00001,
+    "max": 100
+   },
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "ETH": {
+  "info": {
+   "id": 3,
+   "fullname": "Ethereum",
+   "symbol": "eth",
+   "active": true,
+   "verified": true,
+   "allow_deposit": true,
+   "allow_withdrawal": true,
+   "withdrawal_fee": 0.01,
+   "min": 0.0001,
+   "max": 10000,
+   "increment_unit": 0.00001,
+   "logo": "https://resources.hollaex.com/icons/eth.svg",
+   "code": "eth",
+   "is_public": true,
+   "meta": {
+    "color": "#637de7",
+    "website": "https://ethereum.org",
+    "explorer": "https://etherscan.io",
+    "estimated_price_last_updated": "2026-08-07T00:29:03.000Z"
+   },
+   "estimated_price": 1900.6307030628352,
+   "description": "<p>Ethereum is a smart contract decentralized application blockchain. It was developed by Vitalik Buterin and launched in 2015. Ethereum is based on a distributed computing platform and has its own programming language, which allows developers to build and deploy decentralized applications. Unlike bitcoin, which is primarily used as a digital currency, Ethereum is used to build and run applications on its blockchain. These applications can be used for a wide variety of purposes, such as tracking supply chain data, managing financial contracts, and enabling secure online voting.</p>\r\n<p><a href=\"https://etherscan.io/\" target=\"_blank\" rel=\"noopener\">View blockchain activity</a></p>",
+   "type": "blockchain",
+   "network": "eth",
+   "standard": null,
+   "issuer": "HollaEx",
+   "withdrawal_fees": {
+    "eth": {
+     "value": 0.0001,
+     "active": true,
+     "symbol": "eth"
+    }
+   },
+   "display_name": null,
+   "deposit_fees": null,
+   "is_risky": false,
+   "market_cap": 229372185253.73,
+   "category": null,
+   "created_at": "2019-08-09T10:45:43.367Z",
+   "updated_at": "2026-08-07T00:30:04.440Z",
+   "created_by": 1,
+   "owner_id": 1
+  },
+  "id": "eth",
+  "numericId": 3,
+  "code": "ETH",
+  "precision": 0.00001,
+  "type": "crypto",
+  "name": "Ethereum",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.0001,
+  "fees": {},
+  "networks": {
+   "ETH": {
+    "id": "eth",
+    "network": "ETH",
+    "active": true,
+    "fee": 0.0001,
+    "limits": {
+     "withdraw": {}
+    },
+    "info": {
+     "value": 0.0001,
+     "active": true,
+     "symbol": "eth"
+    }
+   }
+  },
+  "limits": {
+   "amount": {
+    "min": 0.0001,
+    "max": 10000
+   },
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "USDT": {
+  "info": {
+   "id": 6,
+   "fullname": "USD Tether",
+   "symbol": "usdt",
+   "active": true,
+   "verified": true,
+   "allow_deposit": true,
+   "allow_withdrawal": true,
+   "withdrawal_fee": 20,
+   "min": 1,
+   "max": 10000000,
+   "increment_unit": 0.0001,
+   "logo": "https://resources.hollaex.com/icons/usdt.svg",
+   "code": "usdt",
+   "is_public": true,
+   "meta": {
+    "color": "#27a17a",
+    "website": "https://tether.to",
+    "explorer": "https://blockchair.com/tether",
+    "decimal_points": 6
+   },
+   "estimated_price": 1,
+   "description": "<p>Tether (USDT) is a stablecoin pegged 1:1 to the US dollar. It is a digital currency that aims to maintain its value while allowing for fast and secure transfer of funds. It was the first stablecoin, and is the most widely used due stablecoin due to its stability and low volatility compared to other cryptocurrencies. It was launched in 2014 by Tether Limited.</p>",
+   "type": "blockchain",
+   "network": "eth,trx,bnb,matic",
+   "standard": "",
+   "issuer": "HollaEx",
+   "withdrawal_fees": {
+    "bnb": {
+     "value": 0.3,
+     "active": true,
+     "symbol": "usdt"
+    },
+    "eth": {
+     "value": 0.5,
+     "active": true,
+     "symbol": "usdt"
+    },
+    "trx": {
+     "value": 2,
+     "active": true,
+     "symbol": "usdt"
+    },
+    "matic": {
+     "value": 0.2,
+     "active": true,
+     "symbol": "usdt"
+    }
+   },
+   "display_name": null,
+   "deposit_fees": null,
+   "is_risky": false,
+   "market_cap": 144568098696.29,
+   "category": "stable",
+   "created_at": "2019-08-09T10:45:43.367Z",
+   "updated_at": "2025-09-12T17:32:19.437Z",
+   "created_by": 168,
+   "owner_id": 1
+  },
+  "id": "usdt",
+  "numericId": 6,
+  "code": "USDT",
+  "precision": 0.0001,
+  "type": "crypto",
+  "name": "USD Tether",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.2,
+  "fees": {},
+  "networks": {
+   "BNB": {
+    "id": "bnb",
+    "network": "BNB",
+    "active": true,
+    "fee": 0.3,
+    "limits": {
+     "withdraw": {}
+    },
+    "info": {
+     "value": 0.3,
+     "active": true,
+     "symbol": "usdt"
+    }
+   },
+   "ERC20": {
+    "id": "eth",
+    "network": "ERC20",
+    "active": true,
+    "fee": 0.5,
+    "limits": {
+     "withdraw": {}
+    },
+    "info": {
+     "value": 0.5,
+     "active": true,
+     "symbol": "usdt"
+    }
+   },
+   "TRC20": {
+    "id": "trx",
+    "network": "TRC20",
+    "active": true,
+    "fee": 2,
+    "limits": {
+     "withdraw": {}
+    },
+    "info": {
+     "value": 2,
+     "active": true,
+     "symbol": "usdt"
+    }
+   },
+   "MATIC": {
+    "id": "matic",
+    "network": "MATIC",
+    "active": true,
+    "fee": 0.2,
+    "limits": {
+     "withdraw": {}
+    },
+    "info": {
+     "value": 0.2,
+     "active": true,
+     "symbol": "usdt"
+    }
+   }
+  },
+  "limits": {
+   "amount": {
+    "min": 1,
+    "max": 10000000
+   },
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "1INCH": {
+  "info": {
+   "id": 4373,
+   "fullname": "1inch",
+   "symbol": "1inch",
+   "active": true,
+   "verified": true,
+   "allow_deposit": false,
+   "allow_withdrawal": false,
+   "withdrawal_fee": 0,
+   "min": 1,
+   "max": 1000000,
+   "increment_unit": 0.1,
+   "logo": "https://resources.hollaex.com/icons/1inch.svg",
+   "code": "1inch",
+   "is_public": true,
+   "meta": {
+    "color": "#892d39",
+    "contract": "0x111111111117dc0aa78b770fa6a738034120c302",
+    "explorer": "https://bscscan.com/token/0x111111111117dc0aa78b770fa6a738034120c302",
+    "decimal_points": 18,
+    "estimated_price_last_updated": "2026-08-07T00:29:03.000Z"
+   },
+   "estimated_price": 0.08369363135633637,
+   "description": "The 1inch Network integrates decentralized protocols to offer DeFi operations. Its DEX aggregator scans multiple liquidity sources across 12 chains. Governed by the 1INCH token, users can stake for DAO participation and fee sharing.",
+   "type": "blockchain",
+   "network": "eth",
+   "standard": null,
+   "issuer": "HollaEx",
+   "withdrawal_fees": {
+    "eth": {
+     "value": 0.0001,
+     "symbol": "eth"
+    }
+   },
+   "display_name": null,
+   "deposit_fees": null,
+   "is_risky": false,
+   "market_cap": 125540447.03,
+   "category": null,
+   "created_at": "2024-04-15T08:41:04.138Z",
+   "updated_at": "2026-08-07T00:30:03.692Z",
+   "created_by": 1,
+   "owner_id": 1
+  },
+  "id": "1inch",
+  "numericId": 4373,
+  "code": "1INCH",
+  "precision": 0.1,
+  "type": "crypto",
+  "name": "1inch",
+  "active": true,
+  "deposit": false,
+  "withdraw": false,
+  "fee": 0,
+  "fees": {},
+  "networks": {
+   "ERC20": {
+    "id": "eth",
+    "network": "ERC20",
+    "fee": 0.0001,
+    "limits": {
+     "withdraw": {}
+    },
+    "info": {
+     "value": 0.0001,
+     "symbol": "eth"
+    }
+   }
+  },
+  "limits": {
+   "amount": {
+    "min": 1,
+    "max": 1000000
+   },
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "2Z": {
+  "info": {
+   "id": 4657,
+   "fullname": "DoubleZero",
+   "symbol": "2z",
+   "active": true,
+   "verified": true,
+   "allow_deposit": true,
+   "allow_withdrawal": true,
+   "withdrawal_fee": 0,
+   "min": 1,
+   "max": 1000000,
+   "increment_unit": 0.1,
+   "logo": "https://resources.hollaex.com/icons/2z.svg",
+   "code": "2z",
+   "is_public": true,
+   "meta": {
+    "color": "#98ad9e",
+    "contract": "J6pQQ3FAcJQeWPPGppWRb4nM8jU3wLyYbRrLh7feMfvd",
+    "explorer": "https://solscan.io/token/J6pQQ3FAcJQeWPPGppWRb4nM8jU3wLyYbRrLh7feMfvd",
+    "decimal_points": 8,
+    "estimated_price_last_updated": "2026-08-07T00:29:03.000Z"
+   },
+   "estimated_price": 0.05517906529690113,
+   "description": "DoubleZero is a decentralized network built to enhance blockchain connectivity through low-latency, high-performance routing. Its native 2Z token powers network access, incentivizes bandwidth contributors, and supports staking to improve the efficiency of distributed systems.",
+   "type": "blockchain",
+   "network": "sol",
+   "standard": null,
+   "issuer": "HollaEx",
+   "withdrawal_fees": {
+    "sol": {
+     "value": 0.01,
+     "symbol": "sol"
+    }
+   },
+   "display_name": null,
+   "deposit_fees": null,
+   "is_risky": false,
+   "market_cap": 551790652.97,
+   "category": "solana",
+   "created_at": "2025-10-13T18:55:14.508Z",
+   "updated_at": "2026-08-07T00:30:04.374Z",
+   "created_by": 1,
+   "owner_id": 1
+  },
+  "id": "2z",
+  "numericId": 4657,
+  "code": "2Z",
+  "precision": 0.1,
+  "type": "crypto",
+  "name": "DoubleZero",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0,
+  "fees": {},
+  "networks": {
+   "sol": {
+    "id": "sol",
+    "network": "sol",
+    "fee": 0.01,
+    "limits": {
+     "withdraw": {}
+    },
+    "info": {
+     "value": 0.01,
+     "symbol": "sol"
+    }
+   }
+  },
+  "limits": {
+   "amount": {
+    "min": 1,
+    "max": 1000000
+   },
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "A": {
+  "info": {
+   "id": 3832,
+   "fullname": "Vaulta",
+   "symbol": "a",
+   "active": true,
+   "verified": true,
+   "allow_deposit": false,
+   "allow_withdrawal": false,
+   "withdrawal_fee": 0.1,
+   "min": 0.01,
+   "max": 100000000,
+   "increment_unit": 0.01,
+   "logo": "https://resources.hollaex.com/icons/a.svg",
+   "code": "a",
+   "is_public": true,
+   "meta": {
+    "color": "#000",
+    "supply": "other",
+    "decimal_points": 18,
+    "estimated_price_last_updated": "2026-08-07T00:29:03.000Z"
+   },
+   "estimated_price": 0.0650854771845391,
+   "description": "<p>EOS Network is an open-source blockchain platform that emphasizes high performance, adaptability, security, and ease of use for developers. As a third-generation blockchain platform driven by the EOS virtual machine, it has a scalable WebAssembly engine which enables the execution of nearly fee-free transactions in a deterministic manner.</p>",
+   "type": "blockchain",
+   "network": "eos",
+   "standard": null,
+   "issuer": "HollaEx",
+   "withdrawal_fees": null,
+   "display_name": null,
+   "deposit_fees": null,
+   "is_risky": false,
+   "market_cap": 136679502.09,
+   "category": null,
+   "created_at": "2022-11-06T11:43:46.139Z",
+   "updated_at": "2026-08-07T00:30:03.883Z",
+   "created_by": 1,
+   "owner_id": 1
+  },
+  "id": "a",
+  "numericId": 3832,
+  "code": "A",
+  "precision": 0.01,
+  "type": "crypto",
+  "name": "Vaulta",
+  "active": true,
+  "deposit": false,
+  "withdraw": false,
+  "fee": 0.1,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {
+    "min": 0.01,
+    "max": 100000000
+   },
+   "withdraw": {}
+  }
+ },
+ "AAVE": {
+  "info": {
+   "id": 4147,
+   "fullname": "Aave",
+   "symbol": "aave",
+   "active": true,
+   "verified": true,
+   "allow_deposit": true,
+   "allow_withdrawal": true,
+   "withdrawal_fee": 0,
+   "min": 0.1,
+   "max": 100000,
+   "increment_unit": 0.01,
+   "logo": "https://resources.hollaex.com/icons/aave.svg",
+   "code": "aave",
+   "is_public": true,
+   "meta": {
+    "color": "#ff1056",
+    "contract": "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
+    "explorer": "https://etherscan.io/token/0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9",
+    "decimal_point": 18,
+    "estimated_price_last_updated": "2026-08-07T00:29:03.000Z"
+   },
+   "estimated_price": 89.3761762107784,
+   "description": "Aave is a DeFi cryptocurrency for a decentralized lending platform where users can lend, borrow, and earn interest on crypto assets. AAVE tokens offer benefits, including fee discounts for borrowers using AAVE as collateral.",
+   "type": "blockchain",
+   "network": "eth",
+   "standard": "erc-20",
+   "issuer": "HollaEx",
+   "withdrawal_fees": {
+    "eth": {
+     "value": 0.0001,
+     "symbol": "eth"
+    }
+   },
+   "display_name": null,
+   "deposit_fees": null,
+   "is_risky": false,
+   "market_cap": 1430018819.37,
+   "category": "defi",
+   "created_at": "2023-09-08T05:23:26.456Z",
+   "updated_at": "2026-08-07T00:30:04.340Z",
+   "created_by": 1,
+   "owner_id": 1
+  },
+  "id": "aave",
+  "numericId": 4147,
+  "code": "AAVE",
+  "precision": 0.01,
+  "type": "crypto",
+  "name": "Aave",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0,
+  "fees": {},
+  "networks": {
+   "ERC20": {
+    "id": "eth",
+    "network": "ERC20",
+    "fee": 0.0001,
+    "limits": {
+     "withdraw": {}
+    },
+    "info": {
+     "value": 0.0001,
+     "symbol": "eth"
+    }
+   }
+  },
+  "limits": {
+   "amount": {
+    "min": 0.1,
+    "max": 100000
+   },
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "ACE": {
+  "info": {
+   "id": 4295,
+   "fullname": "Fusionist",
+   "symbol": "ace",
+   "active": true,
+   "verified": true,
+   "allow_deposit": false,
+   "allow_withdrawal": false,
+   "withdrawal_fee": 0,
+   "min": 0.1,
+   "max": 10000,
+   "increment_unit": 0.01,
+   "logo": "https://resources.hollaex.com/icons/ace.svg",
+   "code": "ace",
+   "is_public": true,
+   "meta": {
+    "color": "#fdb45c",
+    "contract": "0xc27A719105A987b4c34116223CAE8bd8F4B5def4",
+    "explorer": "https://bscscan.com/token/0xc27A719105A987b4c34116223CAE8bd8F4B5def4",
+    "decimal_points": 18,
+    "estimated_price_last_updated": "2026-08-07T00:29:03.000Z"
+   },
+   "estimated_price": 0.1162637643402311,
+   "description": null,
+   "type": "blockchain",
+   "network": "bnb",
+   "standard": null,
+   "issuer": "HollaEx",
+   "withdrawal_fees": {
+    "bnb": {
+     "value": 0.001,
+     "symbol": "bnb"
+    }
+   },
+   "display_name": null,
+   "deposit_fees": null,
+   "is_risky": true,
+   "market_cap": 17090773.36,
+   "category": null,
+   "created_at": "2024-02-24T10:49:28.196Z",
+   "updated_at": "2026-08-07T00:30:03.814Z",
+   "created_by": 1,
+   "owner_id": 1
+  },
+  "id": "ace",
+  "numericId": 4295,
+  "code": "ACE",
+  "precision": 0.01,
+  "type": "crypto",
+  "name": "Fusionist",
+  "active": true,
+  "deposit": false,
+  "withdraw": false,
+  "fee": 0,
+  "fees": {},
+  "networks": {
+   "BNB": {
+    "id": "bnb",
+    "network": "BNB",
+    "fee": 0.001,
+    "limits": {
+     "withdraw": {}
+    },
+    "info": {
+     "value": 0.001,
+     "symbol": "bnb"
+    }
+   }
+  },
+  "limits": {
+   "amount": {
+    "min": 0.1,
+    "max": 10000
+   },
+   "withdraw": {},
+   "deposit": {}
+  }
+ }
+}

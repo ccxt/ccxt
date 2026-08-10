@@ -1,0 +1,108 @@
+{
+ "BTC/USDT": {
+  "id": "BTC-USDT",
+  "symbol": "BTC/USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "contract": false,
+  "precision": {
+   "amount": "0.00000001",
+   "price": 0.1,
+   "base": 1e-8,
+   "quote": 1e-8
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.00019,
+    "max": 16.02
+   },
+   "price": {
+    "min": 9000,
+    "max": 350000
+   },
+   "cost": {
+    "min": 10,
+    "max": 1000000
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "base": "BTC",
+   "quote": "USDT",
+   "baseMin": "0.00019",
+   "baseMax": "16.02",
+   "baseLotSize": "0.00000001",
+   "quoteMin": "10",
+   "quoteMax": "1000000",
+   "quoteLotSize": "0.00000100",
+   "basePrecision": 8,
+   "quotePrecision": 8,
+   "pricePrecision": 1,
+   "minPrice": "9000.0",
+   "maxPrice": "350000.0"
+  }
+ },
+ "ETH/USDT": {
+  "id": "ETH-USDT",
+  "symbol": "ETH/USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "contract": false,
+  "precision": {
+   "amount": "0.00000100",
+   "price": 0.01,
+   "base": 1e-8,
+   "quote": 1e-8
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.008,
+    "max": 509.2
+   },
+   "price": {
+    "min": 100,
+    "max": 11000
+   },
+   "cost": {
+    "min": 10,
+    "max": 1000000
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "base": "ETH",
+   "quote": "USDT",
+   "baseMin": "0.008",
+   "baseMax": "509.2",
+   "baseLotSize": "0.00000100",
+   "quoteMin": "10",
+   "quoteMax": "1000000",
+   "quoteLotSize": "0.00000100",
+   "basePrecision": 8,
+   "quotePrecision": 8,
+   "pricePrecision": 2,
+   "minPrice": "100.00",
+   "maxPrice": "11000.00"
+  }
+ }
+}

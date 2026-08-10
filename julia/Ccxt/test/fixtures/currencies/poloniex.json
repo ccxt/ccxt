@@ -1,0 +1,1042 @@
+{
+ "1": {
+  "info": {
+   "id": 2465,
+   "coin": "1",
+   "delisted": false,
+   "tradeEnable": true,
+   "name": "Ucan fix life in1day",
+   "networkList": [
+    {
+     "id": 2465,
+     "coin": "1",
+     "name": "Binance smart chain",
+     "currencyType": "address",
+     "blockchain": "BSC",
+     "withdrawalEnable": true,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "80.00000000",
+     "decimals": 8,
+     "withdrawFee": "554.21576923",
+     "minConfirm": 15,
+     "contractAddress": "0xff5d99a5c16cf2ffb4e7da1d7c42a791e70e4444"
+    }
+   ],
+   "externalTransferEnabled": false,
+   "supportCollateral": false,
+   "supportBorrow": false
+  },
+  "id": "1",
+  "code": "1",
+  "precision": 1e-8,
+  "name": "Ucan fix life in1day",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 554.21576923,
+  "fees": {},
+  "networks": {
+   "BEP20": {
+    "info": {
+     "id": 2465,
+     "coin": "1",
+     "name": "Binance smart chain",
+     "currencyType": "address",
+     "blockchain": "BSC",
+     "withdrawalEnable": true,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "80.00000000",
+     "decimals": 8,
+     "withdrawFee": "554.21576923",
+     "minConfirm": 15,
+     "contractAddress": "0xff5d99a5c16cf2ffb4e7da1d7c42a791e70e4444"
+    },
+    "id": "BSC",
+    "code": "BEP20",
+    "fee": 554.21576923,
+    "deposit": true,
+    "withdraw": true,
+    "precision": 1e-8,
+    "limits": {
+     "withdraw": {
+      "min": 80
+     },
+     "deposit": {}
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": 80
+   }
+  },
+  "margin": false
+ },
+ "4": {
+  "info": {
+   "id": 2401,
+   "coin": "4",
+   "delisted": false,
+   "tradeEnable": true,
+   "name": "4",
+   "networkList": [
+    {
+     "id": 2401,
+     "coin": "4",
+     "name": "Binance smart chain",
+     "currencyType": "address",
+     "blockchain": "BSC",
+     "withdrawalEnable": true,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "-1",
+     "decimals": 8,
+     "withdrawFee": "29.20866892",
+     "minConfirm": 15,
+     "contractAddress": "0x0a43fc31a73013089df59194872ecae4cae14444"
+    }
+   ],
+   "externalTransferEnabled": false,
+   "supportCollateral": false,
+   "supportBorrow": false
+  },
+  "id": "4",
+  "code": "4",
+  "precision": 1e-8,
+  "name": "4",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 29.20866892,
+  "fees": {},
+  "networks": {
+   "BEP20": {
+    "info": {
+     "id": 2401,
+     "coin": "4",
+     "name": "Binance smart chain",
+     "currencyType": "address",
+     "blockchain": "BSC",
+     "withdrawalEnable": true,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "-1",
+     "decimals": 8,
+     "withdrawFee": "29.20866892",
+     "minConfirm": 15,
+     "contractAddress": "0x0a43fc31a73013089df59194872ecae4cae14444"
+    },
+    "id": "BSC",
+    "code": "BEP20",
+    "fee": 29.20866892,
+    "deposit": true,
+    "withdraw": true,
+    "precision": 1e-8,
+    "limits": {
+     "withdraw": {
+      "min": -1
+     },
+     "deposit": {}
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": -1
+   }
+  },
+  "margin": false
+ },
+ "21": {
+  "info": {
+   "id": 2456,
+   "coin": "21",
+   "delisted": false,
+   "tradeEnable": false,
+   "name": "2131KOBUSHIDE",
+   "networkList": [
+    {
+     "id": 2456,
+     "coin": "21",
+     "name": "Solana",
+     "currencyType": "address",
+     "blockchain": "SOL",
+     "withdrawalEnable": true,
+     "depositEnable": false,
+     "depositAddress": null,
+     "withdrawMin": "50573.20000000",
+     "decimals": 6,
+     "withdrawFee": "25286.58000000",
+     "minConfirm": 300,
+     "contractAddress": "4vGHdzcNrDf8XVE8H19Rqea86RULz7xi89ew1sSJpump"
+    }
+   ],
+   "externalTransferEnabled": false,
+   "supportCollateral": false,
+   "supportBorrow": false
+  },
+  "id": "21",
+  "code": "21",
+  "precision": 0.000001,
+  "name": "2131KOBUSHIDE",
+  "deposit": false,
+  "withdraw": true,
+  "fee": 25286.58,
+  "fees": {},
+  "networks": {
+   "SOL": {
+    "info": {
+     "id": 2456,
+     "coin": "21",
+     "name": "Solana",
+     "currencyType": "address",
+     "blockchain": "SOL",
+     "withdrawalEnable": true,
+     "depositEnable": false,
+     "depositAddress": null,
+     "withdrawMin": "50573.20000000",
+     "decimals": 6,
+     "withdrawFee": "25286.58000000",
+     "minConfirm": 300,
+     "contractAddress": "4vGHdzcNrDf8XVE8H19Rqea86RULz7xi89ew1sSJpump"
+    },
+    "id": "SOL",
+    "code": "SOL",
+    "fee": 25286.58,
+    "deposit": false,
+    "withdraw": true,
+    "precision": 0.000001,
+    "limits": {
+     "withdraw": {
+      "min": 50573.2
+     },
+     "deposit": {}
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": 50573.2
+   }
+  },
+  "margin": false
+ },
+ "114514": {
+  "info": {
+   "id": 2445,
+   "coin": "114514",
+   "delisted": false,
+   "tradeEnable": true,
+   "name": "114514",
+   "networkList": [
+    {
+     "id": 2445,
+     "coin": "114514",
+     "name": "Solana",
+     "currencyType": "address",
+     "blockchain": "SOL",
+     "withdrawalEnable": true,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "3321.50000000",
+     "decimals": 6,
+     "withdrawFee": "1660.76000000",
+     "minConfirm": 300,
+     "contractAddress": "AGdGTQa8iRnSx4fQJehWo4Xwbh1bzTazs55R6Jwupump"
+    }
+   ],
+   "externalTransferEnabled": false,
+   "supportCollateral": false,
+   "supportBorrow": false
+  },
+  "id": "114514",
+  "code": "114514",
+  "precision": 0.000001,
+  "name": "114514",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 1660.76,
+  "fees": {},
+  "networks": {
+   "SOL": {
+    "info": {
+     "id": 2445,
+     "coin": "114514",
+     "name": "Solana",
+     "currencyType": "address",
+     "blockchain": "SOL",
+     "withdrawalEnable": true,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "3321.50000000",
+     "decimals": 6,
+     "withdrawFee": "1660.76000000",
+     "minConfirm": 300,
+     "contractAddress": "AGdGTQa8iRnSx4fQJehWo4Xwbh1bzTazs55R6Jwupump"
+    },
+    "id": "SOL",
+    "code": "SOL",
+    "fee": 1660.76,
+    "deposit": true,
+    "withdraw": true,
+    "precision": 0.000001,
+    "limits": {
+     "withdraw": {
+      "min": 3321.5
+     },
+     "deposit": {}
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": 3321.5
+   }
+  },
+  "margin": false
+ },
+ "BTC": {
+  "info": {
+   "id": 28,
+   "coin": "BTC",
+   "delisted": false,
+   "tradeEnable": true,
+   "name": "Bitcoin",
+   "networkList": [
+    {
+     "id": 581,
+     "coin": "BTCB",
+     "name": "Binance smart chain",
+     "currencyType": "address",
+     "blockchain": "BSC",
+     "withdrawalEnable": false,
+     "depositEnable": false,
+     "depositAddress": null,
+     "withdrawMin": "-1",
+     "decimals": 8,
+     "withdrawFee": "0.00003000",
+     "minConfirm": 15,
+     "contractAddress": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c"
+    },
+    {
+     "id": 2557,
+     "coin": "BTCBASE",
+     "name": "BASE",
+     "currencyType": "address",
+     "blockchain": "ETHBASE",
+     "withdrawalEnable": false,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "0.00006400",
+     "decimals": 8,
+     "withdrawFee": "0.00003200",
+     "minConfirm": 12,
+     "contractAddress": "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf"
+    },
+    {
+     "id": 445,
+     "coin": "BTCTRON",
+     "name": "Tron",
+     "currencyType": "address",
+     "blockchain": "TRX",
+     "withdrawalEnable": true,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "-1",
+     "decimals": 8,
+     "withdrawFee": "0.00004000",
+     "minConfirm": 1,
+     "contractAddress": "TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9"
+    },
+    {
+     "id": 2207,
+     "coin": "WBTCETH",
+     "name": "Ethereum",
+     "currencyType": "address",
+     "blockchain": "ETH",
+     "withdrawalEnable": false,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "0.00003000",
+     "decimals": 8,
+     "withdrawFee": "0.00000881",
+     "minConfirm": 64,
+     "contractAddress": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599"
+    },
+    {
+     "id": 28,
+     "coin": "BTC",
+     "name": "Bitcoin",
+     "currencyType": "address",
+     "blockchain": "BTC",
+     "withdrawalEnable": true,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "-1",
+     "decimals": 8,
+     "withdrawFee": "0.00002100",
+     "minConfirm": 2,
+     "contractAddress": null
+    }
+   ],
+   "externalTransferEnabled": false,
+   "supportCollateral": true,
+   "supportBorrow": true
+  },
+  "id": "BTC",
+  "code": "BTC",
+  "precision": 1e-8,
+  "name": "Bitcoin",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.00000881,
+  "fees": {},
+  "networks": {
+   "BEP20": {
+    "info": {
+     "id": 581,
+     "coin": "BTCB",
+     "name": "Binance smart chain",
+     "currencyType": "address",
+     "blockchain": "BSC",
+     "withdrawalEnable": false,
+     "depositEnable": false,
+     "depositAddress": null,
+     "withdrawMin": "-1",
+     "decimals": 8,
+     "withdrawFee": "0.00003000",
+     "minConfirm": 15,
+     "contractAddress": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c"
+    },
+    "id": "BSC",
+    "code": "BEP20",
+    "fee": 0.00003,
+    "deposit": false,
+    "withdraw": false,
+    "precision": 1e-8,
+    "limits": {
+     "withdraw": {
+      "min": -1
+     },
+     "deposit": {}
+    }
+   },
+   "ETHBASE": {
+    "info": {
+     "id": 2557,
+     "coin": "BTCBASE",
+     "name": "BASE",
+     "currencyType": "address",
+     "blockchain": "ETHBASE",
+     "withdrawalEnable": false,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "0.00006400",
+     "decimals": 8,
+     "withdrawFee": "0.00003200",
+     "minConfirm": 12,
+     "contractAddress": "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf"
+    },
+    "id": "ETHBASE",
+    "code": "ETHBASE",
+    "fee": 0.000032,
+    "deposit": true,
+    "withdraw": false,
+    "precision": 1e-8,
+    "limits": {
+     "withdraw": {
+      "min": 0.000064
+     },
+     "deposit": {}
+    }
+   },
+   "TRC20": {
+    "info": {
+     "id": 445,
+     "coin": "BTCTRON",
+     "name": "Tron",
+     "currencyType": "address",
+     "blockchain": "TRX",
+     "withdrawalEnable": true,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "-1",
+     "decimals": 8,
+     "withdrawFee": "0.00004000",
+     "minConfirm": 1,
+     "contractAddress": "TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9"
+    },
+    "id": "TRX",
+    "code": "TRC20",
+    "fee": 0.00004,
+    "deposit": true,
+    "withdraw": true,
+    "precision": 1e-8,
+    "limits": {
+     "withdraw": {
+      "min": -1
+     },
+     "deposit": {}
+    }
+   },
+   "ERC20": {
+    "info": {
+     "id": 2207,
+     "coin": "WBTCETH",
+     "name": "Ethereum",
+     "currencyType": "address",
+     "blockchain": "ETH",
+     "withdrawalEnable": false,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "0.00003000",
+     "decimals": 8,
+     "withdrawFee": "0.00000881",
+     "minConfirm": 64,
+     "contractAddress": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599"
+    },
+    "id": "ETH",
+    "code": "ERC20",
+    "fee": 0.00000881,
+    "deposit": true,
+    "withdraw": false,
+    "precision": 1e-8,
+    "limits": {
+     "withdraw": {
+      "min": 0.00003
+     },
+     "deposit": {}
+    }
+   },
+   "BTC": {
+    "info": {
+     "id": 28,
+     "coin": "BTC",
+     "name": "Bitcoin",
+     "currencyType": "address",
+     "blockchain": "BTC",
+     "withdrawalEnable": true,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "-1",
+     "decimals": 8,
+     "withdrawFee": "0.00002100",
+     "minConfirm": 2,
+     "contractAddress": null
+    },
+    "id": "BTC",
+    "code": "BTC",
+    "fee": 0.000021,
+    "deposit": true,
+    "withdraw": true,
+    "precision": 1e-8,
+    "limits": {
+     "withdraw": {
+      "min": -1
+     },
+     "deposit": {}
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": -1
+   }
+  },
+  "margin": true
+ },
+ "ETH": {
+  "info": {
+   "id": 267,
+   "coin": "ETH",
+   "delisted": false,
+   "tradeEnable": true,
+   "name": "Ethereum",
+   "networkList": [
+    {
+     "id": 580,
+     "coin": "ETHBSC",
+     "name": "Binance smart chain",
+     "currencyType": "address",
+     "blockchain": "BSC",
+     "withdrawalEnable": false,
+     "depositEnable": false,
+     "depositAddress": null,
+     "withdrawMin": "-1",
+     "decimals": 8,
+     "withdrawFee": "0.00060000",
+     "minConfirm": 15,
+     "contractAddress": "0x2170ed0880ac9a755fd29b2688956bd959f933f8"
+    },
+    {
+     "id": 458,
+     "coin": "ETHTRON",
+     "name": "Tron",
+     "currencyType": "address",
+     "blockchain": "TRX",
+     "withdrawalEnable": false,
+     "depositEnable": false,
+     "depositAddress": null,
+     "withdrawMin": "-1",
+     "decimals": 8,
+     "withdrawFee": "0.00060000",
+     "minConfirm": 1,
+     "contractAddress": "TRFe3hT5oYhjSZ6f3ji5FJ7YCfrkWnHRvh"
+    },
+    {
+     "id": 267,
+     "coin": "ETH",
+     "name": "Ethereum",
+     "currencyType": "address",
+     "blockchain": "ETH",
+     "withdrawalEnable": true,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "-1",
+     "decimals": 8,
+     "withdrawFee": "0.00029856",
+     "minConfirm": 64,
+     "contractAddress": null
+    }
+   ],
+   "externalTransferEnabled": true,
+   "supportCollateral": true,
+   "supportBorrow": true
+  },
+  "id": "ETH",
+  "code": "ETH",
+  "precision": 1e-8,
+  "name": "Ethereum",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.00029856,
+  "fees": {},
+  "networks": {
+   "BEP20": {
+    "info": {
+     "id": 580,
+     "coin": "ETHBSC",
+     "name": "Binance smart chain",
+     "currencyType": "address",
+     "blockchain": "BSC",
+     "withdrawalEnable": false,
+     "depositEnable": false,
+     "depositAddress": null,
+     "withdrawMin": "-1",
+     "decimals": 8,
+     "withdrawFee": "0.00060000",
+     "minConfirm": 15,
+     "contractAddress": "0x2170ed0880ac9a755fd29b2688956bd959f933f8"
+    },
+    "id": "BSC",
+    "code": "BEP20",
+    "fee": 0.0006,
+    "deposit": false,
+    "withdraw": false,
+    "precision": 1e-8,
+    "limits": {
+     "withdraw": {
+      "min": -1
+     },
+     "deposit": {}
+    }
+   },
+   "TRC20": {
+    "info": {
+     "id": 458,
+     "coin": "ETHTRON",
+     "name": "Tron",
+     "currencyType": "address",
+     "blockchain": "TRX",
+     "withdrawalEnable": false,
+     "depositEnable": false,
+     "depositAddress": null,
+     "withdrawMin": "-1",
+     "decimals": 8,
+     "withdrawFee": "0.00060000",
+     "minConfirm": 1,
+     "contractAddress": "TRFe3hT5oYhjSZ6f3ji5FJ7YCfrkWnHRvh"
+    },
+    "id": "TRX",
+    "code": "TRC20",
+    "fee": 0.0006,
+    "deposit": false,
+    "withdraw": false,
+    "precision": 1e-8,
+    "limits": {
+     "withdraw": {
+      "min": -1
+     },
+     "deposit": {}
+    }
+   },
+   "ETH": {
+    "info": {
+     "id": 267,
+     "coin": "ETH",
+     "name": "Ethereum",
+     "currencyType": "address",
+     "blockchain": "ETH",
+     "withdrawalEnable": true,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "-1",
+     "decimals": 8,
+     "withdrawFee": "0.00029856",
+     "minConfirm": 64,
+     "contractAddress": null
+    },
+    "id": "ETH",
+    "code": "ETH",
+    "fee": 0.00029856,
+    "deposit": true,
+    "withdraw": true,
+    "precision": 1e-8,
+    "limits": {
+     "withdraw": {
+      "min": -1
+     },
+     "deposit": {}
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": -1
+   }
+  },
+  "margin": true
+ },
+ "USDT": {
+  "info": {
+   "id": 214,
+   "coin": "USDT",
+   "delisted": false,
+   "tradeEnable": true,
+   "name": "Tether USD",
+   "networkList": [
+    {
+     "id": 582,
+     "coin": "USDTBSC",
+     "name": "Binance smart chain",
+     "currencyType": "address",
+     "blockchain": "BSC",
+     "withdrawalEnable": false,
+     "depositEnable": false,
+     "depositAddress": null,
+     "withdrawMin": "-1",
+     "decimals": 8,
+     "withdrawFee": "0.00000000",
+     "minConfirm": 15,
+     "contractAddress": "0x55d398326f99059ff775485246999027b3197955"
+    },
+    {
+     "id": 318,
+     "coin": "USDTETH",
+     "name": "Ethereum",
+     "currencyType": "address",
+     "blockchain": "ETH",
+     "withdrawalEnable": true,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "-1",
+     "decimals": 8,
+     "withdrawFee": "0.57302700",
+     "minConfirm": 64,
+     "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+    },
+    {
+     "id": 1936,
+     "coin": "USDTSOL",
+     "name": "Solana",
+     "currencyType": "address",
+     "blockchain": "SOL",
+     "withdrawalEnable": false,
+     "depositEnable": false,
+     "depositAddress": null,
+     "withdrawMin": "1.50000000",
+     "decimals": 8,
+     "withdrawFee": "0.77000000",
+     "minConfirm": 300,
+     "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+    },
+    {
+     "id": 316,
+     "coin": "USDTTRON",
+     "name": "Tron",
+     "currencyType": "address",
+     "blockchain": "TRX",
+     "withdrawalEnable": true,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "0.01000000",
+     "decimals": 8,
+     "withdrawFee": "1.20000000",
+     "minConfirm": 1,
+     "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+    },
+    {
+     "id": 214,
+     "coin": "USDT",
+     "name": "Omni",
+     "currencyType": "address",
+     "blockchain": "OMNI",
+     "withdrawalEnable": false,
+     "depositEnable": false,
+     "depositAddress": null,
+     "withdrawMin": "-1",
+     "decimals": 8,
+     "withdrawFee": "0.00000000",
+     "minConfirm": 2,
+     "contractAddress": null
+    }
+   ],
+   "externalTransferEnabled": true,
+   "supportCollateral": true,
+   "supportBorrow": true
+  },
+  "id": "USDT",
+  "code": "USDT",
+  "precision": 1e-8,
+  "name": "Tether USD",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0,
+  "fees": {},
+  "networks": {
+   "BEP20": {
+    "info": {
+     "id": 582,
+     "coin": "USDTBSC",
+     "name": "Binance smart chain",
+     "currencyType": "address",
+     "blockchain": "BSC",
+     "withdrawalEnable": false,
+     "depositEnable": false,
+     "depositAddress": null,
+     "withdrawMin": "-1",
+     "decimals": 8,
+     "withdrawFee": "0.00000000",
+     "minConfirm": 15,
+     "contractAddress": "0x55d398326f99059ff775485246999027b3197955"
+    },
+    "id": "BSC",
+    "code": "BEP20",
+    "fee": 0,
+    "deposit": false,
+    "withdraw": false,
+    "precision": 1e-8,
+    "limits": {
+     "withdraw": {
+      "min": -1
+     },
+     "deposit": {}
+    }
+   },
+   "ERC20": {
+    "info": {
+     "id": 318,
+     "coin": "USDTETH",
+     "name": "Ethereum",
+     "currencyType": "address",
+     "blockchain": "ETH",
+     "withdrawalEnable": true,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "-1",
+     "decimals": 8,
+     "withdrawFee": "0.57302700",
+     "minConfirm": 64,
+     "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+    },
+    "id": "ETH",
+    "code": "ERC20",
+    "fee": 0.573027,
+    "deposit": true,
+    "withdraw": true,
+    "precision": 1e-8,
+    "limits": {
+     "withdraw": {
+      "min": -1
+     },
+     "deposit": {}
+    }
+   },
+   "SOL": {
+    "info": {
+     "id": 1936,
+     "coin": "USDTSOL",
+     "name": "Solana",
+     "currencyType": "address",
+     "blockchain": "SOL",
+     "withdrawalEnable": false,
+     "depositEnable": false,
+     "depositAddress": null,
+     "withdrawMin": "1.50000000",
+     "decimals": 8,
+     "withdrawFee": "0.77000000",
+     "minConfirm": 300,
+     "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+    },
+    "id": "SOL",
+    "code": "SOL",
+    "fee": 0.77,
+    "deposit": false,
+    "withdraw": false,
+    "precision": 1e-8,
+    "limits": {
+     "withdraw": {
+      "min": 1.5
+     },
+     "deposit": {}
+    }
+   },
+   "TRC20": {
+    "info": {
+     "id": 316,
+     "coin": "USDTTRON",
+     "name": "Tron",
+     "currencyType": "address",
+     "blockchain": "TRX",
+     "withdrawalEnable": true,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "0.01000000",
+     "decimals": 8,
+     "withdrawFee": "1.20000000",
+     "minConfirm": 1,
+     "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+    },
+    "id": "TRX",
+    "code": "TRC20",
+    "fee": 1.2,
+    "deposit": true,
+    "withdraw": true,
+    "precision": 1e-8,
+    "limits": {
+     "withdraw": {
+      "min": 0.01
+     },
+     "deposit": {}
+    }
+   },
+   "OMNI": {
+    "info": {
+     "id": 214,
+     "coin": "USDT",
+     "name": "Omni",
+     "currencyType": "address",
+     "blockchain": "OMNI",
+     "withdrawalEnable": false,
+     "depositEnable": false,
+     "depositAddress": null,
+     "withdrawMin": "-1",
+     "decimals": 8,
+     "withdrawFee": "0.00000000",
+     "minConfirm": 2,
+     "contractAddress": null
+    },
+    "id": "OMNI",
+    "code": "OMNI",
+    "fee": 0,
+    "deposit": false,
+    "withdraw": false,
+    "precision": 1e-8,
+    "limits": {
+     "withdraw": {
+      "min": -1
+     },
+     "deposit": {}
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": -1
+   }
+  },
+  "margin": true
+ },
+ "0XY": {
+  "info": {
+   "id": 2381,
+   "coin": "0XY",
+   "delisted": false,
+   "tradeEnable": true,
+   "name": "Oxytocin",
+   "networkList": [
+    {
+     "id": 2381,
+     "coin": "0XY",
+     "name": "Solana",
+     "currencyType": "address",
+     "blockchain": "SOL",
+     "withdrawalEnable": true,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "201018493.70000000",
+     "decimals": 6,
+     "withdrawFee": "100509246.85000000",
+     "minConfirm": 300,
+     "contractAddress": "oxynABVJXUEc9PLNx4m1XVdiFtRhStzRXG1G6qosni1"
+    }
+   ],
+   "externalTransferEnabled": false,
+   "supportCollateral": false,
+   "supportBorrow": false
+  },
+  "id": "0XY",
+  "code": "0XY",
+  "precision": 0.000001,
+  "name": "Oxytocin",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 100509246.85,
+  "fees": {},
+  "networks": {
+   "SOL": {
+    "info": {
+     "id": 2381,
+     "coin": "0XY",
+     "name": "Solana",
+     "currencyType": "address",
+     "blockchain": "SOL",
+     "withdrawalEnable": true,
+     "depositEnable": true,
+     "depositAddress": null,
+     "withdrawMin": "201018493.70000000",
+     "decimals": 6,
+     "withdrawFee": "100509246.85000000",
+     "minConfirm": 300,
+     "contractAddress": "oxynABVJXUEc9PLNx4m1XVdiFtRhStzRXG1G6qosni1"
+    },
+    "id": "SOL",
+    "code": "SOL",
+    "fee": 100509246.85,
+    "deposit": true,
+    "withdraw": true,
+    "precision": 0.000001,
+    "limits": {
+     "withdraw": {
+      "min": 201018493.7
+     },
+     "deposit": {}
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": 201018493.7
+   }
+  },
+  "margin": false
+ }
+}

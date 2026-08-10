@@ -1,0 +1,1194 @@
+{
+ "BTC": {
+  "info": {
+   "id": "BTC",
+   "name": "Bitcoin",
+   "min_size": "0.00000001",
+   "status": "online",
+   "message": "",
+   "max_precision": "0.00000001",
+   "convertible_to": [],
+   "details": {
+    "type": "crypto",
+    "symbol": "₿",
+    "network_confirmations": 2,
+    "sort_order": 20,
+    "crypto_address_link": "https://live.blockcypher.com/btc/address/{{address}}",
+    "crypto_transaction_link": "https://live.blockcypher.com/btc/tx/{{txId}}",
+    "push_payment_methods": [
+     "crypto"
+    ],
+    "group_types": [
+     "btc",
+     "crypto"
+    ],
+    "display_name": null,
+    "processing_time_seconds": null,
+    "min_withdrawal_amount": 0.0001,
+    "max_withdrawal_amount": 2400
+   },
+   "default_network": "bitcoin",
+   "supported_networks": [
+    {
+     "id": "arbitrum",
+     "name": "Arbitrum",
+     "status": "online",
+     "contract_address": "",
+     "crypto_address_link": "https://arbiscan.io/address/{{address}}",
+     "crypto_transaction_link": "https://arbiscan.io/tx/{{txId}}",
+     "min_withdrawal_amount": 0.00002,
+     "max_withdrawal_amount": 200,
+     "network_confirmations": null,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    },
+    {
+     "id": "base",
+     "name": "Base",
+     "status": "online",
+     "contract_address": "",
+     "crypto_address_link": "https://basescan.org/address/{{address}}",
+     "crypto_transaction_link": "https://basescan.org/tx/{{txId}}",
+     "min_withdrawal_amount": 0.00002,
+     "max_withdrawal_amount": 200,
+     "network_confirmations": null,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    },
+    {
+     "id": "bitcoin",
+     "name": "Bitcoin",
+     "status": "online",
+     "contract_address": null,
+     "crypto_address_link": "https://live.blockcypher.com/btc/address/{{address}}",
+     "crypto_transaction_link": "https://live.blockcypher.com/btc/tx/{{txId}}",
+     "min_withdrawal_amount": 0.0001,
+     "max_withdrawal_amount": 2400,
+     "network_confirmations": 2,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": false
+    },
+    {
+     "id": "ethereum",
+     "name": "Ethereum",
+     "status": "online",
+     "contract_address": "",
+     "crypto_address_link": "https://etherscan.io/token/0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf?a={{address}}",
+     "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+     "min_withdrawal_amount": 0.00002,
+     "max_withdrawal_amount": 200,
+     "network_confirmations": 35,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    },
+    {
+     "id": "solana",
+     "name": "Solana",
+     "status": "online",
+     "contract_address": "",
+     "crypto_address_link": "https://explorer.solana.com/address/{{address}}",
+     "crypto_transaction_link": "https://explorer.solana.com/tx/{{txId}}",
+     "min_withdrawal_amount": 0.00002,
+     "max_withdrawal_amount": 200,
+     "network_confirmations": 31,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": false
+    }
+   ],
+   "display_name": "BTC"
+  },
+  "id": "BTC",
+  "code": "BTC",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Bitcoin",
+  "active": true,
+  "fees": {},
+  "networks": {
+   "ARBONE": {
+    "id": "arbitrum",
+    "name": "Arbitrum",
+    "network": "ARBONE",
+    "active": true,
+    "limits": {
+     "withdraw": {
+      "min": 0.00002,
+      "max": 200
+     }
+    },
+    "info": {
+     "id": "arbitrum",
+     "name": "Arbitrum",
+     "status": "online",
+     "contract_address": "",
+     "crypto_address_link": "https://arbiscan.io/address/{{address}}",
+     "crypto_transaction_link": "https://arbiscan.io/tx/{{txId}}",
+     "min_withdrawal_amount": 0.00002,
+     "max_withdrawal_amount": 200,
+     "network_confirmations": null,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   },
+   "BASE": {
+    "id": "base",
+    "name": "Base",
+    "network": "BASE",
+    "active": true,
+    "limits": {
+     "withdraw": {
+      "min": 0.00002,
+      "max": 200
+     }
+    },
+    "info": {
+     "id": "base",
+     "name": "Base",
+     "status": "online",
+     "contract_address": "",
+     "crypto_address_link": "https://basescan.org/address/{{address}}",
+     "crypto_transaction_link": "https://basescan.org/tx/{{txId}}",
+     "min_withdrawal_amount": 0.00002,
+     "max_withdrawal_amount": 200,
+     "network_confirmations": null,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   },
+   "BTC": {
+    "id": "bitcoin",
+    "name": "Bitcoin",
+    "network": "BTC",
+    "active": true,
+    "limits": {
+     "withdraw": {
+      "min": 0.0001,
+      "max": 2400
+     }
+    },
+    "info": {
+     "id": "bitcoin",
+     "name": "Bitcoin",
+     "status": "online",
+     "contract_address": null,
+     "crypto_address_link": "https://live.blockcypher.com/btc/address/{{address}}",
+     "crypto_transaction_link": "https://live.blockcypher.com/btc/tx/{{txId}}",
+     "min_withdrawal_amount": 0.0001,
+     "max_withdrawal_amount": 2400,
+     "network_confirmations": 2,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": false
+    }
+   },
+   "ERC20": {
+    "id": "ethereum",
+    "name": "Ethereum",
+    "network": "ERC20",
+    "active": true,
+    "limits": {
+     "withdraw": {
+      "min": 0.00002,
+      "max": 200
+     }
+    },
+    "info": {
+     "id": "ethereum",
+     "name": "Ethereum",
+     "status": "online",
+     "contract_address": "",
+     "crypto_address_link": "https://etherscan.io/token/0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf?a={{address}}",
+     "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+     "min_withdrawal_amount": 0.00002,
+     "max_withdrawal_amount": 200,
+     "network_confirmations": 35,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   },
+   "SOL": {
+    "id": "solana",
+    "name": "Solana",
+    "network": "SOL",
+    "active": true,
+    "limits": {
+     "withdraw": {
+      "min": 0.00002,
+      "max": 200
+     }
+    },
+    "info": {
+     "id": "solana",
+     "name": "Solana",
+     "status": "online",
+     "contract_address": "",
+     "crypto_address_link": "https://explorer.solana.com/address/{{address}}",
+     "crypto_transaction_link": "https://explorer.solana.com/tx/{{txId}}",
+     "min_withdrawal_amount": 0.00002,
+     "max_withdrawal_amount": 200,
+     "network_confirmations": 31,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": false
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0.00002,
+    "max": 2400
+   },
+   "deposit": {}
+  }
+ },
+ "ETH": {
+  "info": {
+   "id": "ETH",
+   "name": "Ether",
+   "min_size": "0.00000001",
+   "status": "online",
+   "message": "",
+   "max_precision": "0.00000001",
+   "convertible_to": [],
+   "details": {
+    "type": "crypto",
+    "symbol": null,
+    "network_confirmations": 14,
+    "sort_order": 25,
+    "crypto_address_link": "https://etherscan.io/address/{{address}}",
+    "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+    "push_payment_methods": [
+     "crypto"
+    ],
+    "group_types": [],
+    "display_name": null,
+    "processing_time_seconds": null,
+    "min_withdrawal_amount": 0.0001,
+    "max_withdrawal_amount": 40000
+   },
+   "default_network": "ethereum",
+   "supported_networks": [
+    {
+     "id": "arbitrum",
+     "name": "Arbitrum",
+     "status": "online",
+     "contract_address": "",
+     "crypto_address_link": "https://arbiscan.io/address/{{address}}",
+     "crypto_transaction_link": "https://arbiscan.io/tx/{{txId}}",
+     "min_withdrawal_amount": 0.0001,
+     "max_withdrawal_amount": 133,
+     "network_confirmations": null,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    },
+    {
+     "id": "base",
+     "name": "Base",
+     "status": "online",
+     "contract_address": "",
+     "crypto_address_link": "https://basescan.org/address/{{address}}",
+     "crypto_transaction_link": "https://basescan.org/tx/{{txId}}",
+     "min_withdrawal_amount": 0.0001,
+     "max_withdrawal_amount": 1000,
+     "network_confirmations": null,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    },
+    {
+     "id": "ethereum",
+     "name": "Ethereum",
+     "status": "online",
+     "contract_address": null,
+     "crypto_address_link": "https://etherscan.io/address/{{address}}",
+     "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+     "min_withdrawal_amount": 0.0001,
+     "max_withdrawal_amount": 40000,
+     "network_confirmations": 14,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    },
+    {
+     "id": "optimism",
+     "name": "Optimism",
+     "status": "online",
+     "contract_address": "",
+     "crypto_address_link": "https://optimistic.etherscan.io/address/{{address}}",
+     "crypto_transaction_link": "https://optimistic.etherscan.io/tx/{{txId}}",
+     "min_withdrawal_amount": 0.0001,
+     "max_withdrawal_amount": 111,
+     "network_confirmations": null,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    },
+    {
+     "id": "polygon",
+     "name": "Polygon",
+     "status": "online",
+     "contract_address": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+     "crypto_address_link": "https://polygonscan.com/address/{{address}}",
+     "crypto_transaction_link": "https://polygonscan.com/tx/{{txId}}",
+     "min_withdrawal_amount": 0.0001,
+     "max_withdrawal_amount": 30,
+     "network_confirmations": 128,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    },
+    {
+     "id": "unichain",
+     "name": "Unichain",
+     "status": "online",
+     "contract_address": "",
+     "crypto_address_link": "https://unichain-d7a86fxp.blockscout.com/address/{{address}}",
+     "crypto_transaction_link": "https://unichain-d7a86fxp.blockscout.com/tx/{{txId}}",
+     "min_withdrawal_amount": 0.0001,
+     "max_withdrawal_amount": 300,
+     "network_confirmations": null,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   ],
+   "display_name": "ETH"
+  },
+  "id": "ETH",
+  "code": "ETH",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Ether",
+  "active": true,
+  "fees": {},
+  "networks": {
+   "ARBONE": {
+    "id": "arbitrum",
+    "name": "Arbitrum",
+    "network": "ARBONE",
+    "active": true,
+    "limits": {
+     "withdraw": {
+      "min": 0.0001,
+      "max": 133
+     }
+    },
+    "info": {
+     "id": "arbitrum",
+     "name": "Arbitrum",
+     "status": "online",
+     "contract_address": "",
+     "crypto_address_link": "https://arbiscan.io/address/{{address}}",
+     "crypto_transaction_link": "https://arbiscan.io/tx/{{txId}}",
+     "min_withdrawal_amount": 0.0001,
+     "max_withdrawal_amount": 133,
+     "network_confirmations": null,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   },
+   "BASE": {
+    "id": "base",
+    "name": "Base",
+    "network": "BASE",
+    "active": true,
+    "limits": {
+     "withdraw": {
+      "min": 0.0001,
+      "max": 1000
+     }
+    },
+    "info": {
+     "id": "base",
+     "name": "Base",
+     "status": "online",
+     "contract_address": "",
+     "crypto_address_link": "https://basescan.org/address/{{address}}",
+     "crypto_transaction_link": "https://basescan.org/tx/{{txId}}",
+     "min_withdrawal_amount": 0.0001,
+     "max_withdrawal_amount": 1000,
+     "network_confirmations": null,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   },
+   "ETH": {
+    "id": "ethereum",
+    "name": "Ethereum",
+    "network": "ETH",
+    "active": true,
+    "limits": {
+     "withdraw": {
+      "min": 0.0001,
+      "max": 40000
+     }
+    },
+    "info": {
+     "id": "ethereum",
+     "name": "Ethereum",
+     "status": "online",
+     "contract_address": null,
+     "crypto_address_link": "https://etherscan.io/address/{{address}}",
+     "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+     "min_withdrawal_amount": 0.0001,
+     "max_withdrawal_amount": 40000,
+     "network_confirmations": 14,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   },
+   "OP": {
+    "id": "optimism",
+    "name": "Optimism",
+    "network": "OP",
+    "active": true,
+    "limits": {
+     "withdraw": {
+      "min": 0.0001,
+      "max": 111
+     }
+    },
+    "info": {
+     "id": "optimism",
+     "name": "Optimism",
+     "status": "online",
+     "contract_address": "",
+     "crypto_address_link": "https://optimistic.etherscan.io/address/{{address}}",
+     "crypto_transaction_link": "https://optimistic.etherscan.io/tx/{{txId}}",
+     "min_withdrawal_amount": 0.0001,
+     "max_withdrawal_amount": 111,
+     "network_confirmations": null,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   },
+   "MATIC": {
+    "id": "polygon",
+    "name": "Polygon",
+    "network": "MATIC",
+    "active": true,
+    "limits": {
+     "withdraw": {
+      "min": 0.0001,
+      "max": 30
+     }
+    },
+    "contract": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+    "info": {
+     "id": "polygon",
+     "name": "Polygon",
+     "status": "online",
+     "contract_address": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+     "crypto_address_link": "https://polygonscan.com/address/{{address}}",
+     "crypto_transaction_link": "https://polygonscan.com/tx/{{txId}}",
+     "min_withdrawal_amount": 0.0001,
+     "max_withdrawal_amount": 30,
+     "network_confirmations": 128,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   },
+   "unichain": {
+    "id": "unichain",
+    "name": "Unichain",
+    "network": "unichain",
+    "active": true,
+    "limits": {
+     "withdraw": {
+      "min": 0.0001,
+      "max": 300
+     }
+    },
+    "info": {
+     "id": "unichain",
+     "name": "Unichain",
+     "status": "online",
+     "contract_address": "",
+     "crypto_address_link": "https://unichain-d7a86fxp.blockscout.com/address/{{address}}",
+     "crypto_transaction_link": "https://unichain-d7a86fxp.blockscout.com/tx/{{txId}}",
+     "min_withdrawal_amount": 0.0001,
+     "max_withdrawal_amount": 300,
+     "network_confirmations": null,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0.0001,
+    "max": 40000
+   },
+   "deposit": {}
+  }
+ },
+ "USDT": {
+  "info": {
+   "id": "USDT",
+   "name": "Tether",
+   "min_size": "0.000001",
+   "status": "online",
+   "message": "",
+   "max_precision": "0.000001",
+   "convertible_to": [],
+   "details": {
+    "type": "crypto",
+    "symbol": null,
+    "network_confirmations": 14,
+    "sort_order": 0,
+    "crypto_address_link": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7?a={{address}}",
+    "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+    "push_payment_methods": [],
+    "group_types": [],
+    "display_name": null,
+    "processing_time_seconds": null,
+    "min_withdrawal_amount": 0.000001,
+    "max_withdrawal_amount": 20000000
+   },
+   "default_network": "ethereum",
+   "supported_networks": [
+    {
+     "id": "arbitrum",
+     "name": "Arbitrum",
+     "status": "online",
+     "contract_address": "",
+     "crypto_address_link": "https://arbiscan.io/address/{{address}}",
+     "crypto_transaction_link": "https://arbiscan.io/tx/{{txId}}",
+     "min_withdrawal_amount": 0.01,
+     "max_withdrawal_amount": 150000,
+     "network_confirmations": null,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    },
+    {
+     "id": "ethereum",
+     "name": "Ethereum",
+     "status": "online",
+     "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+     "crypto_address_link": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7?a={{address}}",
+     "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+     "min_withdrawal_amount": 0.000001,
+     "max_withdrawal_amount": 20000000,
+     "network_confirmations": 14,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    },
+    {
+     "id": "polygon",
+     "name": "Polygon",
+     "status": "online",
+     "contract_address": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+     "crypto_address_link": "https://polygonscan.com/address/{{address}}",
+     "crypto_transaction_link": "https://polygonscan.com/tx/{{txId}}",
+     "min_withdrawal_amount": 1,
+     "max_withdrawal_amount": 5000000,
+     "network_confirmations": null,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    },
+    {
+     "id": "tempo",
+     "name": "Tempo",
+     "status": "online",
+     "contract_address": "0x20C00000000000000000000014f22CA97301EB73",
+     "crypto_address_link": "https://explore.tempo.xyz/address/{{address}}",
+     "crypto_transaction_link": "https://explore.tempo.xyz/tx/{{txId}}",
+     "min_withdrawal_amount": 0.01,
+     "max_withdrawal_amount": 150000,
+     "network_confirmations": null,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   ],
+   "display_name": "USDT"
+  },
+  "id": "USDT",
+  "code": "USDT",
+  "precision": 0.000001,
+  "type": "crypto",
+  "name": "Tether",
+  "active": true,
+  "fees": {},
+  "networks": {
+   "ARBONE": {
+    "id": "arbitrum",
+    "name": "Arbitrum",
+    "network": "ARBONE",
+    "active": true,
+    "limits": {
+     "withdraw": {
+      "min": 0.01,
+      "max": 150000
+     }
+    },
+    "info": {
+     "id": "arbitrum",
+     "name": "Arbitrum",
+     "status": "online",
+     "contract_address": "",
+     "crypto_address_link": "https://arbiscan.io/address/{{address}}",
+     "crypto_transaction_link": "https://arbiscan.io/tx/{{txId}}",
+     "min_withdrawal_amount": 0.01,
+     "max_withdrawal_amount": 150000,
+     "network_confirmations": null,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   },
+   "ERC20": {
+    "id": "ethereum",
+    "name": "Ethereum",
+    "network": "ERC20",
+    "active": true,
+    "limits": {
+     "withdraw": {
+      "min": 0.000001,
+      "max": 20000000
+     }
+    },
+    "contract": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+    "info": {
+     "id": "ethereum",
+     "name": "Ethereum",
+     "status": "online",
+     "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+     "crypto_address_link": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7?a={{address}}",
+     "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+     "min_withdrawal_amount": 0.000001,
+     "max_withdrawal_amount": 20000000,
+     "network_confirmations": 14,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   },
+   "MATIC": {
+    "id": "polygon",
+    "name": "Polygon",
+    "network": "MATIC",
+    "active": true,
+    "limits": {
+     "withdraw": {
+      "min": 1,
+      "max": 5000000
+     }
+    },
+    "contract": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+    "info": {
+     "id": "polygon",
+     "name": "Polygon",
+     "status": "online",
+     "contract_address": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+     "crypto_address_link": "https://polygonscan.com/address/{{address}}",
+     "crypto_transaction_link": "https://polygonscan.com/tx/{{txId}}",
+     "min_withdrawal_amount": 1,
+     "max_withdrawal_amount": 5000000,
+     "network_confirmations": null,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   },
+   "tempo": {
+    "id": "tempo",
+    "name": "Tempo",
+    "network": "tempo",
+    "active": true,
+    "limits": {
+     "withdraw": {
+      "min": 0.01,
+      "max": 150000
+     }
+    },
+    "contract": "0x20C00000000000000000000014f22CA97301EB73",
+    "info": {
+     "id": "tempo",
+     "name": "Tempo",
+     "status": "online",
+     "contract_address": "0x20C00000000000000000000014f22CA97301EB73",
+     "crypto_address_link": "https://explore.tempo.xyz/address/{{address}}",
+     "crypto_transaction_link": "https://explore.tempo.xyz/tx/{{txId}}",
+     "min_withdrawal_amount": 0.01,
+     "max_withdrawal_amount": 150000,
+     "network_confirmations": null,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0.000001,
+    "max": 20000000
+   },
+   "deposit": {}
+  }
+ },
+ "00": {
+  "info": {
+   "id": "00",
+   "name": "00 Token",
+   "min_size": "0.00000001",
+   "status": "online",
+   "message": "",
+   "max_precision": "0.00000001",
+   "convertible_to": [],
+   "details": {
+    "type": "crypto",
+    "symbol": null,
+    "network_confirmations": 14,
+    "sort_order": 0,
+    "crypto_address_link": "https://etherscan.io/token/0x881ba05de1e78f549cc63a8f6cabb1d4ad32250d?a={{address}}",
+    "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+    "push_payment_methods": [],
+    "group_types": [],
+    "display_name": null,
+    "processing_time_seconds": null,
+    "min_withdrawal_amount": 1e-8,
+    "max_withdrawal_amount": 5000000
+   },
+   "default_network": "ethereum",
+   "supported_networks": [
+    {
+     "id": "ethereum",
+     "name": "Ethereum",
+     "status": "online",
+     "contract_address": "0x881ba05de1e78f549cc63a8f6cabb1d4ad32250d",
+     "crypto_address_link": "https://etherscan.io/token/0x881ba05de1e78f549cc63a8f6cabb1d4ad32250d?a={{address}}",
+     "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+     "min_withdrawal_amount": 1e-8,
+     "max_withdrawal_amount": 5000000,
+     "network_confirmations": 14,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   ],
+   "display_name": "00"
+  },
+  "id": "00",
+  "code": "00",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "00 Token",
+  "active": true,
+  "fees": {},
+  "networks": {
+   "ERC20": {
+    "id": "ethereum",
+    "name": "Ethereum",
+    "network": "ERC20",
+    "active": true,
+    "limits": {
+     "withdraw": {
+      "min": 1e-8,
+      "max": 5000000
+     }
+    },
+    "contract": "0x881ba05de1e78f549cc63a8f6cabb1d4ad32250d",
+    "info": {
+     "id": "ethereum",
+     "name": "Ethereum",
+     "status": "online",
+     "contract_address": "0x881ba05de1e78f549cc63a8f6cabb1d4ad32250d",
+     "crypto_address_link": "https://etherscan.io/token/0x881ba05de1e78f549cc63a8f6cabb1d4ad32250d?a={{address}}",
+     "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+     "min_withdrawal_amount": 1e-8,
+     "max_withdrawal_amount": 5000000,
+     "network_confirmations": 14,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 1e-8,
+    "max": 5000000
+   },
+   "deposit": {}
+  }
+ },
+ "1INCH": {
+  "info": {
+   "id": "1INCH",
+   "name": "1Inch",
+   "min_size": "0.1",
+   "status": "online",
+   "message": "",
+   "max_precision": "0.01",
+   "convertible_to": [],
+   "details": {
+    "type": "crypto",
+    "symbol": null,
+    "network_confirmations": 14,
+    "sort_order": 107,
+    "crypto_address_link": "https://etherscan.io/token/0x111111111117dc0aa78b770fa6a738034120c302?a={{address}}",
+    "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+    "push_payment_methods": [
+     "crypto"
+    ],
+    "group_types": [],
+    "display_name": null,
+    "processing_time_seconds": null,
+    "min_withdrawal_amount": 0.01,
+    "max_withdrawal_amount": 6000000
+   },
+   "default_network": "ethereum",
+   "supported_networks": [
+    {
+     "id": "ethereum",
+     "name": "Ethereum",
+     "status": "online",
+     "contract_address": "0x111111111117dc0aa78b770fa6a738034120c302",
+     "crypto_address_link": "https://etherscan.io/token/0x111111111117dc0aa78b770fa6a738034120c302?a={{address}}",
+     "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+     "min_withdrawal_amount": 0.01,
+     "max_withdrawal_amount": 6000000,
+     "network_confirmations": 14,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   ],
+   "display_name": "1INCH"
+  },
+  "id": "1INCH",
+  "code": "1INCH",
+  "precision": 0.01,
+  "type": "crypto",
+  "name": "1Inch",
+  "active": true,
+  "fees": {},
+  "networks": {
+   "ERC20": {
+    "id": "ethereum",
+    "name": "Ethereum",
+    "network": "ERC20",
+    "active": true,
+    "limits": {
+     "withdraw": {
+      "min": 0.01,
+      "max": 6000000
+     }
+    },
+    "contract": "0x111111111117dc0aa78b770fa6a738034120c302",
+    "info": {
+     "id": "ethereum",
+     "name": "Ethereum",
+     "status": "online",
+     "contract_address": "0x111111111117dc0aa78b770fa6a738034120c302",
+     "crypto_address_link": "https://etherscan.io/token/0x111111111117dc0aa78b770fa6a738034120c302?a={{address}}",
+     "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+     "min_withdrawal_amount": 0.01,
+     "max_withdrawal_amount": 6000000,
+     "network_confirmations": 14,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0.01,
+    "max": 6000000
+   },
+   "deposit": {}
+  }
+ },
+ "2Z": {
+  "info": {
+   "id": "2Z",
+   "name": "Doublezero",
+   "min_size": "0.00000001",
+   "status": "online",
+   "message": "",
+   "max_precision": "0.00000001",
+   "convertible_to": [],
+   "details": {
+    "type": "crypto",
+    "symbol": null,
+    "network_confirmations": 31,
+    "sort_order": 500,
+    "crypto_address_link": "https://explorer.solana.com/address/{{address}}",
+    "crypto_transaction_link": "https://explorer.solana.com/tx/{{txId}}",
+    "push_payment_methods": [
+     "crypto"
+    ],
+    "group_types": [],
+    "display_name": null,
+    "processing_time_seconds": null,
+    "min_withdrawal_amount": 1e-8,
+    "max_withdrawal_amount": 5330000
+   },
+   "default_network": "solana",
+   "supported_networks": [
+    {
+     "id": "solana",
+     "name": "Solana",
+     "status": "online",
+     "contract_address": "J6pQQ3FAcJQeWPPGppWRb4nM8jU3wLyYbRrLh7feMfvd",
+     "crypto_address_link": "https://explorer.solana.com/address/{{address}}",
+     "crypto_transaction_link": "https://explorer.solana.com/tx/{{txId}}",
+     "min_withdrawal_amount": 1e-8,
+     "max_withdrawal_amount": 5330000,
+     "network_confirmations": 31,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": false
+    }
+   ],
+   "display_name": "2Z"
+  },
+  "id": "2Z",
+  "code": "2Z",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Doublezero",
+  "active": true,
+  "fees": {},
+  "networks": {
+   "SOL": {
+    "id": "solana",
+    "name": "Solana",
+    "network": "SOL",
+    "active": true,
+    "limits": {
+     "withdraw": {
+      "min": 1e-8,
+      "max": 5330000
+     }
+    },
+    "contract": "J6pQQ3FAcJQeWPPGppWRb4nM8jU3wLyYbRrLh7feMfvd",
+    "info": {
+     "id": "solana",
+     "name": "Solana",
+     "status": "online",
+     "contract_address": "J6pQQ3FAcJQeWPPGppWRb4nM8jU3wLyYbRrLh7feMfvd",
+     "crypto_address_link": "https://explorer.solana.com/address/{{address}}",
+     "crypto_transaction_link": "https://explorer.solana.com/tx/{{txId}}",
+     "min_withdrawal_amount": 1e-8,
+     "max_withdrawal_amount": 5330000,
+     "network_confirmations": 31,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": false
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 1e-8,
+    "max": 5330000
+   },
+   "deposit": {}
+  }
+ },
+ "A8": {
+  "info": {
+   "id": "A8",
+   "name": "Ancient8",
+   "min_size": "0.00000001",
+   "status": "online",
+   "message": "",
+   "max_precision": "0.00000001",
+   "convertible_to": [],
+   "details": {
+    "type": "crypto",
+    "symbol": null,
+    "network_confirmations": 14,
+    "sort_order": 500,
+    "crypto_address_link": "https://etherscan.io/token/0x3E5A19c91266aD8cE2477B91585d1856B84062dF?a={{address}}",
+    "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+    "push_payment_methods": [
+     "crypto"
+    ],
+    "group_types": [],
+    "display_name": null,
+    "processing_time_seconds": null,
+    "min_withdrawal_amount": 1e-8,
+    "max_withdrawal_amount": 400000
+   },
+   "default_network": "ethereum",
+   "supported_networks": [
+    {
+     "id": "ethereum",
+     "name": "Ethereum",
+     "status": "online",
+     "contract_address": "0x3E5A19c91266aD8cE2477B91585d1856B84062dF",
+     "crypto_address_link": "https://etherscan.io/token/0x3E5A19c91266aD8cE2477B91585d1856B84062dF?a={{address}}",
+     "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+     "min_withdrawal_amount": 1e-8,
+     "max_withdrawal_amount": 400000,
+     "network_confirmations": 14,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   ],
+   "display_name": "A8"
+  },
+  "id": "A8",
+  "code": "A8",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Ancient8",
+  "active": true,
+  "fees": {},
+  "networks": {
+   "ERC20": {
+    "id": "ethereum",
+    "name": "Ethereum",
+    "network": "ERC20",
+    "active": true,
+    "limits": {
+     "withdraw": {
+      "min": 1e-8,
+      "max": 400000
+     }
+    },
+    "contract": "0x3E5A19c91266aD8cE2477B91585d1856B84062dF",
+    "info": {
+     "id": "ethereum",
+     "name": "Ethereum",
+     "status": "online",
+     "contract_address": "0x3E5A19c91266aD8cE2477B91585d1856B84062dF",
+     "crypto_address_link": "https://etherscan.io/token/0x3E5A19c91266aD8cE2477B91585d1856B84062dF?a={{address}}",
+     "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+     "min_withdrawal_amount": 1e-8,
+     "max_withdrawal_amount": 400000,
+     "network_confirmations": 14,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 1e-8,
+    "max": 400000
+   },
+   "deposit": {}
+  }
+ },
+ "AAVE": {
+  "info": {
+   "id": "AAVE",
+   "name": "Aave",
+   "min_size": "0.01",
+   "status": "online",
+   "message": "",
+   "max_precision": "0.001",
+   "convertible_to": [],
+   "details": {
+    "type": "crypto",
+    "symbol": null,
+    "network_confirmations": 14,
+    "sort_order": 270,
+    "crypto_address_link": "https://etherscan.io/token/0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9?a={{address}}",
+    "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+    "push_payment_methods": [
+     "crypto"
+    ],
+    "group_types": [],
+    "display_name": null,
+    "processing_time_seconds": null,
+    "min_withdrawal_amount": 0.07,
+    "max_withdrawal_amount": 32200
+   },
+   "default_network": "ethereum",
+   "supported_networks": [
+    {
+     "id": "ethereum",
+     "name": "Ethereum",
+     "status": "online",
+     "contract_address": "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
+     "crypto_address_link": "https://etherscan.io/token/0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9?a={{address}}",
+     "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+     "min_withdrawal_amount": 0.07,
+     "max_withdrawal_amount": 32200,
+     "network_confirmations": 14,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   ],
+   "display_name": "AAVE"
+  },
+  "id": "AAVE",
+  "code": "AAVE",
+  "precision": 0.001,
+  "type": "crypto",
+  "name": "Aave",
+  "active": true,
+  "fees": {},
+  "networks": {
+   "ERC20": {
+    "id": "ethereum",
+    "name": "Ethereum",
+    "network": "ERC20",
+    "active": true,
+    "limits": {
+     "withdraw": {
+      "min": 0.07,
+      "max": 32200
+     }
+    },
+    "contract": "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
+    "info": {
+     "id": "ethereum",
+     "name": "Ethereum",
+     "status": "online",
+     "contract_address": "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
+     "crypto_address_link": "https://etherscan.io/token/0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9?a={{address}}",
+     "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+     "min_withdrawal_amount": 0.07,
+     "max_withdrawal_amount": 32200,
+     "network_confirmations": 14,
+     "processing_time_seconds": null,
+     "destination_tag_regex": null,
+     "is_evm_network": true
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0.07,
+    "max": 32200
+   },
+   "deposit": {}
+  }
+ }
+}

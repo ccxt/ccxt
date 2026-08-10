@@ -1,0 +1,1194 @@
+{
+ "ETH": {
+  "info": {
+   "token": "ETH",
+   "token_hash": "0xaaaebeba3810b1e6b70781f14b2d72c1cb89c0b2b320c43bb67ff79f562f5ff4",
+   "decimals": 8,
+   "minimum_withdraw_amount": 1e-8,
+   "base_weight": 0.8,
+   "discount_factor": 0.000007,
+   "haircut": 0.035,
+   "user_max_qty": 200,
+   "is_collateral": true,
+   "on_chain_swap": true,
+   "chain_details": [
+    {
+     "chain_id": "1",
+     "contract_address": "",
+     "decimals": 18,
+     "withdrawal_fee": 0.00005,
+     "cross_chain_withdrawal_fee": 0.005,
+     "display_name": "ETH",
+     "exclusive_deposit_supported": false
+    },
+    {
+     "chain_id": "42161",
+     "contract_address": "",
+     "decimals": 18,
+     "withdrawal_fee": 0.00005,
+     "cross_chain_withdrawal_fee": 0.00005,
+     "display_name": "ETH",
+     "exclusive_deposit_supported": false
+    },
+    {
+     "chain_id": "8453",
+     "contract_address": "",
+     "decimals": 18,
+     "withdrawal_fee": 0.00005,
+     "cross_chain_withdrawal_fee": 0.00005,
+     "display_name": "ETH",
+     "exclusive_deposit_supported": false
+    }
+   ]
+  },
+  "id": "ETH",
+  "code": "ETH",
+  "precision": 1e-18,
+  "name": "ETH",
+  "fee": 0.00005,
+  "fees": {},
+  "networks": {
+   "1": {
+    "id": "1",
+    "network": "1",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 0.00005,
+    "precision": 1e-18,
+    "info": {
+     "chain_id": "1",
+     "contract_address": "",
+     "decimals": 18,
+     "withdrawal_fee": 0.00005,
+     "cross_chain_withdrawal_fee": 0.005,
+     "display_name": "ETH",
+     "exclusive_deposit_supported": false
+    }
+   },
+   "8453": {
+    "id": "8453",
+    "network": "8453",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 0.00005,
+    "precision": 1e-18,
+    "info": {
+     "chain_id": "8453",
+     "contract_address": "",
+     "decimals": 18,
+     "withdrawal_fee": 0.00005,
+     "cross_chain_withdrawal_fee": 0.00005,
+     "display_name": "ETH",
+     "exclusive_deposit_supported": false
+    }
+   },
+   "42161": {
+    "id": "42161",
+    "network": "42161",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 0.00005,
+    "precision": 1e-18,
+    "info": {
+     "chain_id": "42161",
+     "contract_address": "",
+     "decimals": 18,
+     "withdrawal_fee": 0.00005,
+     "cross_chain_withdrawal_fee": 0.00005,
+     "display_name": "ETH",
+     "exclusive_deposit_supported": false
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": 1e-8
+   }
+  }
+ },
+ "USDC": {
+  "info": {
+   "token": "USDC",
+   "token_hash": "0xd6aca1be9729c13d677335161321649cccae6a591554772516700f986f942eaa",
+   "decimals": 6,
+   "minimum_withdraw_amount": 0.000001,
+   "base_weight": 1,
+   "discount_factor": null,
+   "haircut": 0,
+   "user_max_qty": -1,
+   "is_collateral": true,
+   "on_chain_swap": true,
+   "chain_details": [
+    {
+     "chain_id": "1",
+     "contract_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+     "decimals": 6,
+     "withdrawal_fee": 2,
+     "cross_chain_withdrawal_fee": 10,
+     "display_name": "USDC",
+     "exclusive_deposit_supported": false
+    },
+    {
+     "chain_id": "10",
+     "contract_address": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC",
+     "exclusive_deposit_supported": false
+    },
+    {
+     "chain_id": "1329",
+     "contract_address": "0xe15fC38F6D8c56aF07bbCBe3BAf5708A2Bf42392",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC",
+     "exclusive_deposit_supported": false
+    },
+    {
+     "chain_id": "137",
+     "contract_address": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC",
+     "exclusive_deposit_supported": false
+    },
+    {
+     "chain_id": "143",
+     "contract_address": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
+     "decimals": 6,
+     "withdrawal_fee": 0,
+     "cross_chain_withdrawal_fee": 0,
+     "display_name": "USDC",
+     "exclusive_deposit_supported": false
+    },
+    {
+     "chain_id": "146",
+     "contract_address": "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC.e",
+     "exclusive_deposit_supported": false
+    },
+    {
+     "chain_id": "1514",
+     "contract_address": "0xF1815bd50389c46847f0Bda824eC8da914045D14",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC.e",
+     "exclusive_deposit_supported": false
+    },
+    {
+     "chain_id": "196",
+     "contract_address": "0xB6CEceAB302E2E4948951eE7843FC24E92933061",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 0,
+     "display_name": "USDC",
+     "exclusive_deposit_supported": false
+    },
+    {
+     "chain_id": "2741",
+     "contract_address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC.e",
+     "exclusive_deposit_supported": false
+    },
+    {
+     "chain_id": "2818",
+     "contract_address": "0xe34c91815d7fc18A9e2148bcD4241d0a5848b693",
+     "decimals": 6,
+     "withdrawal_fee": 0,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC.e",
+     "exclusive_deposit_supported": false
+    },
+    {
+     "chain_id": "34443",
+     "contract_address": "0xd988097fb8612cc24eeC14542bC03424c656005f",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC.e",
+     "exclusive_deposit_supported": false
+    },
+    {
+     "chain_id": "36900",
+     "contract_address": "0x9cb8142aEBBcdc60AF7c97Af897A67A8f3CA71C2",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 0,
+     "display_name": "USDC.e",
+     "exclusive_deposit_supported": true
+    },
+    {
+     "chain_id": "42161",
+     "contract_address": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC",
+     "exclusive_deposit_supported": true
+    },
+    {
+     "chain_id": "43114",
+     "contract_address": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC",
+     "exclusive_deposit_supported": false
+    },
+    {
+     "chain_id": "5000",
+     "contract_address": "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9",
+     "decimals": 6,
+     "withdrawal_fee": 2,
+     "cross_chain_withdrawal_fee": 2,
+     "display_name": "USDC.e",
+     "exclusive_deposit_supported": false
+    },
+    {
+     "chain_id": "56",
+     "contract_address": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+     "decimals": 18,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC.e",
+     "exclusive_deposit_supported": true
+    },
+    {
+     "chain_id": "80094",
+     "contract_address": "0x549943e04f40284185054145c6e4e9568c1d3241",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC.e",
+     "exclusive_deposit_supported": false
+    },
+    {
+     "chain_id": "8453",
+     "contract_address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC",
+     "exclusive_deposit_supported": false
+    },
+    {
+     "chain_id": "900900900",
+     "contract_address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC",
+     "exclusive_deposit_supported": false
+    },
+    {
+     "chain_id": "98866",
+     "contract_address": "0x78adD880A697070c1e765Ac44D65323a0DcCE913",
+     "decimals": 6,
+     "withdrawal_fee": 0,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC.e",
+     "exclusive_deposit_supported": false
+    }
+   ]
+  },
+  "id": "USDC",
+  "code": "USDC",
+  "precision": 0.000001,
+  "name": "USDC",
+  "fee": 0,
+  "fees": {},
+  "networks": {
+   "1": {
+    "id": "1",
+    "network": "1",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 2,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "1",
+     "contract_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+     "decimals": 6,
+     "withdrawal_fee": 2,
+     "cross_chain_withdrawal_fee": 10,
+     "display_name": "USDC",
+     "exclusive_deposit_supported": false
+    }
+   },
+   "10": {
+    "id": "10",
+    "network": "10",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 1,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "10",
+     "contract_address": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC",
+     "exclusive_deposit_supported": false
+    }
+   },
+   "56": {
+    "id": "56",
+    "network": "56",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 1,
+    "precision": 1e-18,
+    "info": {
+     "chain_id": "56",
+     "contract_address": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+     "decimals": 18,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC.e",
+     "exclusive_deposit_supported": true
+    }
+   },
+   "137": {
+    "id": "137",
+    "network": "137",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 1,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "137",
+     "contract_address": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC",
+     "exclusive_deposit_supported": false
+    }
+   },
+   "143": {
+    "id": "143",
+    "network": "143",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 0,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "143",
+     "contract_address": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
+     "decimals": 6,
+     "withdrawal_fee": 0,
+     "cross_chain_withdrawal_fee": 0,
+     "display_name": "USDC",
+     "exclusive_deposit_supported": false
+    }
+   },
+   "146": {
+    "id": "146",
+    "network": "146",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 1,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "146",
+     "contract_address": "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC.e",
+     "exclusive_deposit_supported": false
+    }
+   },
+   "196": {
+    "id": "196",
+    "network": "196",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 1,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "196",
+     "contract_address": "0xB6CEceAB302E2E4948951eE7843FC24E92933061",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 0,
+     "display_name": "USDC",
+     "exclusive_deposit_supported": false
+    }
+   },
+   "1329": {
+    "id": "1329",
+    "network": "1329",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 1,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "1329",
+     "contract_address": "0xe15fC38F6D8c56aF07bbCBe3BAf5708A2Bf42392",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC",
+     "exclusive_deposit_supported": false
+    }
+   },
+   "1514": {
+    "id": "1514",
+    "network": "1514",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 1,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "1514",
+     "contract_address": "0xF1815bd50389c46847f0Bda824eC8da914045D14",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC.e",
+     "exclusive_deposit_supported": false
+    }
+   },
+   "2741": {
+    "id": "2741",
+    "network": "2741",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 1,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "2741",
+     "contract_address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC.e",
+     "exclusive_deposit_supported": false
+    }
+   },
+   "2818": {
+    "id": "2818",
+    "network": "2818",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 0,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "2818",
+     "contract_address": "0xe34c91815d7fc18A9e2148bcD4241d0a5848b693",
+     "decimals": 6,
+     "withdrawal_fee": 0,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC.e",
+     "exclusive_deposit_supported": false
+    }
+   },
+   "5000": {
+    "id": "5000",
+    "network": "5000",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 2,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "5000",
+     "contract_address": "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9",
+     "decimals": 6,
+     "withdrawal_fee": 2,
+     "cross_chain_withdrawal_fee": 2,
+     "display_name": "USDC.e",
+     "exclusive_deposit_supported": false
+    }
+   },
+   "8453": {
+    "id": "8453",
+    "network": "8453",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 1,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "8453",
+     "contract_address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC",
+     "exclusive_deposit_supported": false
+    }
+   },
+   "34443": {
+    "id": "34443",
+    "network": "34443",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 1,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "34443",
+     "contract_address": "0xd988097fb8612cc24eeC14542bC03424c656005f",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC.e",
+     "exclusive_deposit_supported": false
+    }
+   },
+   "36900": {
+    "id": "36900",
+    "network": "36900",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 1,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "36900",
+     "contract_address": "0x9cb8142aEBBcdc60AF7c97Af897A67A8f3CA71C2",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 0,
+     "display_name": "USDC.e",
+     "exclusive_deposit_supported": true
+    }
+   },
+   "42161": {
+    "id": "42161",
+    "network": "42161",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 1,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "42161",
+     "contract_address": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC",
+     "exclusive_deposit_supported": true
+    }
+   },
+   "43114": {
+    "id": "43114",
+    "network": "43114",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 1,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "43114",
+     "contract_address": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC",
+     "exclusive_deposit_supported": false
+    }
+   },
+   "80094": {
+    "id": "80094",
+    "network": "80094",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 1,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "80094",
+     "contract_address": "0x549943e04f40284185054145c6e4e9568c1d3241",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC.e",
+     "exclusive_deposit_supported": false
+    }
+   },
+   "98866": {
+    "id": "98866",
+    "network": "98866",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 0,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "98866",
+     "contract_address": "0x78adD880A697070c1e765Ac44D65323a0DcCE913",
+     "decimals": 6,
+     "withdrawal_fee": 0,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC.e",
+     "exclusive_deposit_supported": false
+    }
+   },
+   "900900900": {
+    "id": "900900900",
+    "network": "900900900",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 1,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "900900900",
+     "contract_address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDC",
+     "exclusive_deposit_supported": false
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": 0.000001
+   }
+  }
+ },
+ "BNB": {
+  "info": {
+   "token": "BNB",
+   "token_hash": "0x3ed03c38e59dc60c7b69c2a4bf68f9214acd953252b5a90e8f5f59583e9bc3ae",
+   "decimals": 8,
+   "minimum_withdraw_amount": 1e-8,
+   "base_weight": 0.8,
+   "discount_factor": 0.000007,
+   "haircut": 0.035,
+   "user_max_qty": 500,
+   "is_collateral": true,
+   "on_chain_swap": true,
+   "chain_details": [
+    {
+     "chain_id": "56",
+     "contract_address": "",
+     "decimals": 18,
+     "withdrawal_fee": 0.002,
+     "cross_chain_withdrawal_fee": 0.002,
+     "display_name": "BNB",
+     "exclusive_deposit_supported": false
+    }
+   ]
+  },
+  "id": "BNB",
+  "code": "BNB",
+  "precision": 1e-18,
+  "name": "BNB",
+  "fee": 0.002,
+  "fees": {},
+  "networks": {
+   "56": {
+    "id": "56",
+    "network": "56",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 0.002,
+    "precision": 1e-18,
+    "info": {
+     "chain_id": "56",
+     "contract_address": "",
+     "decimals": 18,
+     "withdrawal_fee": 0.002,
+     "cross_chain_withdrawal_fee": 0.002,
+     "display_name": "BNB",
+     "exclusive_deposit_supported": false
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": 1e-8
+   }
+  }
+ },
+ "SOL": {
+  "info": {
+   "token": "SOL",
+   "token_hash": "0x0a3ec4fc70eaf64faf6eeda4e9b2bd4742a785464053aa23afad8bd24650e86f",
+   "decimals": 8,
+   "minimum_withdraw_amount": 0.1,
+   "base_weight": 0.8,
+   "discount_factor": 0.000007,
+   "haircut": 0.035,
+   "user_max_qty": 2000,
+   "is_collateral": true,
+   "on_chain_swap": false,
+   "chain_details": [
+    {
+     "chain_id": "900900900",
+     "contract_address": "",
+     "decimals": 9,
+     "withdrawal_fee": 0.005,
+     "cross_chain_withdrawal_fee": 0.005,
+     "display_name": "SOL",
+     "exclusive_deposit_supported": false
+    }
+   ]
+  },
+  "id": "SOL",
+  "code": "SOL",
+  "precision": 1e-9,
+  "name": "SOL",
+  "fee": 0.005,
+  "fees": {},
+  "networks": {
+   "900900900": {
+    "id": "900900900",
+    "network": "900900900",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 0.005,
+    "precision": 1e-9,
+    "info": {
+     "chain_id": "900900900",
+     "contract_address": "",
+     "decimals": 9,
+     "withdrawal_fee": 0.005,
+     "cross_chain_withdrawal_fee": 0.005,
+     "display_name": "SOL",
+     "exclusive_deposit_supported": false
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": 0.1
+   }
+  }
+ },
+ "USD1": {
+  "info": {
+   "token": "USD1",
+   "token_hash": "0xbab9e3bf8afbf2d6cb7b656340985ae08f68c7786dd0d94057896d00033b2578",
+   "decimals": 8,
+   "minimum_withdraw_amount": 1e-8,
+   "base_weight": 0.98,
+   "discount_factor": 0.0000045,
+   "haircut": 0.00035,
+   "user_max_qty": 50000,
+   "is_collateral": true,
+   "on_chain_swap": true,
+   "chain_details": [
+    {
+     "chain_id": "1",
+     "contract_address": "0x8d0d000ee44948fc98c9b98a4fa4921476f08b0d",
+     "decimals": 18,
+     "withdrawal_fee": 2,
+     "cross_chain_withdrawal_fee": 2,
+     "display_name": "USD1",
+     "exclusive_deposit_supported": false
+    },
+    {
+     "chain_id": "56",
+     "contract_address": "0x8d0d000ee44948fc98c9b98a4fa4921476f08b0d",
+     "decimals": 18,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USD1",
+     "exclusive_deposit_supported": false
+    }
+   ]
+  },
+  "id": "USD1",
+  "code": "USD1",
+  "precision": 1e-18,
+  "name": "USD1",
+  "fee": 1,
+  "fees": {},
+  "networks": {
+   "1": {
+    "id": "1",
+    "network": "1",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 2,
+    "precision": 1e-18,
+    "info": {
+     "chain_id": "1",
+     "contract_address": "0x8d0d000ee44948fc98c9b98a4fa4921476f08b0d",
+     "decimals": 18,
+     "withdrawal_fee": 2,
+     "cross_chain_withdrawal_fee": 2,
+     "display_name": "USD1",
+     "exclusive_deposit_supported": false
+    }
+   },
+   "56": {
+    "id": "56",
+    "network": "56",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 1,
+    "precision": 1e-18,
+    "info": {
+     "chain_id": "56",
+     "contract_address": "0x8d0d000ee44948fc98c9b98a4fa4921476f08b0d",
+     "decimals": 18,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USD1",
+     "exclusive_deposit_supported": false
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": 1e-8
+   }
+  }
+ },
+ "USDT": {
+  "info": {
+   "token": "USDT",
+   "token_hash": "0x8b1a1d9c2b109e527c9134b25b1a1833b16b6594f92daa9f6d9b7a6024bce9d0",
+   "decimals": 6,
+   "minimum_withdraw_amount": 0.000001,
+   "base_weight": 1,
+   "discount_factor": 0.0000015,
+   "haircut": 0.00025,
+   "user_max_qty": 1000000,
+   "is_collateral": true,
+   "on_chain_swap": true,
+   "chain_details": [
+    {
+     "chain_id": "1",
+     "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+     "decimals": 6,
+     "withdrawal_fee": 2,
+     "cross_chain_withdrawal_fee": 10,
+     "display_name": "USDT",
+     "exclusive_deposit_supported": false
+    },
+    {
+     "chain_id": "42161",
+     "contract_address": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDT",
+     "exclusive_deposit_supported": true
+    },
+    {
+     "chain_id": "56",
+     "contract_address": "0x55d398326f99059fF775485246999027B3197955",
+     "decimals": 18,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDT",
+     "exclusive_deposit_supported": true
+    },
+    {
+     "chain_id": "900900900",
+     "contract_address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDT",
+     "exclusive_deposit_supported": false
+    }
+   ]
+  },
+  "id": "USDT",
+  "code": "USDT",
+  "precision": 0.000001,
+  "name": "USDT",
+  "fee": 1,
+  "fees": {},
+  "networks": {
+   "1": {
+    "id": "1",
+    "network": "1",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 2,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "1",
+     "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+     "decimals": 6,
+     "withdrawal_fee": 2,
+     "cross_chain_withdrawal_fee": 10,
+     "display_name": "USDT",
+     "exclusive_deposit_supported": false
+    }
+   },
+   "56": {
+    "id": "56",
+    "network": "56",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 1,
+    "precision": 1e-18,
+    "info": {
+     "chain_id": "56",
+     "contract_address": "0x55d398326f99059fF775485246999027B3197955",
+     "decimals": 18,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDT",
+     "exclusive_deposit_supported": true
+    }
+   },
+   "42161": {
+    "id": "42161",
+    "network": "42161",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 1,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "42161",
+     "contract_address": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDT",
+     "exclusive_deposit_supported": true
+    }
+   },
+   "900900900": {
+    "id": "900900900",
+    "network": "900900900",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 1,
+    "precision": 0.000001,
+    "info": {
+     "chain_id": "900900900",
+     "contract_address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+     "decimals": 6,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "USDT",
+     "exclusive_deposit_supported": false
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": 0.000001
+   }
+  }
+ },
+ "WBTC": {
+  "info": {
+   "token": "WBTC",
+   "token_hash": "0x98da2c5e4c6b1db946694570273b859a6e4083ccc8faa155edfc4c54eb3cfd73",
+   "decimals": 8,
+   "minimum_withdraw_amount": 1e-8,
+   "base_weight": 0.8,
+   "discount_factor": 0.000007,
+   "haircut": 0.035,
+   "user_max_qty": 5,
+   "is_collateral": true,
+   "on_chain_swap": true,
+   "chain_details": [
+    {
+     "chain_id": "1",
+     "contract_address": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+     "decimals": 8,
+     "withdrawal_fee": 0.00002,
+     "cross_chain_withdrawal_fee": 0.0001,
+     "display_name": "WBTC",
+     "exclusive_deposit_supported": false
+    }
+   ]
+  },
+  "id": "WBTC",
+  "code": "WBTC",
+  "precision": 1e-8,
+  "name": "WBTC",
+  "fee": 0.00002,
+  "fees": {},
+  "networks": {
+   "1": {
+    "id": "1",
+    "network": "1",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 0.00002,
+    "precision": 1e-8,
+    "info": {
+     "chain_id": "1",
+     "contract_address": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+     "decimals": 8,
+     "withdrawal_fee": 0.00002,
+     "cross_chain_withdrawal_fee": 0.0001,
+     "display_name": "WBTC",
+     "exclusive_deposit_supported": false
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": 1e-8
+   }
+  }
+ },
+ "YUSD": {
+  "info": {
+   "token": "YUSD",
+   "token_hash": "0x856867ee21319aebc5f6437f73a0e35d52382f9c71f8b5da7906cb570bd3412e",
+   "decimals": 8,
+   "minimum_withdraw_amount": 1e-8,
+   "base_weight": 0.9,
+   "discount_factor": 0.0000045,
+   "haircut": 0.00035,
+   "user_max_qty": 200000,
+   "is_collateral": true,
+   "on_chain_swap": true,
+   "chain_details": [
+    {
+     "chain_id": "1",
+     "contract_address": "0x4274cd7277c7bb0806bd5fe84b9adae466a8da0a",
+     "decimals": 18,
+     "withdrawal_fee": 2,
+     "cross_chain_withdrawal_fee": 10,
+     "display_name": "YUSD",
+     "exclusive_deposit_supported": false
+    },
+    {
+     "chain_id": "56",
+     "contract_address": "0xAB3dBcD9B096C3fF76275038bf58eAC10D22C61f",
+     "decimals": 18,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "YUSD",
+     "exclusive_deposit_supported": false
+    }
+   ]
+  },
+  "id": "YUSD",
+  "code": "YUSD",
+  "precision": 1e-18,
+  "name": "YUSD",
+  "fee": 1,
+  "fees": {},
+  "networks": {
+   "1": {
+    "id": "1",
+    "network": "1",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 2,
+    "precision": 1e-18,
+    "info": {
+     "chain_id": "1",
+     "contract_address": "0x4274cd7277c7bb0806bd5fe84b9adae466a8da0a",
+     "decimals": 18,
+     "withdrawal_fee": 2,
+     "cross_chain_withdrawal_fee": 10,
+     "display_name": "YUSD",
+     "exclusive_deposit_supported": false
+    }
+   },
+   "56": {
+    "id": "56",
+    "network": "56",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "fee": 1,
+    "precision": 1e-18,
+    "info": {
+     "chain_id": "56",
+     "contract_address": "0xAB3dBcD9B096C3fF76275038bf58eAC10D22C61f",
+     "decimals": 18,
+     "withdrawal_fee": 1,
+     "cross_chain_withdrawal_fee": 1,
+     "display_name": "YUSD",
+     "exclusive_deposit_supported": false
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": 1e-8
+   }
+  }
+ }
+}

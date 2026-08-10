@@ -1,0 +1,1456 @@
+{
+ "BTC/USD:BTC-260828": {
+  "id": "FI_XBTUSD_260828",
+  "symbol": "BTC/USD:BTC-260828",
+  "base": "BTC",
+  "quote": "USD",
+  "settle": "BTC",
+  "baseId": "XBT",
+  "quoteId": "usd",
+  "settleId": "XBT",
+  "type": "future",
+  "spot": false,
+  "margin": false,
+  "swap": false,
+  "future": true,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": true,
+  "linear": false,
+  "inverse": true,
+  "subType": "inverse",
+  "taker": 0.0005,
+  "maker": 0.0002,
+  "contractSize": 1,
+  "expiry": 1787929200000,
+  "expiryDatetime": "2026-08-28T15:00:00.000Z",
+  "precision": {
+   "amount": 1,
+   "price": 0.5
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "created": 1785510046000,
+  "info": {
+   "symbol": "FI_XBTUSD_260828",
+   "type": "futures_inverse",
+   "underlying": "rr_xbtusd",
+   "lastTradingTime": "2026-08-28T15:00:00Z",
+   "tickSize": 0.5,
+   "contractSize": 1,
+   "tradeable": true,
+   "impactMidSize": 1000,
+   "maxPositionSize": 40000000,
+   "openingDate": "2026-07-31T15:00:46Z",
+   "marginLevels": [
+    {
+     "contracts": 0,
+     "initialMargin": 0.02,
+     "maintenanceMargin": 0.01
+    },
+    {
+     "contracts": 500000,
+     "initialMargin": 0.04,
+     "maintenanceMargin": 0.02
+    },
+    {
+     "contracts": 1500000,
+     "initialMargin": 0.05,
+     "maintenanceMargin": 0.025
+    },
+    {
+     "contracts": 3000000,
+     "initialMargin": 0.1,
+     "maintenanceMargin": 0.05
+    },
+    {
+     "contracts": 10000000,
+     "initialMargin": 0.2,
+     "maintenanceMargin": 0.1
+    },
+    {
+     "contracts": 20000000,
+     "initialMargin": 0.3,
+     "maintenanceMargin": 0.15
+    },
+    {
+     "contracts": 50000000,
+     "initialMargin": 0.5,
+     "maintenanceMargin": 0.25
+    }
+   ],
+   "isin": "GB00BTQJRH93",
+   "contractValueTradePrecision": 0,
+   "postOnly": false,
+   "feeScheduleUid": "a6cbc326-9477-4a6c-911a-d4cb3ed7481e",
+   "mtf": true,
+   "platformsPermitted": [
+    "beaufort_fiduciaries",
+    "dlt",
+    "dlt_onboarding",
+    "europa",
+    "europa_crypto",
+    "mtf",
+    "payward_digital_solutions",
+    "sgb_platform"
+   ],
+   "countriesBanned": [],
+   "base": "BTC",
+   "quote": "USD",
+   "pair": "BTC:USD",
+   "retailMarginLevels": [
+    {
+     "contracts": 0,
+     "initialMargin": 0.5,
+     "maintenanceMargin": 0.25
+    }
+   ],
+   "marginSchedules": {
+    "europa": {
+     "retail": [
+      {
+       "contracts": 0,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "contracts": 10000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "contracts": 20000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "contracts": 50000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ],
+     "professional": [
+      {
+       "contracts": 0,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "contracts": 10000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "contracts": 20000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "contracts": 50000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ]
+    },
+    "europa_crypto": {
+     "retail": [
+      {
+       "contracts": 0,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "contracts": 10000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "contracts": 20000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "contracts": 50000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ],
+     "professional": [
+      {
+       "contracts": 0,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "contracts": 10000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "contracts": 20000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "contracts": 50000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ]
+    },
+    "dlt_onboarding": {
+     "retail": [
+      {
+       "contracts": 0,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ],
+     "professional": [
+      {
+       "contracts": 0,
+       "initialMargin": 0.02,
+       "maintenanceMargin": 0.01
+      },
+      {
+       "contracts": 500000,
+       "initialMargin": 0.04,
+       "maintenanceMargin": 0.02
+      },
+      {
+       "contracts": 1500000,
+       "initialMargin": 0.05,
+       "maintenanceMargin": 0.025
+      },
+      {
+       "contracts": 3000000,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "contracts": 10000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "contracts": 20000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "contracts": 50000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ]
+    }
+   },
+   "category": "Layer 1",
+   "tags": [],
+   "rebateLevels": {},
+   "tradfi": false,
+   "isExpired": false
+  },
+  "tierBased": true,
+  "percentage": true,
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.0005
+    ],
+    [
+     100000,
+     0.0004
+    ],
+    [
+     1000000,
+     0.0003
+    ],
+    [
+     5000000,
+     0.00025
+    ],
+    [
+     10000000,
+     0.0002
+    ],
+    [
+     20000000,
+     0.00015
+    ],
+    [
+     50000000,
+     0.000125
+    ],
+    [
+     100000000,
+     0.0001
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.0002
+    ],
+    [
+     100000,
+     0.0015
+    ],
+    [
+     1000000,
+     0.000125
+    ],
+    [
+     5000000,
+     0.0001
+    ],
+    [
+     10000000,
+     0.000075
+    ],
+    [
+     20000000,
+     0.00005
+    ],
+    [
+     50000000,
+     0.000025
+    ],
+    [
+     100000000,
+     0
+    ]
+   ]
+  }
+ },
+ "BTC/USD:BTC": {
+  "id": "PI_XBTUSD",
+  "symbol": "BTC/USD:BTC",
+  "base": "BTC",
+  "quote": "USD",
+  "settle": "BTC",
+  "baseId": "XBT",
+  "quoteId": "usd",
+  "settleId": "XBT",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": true,
+  "linear": false,
+  "inverse": true,
+  "subType": "inverse",
+  "taker": 0.0005,
+  "maker": 0.0002,
+  "contractSize": 1,
+  "precision": {
+   "amount": 1,
+   "price": 0.5
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "created": 1535673600000,
+  "info": {
+   "symbol": "PI_XBTUSD",
+   "type": "futures_inverse",
+   "underlying": "rr_xbtusd",
+   "tickSize": 0.5,
+   "contractSize": 1,
+   "tradeable": true,
+   "impactMidSize": 1000,
+   "maxPositionSize": 75000000,
+   "openingDate": "2018-08-31T00:00:00Z",
+   "marginLevels": [
+    {
+     "contracts": 0,
+     "initialMargin": 0.02,
+     "maintenanceMargin": 0.01
+    },
+    {
+     "contracts": 500000,
+     "initialMargin": 0.04,
+     "maintenanceMargin": 0.02
+    },
+    {
+     "contracts": 1500000,
+     "initialMargin": 0.05,
+     "maintenanceMargin": 0.025
+    },
+    {
+     "contracts": 3000000,
+     "initialMargin": 0.1,
+     "maintenanceMargin": 0.05
+    },
+    {
+     "contracts": 10000000,
+     "initialMargin": 0.2,
+     "maintenanceMargin": 0.1
+    },
+    {
+     "contracts": 20000000,
+     "initialMargin": 0.3,
+     "maintenanceMargin": 0.15
+    },
+    {
+     "contracts": 50000000,
+     "initialMargin": 0.5,
+     "maintenanceMargin": 0.25
+    }
+   ],
+   "fundingRateCoefficient": 8,
+   "maxRelativeFundingRate": 0.005,
+   "isin": "GB00J62YGL67",
+   "contractValueTradePrecision": 0,
+   "postOnly": false,
+   "feeScheduleUid": "a6cbc326-9477-4a6c-911a-d4cb3ed7481e",
+   "mtf": true,
+   "platformsPermitted": [
+    "beaufort_fiduciaries",
+    "dlt",
+    "dlt_onboarding",
+    "europa",
+    "europa_crypto",
+    "mtf",
+    "payward_digital_solutions",
+    "payward_global_trading",
+    "sgb_platform"
+   ],
+   "countriesBanned": [],
+   "base": "BTC",
+   "quote": "USD",
+   "pair": "BTC:USD",
+   "retailMarginLevels": [
+    {
+     "contracts": 0,
+     "initialMargin": 0.5,
+     "maintenanceMargin": 0.25
+    }
+   ],
+   "marginSchedules": {
+    "europa": {
+     "retail": [
+      {
+       "contracts": 0,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "contracts": 10000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "contracts": 20000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "contracts": 50000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ],
+     "professional": [
+      {
+       "contracts": 0,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "contracts": 10000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "contracts": 20000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "contracts": 50000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ]
+    },
+    "europa_crypto": {
+     "retail": [
+      {
+       "contracts": 0,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "contracts": 10000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "contracts": 20000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "contracts": 50000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ],
+     "professional": [
+      {
+       "contracts": 0,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "contracts": 10000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "contracts": 20000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "contracts": 50000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ]
+    },
+    "dlt": {
+     "retail": [
+      {
+       "contracts": 0,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ],
+     "professional": [
+      {
+       "contracts": 0,
+       "initialMargin": 0.02,
+       "maintenanceMargin": 0.01
+      },
+      {
+       "contracts": 500000,
+       "initialMargin": 0.04,
+       "maintenanceMargin": 0.02
+      },
+      {
+       "contracts": 1500000,
+       "initialMargin": 0.05,
+       "maintenanceMargin": 0.025
+      },
+      {
+       "contracts": 3000000,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "contracts": 10000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "contracts": 20000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "contracts": 50000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ]
+    },
+    "dlt_onboarding": {
+     "retail": [
+      {
+       "contracts": 0,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ],
+     "professional": [
+      {
+       "contracts": 0,
+       "initialMargin": 0.02,
+       "maintenanceMargin": 0.01
+      },
+      {
+       "contracts": 500000,
+       "initialMargin": 0.04,
+       "maintenanceMargin": 0.02
+      },
+      {
+       "contracts": 1500000,
+       "initialMargin": 0.05,
+       "maintenanceMargin": 0.025
+      },
+      {
+       "contracts": 3000000,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "contracts": 10000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "contracts": 20000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "contracts": 50000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ]
+    }
+   },
+   "category": "",
+   "tags": [],
+   "rebateLevels": {},
+   "tradfi": false,
+   "isExpired": false
+  },
+  "tierBased": true,
+  "percentage": true,
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.0005
+    ],
+    [
+     100000,
+     0.0004
+    ],
+    [
+     1000000,
+     0.0003
+    ],
+    [
+     5000000,
+     0.00025
+    ],
+    [
+     10000000,
+     0.0002
+    ],
+    [
+     20000000,
+     0.00015
+    ],
+    [
+     50000000,
+     0.000125
+    ],
+    [
+     100000000,
+     0.0001
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.0002
+    ],
+    [
+     100000,
+     0.0015
+    ],
+    [
+     1000000,
+     0.000125
+    ],
+    [
+     5000000,
+     0.0001
+    ],
+    [
+     10000000,
+     0.000075
+    ],
+    [
+     20000000,
+     0.00005
+    ],
+    [
+     50000000,
+     0.000025
+    ],
+    [
+     100000000,
+     0
+    ]
+   ]
+  }
+ },
+ "BTC/USD:BTC-260925": {
+  "id": "FI_XBTUSD_260925",
+  "symbol": "BTC/USD:BTC-260925",
+  "base": "BTC",
+  "quote": "USD",
+  "settle": "BTC",
+  "baseId": "XBT",
+  "quoteId": "usd",
+  "settleId": "XBT",
+  "type": "future",
+  "spot": false,
+  "margin": false,
+  "swap": false,
+  "future": true,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": true,
+  "linear": false,
+  "inverse": true,
+  "subType": "inverse",
+  "taker": 0.0005,
+  "maker": 0.0002,
+  "contractSize": 1,
+  "expiry": 1790348400000,
+  "expiryDatetime": "2026-09-25T15:00:00.000Z",
+  "precision": {
+   "amount": 1,
+   "price": 0.5
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "created": 1772208000000,
+  "info": {
+   "symbol": "FI_XBTUSD_260925",
+   "type": "futures_inverse",
+   "underlying": "rr_xbtusd",
+   "lastTradingTime": "2026-09-25T15:00:00Z",
+   "tickSize": 0.5,
+   "contractSize": 1,
+   "tradeable": true,
+   "impactMidSize": 1000,
+   "maxPositionSize": 40000000,
+   "openingDate": "2026-02-27T16:00:00Z",
+   "marginLevels": [
+    {
+     "contracts": 0,
+     "initialMargin": 0.02,
+     "maintenanceMargin": 0.01
+    },
+    {
+     "contracts": 500000,
+     "initialMargin": 0.04,
+     "maintenanceMargin": 0.02
+    },
+    {
+     "contracts": 1500000,
+     "initialMargin": 0.05,
+     "maintenanceMargin": 0.025
+    },
+    {
+     "contracts": 3000000,
+     "initialMargin": 0.1,
+     "maintenanceMargin": 0.05
+    },
+    {
+     "contracts": 10000000,
+     "initialMargin": 0.2,
+     "maintenanceMargin": 0.1
+    },
+    {
+     "contracts": 20000000,
+     "initialMargin": 0.3,
+     "maintenanceMargin": 0.15
+    },
+    {
+     "contracts": 50000000,
+     "initialMargin": 0.5,
+     "maintenanceMargin": 0.25
+    }
+   ],
+   "isin": "GB00BTQJRJ18",
+   "contractValueTradePrecision": 0,
+   "postOnly": false,
+   "feeScheduleUid": "a6cbc326-9477-4a6c-911a-d4cb3ed7481e",
+   "mtf": true,
+   "platformsPermitted": [
+    "beaufort_fiduciaries",
+    "dlt",
+    "dlt_onboarding",
+    "europa",
+    "europa_crypto",
+    "mtf",
+    "payward_digital_solutions",
+    "sgb_platform"
+   ],
+   "countriesBanned": [],
+   "base": "BTC",
+   "quote": "USD",
+   "pair": "BTC:USD",
+   "retailMarginLevels": [
+    {
+     "contracts": 0,
+     "initialMargin": 0.5,
+     "maintenanceMargin": 0.25
+    }
+   ],
+   "marginSchedules": {
+    "europa": {
+     "retail": [
+      {
+       "contracts": 0,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "contracts": 10000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "contracts": 20000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "contracts": 50000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ],
+     "professional": [
+      {
+       "contracts": 0,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "contracts": 10000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "contracts": 20000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "contracts": 50000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ]
+    },
+    "europa_crypto": {
+     "retail": [
+      {
+       "contracts": 0,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "contracts": 10000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "contracts": 20000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "contracts": 50000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ],
+     "professional": [
+      {
+       "contracts": 0,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "contracts": 10000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "contracts": 20000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "contracts": 50000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ]
+    },
+    "dlt_onboarding": {
+     "retail": [
+      {
+       "contracts": 0,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ],
+     "professional": [
+      {
+       "contracts": 0,
+       "initialMargin": 0.02,
+       "maintenanceMargin": 0.01
+      },
+      {
+       "contracts": 500000,
+       "initialMargin": 0.04,
+       "maintenanceMargin": 0.02
+      },
+      {
+       "contracts": 1500000,
+       "initialMargin": 0.05,
+       "maintenanceMargin": 0.025
+      },
+      {
+       "contracts": 3000000,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "contracts": 10000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "contracts": 20000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "contracts": 50000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ]
+    }
+   },
+   "category": "Layer 1",
+   "tags": [],
+   "rebateLevels": {},
+   "tradfi": false,
+   "isExpired": false
+  },
+  "tierBased": true,
+  "percentage": true,
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.0005
+    ],
+    [
+     100000,
+     0.0004
+    ],
+    [
+     1000000,
+     0.0003
+    ],
+    [
+     5000000,
+     0.00025
+    ],
+    [
+     10000000,
+     0.0002
+    ],
+    [
+     20000000,
+     0.00015
+    ],
+    [
+     50000000,
+     0.000125
+    ],
+    [
+     100000000,
+     0.0001
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.0002
+    ],
+    [
+     100000,
+     0.0015
+    ],
+    [
+     1000000,
+     0.000125
+    ],
+    [
+     5000000,
+     0.0001
+    ],
+    [
+     10000000,
+     0.000075
+    ],
+    [
+     20000000,
+     0.00005
+    ],
+    [
+     50000000,
+     0.000025
+    ],
+    [
+     100000000,
+     0
+    ]
+   ]
+  }
+ },
+ "BTC/USD:USD": {
+  "id": "PF_XBTUSD",
+  "symbol": "BTC/USD:USD",
+  "base": "BTC",
+  "quote": "USD",
+  "settle": "USD",
+  "baseId": "XBT",
+  "quoteId": "usd",
+  "settleId": "usd",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.0005,
+  "maker": 0.0002,
+  "contractSize": 1,
+  "precision": {
+   "amount": 0.0001,
+   "price": 1
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "created": 1647954936000,
+  "info": {
+   "symbol": "PF_XBTUSD",
+   "type": "flexible_futures",
+   "tickSize": 1,
+   "contractSize": 1,
+   "tradeable": true,
+   "impactMidSize": 0.08,
+   "maxPositionSize": 1200,
+   "openingDate": "2022-03-22T13:15:36Z",
+   "marginLevels": [
+    {
+     "numNonContractUnits": 0,
+     "initialMargin": 0.01,
+     "maintenanceMargin": 0.005
+    },
+    {
+     "numNonContractUnits": 1000000,
+     "initialMargin": 0.02,
+     "maintenanceMargin": 0.01
+    },
+    {
+     "numNonContractUnits": 3000000,
+     "initialMargin": 0.04,
+     "maintenanceMargin": 0.02
+    },
+    {
+     "numNonContractUnits": 5000000,
+     "initialMargin": 0.05,
+     "maintenanceMargin": 0.025
+    },
+    {
+     "numNonContractUnits": 10000000,
+     "initialMargin": 0.1,
+     "maintenanceMargin": 0.05
+    },
+    {
+     "numNonContractUnits": 30000000,
+     "initialMargin": 0.2,
+     "maintenanceMargin": 0.1
+    },
+    {
+     "numNonContractUnits": 50000000,
+     "initialMargin": 0.3,
+     "maintenanceMargin": 0.15
+    },
+    {
+     "numNonContractUnits": 150000000,
+     "initialMargin": 0.5,
+     "maintenanceMargin": 0.25
+    }
+   ],
+   "fundingRateCoefficient": 8,
+   "maxRelativeFundingRate": 0.005,
+   "isin": "GB00BQ84JX13",
+   "contractValueTradePrecision": 4,
+   "postOnly": false,
+   "feeScheduleUid": "723888f7-0a8e-4183-8648-f920a22339e3",
+   "mtf": true,
+   "platformsPermitted": [
+    "beaufort_fiduciaries",
+    "dlt",
+    "dlt_onboarding",
+    "europa",
+    "europa_crypto",
+    "mtf",
+    "payward_digital_solutions",
+    "sgb_platform"
+   ],
+   "countriesBanned": [],
+   "base": "BTC",
+   "quote": "USD",
+   "pair": "BTC:USD",
+   "retailMarginLevels": [
+    {
+     "numNonContractUnits": 0,
+     "initialMargin": 0.01,
+     "maintenanceMargin": 0.005
+    },
+    {
+     "numNonContractUnits": 1000000,
+     "initialMargin": 0.02,
+     "maintenanceMargin": 0.01
+    },
+    {
+     "numNonContractUnits": 3000000,
+     "initialMargin": 0.04,
+     "maintenanceMargin": 0.02
+    },
+    {
+     "numNonContractUnits": 5000000,
+     "initialMargin": 0.05,
+     "maintenanceMargin": 0.025
+    },
+    {
+     "numNonContractUnits": 10000000,
+     "initialMargin": 0.1,
+     "maintenanceMargin": 0.05
+    },
+    {
+     "numNonContractUnits": 30000000,
+     "initialMargin": 0.2,
+     "maintenanceMargin": 0.1
+    },
+    {
+     "numNonContractUnits": 50000000,
+     "initialMargin": 0.3,
+     "maintenanceMargin": 0.15
+    },
+    {
+     "numNonContractUnits": 150000000,
+     "initialMargin": 0.5,
+     "maintenanceMargin": 0.25
+    }
+   ],
+   "marginSchedules": {
+    "europa": {
+     "retail": [
+      {
+       "numNonContractUnits": 0,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "numNonContractUnits": 30000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "numNonContractUnits": 50000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "numNonContractUnits": 150000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ],
+     "professional": [
+      {
+       "numNonContractUnits": 0,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "numNonContractUnits": 30000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "numNonContractUnits": 50000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "numNonContractUnits": 150000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ]
+    },
+    "europa_crypto": {
+     "retail": [
+      {
+       "numNonContractUnits": 0,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "numNonContractUnits": 30000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "numNonContractUnits": 50000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "numNonContractUnits": 150000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ],
+     "professional": [
+      {
+       "numNonContractUnits": 0,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "numNonContractUnits": 30000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "numNonContractUnits": 50000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "numNonContractUnits": 150000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ]
+    },
+    "dlt": {
+     "retail": [
+      {
+       "numNonContractUnits": 0,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ],
+     "professional": [
+      {
+       "numNonContractUnits": 0,
+       "initialMargin": 0.02,
+       "maintenanceMargin": 0.01
+      },
+      {
+       "numNonContractUnits": 2000000,
+       "initialMargin": 0.04,
+       "maintenanceMargin": 0.02
+      },
+      {
+       "numNonContractUnits": 5000000,
+       "initialMargin": 0.05,
+       "maintenanceMargin": 0.025
+      },
+      {
+       "numNonContractUnits": 10000000,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "numNonContractUnits": 30000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "numNonContractUnits": 50000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "numNonContractUnits": 150000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ]
+    },
+    "dlt_onboarding": {
+     "retail": [
+      {
+       "numNonContractUnits": 0,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ],
+     "professional": [
+      {
+       "numNonContractUnits": 0,
+       "initialMargin": 0.02,
+       "maintenanceMargin": 0.01
+      },
+      {
+       "numNonContractUnits": 2000000,
+       "initialMargin": 0.04,
+       "maintenanceMargin": 0.02
+      },
+      {
+       "numNonContractUnits": 5000000,
+       "initialMargin": 0.05,
+       "maintenanceMargin": 0.025
+      },
+      {
+       "numNonContractUnits": 10000000,
+       "initialMargin": 0.1,
+       "maintenanceMargin": 0.05
+      },
+      {
+       "numNonContractUnits": 30000000,
+       "initialMargin": 0.2,
+       "maintenanceMargin": 0.1
+      },
+      {
+       "numNonContractUnits": 50000000,
+       "initialMargin": 0.3,
+       "maintenanceMargin": 0.15
+      },
+      {
+       "numNonContractUnits": 150000000,
+       "initialMargin": 0.5,
+       "maintenanceMargin": 0.25
+      }
+     ]
+    }
+   },
+   "category": "Layer 1",
+   "tags": [],
+   "rebateLevels": {},
+   "tradfi": false,
+   "isExpired": false
+  },
+  "tierBased": true,
+  "percentage": true,
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.0005
+    ],
+    [
+     100000,
+     0.0004
+    ],
+    [
+     1000000,
+     0.0003
+    ],
+    [
+     5000000,
+     0.00025
+    ],
+    [
+     10000000,
+     0.0002
+    ],
+    [
+     20000000,
+     0.00015
+    ],
+    [
+     50000000,
+     0.000125
+    ],
+    [
+     100000000,
+     0.0001
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.0002
+    ],
+    [
+     100000,
+     0.0015
+    ],
+    [
+     1000000,
+     0.000125
+    ],
+    [
+     5000000,
+     0.0001
+    ],
+    [
+     10000000,
+     0.000075
+    ],
+    [
+     20000000,
+     0.00005
+    ],
+    [
+     50000000,
+     0.000025
+    ],
+    [
+     100000000,
+     0
+    ]
+   ]
+  }
+ }
+}

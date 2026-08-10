@@ -1,0 +1,25 @@
+{
+ "BTC/EUR": {
+  "id": "eur",
+  "symbol": "BTC/EUR",
+  "base": "BTC",
+  "quote": "EUR",
+  "baseId": "btc",
+  "quoteId": "eur",
+  "type": "spot",
+  "spot": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "contract": false,
+  "precision": {},
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {}
+ }
+}

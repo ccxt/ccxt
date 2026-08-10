@@ -1,0 +1,142 @@
+{
+ "BTC/USDT:USDT": {
+  "id": "BTC/USDT-P",
+  "symbol": "BTC/USDT:USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.00045,
+  "maker": 0.00015,
+  "contractSize": 1,
+  "precision": {
+   "amount": 1e-10,
+   "price": 0.00001
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {
+    "min": 1
+   }
+  },
+  "marginModes": {},
+  "created": 1727701319734,
+  "info": {
+   "category": "CRYPTO",
+   "displayName": "BTC/USDT Perps",
+   "id": 2,
+   "initialMarginRate": "0.033333",
+   "maintenanceMarginRate": "0.020000",
+   "marketCloseTimestamp": null,
+   "marketCreationTimestamp": "1727701319.73488",
+   "marketOpenTimestamp": null,
+   "minNotional": "1",
+   "minOrderSize": "0.0000000001",
+   "nextCloseTimestamp": null,
+   "nextOpenTimestamp": null,
+   "orderbookGranularities": [
+    "0.1",
+    "1",
+    "10",
+    "100"
+   ],
+   "settlementDecimals": 6,
+   "settlementSymbol": "USDT",
+   "status": "LIVE",
+   "stepSize": "0.0000000001",
+   "symbol": "BTC/USDT-P",
+   "symbolStatus": "OPEN",
+   "tickSize": "0.1",
+   "underlyingDecimals": 10,
+   "underlyingSymbol": "BTC"
+  },
+  "tierBased": false,
+  "percentage": true,
+  "numericId": 2
+ },
+ "ETH/USDT:USDT": {
+  "id": "ETH/USDT-P",
+  "symbol": "ETH/USDT:USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.00045,
+  "maker": 0.00015,
+  "contractSize": 1,
+  "precision": {
+   "amount": 1e-9,
+   "price": 0.000001
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {
+    "min": 1
+   }
+  },
+  "marginModes": {},
+  "created": 1727701319734,
+  "info": {
+   "category": "CRYPTO",
+   "displayName": "ETH/USDT Perps",
+   "id": 1,
+   "initialMarginRate": "0.050000",
+   "maintenanceMarginRate": "0.030000",
+   "marketCloseTimestamp": null,
+   "marketCreationTimestamp": "1727701319.73488",
+   "marketOpenTimestamp": null,
+   "minNotional": "1",
+   "minOrderSize": "0.000000001",
+   "nextCloseTimestamp": null,
+   "nextOpenTimestamp": null,
+   "orderbookGranularities": [
+    "0.01",
+    "0.1",
+    "1",
+    "10"
+   ],
+   "settlementDecimals": 6,
+   "settlementSymbol": "USDT",
+   "status": "LIVE",
+   "stepSize": "0.000000001",
+   "symbol": "ETH/USDT-P",
+   "symbolStatus": "OPEN",
+   "tickSize": "0.01",
+   "underlyingDecimals": 9,
+   "underlyingSymbol": "ETH"
+  },
+  "tierBased": false,
+  "percentage": true,
+  "numericId": 1
+ }
+}

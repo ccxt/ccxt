@@ -1,0 +1,501 @@
+{
+ "BTC": {
+  "info": [
+   "BTC",
+   [
+    "BTC",
+    "Bitcoin"
+   ],
+   [],
+   [
+    "BTC",
+    [
+     0,
+     0.00006
+    ]
+   ],
+   []
+  ],
+  "id": "BTC",
+  "code": "BTC",
+  "precision": 8,
+  "type": "crypto",
+  "name": "Bitcoin",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.00006,
+  "fees": {},
+  "networks": {
+   "BTC": {
+    "info": "BITCOIN",
+    "id": "bitcoin",
+    "network": "BITCOIN",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "withdraw": {}
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0.00006
+   },
+   "deposit": {}
+  },
+  "margin": true
+ },
+ "ETH": {
+  "info": [
+   "ETH",
+   [
+    "ETH",
+    "Ethereum"
+   ],
+   [],
+   [
+    "ETH",
+    [
+     0,
+     0.001
+    ]
+   ],
+   []
+  ],
+  "id": "ETH",
+  "code": "ETH",
+  "precision": 8,
+  "type": "crypto",
+  "name": "Ethereum",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.001,
+  "fees": {},
+  "networks": {
+   "ETH": {
+    "info": "ETHEREUM",
+    "id": "ethereum",
+    "network": "ETHEREUM",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "withdraw": {}
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0.001
+   },
+   "deposit": {}
+  },
+  "margin": true
+ },
+ "USDT": {
+  "info": [
+   "UST",
+   [
+    "UST",
+    "Tether USDt"
+   ],
+   [],
+   [],
+   []
+  ],
+  "id": "UST",
+  "code": "USDT",
+  "precision": 8,
+  "name": "Tether USDt",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {
+   "ERC20": {
+    "info": "TETHERUSE",
+    "id": "tetheruse",
+    "network": "TETHERUSE",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "withdraw": {}
+    }
+   },
+   "TRC20": {
+    "info": "TETHERUSX",
+    "id": "tetherusx",
+    "network": "TETHERUSX",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "withdraw": {}
+    }
+   },
+   "LIQUID": {
+    "info": "TETHERUSL",
+    "id": "tetherusl",
+    "network": "TETHERUSL",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "withdraw": {}
+    }
+   },
+   "SOL": {
+    "info": "TETHERUSDTSOL",
+    "id": "tetherusdtsol",
+    "network": "TETHERUSDTSOL",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "withdraw": {}
+    }
+   },
+   "AVAX": {
+    "info": "TETHERUSDTAVAX",
+    "id": "tetherusdtavax",
+    "network": "TETHERUSDTAVAX",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "withdraw": {}
+    }
+   },
+   "TETHERUSDTXTZ": {
+    "info": "TETHERUSDTXTZ",
+    "id": "tetherusdtxtz",
+    "network": "TETHERUSDTXTZ",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "withdraw": {}
+    }
+   },
+   "TETHERUSDTNEAR": {
+    "info": "TETHERUSDTNEAR",
+    "id": "tetherusdtnear",
+    "network": "TETHERUSDTNEAR",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "withdraw": {}
+    }
+   },
+   "TETHERUSDTDOT": {
+    "info": "TETHERUSDTDOT",
+    "id": "tetherusdtdot",
+    "network": "TETHERUSDTDOT",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "withdraw": {}
+    }
+   },
+   "TETHERUSDTKAVA": {
+    "info": "TETHERUSDTKAVA",
+    "id": "tetherusdtkava",
+    "network": "TETHERUSDTKAVA",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "withdraw": {}
+    }
+   },
+   "TETHERUSDTCELO": {
+    "info": "TETHERUSDTCELO",
+    "id": "tetherusdtcelo",
+    "network": "TETHERUSDTCELO",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "withdraw": {}
+    }
+   },
+   "TETHERUSDTTON": {
+    "info": "TETHERUSDTTON",
+    "id": "tetherusdtton",
+    "network": "TETHERUSDTTON",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "withdraw": {}
+    }
+   },
+   "TETHERUSDTAPT": {
+    "info": "TETHERUSDTAPT",
+    "id": "tetherusdtapt",
+    "network": "TETHERUSDTAPT",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "withdraw": {}
+    }
+   },
+   "TETHERUSDTKAIA": {
+    "info": "TETHERUSDTKAIA",
+    "id": "tetherusdtkaia",
+    "network": "TETHERUSDTKAIA",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "withdraw": {}
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  },
+  "margin": true
+ },
+ "AAVE": {
+  "info": [
+   "AAVE",
+   [
+    "AAVE",
+    "Aave"
+   ],
+   [
+    "AAVE",
+    "ETH"
+   ],
+   [
+    "AAVE",
+    [
+     0,
+     0.018825
+    ]
+   ],
+   []
+  ],
+  "id": "AAVE",
+  "code": "AAVE",
+  "precision": 8,
+  "type": "crypto",
+  "name": "Aave",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.018825,
+  "fees": {},
+  "networks": {
+   "AAVE": {
+    "info": "AAVE",
+    "id": "aave",
+    "network": "AAVE",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "withdraw": {}
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0.018825
+   },
+   "deposit": {}
+  },
+  "margin": false
+ },
+ "ADA": {
+  "info": [
+   "ADA",
+   [
+    "ADA",
+    "Cardano ADA"
+   ],
+   [],
+   [
+    "ADA",
+    [
+     0,
+     0.3
+    ]
+   ],
+   []
+  ],
+  "id": "ADA",
+  "code": "ADA",
+  "precision": 8,
+  "type": "crypto",
+  "name": "Cardano ADA",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.3,
+  "fees": {},
+  "networks": {
+   "ADA": {
+    "info": "ADA",
+    "id": "ada",
+    "network": "ADA",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "withdraw": {}
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0.3
+   },
+   "deposit": {}
+  },
+  "margin": true
+ },
+ "ALGO": {
+  "info": [
+   "ALG",
+   [
+    "ALG",
+    "Algorand"
+   ],
+   [],
+   [
+    "ALG",
+    [
+     0,
+     0
+    ]
+   ],
+   []
+  ],
+  "id": "ALG",
+  "code": "ALGO",
+  "precision": 8,
+  "type": "crypto",
+  "name": "Algorand",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0,
+  "fees": {},
+  "networks": {
+   "ALG": {
+    "info": "ALG",
+    "id": "alg",
+    "network": "ALG",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "withdraw": {}
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0
+   },
+   "deposit": {}
+  },
+  "margin": true
+ },
+ "ALKN": {
+  "info": [
+   "ALKN",
+   [
+    "ALKN",
+    "ALKN"
+   ],
+   [
+    "ALKN",
+    "ETH"
+   ],
+   [
+    "ALKN",
+    [
+     0,
+     0
+    ]
+   ],
+   []
+  ],
+  "id": "ALKN",
+  "code": "ALKN",
+  "precision": 8,
+  "type": "crypto",
+  "name": "ALKN",
+  "active": true,
+  "deposit": false,
+  "withdraw": false,
+  "fee": 0,
+  "fees": {},
+  "networks": {
+   "ALKN": {
+    "info": "ALKN",
+    "id": "alkn",
+    "network": "ALKN",
+    "deposit": false,
+    "withdraw": false,
+    "limits": {
+     "withdraw": {}
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0
+   },
+   "deposit": {}
+  },
+  "margin": false
+ },
+ "ALT11M2507": {
+  "info": [
+   "ALT11M2507",
+   [
+    "ALT11M2507",
+    "ALT11M2507"
+   ],
+   [],
+   [
+    "ALT11M2507",
+    [
+     0,
+     0
+    ]
+   ],
+   []
+  ],
+  "id": "ALT11M2507",
+  "code": "ALT11M2507",
+  "precision": 8,
+  "name": "ALT11M2507",
+  "active": true,
+  "deposit": false,
+  "withdraw": false,
+  "fee": 0,
+  "fees": {},
+  "networks": {
+   "ALT11M2507": {
+    "info": "ALT11M2507",
+    "id": "alt11m2507",
+    "network": "ALT11M2507",
+    "deposit": false,
+    "withdraw": false,
+    "limits": {
+     "withdraw": {}
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0
+   },
+   "deposit": {}
+  },
+  "margin": false
+ }
+}

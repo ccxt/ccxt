@@ -1,0 +1,268 @@
+{
+ "BTC/USDT": {
+  "id": "SPOT_BTC_USDT",
+  "symbol": "BTC/USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.0005,
+  "maker": 0.0002,
+  "precision": {
+   "amount": 0.000001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.00001,
+    "max": 300
+   },
+   "price": {
+    "min": 0,
+    "max": 500000
+   },
+   "cost": {
+    "min": 1
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "symbol": "SPOT_BTC_USDT",
+   "status": "TRADING",
+   "baseAsset": "BTC",
+   "baseAssetMultiplier": 1,
+   "quoteAsset": "USDT",
+   "quoteMin": "0",
+   "quoteMax": "500000",
+   "quoteTick": "0.01",
+   "baseMin": "0.00001",
+   "baseMax": "300",
+   "baseTick": "0.000001",
+   "minNotional": "1",
+   "bidCapRatio": "1.1",
+   "bidFloorRatio": null,
+   "askCapRatio": null,
+   "askFloorRatio": "0.9",
+   "orderMode": "NORMAL",
+   "impactNotional": null,
+   "isAllowedRpi": true,
+   "tickGranularity": 1
+  },
+  "tierBased": true,
+  "percentage": true
+ },
+ "BTC/USDT:USDT": {
+  "id": "PERP_BTC_USDT",
+  "symbol": "BTC/USDT:USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.0005,
+  "maker": 0.0002,
+  "contractSize": 1,
+  "precision": {
+   "amount": 0.00001,
+   "price": 1
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.00001,
+    "max": 300
+   },
+   "price": {
+    "min": 0,
+    "max": 500000
+   },
+   "cost": {
+    "min": 0
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "symbol": "PERP_BTC_USDT",
+   "status": "TRADING",
+   "baseAsset": "BTC",
+   "baseAssetMultiplier": 1,
+   "quoteAsset": "USDT",
+   "quoteMin": "0",
+   "quoteMax": "500000",
+   "quoteTick": "1",
+   "baseMin": "0.00001",
+   "baseMax": "300",
+   "baseTick": "0.00001",
+   "minNotional": "0",
+   "bidCapRatio": "1.01",
+   "bidFloorRatio": "0.4",
+   "askCapRatio": "1.6",
+   "askFloorRatio": "0.99",
+   "fundingIntervalHours": 8,
+   "fundingCap": "0.003",
+   "fundingFloor": "-0.003",
+   "orderMode": "NORMAL",
+   "impactNotional": "10000",
+   "baseIMR": "0.01",
+   "baseMMR": "0.006",
+   "isAllowedRpi": true,
+   "tickGranularity": 1
+  },
+  "tierBased": true,
+  "percentage": true
+ },
+ "ETH/USDT": {
+  "id": "SPOT_ETH_USDT",
+  "symbol": "ETH/USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.0005,
+  "maker": 0.0002,
+  "precision": {
+   "amount": 0.000001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.0001,
+    "max": 4000
+   },
+   "price": {
+    "min": 0,
+    "max": 100000
+   },
+   "cost": {
+    "min": 1
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "symbol": "SPOT_ETH_USDT",
+   "status": "TRADING",
+   "baseAsset": "ETH",
+   "baseAssetMultiplier": 1,
+   "quoteAsset": "USDT",
+   "quoteMin": "0",
+   "quoteMax": "100000",
+   "quoteTick": "0.01",
+   "baseMin": "0.0001",
+   "baseMax": "4000",
+   "baseTick": "0.000001",
+   "minNotional": "1",
+   "bidCapRatio": "1.1",
+   "bidFloorRatio": null,
+   "askCapRatio": null,
+   "askFloorRatio": "0.9",
+   "orderMode": "NORMAL",
+   "impactNotional": null,
+   "isAllowedRpi": true,
+   "tickGranularity": 1
+  },
+  "tierBased": true,
+  "percentage": true
+ },
+ "ETH/USDT:USDT": {
+  "id": "PERP_ETH_USDT",
+  "symbol": "ETH/USDT:USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.0005,
+  "maker": 0.0002,
+  "contractSize": 1,
+  "precision": {
+   "amount": 0.0001,
+   "price": 0.1
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.0001,
+    "max": 4000
+   },
+   "price": {
+    "min": 0,
+    "max": 100000
+   },
+   "cost": {
+    "min": 0
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "symbol": "PERP_ETH_USDT",
+   "status": "TRADING",
+   "baseAsset": "ETH",
+   "baseAssetMultiplier": 1,
+   "quoteAsset": "USDT",
+   "quoteMin": "0",
+   "quoteMax": "100000",
+   "quoteTick": "0.1",
+   "baseMin": "0.0001",
+   "baseMax": "4000",
+   "baseTick": "0.0001",
+   "minNotional": "0",
+   "bidCapRatio": "1.01",
+   "bidFloorRatio": "0.4",
+   "askCapRatio": "1.6",
+   "askFloorRatio": "0.99",
+   "fundingIntervalHours": 8,
+   "fundingCap": "0.003",
+   "fundingFloor": "-0.003",
+   "orderMode": "NORMAL",
+   "impactNotional": "10000",
+   "baseIMR": "0.01",
+   "baseMMR": "0.006",
+   "isAllowedRpi": true,
+   "tickGranularity": 1
+  },
+  "tierBased": true,
+  "percentage": true
+ }
+}

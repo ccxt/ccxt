@@ -1,0 +1,460 @@
+{
+ "BTC": {
+  "info": {
+   "currency-addr-with-tag": false,
+   "fast-confirms": 1,
+   "safe-confirms": 2,
+   "quote-currency": true,
+   "visible": true,
+   "white-enabled": false,
+   "country-disabled": false,
+   "deposit-enabled": true,
+   "withdraw-enabled": true,
+   "deposit-min-amount": "0.0001",
+   "withdraw-min-amount": "0.001",
+   "currency-type": "eth",
+   "show-precision": "8",
+   "withdraw-enable-timestamp": 1504248000000,
+   "deposit-enable-timestamp": 1504248000000,
+   "currency-partition": "all",
+   "visible-assets-timestamp": 1504248000000,
+   "support-sites": [
+    "INSTITUTION",
+    "OTC",
+    "FUTURES",
+    "MINEPOOL"
+   ],
+   "weight": 6,
+   "full-name": "Bitcoin",
+   "otc-enable": 1,
+   "tags": "",
+   "withdraw-precision": 8,
+   "name": "btc",
+   "state": "online",
+   "display-name": "BTC",
+   "suspend-withdraw-desc": null,
+   "withdraw-desc": "Minimum withdrawal amount: 0.001  BTC. !>_<!To ensure the safety of your funds, your withdrawal request will be manually reviewed if your security strategy or password is changed. Please wait for phone calls or emails from our staff.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.!>_<!The digital assets you proposed are one-coin multi-chain assets. Whichever chain you choose to originate from, it means that your total digital assets displayed on this coin withdrawal page will be reduced by corresponding withdrawn amount.",
+   "suspend-deposit-desc": null,
+   "deposit-desc": "Please don’t deposit any other digital assets except BTC  to the above address. Otherwise, you may lose your assets permanently. !>_<!Depositing to the above address requires confirmations of the entire network. It will arrive after 1 confirmations, and it will be available to withdraw after 2 confirmations. !>_<!Minimum deposit amount:0.0005 BTC. Any deposits less than the minimum will not be credited or refunded.!>_<!Your deposit address won’t change often. If there are any changes, we will notify you via announcement or email.!>_<!Please make sure that your computer and browser are secure, and your information is protected from being tampered with or leaked.",
+   "suspend-visible-desc": null
+  },
+  "id": "btc",
+  "code": "BTC",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "BTC",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "limits": {
+   "amount": {
+    "min": 1e-8
+   },
+   "deposit": {
+    "min": 0.0001
+   },
+   "withdraw": {
+    "min": 0.001
+   }
+  }
+ },
+ "ETH": {
+  "info": {
+   "currency-addr-with-tag": false,
+   "fast-confirms": 32,
+   "safe-confirms": 64,
+   "quote-currency": true,
+   "visible": true,
+   "white-enabled": false,
+   "country-disabled": false,
+   "deposit-enabled": true,
+   "withdraw-enabled": true,
+   "deposit-min-amount": "0.001",
+   "withdraw-min-amount": "0.01",
+   "currency-type": "eth",
+   "show-precision": "8",
+   "withdraw-enable-timestamp": 1567320000000,
+   "deposit-enable-timestamp": 1598942400000,
+   "currency-partition": "all",
+   "visible-assets-timestamp": 1504248000000,
+   "support-sites": [
+    "INSTITUTION",
+    "OTC",
+    "FUTURES",
+    "MINEPOOL"
+   ],
+   "weight": 5,
+   "full-name": "Ethereum",
+   "otc-enable": 1,
+   "tags": "",
+   "withdraw-precision": 8,
+   "name": "eth",
+   "state": "online",
+   "display-name": "ETH",
+   "suspend-withdraw-desc": null,
+   "withdraw-desc": null,
+   "suspend-deposit-desc": null,
+   "deposit-desc": "Please don’t deposit any other digital assets except ETH to the above address.!>_<! Your deposit to the above address needs to be confirmed by nodes across the entire network. The deposit will be credited immediately after 32 network confirmations, and the assets can be withdrawn after 64 network confirmations.!>_<! Minimum deposit amount: 0.001 ETH; On-chain deposits of small amount can be accumulated and credited but quick deposit cannot.!>_<! Transfers and deposits are not supported for block rewards (Coinbase) currently. Thank you for your understanding.!>_<! Your deposit address won’t be changed frequently. We will inform you by announcement or email if any change occurs.!>_<! Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
+   "suspend-visible-desc": null
+  },
+  "id": "eth",
+  "code": "ETH",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "ETH",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "limits": {
+   "amount": {
+    "min": 1e-8
+   },
+   "deposit": {
+    "min": 0.001
+   },
+   "withdraw": {
+    "min": 0.01
+   }
+  }
+ },
+ "XRP": {
+  "info": {
+   "currency-addr-with-tag": true,
+   "fast-confirms": 1,
+   "safe-confirms": 1,
+   "quote-currency": false,
+   "visible": true,
+   "white-enabled": false,
+   "country-disabled": false,
+   "deposit-enabled": true,
+   "withdraw-enabled": true,
+   "deposit-min-amount": "0.1",
+   "withdraw-min-amount": "0.5",
+   "currency-type": "eth",
+   "show-precision": "4",
+   "withdraw-enable-timestamp": 1640386800000,
+   "deposit-enable-timestamp": 1640386800000,
+   "currency-partition": null,
+   "visible-assets-timestamp": 1511416800000,
+   "support-sites": [
+    "INSTITUTION",
+    "OTC",
+    "FUTURES"
+   ],
+   "weight": 4,
+   "full-name": "Ripple XRP",
+   "otc-enable": 1,
+   "tags": "",
+   "withdraw-precision": 4,
+   "name": "xrp",
+   "state": "online",
+   "display-name": "XRP",
+   "suspend-withdraw-desc": null,
+   "withdraw-desc": "The minimum withdrawal amount is 0.5 XRP.!>_<!Please be sure to check address labels carefully, otherwise it will cause asset loss and cannot be recovered.!>_<!The first withdrawal from the new address must be greater than or equal to 20, otherwise the withdrawal will fail.!>_<!In order to ensure the security of assets, we will manually review the withdrawal when your account security policy is changed, your password is modified, or your address is updated. Please wait patiently for the staff to contact by phone or email.!>_<!Please make sure that the computer and browser are secure to prevent information from being tampered with or disclosed.",
+   "suspend-deposit-desc": null,
+   "deposit-desc": "Please don’t deposit any other digital assets except XRP to the above address.!>_<!Please fill in destination tag and check carefully. This is the only identification of your account, otherwise you may lose it permanently. !>_<! Depositing to the above address requires confirmations of the entire network. It will arrive after 1 confirmation.!>_<!Minimum deposit amount: 0.1 XRP. Any deposits less than the minimum will not be credited or refunded.!>_<!Your deposit address won’t change frequently. Any changes, we will inform you by announcement or email.!>_<!Please make sure that your computer and browser are secure, and your information is protected from being tampered with or leaked.",
+   "suspend-visible-desc": ""
+  },
+  "id": "xrp",
+  "code": "XRP",
+  "precision": 0.0001,
+  "type": "crypto",
+  "name": "XRP",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "limits": {
+   "amount": {
+    "min": 0.0001
+   },
+   "deposit": {
+    "min": 0.1
+   },
+   "withdraw": {
+    "min": 0.5
+   }
+  }
+ },
+ "A": {
+  "info": {
+   "currency-addr-with-tag": true,
+   "fast-confirms": 1,
+   "safe-confirms": 1,
+   "quote-currency": false,
+   "visible": true,
+   "white-enabled": false,
+   "country-disabled": false,
+   "deposit-enabled": true,
+   "withdraw-enabled": true,
+   "deposit-min-amount": "0.1",
+   "withdraw-min-amount": "0.1",
+   "currency-type": "eth",
+   "show-precision": "8",
+   "withdraw-enable-timestamp": 1704380400000,
+   "deposit-enable-timestamp": 1705071600000,
+   "currency-partition": null,
+   "visible-assets-timestamp": 1704466800000,
+   "support-sites": [],
+   "weight": 1,
+   "full-name": "Vaulta",
+   "otc-enable": 0,
+   "tags": "",
+   "withdraw-precision": 4,
+   "name": "a",
+   "state": "online",
+   "display-name": "A",
+   "suspend-withdraw-desc": null,
+   "withdraw-desc": null,
+   "suspend-deposit-desc": null,
+   "deposit-desc": null,
+   "suspend-visible-desc": null
+  },
+  "id": "a",
+  "code": "A",
+  "precision": 0.0001,
+  "type": "crypto",
+  "name": "A",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "limits": {
+   "amount": {
+    "min": 0.0001
+   },
+   "deposit": {
+    "min": 0.1
+   },
+   "withdraw": {
+    "min": 0.1
+   }
+  }
+ },
+ "ADA": {
+  "info": {
+   "currency-addr-with-tag": false,
+   "fast-confirms": 15,
+   "safe-confirms": 15,
+   "quote-currency": false,
+   "visible": true,
+   "white-enabled": false,
+   "country-disabled": false,
+   "deposit-enabled": true,
+   "withdraw-enabled": true,
+   "deposit-min-amount": "10",
+   "withdraw-min-amount": "20",
+   "currency-type": "eth",
+   "show-precision": "8",
+   "withdraw-enable-timestamp": 1618813800000,
+   "deposit-enable-timestamp": 1618554600000,
+   "currency-partition": null,
+   "visible-assets-timestamp": 1523860200000,
+   "support-sites": [
+    "INSTITUTION",
+    "OTC",
+    "MINEPOOL"
+   ],
+   "weight": 9991,
+   "full-name": "Cardano",
+   "otc-enable": 1,
+   "tags": "",
+   "withdraw-precision": 6,
+   "name": "ada",
+   "state": "online",
+   "display-name": "ADA",
+   "suspend-withdraw-desc": null,
+   "withdraw-desc": "Minimum withdrawal amount: 20  ADA. !>_<!To ensure the safety of your funds, your withdrawal request will be manually reviewed if your security strategy or password is changed. Please wait for phone calls or emails from our staff.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
+   "suspend-deposit-desc": null,
+   "deposit-desc": "Please don’t deposit any other digital assets except ADA to the above address. Otherwise, you may lose your assets permanently. !>_<!Depositing to the above address requires confirmations of the entire network. It will arrive after 15 confirmations, and it will be available to withdraw after 15 confirmations. !>_<!Minimum deposit amount: 10 ADA. Any deposits less than the minimum will not be credited or refunded.!>_<!Your deposit address won’t change often. If there are any changes, we will notify you via announcement or email.!>_<!Please make sure that your computer and browser are secure, and your information is protected from being tampered with or leaked.!>_<!Include no tokens but ADA in ADA deposit transactions. Otherwise, you may lose your assets.",
+   "suspend-visible-desc": null
+  },
+  "id": "ada",
+  "code": "ADA",
+  "precision": 0.000001,
+  "type": "crypto",
+  "name": "ADA",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "limits": {
+   "amount": {
+    "min": 0.000001
+   },
+   "deposit": {
+    "min": 10
+   },
+   "withdraw": {
+    "min": 20
+   }
+  }
+ },
+ "APT": {
+  "info": {
+   "currency-addr-with-tag": false,
+   "fast-confirms": 1,
+   "safe-confirms": 1,
+   "quote-currency": false,
+   "visible": true,
+   "white-enabled": false,
+   "country-disabled": false,
+   "deposit-enabled": true,
+   "withdraw-enabled": true,
+   "deposit-min-amount": "0.2",
+   "withdraw-min-amount": "0.2",
+   "currency-type": "eth",
+   "show-precision": "8",
+   "withdraw-enable-timestamp": 1666227600000,
+   "deposit-enable-timestamp": 1666062000000,
+   "currency-partition": null,
+   "visible-assets-timestamp": 1680274800000,
+   "support-sites": [],
+   "weight": 9424,
+   "full-name": "Aptos",
+   "otc-enable": 0,
+   "tags": "",
+   "withdraw-precision": 8,
+   "name": "apt",
+   "state": "online",
+   "display-name": "APT",
+   "suspend-withdraw-desc": "Mainnet Upgrade",
+   "withdraw-desc": null,
+   "suspend-deposit-desc": "Mainnet Upgrade",
+   "deposit-desc": null,
+   "suspend-visible-desc": null
+  },
+  "id": "apt",
+  "code": "APT",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "APT",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "limits": {
+   "amount": {
+    "min": 1e-8
+   },
+   "deposit": {
+    "min": 0.2
+   },
+   "withdraw": {
+    "min": 0.2
+   }
+  }
+ },
+ "ARB": {
+  "info": {
+   "currency-addr-with-tag": false,
+   "fast-confirms": 32,
+   "safe-confirms": 64,
+   "quote-currency": false,
+   "visible": true,
+   "white-enabled": false,
+   "country-disabled": false,
+   "deposit-enabled": true,
+   "withdraw-enabled": true,
+   "deposit-min-amount": "1",
+   "withdraw-min-amount": "1",
+   "currency-type": "eth",
+   "show-precision": "8",
+   "withdraw-enable-timestamp": 1704380400000,
+   "deposit-enable-timestamp": 1674054000000,
+   "currency-partition": null,
+   "visible-assets-timestamp": 1648825200000,
+   "support-sites": [],
+   "weight": 9089,
+   "full-name": "Arbitrum",
+   "otc-enable": 0,
+   "tags": "",
+   "withdraw-precision": 8,
+   "name": "arb",
+   "state": "online",
+   "display-name": "ARB",
+   "suspend-withdraw-desc": null,
+   "withdraw-desc": null,
+   "suspend-deposit-desc": null,
+   "deposit-desc": null,
+   "suspend-visible-desc": ""
+  },
+  "id": "arb",
+  "code": "ARB",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "ARB",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "limits": {
+   "amount": {
+    "min": 1e-8
+   },
+   "deposit": {
+    "min": 1
+   },
+   "withdraw": {
+    "min": 1
+   }
+  }
+ },
+ "ASTR": {
+  "info": {
+   "currency-addr-with-tag": false,
+   "fast-confirms": 1,
+   "safe-confirms": 1,
+   "quote-currency": false,
+   "visible": true,
+   "white-enabled": false,
+   "country-disabled": false,
+   "deposit-enabled": true,
+   "withdraw-enabled": true,
+   "deposit-min-amount": "4",
+   "withdraw-min-amount": "4",
+   "currency-type": "eth",
+   "show-precision": "8",
+   "withdraw-enable-timestamp": 1642510800000,
+   "deposit-enable-timestamp": 1642420800000,
+   "currency-partition": null,
+   "visible-assets-timestamp": 1642420800000,
+   "support-sites": [],
+   "weight": 9304,
+   "full-name": "ASTAR",
+   "otc-enable": 0,
+   "tags": "",
+   "withdraw-precision": 8,
+   "name": "astr",
+   "state": "online",
+   "display-name": "ASTR",
+   "suspend-withdraw-desc": null,
+   "withdraw-desc": null,
+   "suspend-deposit-desc": null,
+   "deposit-desc": null,
+   "suspend-visible-desc": null
+  },
+  "id": "astr",
+  "code": "ASTR",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "ASTR",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "limits": {
+   "amount": {
+    "min": 1e-8
+   },
+   "deposit": {
+    "min": 4
+   },
+   "withdraw": {
+    "min": 4
+   }
+  }
+ }
+}

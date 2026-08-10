@@ -1,0 +1,218 @@
+{
+ "HYPE/USDT": {
+  "id": "@207",
+  "symbol": "HYPE/USDT",
+  "base": "HYPE",
+  "quote": "USDT",
+  "baseId": "10207",
+  "quoteId": "USDT0",
+  "type": "spot",
+  "spot": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.0007,
+  "maker": 0.0004,
+  "precision": {
+   "amount": 0.01,
+   "price": 0.001
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {
+    "min": 10
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "prevDayPx": "53.83",
+   "dayNtlVlm": "214.2434",
+   "markPx": "54.053",
+   "midPx": "54.089",
+   "circulatingSupply": "299018945.162807703",
+   "coin": "@207",
+   "totalSupply": "999044347.7708821297",
+   "dayBaseVlm": "3.98",
+   "tokens": [
+    150,
+    268
+   ],
+   "name": "@207",
+   "index": 207,
+   "isCanonical": false
+  },
+  "baseName": "HYPE"
+ },
+ "BTC/USDC:USDC": {
+  "id": "0",
+  "symbol": "BTC/USDC:USDC",
+  "base": "BTC",
+  "quote": "USDC",
+  "settle": "USDC",
+  "baseId": "0",
+  "quoteId": "USDC",
+  "settleId": "USDC",
+  "type": "swap",
+  "spot": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.00045,
+  "maker": 0.00015,
+  "contractSize": 1,
+  "precision": {
+   "amount": 0.00001,
+   "price": 1
+  },
+  "limits": {
+   "leverage": {
+    "max": 40
+   },
+   "amount": {},
+   "price": {},
+   "cost": {
+    "min": 10
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "szDecimals": 5,
+   "name": "BTC",
+   "maxLeverage": 40,
+   "marginTableId": 56,
+   "funding": "0.0000125",
+   "openInterest": "34297.90828",
+   "prevDayPx": "64799.0",
+   "dayNtlVlm": "894801025.0206098557",
+   "premium": "-0.0003075504",
+   "oraclePx": "65030.0",
+   "markPx": "65008.0",
+   "midPx": "65009.5",
+   "impactPxs": [
+    "65009.0",
+    "65010.0"
+   ],
+   "dayBaseVlm": "13759.01533",
+   "baseId": 0
+  },
+  "baseName": "BTC"
+ },
+ "RUBT/USDT": {
+  "id": "@273",
+  "symbol": "RUBT/USDT",
+  "base": "RUBT",
+  "quote": "USDT",
+  "baseId": "10273",
+  "quoteId": "USDT0",
+  "type": "spot",
+  "spot": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.0007,
+  "maker": 0.0004,
+  "precision": {
+   "amount": 0.1,
+   "price": 1
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {
+    "min": 10
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "prevDayPx": "0.0",
+   "dayNtlVlm": "0.0",
+   "markPx": "78.0",
+   "midPx": null,
+   "circulatingSupply": "18446744073709.55078125",
+   "coin": "@273",
+   "totalSupply": "18446744073709.55078125",
+   "dayBaseVlm": "0.0",
+   "tokens": [
+    425,
+    268
+   ],
+   "name": "@273",
+   "index": 273,
+   "isCanonical": false
+  },
+  "baseName": "RUBT"
+ },
+ "ETH/USDC:USDC": {
+  "id": "1",
+  "symbol": "ETH/USDC:USDC",
+  "base": "ETH",
+  "quote": "USDC",
+  "settle": "USDC",
+  "baseId": "1",
+  "quoteId": "USDC",
+  "settleId": "USDC",
+  "type": "swap",
+  "spot": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.00045,
+  "maker": 0.00015,
+  "contractSize": 1,
+  "precision": {
+   "amount": 0.0001,
+   "price": 0.1
+  },
+  "limits": {
+   "leverage": {
+    "max": 25
+   },
+   "amount": {},
+   "price": {},
+   "cost": {
+    "min": 10
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "szDecimals": 4,
+   "name": "ETH",
+   "maxLeverage": 25,
+   "marginTableId": 55,
+   "funding": "0.0000125",
+   "openInterest": "848590.782",
+   "prevDayPx": "1913.5",
+   "dayNtlVlm": "285993582.5938699841",
+   "premium": "-0.0003646593",
+   "oraclePx": "1919.6",
+   "markPx": "1918.8",
+   "midPx": "1918.85",
+   "impactPxs": [
+    "1918.8",
+    "1918.9"
+   ],
+   "dayBaseVlm": "148998.0233",
+   "baseId": 1
+  },
+  "baseName": "ETH"
+ }
+}

@@ -1,0 +1,294 @@
+{
+ "BTC/USDT": {
+  "id": "BTC_USDT",
+  "symbol": "BTC/USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": [
+   [
+    0,
+    0.2
+   ],
+   [
+    1,
+    0.19
+   ],
+   [
+    5,
+    0.18
+   ],
+   [
+    10,
+    0.17
+   ],
+   [
+    25,
+    0.16
+   ],
+   [
+    75,
+    0.15
+   ],
+   [
+    100,
+    0.14
+   ],
+   [
+    150,
+    0.13
+   ],
+   [
+    300,
+    0.12
+   ],
+   [
+    450,
+    0.11
+   ],
+   [
+    500,
+    0.1
+   ]
+  ],
+  "maker": [
+   [
+    0,
+    0.2
+   ],
+   [
+    1,
+    0.18
+   ],
+   [
+    5,
+    0.16
+   ],
+   [
+    10,
+    0.14
+   ],
+   [
+    25,
+    0.12
+   ],
+   [
+    75,
+    0.1
+   ],
+   [
+    100,
+    0.08
+   ],
+   [
+    150,
+    0.06
+   ],
+   [
+    300,
+    0.04
+   ],
+   [
+    450,
+    0.02
+   ],
+   [
+    500,
+    0.01
+   ]
+  ],
+  "precision": {
+   "amount": 0.00001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.00001,
+    "max": 9000
+   },
+   "price": {
+    "min": 0.01,
+    "max": 1000000
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "name": "BTC_USDT",
+   "stock": "BTC",
+   "money": "USDT",
+   "precision": {
+    "money": "2",
+    "stock": "6",
+    "fee": "4"
+   },
+   "limits": {
+    "min_amount": "0.00001",
+    "max_amount": "9000",
+    "step_size": "0.00001",
+    "min_price": "0.01",
+    "max_price": "1000000",
+    "tick_size": "0.01",
+    "min_total": "5"
+   }
+  },
+  "tierBased": true,
+  "percentage": true
+ },
+ "ETH/USDT": {
+  "id": "ETH_USDT",
+  "symbol": "ETH/USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": [
+   [
+    0,
+    0.2
+   ],
+   [
+    1,
+    0.19
+   ],
+   [
+    5,
+    0.18
+   ],
+   [
+    10,
+    0.17
+   ],
+   [
+    25,
+    0.16
+   ],
+   [
+    75,
+    0.15
+   ],
+   [
+    100,
+    0.14
+   ],
+   [
+    150,
+    0.13
+   ],
+   [
+    300,
+    0.12
+   ],
+   [
+    450,
+    0.11
+   ],
+   [
+    500,
+    0.1
+   ]
+  ],
+  "maker": [
+   [
+    0,
+    0.2
+   ],
+   [
+    1,
+    0.18
+   ],
+   [
+    5,
+    0.16
+   ],
+   [
+    10,
+    0.14
+   ],
+   [
+    25,
+    0.12
+   ],
+   [
+    75,
+    0.1
+   ],
+   [
+    100,
+    0.08
+   ],
+   [
+    150,
+    0.06
+   ],
+   [
+    300,
+    0.04
+   ],
+   [
+    450,
+    0.02
+   ],
+   [
+    500,
+    0.01
+   ]
+  ],
+  "precision": {
+   "amount": 0.0001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.0001,
+    "max": 9000
+   },
+   "price": {
+    "min": 0.01,
+    "max": 1000000
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "name": "ETH_USDT",
+   "stock": "ETH",
+   "money": "USDT",
+   "precision": {
+    "money": "2",
+    "stock": "5",
+    "fee": "4"
+   },
+   "limits": {
+    "min_amount": "0.0001",
+    "max_amount": "9000",
+    "step_size": "0.0001",
+    "min_price": "0.01",
+    "max_price": "1000000",
+    "tick_size": "0.01",
+    "min_total": "5"
+   }
+  },
+  "tierBased": true,
+  "percentage": true
+ }
+}

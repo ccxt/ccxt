@@ -1,0 +1,456 @@
+{
+ "BTC/USD:USDC-260810-57000-C": {
+  "id": "BTC-USD-10AUG26-57000-C",
+  "symbol": "BTC/USD:USDC-260810-57000-C",
+  "base": "BTC",
+  "quote": "USD",
+  "settle": "USDC",
+  "baseId": "BTC",
+  "quoteId": "USD",
+  "settleId": "USDC",
+  "type": "option",
+  "spot": false,
+  "swap": false,
+  "future": false,
+  "option": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.0003,
+  "maker": 0.0003,
+  "contractSize": 1,
+  "expiry": 1786348800000,
+  "expiryDatetime": "2026-08-10T08:00:00.000Z",
+  "strike": 57000,
+  "optionType": "call",
+  "precision": {
+   "amount": 0.001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "max": 100
+   },
+   "price": {},
+   "cost": {
+    "min": 20
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "symbol": "BTC-USD-10AUG26-57000-C",
+   "base_currency": "BTC",
+   "quote_currency": "USD",
+   "settlement_currency": "USDC",
+   "order_size_increment": "0.001",
+   "price_tick_size": "0.01",
+   "min_notional": "20",
+   "open_at": 1786061700775,
+   "expiry_at": 1786348800000,
+   "asset_kind": "OPTION",
+   "market_kind": "cross",
+   "position_limit": "1000",
+   "price_bands_width": "0.3",
+   "max_slippage": "0",
+   "iv_bands_width": "0.05",
+   "max_open_orders": 150,
+   "max_funding_rate": "0",
+   "option_cross_margin_params": {
+    "imf": {
+     "long_itm": "0.2",
+     "short_itm": "0.15",
+     "short_otm": "0.1",
+     "short_put_cap": "0.5",
+     "premium_multiplier": "1"
+    },
+    "mmf": {
+     "long_itm": "0.1",
+     "short_itm": "0.075",
+     "short_otm": "0.05",
+     "short_put_cap": "0.5",
+     "premium_multiplier": "0.5"
+    }
+   },
+   "price_feed_id": "",
+   "oracle_ewma_factor": "0.043647610787352464",
+   "max_order_size": "100",
+   "max_funding_rate_change": "0",
+   "max_tob_spread": "2",
+   "interest_rate": "0",
+   "clamp_rate": "0",
+   "option_type": "CALL",
+   "strike_price": "57000",
+   "funding_period_hours": 0,
+   "funding_multiplier": 1,
+   "tags": [],
+   "fee_config": {
+    "interactive_fee": {
+     "maker_fee": {
+      "fee": "0",
+      "fee_cap": "0.125",
+      "fee_floor": "-0.125"
+     },
+     "taker_fee": {
+      "fee": "0",
+      "fee_cap": "0.125",
+      "fee_floor": "-0.125"
+     }
+    },
+    "api_fee": {
+     "maker_fee": {
+      "fee": "0.0001",
+      "fee_cap": "0.125",
+      "fee_floor": "-0.125"
+     },
+     "taker_fee": {
+      "fee": "0.0001",
+      "fee_cap": "0.125",
+      "fee_floor": "-0.125"
+     }
+    },
+    "rpi_fee": {
+     "maker_fee": {
+      "fee": "0.0001",
+      "fee_cap": "0.125",
+      "fee_floor": "-0.125"
+     },
+     "taker_fee": {
+      "fee": "0.0001",
+      "fee_cap": "0.125",
+      "fee_floor": "-0.125"
+     }
+    }
+   },
+   "trading_mode": "STANDARD"
+  }
+ },
+ "BTC/USD:USDC": {
+  "id": "BTC-USD-PERP",
+  "symbol": "BTC/USD:USDC",
+  "base": "BTC",
+  "quote": "USD",
+  "settle": "USDC",
+  "baseId": "BTC",
+  "quoteId": "USD",
+  "settleId": "USDC",
+  "type": "swap",
+  "spot": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.0003,
+  "maker": -0.00005,
+  "contractSize": 1,
+  "precision": {
+   "amount": 0.00001,
+   "price": 0.1
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "max": 100
+   },
+   "price": {},
+   "cost": {
+    "min": 10
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "symbol": "BTC-USD-PERP",
+   "base_currency": "BTC",
+   "quote_currency": "USD",
+   "settlement_currency": "USDC",
+   "order_size_increment": "0.00001",
+   "price_tick_size": "0.1",
+   "min_notional": "10",
+   "open_at": 1696431006398,
+   "expiry_at": 0,
+   "asset_kind": "PERP",
+   "market_kind": "cross",
+   "position_limit": "300",
+   "price_bands_width": "0.05",
+   "max_slippage": "0.001",
+   "max_open_orders": 150,
+   "max_funding_rate": "0.02",
+   "delta1_cross_margin_params": {
+    "imf_base": "0.02",
+    "imf_shift": "0",
+    "imf_factor": "0",
+    "mmf_factor": "0.5"
+   },
+   "price_feed_id": "GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU",
+   "oracle_ewma_factor": "0.12945779635696708",
+   "max_order_size": "100",
+   "max_funding_rate_change": "0.0002",
+   "max_tob_spread": "0.01",
+   "interest_rate": "0.0001",
+   "clamp_rate": "0.0005",
+   "funding_period_hours": 8,
+   "funding_multiplier": 1,
+   "tags": [
+    "LAYER-1"
+   ],
+   "fee_config": {
+    "interactive_fee": {
+     "maker_fee": {
+      "fee": "0"
+     },
+     "taker_fee": {
+      "fee": "0"
+     }
+    },
+    "api_fee": {
+     "maker_fee": {
+      "fee": "0"
+     },
+     "taker_fee": {
+      "fee": "0.0002"
+     }
+    },
+    "rpi_fee": {
+     "maker_fee": {
+      "fee": "0"
+     },
+     "taker_fee": {
+      "fee": "0.0002"
+     }
+    }
+   },
+   "trading_mode": "STANDARD"
+  }
+ },
+ "BTC/USD:USDC-260810-57000-P": {
+  "id": "BTC-USD-10AUG26-57000-P",
+  "symbol": "BTC/USD:USDC-260810-57000-P",
+  "base": "BTC",
+  "quote": "USD",
+  "settle": "USDC",
+  "baseId": "BTC",
+  "quoteId": "USD",
+  "settleId": "USDC",
+  "type": "option",
+  "spot": false,
+  "swap": false,
+  "future": false,
+  "option": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.0003,
+  "maker": 0.0003,
+  "contractSize": 1,
+  "expiry": 1786348800000,
+  "expiryDatetime": "2026-08-10T08:00:00.000Z",
+  "strike": 57000,
+  "optionType": "put",
+  "precision": {
+   "amount": 0.001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "max": 100
+   },
+   "price": {},
+   "cost": {
+    "min": 20
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "symbol": "BTC-USD-10AUG26-57000-P",
+   "base_currency": "BTC",
+   "quote_currency": "USD",
+   "settlement_currency": "USDC",
+   "order_size_increment": "0.001",
+   "price_tick_size": "0.01",
+   "min_notional": "20",
+   "open_at": 1786061700775,
+   "expiry_at": 1786348800000,
+   "asset_kind": "OPTION",
+   "market_kind": "cross",
+   "position_limit": "1000",
+   "price_bands_width": "0.3",
+   "max_slippage": "0",
+   "iv_bands_width": "0.05",
+   "max_open_orders": 150,
+   "max_funding_rate": "0",
+   "option_cross_margin_params": {
+    "imf": {
+     "long_itm": "0.2",
+     "short_itm": "0.15",
+     "short_otm": "0.1",
+     "short_put_cap": "0.5",
+     "premium_multiplier": "1"
+    },
+    "mmf": {
+     "long_itm": "0.1",
+     "short_itm": "0.075",
+     "short_otm": "0.05",
+     "short_put_cap": "0.5",
+     "premium_multiplier": "0.5"
+    }
+   },
+   "price_feed_id": "",
+   "oracle_ewma_factor": "0.043647610787352464",
+   "max_order_size": "100",
+   "max_funding_rate_change": "0",
+   "max_tob_spread": "2",
+   "interest_rate": "0",
+   "clamp_rate": "0",
+   "option_type": "PUT",
+   "strike_price": "57000",
+   "funding_period_hours": 0,
+   "funding_multiplier": 1,
+   "tags": [],
+   "fee_config": {
+    "interactive_fee": {
+     "maker_fee": {
+      "fee": "0",
+      "fee_cap": "0.125",
+      "fee_floor": "-0.125"
+     },
+     "taker_fee": {
+      "fee": "0",
+      "fee_cap": "0.125",
+      "fee_floor": "-0.125"
+     }
+    },
+    "api_fee": {
+     "maker_fee": {
+      "fee": "0.0001",
+      "fee_cap": "0.125",
+      "fee_floor": "-0.125"
+     },
+     "taker_fee": {
+      "fee": "0.0001",
+      "fee_cap": "0.125",
+      "fee_floor": "-0.125"
+     }
+    },
+    "rpi_fee": {
+     "maker_fee": {
+      "fee": "0.0001",
+      "fee_cap": "0.125",
+      "fee_floor": "-0.125"
+     },
+     "taker_fee": {
+      "fee": "0.0001",
+      "fee_cap": "0.125",
+      "fee_floor": "-0.125"
+     }
+    }
+   },
+   "trading_mode": "STANDARD"
+  }
+ },
+ "ETH/USD:USDC": {
+  "id": "ETH-USD-PERP",
+  "symbol": "ETH/USD:USDC",
+  "base": "ETH",
+  "quote": "USD",
+  "settle": "USDC",
+  "baseId": "ETH",
+  "quoteId": "USD",
+  "settleId": "USDC",
+  "type": "swap",
+  "spot": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.0003,
+  "maker": -0.00005,
+  "contractSize": 1,
+  "precision": {
+   "amount": 0.0001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "max": 1000
+   },
+   "price": {},
+   "cost": {
+    "min": 10
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "symbol": "ETH-USD-PERP",
+   "base_currency": "ETH",
+   "quote_currency": "USD",
+   "settlement_currency": "USDC",
+   "order_size_increment": "0.0001",
+   "price_tick_size": "0.01",
+   "min_notional": "10",
+   "open_at": 1692576000000,
+   "expiry_at": 0,
+   "asset_kind": "PERP",
+   "market_kind": "cross",
+   "position_limit": "9000",
+   "price_bands_width": "0.05",
+   "max_slippage": "0.001",
+   "max_open_orders": 150,
+   "max_funding_rate": "0.02",
+   "delta1_cross_margin_params": {
+    "imf_base": "0.02",
+    "imf_shift": "0",
+    "imf_factor": "0",
+    "mmf_factor": "0.5"
+   },
+   "price_feed_id": "JBu1AL4obBcCMqKBBxhpWCNUt136ijcuMZLFvTP7iWdB",
+   "oracle_ewma_factor": "0.12945779635696708",
+   "max_order_size": "1000",
+   "max_funding_rate_change": "0.0002",
+   "max_tob_spread": "0.01",
+   "interest_rate": "0.0001",
+   "clamp_rate": "0.0005",
+   "funding_period_hours": 8,
+   "funding_multiplier": 1,
+   "tags": [
+    "LAYER-1"
+   ],
+   "fee_config": {
+    "interactive_fee": {
+     "maker_fee": {
+      "fee": "0"
+     },
+     "taker_fee": {
+      "fee": "0"
+     }
+    },
+    "api_fee": {
+     "maker_fee": {
+      "fee": "0"
+     },
+     "taker_fee": {
+      "fee": "0.0002"
+     }
+    },
+    "rpi_fee": {
+     "maker_fee": {
+      "fee": "0"
+     },
+     "taker_fee": {
+      "fee": "0.0002"
+     }
+    }
+   },
+   "trading_mode": "STANDARD"
+  }
+ }
+}

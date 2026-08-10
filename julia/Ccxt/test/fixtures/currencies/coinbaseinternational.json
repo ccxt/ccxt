@@ -1,0 +1,199 @@
+{
+ "BTC": {
+  "info": {
+   "asset_id": "118059611751202816",
+   "asset_uuid": "5b71fc48-3dd3-540c-809b-f8c94d0e68b5",
+   "asset_name": "BTC",
+   "status": "ACTIVE",
+   "collateral_weight": 0.925,
+   "supported_networks_enabled": true,
+   "min_borrow_qty": "0",
+   "max_borrow_qty": "0",
+   "loan_collateral_requirement_multiplier": 0,
+   "account_collateral_limit": "960",
+   "ecosystem_collateral_limit_breached": false,
+   "external_collateral_weight": 0.85
+  },
+  "id": "BTC",
+  "code": "BTC",
+  "name": "BTC",
+  "active": true,
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  }
+ },
+ "ETH": {
+  "info": {
+   "asset_id": "118059611793145856",
+   "asset_uuid": "d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
+   "asset_name": "ETH",
+   "status": "ACTIVE",
+   "collateral_weight": 0.925,
+   "supported_networks_enabled": true,
+   "min_borrow_qty": "0",
+   "max_borrow_qty": "0",
+   "loan_collateral_requirement_multiplier": 0,
+   "account_collateral_limit": "19500",
+   "ecosystem_collateral_limit_breached": false,
+   "external_collateral_weight": 0.85
+  },
+  "id": "ETH",
+  "code": "ETH",
+  "name": "ETH",
+  "active": true,
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  }
+ },
+ "USDC": {
+  "info": {
+   "asset_id": "1",
+   "asset_uuid": "2b92315d-eab7-5bef-84fa-089a131333f5",
+   "asset_name": "USDC",
+   "status": "ACTIVE",
+   "collateral_weight": 1,
+   "supported_networks_enabled": true,
+   "min_borrow_qty": "10",
+   "max_borrow_qty": "300000",
+   "loan_collateral_requirement_multiplier": 1,
+   "ecosystem_collateral_limit_breached": false,
+   "loan_initial_margin": "0.15",
+   "max_loan_leverage": "3",
+   "external_collateral_weight": 1
+  },
+  "id": "USDC",
+  "code": "USDC",
+  "name": "USDC",
+  "active": true,
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  }
+ },
+ "0G": {
+  "info": {
+   "asset_id": "498894970896252928",
+   "asset_uuid": "214bc63b-70aa-4249-8ec0-b2fa6d19c130",
+   "asset_name": "0G",
+   "status": "ACTIVE",
+   "collateral_weight": 0,
+   "supported_networks_enabled": false,
+   "loan_collateral_requirement_multiplier": 0,
+   "account_collateral_limit": "0",
+   "ecosystem_collateral_limit_breached": false
+  },
+  "id": "0G",
+  "code": "0G",
+  "name": "0G",
+  "active": true,
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  }
+ },
+ "2Z": {
+  "info": {
+   "asset_id": "496698504513585156",
+   "asset_uuid": "24e1b199-0f98-40ea-8424-76fcc62fae03",
+   "asset_name": "2Z",
+   "status": "ACTIVE",
+   "collateral_weight": 0,
+   "supported_networks_enabled": false,
+   "loan_collateral_requirement_multiplier": 0,
+   "account_collateral_limit": "0",
+   "ecosystem_collateral_limit_breached": false
+  },
+  "id": "2Z",
+  "code": "2Z",
+  "name": "2Z",
+  "active": true,
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  }
+ },
+ "A": {
+  "info": {
+   "asset_id": "452740853786476544",
+   "asset_uuid": "6d5eccd1-1674-4a6f-a64e-5b8b5413da38",
+   "asset_name": "A",
+   "status": "ACTIVE",
+   "collateral_weight": 0,
+   "supported_networks_enabled": false,
+   "loan_collateral_requirement_multiplier": 0,
+   "account_collateral_limit": "0",
+   "ecosystem_collateral_limit_breached": false
+  },
+  "id": "A",
+  "code": "A",
+  "name": "A",
+  "active": true,
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  }
+ },
+ "AAPL": {
+  "info": {
+   "asset_id": "557302191795208207",
+   "asset_uuid": "a26d85ec-2eec-4aa2-85e1-7e07b40c1d57",
+   "asset_name": "AAPL",
+   "status": "ACTIVE",
+   "collateral_weight": 0,
+   "supported_networks_enabled": false,
+   "loan_collateral_requirement_multiplier": 0,
+   "account_collateral_limit": "0",
+   "ecosystem_collateral_limit_breached": false,
+   "external_collateral_weight": 0
+  },
+  "id": "AAPL",
+  "code": "AAPL",
+  "name": "AAPL",
+  "active": true,
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  }
+ },
+ "AAVE": {
+  "info": {
+   "asset_id": "341518102556573696",
+   "asset_uuid": "b1646860-6b23-5f7d-a506-cba0902f0ca9",
+   "asset_name": "AAVE",
+   "status": "ACTIVE",
+   "collateral_weight": 0.85,
+   "supported_networks_enabled": true,
+   "min_borrow_qty": "0",
+   "max_borrow_qty": "0",
+   "loan_collateral_requirement_multiplier": 0,
+   "account_collateral_limit": "7026.67",
+   "ecosystem_collateral_limit_breached": false
+  },
+  "id": "AAVE",
+  "code": "AAVE",
+  "name": "AAVE",
+  "active": true,
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  }
+ }
+}

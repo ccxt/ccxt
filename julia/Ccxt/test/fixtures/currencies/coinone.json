@@ -1,0 +1,234 @@
+{
+ "BTC": {
+  "info": {
+   "name": "Bitcoin",
+   "symbol": "BTC",
+   "deposit_status": "normal",
+   "withdraw_status": "normal",
+   "deposit_confirm_count": 2,
+   "max_precision": 8,
+   "deposit_fee": "0.0",
+   "withdrawal_min_amount": "0.0001",
+   "withdrawal_fee": "0.0008"
+  },
+  "id": "BTC",
+  "code": "BTC",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Bitcoin",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.0008,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0.0001
+   }
+  }
+ },
+ "ETH": {
+  "info": {
+   "name": "Ethereum",
+   "symbol": "ETH",
+   "deposit_status": "normal",
+   "withdraw_status": "normal",
+   "deposit_confirm_count": 65,
+   "max_precision": 8,
+   "deposit_fee": "0.0",
+   "withdrawal_min_amount": "0.0001",
+   "withdrawal_fee": "0.005"
+  },
+  "id": "ETH",
+  "code": "ETH",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Ethereum",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.005,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0.0001
+   }
+  }
+ },
+ "KRW": {
+  "info": {
+   "name": "Won",
+   "symbol": "KRW",
+   "deposit_status": "normal",
+   "withdraw_status": "normal",
+   "deposit_confirm_count": 0,
+   "max_precision": 0,
+   "deposit_fee": "0.0",
+   "withdrawal_min_amount": "5000.0",
+   "withdrawal_fee": "1000.0"
+  },
+  "id": "KRW",
+  "code": "KRW",
+  "precision": 1,
+  "type": "fiat",
+  "name": "Won",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 1000,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 5000
+   }
+  }
+ },
+ "1INCH": {
+  "info": {
+   "name": "1inch",
+   "symbol": "1INCH",
+   "deposit_status": "normal",
+   "withdraw_status": "normal",
+   "deposit_confirm_count": 65,
+   "max_precision": 8,
+   "deposit_fee": "0.0",
+   "withdrawal_min_amount": "2.0",
+   "withdrawal_fee": "3.55"
+  },
+  "id": "1INCH",
+  "code": "1INCH",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "1inch",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 3.55,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 2
+   }
+  }
+ },
+ "2Z": {
+  "info": {
+   "name": "DoubleZero",
+   "symbol": "2Z",
+   "deposit_status": "normal",
+   "withdraw_status": "normal",
+   "deposit_confirm_count": 100,
+   "max_precision": 8,
+   "deposit_fee": "0.0",
+   "withdrawal_min_amount": "2.4",
+   "withdrawal_fee": "1.2"
+  },
+  "id": "2Z",
+  "code": "2Z",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "DoubleZero",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 1.2,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 2.4
+   }
+  }
+ },
+ "A": {
+  "info": {
+   "name": "Vaulta",
+   "symbol": "A",
+   "deposit_status": "normal",
+   "withdraw_status": "normal",
+   "deposit_confirm_count": 1,
+   "max_precision": 4,
+   "deposit_fee": "0.0",
+   "withdrawal_min_amount": "2.0",
+   "withdrawal_fee": "0.0"
+  },
+  "id": "A",
+  "code": "A",
+  "precision": 0.0001,
+  "type": "crypto",
+  "name": "Vaulta",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 2
+   }
+  }
+ },
+ "AARK": {
+  "info": {
+   "name": "Aark",
+   "symbol": "AARK",
+   "deposit_status": "suspended",
+   "withdraw_status": "suspended",
+   "deposit_confirm_count": 100,
+   "max_precision": 8,
+   "deposit_fee": "0.0",
+   "withdrawal_min_amount": "50.0",
+   "withdrawal_fee": "5.0"
+  },
+  "id": "AARK",
+  "code": "AARK",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Aark",
+  "deposit": false,
+  "withdraw": false,
+  "fee": 5,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 50
+   }
+  }
+ },
+ "AAVE": {
+  "info": {
+   "name": "Aave",
+   "symbol": "AAVE",
+   "deposit_status": "normal",
+   "withdraw_status": "normal",
+   "deposit_confirm_count": 65,
+   "max_precision": 8,
+   "deposit_fee": "0.0",
+   "withdrawal_min_amount": "0.01",
+   "withdrawal_fee": "0.0030964"
+  },
+  "id": "AAVE",
+  "code": "AAVE",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Aave",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.0030964,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0.01
+   }
+  }
+ }
+}

@@ -1,0 +1,170 @@
+{
+ "BTC": {
+  "info": {
+   "code": "btc",
+   "full_name": "Bitcoin",
+   "color": "F7931A",
+   "precision": 8,
+   "display_ticker": "BTC",
+   "type": "crypto"
+  },
+  "id": "btc",
+  "code": "BTC",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Bitcoin",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "ETH": {
+  "info": {
+   "code": "eth",
+   "full_name": "Ether",
+   "color": "8F98CC",
+   "precision": 8,
+   "display_ticker": "ETH",
+   "type": "crypto"
+  },
+  "id": "eth",
+  "code": "ETH",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Ether",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "USDT": {
+  "info": {
+   "code": "usdt",
+   "full_name": "USDT (Digital Dollars)",
+   "color": "50AF95",
+   "precision": 2,
+   "display_ticker": "USDT",
+   "type": "crypto"
+  },
+  "id": "usdt",
+  "code": "USDT",
+  "precision": 0.01,
+  "type": "crypto",
+  "name": "USDT (Digital Dollars)",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "AAVE": {
+  "info": {
+   "code": "aave",
+   "full_name": "Aave Token",
+   "color": "B6509E",
+   "precision": 8,
+   "display_ticker": "AAVE",
+   "type": "crypto"
+  },
+  "id": "aave",
+  "code": "AAVE",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Aave Token",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "ADA": {
+  "info": {
+   "code": "ada",
+   "full_name": "Cardano",
+   "color": "0033AD",
+   "precision": 6,
+   "display_ticker": "ADA",
+   "type": "crypto"
+  },
+  "id": "ada",
+  "code": "ADA",
+  "precision": 0.000001,
+  "type": "crypto",
+  "name": "Cardano",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "ALGO": {
+  "info": {
+   "code": "algo",
+   "full_name": "Algorand",
+   "color": "B72375",
+   "precision": 6,
+   "display_ticker": "ALGO",
+   "type": "crypto"
+  },
+  "id": "algo",
+  "code": "ALGO",
+  "precision": 0.000001,
+  "type": "crypto",
+  "name": "Algorand",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "APE": {
+  "info": {
+   "code": "ape",
+   "full_name": "ApeCoin",
+   "color": "0054F9",
+   "precision": 8,
+   "display_ticker": "APE",
+   "type": "crypto"
+  },
+  "id": "ape",
+  "code": "APE",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "ApeCoin",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "ARB": {
+  "info": {
+   "code": "arb",
+   "full_name": "Arbitrum",
+   "color": "12AAFF",
+   "precision": 8,
+   "display_ticker": "ARB",
+   "type": "crypto"
+  },
+  "id": "arb",
+  "code": "ARB",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Arbitrum",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ }
+}

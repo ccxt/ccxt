@@ -1,0 +1,144 @@
+{
+ "BTC/USDT": {
+  "id": "BTCUSDT",
+  "symbol": "BTC/USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.0009,
+  "maker": 0.0005,
+  "precision": {
+   "amount": 1e-8,
+   "price": 1
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {
+    "min": 1e-13,
+    "max": 10000000
+   },
+   "cost": {
+    "min": 9.91
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "id": 19,
+   "name": "BTCUSDT",
+   "nameNormalized": "BTC_USDT",
+   "status": "TRADING",
+   "numerator": "BTC",
+   "denominator": "USDT",
+   "numeratorScale": 8,
+   "denominatorScale": 0,
+   "hasFraction": false,
+   "filters": [
+    {
+     "filterType": "PRICE_FILTER",
+     "minPrice": "0.0000000000001",
+     "maxPrice": "10000000",
+     "tickSize": "1",
+     "minExchangeValue": "9.91",
+     "minAmount": null,
+     "maxAmount": null
+    }
+   ],
+   "orderMethods": [
+    "MARKET",
+    "LIMIT",
+    "STOP_MARKET",
+    "STOP_LIMIT"
+   ],
+   "displayFormat": "#,###",
+   "commissionFromNumerator": false,
+   "order": 2000,
+   "priceRounding": false,
+   "isNew": false,
+   "marketPriceWarningThresholdPercentage": 0.25,
+   "maximumOrderAmount": null,
+   "maximumLimitOrderPrice": 650880,
+   "minimumLimitOrderPrice": 6508.8
+  }
+ },
+ "ETH/USDT": {
+  "id": "ETHUSDT",
+  "symbol": "ETH/USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.0009,
+  "maker": 0.0005,
+  "precision": {
+   "amount": 1e-8,
+   "price": 0.1
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {
+    "min": 1e-13,
+    "max": 10000000
+   },
+   "cost": {
+    "min": 9.91
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "id": 20,
+   "name": "ETHUSDT",
+   "nameNormalized": "ETH_USDT",
+   "status": "TRADING",
+   "numerator": "ETH",
+   "denominator": "USDT",
+   "numeratorScale": 8,
+   "denominatorScale": 1,
+   "hasFraction": true,
+   "filters": [
+    {
+     "filterType": "PRICE_FILTER",
+     "minPrice": "0.0000000000001",
+     "maxPrice": "10000000",
+     "tickSize": "0.1",
+     "minExchangeValue": "9.91",
+     "minAmount": null,
+     "maxAmount": null
+    }
+   ],
+   "orderMethods": [
+    "MARKET",
+    "LIMIT",
+    "STOP_MARKET",
+    "STOP_LIMIT"
+   ],
+   "displayFormat": "#,##0.0",
+   "commissionFromNumerator": false,
+   "order": 2128,
+   "priceRounding": false,
+   "isNew": false,
+   "marketPriceWarningThresholdPercentage": 0.25,
+   "maximumOrderAmount": null,
+   "maximumLimitOrderPrice": 19188,
+   "minimumLimitOrderPrice": 191.88
+  }
+ }
+}

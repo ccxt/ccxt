@@ -1,0 +1,234 @@
+{
+ "BTC/USDT": {
+  "id": "BTCUSDT",
+  "symbol": "BTC/USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.002,
+  "maker": 0.002,
+  "precision": {
+   "amount": 1e-8,
+   "price": 1
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.0001
+   },
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "base_ccy": "BTC",
+   "base_ccy_precision": 8,
+   "delisted_at": 0,
+   "is_amm_available": false,
+   "is_api_trading_available": true,
+   "is_margin_available": true,
+   "is_pre_market_trading_available": false,
+   "maker_fee_rate": "0.002",
+   "market": "BTCUSDT",
+   "min_amount": "0.0001",
+   "quote_ccy": "USDT",
+   "quote_ccy_precision": 0,
+   "status": "online",
+   "taker_fee_rate": "0.002"
+  }
+ },
+ "BTC/USDT:USDT": {
+  "id": "BTCUSDT",
+  "symbol": "BTC/USDT:USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.001,
+  "maker": 0.001,
+  "contractSize": 1,
+  "precision": {
+   "amount": 0.0001,
+   "price": 1
+  },
+  "limits": {
+   "leverage": {
+    "min": 1,
+    "max": 100
+   },
+   "amount": {
+    "min": 0.0001
+   },
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "base_ccy": "BTC",
+   "base_ccy_precision": 4,
+   "contract_type": "linear",
+   "delisted_at": 0,
+   "is_api_trading_available": true,
+   "is_market_available": true,
+   "leverage": [
+    "1",
+    "2",
+    "3",
+    "5",
+    "8",
+    "10",
+    "15",
+    "20",
+    "30",
+    "50",
+    "100"
+   ],
+   "maker_fee_rate": "0.0003",
+   "market": "BTCUSDT",
+   "min_amount": "0.0001",
+   "open_interest_volume": "1142.371",
+   "quote_ccy": "USDT",
+   "quote_ccy_precision": 0,
+   "status": "online",
+   "taker_fee_rate": "0.0005",
+   "tick_size": "1"
+  }
+ },
+ "ETH/USDT": {
+  "id": "ETHUSDT",
+  "symbol": "ETH/USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.002,
+  "maker": 0.002,
+  "precision": {
+   "amount": 1e-8,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.001
+   },
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "base_ccy": "ETH",
+   "base_ccy_precision": 8,
+   "delisted_at": 0,
+   "is_amm_available": false,
+   "is_api_trading_available": true,
+   "is_margin_available": true,
+   "is_pre_market_trading_available": false,
+   "maker_fee_rate": "0.002",
+   "market": "ETHUSDT",
+   "min_amount": "0.001",
+   "quote_ccy": "USDT",
+   "quote_ccy_precision": 2,
+   "status": "online",
+   "taker_fee_rate": "0.002"
+  }
+ },
+ "ETH/USDT:USDT": {
+  "id": "ETHUSDT",
+  "symbol": "ETH/USDT:USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.001,
+  "maker": 0.001,
+  "contractSize": 1,
+  "precision": {
+   "amount": 0.001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {
+    "min": 1,
+    "max": 100
+   },
+   "amount": {
+    "min": 0.005
+   },
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "base_ccy": "ETH",
+   "base_ccy_precision": 3,
+   "contract_type": "linear",
+   "delisted_at": 0,
+   "is_api_trading_available": true,
+   "is_market_available": true,
+   "leverage": [
+    "1",
+    "2",
+    "3",
+    "5",
+    "8",
+    "10",
+    "15",
+    "20",
+    "30",
+    "50",
+    "100"
+   ],
+   "maker_fee_rate": "0.0003",
+   "market": "ETHUSDT",
+   "min_amount": "0.005",
+   "open_interest_volume": "7796.695",
+   "quote_ccy": "USDT",
+   "quote_ccy_precision": 2,
+   "status": "online",
+   "taker_fee_rate": "0.0005",
+   "tick_size": "0.01"
+  }
+ }
+}

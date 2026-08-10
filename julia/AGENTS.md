@@ -46,6 +46,24 @@ fixture exchange means editing `FIXTURE_EXCHANGES` in
 `test/fixtures/static_init_offline.jl` and `FIXTURE_IDS` in `test/runtests.jl`;
 the groups and aliases are generated from those.
 
+The `load_all` group is the breadth counterpart to those five: it constructs
+every generated exchange, feeds it a small recorded market set and resolves a
+symbol through both `market()` branches. `exchange_stubs` only asserts each
+exchange *type* exists, which a broken `describe()` survives — a module can load
+cleanly and throw on first instantiation. `load_all` closes that gap for all 104
+at once, and its assertions compare the loaded index against the fixture file
+rather than against the loaded exchange, so a `setMarkets` that drops or
+mis-keys entries is caught instead of echoed back. Four exchanges
+(`alpaca`, `extended`, `gate`, `mudrex`) cannot have a market fixture recorded
+offline; they are constructed anyway and the absence is asserted. See
+`test/fixtures/markets/README.md`.
+
+Regenerate the non-curated market fixtures with
+`node julia/Ccxt/test/fixtures/gen_markets.cjs`. It refuses to write any fixture
+git tracks, because the five curated exchanges are part of the request/response
+fixture contract — an earlier ad-hoc version of that script overwrote them and
+broke the bybit request tests with a 244k-line diff.
+
 The `validators_shared` group executes the 25th structure-validator file
 (`test.sharedMethods` — the shared assert library every one of the 24
 validators calls) directly against representative data. `sharedMethods` is a

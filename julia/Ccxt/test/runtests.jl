@@ -114,6 +114,11 @@ const GROUPS = Pair{String,Group}[
         "shared assert primitives (test.sharedMethods, file #25) against real data"),
     "exchange_stubs" => Group(["fixtures_init"], 0.3,
         "every generated exchange module loads; manifest and fixture registry match"),
+    # The single heaviest group: 104 exchange constructions, each running a
+    # full `describe()`. Listed at its measured cost so the shard balancer puts
+    # it first and builds the other shards around it.
+    "load_all" => Group(["fixtures_init"], 29.0,
+        "every generated exchange constructs, indexes recorded markets and resolves a symbol"),
 ]
 
 # The three fixture layers, one group per exchange. Generated rather than

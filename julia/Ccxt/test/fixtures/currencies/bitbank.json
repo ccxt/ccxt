@@ -1,0 +1,90 @@
+{
+ "BTC": {
+  "id": "btc",
+  "code": "BTC",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "ETH": {
+  "id": "eth",
+  "code": "ETH",
+  "precision": 0.0001,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "XRP": {
+  "id": "xrp",
+  "code": "XRP",
+  "precision": 0.0001,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "ADA": {
+  "id": "ada",
+  "code": "ADA",
+  "precision": 0.0001,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "APE": {
+  "id": "ape",
+  "code": "APE",
+  "precision": 0.0001,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "ARB": {
+  "id": "arb",
+  "code": "ARB",
+  "precision": 0.0001,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "ASTR": {
+  "id": "astr",
+  "code": "ASTR",
+  "precision": 0.0001,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "ATOM": {
+  "id": "atom",
+  "code": "ATOM",
+  "precision": 0.0001,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ }
+}

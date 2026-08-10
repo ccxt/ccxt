@@ -1,0 +1,228 @@
+{
+ "ETH/BTC": {
+  "id": "ETH_BTC",
+  "symbol": "ETH/BTC",
+  "base": "ETH",
+  "quote": "BTC",
+  "baseId": "ETH",
+  "quoteId": "BTC",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "contract": false,
+  "taker": 0.006,
+  "maker": 0.004,
+  "precision": {
+   "amount": 1e-8,
+   "price": 0.00001
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.0006
+   },
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "name": "ETH_BTC",
+   "firstCurrency": "ETH",
+   "secondCurrency": "BTC",
+   "priceDecimals": 5,
+   "lotDecimals": 8,
+   "minAmount": 0.0006,
+   "tradesWebSocketChannelId": null,
+   "orderBookWebSocketChannelId": null,
+   "tradeStatisticsWebSocketChannelId": null
+  },
+  "tierBased": true,
+  "percentage": true,
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.006
+    ],
+    [
+     10000,
+     0.003
+    ],
+    [
+     100000,
+     0.0023
+    ],
+    [
+     250000,
+     0.0021
+    ],
+    [
+     500000,
+     0.0018
+    ],
+    [
+     1000000,
+     0.0015
+    ],
+    [
+     3000000,
+     0.0012
+    ],
+    [
+     15000000,
+     0.001
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.004
+    ],
+    [
+     10000,
+     0.002
+    ],
+    [
+     100000,
+     0.0012
+    ],
+    [
+     250000,
+     0.0009
+    ],
+    [
+     500000,
+     0.0005
+    ],
+    [
+     1000000,
+     0.0003
+    ],
+    [
+     3000000,
+     0.0002
+    ],
+    [
+     15000000,
+     -0.0004
+    ]
+   ]
+  }
+ },
+ "BTC/EUR": {
+  "id": "BTC_EUR",
+  "symbol": "BTC/EUR",
+  "base": "BTC",
+  "quote": "EUR",
+  "baseId": "BTC",
+  "quoteId": "EUR",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "contract": false,
+  "taker": 0.006,
+  "maker": 0.004,
+  "precision": {
+   "amount": 1e-8,
+   "price": 0.1
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.000015
+   },
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "name": "BTC_EUR",
+   "firstCurrency": "BTC",
+   "secondCurrency": "EUR",
+   "priceDecimals": 1,
+   "lotDecimals": 8,
+   "minAmount": 0.000015,
+   "tradesWebSocketChannelId": null,
+   "orderBookWebSocketChannelId": null,
+   "tradeStatisticsWebSocketChannelId": null
+  },
+  "tierBased": true,
+  "percentage": true,
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.006
+    ],
+    [
+     10000,
+     0.003
+    ],
+    [
+     100000,
+     0.0023
+    ],
+    [
+     250000,
+     0.0021
+    ],
+    [
+     500000,
+     0.0018
+    ],
+    [
+     1000000,
+     0.0015
+    ],
+    [
+     3000000,
+     0.0012
+    ],
+    [
+     15000000,
+     0.001
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.004
+    ],
+    [
+     10000,
+     0.002
+    ],
+    [
+     100000,
+     0.0012
+    ],
+    [
+     250000,
+     0.0009
+    ],
+    [
+     500000,
+     0.0005
+    ],
+    [
+     1000000,
+     0.0003
+    ],
+    [
+     3000000,
+     0.0002
+    ],
+    [
+     15000000,
+     -0.0004
+    ]
+   ]
+  }
+ }
+}

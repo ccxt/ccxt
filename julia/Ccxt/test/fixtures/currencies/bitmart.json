@@ -1,0 +1,1033 @@
+{
+ "BTC": {
+  "info": {
+   "currency": "BTC",
+   "name": "Bitcoin",
+   "contract_address": null,
+   "network": "BTC",
+   "withdraw_enabled": true,
+   "deposit_enabled": true,
+   "withdraw_minsize": "0.0003",
+   "recharge_minsize": "0.00000001",
+   "withdraw_minfee": "12.99",
+   "withdraw_fee_estimate": "12.99",
+   "withdraw_fee": "0.0002"
+  },
+  "id": "BTC",
+  "code": "BTC",
+  "type": "crypto",
+  "name": "Bitcoin",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.00004,
+  "fees": {},
+  "networks": {
+   "BTC": {
+    "info": {
+     "currency": "BTC",
+     "name": "Bitcoin",
+     "contract_address": null,
+     "network": "BTC",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "0.0003",
+     "recharge_minsize": "0.00000001",
+     "withdraw_minfee": "12.99",
+     "withdraw_fee_estimate": "12.99",
+     "withdraw_fee": "0.0002"
+    },
+    "id": "BTC",
+    "code": "BTC",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 0.0002,
+    "limits": {
+     "withdraw": {
+      "min": 0.0003
+     },
+     "deposit": {}
+    }
+   },
+   "LIGHTNING_BTC": {
+    "info": {
+     "currency": "BTC-LIGHTNING_BTC",
+     "name": "Bitcoin-LIGHTNING_BTC",
+     "contract_address": null,
+     "network": "LIGHTNING_BTC",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "0.00001",
+     "recharge_minsize": "0.00000001",
+     "withdraw_minfee": "12.99",
+     "withdraw_fee_estimate": "12.99",
+     "withdraw_fee": "0.0002"
+    },
+    "id": "LIGHTNING_BTC",
+    "code": "LIGHTNING_BTC",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 0.0002,
+    "limits": {
+     "withdraw": {
+      "min": 0.00001
+     },
+     "deposit": {}
+    }
+   },
+   "MERLIN": {
+    "info": {
+     "currency": "BTC-MERLIN",
+     "name": "Merlin",
+     "contract_address": null,
+     "network": "MERLIN-BTC",
+     "withdraw_enabled": false,
+     "deposit_enabled": false,
+     "withdraw_minsize": "0.00030759",
+     "recharge_minsize": "0.00000001",
+     "withdraw_minfee": "2.59",
+     "withdraw_fee_estimate": "2.59",
+     "withdraw_fee": "0.00004"
+    },
+    "id": "MERLIN",
+    "code": "MERLIN",
+    "withdraw": false,
+    "deposit": false,
+    "active": false,
+    "fee": 0.00004,
+    "limits": {
+     "withdraw": {
+      "min": 0.00030759
+     },
+     "deposit": {}
+    }
+   },
+   "BEP20": {
+    "info": {
+     "currency": "BTC-BSC_BNB",
+     "name": "Bitcoin-BSC_BNB",
+     "contract_address": "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c",
+     "network": "BSC_BNB",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "0.0000769",
+     "recharge_minsize": "0.00000001",
+     "withdraw_minfee": "5.19",
+     "withdraw_fee_estimate": "5.19",
+     "withdraw_fee": "0.00008"
+    },
+    "id": "BSC_BNB",
+    "code": "BEP20",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 0.00008,
+    "limits": {
+     "withdraw": {
+      "min": 0.0000769
+     },
+     "deposit": {}
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": 0.00001
+   }
+  }
+ },
+ "ETH": {
+  "info": {
+   "currency": "ETH",
+   "name": "Ethereum",
+   "contract_address": null,
+   "network": "ETH",
+   "withdraw_enabled": true,
+   "deposit_enabled": true,
+   "withdraw_minsize": "0.00260601",
+   "recharge_minsize": "0.00000001",
+   "withdraw_minfee": "5.75",
+   "withdraw_fee_estimate": "5.75",
+   "withdraw_fee": "0.003"
+  },
+  "id": "ETH",
+  "code": "ETH",
+  "type": "crypto",
+  "name": "Ethereum",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.003,
+  "fees": {},
+  "networks": {
+   "ETH": {
+    "info": {
+     "currency": "ETH",
+     "name": "Ethereum",
+     "contract_address": null,
+     "network": "ETH",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "0.00260601",
+     "recharge_minsize": "0.00000001",
+     "withdraw_minfee": "5.75",
+     "withdraw_fee_estimate": "5.75",
+     "withdraw_fee": "0.003"
+    },
+    "id": "ETH",
+    "code": "ETH",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 0.003,
+    "limits": {
+     "withdraw": {
+      "min": 0.00260601
+     },
+     "deposit": {}
+    }
+   },
+   "OPTIMISM": {
+    "info": {
+     "currency": "ETH-OPTIMISM",
+     "name": "Ethereum-OPTIMISM",
+     "contract_address": null,
+     "network": "OPTIMISM",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "0.00260601",
+     "recharge_minsize": "0.00000001",
+     "withdraw_minfee": "5.9",
+     "withdraw_fee_estimate": "5.9",
+     "withdraw_fee": "0.003"
+    },
+    "id": "OPTIMISM",
+    "code": "OPTIMISM",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 0.003,
+    "limits": {
+     "withdraw": {
+      "min": 0.00260601
+     },
+     "deposit": {}
+    }
+   },
+   "ARBI": {
+    "info": {
+     "currency": "ETH-ARBI",
+     "name": "Ethereum-ARBI",
+     "contract_address": null,
+     "network": "ARBI",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "0.00260601",
+     "recharge_minsize": "0.00000001",
+     "withdraw_minfee": "11.8",
+     "withdraw_fee_estimate": "11.8",
+     "withdraw_fee": "0.006"
+    },
+    "id": "ARBI",
+    "code": "ARBI",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 0.006,
+    "limits": {
+     "withdraw": {
+      "min": 0.00260601
+     },
+     "deposit": {}
+    }
+   },
+   "ZKSYNCERA_ETH": {
+    "info": {
+     "currency": "ETH-ZKSYNCERA_ETH",
+     "name": "Ethereum-ZKSYNCERA_ETH",
+     "contract_address": null,
+     "network": "ZKSYNCERA_ETH",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "0.0026",
+     "recharge_minsize": "0.00000001",
+     "withdraw_minfee": "11.5",
+     "withdraw_fee_estimate": "11.5",
+     "withdraw_fee": "0.006"
+    },
+    "id": "ZKSYNCERA_ETH",
+    "code": "ZKSYNCERA_ETH",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 0.006,
+    "limits": {
+     "withdraw": {
+      "min": 0.0026
+     },
+     "deposit": {}
+    }
+   },
+   "BASE": {
+    "info": {
+     "currency": "ETH-BASE-ETH",
+     "name": "Ethereum-BASE-ETH",
+     "contract_address": null,
+     "network": "BASE-ETH",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "0.001",
+     "recharge_minsize": "0.00000001",
+     "withdraw_minfee": "19181.55",
+     "withdraw_fee_estimate": "19181.55",
+     "withdraw_fee": "10"
+    },
+    "id": "BASE",
+    "code": "BASE",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 10,
+    "limits": {
+     "withdraw": {
+      "min": 0.001
+     },
+     "deposit": {}
+    }
+   },
+   "BEP20": {
+    "info": {
+     "currency": "ETH-BEP20",
+     "name": "Ethereum",
+     "contract_address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+     "network": "BSC_BNB",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "0.00260601",
+     "recharge_minsize": "0.00000001",
+     "withdraw_minfee": "5.75",
+     "withdraw_fee_estimate": "5.75",
+     "withdraw_fee": "0.003"
+    },
+    "id": "BEP20",
+    "code": "BEP20",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 0.003,
+    "limits": {
+     "withdraw": {
+      "min": 0.00260601
+     },
+     "deposit": {}
+    }
+   },
+   "STARK": {
+    "info": {
+     "currency": "ETH-STARK-ETH",
+     "name": "Ethereum-STARK-ETH",
+     "contract_address": "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+     "network": "STARK-ETH",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "0.004",
+     "recharge_minsize": "0.00000001",
+     "withdraw_minfee": "11.5",
+     "withdraw_fee_estimate": "11.5",
+     "withdraw_fee": "0.006"
+    },
+    "id": "STARK",
+    "code": "STARK",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 0.006,
+    "limits": {
+     "withdraw": {
+      "min": 0.004
+     },
+     "deposit": {}
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": 0.001
+   }
+  }
+ },
+ "USDT": {
+  "info": {
+   "currency": "USDT-ETH",
+   "name": "Tether USD-ETH",
+   "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+   "network": "ETH",
+   "withdraw_enabled": true,
+   "deposit_enabled": true,
+   "withdraw_minsize": "5.004195",
+   "recharge_minsize": "0.001",
+   "withdraw_minfee": "5.09",
+   "withdraw_fee_estimate": "5.09",
+   "withdraw_fee": "5.1"
+  },
+  "id": "USDT",
+  "code": "USDT",
+  "type": "crypto",
+  "name": "Tether USD-ETH",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 5,
+  "fees": {},
+  "networks": {
+   "ERC20": {
+    "info": {
+     "currency": "USDT-ETH",
+     "name": "Tether USD-ETH",
+     "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+     "network": "ETH",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "5.004195",
+     "recharge_minsize": "0.001",
+     "withdraw_minfee": "5.09",
+     "withdraw_fee_estimate": "5.09",
+     "withdraw_fee": "5.1"
+    },
+    "id": "ETH",
+    "code": "ERC20",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 5.1,
+    "limits": {
+     "withdraw": {
+      "min": 5.004195
+     },
+     "deposit": {}
+    }
+   },
+   "TRC20": {
+    "info": {
+     "currency": "USDT-TRX",
+     "name": "Tether USD-TRX",
+     "contract_address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+     "network": "TRX",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "5",
+     "recharge_minsize": "0.01",
+     "withdraw_minfee": "4.99",
+     "withdraw_fee_estimate": "4.99",
+     "withdraw_fee": "5"
+    },
+    "id": "TRX",
+    "code": "TRC20",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 5,
+    "limits": {
+     "withdraw": {
+      "min": 5
+     },
+     "deposit": {}
+    }
+   },
+   "BEP20": {
+    "info": {
+     "currency": "USDT-BSC_BNB",
+     "name": "Tether USD-BSC_BNB",
+     "contract_address": "0x55d398326f99059fF775485246999027B3197955",
+     "network": "BSC_BNB",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "5.00419532",
+     "recharge_minsize": "0.01",
+     "withdraw_minfee": "5.09",
+     "withdraw_fee_estimate": "5.09",
+     "withdraw_fee": "5.1"
+    },
+    "id": "BSC_BNB",
+    "code": "BEP20",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 5.1,
+    "limits": {
+     "withdraw": {
+      "min": 5.00419532
+     },
+     "deposit": {}
+    }
+   },
+   "SOL": {
+    "info": {
+     "currency": "USDT-SOL",
+     "name": "Tether USD-SOL",
+     "contract_address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+     "network": "SOL",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "5.004195",
+     "recharge_minsize": "0.001",
+     "withdraw_minfee": "5.09",
+     "withdraw_fee_estimate": "5.09",
+     "withdraw_fee": "5.1"
+    },
+    "id": "SOL",
+    "code": "SOL",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 5.1,
+    "limits": {
+     "withdraw": {
+      "min": 5.004195
+     },
+     "deposit": {}
+    }
+   },
+   "ALGO": {
+    "info": {
+     "currency": "USDT-ALGO",
+     "name": "Tether USD-ALGO",
+     "contract_address": "312769",
+     "network": "ALGO",
+     "withdraw_enabled": false,
+     "deposit_enabled": false,
+     "withdraw_minsize": "1.5",
+     "recharge_minsize": "0.01",
+     "withdraw_minfee": "4.99",
+     "withdraw_fee_estimate": "4.99",
+     "withdraw_fee": "5"
+    },
+    "id": "ALGO",
+    "code": "ALGO",
+    "withdraw": false,
+    "deposit": false,
+    "active": false,
+    "fee": 5,
+    "limits": {
+     "withdraw": {
+      "min": 1.5
+     },
+     "deposit": {}
+    }
+   },
+   "OPTIMISM": {
+    "info": {
+     "currency": "USDT-OPTIMISM",
+     "name": "Tether USD-OPTIMISM",
+     "contract_address": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+     "network": "OPTIMISM",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "1.15",
+     "recharge_minsize": "0.001",
+     "withdraw_minfee": "4.99",
+     "withdraw_fee_estimate": "4.99",
+     "withdraw_fee": "5"
+    },
+    "id": "OPTIMISM",
+    "code": "OPTIMISM",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 5,
+    "limits": {
+     "withdraw": {
+      "min": 1.15
+     },
+     "deposit": {}
+    }
+   },
+   "POLYGON": {
+    "info": {
+     "currency": "USDT-POLYGON",
+     "name": "Tether USD-POLYGON",
+     "contract_address": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+     "network": "POLYGON",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "10",
+     "recharge_minsize": "0.001",
+     "withdraw_minfee": "4.99",
+     "withdraw_fee_estimate": "4.99",
+     "withdraw_fee": "5"
+    },
+    "id": "POLYGON",
+    "code": "POLYGON",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 5,
+    "limits": {
+     "withdraw": {
+      "min": 10
+     },
+     "deposit": {}
+    }
+   },
+   "ARBI": {
+    "info": {
+     "currency": "USDT-ARBI",
+     "name": "Tether USD-ARBI",
+     "contract_address": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+     "network": "ARBI",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "1.15",
+     "recharge_minsize": "0.01",
+     "withdraw_minfee": "4.99",
+     "withdraw_fee_estimate": "4.99",
+     "withdraw_fee": "5"
+    },
+    "id": "ARBI",
+    "code": "ARBI",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 5,
+    "limits": {
+     "withdraw": {
+      "min": 1.15
+     },
+     "deposit": {}
+    }
+   },
+   "AVAX": {
+    "info": {
+     "currency": "USDT-AVAX-C",
+     "name": "Tether USD-AVAX-C",
+     "contract_address": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
+     "network": "AVAX-C",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "5.004195",
+     "recharge_minsize": "0.001",
+     "withdraw_minfee": "9.99",
+     "withdraw_fee_estimate": "9.99",
+     "withdraw_fee": "10"
+    },
+    "id": "AVAX",
+    "code": "AVAX",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 10,
+    "limits": {
+     "withdraw": {
+      "min": 5.004195
+     },
+     "deposit": {}
+    }
+   },
+   "HECO_HT": {
+    "info": {
+     "currency": "USDT-HECO_HT",
+     "name": "Tether USD-HECO_HT",
+     "contract_address": "0xa71edc38d189767582c38a3145b5873052c3e47a",
+     "network": "HECO_HT",
+     "withdraw_enabled": false,
+     "deposit_enabled": false,
+     "withdraw_minsize": "20",
+     "recharge_minsize": "0.001",
+     "withdraw_minfee": "5.09",
+     "withdraw_fee_estimate": "5.09",
+     "withdraw_fee": "5.1"
+    },
+    "id": "HECO_HT",
+    "code": "HECO_HT",
+    "withdraw": false,
+    "deposit": false,
+    "active": false,
+    "fee": 5.1,
+    "limits": {
+     "withdraw": {
+      "min": 20
+     },
+     "deposit": {}
+    }
+   },
+   "OPENTON": {
+    "info": {
+     "currency": "USDT-OPENTON",
+     "name": "Tether USD-OPENTON",
+     "contract_address": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+     "network": "OPENTON",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "5.004195",
+     "recharge_minsize": "0.001",
+     "withdraw_minfee": "10.98",
+     "withdraw_fee_estimate": "10.98",
+     "withdraw_fee": "11"
+    },
+    "id": "OPENTON",
+    "code": "OPENTON",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 11,
+    "limits": {
+     "withdraw": {
+      "min": 5.004195
+     },
+     "deposit": {}
+    }
+   },
+   "OP": {
+    "info": {
+     "currency": "USDT-OP-BNB",
+     "name": "Tether USD-OP-BNB",
+     "contract_address": "0x9e5AAC1Ba1a2e6aEd6b32689DFcF62A509Ca96f3",
+     "network": "OP-BNB",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "10",
+     "recharge_minsize": "0.001",
+     "withdraw_minfee": "5.09",
+     "withdraw_fee_estimate": "5.09",
+     "withdraw_fee": "5.1"
+    },
+    "id": "OP",
+    "code": "OP",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 5.1,
+    "limits": {
+     "withdraw": {
+      "min": 10
+     },
+     "deposit": {}
+    }
+   },
+   "APT": {
+    "info": {
+     "currency": "USDT-APT",
+     "name": "Tether USD-APT",
+     "contract_address": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
+     "network": "APT",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "20.016781",
+     "recharge_minsize": "0.00000001",
+     "withdraw_minfee": "5.09",
+     "withdraw_fee_estimate": "5.09",
+     "withdraw_fee": "5.1"
+    },
+    "id": "APT",
+    "code": "APT",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 5.1,
+    "limits": {
+     "withdraw": {
+      "min": 20.016781
+     },
+     "deposit": {}
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": 1.15
+   }
+  }
+ },
+ "$$BRETT": {
+  "info": {
+   "currency": "$$BRETT",
+   "name": "Brett",
+   "contract_address": "EQAnmanJNfO07EHZAsHode4AyxCFboiobF1-Y04Q7UG9sinZ",
+   "network": "OPENTON",
+   "withdraw_enabled": false,
+   "deposit_enabled": false,
+   "withdraw_minsize": "10695187.1657754",
+   "recharge_minsize": "0.00000001",
+   "withdraw_minfee": "2",
+   "withdraw_fee_estimate": "2",
+   "withdraw_fee": "1069519"
+  },
+  "id": "$$BRETT",
+  "code": "$$BRETT",
+  "type": "crypto",
+  "name": "Brett",
+  "deposit": false,
+  "withdraw": false,
+  "fee": 1069519,
+  "fees": {},
+  "networks": {
+   "OPENTON": {
+    "info": {
+     "currency": "$$BRETT",
+     "name": "Brett",
+     "contract_address": "EQAnmanJNfO07EHZAsHode4AyxCFboiobF1-Y04Q7UG9sinZ",
+     "network": "OPENTON",
+     "withdraw_enabled": false,
+     "deposit_enabled": false,
+     "withdraw_minsize": "10695187.1657754",
+     "recharge_minsize": "0.00000001",
+     "withdraw_minfee": "2",
+     "withdraw_fee_estimate": "2",
+     "withdraw_fee": "1069519"
+    },
+    "id": "OPENTON",
+    "code": "OPENTON",
+    "withdraw": false,
+    "deposit": false,
+    "active": false,
+    "fee": 1069519,
+    "limits": {
+     "withdraw": {
+      "min": 10695187.1657754
+     },
+     "deposit": {}
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": 10695187.1657754
+   }
+  }
+ },
+ "$$EWT": {
+  "info": {
+   "currency": "$$EWT",
+   "name": "Energy Web Token",
+   "contract_address": null,
+   "network": "EWT",
+   "withdraw_enabled": true,
+   "deposit_enabled": true,
+   "withdraw_minsize": "33.33333333",
+   "recharge_minsize": "0.00000001",
+   "withdraw_minfee": "5.04",
+   "withdraw_fee_estimate": "5.04",
+   "withdraw_fee": "84"
+  },
+  "id": "$$EWT",
+  "code": "$$EWT",
+  "type": "crypto",
+  "name": "Energy Web Token",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 84,
+  "fees": {},
+  "networks": {
+   "EWT": {
+    "info": {
+     "currency": "$$EWT",
+     "name": "Energy Web Token",
+     "contract_address": null,
+     "network": "EWT",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "33.33333333",
+     "recharge_minsize": "0.00000001",
+     "withdraw_minfee": "5.04",
+     "withdraw_fee_estimate": "5.04",
+     "withdraw_fee": "84"
+    },
+    "id": "EWT",
+    "code": "EWT",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 84,
+    "limits": {
+     "withdraw": {
+      "min": 33.33333333
+     },
+     "deposit": {}
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": 33.33333333
+   }
+  }
+ },
+ "$$GM": {
+  "info": {
+   "currency": "$$GM-BSC_BNB",
+   "name": "Gmcoin-BSC_BNB",
+   "contract_address": "0xfe23a414bD0234579f88df91A441dB902866F41d",
+   "network": "BSC_BNB",
+   "withdraw_enabled": false,
+   "deposit_enabled": false,
+   "withdraw_minsize": "50000000000000000",
+   "recharge_minsize": "0.00000001",
+   "withdraw_minfee": "5",
+   "withdraw_fee_estimate": "5",
+   "withdraw_fee": "50000000000000000"
+  },
+  "id": "$$GM",
+  "code": "$$GM",
+  "type": "crypto",
+  "name": "Gmcoin-BSC_BNB",
+  "deposit": false,
+  "withdraw": false,
+  "fee": 50000000000000000,
+  "fees": {},
+  "networks": {
+   "BEP20": {
+    "info": {
+     "currency": "$$GM-BSC_BNB",
+     "name": "Gmcoin-BSC_BNB",
+     "contract_address": "0xfe23a414bD0234579f88df91A441dB902866F41d",
+     "network": "BSC_BNB",
+     "withdraw_enabled": false,
+     "deposit_enabled": false,
+     "withdraw_minsize": "50000000000000000",
+     "recharge_minsize": "0.00000001",
+     "withdraw_minfee": "5",
+     "withdraw_fee_estimate": "5",
+     "withdraw_fee": "50000000000000000"
+    },
+    "id": "BSC_BNB",
+    "code": "BEP20",
+    "withdraw": false,
+    "deposit": false,
+    "active": false,
+    "fee": 50000000000000000,
+    "limits": {
+     "withdraw": {
+      "min": 50000000000000000
+     },
+     "deposit": {}
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": 50000000000000000
+   }
+  }
+ },
+ "$$HYPER": {
+  "info": {
+   "currency": "$$HYPER-BSC_BNB",
+   "name": "Hyperlane-BSC_BNB",
+   "contract_address": "0xC9d23ED2ADB0f551369946BD377f8644cE1ca5c4",
+   "network": "BSC_BNB",
+   "withdraw_enabled": true,
+   "deposit_enabled": true,
+   "withdraw_minsize": "83.33333333",
+   "recharge_minsize": "0.00000001",
+   "withdraw_minfee": "5.04",
+   "withdraw_fee_estimate": "5.04",
+   "withdraw_fee": "84"
+  },
+  "id": "$$HYPER",
+  "code": "$$HYPER",
+  "type": "crypto",
+  "name": "Hyperlane-BSC_BNB",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 84,
+  "fees": {},
+  "networks": {
+   "BEP20": {
+    "info": {
+     "currency": "$$HYPER-BSC_BNB",
+     "name": "Hyperlane-BSC_BNB",
+     "contract_address": "0xC9d23ED2ADB0f551369946BD377f8644cE1ca5c4",
+     "network": "BSC_BNB",
+     "withdraw_enabled": true,
+     "deposit_enabled": true,
+     "withdraw_minsize": "83.33333333",
+     "recharge_minsize": "0.00000001",
+     "withdraw_minfee": "5.04",
+     "withdraw_fee_estimate": "5.04",
+     "withdraw_fee": "84"
+    },
+    "id": "BSC_BNB",
+    "code": "BEP20",
+    "withdraw": true,
+    "deposit": true,
+    "active": true,
+    "fee": 84,
+    "limits": {
+     "withdraw": {
+      "min": 83.33333333
+     },
+     "deposit": {}
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": 83.33333333
+   }
+  }
+ },
+ "$$LAIKA": {
+  "info": {
+   "currency": "$$LAIKA-SOL",
+   "name": "LAIKA-SOL",
+   "contract_address": "Euoq6CyQFCjCVSLR9wFaUPDW19Y6ZHwEcJoZsEi643i1",
+   "network": "SOL",
+   "withdraw_enabled": true,
+   "deposit_enabled": false,
+   "withdraw_minsize": "23845995.692173",
+   "recharge_minsize": "0.00000001",
+   "withdraw_minfee": "5",
+   "withdraw_fee_estimate": "5",
+   "withdraw_fee": "23845996"
+  },
+  "id": "$$LAIKA",
+  "code": "$$LAIKA",
+  "type": "crypto",
+  "name": "LAIKA-SOL",
+  "deposit": false,
+  "withdraw": true,
+  "fee": 23845996,
+  "fees": {},
+  "networks": {
+   "SOL": {
+    "info": {
+     "currency": "$$LAIKA-SOL",
+     "name": "LAIKA-SOL",
+     "contract_address": "Euoq6CyQFCjCVSLR9wFaUPDW19Y6ZHwEcJoZsEi643i1",
+     "network": "SOL",
+     "withdraw_enabled": true,
+     "deposit_enabled": false,
+     "withdraw_minsize": "23845995.692173",
+     "recharge_minsize": "0.00000001",
+     "withdraw_minfee": "5",
+     "withdraw_fee_estimate": "5",
+     "withdraw_fee": "23845996"
+    },
+    "id": "SOL",
+    "code": "SOL",
+    "withdraw": true,
+    "deposit": false,
+    "active": false,
+    "fee": 23845996,
+    "limits": {
+     "withdraw": {
+      "min": 23845995.692173
+     },
+     "deposit": {}
+    }
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {
+    "min": 23845995.692173
+   }
+  }
+ }
+}

@@ -1,0 +1,1011 @@
+{
+ "BTC": {
+  "info": {
+   "name": "Bitcoin",
+   "unified_cryptoasset_id": 1,
+   "can_withdraw": true,
+   "can_deposit": true,
+   "min_withdraw": "0.0003",
+   "max_withdraw": "0",
+   "maker_fee": "0.1",
+   "taker_fee": "0.1",
+   "min_deposit": "0.0001",
+   "max_deposit": "0",
+   "networks": {
+    "deposits": [
+     "BTC"
+    ],
+    "withdraws": [
+     "BTC"
+    ],
+    "default": "BTC"
+   },
+   "confirmations": {
+    "BTC": 2
+   },
+   "limits": {
+    "deposit": {
+     "BTC": {
+      "min": "0.0001"
+     }
+    },
+    "withdraw": {
+     "BTC": {
+      "min": "0.0003"
+     }
+    }
+   },
+   "currency_precision": 8,
+   "is_memo": false,
+   "memo": {
+    "deposit": false,
+    "withdraw": false
+   },
+   "_coin_id": "BTC"
+  },
+  "id": "BTC",
+  "code": "BTC",
+  "precision": 1e-8,
+  "type": "crypto",
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {
+   "BTC": {
+    "id": "BTC",
+    "network": "BTC",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 0.0001
+     },
+     "withdraw": {
+      "min": 0.0003
+     }
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0.0003,
+    "max": 0
+   },
+   "deposit": {
+    "min": 0.0001,
+    "max": 0
+   }
+  }
+ },
+ "ETH": {
+  "info": {
+   "name": "Ethereum",
+   "unified_cryptoasset_id": 1027,
+   "can_withdraw": true,
+   "can_deposit": true,
+   "min_withdraw": "0.0015",
+   "max_withdraw": "0",
+   "maker_fee": "0.1",
+   "taker_fee": "0.1",
+   "min_deposit": "0.001",
+   "max_deposit": "0",
+   "networks": {
+    "deposits": [
+     "SCROLL",
+     "BASE",
+     "STARKNET",
+     "ZKSYNC",
+     "ARBITRUM",
+     "OPTIMISM",
+     "BEP20",
+     "ERC20"
+    ],
+    "withdraws": [
+     "SCROLL",
+     "BASE",
+     "STARKNET",
+     "ZKSYNC",
+     "ARBITRUM",
+     "OPTIMISM",
+     "BEP20",
+     "ERC20"
+    ],
+    "default": "ERC20"
+   },
+   "confirmations": {
+    "ARBITRUM": 600,
+    "BASE": 300,
+    "BEP20": 20,
+    "ERC20": 64,
+    "OPTIMISM": 1400,
+    "SCROLL": 900,
+    "STARKNET": 5,
+    "ZKSYNC": 1000
+   },
+   "limits": {
+    "deposit": {
+     "ARBITRUM": {
+      "min": "0.0019"
+     },
+     "BASE": {
+      "min": "0.0019"
+     },
+     "BEP20": {
+      "min": "0.0019"
+     },
+     "ERC20": {
+      "min": "0.0019"
+     },
+     "OPTIMISM": {
+      "min": "0.0019"
+     },
+     "SCROLL": {
+      "min": "0.0019"
+     },
+     "STARKNET": {
+      "min": "0.001"
+     },
+     "ZKSYNC": {
+      "min": "0.001"
+     }
+    },
+    "withdraw": {
+     "ARBITRUM": {
+      "min": "0.0038"
+     },
+     "BASE": {
+      "min": "0.0038"
+     },
+     "BEP20": {
+      "min": "0.0038"
+     },
+     "ERC20": {
+      "min": "0.0038"
+     },
+     "OPTIMISM": {
+      "min": "0.0038"
+     },
+     "SCROLL": {
+      "min": "0.0038"
+     },
+     "STARKNET": {
+      "min": "0.0015"
+     },
+     "ZKSYNC": {
+      "min": "0.0015"
+     }
+    }
+   },
+   "currency_precision": 18,
+   "is_memo": false,
+   "memo": {
+    "deposit": false,
+    "withdraw": false
+   },
+   "_coin_id": "ETH"
+  },
+  "id": "ETH",
+  "code": "ETH",
+  "precision": 1e-18,
+  "type": "crypto",
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {
+   "SCROLL": {
+    "id": "SCROLL",
+    "network": "SCROLL",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 0.0019
+     },
+     "withdraw": {
+      "min": 0.0038
+     }
+    }
+   },
+   "BASE": {
+    "id": "BASE",
+    "network": "BASE",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 0.0019
+     },
+     "withdraw": {
+      "min": 0.0038
+     }
+    }
+   },
+   "STARKNET": {
+    "id": "STARKNET",
+    "network": "STARKNET",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 0.001
+     },
+     "withdraw": {
+      "min": 0.0015
+     }
+    }
+   },
+   "ZKSYNC": {
+    "id": "ZKSYNC",
+    "network": "ZKSYNC",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 0.001
+     },
+     "withdraw": {
+      "min": 0.0015
+     }
+    }
+   },
+   "ARBITRUM": {
+    "id": "ARBITRUM",
+    "network": "ARBITRUM",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 0.0019
+     },
+     "withdraw": {
+      "min": 0.0038
+     }
+    }
+   },
+   "OPTIMISM": {
+    "id": "OPTIMISM",
+    "network": "OPTIMISM",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 0.0019
+     },
+     "withdraw": {
+      "min": 0.0038
+     }
+    }
+   },
+   "BEP20": {
+    "id": "BEP20",
+    "network": "BEP20",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 0.0019
+     },
+     "withdraw": {
+      "min": 0.0038
+     }
+    }
+   },
+   "ETH": {
+    "id": "ERC20",
+    "network": "ETH",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 0.0019
+     },
+     "withdraw": {
+      "min": 0.0038
+     }
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0.0015,
+    "max": 0
+   },
+   "deposit": {
+    "min": 0.001,
+    "max": 0
+   }
+  }
+ },
+ "USDT": {
+  "info": {
+   "name": "Tether US",
+   "unified_cryptoasset_id": 825,
+   "can_withdraw": true,
+   "can_deposit": true,
+   "min_withdraw": "1",
+   "max_withdraw": "0",
+   "maker_fee": "0.1",
+   "taker_fee": "0.1",
+   "min_deposit": "5",
+   "max_deposit": "0",
+   "networks": {
+    "deposits": [
+     "DOTASSETHUB",
+     "OPTIMISM",
+     "POLYGON",
+     "ARBITRUM",
+     "SOL",
+     "CCHAIN",
+     "NEAR",
+     "TON",
+     "PLASMA",
+     "TRC20",
+     "ERC20"
+    ],
+    "withdraws": [
+     "DOTASSETHUB",
+     "OPTIMISM",
+     "POLYGON",
+     "ARBITRUM",
+     "SOL",
+     "CCHAIN",
+     "NEAR",
+     "TON",
+     "PLASMA",
+     "TRC20",
+     "ERC20"
+    ],
+    "default": "ERC20"
+   },
+   "confirmations": {
+    "ARBITRUM": 600,
+    "BEP20": 20,
+    "CCHAIN": 970,
+    "DOTASSETHUB": 50,
+    "ERC20": 64,
+    "NEAR": 300,
+    "OPTIMISM": 1400,
+    "PLASMA": 300,
+    "POLYGON": 150,
+    "SOL": 50,
+    "TON": 1,
+    "TRC20": 20
+   },
+   "limits": {
+    "deposit": {
+     "ARBITRUM": {
+      "min": "5"
+     },
+     "BEP20": {
+      "min": "5"
+     },
+     "CCHAIN": {
+      "min": "5"
+     },
+     "DOTASSETHUB": {
+      "min": "5"
+     },
+     "ERC20": {
+      "min": "5"
+     },
+     "NEAR": {
+      "min": "5"
+     },
+     "OPTIMISM": {
+      "min": "5"
+     },
+     "PLASMA": {
+      "min": "5"
+     },
+     "POLYGON": {
+      "min": "5"
+     },
+     "SOL": {
+      "min": "5"
+     },
+     "TON": {
+      "min": "5"
+     },
+     "TRC20": {
+      "min": "5"
+     }
+    },
+    "withdraw": {
+     "ARBITRUM": {
+      "min": "10"
+     },
+     "BEP20": {
+      "min": "10"
+     },
+     "CCHAIN": {
+      "min": "10"
+     },
+     "DOTASSETHUB": {
+      "min": "10"
+     },
+     "ERC20": {
+      "min": "10"
+     },
+     "NEAR": {
+      "min": "1"
+     },
+     "OPTIMISM": {
+      "min": "10"
+     },
+     "PLASMA": {
+      "min": "10"
+     },
+     "POLYGON": {
+      "min": "10"
+     },
+     "SOL": {
+      "min": "10"
+     },
+     "TON": {
+      "min": "10"
+     },
+     "TRC20": {
+      "min": "10"
+     }
+    }
+   },
+   "currency_precision": 6,
+   "is_memo": false,
+   "memo": {
+    "deposit": false,
+    "withdraw": false
+   },
+   "_coin_id": "USDT"
+  },
+  "id": "USDT",
+  "code": "USDT",
+  "precision": 0.000001,
+  "type": "crypto",
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {
+   "DOTASSETHUB": {
+    "id": "DOTASSETHUB",
+    "network": "DOTASSETHUB",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 5
+     },
+     "withdraw": {
+      "min": 10
+     }
+    }
+   },
+   "OPTIMISM": {
+    "id": "OPTIMISM",
+    "network": "OPTIMISM",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 5
+     },
+     "withdraw": {
+      "min": 10
+     }
+    }
+   },
+   "POLYGON": {
+    "id": "POLYGON",
+    "network": "POLYGON",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 5
+     },
+     "withdraw": {
+      "min": 10
+     }
+    }
+   },
+   "ARBITRUM": {
+    "id": "ARBITRUM",
+    "network": "ARBITRUM",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 5
+     },
+     "withdraw": {
+      "min": 10
+     }
+    }
+   },
+   "SOL": {
+    "id": "SOL",
+    "network": "SOL",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 5
+     },
+     "withdraw": {
+      "min": 10
+     }
+    }
+   },
+   "CCHAIN": {
+    "id": "CCHAIN",
+    "network": "CCHAIN",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 5
+     },
+     "withdraw": {
+      "min": 10
+     }
+    }
+   },
+   "NEAR": {
+    "id": "NEAR",
+    "network": "NEAR",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 5
+     },
+     "withdraw": {
+      "min": 1
+     }
+    }
+   },
+   "TON": {
+    "id": "TON",
+    "network": "TON",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 5
+     },
+     "withdraw": {
+      "min": 10
+     }
+    }
+   },
+   "PLASMA": {
+    "id": "PLASMA",
+    "network": "PLASMA",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 5
+     },
+     "withdraw": {
+      "min": 10
+     }
+    }
+   },
+   "TRC20": {
+    "id": "TRC20",
+    "network": "TRC20",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 5
+     },
+     "withdraw": {
+      "min": 10
+     }
+    }
+   },
+   "ERC20": {
+    "id": "ERC20",
+    "network": "ERC20",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 5
+     },
+     "withdraw": {
+      "min": 10
+     }
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 1,
+    "max": 0
+   },
+   "deposit": {
+    "min": 5,
+    "max": 0
+   }
+  }
+ },
+ "0G": {
+  "info": {
+   "name": "0G",
+   "unified_cryptoasset_id": 0,
+   "can_withdraw": true,
+   "can_deposit": true,
+   "min_withdraw": "6.97",
+   "max_withdraw": "0",
+   "maker_fee": "0.1",
+   "taker_fee": "0.1",
+   "min_deposit": "4.65",
+   "max_deposit": "0",
+   "networks": {
+    "deposits": [
+     "0G"
+    ],
+    "withdraws": [
+     "0G"
+    ],
+    "default": "0G"
+   },
+   "confirmations": {
+    "0G": 500
+   },
+   "limits": {
+    "deposit": {
+     "0G": {
+      "min": "4.65"
+     }
+    },
+    "withdraw": {
+     "0G": {
+      "min": "6.97"
+     }
+    }
+   },
+   "currency_precision": 18,
+   "is_memo": false,
+   "memo": {
+    "deposit": false,
+    "withdraw": false
+   },
+   "_coin_id": "0G"
+  },
+  "id": "0G",
+  "code": "0G",
+  "precision": 1e-18,
+  "type": "crypto",
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {
+   "0G": {
+    "id": "0G",
+    "network": "0G",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 4.65
+     },
+     "withdraw": {
+      "min": 6.97
+     }
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 6.97,
+    "max": 0
+   },
+   "deposit": {
+    "min": 4.65,
+    "max": 0
+   }
+  }
+ },
+ "1INCH": {
+  "info": {
+   "name": "1inch",
+   "unified_cryptoasset_id": 8104,
+   "can_withdraw": true,
+   "can_deposit": true,
+   "min_withdraw": "0.62",
+   "max_withdraw": "0",
+   "maker_fee": "0.1",
+   "taker_fee": "0.1",
+   "min_deposit": "15",
+   "max_deposit": "0",
+   "networks": {
+    "deposits": [
+     "ERC20"
+    ],
+    "withdraws": [
+     "ERC20"
+    ],
+    "default": "ERC20"
+   },
+   "confirmations": {
+    "ERC20": 64
+   },
+   "limits": {
+    "deposit": {
+     "ERC20": {
+      "min": "15"
+     }
+    },
+    "withdraw": {
+     "ERC20": {
+      "min": "0.62"
+     }
+    }
+   },
+   "currency_precision": 18,
+   "is_memo": false,
+   "memo": {
+    "deposit": false,
+    "withdraw": false
+   },
+   "_coin_id": "1INCH"
+  },
+  "id": "1INCH",
+  "code": "1INCH",
+  "precision": 1e-18,
+  "type": "crypto",
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {
+   "ERC20": {
+    "id": "ERC20",
+    "network": "ERC20",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 15
+     },
+     "withdraw": {
+      "min": 0.62
+     }
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0.62,
+    "max": 0
+   },
+   "deposit": {
+    "min": 15,
+    "max": 0
+   }
+  }
+ },
+ "2Z": {
+  "info": {
+   "name": "DoubleZero",
+   "unified_cryptoasset_id": 0,
+   "can_withdraw": true,
+   "can_deposit": true,
+   "min_withdraw": "106",
+   "max_withdraw": "0",
+   "maker_fee": "0.1",
+   "taker_fee": "0.1",
+   "min_deposit": "70",
+   "max_deposit": "0",
+   "networks": {
+    "deposits": [
+     "SOL"
+    ],
+    "withdraws": [
+     "SOL"
+    ],
+    "default": "SOL"
+   },
+   "confirmations": {
+    "SOL": 50
+   },
+   "limits": {
+    "deposit": {
+     "SOL": {
+      "min": "70"
+     }
+    },
+    "withdraw": {
+     "SOL": {
+      "min": "106"
+     }
+    }
+   },
+   "currency_precision": 8,
+   "is_memo": false,
+   "memo": {
+    "deposit": false,
+    "withdraw": false
+   },
+   "_coin_id": "2Z"
+  },
+  "id": "2Z",
+  "code": "2Z",
+  "precision": 1e-8,
+  "type": "crypto",
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {
+   "SOL": {
+    "id": "SOL",
+    "network": "SOL",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 70
+     },
+     "withdraw": {
+      "min": 106
+     }
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 106,
+    "max": 0
+   },
+   "deposit": {
+    "min": 70,
+    "max": 0
+   }
+  }
+ },
+ "A": {
+  "info": {
+   "name": "Vaulta",
+   "unified_cryptoasset_id": 0,
+   "can_withdraw": false,
+   "can_deposit": false,
+   "min_withdraw": "15.36",
+   "max_withdraw": "0",
+   "maker_fee": "0.1",
+   "taker_fee": "0.1",
+   "min_deposit": "7.68",
+   "max_deposit": "0",
+   "networks": {
+    "default": "VAULTA"
+   },
+   "confirmations": {
+    "VAULTA": 1
+   },
+   "limits": {
+    "deposit": {
+     "VAULTA": {
+      "min": "7.68"
+     }
+    },
+    "withdraw": {
+     "VAULTA": {
+      "min": "15.36"
+     }
+    }
+   },
+   "currency_precision": 4,
+   "is_memo": true,
+   "memo": {
+    "deposit": true,
+    "withdraw": true
+   },
+   "_coin_id": "A"
+  },
+  "id": "A",
+  "code": "A",
+  "precision": 0.0001,
+  "type": "crypto",
+  "deposit": false,
+  "withdraw": false,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 15.36,
+    "max": 0
+   },
+   "deposit": {
+    "min": 7.68,
+    "max": 0
+   }
+  }
+ },
+ "AAVE": {
+  "info": {
+   "name": "Aave",
+   "unified_cryptoasset_id": 7278,
+   "can_withdraw": true,
+   "can_deposit": true,
+   "min_withdraw": "0.0006",
+   "max_withdraw": "0",
+   "maker_fee": "0.1",
+   "taker_fee": "0.1",
+   "min_deposit": "0.015",
+   "max_deposit": "0",
+   "networks": {
+    "deposits": [
+     "ERC20"
+    ],
+    "withdraws": [
+     "ERC20"
+    ],
+    "default": "ERC20"
+   },
+   "confirmations": {
+    "ERC20": 64
+   },
+   "limits": {
+    "deposit": {
+     "ERC20": {
+      "min": "0.015"
+     }
+    },
+    "withdraw": {
+     "ERC20": {
+      "min": "0.0006"
+     }
+    }
+   },
+   "currency_precision": 18,
+   "is_memo": false,
+   "memo": {
+    "deposit": false,
+    "withdraw": false
+   },
+   "_coin_id": "AAVE"
+  },
+  "id": "AAVE",
+  "code": "AAVE",
+  "precision": 1e-18,
+  "type": "crypto",
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {
+   "ERC20": {
+    "id": "ERC20",
+    "network": "ERC20",
+    "deposit": true,
+    "withdraw": true,
+    "limits": {
+     "deposit": {
+      "min": 0.015
+     },
+     "withdraw": {
+      "min": 0.0006
+     }
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0.0006,
+    "max": 0
+   },
+   "deposit": {
+    "min": 0.015,
+    "max": 0
+   }
+  }
+ }
+}

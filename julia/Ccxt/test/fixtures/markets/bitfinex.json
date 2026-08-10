@@ -1,0 +1,594 @@
+{
+ "BTC/USDT": {
+  "id": "tBTCUST",
+  "symbol": "BTC/USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "baseId": "BTC",
+  "quoteId": "UST",
+  "type": "spot",
+  "spot": true,
+  "margin": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.002,
+  "maker": 0.001,
+  "precision": {
+   "amount": 8,
+   "price": 5
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.00004,
+    "max": 2000
+   },
+   "price": {
+    "min": 1e-8
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": [
+   null,
+   null,
+   null,
+   "0.00004",
+   "2000.0",
+   null,
+   null,
+   null,
+   0.1,
+   0.05,
+   null,
+   null
+  ],
+  "tierBased": true,
+  "percentage": true,
+  "feeSide": "get",
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.002
+    ],
+    [
+     500000,
+     0.002
+    ],
+    [
+     1000000,
+     0.002
+    ],
+    [
+     2500000,
+     0.002
+    ],
+    [
+     5000000,
+     0.002
+    ],
+    [
+     7500000,
+     0.002
+    ],
+    [
+     10000000,
+     0.0018
+    ],
+    [
+     15000000,
+     0.0016
+    ],
+    [
+     20000000,
+     0.0014
+    ],
+    [
+     25000000,
+     0.0012
+    ],
+    [
+     30000000,
+     0.001
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.001
+    ],
+    [
+     500000,
+     0.0008
+    ],
+    [
+     1000000,
+     0.0006
+    ],
+    [
+     2500000,
+     0.0004
+    ],
+    [
+     5000000,
+     0.0002
+    ],
+    [
+     7500000,
+     0
+    ],
+    [
+     10000000,
+     0
+    ],
+    [
+     15000000,
+     0
+    ],
+    [
+     20000000,
+     0
+    ],
+    [
+     25000000,
+     0
+    ],
+    [
+     30000000,
+     0
+    ]
+   ]
+  },
+  "tradfi": false
+ },
+ "BTC/USDT:USDT": {
+  "id": "tBTCF0:USTF0",
+  "symbol": "BTC/USDT:USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "BTCF0",
+  "quoteId": "USTF0",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.002,
+  "maker": 0.001,
+  "contractSize": 1,
+  "precision": {
+   "amount": 8,
+   "price": 5
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.00004,
+    "max": 100
+   },
+   "price": {
+    "min": 1e-8
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": [
+   null,
+   null,
+   null,
+   "0.00004",
+   "100.0",
+   null,
+   null,
+   null,
+   0.01,
+   0.005
+  ],
+  "tierBased": true,
+  "percentage": true,
+  "feeSide": "get",
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.002
+    ],
+    [
+     500000,
+     0.002
+    ],
+    [
+     1000000,
+     0.002
+    ],
+    [
+     2500000,
+     0.002
+    ],
+    [
+     5000000,
+     0.002
+    ],
+    [
+     7500000,
+     0.002
+    ],
+    [
+     10000000,
+     0.0018
+    ],
+    [
+     15000000,
+     0.0016
+    ],
+    [
+     20000000,
+     0.0014
+    ],
+    [
+     25000000,
+     0.0012
+    ],
+    [
+     30000000,
+     0.001
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.001
+    ],
+    [
+     500000,
+     0.0008
+    ],
+    [
+     1000000,
+     0.0006
+    ],
+    [
+     2500000,
+     0.0004
+    ],
+    [
+     5000000,
+     0.0002
+    ],
+    [
+     7500000,
+     0
+    ],
+    [
+     10000000,
+     0
+    ],
+    [
+     15000000,
+     0
+    ],
+    [
+     20000000,
+     0
+    ],
+    [
+     25000000,
+     0
+    ],
+    [
+     30000000,
+     0
+    ]
+   ]
+  },
+  "tradfi": false
+ },
+ "ETH/USDT": {
+  "id": "tETHUST",
+  "symbol": "ETH/USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "baseId": "ETH",
+  "quoteId": "UST",
+  "type": "spot",
+  "spot": true,
+  "margin": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.002,
+  "maker": 0.001,
+  "precision": {
+   "amount": 8,
+   "price": 5
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.0008,
+    "max": 2000
+   },
+   "price": {
+    "min": 1e-8
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": [
+   null,
+   null,
+   null,
+   "0.0008",
+   "2000.0",
+   null,
+   null,
+   null,
+   0.2,
+   0.1,
+   null,
+   null
+  ],
+  "tierBased": true,
+  "percentage": true,
+  "feeSide": "get",
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.002
+    ],
+    [
+     500000,
+     0.002
+    ],
+    [
+     1000000,
+     0.002
+    ],
+    [
+     2500000,
+     0.002
+    ],
+    [
+     5000000,
+     0.002
+    ],
+    [
+     7500000,
+     0.002
+    ],
+    [
+     10000000,
+     0.0018
+    ],
+    [
+     15000000,
+     0.0016
+    ],
+    [
+     20000000,
+     0.0014
+    ],
+    [
+     25000000,
+     0.0012
+    ],
+    [
+     30000000,
+     0.001
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.001
+    ],
+    [
+     500000,
+     0.0008
+    ],
+    [
+     1000000,
+     0.0006
+    ],
+    [
+     2500000,
+     0.0004
+    ],
+    [
+     5000000,
+     0.0002
+    ],
+    [
+     7500000,
+     0
+    ],
+    [
+     10000000,
+     0
+    ],
+    [
+     15000000,
+     0
+    ],
+    [
+     20000000,
+     0
+    ],
+    [
+     25000000,
+     0
+    ],
+    [
+     30000000,
+     0
+    ]
+   ]
+  },
+  "tradfi": false
+ },
+ "ETH/USDT:USDT": {
+  "id": "tETHF0:USTF0",
+  "symbol": "ETH/USDT:USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "ETHF0",
+  "quoteId": "USTF0",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.002,
+  "maker": 0.001,
+  "contractSize": 1,
+  "precision": {
+   "amount": 8,
+   "price": 5
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.0008,
+    "max": 1000
+   },
+   "price": {
+    "min": 1e-8
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": [
+   null,
+   null,
+   null,
+   "0.0008",
+   "1000.0",
+   null,
+   null,
+   null,
+   0.01,
+   0.005
+  ],
+  "tierBased": true,
+  "percentage": true,
+  "feeSide": "get",
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.002
+    ],
+    [
+     500000,
+     0.002
+    ],
+    [
+     1000000,
+     0.002
+    ],
+    [
+     2500000,
+     0.002
+    ],
+    [
+     5000000,
+     0.002
+    ],
+    [
+     7500000,
+     0.002
+    ],
+    [
+     10000000,
+     0.0018
+    ],
+    [
+     15000000,
+     0.0016
+    ],
+    [
+     20000000,
+     0.0014
+    ],
+    [
+     25000000,
+     0.0012
+    ],
+    [
+     30000000,
+     0.001
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.001
+    ],
+    [
+     500000,
+     0.0008
+    ],
+    [
+     1000000,
+     0.0006
+    ],
+    [
+     2500000,
+     0.0004
+    ],
+    [
+     5000000,
+     0.0002
+    ],
+    [
+     7500000,
+     0
+    ],
+    [
+     10000000,
+     0
+    ],
+    [
+     15000000,
+     0
+    ],
+    [
+     20000000,
+     0
+    ],
+    [
+     25000000,
+     0
+    ],
+    [
+     30000000,
+     0
+    ]
+   ]
+  },
+  "tradfi": false
+ }
+}

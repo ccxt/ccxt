@@ -1,0 +1,414 @@
+{
+ "BTC/USDC": {
+  "id": "BTC_USDC",
+  "symbol": "BTC/USDC",
+  "base": "BTC",
+  "quote": "USDC",
+  "baseId": "BTC",
+  "quoteId": "USDC",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.002,
+  "maker": 0.002,
+  "precision": {
+   "amount": 0.000001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {
+    "min": 1,
+    "max": 1
+   },
+   "amount": {
+    "min": 0.000001
+   },
+   "price": {},
+   "cost": {
+    "min": 1
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "id": "BTC_USDC",
+   "base": "BTC",
+   "base_name": "Bitcoin",
+   "quote": "USDC",
+   "quote_name": "USDCoin",
+   "fee": "0.2",
+   "min_base_amount": "0.000001",
+   "min_quote_amount": "1",
+   "max_base_amount": "100",
+   "max_quote_amount": "5000000",
+   "amount_precision": 6,
+   "precision": 2,
+   "trade_status": "tradable",
+   "sell_start": 0,
+   "buy_start": 0,
+   "type": "normal",
+   "trade_url": "https://www.gate.com/en-eu/trade/BTC_USDC",
+   "st_tag": false,
+   "slippage": "0",
+   "market_order_max_stock": "0",
+   "market_order_max_money": "0",
+   "up_rate": "0",
+   "down_rate": "0"
+  },
+  "tierBased": true,
+  "percentage": true,
+  "feeSide": "get",
+  "tiers": {
+   "maker": [
+    [
+     0,
+     0.002
+    ],
+    [
+     1.5,
+     0.00185
+    ],
+    [
+     3,
+     0.00175
+    ],
+    [
+     6,
+     0.00165
+    ],
+    [
+     12.5,
+     0.00155
+    ],
+    [
+     25,
+     0.00145
+    ],
+    [
+     75,
+     0.00135
+    ],
+    [
+     200,
+     0.00125
+    ],
+    [
+     500,
+     0.00115
+    ],
+    [
+     1250,
+     0.00105
+    ],
+    [
+     2500,
+     0.00095
+    ],
+    [
+     3000,
+     0.00085
+    ],
+    [
+     6000,
+     0.00075
+    ],
+    [
+     11000,
+     0.00065
+    ],
+    [
+     20000,
+     0.00055
+    ],
+    [
+     40000,
+     0.00055
+    ],
+    [
+     75000,
+     0.00055
+    ]
+   ],
+   "taker": [
+    [
+     0,
+     0.002
+    ],
+    [
+     1.5,
+     0.00195
+    ],
+    [
+     3,
+     0.00185
+    ],
+    [
+     6,
+     0.00175
+    ],
+    [
+     12.5,
+     0.00165
+    ],
+    [
+     25,
+     0.00155
+    ],
+    [
+     75,
+     0.00145
+    ],
+    [
+     200,
+     0.00135
+    ],
+    [
+     500,
+     0.00125
+    ],
+    [
+     1250,
+     0.00115
+    ],
+    [
+     2500,
+     0.00105
+    ],
+    [
+     3000,
+     0.00095
+    ],
+    [
+     6000,
+     0.00085
+    ],
+    [
+     11000,
+     0.00075
+    ],
+    [
+     20000,
+     0.00065
+    ],
+    [
+     40000,
+     0.00065
+    ],
+    [
+     75000,
+     0.00065
+    ]
+   ]
+  }
+ },
+ "ETH/USDC": {
+  "id": "ETH_USDC",
+  "symbol": "ETH/USDC",
+  "base": "ETH",
+  "quote": "USDC",
+  "baseId": "ETH",
+  "quoteId": "USDC",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.002,
+  "maker": 0.002,
+  "precision": {
+   "amount": 0.0001,
+   "price": 0.1
+  },
+  "limits": {
+   "leverage": {
+    "min": 1,
+    "max": 1
+   },
+   "amount": {
+    "min": 0.001
+   },
+   "price": {},
+   "cost": {
+    "min": 1
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "id": "ETH_USDC",
+   "base": "ETH",
+   "base_name": "Ethereum",
+   "quote": "USDC",
+   "quote_name": "USDCoin",
+   "fee": "0.2",
+   "min_base_amount": "0.001",
+   "min_quote_amount": "1",
+   "max_base_amount": "1000",
+   "max_quote_amount": "5000000",
+   "amount_precision": 4,
+   "precision": 1,
+   "trade_status": "tradable",
+   "sell_start": 0,
+   "buy_start": 0,
+   "type": "normal",
+   "trade_url": "https://www.gate.com/en-eu/trade/ETH_USDC",
+   "st_tag": false,
+   "slippage": "0",
+   "market_order_max_stock": "0",
+   "market_order_max_money": "0",
+   "up_rate": "0",
+   "down_rate": "0"
+  },
+  "tierBased": true,
+  "percentage": true,
+  "feeSide": "get",
+  "tiers": {
+   "maker": [
+    [
+     0,
+     0.002
+    ],
+    [
+     1.5,
+     0.00185
+    ],
+    [
+     3,
+     0.00175
+    ],
+    [
+     6,
+     0.00165
+    ],
+    [
+     12.5,
+     0.00155
+    ],
+    [
+     25,
+     0.00145
+    ],
+    [
+     75,
+     0.00135
+    ],
+    [
+     200,
+     0.00125
+    ],
+    [
+     500,
+     0.00115
+    ],
+    [
+     1250,
+     0.00105
+    ],
+    [
+     2500,
+     0.00095
+    ],
+    [
+     3000,
+     0.00085
+    ],
+    [
+     6000,
+     0.00075
+    ],
+    [
+     11000,
+     0.00065
+    ],
+    [
+     20000,
+     0.00055
+    ],
+    [
+     40000,
+     0.00055
+    ],
+    [
+     75000,
+     0.00055
+    ]
+   ],
+   "taker": [
+    [
+     0,
+     0.002
+    ],
+    [
+     1.5,
+     0.00195
+    ],
+    [
+     3,
+     0.00185
+    ],
+    [
+     6,
+     0.00175
+    ],
+    [
+     12.5,
+     0.00165
+    ],
+    [
+     25,
+     0.00155
+    ],
+    [
+     75,
+     0.00145
+    ],
+    [
+     200,
+     0.00135
+    ],
+    [
+     500,
+     0.00125
+    ],
+    [
+     1250,
+     0.00115
+    ],
+    [
+     2500,
+     0.00105
+    ],
+    [
+     3000,
+     0.00095
+    ],
+    [
+     6000,
+     0.00085
+    ],
+    [
+     11000,
+     0.00075
+    ],
+    [
+     20000,
+     0.00065
+    ],
+    [
+     40000,
+     0.00065
+    ],
+    [
+     75000,
+     0.00065
+    ]
+   ]
+  }
+ }
+}

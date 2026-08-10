@@ -1,0 +1,266 @@
+{
+ "BTC/USDT": {
+  "id": "BTC_USDT",
+  "symbol": "BTC/USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": false,
+  "contract": false,
+  "taker": 0.002,
+  "maker": 0.002,
+  "precision": {
+   "amount": 1e-7,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 1e-7
+   },
+   "price": {},
+   "cost": {
+    "min": 2
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "quote_asset": "USDT",
+   "base_asset": "BTC",
+   "symbol": "BTC_USDT",
+   "price_precision": 2,
+   "amount_precision": 7,
+   "minimum_amount": 1e-7,
+   "minimum_value": 2,
+   "order_types": [
+    "LIMIT",
+    "MARKET"
+   ],
+   "is_allow": 0,
+   "zone": "MAIN",
+   "status": "TRADING"
+  },
+  "tierBased": true,
+  "percentage": true
+ },
+ "BTC/USDT:USDT": {
+  "id": "BTCUSDTPERP",
+  "symbol": "BTC/USDT:USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.002,
+  "maker": 0.002,
+  "contractSize": 0.001,
+  "precision": {
+   "price": 0.1
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 1
+   },
+   "price": {
+    "min": 0.1
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "instrument_id": "BTCUSDTPERP",
+   "type": "REAL",
+   "contract_type": "PERPETUAL",
+   "base_currency": "BTC",
+   "quote_currency": "USDT",
+   "clear_currency": "USDT",
+   "contract_value": "0.001",
+   "contract_value_currency": "BTC",
+   "is_inverse": false,
+   "is_trading": true,
+   "status": "ONLINE",
+   "price_precision": 1,
+   "tick_size": "0.1",
+   "min_order_amount": 1,
+   "open_max_limits": [
+    {
+     "leverage": "200",
+     "maint_margin_ratio": "0.0025",
+     "max_limit": "5000"
+    },
+    {
+     "leverage": "100",
+     "maint_margin_ratio": "0.005",
+     "max_limit": "3000000"
+    },
+    {
+     "leverage": "50",
+     "maint_margin_ratio": "0.01",
+     "max_limit": "10000000"
+    },
+    {
+     "leverage": "20",
+     "maint_margin_ratio": "0.025",
+     "max_limit": "15000000"
+    },
+    {
+     "leverage": "10",
+     "maint_margin_ratio": "0.05",
+     "max_limit": "20000000"
+    }
+   ]
+  },
+  "tierBased": true,
+  "percentage": true
+ },
+ "ETH/USDT": {
+  "id": "ETH_USDT",
+  "symbol": "ETH/USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.002,
+  "maker": 0.002,
+  "precision": {
+   "amount": 0.0001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.0006
+   },
+   "price": {},
+   "cost": {
+    "min": 1.2
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "quote_asset": "USDT",
+   "base_asset": "ETH",
+   "symbol": "ETH_USDT",
+   "price_precision": 2,
+   "amount_precision": 4,
+   "minimum_amount": 0.0006,
+   "minimum_value": 1.2,
+   "order_types": [
+    "LIMIT",
+    "MARKET"
+   ],
+   "is_allow": 1,
+   "zone": "MAIN",
+   "status": "TRADING"
+  },
+  "tierBased": true,
+  "percentage": true
+ },
+ "ETH/USDT:USDT": {
+  "id": "OETHUSDTPERP",
+  "symbol": "ETH/USDT:USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.002,
+  "maker": 0.002,
+  "contractSize": 0.001,
+  "precision": {
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 1
+   },
+   "price": {
+    "min": 0.01
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "instrument_id": "OETHUSDTPERP",
+   "type": "REAL",
+   "contract_type": "PERPETUAL",
+   "base_currency": "ETH",
+   "quote_currency": "USDT",
+   "clear_currency": "USDT",
+   "contract_value": "0.001",
+   "contract_value_currency": "ETH",
+   "is_inverse": false,
+   "is_trading": true,
+   "status": "ONLINE",
+   "price_precision": 2,
+   "tick_size": "0.01",
+   "min_order_amount": 1,
+   "open_max_limits": [
+    {
+     "leverage": "200",
+     "maint_margin_ratio": "0.0025",
+     "max_limit": "5000"
+    },
+    {
+     "leverage": "100",
+     "maint_margin_ratio": "0.005",
+     "max_limit": "3000000"
+    },
+    {
+     "leverage": "50",
+     "maint_margin_ratio": "0.01",
+     "max_limit": "10000000"
+    },
+    {
+     "leverage": "20",
+     "maint_margin_ratio": "0.025",
+     "max_limit": "15000000"
+    },
+    {
+     "leverage": "10",
+     "maint_margin_ratio": "0.05",
+     "max_limit": "20000000"
+    }
+   ]
+  },
+  "tierBased": true,
+  "percentage": true
+ }
+}

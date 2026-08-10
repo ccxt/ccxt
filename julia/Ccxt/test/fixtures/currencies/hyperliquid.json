@@ -1,0 +1,198 @@
+{
+ "HYPE": {
+  "info": {
+   "name": "HYPE",
+   "szDecimals": 2,
+   "weiDecimals": 8,
+   "index": 150,
+   "tokenId": "0x0d01dc56dcaaca66ad901c959b4011ec",
+   "isCanonical": false,
+   "evmContract": null,
+   "fullName": "Hyperliquid",
+   "deployerTradingFeeShare": "0.0"
+  },
+  "id": "150",
+  "code": "HYPE",
+  "precision": "0.00000001",
+  "type": "crypto",
+  "name": "HYPE",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "RUBT": {
+  "info": {
+   "name": "RUBT",
+   "szDecimals": 1,
+   "weiDecimals": 6,
+   "index": 425,
+   "tokenId": "0x224950f99c3354ed475df173324124bd",
+   "isCanonical": false,
+   "evmContract": null,
+   "fullName": "RUBT",
+   "deployerTradingFeeShare": "1.0"
+  },
+  "id": "425",
+  "code": "RUBT",
+  "precision": "0.000001",
+  "type": "crypto",
+  "name": "RUBT",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "USDC": {
+  "info": {
+   "name": "USDC",
+   "szDecimals": 8,
+   "weiDecimals": 8,
+   "index": 0,
+   "tokenId": "0x6d1e7cde53ba9467b783cb7c530ce054",
+   "isCanonical": true,
+   "evmContract": {
+    "address": "0x6b9e773128f453f5c2c60935ee2de2cbc5390a24",
+    "evm_extra_wei_decimals": -2
+   },
+   "fullName": null,
+   "deployerTradingFeeShare": "0.0"
+  },
+  "id": "0",
+  "code": "USDC",
+  "precision": "0.00000001",
+  "type": "crypto",
+  "name": "USDC",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "AAPL": {
+  "info": {
+   "name": "AAPL",
+   "szDecimals": 2,
+   "weiDecimals": 8,
+   "index": 413,
+   "tokenId": "0xec340db435d4d90899e97655cb8e71f5",
+   "isCanonical": false,
+   "evmContract": {
+    "address": "0x7374dc1894fbd1bc6c42f6ebbc50b78c211a8606",
+    "evm_extra_wei_decimals": 10
+   },
+   "fullName": null,
+   "deployerTradingFeeShare": "1.0"
+  },
+  "id": "413",
+  "code": "AAPL",
+  "precision": "0.00000001",
+  "type": "crypto",
+  "name": "AAPL",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "AAPLX": {
+  "info": {
+   "name": "AAPLX",
+   "szDecimals": 2,
+   "weiDecimals": 8,
+   "index": 856,
+   "tokenId": "0xc7fe8485e778ce51cf9df81a1c84bfea",
+   "isCanonical": false,
+   "evmContract": null,
+   "fullName": "Wrapped Apple xStock",
+   "deployerTradingFeeShare": "1.0"
+  },
+  "id": "856",
+  "code": "AAPLX",
+  "precision": "0.00000001",
+  "type": "crypto",
+  "name": "AAPLX",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "AAVE0": {
+  "info": {
+   "name": "AAVE0",
+   "szDecimals": 2,
+   "weiDecimals": 8,
+   "index": 346,
+   "tokenId": "0x49259bc8e57d4a039fd41f9b40d1a3a6",
+   "isCanonical": false,
+   "evmContract": {
+    "address": "0xaa3871e64ca8c09fbdded327b1269224643cb83c",
+    "evm_extra_wei_decimals": 10
+   },
+   "fullName": "AAVE spot asset deployed by HyBridge",
+   "deployerTradingFeeShare": "1.0"
+  },
+  "id": "346",
+  "code": "AAVE0",
+  "precision": "0.00000001",
+  "type": "crypto",
+  "name": "AAVE0",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "ADHD": {
+  "info": {
+   "name": "ADHD",
+   "szDecimals": 0,
+   "weiDecimals": 5,
+   "index": 46,
+   "tokenId": "0xba13ed91905624d50318d54651ad3bab",
+   "isCanonical": false,
+   "evmContract": {
+    "address": "0xe3d5f45d97fee83b48c85e00c8359a2e07d68fee",
+    "evm_extra_wei_decimals": 13
+   },
+   "fullName": "Attention Deficit Hyperliquid Disorder",
+   "deployerTradingFeeShare": "0.0"
+  },
+  "id": "46",
+  "code": "ADHD",
+  "precision": "0.00001",
+  "type": "crypto",
+  "name": "ADHD",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "AIR": {
+  "info": {
+   "name": "AIR",
+   "szDecimals": 2,
+   "weiDecimals": 8,
+   "index": 225,
+   "tokenId": "0xd04d518a78fdda67e06c7ce42c9ac9e0",
+   "isCanonical": false,
+   "evmContract": null,
+   "fullName": "AIR",
+   "deployerTradingFeeShare": "1.0"
+  },
+  "id": "225",
+  "code": "AIR",
+  "precision": "0.00000001",
+  "type": "crypto",
+  "name": "AIR",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ }
+}
