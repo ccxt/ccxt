@@ -14,14 +14,43 @@ import (
 // goroutine is concurrently mutating, and never mix two moments across keys.
 // In js, python and php the runtime cannot mutate the book during a
 // synchronous assertion, Go can, so the test lane snapshots at this boundary.
-// The snapshot is the book structure itself as emitted by ToMap, asks, bids,
-// timestamp, datetime, nonce, symbol and the prediction identity keys when
-// present, ToMap copies both sides lock correct back to back. Cached briefly
+// The snapshot struct replicates the ccxt orderbook structure field for
+// field, asks, bids, timestamp, datetime, nonce, symbol and the prediction
+// identity, filled from one ToMap call. Cached briefly
 // per book, so one assertion cycle sees one moment and the next watch loop
 // iteration gets a fresh view.
 type bookSnapshot struct {
-	book map[string]interface{}
-	at   time.Time
+	Asks      [][]interface{}
+	Bids      [][]interface{}
+	Timestamp interface{}
+	Datetime  interface{}
+	Nonce     interface{}
+	Symbol    interface{}
+	// prediction identity, nil on regular books
+	Outcome   interface{}
+	OutcomeId interface{}
+	Market    interface{}
+	at        time.Time
+}
+
+func newBookSnapshot(book ccxt.OrderBookInterface, at time.Time) bookSnapshot {
+	// one ToMap call captures the whole book, both sides copied lock
+	// correct back to back together with the scalars
+	m := book.ToMap()
+	asks, _ := m["asks"].([][]interface{})
+	bids, _ := m["bids"].([][]interface{})
+	return bookSnapshot{
+		Asks:      asks,
+		Bids:      bids,
+		Timestamp: m["timestamp"],
+		Datetime:  m["datetime"],
+		Nonce:     m["nonce"],
+		Symbol:    m["symbol"],
+		Outcome:   m["outcome"],
+		OutcomeId: m["outcomeId"],
+		Market:    m["market"],
+		at:        at,
+	}
 }
 
 var bookSnapshotMutex sync.Mutex
@@ -51,11 +80,28 @@ func snapshotOrderBook(collection interface{}, key interface{}, value interface{
 	}
 	snap, found := bookSnapshots[collection]
 	if !found || now.Sub(snap.at) > bookSnapshotTtl {
-		snap = bookSnapshot{book: book.ToMap(), at: now}
+		snap = newBookSnapshot(book, now)
 		bookSnapshots[collection] = snap
 	}
-	if frozen, present := snap.book[k]; present {
-		return frozen
+	switch k {
+	case "asks":
+		return snap.Asks
+	case "bids":
+		return snap.Bids
+	case "timestamp":
+		return snap.Timestamp
+	case "datetime":
+		return snap.Datetime
+	case "nonce":
+		return snap.Nonce
+	case "symbol":
+		return snap.Symbol
+	case "outcome":
+		return snap.Outcome
+	case "outcomeId":
+		return snap.OutcomeId
+	case "market":
+		return snap.Market
 	}
 	return value
 }
