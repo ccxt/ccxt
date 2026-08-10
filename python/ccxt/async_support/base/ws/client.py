@@ -92,6 +92,23 @@ class Client(object):
         else:
             self.options = config
         self.connected = Future()
+        # a rejected connection future may end up with no awaiter, e.g. on
+        # already-subscribed watch paths or abandoned dials, retrieving the
+        # exception in a done callback keeps asyncio from dumping
+        # "Future exception was never retrieved" walls at gc
+
+        def _consume_connected_exception(fut):
+            if not fut.cancelled():
+                fut.exception()
+        self.connected.add_done_callback(_consume_connected_exception)
+        # Retry-After from the last failed handshake response, seconds,
+        # consumed by the exchange-level dial backoff
+        self.last_retry_after = None
+        # set by open() when a handshake fails, consumed by the exchange
+        # error callback so that only genuine dial failures grow the dial
+        # backoff, mid-session errors and the ws warn noise floor must not
+        self.dial_failed = False
+        self.last_message_at = None
 
     def future(self, message_hash):
         # a value that arrived while no future existed satisfies this
@@ -213,12 +230,22 @@ class Client(object):
             self.asyncio_loop.call_soon(self.receive_loop)
         except TimeoutError:
             # connection timeout
+            self.dial_failed = True
             error = RequestTimeout('Connection timeout')
             if self.verbose:
                 self.log(iso8601(milliseconds()), 'RequestTimeout', error)
             self.on_error(error)
         except Exception as e:
             # connection failed or rejected (ConnectionRefusedError, ClientConnectorError)
+            self.dial_failed = True
+            headers = getattr(e, 'headers', None)
+            if headers is not None:
+                retry_after = headers.get('Retry-After')
+                if retry_after is not None:
+                    try:
+                        self.last_retry_after = float(retry_after)
+                    except ValueError:
+                        pass
             error = NetworkError(e)
             if self.verbose:
                 self.log(iso8601(milliseconds()), 'NetworkError', error)
@@ -289,6 +316,9 @@ class Client(object):
 
     def handle_message(self, message):
         # self.log(iso8601(milliseconds()), message)
+        # timestamp of the last inbound frame, lets timeout forensics tell a
+        # dead pipe apart from frames arriving that never resolve a future
+        self.last_message_at = milliseconds()
         if message.type == WSMsgType.TEXT:
             self.handle_text_or_binary_message(message.data)
         elif message.type == WSMsgType.BINARY:
