@@ -110,7 +110,7 @@ export default class weex extends Exchange {
                 'fetchIsolatedPositions': false,
                 'fetchL2OrderBook': false,
                 'fetchL3OrderBook': false,
-                'fetchLastPrices': false,
+                'fetchLastPrices': true,
                 'fetchLedger': true,
                 'fetchLedgerEntry': false,
                 'fetchLeverage': true,
@@ -125,7 +125,8 @@ export default class weex extends Exchange {
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
-                'fetchMarkPrices': false,
+                'fetchMarkPrice': true,
+                'fetchMarkPrices': true,
                 'fetchMyLiquidations': false,
                 'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
@@ -218,7 +219,7 @@ export default class weex extends Exchange {
                         'api/v3/exchangeInfo': { 'cost': 100 }, // done
                         'api/v3/ping': { 'cost': 5 }, // done
                         'api/v3/apiTradingSymbols': { 'cost': 25 }, // not unified
-                        'api/v3/market/ticker/price': { 'cost': 20 }, // not unified
+                        'api/v3/market/ticker/price': { 'cost': 20 }, // done
                         'api/v3/market/ticker/24hr': { 'cost': 10 }, // done
                         'api/v3/market/trades': { 'cost': 125 }, // done
                         'api/v3/market/klines': { 'cost': 10 }, // done
@@ -269,7 +270,7 @@ export default class weex extends Exchange {
                         'capi/v3/market/indexPriceKlines': { 'cost': 5 }, // done
                         'capi/v3/market/markPriceKlines': { 'cost': 5 }, // done
                         'capi/v3/market/historyKlines': { 'cost': 25 }, // done
-                        'capi/v3/market/symbolPrice': { 'cost': 5 }, // not unified
+                        'capi/v3/market/symbolPrice': { 'cost': 5 }, // done
                         'capi/v3/market/openInterest': { 'cost': 10 }, // done
                         'capi/v3/market/premiumIndex': { 'cost': 5 }, // done
                         'capi/v3/market/fundingRate': { 'cost': 25 }, // done
@@ -1265,6 +1266,27 @@ export default class weex extends Exchange {
         //         "indexPrice": "2082.75"
         //     }
         //
+        // fetchMarkPrice (markPrice or indexPrice is copied from the raw 'price' field by fetchMarkPrice before parsing, depending on the requested priceType)
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "price": "1929.18",
+        //         "markPrice": "1929.18",
+        //         "time": 1786347445044
+        //     }
+        //
+        // fetchMarkPrices
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "markPrice": "1929.88",
+        //         "indexPrice": "1930.15",
+        //         "forecastFundingRate": "0.00003489",
+        //         "lastFundingRate": "0.00004879",
+        //         "interestRate": "0.001",
+        //         "nextFundingTime": 1786348800000,
+        //         "time": 1786347284100,
+        //         "collectCycle": 480
+        //     }
+        //
         const marketId = this.safeString(ticker, 'symbol');
         const markPrice = this.safeString(ticker, 'markPrice');
         let marketType = 'spot';
@@ -1299,6 +1321,129 @@ export default class weex extends Exchange {
             'indexPrice': this.safeString(ticker, 'indexPrice'),
             'info': ticker,
         }, market);
+    }
+    /**
+     * @method
+     * @name weex#fetchLastPrices
+     * @description fetches the last price for multiple markets
+     * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetTickerInfo
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the last prices for, all spot markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of lastprice structures
+     */
+    async fetchLastPrices(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols, undefined, true, true);
+        const market = this.getMarketFromSymbols(symbols);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchLastPrices', market, params);
+        if (type !== 'spot') {
+            throw new NotSupported(this.id + ' fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets');
+        }
+        const response = await this.publicGetApiV3MarketTickerPrice(params);
+        //
+        //     [
+        //         {
+        //             "symbol": "ETHUSDT",
+        //             "price": "1929.67"
+        //         }
+        //     ]
+        //
+        return this.parseLastPrices(response, symbols);
+    }
+    parseLastPrice(entry, market = undefined) {
+        //
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "price": "1929.67"
+        //     }
+        //
+        const marketId = this.safeString(entry, 'symbol');
+        market = this.safeMarket(marketId, market, undefined, 'spot');
+        return {
+            'symbol': market['symbol'],
+            'timestamp': undefined,
+            'datetime': undefined,
+            'price': this.safeNumberOmitZero(entry, 'price'),
+            'side': undefined,
+            'info': entry,
+        };
+    }
+    /**
+     * @method
+     * @name weex#fetchMarkPrice
+     * @description fetches mark price for the market
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetSymbolPrice
+     * @param {string} symbol unified symbol of the market to fetch the mark price for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the ticker
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchMarkPrice(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        if (!market['contract']) {
+            throw new NotSupported(this.id + ' fetchMarkPrice() supports contract markets only');
+        }
+        let priceType = undefined;
+        [priceType, params] = this.handleOptionAndParams(params, 'fetchMarkPrice', 'priceType', 'MARK'); // the endpoint defaults to INDEX
+        const request = {
+            'symbol': market['id'],
+            'priceType': priceType,
+        };
+        const response = await this.contractGetCapiV3MarketSymbolPrice(this.extend(request, params));
+        //
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "price": "1929.18",
+        //         "time": 1786347445044
+        //     }
+        //
+        // normalize here instead of falling back to 'price' in parseTicker, so a bare 'price' field in other payloads can never silently become the mark price
+        const ticker = this.extend({}, response);
+        if (priceType === 'INDEX') {
+            ticker['indexPrice'] = this.safeString(ticker, 'price');
+        }
+        else {
+            ticker['markPrice'] = this.safeString(ticker, 'price');
+        }
+        return this.parseTicker(ticker, market);
+    }
+    /**
+     * @method
+     * @name weex#fetchMarkPrices
+     * @description fetches mark prices for multiple markets
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the mark prices for, all contract markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchMarkPrices(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols, 'swap'); // reject non-contract symbols instead of silently filtering the result to an empty dict
+        const response = await this.contractGetCapiV3MarketPremiumIndex(params);
+        //
+        //     [
+        //         {
+        //             "symbol": "ETHUSDT",
+        //             "markPrice": "1929.88",
+        //             "indexPrice": "1930.15",
+        //             "forecastFundingRate": "0.00003489",
+        //             "lastFundingRate": "0.00004879",
+        //             "interestRate": "0.001",
+        //             "nextFundingTime": 1786348800000,
+        //             "time": 1786347284100,
+        //             "collectCycle": 480
+        //         }
+        //     ]
+        //
+        return this.parseTickers(response, symbols);
     }
     /**
      * @method
