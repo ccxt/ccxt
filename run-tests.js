@@ -401,12 +401,15 @@ const testExchange = async (exchange) => {
     const hasWarnings    = completeTests.find (test => test.warnings.length);
     const warnings       = completeTests.reduce (
         (total, { warnings }) => {
-            return warnings.length ? total.concat(['\n\n']).concat (warnings) : []
+            // no spacer elements, they render as blank-line walls; and never
+            // reset the accumulator, a warning-free language must not discard
+            // the warnings collected from the languages before it
+            return warnings.length ? total.concat (warnings) : total
         }, []
     );
     const infos          = completeTests.reduce (
         (total, { infos }) => {
-            return infos.length ? total.concat(['\n\n']).concat (infos) : []
+            return infos.length ? total.concat (infos) : total
         }, []
     );
 
@@ -415,13 +418,19 @@ const testExchange = async (exchange) => {
     if (failed) {
         logMessage = 'FAIL'.red;
     } else if (hasWarnings) {
-        logMessage = ('WARN: ' + (warnings.length ? '\n' + warnings.join ('\n') : '')).yellow;
+        logMessage = 'WARN:'.yellow;
     } else {
         logMessage = 'OK'.green;
     }
 
     numExchangesTested++;
     log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, logMessage)
+    // print warnings through a separate indented call instead of riding the
+    // progress-line argument, whose column alignment padded every line ~30
+    // columns right, same mechanism the explain path uses
+    if (!failed && hasWarnings && warnings.length) {
+        log.indent (1) (warnings.join ('\n').yellow)
+    }
 
     // independenly of the success result, show infos
     // ( these infos will be shown as soon as each exchange test is finished, and will not wait 100% of all tests to be finished )
