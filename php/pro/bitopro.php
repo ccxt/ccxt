@@ -394,9 +394,12 @@ class bitopro extends \ccxt\async\bitopro {
         //         "low24hr" => "1179321"
         //     }
         //
-        $marketId = $this->safe_string($message, 'pair');
+        $marketId = $this->safe_string_lower($message, 'pair');
+        if ($marketId === null) {
+            return; // some TICKER frames arrive without a pair - nothing to resolve them against
+        }
         // $market-ids are lowercase in REST API and uppercase in WS API
-        $market = $this->safe_market($marketId !== null ? strtolower($marketId) : null, null, '_');
+        $market = $this->safe_market($marketId, null, '_');
         $symbol = $market['symbol'];
         $event = $this->safe_string($message, 'event');
         $messageHash = $event . ':' . $symbol;
