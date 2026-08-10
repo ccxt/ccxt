@@ -1185,7 +1185,7 @@ class weex extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()): array {
         /**
          * fetches the bid and ask price and volume for multiple markets
          *
@@ -1197,6 +1197,9 @@ class weex extends Exchange {
          * @param {string} [$params->type] 'spot' or 'swap', default is 'spot' (used if $symbols are not provided)
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols, null, true, true);
         $market = $this->get_market_from_symbols($symbols);
         $marketType = null;
@@ -1210,7 +1213,15 @@ class weex extends Exchange {
         if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
             $response = array( $response );
         }
-        return $this->parse_tickers($response, $symbols);
+        $results = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $rawTicker = $response[$i];
+            // book tickers have no markPrice, so resolve the $market from the endpoint type to disambiguate the spot/swap $market id in parseTicker
+            $marketId = $this->safe_string($rawTicker, 'symbol');
+            $tickerMarket = $this->safe_market($marketId, null, null, $marketType);
+            $results[] = $this->parse_ticker($rawTicker, $tickerMarket);
+        }
+        return $this->filter_by_array_tickers($results, 'symbol', $symbols);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1255,7 +1266,8 @@ class weex extends Exchange {
         $marketId = $this->safe_string($ticker, 'symbol');
         $markPrice = $this->safe_string($ticker, 'markPrice');
         $marketType = 'spot';
-        if ($markPrice !== null) {
+        if (($markPrice !== null) || (($market !== null) && $market['contract'])) {
+            // 24hr swap tickers carry $markPrice, but book tickers do not, so also honor the $market resolved by the caller
             $marketType = 'swap';
         }
         $market = $this->safe_market($marketId, $market, null, $marketType);
