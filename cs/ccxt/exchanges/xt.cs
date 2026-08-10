@@ -85,6 +85,7 @@ public partial class xt : Exchange
                 { "fetchOrderTrades", false },
                 { "fetchPosition", true },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", true },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchSettlementHistory", false },
                 { "fetchStatus", false },
@@ -402,6 +403,9 @@ public partial class xt : Exchange
                             { "future/trade/v1/order/list-history", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "future/trade/v1/position/list-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "future/trade/v1/order/trade-list", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -523,6 +527,9 @@ public partial class xt : Exchange
                                 { "cost", 1 },
                             } },
                             { "future/trade/v1/order/list-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/position/list-history", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "future/trade/v1/order/trade-list", new Dictionary<string, object>() {
@@ -5777,6 +5784,97 @@ public partial class xt : Exchange
         return this.filterByArrayPositions(result, "symbol", symbols, false);
     }
 
+    /**
+     * @method
+     * @name xt#fetchPositionsHistory
+     * @description fetches historical closed positions
+     * @see https://doc.xt.com/docs/futures/Entrust/GetPositionHistory
+     * @param {string[]} [symbols] unified market symbols, all closed positions are returned if not assigned
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum amount of records to fetch, default=10
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest position to fetch
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public async override Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object request = new Dictionary<string, object>() {};
+        object market = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isEqual(symbolsLength, 1)))
+            {
+                market = this.market(getValue(symbols, 0));
+                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            }
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionsHistory", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(subType, "inverse")))
+        {
+            response = await ((Task<object>)callDynamically(this, "privateInverseGetFutureTradeV1PositionListHistory", new object[] { this.extend(request, parameters) }));
+        } else
+        {
+            response = await ((Task<object>)callDynamically(this, "privateLinearGetFutureTradeV1PositionListHistory", new object[] { this.extend(request, parameters) }));
+        }
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "hasPrev": false,
+        //             "hasNext": false,
+        //             "items": [
+        //                 {
+        //                     "id": "654559911738263296",
+        //                     "positionSide": "LONG",
+        //                     "contractType": "PERPETUAL",
+        //                     "symbol": "xrp_usdt",
+        //                     "positionType": 2,
+        //                     "closeProfit": "0.001",
+        //                     "closePositionSize": "1",
+        //                     "closeOpenPrice": "1.0651",
+        //                     "closePrice": "1.0652",
+        //                     "maxPositionSize": "1",
+        //                     "openTime": 1785761266645,
+        //                     "closeTime": 1785761266645,
+        //                     "startLeverage": 10,
+        //                     "endLeverage": 10,
+        //                     "working": false,
+        //                     "force": false,
+        //                     "forceMarkPrice": null,
+        //                     "totalFee": "0.0063",
+        //                     "totalFundFee": "0"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object items = this.safeList(result, "items", new List<object>() {});
+        object positions = this.parsePositions(items, symbols);
+        return this.filterBySinceLimit(positions, since, limit);
+    }
+
     public override object parsePosition(object position, object market = null)
     {
         //
@@ -5809,33 +5907,63 @@ public partial class xt : Exchange
         //         "calMarkPrice": "27050"
         //     }
         //
+        // position/list-history
+        //
+        //     {
+        //         "id": "654559911738263296",
+        //         "positionSide": "LONG",
+        //         "contractType": "PERPETUAL",
+        //         "symbol": "xrp_usdt",
+        //         "positionType": 2,
+        //         "closeProfit": "0.001",
+        //         "closePositionSize": "1",
+        //         "closeOpenPrice": "1.0651",
+        //         "closePrice": "1.0652",
+        //         "maxPositionSize": "1",
+        //         "openTime": 1785761266645,
+        //         "closeTime": 1785761266645,
+        //         "startLeverage": 10,
+        //         "endLeverage": 10,
+        //         "working": false,
+        //         "force": false,
+        //         "forceMarkPrice": null,
+        //         "totalFee": "0.0063",
+        //         "totalFundFee": "0"
+        //     }
+        //
         object marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
         object symbol = this.safeSymbol(marketId, market, null, "contract");
+        // "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
         object positionType = this.safeString(position, "positionType");
-        object marginMode = ((bool) isTrue((isEqual(positionType, "CROSSED")))) ? "cross" : "isolated";
+        object isCross = isTrue((isEqual(positionType, "CROSSED"))) || isTrue((isEqual(positionType, "1")));
+        object marginMode = ((bool) isTrue((isCross))) ? "cross" : "isolated";
         object collateral = this.safeNumber(position, "isolatedMargin");
-        object liquidationPriceString = this.omitZero(this.safeString(position, "breakPrice"));
+        // history entries carry the liquidation price in forceMarkPrice when force is true
+        object liquidationPriceString = this.omitZero(this.safeString2(position, "breakPrice", "forceMarkPrice"));
+        object timestamp = this.safeInteger(position, "closeTime");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
-            { "id", null },
+            { "id", this.safeString(position, "id") },
             { "symbol", symbol },
-            { "timestamp", null },
-            { "datetime", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
             { "hedged", null },
             { "side", this.safeStringLower(position, "positionSide") },
-            { "contracts", this.safeNumber(position, "positionSize") },
+            { "contracts", this.safeNumber2(position, "positionSize", "closePositionSize") },
             { "contractSize", getValue(market, "contractSize") },
-            { "entryPrice", this.safeNumber(position, "entryPrice") },
+            { "entryPrice", this.safeNumber2(position, "entryPrice", "closeOpenPrice") },
             { "markPrice", this.safeNumber2(position, "markPrice", "calMarkPrice") },
+            { "lastPrice", this.safeNumber(position, "closePrice") },
             { "notional", null },
-            { "leverage", this.safeInteger(position, "leverage") },
+            { "leverage", this.safeInteger2(position, "leverage", "endLeverage") },
             { "collateral", collateral },
             { "initialMargin", collateral },
             { "maintenanceMargin", null },
             { "initialMarginPercentage", null },
             { "maintenanceMarginPercentage", null },
             { "unrealizedPnl", null },
+            { "realizedPnl", this.safeNumber2(position, "realizedProfit", "closeProfit") },
             { "liquidationPrice", this.parseNumber(liquidationPriceString) },
             { "marginMode", marginMode },
             { "percentage", null },

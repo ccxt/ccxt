@@ -104,8 +104,8 @@ public partial class woofipro : Exchange
                 { "fetchPositions", true },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", true },
-                { "fetchTicker", false },
-                { "fetchTickers", false },
+                { "fetchTicker", true },
+                { "fetchTickers", true },
                 { "fetchTime", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", false },
@@ -1286,6 +1286,165 @@ public partial class woofipro : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object rows = this.safeList(data, "rows", new List<object>() {});
         return this.parseFundingRates(rows, symbols);
+    }
+
+    public override object parseTicker(object ticker, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "sum_unitary_funding": 26522.3,
+        //         "est_funding_rate": 0.0001,
+        //         "last_funding_rate": 0.00010041,
+        //         "next_funding_time": 1786032000000,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        //
+        object marketId = this.safeString(ticker, "symbol");
+        market = this.safeMarket(marketId, market);
+        object timestamp = this.safeInteger(ticker, "timestamp");
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", getValue(market, "symbol") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "high", this.safeString(ticker, "24h_high") },
+            { "low", this.safeString(ticker, "24h_low") },
+            { "bid", null },
+            { "bidVolume", null },
+            { "ask", null },
+            { "askVolume", null },
+            { "vwap", null },
+            { "open", this.safeString(ticker, "24h_open") },
+            { "close", this.safeString(ticker, "24h_close") },
+            { "last", this.safeString(ticker, "24h_close") },
+            { "previousClose", null },
+            { "change", null },
+            { "percentage", null },
+            { "average", null },
+            { "baseVolume", this.safeString(ticker, "24h_volume") },
+            { "quoteVolume", this.safeString(ticker, "24h_amount") },
+            { "indexPrice", this.safeString(ticker, "index_price") },
+            { "markPrice", this.safeString(ticker, "mark_price") },
+            { "info", ticker },
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters));
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "sum_unitary_funding": 26522.3,
+        //         "est_funding_rate": 0.0001,
+        //         "last_funding_rate": 0.00010041,
+        //         "next_funding_time": 1786032000000,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        ((IDictionary<string,object>)data)["timestamp"] = this.safeInteger(response, "timestamp");
+        return this.parseTicker(data, market);
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols);
+        object response = await this.v1PublicGetPublicFutures(parameters);
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "rows": [{
+        //             "symbol": "PERP_BTC_USDC",
+        //             "index_price": 64185.4,
+        //             "mark_price": 64171.0,
+        //             "sum_unitary_funding": 26522.3,
+        //             "est_funding_rate": 0.0001,
+        //             "last_funding_rate": 0.00010041,
+        //             "next_funding_time": 1786032000000,
+        //             "open_interest": 110.64612,
+        //             "24h_open": 64105.6,
+        //             "24h_close": 64180.0,
+        //             "24h_high": 64941.0,
+        //             "24h_low": 63837.6,
+        //             "24h_volume": 102.2817,
+        //             "24h_amount": 6595662.199482
+        //         }]
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object rows = this.safeList(data, "rows", new List<object>() {});
+        object timestamp = this.safeInteger(response, "timestamp");
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        {
+            object row = getValue(rows, i);
+            object marketId = this.safeString(row, "symbol", "");
+            if (isTrue(isTrue((isEqual(this.markets_by_id, null))) || !isTrue((inOp(this.markets_by_id, marketId)))))
+            {
+                continue;
+            }
+            object ticker = this.extend(new Dictionary<string, object>() {
+                { "timestamp", timestamp },
+            }, row);
+            ((IList<object>)result).Add(this.parseTicker(ticker));
+        }
+        return this.filterByArrayTickers(result, "symbol", symbols);
     }
 
     /**

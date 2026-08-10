@@ -113,6 +113,7 @@ class xt(Exchange, ImplicitAPI):
                 'fetchOrderTrades': False,
                 'fetchPosition': True,
                 'fetchPositions': True,
+                'fetchPositionsHistory': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchSettlementHistory': False,
                 'fetchStatus': False,
@@ -269,6 +270,7 @@ class xt(Exchange, ImplicitAPI):
                             'future/trade/v1/order/detail': {'cost': 1},
                             'future/trade/v1/order/list': {'cost': 1},
                             'future/trade/v1/order/list-history': {'cost': 1},
+                            'future/trade/v1/position/list-history': {'cost': 1},
                             'future/trade/v1/order/trade-list': {'cost': 1},
                             'future/user/v1/account/info': {'cost': 1},
                             'future/user/v1/balance/bills': {'cost': 1},
@@ -314,6 +316,7 @@ class xt(Exchange, ImplicitAPI):
                             'future/trade/v1/order/detail': {'cost': 1},
                             'future/trade/v1/order/list': {'cost': 1},
                             'future/trade/v1/order/list-history': {'cost': 1},
+                            'future/trade/v1/position/list-history': {'cost': 1},
                             'future/trade/v1/order/trade-list': {'cost': 1},
                             'future/user/v1/account/info': {'cost': 1},
                             'future/user/v1/balance/bills': {'cost': 1},
@@ -4795,6 +4798,79 @@ class xt(Exchange, ImplicitAPI):
             result.append(self.parse_position(merged, marketInner))
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
+    async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+        """
+        fetches historical closed positions
+
+        https://doc.xt.com/docs/futures/Entrust/GetPositionHistory
+
+        :param str[] [symbols]: unified market symbols, all closed positions are returned if not assigned
+        :param int [since]: timestamp in ms of the earliest position to fetch
+        :param int [limit]: the maximum amount of records to fetch, default=10
+        :param dict params: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest position to fetch
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        request = {}
+        market = None
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            if symbolsLength == 1:
+                market = self.market(symbols[0])
+                request['symbol'] = market['id']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        request, params = self.handle_until_option('endTime', request, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchPositionsHistory', market, params)
+        response = None
+        if subType == 'inverse':
+            response = await self.privateInverseGetFutureTradeV1PositionListHistory(self.extend(request, params))
+        else:
+            response = await self.privateLinearGetFutureTradeV1PositionListHistory(self.extend(request, params))
+        #
+        #     {
+        #         "returnCode": 0,
+        #         "msgInfo": "success",
+        #         "error": null,
+        #         "result": {
+        #             "hasPrev": False,
+        #             "hasNext": False,
+        #             "items": [
+        #                 {
+        #                     "id": "654559911738263296",
+        #                     "positionSide": "LONG",
+        #                     "contractType": "PERPETUAL",
+        #                     "symbol": "xrp_usdt",
+        #                     "positionType": 2,
+        #                     "closeProfit": "0.001",
+        #                     "closePositionSize": "1",
+        #                     "closeOpenPrice": "1.0651",
+        #                     "closePrice": "1.0652",
+        #                     "maxPositionSize": "1",
+        #                     "openTime": 1785761266645,
+        #                     "closeTime": 1785761266645,
+        #                     "startLeverage": 10,
+        #                     "endLeverage": 10,
+        #                     "working": False,
+        #                     "force": False,
+        #                     "forceMarkPrice": null,
+        #                     "totalFee": "0.0063",
+        #                     "totalFundFee": "0"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        items = self.safe_list(result, 'items', [])
+        positions = self.parse_positions(items, symbols)
+        return self.filter_by_since_limit(positions, since, limit)
+
     def parse_position(self, position: Any, market: Market = None):
         #
         # position/list
@@ -4826,33 +4902,63 @@ class xt(Exchange, ImplicitAPI):
         #         "calMarkPrice": "27050"
         #     }
         #
+        # position/list-history
+        #
+        #     {
+        #         "id": "654559911738263296",
+        #         "positionSide": "LONG",
+        #         "contractType": "PERPETUAL",
+        #         "symbol": "xrp_usdt",
+        #         "positionType": 2,
+        #         "closeProfit": "0.001",
+        #         "closePositionSize": "1",
+        #         "closeOpenPrice": "1.0651",
+        #         "closePrice": "1.0652",
+        #         "maxPositionSize": "1",
+        #         "openTime": 1785761266645,
+        #         "closeTime": 1785761266645,
+        #         "startLeverage": 10,
+        #         "endLeverage": 10,
+        #         "working": False,
+        #         "force": False,
+        #         "forceMarkPrice": null,
+        #         "totalFee": "0.0063",
+        #         "totalFundFee": "0"
+        #     }
+        #
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market, None, 'contract')
         symbol = self.safe_symbol(marketId, market, None, 'contract')
+        # "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
         positionType = self.safe_string(position, 'positionType')
-        marginMode = 'cross' if (positionType == 'CROSSED') else 'isolated'
+        isCross = (positionType == 'CROSSED') or (positionType == '1')
+        marginMode = 'cross' if (isCross) else 'isolated'
         collateral = self.safe_number(position, 'isolatedMargin')
-        liquidationPriceString = self.omit_zero(self.safe_string(position, 'breakPrice'))
+        # history entries carry the liquidation price in forceMarkPrice when force is True
+        liquidationPriceString = self.omit_zero(self.safe_string_2(position, 'breakPrice', 'forceMarkPrice'))
+        timestamp = self.safe_integer(position, 'closeTime')
         return self.safe_position({
             'info': position,
-            'id': None,
+            'id': self.safe_string(position, 'id'),
             'symbol': symbol,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'hedged': None,
             'side': self.safe_string_lower(position, 'positionSide'),
-            'contracts': self.safe_number(position, 'positionSize'),
+            'contracts': self.safe_number_2(position, 'positionSize', 'closePositionSize'),
             'contractSize': market['contractSize'],
-            'entryPrice': self.safe_number(position, 'entryPrice'),
+            'entryPrice': self.safe_number_2(position, 'entryPrice', 'closeOpenPrice'),
             'markPrice': self.safe_number_2(position, 'markPrice', 'calMarkPrice'),
+            'lastPrice': self.safe_number(position, 'closePrice'),
             'notional': None,
-            'leverage': self.safe_integer(position, 'leverage'),
+            'leverage': self.safe_integer_2(position, 'leverage', 'endLeverage'),
             'collateral': collateral,
             'initialMargin': collateral,
             'maintenanceMargin': None,
             'initialMarginPercentage': None,
             'maintenanceMarginPercentage': None,
             'unrealizedPnl': None,
+            'realizedPnl': self.safe_number_2(position, 'realizedProfit', 'closeProfit'),
             'liquidationPrice': self.parse_number(liquidationPriceString),
             'marginMode': marginMode,
             'percentage': None,

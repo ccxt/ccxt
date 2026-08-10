@@ -116,8 +116,8 @@ public class WoofiproCore extends WoofiproApi
                 put( "fetchPositions", true );
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchStatus", true );
-                put( "fetchTicker", false );
-                put( "fetchTickers", false );
+                put( "fetchTicker", true );
+                put( "fetchTickers", true );
                 put( "fetchTime", true );
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", false );
@@ -1349,6 +1349,178 @@ public class WoofiproCore extends WoofiproApi
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseFundingRates(rows, symbols);
+        });
+
+    }
+
+    public Object parseTicker(Object ticker, Object... optionalArgs)
+    {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "sum_unitary_funding": 26522.3,
+        //         "est_funding_rate": 0.0001,
+        //         "last_funding_rate": 0.00010041,
+        //         "next_funding_time": 1786032000000,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        //
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object marketId = this.safeString(ticker, "symbol");
+        market = this.safeMarket(marketId, market);
+        Object timestamp = this.safeInteger(ticker, "timestamp");
+        final Object finalMarket = market;
+        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "timestamp", timestamp );
+            put( "datetime", WoofiproCore.this.iso8601(timestamp) );
+            put( "high", WoofiproCore.this.safeString(ticker, "24h_high") );
+            put( "low", WoofiproCore.this.safeString(ticker, "24h_low") );
+            put( "bid", null );
+            put( "bidVolume", null );
+            put( "ask", null );
+            put( "askVolume", null );
+            put( "vwap", null );
+            put( "open", WoofiproCore.this.safeString(ticker, "24h_open") );
+            put( "close", WoofiproCore.this.safeString(ticker, "24h_close") );
+            put( "last", WoofiproCore.this.safeString(ticker, "24h_close") );
+            put( "previousClose", null );
+            put( "change", null );
+            put( "percentage", null );
+            put( "average", null );
+            put( "baseVolume", WoofiproCore.this.safeString(ticker, "24h_volume") );
+            put( "quoteVolume", WoofiproCore.this.safeString(ticker, "24h_amount") );
+            put( "indexPrice", WoofiproCore.this.safeString(ticker, "index_price") );
+            put( "markPrice", WoofiproCore.this.safeString(ticker, "mark_price") );
+            put( "info", ticker );
+        }}, market);
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object market = this.market(symbol);
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "symbol", Helpers.GetValue(market, "id") );
+            }};
+            Object response = (this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters))).join();
+            //
+            // {
+            //     "success": true,
+            //     "timestamp": 1786022130191,
+            //     "data": {
+            //         "symbol": "PERP_BTC_USDC",
+            //         "index_price": 64185.4,
+            //         "mark_price": 64171.0,
+            //         "sum_unitary_funding": 26522.3,
+            //         "est_funding_rate": 0.0001,
+            //         "last_funding_rate": 0.00010041,
+            //         "next_funding_time": 1786032000000,
+            //         "open_interest": 110.64612,
+            //         "24h_open": 64105.6,
+            //         "24h_close": 64180.0,
+            //         "24h_high": 64941.0,
+            //         "24h_low": 63837.6,
+            //         "24h_volume": 102.2817,
+            //         "24h_amount": 6595662.199482
+            //     }
+            // }
+            //
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
+            return this.parseTicker(data, market);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            symbols = this.marketSymbols(symbols);
+            Object response = (this.v1PublicGetPublicFutures(parameters)).join();
+            //
+            // {
+            //     "success": true,
+            //     "timestamp": 1786022130191,
+            //     "data": {
+            //         "rows": [{
+            //             "symbol": "PERP_BTC_USDC",
+            //             "index_price": 64185.4,
+            //             "mark_price": 64171.0,
+            //             "sum_unitary_funding": 26522.3,
+            //             "est_funding_rate": 0.0001,
+            //             "last_funding_rate": 0.00010041,
+            //             "next_funding_time": 1786032000000,
+            //             "open_interest": 110.64612,
+            //             "24h_open": 64105.6,
+            //             "24h_close": 64180.0,
+            //             "24h_high": 64941.0,
+            //             "24h_low": 63837.6,
+            //             "24h_volume": 102.2817,
+            //             "24h_amount": 6595662.199482
+            //         }]
+            //     }
+            // }
+            //
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object timestamp = this.safeInteger(response, "timestamp");
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
+            {
+                Object row = Helpers.GetValue(rows, i);
+                Object marketId = this.safeString(row, "symbol", "");
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.markets_by_id, null))) || !Helpers.isTrue((Helpers.inOp(this.markets_by_id, marketId)))))
+                {
+                    continue;
+                }
+                Object ticker = this.extend(new java.util.HashMap<String, Object>() {{
+                    put( "timestamp", timestamp );
+                }}, row);
+                ((java.util.List<Object>)result).add(this.parseTicker(ticker));
+            }
+            return this.filterByArrayTickers(result, "symbol", symbols);
         });
 
     }

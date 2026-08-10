@@ -11,6 +11,9 @@
 * [fetchMarkets](#fetchmarkets)
 * [fetchTickers](#fetchtickers)
 * [fetchBidsAsks](#fetchbidsasks)
+* [fetchLastPrices](#fetchlastprices)
+* [fetchMarkPrice](#fetchmarkprice)
+* [fetchMarkPrices](#fetchmarkprices)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchTrades](#fetchtrades)
@@ -214,6 +217,70 @@ fetches the bid and ask price and volume for multiple markets
 
 ```javascript
 weex.fetchBidsAsks (symbols, params?)
+```
+
+
+<a name="fetchLastPrices" id="fetchlastprices"></a>
+
+### fetchLastPrices{docsify-ignore}
+fetches the last price for multiple markets
+
+**Kind**: instance method of [<code>weex</code>](#weex)  
+**Returns**: <code>object</code> - a dictionary of lastprice structures
+
+**See**: https://www.weex.com/api-doc/spot/MarketDataAPI/GetTickerInfo  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the last prices for, all spot markets are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+weex.fetchLastPrices (symbols?, params?)
+```
+
+
+<a name="fetchMarkPrice" id="fetchmarkprice"></a>
+
+### fetchMarkPrice{docsify-ignore}
+fetches mark price for the market
+
+**Kind**: instance method of [<code>weex</code>](#weex)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://www.weex.com/api-doc/contract/Market_API/GetSymbolPrice  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the mark price for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.priceType | <code>string</code> | No | "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the ticker |
+
+
+```javascript
+weex.fetchMarkPrice (symbol, params?)
+```
+
+
+<a name="fetchMarkPrices" id="fetchmarkprices"></a>
+
+### fetchMarkPrices{docsify-ignore}
+fetches mark prices for multiple markets
+
+**Kind**: instance method of [<code>weex</code>](#weex)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the mark prices for, all contract markets are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+weex.fetchMarkPrices (symbols?, params?)
 ```
 
 

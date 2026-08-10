@@ -1393,6 +1393,7 @@ class whitebit(Exchange, ImplicitAPI):
         # Extract control parameters from params
         checkActive = self.safe_bool(params, 'checkActive', True)
         checkExecuted = self.safe_bool(params, 'checkExecuted', True)
+        params = self.omit(params, ['checkActive', 'checkExecuted'])
         request = {
             'orderId': id,
         }

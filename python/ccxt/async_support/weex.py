@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.weex import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, LastPrice, LastPrices, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -120,7 +120,7 @@ class weex(Exchange, ImplicitAPI):
                 'fetchIsolatedPositions': False,
                 'fetchL2OrderBook': False,
                 'fetchL3OrderBook': False,
-                'fetchLastPrices': False,
+                'fetchLastPrices': True,
                 'fetchLedger': True,
                 'fetchLedgerEntry': False,
                 'fetchLeverage': True,
@@ -135,7 +135,8 @@ class weex(Exchange, ImplicitAPI):
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
-                'fetchMarkPrices': False,
+                'fetchMarkPrice': True,
+                'fetchMarkPrices': True,
                 'fetchMyLiquidations': False,
                 'fetchMySettlementHistory': False,
                 'fetchMyTrades': True,
@@ -228,7 +229,7 @@ class weex(Exchange, ImplicitAPI):
                         'api/v3/exchangeInfo': {'cost': 100},  # done
                         'api/v3/ping': {'cost': 5},  # done
                         'api/v3/apiTradingSymbols': {'cost': 25},  # not unified
-                        'api/v3/market/ticker/price': {'cost': 20},  # not unified
+                        'api/v3/market/ticker/price': {'cost': 20},  # done
                         'api/v3/market/ticker/24hr': {'cost': 10},  # done
                         'api/v3/market/trades': {'cost': 125},  # done
                         'api/v3/market/klines': {'cost': 10},  # done
@@ -279,7 +280,7 @@ class weex(Exchange, ImplicitAPI):
                         'capi/v3/market/indexPriceKlines': {'cost': 5},  # done
                         'capi/v3/market/markPriceKlines': {'cost': 5},  # done
                         'capi/v3/market/historyKlines': {'cost': 25},  # done
-                        'capi/v3/market/symbolPrice': {'cost': 5},  # not unified
+                        'capi/v3/market/symbolPrice': {'cost': 5},  # done
                         'capi/v3/market/openInterest': {'cost': 10},  # done
                         'capi/v3/market/premiumIndex': {'cost': 5},  # done
                         'capi/v3/market/fundingRate': {'cost': 25},  # done
@@ -1253,6 +1254,27 @@ class weex(Exchange, ImplicitAPI):
         #         "indexPrice": "2082.75"
         #     }
         #
+        # fetchMarkPrice(markPrice or indexPrice is copied from the raw 'price' field by fetchMarkPrice before parsing, depending on the requested priceType)
+        #     {
+        #         "symbol": "ETHUSDT",
+        #         "price": "1929.18",
+        #         "markPrice": "1929.18",
+        #         "time": 1786347445044
+        #     }
+        #
+        # fetchMarkPrices
+        #     {
+        #         "symbol": "ETHUSDT",
+        #         "markPrice": "1929.88",
+        #         "indexPrice": "1930.15",
+        #         "forecastFundingRate": "0.00003489",
+        #         "lastFundingRate": "0.00004879",
+        #         "interestRate": "0.001",
+        #         "nextFundingTime": 1786348800000,
+        #         "time": 1786347284100,
+        #         "collectCycle": 480
+        #     }
+        #
         marketId = self.safe_string(ticker, 'symbol')
         markPrice = self.safe_string(ticker, 'markPrice')
         marketType = 'spot'
@@ -1286,6 +1308,122 @@ class weex(Exchange, ImplicitAPI):
             'indexPrice': self.safe_string(ticker, 'indexPrice'),
             'info': ticker,
         }, market)
+
+    async def fetch_last_prices(self, symbols: Strings = None, params={}) -> LastPrices:
+        """
+        fetches the last price for multiple markets
+
+        https://www.weex.com/api-doc/spot/MarketDataAPI/GetTickerInfo
+
+        :param str[] [symbols]: unified symbols of the markets to fetch the last prices for, all spot markets are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of lastprice structures
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True)
+        market = self.get_market_from_symbols(symbols)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchLastPrices', market, params)
+        if type != 'spot':
+            raise NotSupported(self.id + ' fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets')
+        response = await self.publicGetApiV3MarketTickerPrice(params)
+        #
+        #     [
+        #         {
+        #             "symbol": "ETHUSDT",
+        #             "price": "1929.67"
+        #         }
+        #     ]
+        #
+        return self.parse_last_prices(response, symbols)
+
+    def parse_last_price(self, entry: Any, market: Market = None) -> LastPrice:
+        #
+        #     {
+        #         "symbol": "ETHUSDT",
+        #         "price": "1929.67"
+        #     }
+        #
+        marketId = self.safe_string(entry, 'symbol')
+        market = self.safe_market(marketId, market, None, 'spot')
+        return {
+            'symbol': market['symbol'],
+            'timestamp': None,
+            'datetime': None,
+            'price': self.safe_number_omit_zero(entry, 'price'),
+            'side': None,
+            'info': entry,
+        }
+
+    async def fetch_mark_price(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches mark price for the market
+
+        https://www.weex.com/api-doc/contract/Market_API/GetSymbolPrice
+
+        :param str symbol: unified symbol of the market to fetch the mark price for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.priceType]: "MARK"(default) or "INDEX", with "INDEX" the price is returned indexPrice of the ticker
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise NotSupported(self.id + ' fetchMarkPrice() supports contract markets only')
+        priceType = None
+        priceType, params = self.handle_option_and_params(params, 'fetchMarkPrice', 'priceType', 'MARK')  # the endpoint defaults to INDEX
+        request = {
+            'symbol': market['id'],
+            'priceType': priceType,
+        }
+        response = await self.contractGetCapiV3MarketSymbolPrice(self.extend(request, params))
+        #
+        #     {
+        #         "symbol": "ETHUSDT",
+        #         "price": "1929.18",
+        #         "time": 1786347445044
+        #     }
+        #
+        # normalize here instead of falling back to 'price' in parseTicker, so a bare 'price' field in other payloads can never silently become the mark price
+        ticker = self.extend({}, response)
+        if priceType == 'INDEX':
+            ticker['indexPrice'] = self.safe_string(ticker, 'price')
+        else:
+            ticker['markPrice'] = self.safe_string(ticker, 'price')
+        return self.parse_ticker(ticker, market)
+
+    async def fetch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        fetches mark prices for multiple markets
+
+        https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate
+
+        :param str[] [symbols]: unified symbols of the markets to fetch the mark prices for, all contract markets are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbols = self.market_symbols(symbols, 'swap')  # reject non-contract symbols instead of silently filtering the result to an empty dict
+        response = await self.contractGetCapiV3MarketPremiumIndex(params)
+        #
+        #     [
+        #         {
+        #             "symbol": "ETHUSDT",
+        #             "markPrice": "1929.88",
+        #             "indexPrice": "1930.15",
+        #             "forecastFundingRate": "0.00003489",
+        #             "lastFundingRate": "0.00004879",
+        #             "interestRate": "0.001",
+        #             "nextFundingTime": 1786348800000,
+        #             "time": 1786347284100,
+        #             "collectCycle": 480
+        #         }
+        #     ]
+        #
+        return self.parse_tickers(response, symbols)
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """

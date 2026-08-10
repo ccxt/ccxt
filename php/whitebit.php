@@ -1427,6 +1427,7 @@ class whitebit extends Exchange {
         // Extract control parameters from $params
         $checkActive = $this->safe_bool($params, 'checkActive', true);
         $checkExecuted = $this->safe_bool($params, 'checkExecuted', true);
+        $params = $this->omit($params, array( 'checkActive', 'checkExecuted' ));
         $request = array(
             'orderId' => $id,
         );

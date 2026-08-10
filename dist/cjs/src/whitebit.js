@@ -1423,6 +1423,7 @@ class whitebit extends whitebit$1["default"] {
         // Extract control parameters from params
         const checkActive = this.safeBool(params, 'checkActive', true);
         const checkExecuted = this.safeBool(params, 'checkExecuted', true);
+        params = this.omit(params, ['checkActive', 'checkExecuted']);
         const request = {
             'orderId': id,
         };

@@ -3501,6 +3501,7 @@ fetches the last price for multiple markets
 * [hashkey](/exchanges/hashkey.md#fetchlastprices)
 * [htx](/exchanges/htx.md#fetchlastprices)
 * [toobit](/exchanges/toobit.md#fetchlastprices)
+* [weex](/exchanges/weex.md#fetchlastprices)
 
 ---
 
@@ -3860,6 +3861,7 @@ fetches mark price for the market
 * [blofin](/exchanges/blofin.md#fetchmarkprice)
 * [kucoin](/exchanges/kucoin.md#fetchmarkprice)
 * [okx](/exchanges/okx.md#fetchmarkprice)
+* [weex](/exchanges/weex.md#fetchmarkprice)
 
 ---
 
@@ -3883,6 +3885,7 @@ fetches mark prices for multiple markets
 * [bingx](/exchanges/bingx.md#fetchmarkprices)
 * [kucoin](/exchanges/kucoin.md#fetchmarkprices)
 * [okx](/exchanges/okx.md#fetchmarkprices)
+* [weex](/exchanges/weex.md#fetchmarkprices)
 
 ---
 
@@ -5624,6 +5627,7 @@ fetches historical positions
 * [mexc](/exchanges/mexc.md#fetchpositionshistory)
 * [mudrex](/exchanges/mudrex.md#fetchpositionshistory)
 * [okx](/exchanges/okx.md#fetchpositionshistory)
+* [xt](/exchanges/xt.md#fetchpositionshistory)
 
 ---
 
@@ -5928,6 +5932,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [tokocrypto](/exchanges/tokocrypto.md#fetchticker)
 * [upbit](/exchanges/upbit.md#fetchticker)
 * [whitebit](/exchanges/whitebit.md#fetchticker)
+* [woofipro](/exchanges/woofipro.md#fetchticker)
 * [xt](/exchanges/xt.md#fetchticker)
 * [zaif](/exchanges/zaif.md#fetchticker)
 * [zebpay](/exchanges/zebpay.md#fetchticker)
@@ -6046,6 +6051,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [upbit](/exchanges/upbit.md#fetchtickers)
 * [weex](/exchanges/weex.md#fetchtickers)
 * [whitebit](/exchanges/whitebit.md#fetchtickers)
+* [woofipro](/exchanges/woofipro.md#fetchtickers)
 * [xt](/exchanges/xt.md#fetchtickers)
 * [zebpay](/exchanges/zebpay.md#fetchtickers)
 
