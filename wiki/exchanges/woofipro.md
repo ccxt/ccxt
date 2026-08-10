@@ -13,6 +13,8 @@
 * [fetchFundingInterval](#fetchfundinginterval)
 * [fetchFundingRate](#fetchfundingrate)
 * [fetchFundingRates](#fetchfundingrates)
+* [fetchTicker](#fetchticker)
+* [fetchTickers](#fetchtickers)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchTradingFees](#fetchtradingfees)
@@ -218,6 +220,48 @@ fetch the current funding rate for multiple markets
 
 ```javascript
 woofipro.fetchFundingRates (symbols, params?)
+```
+
+
+<a name="fetchTicker" id="fetchticker"></a>
+
+### fetchTicker{docsify-ignore}
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>woofipro</code>](#woofipro)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woofipro.fetchTicker (symbol, params?)
+```
+
+
+<a name="fetchTickers" id="fetchtickers"></a>
+
+### fetchTickers{docsify-ignore}
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+**Kind**: instance method of [<code>woofipro</code>](#woofipro)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woofipro.fetchTickers (symbols?, params?)
 ```
 
 
