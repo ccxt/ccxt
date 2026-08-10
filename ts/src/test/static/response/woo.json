@@ -1394,6 +1394,112 @@
                         "stopPrice": 65
                     }
                 ]
+            },
+            {
+                "description": "fetchOpenOrders post only order",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "rows": [
+                            {
+                                "orderId": 82884549483,
+                                "clientOrderId": 0,
+                                "symbol": "SPOT_BTC_USDT",
+                                "orderTag": "default",
+                                "side": "BUY",
+                                "quantity": 4.3e-05,
+                                "amount": null,
+                                "type": "POST_ONLY",
+                                "status": "NEW",
+                                "price": 45719.83,
+                                "executed": 0,
+                                "visible": 4.3e-05,
+                                "averageExecutedPrice": 0,
+                                "totalFee": 0,
+                                "feeAsset": "BTC",
+                                "totalRebate": 0,
+                                "rebateAsset": "USDT",
+                                "reduceOnly": false,
+                                "createdTime": 1786346559914,
+                                "realizedPnl": null,
+                                "positionSide": "BOTH",
+                                "bidAskLevel": null
+                            }
+                        ],
+                        "meta": {
+                            "total": 1,
+                            "recordsPerPage": 100,
+                            "currentPage": 1
+                        }
+                    },
+                    "timestamp": 1786346560475
+                },
+                "parsedResponse": [
+                    {
+                        "id": "82884549483",
+                        "clientOrderId": null,
+                        "timestamp": 1786346559914,
+                        "datetime": "2026-08-10T07:22:39.914Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "status": "open",
+                        "symbol": "BTC/USDT",
+                        "type": "post_only",
+                        "timeInForce": "PO",
+                        "postOnly": true,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 45719.83,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "average": null,
+                        "amount": 4.3e-05,
+                        "filled": 0,
+                        "remaining": 4.3e-05,
+                        "cost": 0,
+                        "trades": [],
+                        "fee": {
+                            "cost": 0,
+                            "currency": "BTC"
+                        },
+                        "info": {
+                            "orderId": 82884549483,
+                            "clientOrderId": 0,
+                            "symbol": "SPOT_BTC_USDT",
+                            "orderTag": "default",
+                            "side": "BUY",
+                            "quantity": 4.3e-05,
+                            "amount": null,
+                            "type": "POST_ONLY",
+                            "status": "NEW",
+                            "price": 45719.83,
+                            "executed": 0,
+                            "visible": 4.3e-05,
+                            "averageExecutedPrice": 0,
+                            "totalFee": 0,
+                            "feeAsset": "BTC",
+                            "totalRebate": 0,
+                            "rebateAsset": "USDT",
+                            "reduceOnly": false,
+                            "createdTime": 1786346559914,
+                            "realizedPnl": null,
+                            "positionSide": "BOTH",
+                            "bidAskLevel": null
+                        },
+                        "fees": [
+                            {
+                                "cost": 0,
+                                "currency": "BTC"
+                            }
+                        ],
+                        "stopPrice": null
+                    }
+                ]
             }
         ],
         "fetchOrder": [
