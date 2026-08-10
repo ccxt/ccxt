@@ -108,6 +108,7 @@ class Client(object):
         # error callback so that only genuine dial failures grow the dial
         # backoff, mid-session errors and the ws warn noise floor must not
         self.dial_failed = False
+        self.last_message_at = None
 
     def future(self, message_hash):
         # a value that arrived while no future existed satisfies this
@@ -315,6 +316,9 @@ class Client(object):
 
     def handle_message(self, message):
         # self.log(iso8601(milliseconds()), message)
+        # timestamp of the last inbound frame, lets timeout forensics tell a
+        # dead pipe apart from frames arriving that never resolve a future
+        self.last_message_at = milliseconds()
         if message.type == WSMsgType.TEXT:
             self.handle_text_or_binary_message(message.data)
         elif message.type == WSMsgType.BINARY:
