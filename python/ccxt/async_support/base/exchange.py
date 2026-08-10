@@ -588,11 +588,20 @@ class BaseExchange(SyncExchange):
             del self.ws_dial_backoff[client.url]
 
     def on_error(self, client, error):
-        # failed dials feed a per-url exponential backoff so that fresh
-        # clients against a dead endpoint do not hammer it at full rate,
-        # first dials used to bypass the reconnect backoff entirely because
-        # every watch call passed backoff_delay 0. Retry-After from the
-        # failed handshake response, when present, sets the floor
+        # only genuine dial failures feed the per-url exponential backoff so
+        # that fresh clients against a dead endpoint do not hammer it at
+        # full rate, first dials used to bypass the reconnect backoff
+        # entirely because every watch call passed backoff_delay 0.
+        # Mid-session errors and the ws warn noise floor must not grow the
+        # backoff, otherwise a noisy but working exchange accumulates
+        # attempts and its next reconnect dial sleeps toward the cap,
+        # producing test timeouts instead of noise reduction.
+        # Retry-After from the failed handshake response sets the floor
+        if not getattr(client, 'dial_failed', False):
+            if client.url in self.clients and self.clients[client.url].error:
+                del self.clients[client.url]
+            return
+        client.dial_failed = False
         self.ws_dial_backoff = getattr(self, 'ws_dial_backoff', None) or {}
         state = self.ws_dial_backoff.get(client.url) or {'attempts': 0}
         attempts = state['attempts'] + 1

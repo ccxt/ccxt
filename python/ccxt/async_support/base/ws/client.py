@@ -104,6 +104,10 @@ class Client(object):
         # Retry-After from the last failed handshake response, seconds,
         # consumed by the exchange-level dial backoff
         self.last_retry_after = None
+        # set by open() when a handshake fails, consumed by the exchange
+        # error callback so that only genuine dial failures grow the dial
+        # backoff, mid-session errors and the ws warn noise floor must not
+        self.dial_failed = False
 
     def future(self, message_hash):
         # a value that arrived while no future existed satisfies this
@@ -225,12 +229,14 @@ class Client(object):
             self.asyncio_loop.call_soon(self.receive_loop)
         except TimeoutError:
             # connection timeout
+            self.dial_failed = True
             error = RequestTimeout('Connection timeout')
             if self.verbose:
                 self.log(iso8601(milliseconds()), 'RequestTimeout', error)
             self.on_error(error)
         except Exception as e:
             # connection failed or rejected (ConnectionRefusedError, ClientConnectorError)
+            self.dial_failed = True
             headers = getattr(e, 'headers', None)
             if headers is not None:
                 retry_after = headers.get('Retry-After')
