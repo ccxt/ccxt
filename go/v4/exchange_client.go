@@ -50,8 +50,15 @@ type ClientInterface interface {
 // Each Subscribe call returns a receive-only channel that the caller reads updates from.
 type Client struct {
 	Futures   map[string]any
-	FuturesMu sync.RWMutex // protects Futures map
-	Url       string
+	FuturesMu sync.RWMutex // protects Futures map, PendingResults and Rejections
+	// PendingResults holds the latest resolved value per messageHash that
+	// arrived while no consumer future existed, so an update landing between
+	// a resolve and the consumer's next future is delivered instead of
+	// silently dropped, latest value wins matching watch coalescing
+	// semantics, see https://github.com/ccxt/ccxt/issues/28089 and
+	// https://github.com/ccxt/ccxt/issues/23251
+	PendingResults map[string]any
+	Url            string
 
 	Connection   *websocket.Conn
 	ConnectionMu sync.Mutex // protects conn writes
@@ -101,6 +108,14 @@ func (this *Client) Resolve(data any, subHash any) any {
 		// Print("Inside resolve, existed future for hash: " + hash)
 		fut.(*Future).Resolve(data)
 		delete(this.Futures, hash)
+	} else {
+		// no consumer future right now, keep the latest value so the next
+		// NewFuture call is resolved with it instead of waiting for data
+		// that already arrived
+		if this.PendingResults == nil {
+			this.PendingResults = map[string]any{}
+		}
+		this.PendingResults[hash] = data
 	}
 	this.FuturesMu.Unlock()
 	return data
@@ -119,14 +134,30 @@ func (this *Client) ReusableFuture(messageHash any) *Future {
 func (this *Client) NewFuture(messageHash any) *Future {
 	hash, _ := messageHash.(string)
 	this.FuturesMu.Lock()
+	// a value that arrived while no future existed satisfies this consumer
+	// immediately, the spent future intentionally stays out of the map so
+	// the next consumer waits for fresh data
+	if pending, ok := this.PendingResults[hash]; ok {
+		delete(this.PendingResults, hash)
+		this.FuturesMu.Unlock()
+		future := NewFuture()
+		future.Resolve(pending)
+		return future
+	}
 	if _, ok := this.Futures[hash]; !ok {
 		this.Futures[hash] = NewFuture()
 	}
 	future := this.Futures[hash]
-	this.FuturesMu.Unlock()
+	// Rejections shares FuturesMu, the unlocked read and delete here was a
+	// concurrent map access race with Reject
+	var rejection any
 	if err, ok := this.Rejections[hash]; ok {
-		future.(*Future).Reject(err.(error))
+		rejection = err
 		delete(this.Rejections, hash)
+	}
+	this.FuturesMu.Unlock()
+	if rejection != nil {
+		future.(*Future).Reject(rejection.(error))
 	}
 	return future.(*Future)
 }
@@ -139,6 +170,8 @@ func (this *Client) Reject(err any, messageHash ...any) {
 			this.Futures[hash].(*Future).Reject(err.(error))
 			delete(this.Futures, hash)
 		}
+		// stale pre-error values must not satisfy post-error consumers
+		this.PendingResults = nil
 		this.FuturesMu.Unlock()
 		return
 	}
@@ -147,6 +180,7 @@ func (this *Client) Reject(err any, messageHash ...any) {
 		fut.(*Future).Reject(err.(error))
 		delete(this.Futures, hash.(string))
 	}
+	delete(this.PendingResults, hash.(string))
 	this.FuturesMu.Unlock()
 }
 
@@ -215,6 +249,7 @@ func NewClient(url string, onMessageCallback func(client any, err any), onErrorC
 	c := &Client{
 		Url:                 url,
 		Futures:             finalConfig["Futures"].(map[string]any),
+		PendingResults:      map[string]any{},
 		Subscriptions:       finalConfig["Subscriptions"].(*sync.Map), // map[string]chan any
 		Rejections:          finalConfig["Rejections"].(map[string]any),
 		Verbose:             finalConfig["Verbose"].(bool),
