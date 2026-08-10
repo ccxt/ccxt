@@ -788,10 +788,7 @@ export default class bithumb extends bithumbRest {
         await this.authenticate ();
         const url = this.urls['api']['ws']['privateGen2'];
         const messageHash = 'myAsset';
-        const request = [
-            { 'ticket': 'ccxt' },
-            { 'type': messageHash },
-        ];
+        const request = this.buildGen2SubscriptionRequest (messageHash, { 'type': messageHash });
         const balance = await this.watch (url, messageHash, request, messageHash);
         return balance;
     }
@@ -834,6 +831,34 @@ export default class bithumb extends bithumbRest {
         this.balance['datetime'] = this.iso8601 (timestamp);
         this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, messageHash);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name bithumb#buildGen2SubscriptionRequest
+     * @description builds the SUBSCRIBE frame for the generation 2 private socket - the venue replaces
+     * the socket's whole subscription list with every SUBSCRIBE frame, so the frame always carries the
+     * union of everything subscribed so far, otherwise a second stream (e.g. watchOrders after
+     * watchBalance) would silently cancel the first one
+     * @param {string} subscriptionType the venue subscription type ('myAsset' / 'myOrder')
+     * @param {object} subscription the subscription entry for that type
+     * @returns {object[]} the SUBSCRIBE frame to send
+     */
+    buildGen2SubscriptionRequest (subscriptionType: string, subscription: Dict): any[] {
+        const wsOptions = this.safeDict (this.options, 'ws', {});
+        const subscriptions = this.safeDict (wsOptions, 'gen2Subscriptions', {});
+        subscriptions[subscriptionType] = subscription;
+        wsOptions['gen2Subscriptions'] = subscriptions;
+        this.options['ws'] = wsOptions;
+        const request: any[] = [
+            { 'ticket': 'ccxt' },
+        ];
+        const keys = Object.keys (subscriptions);
+        for (let i = 0; i < keys.length; i++) {
+            request.push (subscriptions[keys[i]]);
+        }
+        return request;
     }
 
     async authenticate (params = {}) {
@@ -886,10 +911,7 @@ export default class bithumb extends bithumbRest {
         const url = this.urls['api']['ws']['privateGen2'];
         let messageHash = 'myOrder';
         const codes = this.safeList (params, 'codes', []);
-        const request = [
-            { 'ticket': 'ccxt' },
-            { 'type': messageHash, 'codes': codes },
-        ];
+        const request = this.buildGen2SubscriptionRequest (messageHash, { 'type': messageHash, 'codes': codes });
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbol = market['symbol'];
@@ -971,7 +993,10 @@ export default class bithumb extends bithumbRest {
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.safeInteger (order, 'order_timestamp');
         const sideId = this.safeString (order, 'ask_bid');
-        const side = (sideId === 'BID') ? ('buy') : ('sell');
+        let side = this.safeStringLower (order, 'side');
+        if (sideId !== undefined) {
+            side = (sideId === 'BID') ? ('buy') : ('sell');
+        }
         const typeId = this.safeString (order, 'order_type');
         let type: Str = undefined;
         if (typeId === 'limit') {
@@ -992,8 +1017,8 @@ export default class bithumb extends bithumbRest {
         } else if (stateId === 'cancel') {
             status = 'canceled';
         }
-        const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'volume');
+        const price = this.safeString2 (order, 'price', 'order_price');
+        const amount = this.safeString2 (order, 'volume', 'order_quantity');
         const remaining = this.safeString (order, 'remaining_volume');
         const filled = this.safeString (order, 'executed_volume');
         const cost = this.safeString (order, 'executed_funds');
@@ -1009,7 +1034,7 @@ export default class bithumb extends bithumbRest {
         }
         return this.safeOrder ({
             'info': order,
-            'id': this.safeString (order, 'uuid'),
+            'id': this.safeString2 (order, 'uuid', 'order_id'),
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
