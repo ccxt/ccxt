@@ -167,7 +167,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         Object trades = data;
         Object parts = Helpers.split(((String)topic), ".");
         Object marketId = this.safeString(parts, 2);
-        Object market = this.safeMarket(marketId, null, null);
+        Object market = this.safeMarket(marketId, null);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -205,7 +205,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("i", "id", "v")));
         Object marketId = this.safeString2(trade, "s", "symbol");
-        market = this.safeMarket(marketId, market, null);
+        market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("t", "T", "createdAt")));
         Object side = this.safeStringLower2(trade, "S", "side");
@@ -402,7 +402,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         Object isSnapshot = (Helpers.isEqual(type, "snapshot"));
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "s");
-        Object market = this.safeMarket(marketId, null, null);
+        Object market = this.safeMarket(marketId, null);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeIntegerProduct(message, "ts", 0.001);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
@@ -554,7 +554,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object topicParts = Helpers.split(topic, ".");
             Object topicLength = Helpers.getArrayLength(topicParts);
             Object marketId = this.safeString(topicParts, Helpers.subtract(topicLength, 1));
-            Object market = this.safeMarket(marketId, null, null);
+            Object market = this.safeMarket(marketId, null);
             symbol = Helpers.GetValue(market, "symbol");
             Object ticker = this.safeDict(this.tickers, symbol, new java.util.HashMap<String, Object>() {{}});
             Object rawTicker = this.safeDict(ticker, "info", new java.util.HashMap<String, Object>() {{}});

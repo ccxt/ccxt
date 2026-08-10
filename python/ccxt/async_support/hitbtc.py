@@ -48,7 +48,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'closePosition': False,
+                'closePosition': True,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'createPostOnlyOrder': True,

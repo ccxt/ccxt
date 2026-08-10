@@ -3330,7 +3330,7 @@ public class PacificaCore extends PacificaApi
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
-                ((java.util.List<Object>)result).add(this.parsePosition(Helpers.GetValue(data, i), null));
+                ((java.util.List<Object>)result).add(this.parsePosition(Helpers.GetValue(data, i)));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
         });
@@ -4226,7 +4226,7 @@ public class PacificaCore extends PacificaApi
     public Object handleOriginAndSingleAddress(Object methodName, Object parameters)
     {
         Object address = null;
-        var addressparametersVariable = this.handleParamString2(parameters, "account", "address", null);
+        var addressparametersVariable = this.handleParamString2(parameters, "account", "address");
         address = ((java.util.List<Object>) addressparametersVariable).get(0);
         parameters = ((java.util.List<Object>) addressparametersVariable).get(1); // this is for get endpoints that accept account or address
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))

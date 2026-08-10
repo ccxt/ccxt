@@ -76,6 +76,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
+                'fetchCanceledAndClosedOrders': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
@@ -114,7 +115,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': True,
-                'fetchPositionHistory': False,
+                'fetchPositionHistory': True,
                 'fetchPositionMode': True,
                 'fetchPositions': True,
                 'fetchPositionsHistory': True,
@@ -135,6 +136,7 @@ class bingx(Exchange, ImplicitAPI):
                 'setMarginMode': True,
                 'setPositionMode': True,
                 'transfer': True,
+                'withdraw': True,
             },
             'hostname': 'bingx.com',
             'urls': {
@@ -4764,9 +4766,9 @@ class bingx(Exchange, ImplicitAPI):
         subType = None
         standard = None
         response: dict
-        type, params = self.handle_market_type_and_params('fetchClosedOrders', market, params)
-        subType, params = self.handle_sub_type_and_params('fetchClosedOrders', market, params)
-        standard, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'standard', False)
+        type, params = self.handle_market_type_and_params('fetchCanceledAndClosedOrders', market, params)
+        subType, params = self.handle_sub_type_and_params('fetchCanceledAndClosedOrders', market, params)
+        standard, params = self.handle_option_and_params(params, 'fetchCanceledAndClosedOrders', 'standard', False)
         if standard:
             response = self.contractV1PrivateGetAllOrders(self.extend(request, params))
         elif type == 'spot':

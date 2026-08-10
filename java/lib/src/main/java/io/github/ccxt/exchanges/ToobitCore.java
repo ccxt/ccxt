@@ -2628,7 +2628,7 @@ public class ToobitCore extends ToobitApi
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
+            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2945,7 +2945,7 @@ public class ToobitCore extends ToobitApi
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", null, parameters);
+            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchLedger", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;

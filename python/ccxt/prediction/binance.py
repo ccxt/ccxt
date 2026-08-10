@@ -1736,10 +1736,16 @@ class binance(PredictionExchange, ImplicitAPI):
         outcomeSymbol = self.safe_string(outcomeObj, 'outcome', outcome)
         failedOrders = self.safe_list(response, 'failed', [])
         failedOrdersLength = len(failedOrders)
-        for i in range(0, failedOrdersLength):
-            failedOrder = failedOrders[i]
-            error = self.safe_string(failedOrder, 'reason')
-            raise OrderNotFound(self.id + ' cancelOrders() failed for ' + self.safe_string(failedOrder, 'orderId') + ': ' + error)
+        if failedOrdersLength > 0:
+            failedDetails = ''
+            for i in range(0, failedOrdersLength):
+                failedOrder = failedOrders[i]
+                failedOrderId = self.safe_string(failedOrder, 'orderId')
+                failedReason = self.safe_string(failedOrder, 'reason')
+                if i > 0:
+                    failedDetails = failedDetails + ', '
+                failedDetails = failedDetails + failedOrderId + ': ' + failedReason
+            raise OrderNotFound(self.id + ' cancelOrders() failed for ' + failedDetails)
         orders = []
         canceledOrdersLength = len(canceledOrders)
         for i in range(0, canceledOrdersLength):

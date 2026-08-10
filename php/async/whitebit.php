@@ -44,7 +44,7 @@ class whitebit extends Exchange {
                 'createConvertTrade' => true,
                 'createDepositAddress' => true,
                 'createMarketBuyOrderWithCost' => true,
-                'createMarketOrderWithCost' => false,
+                'createMarketOrderWithCost' => true,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
@@ -55,6 +55,7 @@ class whitebit extends Exchange {
                 'editOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchClosedOrders' => true,
@@ -509,7 +510,6 @@ class whitebit extends Exchange {
         $margin = $isCollateral && !$swap;
         $contract = false;
         $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'stockPrec')));
-        $contractSize = $amountPrecision;
         $linear = null;
         $inverse = null;
         if ($swap) {
@@ -549,7 +549,7 @@ class whitebit extends Exchange {
             'inverse' => $inverse,
             'taker' => $this->parse_number($taker),
             'maker' => $this->parse_number($maker),
-            'contractSize' => $isSpot ? null : $contractSize,
+            'contractSize' => $isSpot ? null : $this->parse_number('1'), // perpetual amounts are denominated in $base currency units
             'expiry' => null,
             'expiryDatetime' => null,
             'strike' => null,
@@ -1476,6 +1476,7 @@ class whitebit extends Exchange {
         // Extract control parameters from $params
         $checkActive = $this->safe_bool($params, 'checkActive', true);
         $checkExecuted = $this->safe_bool($params, 'checkExecuted', true);
+        $params = $this->omit($params, array( 'checkActive', 'checkExecuted' ));
         $request = array(
             'orderId' => $id,
         );
@@ -2421,11 +2422,7 @@ class whitebit extends Exchange {
         $isBiggerThanZero = ($timeout > 0);
         $request = array(
             'market' => $market['id'],
-            // 'timeout' => ($timeout > 0) ? $this->number_to_string($timeout / 1000) : null,
         );
-        if ($timeout === null) {
-            throw new ExchangeError($this->id . ' cancelAllOrdersAfter() missing timeout');
-        }
         if ($isBiggerThanZero) {
             $request['timeout'] = $this->number_to_string($timeout / 1000);
         } else {

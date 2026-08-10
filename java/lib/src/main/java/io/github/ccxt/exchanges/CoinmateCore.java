@@ -100,6 +100,7 @@ public class CoinmateCore extends CoinmateApi
                 put( "fetchSettlementHistory", false );
                 put( "fetchTicker", true );
                 put( "fetchTickers", true );
+                put( "fetchTime", true );
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", true );
                 put( "fetchTradingFees", false );

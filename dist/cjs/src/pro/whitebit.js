@@ -727,6 +727,8 @@ class whitebit extends whitebit$1["default"] {
      * @see https://docs.whitebit.com/private/websocket/#balance-margin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
+     * @param {bool} [params.fetchBalanceSnapshot] whether to fetch the initial balance snapshot over REST, default is true
+     * @param {bool} [params.awaitBalanceSnapshot] whether to wait for the balance snapshot before providing updates, default is true
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
@@ -745,10 +747,46 @@ class whitebit extends whitebit$1["default"] {
             method = 'balanceMargin_subscribe';
             messageHash += 'margin';
         }
-        const currencies = Object.keys(this.currencies);
-        return await this.watchPrivate(messageHash, method, currencies, params);
+        const url = this.urls['api']['ws'];
+        const client = this.client(url);
+        this.setBalanceCache(client, type, messageHash);
+        let fetchBalanceSnapshot = undefined;
+        let awaitBalanceSnapshot = undefined;
+        [fetchBalanceSnapshot, params] = this.handleOptionAndParams(params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        [awaitBalanceSnapshot, params] = this.handleOptionAndParams(params, 'watchBalance', 'awaitBalanceSnapshot', true);
+        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+            await client.future(type + ':fetchBalanceSnapshot');
+        }
+        // an empty params array subscribes to updates for all assets,
+        // listing all tickers explicitly is rejected with "invalid argument"
+        return await this.watchPrivate(messageHash, method, [], params);
+    }
+    setBalanceCache(client, type, subscriptionHash) {
+        if (subscriptionHash in client.subscriptions) {
+            return;
+        }
+        const fetchBalanceSnapshot = this.handleOption('watchBalance', 'fetchBalanceSnapshot', true);
+        if (fetchBalanceSnapshot) {
+            const messageHash = type + ':fetchBalanceSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future(messageHash);
+                this.spawn(this.loadBalanceSnapshot, client, messageHash, type, subscriptionHash);
+            }
+        }
+    }
+    async loadBalanceSnapshot(client, messageHash, type, subscriptionHash) {
+        const response = await this.fetchBalance({ 'type': type });
+        this.balance = this.extend(response, this.balance);
+        // don't remove the future from the .futures cache
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve();
+            client.resolve(this.balance, subscriptionHash);
+        }
     }
     handleBalance(client, message) {
+        //
+        // spot
         //
         //   {
         //       "method":"balanceSpot_update",
@@ -757,7 +795,27 @@ class whitebit extends whitebit$1["default"] {
         //             "LTC":{
         //                "available":"0.16587",
         //                "freeze":"0"
+        //             },
+        //             "BTC":{
+        //                "available":"0.005",
+        //                "freeze":"0.001"
         //             }
+        //          }
+        //       ],
+        //       "id":null
+        //   }
+        //
+        // margin
+        //
+        //   {
+        //       "method":"balanceMargin_update",
+        //       "params":[
+        //          {
+        //             "a":"USDT",         // asset
+        //             "B":"0.00538073",   // total balance
+        //             "b":"0",            // borrowed
+        //             "av":"0.00538073",  // available without borrowing
+        //             "ab":"28.43739825"  // available with borrowing
         //          }
         //       ],
         //       "id":null
@@ -767,18 +825,36 @@ class whitebit extends whitebit$1["default"] {
         if (method === undefined) {
             return;
         }
-        const data = this.safeValue(message, 'params');
-        const balanceDict = this.safeValue(data, 0);
-        this.balance['info'] = balanceDict;
-        const keys = Object.keys(balanceDict);
-        const currencyId = this.safeValue(keys, 0);
-        const rawBalance = this.safeValue(balanceDict, currencyId);
-        const code = this.safeCurrencyCode(currencyId);
-        const account = this.account();
-        account['free'] = this.safeString(rawBalance, 'available');
-        account['used'] = this.safeString(rawBalance, 'freeze');
-        if (code !== undefined) {
-            this.balance[code] = account;
+        const isMargin = (method.indexOf('Margin') >= 0);
+        const data = this.safeList(message, 'params', []);
+        for (let i = 0; i < data.length; i++) {
+            const balanceDict = this.safeDict(data, i, {});
+            this.balance['info'] = balanceDict;
+            if (isMargin) {
+                const currencyId = this.safeString(balanceDict, 'a');
+                const code = this.safeCurrencyCode(currencyId);
+                const account = this.account();
+                account['free'] = this.safeString(balanceDict, 'av');
+                account['total'] = this.safeString(balanceDict, 'B');
+                account['debt'] = this.safeString(balanceDict, 'b');
+                if (code !== undefined) {
+                    this.balance[code] = account;
+                }
+            }
+            else {
+                const keys = Object.keys(balanceDict);
+                for (let j = 0; j < keys.length; j++) {
+                    const currencyId = keys[j];
+                    const rawBalance = this.safeDict(balanceDict, currencyId, {});
+                    const code = this.safeCurrencyCode(currencyId);
+                    const account = this.account();
+                    account['free'] = this.safeString(rawBalance, 'available');
+                    account['used'] = this.safeString(rawBalance, 'freeze');
+                    if (code !== undefined) {
+                        this.balance[code] = account;
+                    }
+                }
+            }
         }
         this.balance = this.safeBalance(this.balance);
         let messageHash = 'wallet:';

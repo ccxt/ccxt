@@ -960,7 +960,7 @@ export default class bullish extends Exchange {
         }
         const maxLimit = 100;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
             params = this.handlePaginationParams ('fetchTrades', since, params);
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params, maxLimit) as Trade[];
@@ -2244,7 +2244,7 @@ export default class bullish extends Exchange {
 
     async loadAccount (params = {}) {
         let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'tradingAccountId');
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'loadAccount', 'tradingAccountId');
         if (tradingAccountId === undefined) {
             const response = await this.privateGetV1AccountsTradingAccounts (params);
             const accounts = this.toArray (response);

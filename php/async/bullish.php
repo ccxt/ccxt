@@ -988,7 +988,7 @@ class bullish extends Exchange {
         }
         $maxLimit = 100;
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
         if ($paginate) {
             $params = $this->handle_pagination_params('fetchTrades', $since, $params);
             return Async\await($this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $params, $maxLimit));
@@ -2347,7 +2347,7 @@ class bullish extends Exchange {
 
     private function do_load_account($params = array()) {
         $tradingAccountId = null;
-        list($tradingAccountId, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'tradingAccountId');
+        list($tradingAccountId, $params) = $this->handle_option_and_params($params, 'loadAccount', 'tradingAccountId');
         if ($tradingAccountId === null) {
             $response = Async\await($this->privateGetV1AccountsTradingAccounts($params));
             $accounts = $this->to_array($response);

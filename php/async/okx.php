@@ -39,6 +39,7 @@ class okx extends Exchange {
                 'future' => true,
                 'option' => true,
                 'addMargin' => true,
+                'borrowCrossMargin' => true,
                 'cancelAllOrders' => false,
                 'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
@@ -128,6 +129,7 @@ class okx extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositionHistory' => 'emulated',
+                'fetchPositionMode' => true,
                 'fetchPositions' => true,
                 'fetchPositionsForSymbol' => true,
                 'fetchPositionsHistory' => true,
@@ -793,9 +795,8 @@ class okx extends Exchange {
                     '51074' => '\\ccxt\\InvalidOrder', // Only the tdMode for lead trade pairs configured by spot lead traders can be set to 'spot_isolated'
                     '51090' => '\\ccxt\\InvalidOrder', // You can't modify the amount of an SL order placed with a TP limit order.
                     '51091' => '\\ccxt\\InvalidOrder', // All TP orders in one order must be of the same type.
-                    '51092' => '\\ccxt\\InvalidOrder', // TP order prices (is_array(one order must be different.
-                    '51093' => '\\ccxt\\InvalidOrder', // TP limit order prices (tpOrdPx) && array_key_exists(tpOrdPx) ?? '', one order must be different.
-                    '51093' => '\\ccxt\\InvalidOrder', // TP limit order prices (tpOrdPx)) in one order can't be –1 (market price).
+                    '51092' => '\\ccxt\\InvalidOrder', // TP order prices (tpOrdPx) in one order must be different.
+                    '51093' => '\\ccxt\\InvalidOrder', // TP limit order prices (is_array(one order can't be –1 (market price) && array_key_exists(tpOrdPx) ?? '', one order can't be –1 (market price)).
                     '51094' => '\\ccxt\\InvalidOrder', // You can't place TP limit orders in spot, margin, or options trading.
                     '51095' => '\\ccxt\\InvalidOrder', // To place TP limit orders at this endpoint, you must place an SL order at the same time.
                     '51096' => '\\ccxt\\InvalidOrder', // cxlOnClosePos needs to be true to place a TP limit order
@@ -2460,7 +2461,7 @@ class okx extends Exchange {
         $symbols = $this->market_symbols($symbols);
         $market = $this->get_market_from_symbols($symbols);
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params, 'swap');
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchMarkPrices', $market, $params, 'swap');
         $request = array(
             'instType' => $this->convert_to_instrument_type($marketType),
         );
@@ -7572,7 +7573,7 @@ class okx extends Exchange {
         return array(
             'currency' => $this->safe_currency_code($ccy),
             'rate' => $this->safe_number_2($info, 'interestRate', 'rate'),
-            'period' => 86400000,
+            'period' => 3600000, // GET /api/v5/account/interest-rate returns the hourly borrowing interest rate
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,
@@ -7600,6 +7601,8 @@ class okx extends Exchange {
                     $borrowRateHistories[$code] = array();
                 }
                 $borrowRateStructure = $this->parse_borrow_rate($item);
+                // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
+                $borrowRateStructure['period'] = 31536000000;
                 $borrrowRateCode = $borrowRateHistories[$code];
                 $borrrowRateCode[] = $borrowRateStructure;
             }

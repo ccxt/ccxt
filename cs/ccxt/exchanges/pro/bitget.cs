@@ -468,7 +468,7 @@ public partial class bitget : ccxt.bitget
         object market = this.market(getValue(symbols, 0));
         object instType = null;
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "uta", false);
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "watchBidsAsks", "uta", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         var instTypeparametersVariable = this.getInstType("watchBidsAsks", market, uta, parameters);

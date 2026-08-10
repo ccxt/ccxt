@@ -129,6 +129,72 @@ public partial class weex
         return new Tickers(res);
     }
     /// <summary>
+    /// fetches the last price for multiple markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.weex.com/api-doc/spot/MarketDataAPI/GetTickerInfo"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of lastprice structures.</returns>
+    public async Task<LastPrices> FetchLastPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLastPrices(symbols, parameters);
+        return new LastPrices(res);
+    }
+    /// <summary>
+    /// fetches mark price for the market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.weex.com/api-doc/contract/Market_API/GetSymbolPrice"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.priceType</term>
+    /// <description>
+    /// string : "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the ticker
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
+    public async Task<Ticker> FetchMarkPrice(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarkPrice(symbol, parameters);
+        return new Ticker(res);
+    }
+    /// <summary>
+    /// fetches mark prices for multiple markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
+    public async Task<Tickers> FetchMarkPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarkPrices(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
@@ -410,6 +476,7 @@ public partial class weex
     /// <remarks>
     /// See <see href="https://www.weex.com/api-doc/spot/AccountAPI/GetAccountBalance"/>  <br/>
     /// See <see href="https://www.weex.com/api-doc/contract/Account_API/GetAccountBalance"/>  <br/>
+    /// See <see href="https://www.weex.com/api-doc/contract/demo/GetAccountBalance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -420,7 +487,7 @@ public partial class weex
     /// <item>
     /// <term>params.type</term>
     /// <description>
-    /// string : 'spot' or 'swap' (default is 'spot')
+    /// string : 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default)
     /// </description>
     /// </item>
     /// </list>
@@ -485,6 +552,7 @@ public partial class weex
     /// See <see href="https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder"/>  <br/>
     /// See <see href="https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder"/>  <br/>
     /// See <see href="https://www.weex.com/api-doc/contract/Transaction_API/PlaceTpSlOrder"/>  <br/>
+    /// See <see href="https://www.weex.com/api-doc/contract/demo/PlaceOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -558,6 +626,7 @@ public partial class weex
     /// <remarks>
     /// See <see href="https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder"/>  <br/>
     /// See <see href="https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder"/>  <br/>
+    /// See <see href="https://www.weex.com/api-doc/contract/demo/PlaceOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -839,6 +908,7 @@ public partial class weex
     /// <remarks>
     /// See <see href="https://www.weex.com/api-doc/spot/orderApi/HistoryOrders"/>  <br/>
     /// See <see href="https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory"/>  <br/>
+    /// See <see href="https://www.weex.com/api-doc/contract/demo/GetOrderHistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -886,6 +956,7 @@ public partial class weex
     /// <remarks>
     /// See <see href="https://www.weex.com/api-doc/spot/orderApi/HistoryOrders"/>  <br/>
     /// See <see href="https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory"/>  <br/>
+    /// See <see href="https://www.weex.com/api-doc/contract/demo/GetOrderHistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -978,6 +1049,7 @@ public partial class weex
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory"/>  <br/>
+    /// See <see href="https://www.weex.com/api-doc/contract/demo/GetOrderHistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -1184,6 +1256,7 @@ public partial class weex
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.weex.com/api-doc/contract/Account_API/GetAllPositions"/>  <br/>
+    /// See <see href="https://www.weex.com/api-doc/contract/demo/GetAllPositions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

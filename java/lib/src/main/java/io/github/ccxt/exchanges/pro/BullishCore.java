@@ -537,7 +537,8 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         {
             rawOrders = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList())); // snapshot is a list of orders
         }
-        if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(rawOrders), 0)))
+        Object numRawOrders = Helpers.getArrayLength(rawOrders); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if (Helpers.isTrue(Helpers.isGreaterThan(numRawOrders, 0)))
         {
             if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
             {
@@ -669,7 +670,8 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         {
             rawTrades = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList())); // snapshot is a list of trades
         }
-        if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(rawTrades), 0)))
+        Object numRawTrades = Helpers.getArrayLength(rawTrades); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if (Helpers.isTrue(Helpers.isGreaterThan(numRawTrades, 0)))
         {
             if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
             {

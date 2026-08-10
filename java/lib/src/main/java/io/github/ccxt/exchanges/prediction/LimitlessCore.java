@@ -3066,7 +3066,7 @@ public class LimitlessCore extends LimitlessApi
                     }
                 }
             }
-            Object parsedTrades = this.parsePredictionTrades(trades, null);
+            Object parsedTrades = this.parsePredictionTrades(trades);
             return this.filterByOutcomeSinceLimit(parsedTrades, outcomeSymbol, since, limit);
         });
 

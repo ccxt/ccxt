@@ -45,6 +45,7 @@ public partial class hollaex : Exchange
                 { "fetchDepositAddresses", true },
                 { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
+                { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },

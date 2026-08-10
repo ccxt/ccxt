@@ -26,6 +26,7 @@ class kucoinfutures extends kucoin {
                 'future' => true,
                 'option' => null,
                 'fetchBidsAsks' => true,
+                'transfer' => true,
             ),
             'options' => array(
                 'fetchMarkets' => array(

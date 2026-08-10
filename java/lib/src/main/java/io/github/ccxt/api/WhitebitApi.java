@@ -925,9 +925,9 @@ public class WhitebitApi extends Exchange
      * Calls the v4PrivatePostOrders endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostOrders (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostOrders (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrders", optionalArgs);
     }

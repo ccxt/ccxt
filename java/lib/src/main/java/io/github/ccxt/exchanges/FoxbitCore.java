@@ -42,6 +42,8 @@ public class FoxbitCore extends FoxbitApi
                 put( "createMarketBuyOrder", true );
                 put( "createMarketSellOrder", true );
                 put( "createOrder", true );
+                put( "createOrders", true );
+                put( "editOrder", true );
                 put( "fecthOrderBook", true );
                 put( "fetchBalance", true );
                 put( "fetchCanceledOrders", true );
@@ -56,7 +58,10 @@ public class FoxbitCore extends FoxbitApi
                 put( "fetchOHLCV", true );
                 put( "fetchOpenOrders", true );
                 put( "fetchOrder", true );
+                put( "fetchOrderBook", true );
                 put( "fetchOrders", true );
+                put( "fetchOrdersByStatus", true );
+                put( "fetchStatus", true );
                 put( "fetchTicker", true );
                 put( "fetchTickers", true );
                 put( "fetchTrades", true );

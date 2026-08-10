@@ -1924,7 +1924,7 @@ public class HyperliquidCore extends HyperliquidApi
                 orderStatus = response;
             }
             Object orderWrapper = this.safeDict(orderStatus, "order", orderStatus);
-            Object parsed = this.parsePredictionOrder(orderWrapper, null);
+            Object parsed = this.parsePredictionOrder(orderWrapper);
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 (this.loadOutcome(outcome)).join();
@@ -2177,7 +2177,7 @@ public class HyperliquidCore extends HyperliquidApi
             }
             // parse without an outcome fallback — fills span every market the wallet traded, so a
             // requested-outcome fallback would mislabel fills whose market is no longer listed
-            Object parsedTrades = this.parsePredictionTrades(fills, null);
+            Object parsedTrades = this.parsePredictionTrades(fills);
             return this.filterByOutcomeSinceLimit(parsedTrades, outcomeHandle, since, limit);
         });
 

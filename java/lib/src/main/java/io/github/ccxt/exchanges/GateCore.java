@@ -100,6 +100,7 @@ public class GateCore extends GateApi
                 put( "cancelOrder", true );
                 put( "cancelOrders", true );
                 put( "cancelOrdersForSymbols", true );
+                put( "closePosition", true );
                 put( "createMarketBuyOrderWithCost", true );
                 put( "createMarketOrder", true );
                 put( "createMarketOrderWithCost", false );
@@ -159,6 +160,8 @@ public class GateCore extends GateApi
                 put( "fetchOptionChain", true );
                 put( "fetchOrder", true );
                 put( "fetchOrderBook", true );
+                put( "fetchOrdersByStatus", true );
+                put( "fetchOrderTrades", true );
                 put( "fetchPosition", true );
                 put( "fetchPositionHistory", "emulated" );
                 put( "fetchPositionMode", false );

@@ -65,10 +65,13 @@ public class ZebpayCore extends ZebpayApi
                 put( "fetchOrderBook", true );
                 put( "fetchOrderTrades", true );
                 put( "fetchPositions", true );
+                put( "fetchStatus", true );
                 put( "fetchTicker", true );
                 put( "fetchTickers", true );
+                put( "fetchTime", true );
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", true );
+                put( "fetchTradingFees", true );
                 put( "reduceMargin", true );
                 put( "repayCrossMargin", false );
                 put( "repayIsolatedMargin", false );
@@ -1373,7 +1376,7 @@ public class ZebpayCore extends ZebpayApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         Object upperCaseType = ((String)type).toUpperCase();
         Object triggerPrice = this.safeString(parameters, "stopLossPrice");
-        Object quoteOrderQty = this.safeString2(parameters, "quoteOrderQty", "cost", null);
+        Object quoteOrderQty = this.safeString2(parameters, "quoteOrderQty", "cost");
         Object timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         Object clientOrderId = this.safeString(parameters, "clientOrderId", this.uuid());
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopLossPrice", "cost", "timeInForce", "clientOrderId")));

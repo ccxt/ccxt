@@ -925,7 +925,7 @@ class nado(Exchange, ImplicitAPI):
             market = self.market(symbol)
             productIds.append(self.parse_to_int(market['id']))
         subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'subaccount', 'default')
+        subaccount, params = self.handle_option_and_params(params, 'fetchOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])

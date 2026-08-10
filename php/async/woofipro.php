@@ -53,6 +53,7 @@ class woofipro extends Exchange {
                 'createMarketOrderWithCost' => false,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createOrderWithTakeProfitAndStopLoss' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => false,
@@ -63,6 +64,7 @@ class woofipro extends Exchange {
                 'createTrailingAmountOrder' => false,
                 'createTrailingPercentOrder' => false,
                 'createTriggerOrder' => true,
+                'editOrder' => true,
                 'fetchAccounts' => false,
                 'fetchAllGreeks' => false,
                 'fetchBalance' => true,
@@ -115,8 +117,8 @@ class woofipro extends Exchange {
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
-                'fetchTicker' => false,
-                'fetchTickers' => false,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
@@ -1060,6 +1062,162 @@ class woofipro extends Exchange {
         $data = $this->safe_dict($response, 'data', array());
         $rows = $this->safe_list($data, 'rows', array());
         return $this->parse_funding_rates($rows, $symbols);
+    }
+
+    public function parse_ticker(array $ticker, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol" => "PERP_BTC_USDC",
+        //         "index_price" => 64185.4,
+        //         "mark_price" => 64171.0,
+        //         "sum_unitary_funding" => 26522.3,
+        //         "est_funding_rate" => 0.0001,
+        //         "last_funding_rate" => 0.00010041,
+        //         "next_funding_time" => 1786032000000,
+        //         "open_interest" => 110.64612,
+        //         "24h_open" => 64105.6,
+        //         "24h_close" => 64180.0,
+        //         "24h_high" => 64941.0,
+        //         "24h_low" => 63837.6,
+        //         "24h_volume" => 102.2817,
+        //         "24h_amount" => 6595662.199482
+        //     }
+        //
+        $marketId = $this->safe_string($ticker, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'high' => $this->safe_string($ticker, '24h_high'),
+            'low' => $this->safe_string($ticker, '24h_low'),
+            'bid' => null,
+            'bidVolume' => null,
+            'ask' => null,
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => $this->safe_string($ticker, '24h_open'),
+            'close' => $this->safe_string($ticker, '24h_close'),
+            'last' => $this->safe_string($ticker, '24h_close'),
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => $this->safe_string($ticker, '24h_volume'),
+            'quoteVolume' => $this->safe_string($ticker, '24h_amount'),
+            'indexPrice' => $this->safe_string($ticker, 'index_price'),
+            'markPrice' => $this->safe_string($ticker, 'mark_price'),
+            'info' => $ticker,
+        ), $market);
+    }
+
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_ticker(...))($symbol, $params);
+    }
+
+    private function do_fetch_ticker(string $symbol, $params = array()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-$market-info-for-one-$symbol
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->v1PublicGetPublicFuturesSymbol($this->extend($request, $params)));
+        //
+        // {
+        //     "success" => true,
+        //     "timestamp" => 1786022130191,
+        //     "data" => {
+        //         "symbol" => "PERP_BTC_USDC",
+        //         "index_price" => 64185.4,
+        //         "mark_price" => 64171.0,
+        //         "sum_unitary_funding" => 26522.3,
+        //         "est_funding_rate" => 0.0001,
+        //         "last_funding_rate" => 0.00010041,
+        //         "next_funding_time" => 1786032000000,
+        //         "open_interest" => 110.64612,
+        //         "24h_open" => 64105.6,
+        //         "24h_close" => 64180.0,
+        //         "24h_high" => 64941.0,
+        //         "24h_low" => 63837.6,
+        //         "24h_volume" => 102.2817,
+        //         "24h_amount" => 6595662.199482
+        //     }
+        // }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $data['timestamp'] = $this->safe_integer($response, 'timestamp');
+        return $this->parse_ticker($data, $market);
+    }
+
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_tickers(...))($symbols, $params);
+    }
+
+    private function do_fetch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-$symbols
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $response = Async\await($this->v1PublicGetPublicFutures($params));
+        //
+        // {
+        //     "success" => true,
+        //     "timestamp" => 1786022130191,
+        //     "data" => {
+        //         "rows" => [array(
+        //             "symbol" => "PERP_BTC_USDC",
+        //             "index_price" => 64185.4,
+        //             "mark_price" => 64171.0,
+        //             "sum_unitary_funding" => 26522.3,
+        //             "est_funding_rate" => 0.0001,
+        //             "last_funding_rate" => 0.00010041,
+        //             "next_funding_time" => 1786032000000,
+        //             "open_interest" => 110.64612,
+        //             "24h_open" => 64105.6,
+        //             "24h_close" => 64180.0,
+        //             "24h_high" => 64941.0,
+        //             "24h_low" => 63837.6,
+        //             "24h_volume" => 102.2817,
+        //             "24h_amount" => 6595662.199482
+        //         )]
+        //     }
+        // }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $rows = $this->safe_list($data, 'rows', array());
+        $timestamp = $this->safe_integer($response, 'timestamp');
+        $result = array();
+        for ($i = 0; $i < count($rows); $i++) {
+            $row = $rows[$i];
+            $marketId = $this->safe_string($row, 'symbol', '');
+            if (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
+                continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE $symbols
+            }
+            $ticker = $this->extend(array( 'timestamp' => $timestamp ), $row);
+            $result[] = $this->parse_ticker($ticker);
+        }
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {

@@ -456,7 +456,7 @@ class poloniex(ccxt.async_support.poloniex):
             await self.load_markets()
         watchOrderBookOptions = self.safe_value(self.options, 'watchOrderBook')
         name = self.safe_string(watchOrderBookOptions, 'name', 'book_lv2')
-        name, params = self.handle_option_and_params(params, 'method', 'name', name)
+        name, params = self.handle_option_and_params(params, 'watchOrderBook', 'name', name)
         orderbook = await self.subscribe(name, name, False, [symbol], params)
         return orderbook.limit()
 

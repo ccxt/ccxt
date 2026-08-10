@@ -4495,6 +4495,7 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker   // spot
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // swap
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // future
+     * @see https://developers.binance.com/docs/derivatives/options-trading/market-data/24hr-Ticker-Price-Change-Statistics      // option
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
@@ -4511,7 +4512,9 @@ export default class binance extends Exchange {
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
         let response: NullableDict = undefined;
-        if (this.isLinear (type, subType)) {
+        if (type === 'option') {
+            response = await this.eapiPublicGetTicker (params);
+        } else if (this.isLinear (type, subType)) {
             response = await this.fapiPublicGetTickerBookTicker (params);
         } else if (this.isInverse (type, subType)) {
             response = await this.dapiPublicGetTickerBookTicker (params);
@@ -4705,6 +4708,7 @@ export default class binance extends Exchange {
      * @description fetches mark price for the market
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+     * @see https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
@@ -4723,7 +4727,9 @@ export default class binance extends Exchange {
             'symbol': market['id'],
         };
         let response: Dict | undefined = undefined;
-        if (this.isLinear (type, subType)) {
+        if (market['option']) {
+            response = await this.eapiPublicGetMark (this.extend (request, params));
+        } else if (this.isLinear (type, subType)) {
             response = await this.fapiPublicGetPremiumIndex (this.extend (request, params));
         } else if (this.isInverse (type, subType)) {
             response = await this.dapiPublicGetPremiumIndex (this.extend (request, params));
@@ -4745,6 +4751,7 @@ export default class binance extends Exchange {
      * @description fetches mark prices for multiple markets
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+     * @see https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
@@ -4761,7 +4768,9 @@ export default class binance extends Exchange {
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMarkPrices', market, params, 'linear');
         let response: NullableDict = undefined;
-        if (this.isLinear (type, subType)) {
+        if (type === 'option') {
+            response = await this.eapiPublicGetMark (params);
+        } else if (this.isLinear (type, subType)) {
             response = await this.fapiPublicGetPremiumIndex (params);
         } else if (this.isInverse (type, subType)) {
             response = await this.dapiPublicGetPremiumIndex (params);

@@ -28,7 +28,7 @@ public partial class whitebit : Exchange
                 { "createConvertTrade", true },
                 { "createDepositAddress", true },
                 { "createMarketBuyOrderWithCost", true },
-                { "createMarketOrderWithCost", false },
+                { "createMarketOrderWithCost", true },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
                 { "createPostOnlyOrder", true },
@@ -39,6 +39,7 @@ public partial class whitebit : Exchange
                 { "editOrder", true },
                 { "fetchAccounts", true },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", true },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
                 { "fetchClosedOrders", true },
@@ -716,7 +717,6 @@ public partial class whitebit : Exchange
         object margin = isTrue(isCollateral) && !isTrue(swap);
         object contract = false;
         object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "stockPrec")));
-        object contractSize = amountPrecision;
         object linear = null;
         object inverse = null;
         if (isTrue(swap))
@@ -758,7 +758,7 @@ public partial class whitebit : Exchange
             { "inverse", inverse },
             { "taker", this.parseNumber(taker) },
             { "maker", this.parseNumber(maker) },
-            { "contractSize", ((bool) isTrue(isSpot)) ? null : contractSize },
+            { "contractSize", ((bool) isTrue(isSpot)) ? null : this.parseNumber("1") },
             { "expiry", null },
             { "expiryDatetime", null },
             { "strike", null },
@@ -1708,6 +1708,7 @@ public partial class whitebit : Exchange
         // Extract control parameters from params
         object checkActive = this.safeBool(parameters, "checkActive", true);
         object checkExecuted = this.safeBool(parameters, "checkExecuted", true);
+        parameters = this.omit(parameters, new List<object>() {"checkActive", "checkExecuted"});
         object request = new Dictionary<string, object>() {
             { "orderId", id },
         };
@@ -2729,10 +2730,6 @@ public partial class whitebit : Exchange
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        if (isTrue(isEqual(timeout, null)))
-        {
-            throw new ExchangeError ((string)add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
-        }
         if (isTrue(isBiggerThanZero))
         {
             ((IDictionary<string,object>)request)["timeout"] = this.numberToString(divide(timeout, 1000));

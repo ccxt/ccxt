@@ -368,6 +368,24 @@ abstract class weex extends \ccxt\async\Exchange {
         return $this->request('capi/v3/allAlgoOrders', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));
     }
     /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function contractprivate_get_capi_v3_sim_balance($params = array()) {
+        return $this->request('capi/v3/sim/balance', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function contractprivate_get_capi_v3_sim_position_allposition($params = array()) {
+        return $this->request('capi/v3/sim/position/allPosition', 'contractPrivate', 'GET', $params, null, null, array("cost" => 15));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function contractprivate_get_capi_v3_sim_order_history($params = array()) {
+        return $this->request('capi/v3/sim/order/history', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function contractprivate_post_capi_v3_account_income($params = array()) {
@@ -432,6 +450,12 @@ abstract class weex extends \ccxt\async\Exchange {
      */
     public function contractprivate_post_capi_v3_modifytpslorder($params = array()) {
         return $this->request('capi/v3/modifyTpSlOrder', 'contractPrivate', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractprivate_post_capi_v3_sim_order($params = array()) {
+        return $this->request('capi/v3/sim/order', 'contractPrivate', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -824,6 +848,24 @@ abstract class weex extends \ccxt\async\Exchange {
         return $this->request('capi/v3/allAlgoOrders', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));
     }
     /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function contractPrivateGetCapiV3SimBalance($params = array()) {
+        return $this->request('capi/v3/sim/balance', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function contractPrivateGetCapiV3SimPositionAllPosition($params = array()) {
+        return $this->request('capi/v3/sim/position/allPosition', 'contractPrivate', 'GET', $params, null, null, array("cost" => 15));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function contractPrivateGetCapiV3SimOrderHistory($params = array()) {
+        return $this->request('capi/v3/sim/order/history', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function contractPrivatePostCapiV3AccountIncome($params = array()) {
@@ -888,6 +930,12 @@ abstract class weex extends \ccxt\async\Exchange {
      */
     public function contractPrivatePostCapiV3ModifyTpSlOrder($params = array()) {
         return $this->request('capi/v3/modifyTpSlOrder', 'contractPrivate', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractPrivatePostCapiV3SimOrder($params = array()) {
+        return $this->request('capi/v3/sim/order', 'contractPrivate', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

@@ -140,7 +140,7 @@ class bydfi(Exchange, ImplicitAPI):
                 'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenInterests': False,
-                'fetchOpenOrder': False,
+                'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
                 'fetchOption': False,
                 'fetchOptionChain': False,
@@ -2116,7 +2116,7 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         contractType = 'FUTURE'
-        contractType, params = self.handle_option_and_params(params, 'fetchPositionsHistory', 'contractType', contractType)
+        contractType, params = self.handle_option_and_params(params, 'fetchPositionHistory', 'contractType', contractType)
         request = {
             'symbol': market['id'],
             'contractType': contractType,
@@ -2273,9 +2273,9 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         contractType = 'FUTURE'
-        contractType, params = self.handle_option_and_params(params, 'fetchMarginMode', 'contractType', contractType)
+        contractType, params = self.handle_option_and_params(params, 'setMarginMode', 'contractType', contractType)
         wallet = 'W001'
-        wallet, params = self.handle_option_and_params(params, 'fetchMarginMode', 'wallet', wallet)
+        wallet, params = self.handle_option_and_params(params, 'setMarginMode', 'wallet', wallet)
         request = {
             'contractType': contractType,
             'symbol': market['id'],

@@ -90,6 +90,7 @@ public class CoinexCore extends CoinexApi
                 put( "fetchOpenOrders", true );
                 put( "fetchOrder", true );
                 put( "fetchOrderBook", true );
+                put( "fetchOrdersByStatus", true );
                 put( "fetchPosition", true );
                 put( "fetchPositionHistory", true );
                 put( "fetchPositions", true );

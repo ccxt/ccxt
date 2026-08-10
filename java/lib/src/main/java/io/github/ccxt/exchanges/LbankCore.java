@@ -54,10 +54,11 @@ public class LbankCore extends LbankApi
                 put( "fetchDepositAddress", true );
                 put( "fetchDepositAddresses", false );
                 put( "fetchDepositAddressesByNetwork", false );
+                put( "fetchDeposits", true );
                 put( "fetchDepositWithdrawFee", "emulated" );
                 put( "fetchDepositWithdrawFees", true );
                 put( "fetchFundingHistory", false );
-                put( "fetchFundingRate", false );
+                put( "fetchFundingRate", true );
                 put( "fetchFundingRateHistory", false );
                 put( "fetchFundingRates", true );
                 put( "fetchIndexOHLCV", false );
@@ -84,8 +85,10 @@ public class LbankCore extends LbankApi
                 put( "fetchTickers", true );
                 put( "fetchTime", true );
                 put( "fetchTrades", true );
+                put( "fetchTradingFee", true );
                 put( "fetchTradingFees", true );
                 put( "fetchTransactionFees", true );
+                put( "fetchWithdrawals", true );
                 put( "reduceMargin", false );
                 put( "setLeverage", false );
                 put( "setMarginMode", false );

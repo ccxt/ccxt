@@ -502,6 +502,12 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_linear_get_future_trade_v1_position_list_history($params = array()) {
+        return $this->request('future/trade/v1/position/list-history', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_linear_get_future_trade_v1_order_trade_list($params = array()) {
         return $this->request('future/trade/v1/order/trade-list', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -732,6 +738,12 @@ abstract class xt extends \ccxt\Exchange {
      */
     public function private_inverse_get_future_trade_v1_order_list_history($params = array()) {
         return $this->request('future/trade/v1/order/list-history', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_inverse_get_future_trade_v1_position_list_history($params = array()) {
+        return $this->request('future/trade/v1/position/list-history', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1450,6 +1462,12 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateLinearGetFutureTradeV1PositionListHistory($params = array()) {
+        return $this->request('future/trade/v1/position/list-history', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateLinearGetFutureTradeV1OrderTradeList($params = array()) {
         return $this->request('future/trade/v1/order/trade-list', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1680,6 +1698,12 @@ abstract class xt extends \ccxt\Exchange {
      */
     public function privateInverseGetFutureTradeV1OrderListHistory($params = array()) {
         return $this->request('future/trade/v1/order/list-history', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateInverseGetFutureTradeV1PositionListHistory($params = array()) {
+        return $this->request('future/trade/v1/position/list-history', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>

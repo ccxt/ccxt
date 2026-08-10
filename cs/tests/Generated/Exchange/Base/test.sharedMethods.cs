@@ -702,6 +702,24 @@ public partial class testMainClass : BaseTest
                 return result;
             }
         }
+        public void assertDictionaryResponse(BaseExchange exchange, object method, object response, object hint = null)
+        {
+            // php cannot distinguish an empty dict from an empty list, both are a plain array
+            // there, so an empty array response is shape indeterminate and accepted, observed
+            // as false positive FAILs in the live tests on https://github.com/ccxt/ccxt/pull/29696
+            object isEmptyArrayResponse = false;
+            if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            {
+                object responseLength = getArrayLength(response);
+                isEmptyArrayResponse = (isEqual(responseLength, 0));
+            }
+            object hintText = "";
+            if (isTrue(!isEqual(hint, null)))
+            {
+                hintText = add(" ", hint);
+            }
+            assert(isTrue(exchange.isDictionary(response)) || isTrue(isEmptyArrayResponse), add(add(add(add(add(exchange.id, " "), method), hintText), " must return a dict. "), exchange.json(response)));
+        }
         public void assertNonEmtpyArray(BaseExchange exchange, object skippedProperties, object method, object entry, object hint = null)
         {
             object logText = logTemplate(exchange, method, entry);

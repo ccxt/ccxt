@@ -37,7 +37,7 @@ class whitebit extends whitebit$1["default"] {
                 'createConvertTrade': true,
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
-                'createMarketOrderWithCost': false,
+                'createMarketOrderWithCost': true,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -48,6 +48,7 @@ class whitebit extends whitebit$1["default"] {
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchClosedOrders': true,
@@ -497,7 +498,6 @@ class whitebit extends whitebit$1["default"] {
         const margin = isCollateral && !swap;
         let contract = false;
         const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'stockPrec')));
-        const contractSize = amountPrecision;
         let linear = undefined;
         let inverse = undefined;
         if (swap) {
@@ -538,7 +538,7 @@ class whitebit extends whitebit$1["default"] {
             'inverse': inverse,
             'taker': this.parseNumber(taker),
             'maker': this.parseNumber(maker),
-            'contractSize': isSpot ? undefined : contractSize,
+            'contractSize': isSpot ? undefined : this.parseNumber('1'), // perpetual amounts are denominated in base currency units
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -1423,6 +1423,7 @@ class whitebit extends whitebit$1["default"] {
         // Extract control parameters from params
         const checkActive = this.safeBool(params, 'checkActive', true);
         const checkExecuted = this.safeBool(params, 'checkExecuted', true);
+        params = this.omit(params, ['checkActive', 'checkExecuted']);
         const request = {
             'orderId': id,
         };
@@ -2320,11 +2321,7 @@ class whitebit extends whitebit$1["default"] {
         const isBiggerThanZero = (timeout > 0);
         const request = {
             'market': market['id'],
-            // 'timeout': (timeout > 0) ? this.numberToString (timeout / 1000) : null,
         };
-        if (timeout === undefined) {
-            throw new errors.ExchangeError(this.id + ' cancelAllOrdersAfter() missing timeout');
-        }
         if (isBiggerThanZero) {
             request['timeout'] = this.numberToString(timeout / 1000);
         }

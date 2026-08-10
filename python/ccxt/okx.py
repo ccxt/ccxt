@@ -57,6 +57,7 @@ class okx(Exchange, ImplicitAPI):
                 'future': True,
                 'option': True,
                 'addMargin': True,
+                'borrowCrossMargin': True,
                 'cancelAllOrders': False,
                 'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
@@ -146,6 +147,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositionHistory': 'emulated',
+                'fetchPositionMode': True,
                 'fetchPositions': True,
                 'fetchPositionsForSymbol': True,
                 'fetchPositionsHistory': True,
@@ -2372,7 +2374,7 @@ class okx(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         market = self.get_market_from_symbols(symbols)
         marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchTickers', market, params, 'swap')
+        marketType, params = self.handle_market_type_and_params('fetchMarkPrices', market, params, 'swap')
         request = {
             'instType': self.convert_to_instrument_type(marketType),
         }
@@ -6935,7 +6937,7 @@ class okx(Exchange, ImplicitAPI):
         return {
             'currency': self.safe_currency_code(ccy),
             'rate': self.safe_number_2(info, 'interestRate', 'rate'),
-            'period': 86400000,
+            'period': 3600000,  # GET /api/v5/account/interest-rate returns the hourly borrowing interest rate
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': info,
@@ -6961,6 +6963,8 @@ class okx(Exchange, ImplicitAPI):
                 if not (code in borrowRateHistories):
                     borrowRateHistories[code] = []
                 borrowRateStructure = self.parse_borrow_rate(item)
+                # GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
+                borrowRateStructure['period'] = 31536000000
                 borrrowRateCode = borrowRateHistories[code]
                 borrrowRateCode.append(borrowRateStructure)
         keys = list(borrowRateHistories.keys())

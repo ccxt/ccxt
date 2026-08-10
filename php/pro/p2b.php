@@ -149,7 +149,7 @@ class p2b extends \ccxt\async\p2b {
         }
         $watchTickerOptions = $this->safe_dict($this->options, 'watchTicker');
         $name = $this->safe_string($watchTickerOptions, 'name', 'state');  // or price
-        list($name, $params) = $this->handle_option_and_params($params, 'method', 'name', $name);
+        list($name, $params) = $this->handle_option_and_params($params, 'watchTicker', 'name', $name);
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
         $this->options['tickerSubs'][$market['id']] = true; // we need to re-subscribe to all tickers upon watching a new ticker
@@ -181,7 +181,7 @@ class p2b extends \ccxt\async\p2b {
         $symbols = $this->market_symbols($symbols, null, false);
         $watchTickerOptions = $this->safe_dict($this->options, 'watchTicker');
         $name = $this->safe_string($watchTickerOptions, 'name', 'state');  // or price
-        list($name, $params) = $this->handle_option_and_params($params, 'method', 'name', $name);
+        list($name, $params) = $this->handle_option_and_params($params, 'watchTickers', 'name', $name);
         $messageHashes = array();
         $args = array();
         for ($i = 0; $i < count(($symbols)); $i++) {

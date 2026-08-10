@@ -98,6 +98,7 @@ export default class xt extends Exchange {
                 'fetchOrderTrades': false,
                 'fetchPosition': true,
                 'fetchPositions': true,
+                'fetchPositionsHistory': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
                 'fetchStatus': false,
@@ -254,6 +255,7 @@ export default class xt extends Exchange {
                             'future/trade/v1/order/detail': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/order/list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/order/list-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/position/list-history': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/order/trade-list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/account/info': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/balance/bills': { 'cost': 1 } as Endpoint<Dict>,
@@ -299,6 +301,7 @@ export default class xt extends Exchange {
                             'future/trade/v1/order/detail': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/order/list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/order/list-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/position/list-history': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/order/trade-list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/account/info': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/balance/bills': { 'cost': 1 } as Endpoint<Dict>,
@@ -4283,7 +4286,8 @@ export default class xt extends Exchange {
 
     async modifyMarginHelper (symbol: string, amount: any, addOrReduce: any, params = {}): Promise<MarginModification> {
         const positionSide = this.safeString (params, 'positionSide');
-        this.checkRequiredArgument ('setLeverage', positionSide, 'positionSide', [ 'LONG', 'SHORT' ]);
+        const methodName = (addOrReduce === 'ADD') ? 'addMargin' : 'reduceMargin';
+        this.checkRequiredArgument (methodName, positionSide, 'positionSide', [ 'LONG', 'SHORT' ]);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5047,6 +5051,85 @@ export default class xt extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
+    /**
+     * @method
+     * @name xt#fetchPositionsHistory
+     * @description fetches historical closed positions
+     * @see https://doc.xt.com/docs/futures/Entrust/GetPositionHistory
+     * @param {string[]} [symbols] unified market symbols, all closed positions are returned if not assigned
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum amount of records to fetch, default=10
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest position to fetch
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    override async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        let request: Dict = {};
+        let market: Market = undefined;
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                market = this.market (symbols[0]);
+                request['symbol'] = market['id'];
+            }
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        let subType: SubType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsHistory', market, params);
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.privateInverseGetFutureTradeV1PositionListHistory (this.extend (request, params));
+        } else {
+            response = await this.privateLinearGetFutureTradeV1PositionListHistory (this.extend (request, params));
+        }
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "hasPrev": false,
+        //             "hasNext": false,
+        //             "items": [
+        //                 {
+        //                     "id": "654559911738263296",
+        //                     "positionSide": "LONG",
+        //                     "contractType": "PERPETUAL",
+        //                     "symbol": "xrp_usdt",
+        //                     "positionType": 2,
+        //                     "closeProfit": "0.001",
+        //                     "closePositionSize": "1",
+        //                     "closeOpenPrice": "1.0651",
+        //                     "closePrice": "1.0652",
+        //                     "maxPositionSize": "1",
+        //                     "openTime": 1785761266645,
+        //                     "closeTime": 1785761266645,
+        //                     "startLeverage": 10,
+        //                     "endLeverage": 10,
+        //                     "working": false,
+        //                     "force": false,
+        //                     "forceMarkPrice": null,
+        //                     "totalFee": "0.0063",
+        //                     "totalFundFee": "0"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const items = this.safeList (result, 'items', []);
+        const positions = this.parsePositions (items, symbols);
+        return this.filterBySinceLimit (positions, since, limit);
+    }
+
     override parsePosition (position: any, market: Market = undefined) {
         //
         // position/list
@@ -5078,33 +5161,63 @@ export default class xt extends Exchange {
         //         "calMarkPrice": "27050"
         //     }
         //
+        // position/list-history
+        //
+        //     {
+        //         "id": "654559911738263296",
+        //         "positionSide": "LONG",
+        //         "contractType": "PERPETUAL",
+        //         "symbol": "xrp_usdt",
+        //         "positionType": 2,
+        //         "closeProfit": "0.001",
+        //         "closePositionSize": "1",
+        //         "closeOpenPrice": "1.0651",
+        //         "closePrice": "1.0652",
+        //         "maxPositionSize": "1",
+        //         "openTime": 1785761266645,
+        //         "closeTime": 1785761266645,
+        //         "startLeverage": 10,
+        //         "endLeverage": 10,
+        //         "working": false,
+        //         "force": false,
+        //         "forceMarkPrice": null,
+        //         "totalFee": "0.0063",
+        //         "totalFundFee": "0"
+        //     }
+        //
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = this.safeSymbol (marketId, market, undefined, 'contract');
+        // "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
         const positionType = this.safeString (position, 'positionType');
-        const marginMode = (positionType === 'CROSSED') ? 'cross' : 'isolated';
+        const isCross = (positionType === 'CROSSED') || (positionType === '1');
+        const marginMode = (isCross) ? 'cross' : 'isolated';
         const collateral = this.safeNumber (position, 'isolatedMargin');
-        const liquidationPriceString = this.omitZero (this.safeString (position, 'breakPrice'));
+        // history entries carry the liquidation price in forceMarkPrice when force is true
+        const liquidationPriceString = this.omitZero (this.safeString2 (position, 'breakPrice', 'forceMarkPrice'));
+        const timestamp = this.safeInteger (position, 'closeTime');
         return this.safePosition ({
             'info': position,
-            'id': undefined,
+            'id': this.safeString (position, 'id'),
             'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'hedged': undefined,
             'side': this.safeStringLower (position, 'positionSide'),
-            'contracts': this.safeNumber (position, 'positionSize'),
+            'contracts': this.safeNumber2 (position, 'positionSize', 'closePositionSize'),
             'contractSize': market['contractSize'],
-            'entryPrice': this.safeNumber (position, 'entryPrice'),
+            'entryPrice': this.safeNumber2 (position, 'entryPrice', 'closeOpenPrice'),
             'markPrice': this.safeNumber2 (position, 'markPrice', 'calMarkPrice'),
+            'lastPrice': this.safeNumber (position, 'closePrice'),
             'notional': undefined,
-            'leverage': this.safeInteger (position, 'leverage'),
+            'leverage': this.safeInteger2 (position, 'leverage', 'endLeverage'),
             'collateral': collateral,
             'initialMargin': collateral,
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
             'unrealizedPnl': undefined,
+            'realizedPnl': this.safeNumber2 (position, 'realizedProfit', 'closeProfit'),
             'liquidationPrice': this.parseNumber (liquidationPriceString),
             'marginMode': marginMode,
             'percentage': undefined,

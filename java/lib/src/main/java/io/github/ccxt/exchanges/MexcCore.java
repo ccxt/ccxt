@@ -40,7 +40,7 @@ public class MexcCore extends MexcApi
                 put( "borrowMargin", false );
                 put( "cancelAllOrders", true );
                 put( "cancelOrder", true );
-                put( "cancelOrders", null );
+                put( "cancelOrders", true );
                 put( "closeAllPositions", true );
                 put( "closePosition", false );
                 put( "createDepositAddress", true );
@@ -140,7 +140,7 @@ public class MexcCore extends MexcApi
                 put( "setMarginMode", true );
                 put( "setPositionMode", true );
                 put( "signIn", null );
-                put( "transfer", null );
+                put( "transfer", true );
                 put( "withdraw", true );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{

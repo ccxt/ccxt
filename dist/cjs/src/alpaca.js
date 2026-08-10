@@ -59,6 +59,7 @@ class alpaca extends alpaca$1["default"] {
                 'createMarketBuyOrder': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': true,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
                 'createOrderWithTakeProfitAndStopLossWs': false,

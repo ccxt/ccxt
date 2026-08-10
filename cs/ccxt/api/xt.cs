@@ -585,6 +585,13 @@ public partial class xt : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateLinearGetFutureTradeV1OrderListHistory",parameters);
     }
 
+    /// <summary>Calls the privateLinearGetFutureTradeV1PositionListHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateLinearGetFutureTradeV1PositionListHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateLinearGetFutureTradeV1PositionListHistory",parameters);
+    }
+
     /// <summary>Calls the privateLinearGetFutureTradeV1OrderTradeList endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateLinearGetFutureTradeV1OrderTradeList (object parameters = null)
@@ -856,6 +863,13 @@ public partial class xt : Exchange
     public async Task<Dictionary<string, object>> privateInverseGetFutureTradeV1OrderListHistory (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateInverseGetFutureTradeV1OrderListHistory",parameters);
+    }
+
+    /// <summary>Calls the privateInverseGetFutureTradeV1PositionListHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateInverseGetFutureTradeV1PositionListHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateInverseGetFutureTradeV1PositionListHistory",parameters);
     }
 
     /// <summary>Calls the privateInverseGetFutureTradeV1OrderTradeList endpoint.</summary>

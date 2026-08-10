@@ -426,7 +426,7 @@ class bitget(ccxt.async_support.bitget):
         market = self.market(symbols[0])
         instType = None
         uta = None
-        uta, params = self.handle_option_and_params(params, 'watchTickers', 'uta', False)
+        uta, params = self.handle_option_and_params(params, 'watchBidsAsks', 'uta', False)
         instType, params = self.get_inst_type('watchBidsAsks', market, uta, params)
         topics = []
         messageHashes = []

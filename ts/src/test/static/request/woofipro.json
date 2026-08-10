@@ -276,6 +276,24 @@
                 ]
             }
         ],
+        "fetchTicker": [
+            {
+                "description": "swap ticker",
+                "method": "fetchTicker",
+                "url": "https://api-evm.orderly.org/v1/public/futures/PERP_BTC_USDC",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "all swap tickers",
+                "method": "fetchTickers",
+                "url": "https://api-evm.orderly.org/v1/public/futures",
+                "input": []
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "Fetch swap Balance",

@@ -556,7 +556,8 @@ func (this *BullishCore) HandleOrders(client any, message any) {
 	} else {
 		rawOrders = this.SafeList(message, "data", []any{}) // snapshot is a list of orders
 	}
-	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetArrayLength(rawOrders), 0)) {
+	var numRawOrders any = ccxt.GetArrayLength(rawOrders) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+	if ccxt.IsTrue(ccxt.IsGreaterThan(numRawOrders, 0)) {
 		if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
 			var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -610,8 +611,8 @@ func (this *BullishCore) WatchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes49612 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes49612)
+			retRes49712 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes49712)
 		}
 		var subscribeHash any = "myTrades"
 		var messageHash any = subscribeHash
@@ -686,7 +687,8 @@ func (this *BullishCore) HandleMyTrades(client any, message any) {
 	} else {
 		rawTrades = this.SafeList(message, "data", []any{}) // snapshot is a list of trades
 	}
-	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetArrayLength(rawTrades), 0)) {
+	var numRawTrades any = ccxt.GetArrayLength(rawTrades) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+	if ccxt.IsTrue(ccxt.IsGreaterThan(numRawTrades, 0)) {
 		if ccxt.IsTrue(ccxt.IsEqual(this.MyTrades, nil)) {
 			var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
@@ -731,8 +733,8 @@ func (this *BullishCore) WatchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes60312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes60312)
+			retRes60512 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes60512)
 		}
 		var request any = map[string]any{
 			"topic": "assetAccounts",
@@ -745,9 +747,9 @@ func (this *BullishCore) WatchBalance(optionalArgs ...any) <-chan any {
 			messageHash = ccxt.Add(messageHash, ccxt.Add("::", tradingAccountId))
 		}
 
-		retRes61515 := (<-this.WatchPrivate(messageHash, messageHash, request, params))
-		ccxt.PanicOnError(retRes61515)
-		ch <- retRes61515
+		retRes61715 := (<-this.WatchPrivate(messageHash, messageHash, request, params))
+		ccxt.PanicOnError(retRes61715)
+		ch <- retRes61715
 		return nil
 
 	}()
@@ -851,8 +853,8 @@ func (this *BullishCore) WatchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes70312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes70312)
+			retRes70512 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes70512)
 		}
 		var subscribeHash any = "positions"
 		var messageHash any = subscribeHash

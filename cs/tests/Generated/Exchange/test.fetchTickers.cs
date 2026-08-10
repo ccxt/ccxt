@@ -28,7 +28,7 @@ public partial class testMainClass : BaseTest
         argParams ??= new Dictionary<string, object>();
         object method = "fetchTickers";
         object response = await ((dynamic)exchange).fetchTickers(argSymbols, argParams);
-        assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dict. "), exchange.json(response)));
+        testSharedMethods.assertDictionaryResponse(exchange, method, response, exchange.json(argSymbols));
         object values = new List<object>(((IDictionary<string,object>)response).Values);
         object checkedSymbol = null;
         if (isTrue(isTrue(!isEqual(argSymbols, null)) && isTrue(isEqual(getArrayLength(argSymbols), 1))))

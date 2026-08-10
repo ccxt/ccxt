@@ -131,6 +131,7 @@ public class CoinbaseCore extends CoinbaseApi
                 put( "fetchOrder", true );
                 put( "fetchOrderBook", true );
                 put( "fetchOrders", true );
+                put( "fetchOrdersByStatus", true );
                 put( "fetchPosition", true );
                 put( "fetchPositionHistory", false );
                 put( "fetchPositionMode", false );
@@ -1218,7 +1219,7 @@ public class CoinbaseCore extends CoinbaseApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object currencyType = null;
-            var currencyTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "currencyType");
+            var currencyTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "currencyType");
             currencyType = ((java.util.List<Object>) currencyTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) currencyTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(currencyType, "crypto")))

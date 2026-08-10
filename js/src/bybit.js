@@ -63,9 +63,9 @@ export default class bybit extends Exchange {
                 'fetchAllGreeks': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': 'emulated',
-                'fetchBorrowInterest': false, // temporarily disabled, as it doesn't work
+                'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
-                'fetchBorrowRateHistory': false,
+                'fetchBorrowRateHistory': true,
                 'fetchCanceledAndClosedOrders': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrder': true,
@@ -114,7 +114,7 @@ export default class bybit extends Exchange {
                 'fetchOptionChain': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositionADLRank': true,
@@ -9514,7 +9514,7 @@ export default class bybit extends Exchange {
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const accountTypeDefault = isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
-        [accountType, params] = this.handleOptionAndParams(params, 'fetchConvertQuote', 'accountType', accountTypeDefault);
+        [accountType, params] = this.handleOptionAndParams(params, 'fetchConvertTrade', 'accountType', accountTypeDefault);
         const request = {
             'quoteTxId': id,
             'accountType': accountType,

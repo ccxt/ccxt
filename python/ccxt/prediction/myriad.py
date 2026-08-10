@@ -44,6 +44,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'createMarketBuyOrderWithCost': True,
                 'createOrder': True,
                 'createOrders': True,
                 'editOrder': True,

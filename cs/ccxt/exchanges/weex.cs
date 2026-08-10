@@ -100,7 +100,7 @@ public partial class weex : Exchange
                 { "fetchIsolatedPositions", false },
                 { "fetchL2OrderBook", false },
                 { "fetchL3OrderBook", false },
-                { "fetchLastPrices", false },
+                { "fetchLastPrices", true },
                 { "fetchLedger", true },
                 { "fetchLedgerEntry", false },
                 { "fetchLeverage", true },
@@ -115,7 +115,8 @@ public partial class weex : Exchange
                 { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
-                { "fetchMarkPrices", false },
+                { "fetchMarkPrice", true },
+                { "fetchMarkPrices", true },
                 { "fetchMyLiquidations", false },
                 { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
@@ -169,7 +170,7 @@ public partial class weex : Exchange
                 { "reduceMargin", true },
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
-                { "sandbox", false },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMargin", false },
                 { "setMarginMode", true },
@@ -181,6 +182,12 @@ public partial class weex : Exchange
             { "urls", new Dictionary<string, object>() {
                 { "logo", "https://github.com/user-attachments/assets/bc67b9f2-75d2-4b8d-963a-18f2fcd9d13c" },
                 { "api", new Dictionary<string, object>() {
+                    { "public", "https://api-spot.weex.com" },
+                    { "private", "https://api-spot.weex.com" },
+                    { "contract", "https://api-contract.weex.com" },
+                    { "contractPrivate", "https://api-contract.weex.com" },
+                } },
+                { "test", new Dictionary<string, object>() {
                     { "public", "https://api-spot.weex.com" },
                     { "private", "https://api-spot.weex.com" },
                     { "contract", "https://api-contract.weex.com" },
@@ -389,6 +396,15 @@ public partial class weex : Exchange
                         { "capi/v3/allAlgoOrders", new Dictionary<string, object>() {
                             { "cost", 10 },
                         } },
+                        { "capi/v3/sim/balance", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "capi/v3/sim/position/allPosition", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "capi/v3/sim/order/history", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "capi/v3/account/income", new Dictionary<string, object>() {
@@ -422,6 +438,9 @@ public partial class weex : Exchange
                             { "cost", 5 },
                         } },
                         { "capi/v3/modifyTpSlOrder", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "capi/v3/sim/order", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                     } },
@@ -683,7 +702,7 @@ public partial class weex : Exchange
                     } },
                 } },
                 { "forDerivs", new Dictionary<string, object>() {
-                    { "sandbox", false },
+                    { "sandbox", true },
                     { "createOrder", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "triggerPrice", false },
@@ -1306,10 +1325,14 @@ public partial class weex : Exchange
     public async override Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true, true);
         object market = this.getMarketFromSymbols(symbols);
         object marketType = null;
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object response = null;
@@ -1324,7 +1347,16 @@ public partial class weex : Exchange
         {
             response = new List<object>() {response};
         }
-        return this.parseTickers(response, symbols);
+        object results = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object rawTicker = getValue(response, i);
+            // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
+            object marketId = this.safeString(rawTicker, "symbol");
+            object tickerMarket = this.safeMarket(marketId, null, null, marketType);
+            ((IList<object>)results).Add(this.parseTicker(rawTicker, tickerMarket));
+        }
+        return this.filterByArrayTickers(results, "symbol", symbols);
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -1367,11 +1399,33 @@ public partial class weex : Exchange
         //         "indexPrice": "2082.75"
         //     }
         //
+        // fetchMarkPrice (markPrice or indexPrice is copied from the raw 'price' field by fetchMarkPrice before parsing, depending on the requested priceType)
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "price": "1929.18",
+        //         "markPrice": "1929.18",
+        //         "time": 1786347445044
+        //     }
+        //
+        // fetchMarkPrices
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "markPrice": "1929.88",
+        //         "indexPrice": "1930.15",
+        //         "forecastFundingRate": "0.00003489",
+        //         "lastFundingRate": "0.00004879",
+        //         "interestRate": "0.001",
+        //         "nextFundingTime": 1786348800000,
+        //         "time": 1786347284100,
+        //         "collectCycle": 480
+        //     }
+        //
         object marketId = this.safeString(ticker, "symbol");
         object markPrice = this.safeString(ticker, "markPrice");
         object marketType = "spot";
-        if (isTrue(!isEqual(markPrice, null)))
+        if (isTrue(isTrue((!isEqual(markPrice, null))) || isTrue((isTrue((!isEqual(market, null))) && isTrue(getValue(market, "contract"))))))
         {
+            // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = "swap";
         }
         market = this.safeMarket(marketId, market, null, marketType);
@@ -1401,6 +1455,150 @@ public partial class weex : Exchange
             { "indexPrice", this.safeString(ticker, "indexPrice") },
             { "info", ticker },
         }, market);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchLastPrices
+     * @description fetches the last price for multiple markets
+     * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetTickerInfo
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the last prices for, all spot markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of lastprice structures
+     */
+    public async override Task<object> fetchLastPrices(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols, null, true, true);
+        object market = this.getMarketFromSymbols(symbols);
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        if (isTrue(!isEqual(type, "spot")))
+        {
+            throw new NotSupported ((string)add(this.id, " fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets")) ;
+        }
+        object response = await this.publicGetApiV3MarketTickerPrice(parameters);
+        //
+        //     [
+        //         {
+        //             "symbol": "ETHUSDT",
+        //             "price": "1929.67"
+        //         }
+        //     ]
+        //
+        return this.parseLastPrices(response, symbols);
+    }
+
+    public override object parseLastPrice(object entry, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "price": "1929.67"
+        //     }
+        //
+        object marketId = this.safeString(entry, "symbol");
+        market = this.safeMarket(marketId, market, null, "spot");
+        return new Dictionary<string, object>() {
+            { "symbol", getValue(market, "symbol") },
+            { "timestamp", null },
+            { "datetime", null },
+            { "price", this.safeNumberOmitZero(entry, "price") },
+            { "side", null },
+            { "info", entry },
+        };
+    }
+
+    /**
+     * @method
+     * @name weex#fetchMarkPrice
+     * @description fetches mark price for the market
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetSymbolPrice
+     * @param {string} symbol unified symbol of the market to fetch the mark price for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the ticker
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<object> fetchMarkPrice(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "contract")))
+        {
+            throw new NotSupported ((string)add(this.id, " fetchMarkPrice() supports contract markets only")) ;
+        }
+        object priceType = null;
+        var priceTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchMarkPrice", "priceType", "MARK");
+        priceType = ((IList<object>)priceTypeparametersVariable)[0];
+        parameters = ((IList<object>)priceTypeparametersVariable)[1]; // the endpoint defaults to INDEX
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "priceType", priceType },
+        };
+        object response = await this.contractGetCapiV3MarketSymbolPrice(this.extend(request, parameters));
+        //
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "price": "1929.18",
+        //         "time": 1786347445044
+        //     }
+        //
+        // normalize here instead of falling back to 'price' in parseTicker, so a bare 'price' field in other payloads can never silently become the mark price
+        object ticker = this.extend(new Dictionary<string, object>() {}, response);
+        if (isTrue(isEqual(priceType, "INDEX")))
+        {
+            ((IDictionary<string,object>)ticker)["indexPrice"] = this.safeString(ticker, "price");
+        } else
+        {
+            ((IDictionary<string,object>)ticker)["markPrice"] = this.safeString(ticker, "price");
+        }
+        return this.parseTicker(ticker, market);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchMarkPrices
+     * @description fetches mark prices for multiple markets
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the mark prices for, all contract markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols, "swap"); // reject non-contract symbols instead of silently filtering the result to an empty dict
+        object response = await this.contractGetCapiV3MarketPremiumIndex(parameters);
+        //
+        //     [
+        //         {
+        //             "symbol": "ETHUSDT",
+        //             "markPrice": "1929.88",
+        //             "indexPrice": "1930.15",
+        //             "forecastFundingRate": "0.00003489",
+        //             "lastFundingRate": "0.00004879",
+        //             "interestRate": "0.001",
+        //             "nextFundingTime": 1786348800000,
+        //             "time": 1786347284100,
+        //             "collectCycle": 480
+        //         }
+        //     ]
+        //
+        return this.parseTickers(response, symbols);
     }
 
     /**
@@ -2009,21 +2207,32 @@ public partial class weex : Exchange
      * @name weex#fetchBalance
      * @see https://www.weex.com/api-doc/spot/AccountAPI/GetAccountBalance // spot
      * @see https://www.weex.com/api-doc/contract/Account_API/GetAccountBalance // contract
+     * @see https://www.weex.com/api-doc/contract/demo/GetAccountBalance // contract in sandbox mode
      * @description query for balance and get the amount of funds available for trading or funds locked in positions
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'spot' or 'swap' (default is 'spot')
+     * @param {string} [params.type] 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default)
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object requestedType = this.safeString(parameters, "type");
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
+        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        if (isTrue(isTrue(sandboxMode) && isTrue((isEqual(requestedType, null)))))
+        {
+            type = "swap"; // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
+        }
         object response = null;
         if (isTrue(isEqual(type, "spot")))
         {
+            if (isTrue(sandboxMode))
+            {
+                throw new NotSupported ((string)add(this.id, " fetchBalance() only supports the swap account in sandbox mode, use params[\"type\"] = \"swap\"")) ;
+            }
             //
             //     {
             //         "makerCommission": 0,
@@ -2056,7 +2265,7 @@ public partial class weex : Exchange
             //
             //     [
             //         {
-            //             "asset": "USDT",
+            //             "asset": "USDT", // SUSDT in sandbox mode
             //             "balance": "20.00000000",
             //             "availableBalance": "20.00000000",
             //             "frozen": "0",
@@ -2064,7 +2273,13 @@ public partial class weex : Exchange
             //         }
             //     ]
             //
-            response = await this.contractPrivateGetCapiV3AccountBalance(parameters);
+            if (isTrue(sandboxMode))
+            {
+                response = await ((Task<object>)callDynamically(this, "contractPrivateGetCapiV3SimBalance", new object[] { parameters }));
+            } else
+            {
+                response = await this.contractPrivateGetCapiV3AccountBalance(parameters);
+            }
         }
         return this.parseBalance(response);
     }
@@ -2074,12 +2289,17 @@ public partial class weex : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
+        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object balances = this.safeList(response, "balances", response);
         for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object entry = this.safeDict(balances, i);
-            object id = this.safeString(entry, "asset");
-            object code = this.safeCurrencyCode(id);
+            object currencyId = this.safeString(entry, "asset");
+            if (isTrue(isTrue(sandboxMode) && isTrue((isEqual(currencyId, "SUSDT")))))
+            {
+                currencyId = "USDT"; // demo trading balances are denominated in the demo asset SUSDT
+            }
+            object code = this.safeCurrencyCode(currencyId);
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString2(entry, "availableBalance", "free");
             ((IDictionary<string,object>)account)["used"] = this.safeString2(entry, "frozen", "locked");
@@ -2190,6 +2410,7 @@ public partial class weex : Exchange
      * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder // contract
      * @see https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder // contract trigger
      * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceTpSlOrder // contract take profit / stop loss
+     * @see https://www.weex.com/api-doc/contract/demo/PlaceOrder // contract in sandbox mode
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
@@ -2212,6 +2433,11 @@ public partial class weex : Exchange
             return await this.createContractOrder(symbol, type, side, amount, price, parameters);
         } else
         {
+            object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            if (isTrue(sandboxMode))
+            {
+                throw new NotSupported ((string)add(this.id, " createOrder() only supports swap markets in sandbox mode")) ;
+            }
             return await this.createSpotOrder(symbol, type, side, amount, price, parameters);
         }
     }
@@ -2300,6 +2526,7 @@ public partial class weex : Exchange
      * @description helper method for creating contract orders
      * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder
      * @see https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder
+     * @see https://www.weex.com/api-doc/contract/demo/PlaceOrder // sandbox mode
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
@@ -2331,10 +2558,18 @@ public partial class weex : Exchange
         object market = this.market(symbol);
         object request = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
         object triggerPrice = this.safeString(request, "triggerPrice");
+        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object response = null;
         if (isTrue(!isEqual(triggerPrice, null)))
         {
+            if (isTrue(sandboxMode))
+            {
+                throw new NotSupported ((string)add(this.id, " createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode")) ;
+            }
             response = await this.contractPrivatePostCapiV3AlgoOrder(request);
+        } else if (isTrue(sandboxMode))
+        {
+            response = await ((Task<object>)callDynamically(this, "contractPrivatePostCapiV3SimOrder", new object[] { request }));
         } else
         {
             response = await this.contractPrivatePostCapiV3Order(request);
@@ -2363,7 +2598,7 @@ public partial class weex : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " createContractOrderRequest() requires a side argument")) ;
         }
         object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", this.toSandboxMarketId(market) },
             { "side", ((string)side).ToUpper() },
             { "quantity", this.amountToPrecision(symbol, amount) },
             { "type", ((string)type).ToUpper() },
@@ -2955,6 +3190,7 @@ public partial class weex : Exchange
      * @description fetches information on multiple closed orders made by the user
      * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
      * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+     * @see https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3000,6 +3236,7 @@ public partial class weex : Exchange
      * @description fetches information on multiple canceled orders made by the user
      * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
      * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+     * @see https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3120,6 +3357,7 @@ public partial class weex : Exchange
      * @name weex#fetchCanceledAndClosedOrders
      * @description fetches information on multiple closed and canceled orders made by the user
      * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+     * @see https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
      * @param {string} [symbol] unified market symbol of the market orders were made in (required for spot orders)
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3142,7 +3380,7 @@ public partial class weex : Exchange
             market = this.market(symbol);
         }
         object marketType = null;
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (isTrue(isEqual(marketType, "spot")))
@@ -3150,18 +3388,18 @@ public partial class weex : Exchange
             throw new NotSupported ((string)add(this.id, " fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status \"canceled\" or \"closed\"")) ;
         }
         object paginate = false;
-        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate", false);
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         object maxLimit = 1000;
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters, maxLimit);
+            return await this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, parameters, maxLimit);
         }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
-            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.toSandboxMarketId(market);
         }
         if (isTrue(!isEqual(since, null)))
         {
@@ -3174,7 +3412,15 @@ public partial class weex : Exchange
         var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object response = await this.contractPrivateGetCapiV3OrderHistory(this.extend(request, parameters));
+        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        object response = null;
+        if (isTrue(sandboxMode))
+        {
+            response = await ((Task<object>)callDynamically(this, "contractPrivateGetCapiV3SimOrderHistory", new object[] { this.extend(request, parameters) }));
+        } else
+        {
+            response = await this.contractPrivateGetCapiV3OrderHistory(this.extend(request, parameters));
+        }
         //
         //     [
         //         {
@@ -3312,7 +3558,7 @@ public partial class weex : Exchange
         }
         if (isTrue(isEqual(market, null)))
         {
-            object marketId = this.safeString(order, "symbol");
+            object marketId = this.fromSandboxMarketId(this.safeString(order, "symbol"));
             object positionSide = this.safeString(order, "positionSide");
             object marketType = ((bool) isTrue((isEqual(positionSide, null)))) ? "spot" : "swap";
             market = this.safeMarket(marketId, null, null, marketType);
@@ -3765,6 +4011,7 @@ public partial class weex : Exchange
      * @name weex#fetchPositions
      * @description fetch all open positions
      * @see https://www.weex.com/api-doc/contract/Account_API/GetAllPositions
+     * @see https://www.weex.com/api-doc/contract/demo/GetAllPositions // sandbox mode
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -3777,7 +4024,15 @@ public partial class weex : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object response = await this.contractPrivateGetCapiV3AccountPositionAllPosition(parameters);
+        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        object response = null;
+        if (isTrue(sandboxMode))
+        {
+            response = await ((Task<object>)callDynamically(this, "contractPrivateGetCapiV3SimPositionAllPosition", new object[] { parameters }));
+        } else
+        {
+            response = await this.contractPrivateGetCapiV3AccountPositionAllPosition(parameters);
+        }
         return this.parsePositions(response, symbols);
     }
 
@@ -3815,6 +4070,12 @@ public partial class weex : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        if (isTrue(sandboxMode))
+        {
+            // the demo trading API does not provide a single-position endpoint
+            return await this.fetchPositions(new List<object>() {getValue(market, "symbol")}, parameters);
+        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
@@ -3893,7 +4154,7 @@ public partial class weex : Exchange
         {
             this.handleOrderOrPositionError(errorCode, errorMessage, position);
         }
-        object marketId = this.safeString2(position, "symbol", "coinId"); // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
+        object marketId = this.fromSandboxMarketId(this.safeString2(position, "symbol", "coinId")); // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
         market = this.safeMarket(marketId, market, null, "contract");
         object timestamp = this.safeInteger(position, "createdTime");
         object marginType = this.safeString2(position, "marginType", "marginMode");
@@ -4461,6 +4722,59 @@ public partial class weex : Exchange
         return await this.modifyMarginHelper(symbol, amount, 1, parameters);
     }
 
+    /**
+     * @method
+     * @ignore
+     * @name weex#toSandboxMarketId
+     * @description get the market id to send in a request, converting to the demo-trading market id (e.g. BTCSUSDT) when sandbox mode is enabled, only valid for USDT-margined linear markets which is all the demo environment provides
+     * @param {object} market a unified market structure
+     * @returns {string} the market id for the request
+     */
+    public virtual object toSandboxMarketId(object market)
+    {
+        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        object baseId = this.safeString(market, "baseId");
+        if (isTrue(isTrue(sandboxMode) && isTrue((!isEqual(baseId, null)))))
+        {
+            // demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
+            return add(baseId, "SUSDT");
+        }
+        return this.safeString(market, "id");
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name weex#fromSandboxMarketId
+     * @description convert a demo-trading market id (e.g. BTCSUSDT) from a response back into the live market id (e.g. BTCUSDT) when sandbox mode is enabled
+     * @param {string} [marketId] a market id from an exchange response
+     * @returns {string} the live market id
+     */
+    public virtual object fromSandboxMarketId(object marketId)
+    {
+        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        if (isTrue(!isTrue(sandboxMode) || isTrue((isEqual(marketId, null)))))
+        {
+            return marketId;
+        }
+        if (isTrue(isTrue((!isEqual(this.markets_by_id, null))) && isTrue((inOp(this.markets_by_id, marketId)))))
+        {
+            return marketId;  // a live market id, not a demo one
+        }
+        if (isTrue(((string)marketId).EndsWith(((string)"SUSDT"))))
+        {
+            object baseLength = subtract(((string)marketId).Length, 5);
+            return add(slice(marketId, 0, baseLength), "USDT");
+        }
+        return marketId;
+    }
+
+    public override void setSandboxMode(object enable)
+    {
+        base.setSandboxMode(enable);
+        ((IDictionary<string,object>)this.options)["sandboxMode"] = enable;
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
@@ -4478,6 +4792,11 @@ public partial class weex : Exchange
         }
         if (isTrue(isTrue((isEqual(api, "private"))) || isTrue((isEqual(api, "contractPrivate")))))
         {
+            object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            if (isTrue(isTrue(sandboxMode) && isTrue((!isEqual(getIndexOf(path, "capi/v3/sim/"), 0)))))
+            {
+                throw new NotSupported ((string)add(add(add(this.id, " "), path), " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;
+            }
             this.checkRequiredCredentials();
             object timestamp = this.numberToString(this.nonce());
             object payload = add(add(add(timestamp, method), "/"), endpoint);

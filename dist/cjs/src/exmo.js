@@ -36,6 +36,7 @@ class exmo extends exmo$1["default"] {
                 'createMarketBuyOrder': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': true,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -2200,7 +2201,7 @@ class exmo extends exmo$1["default"] {
             await this.loadMarkets();
         }
         let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('fetchOrders', params);
+        [marginMode, params] = this.handleMarginModeAndParams('fetchCanceledOrders', params);
         if (marginMode === 'cross') {
             throw new errors.BadRequest(this.id + ' only supports isolated margin');
         }

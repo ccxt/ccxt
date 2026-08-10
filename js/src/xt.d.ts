@@ -530,6 +530,19 @@ export default class xt extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    /**
+     * @method
+     * @name xt#fetchPositionsHistory
+     * @description fetches historical closed positions
+     * @see https://doc.xt.com/docs/futures/Entrust/GetPositionHistory
+     * @param {string[]} [symbols] unified market symbols, all closed positions are returned if not assigned
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum amount of records to fetch, default=10
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest position to fetch
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     parsePosition(position: any, market?: Market): Position;
     /**
      * @method

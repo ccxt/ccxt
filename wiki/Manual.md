@@ -5128,7 +5128,8 @@ Returns
 
 The `timestamp` and `datetime` values may be undefined or missing if the underlying exchange does not provide them.
 
-Some exchanges may not return full balance info. Many exchanges do not return balances for your empty or unused accounts. In that case some currencies may be missing in returned balance structure.
+Some exchanges may not return full balance info. Many exchanges do not return balances for your empty or unused accounts. In that case some currencies may be missing in returned balance structure. Top-level keys can be absent or `undefined` as well when the exchange does not provide them: `timestamp` and `datetime` are frequently `undefined` (many balance endpoints are not timestamped), and `debt` only appears on margin-capable exchanges that report outstanding loans. Always guard access to these fields.
+
 <!-- tabs:start -->
 #### **Javascript**
 ```javascript

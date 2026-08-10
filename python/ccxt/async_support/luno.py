@@ -238,10 +238,51 @@ class luno(Exchange, ImplicitAPI):
             },
             'fees': {
                 'trading': {
+                    # Luno prices by PAIR CATEGORY 30-day volume tier:
+                    # crypto/fiat, stablecoin/fiat and crypto/crypto each have their own
+                    # ladder, and the maker side is a charge in one category and a rebate
+                    # in another at the same tier. A single scalar cannot represent that,
+                    # so per-market 'taker'/'maker' are set in fetchMarkets where the
+                    # published schedule has been verified. The values below are the
+                    # exchange-wide fallback: crypto/fiat at the entry tier, which is the
+                    # dearest cell in the table and therefore the safe direction to quote
+                    # for a caller who cannot reach the authenticated fetchTradingFee.
                     'tierBased': True,  # based on volume from your primary currency(not the same for everyone)
                     'percentage': True,
-                    'taker': self.parse_number('0.001'),
-                    'maker': self.parse_number('0'),
+                    'taker': self.parse_number('0.006'),
+                    'maker': self.parse_number('0.004'),
+                    'tiers': {
+                        'taker': [
+                            [self.parse_number('0'), self.parse_number('0.006')],
+                            [self.parse_number('20000'), self.parse_number('0.005')],
+                            [self.parse_number('200000'), self.parse_number('0.004')],
+                            [self.parse_number('1000000'), self.parse_number('0.003')],
+                            [self.parse_number('2000000'), self.parse_number('0.002')],
+                            [self.parse_number('5000000'), self.parse_number('0.0015')],
+                            [self.parse_number('10000000'), self.parse_number('0.001')],
+                            [self.parse_number('20000000'), self.parse_number('0.0009')],
+                            [self.parse_number('40000000'), self.parse_number('0.0008')],
+                            [self.parse_number('80000000'), self.parse_number('0.0007')],
+                            [self.parse_number('120000000'), self.parse_number('0.0006')],
+                            [self.parse_number('160000000'), self.parse_number('0.0005')],
+                            [self.parse_number('300000000'), self.parse_number('0.0005')],
+                        ],
+                        'maker': [
+                            [self.parse_number('0'), self.parse_number('0.004')],
+                            [self.parse_number('20000'), self.parse_number('0.003')],
+                            [self.parse_number('200000'), self.parse_number('0.002')],
+                            [self.parse_number('1000000'), self.parse_number('0.001')],
+                            [self.parse_number('2000000'), self.parse_number('0.0008')],
+                            [self.parse_number('5000000'), self.parse_number('0.0006')],
+                            [self.parse_number('10000000'), self.parse_number('0')],
+                            [self.parse_number('20000000'), self.parse_number('0')],
+                            [self.parse_number('40000000'), self.parse_number('-0.0001')],
+                            [self.parse_number('80000000'), self.parse_number('-0.0001')],
+                            [self.parse_number('120000000'), self.parse_number('-0.0002')],
+                            [self.parse_number('160000000'), self.parse_number('-0.0002')],
+                            [self.parse_number('300000000'), self.parse_number('-0.0002')],
+                        ],
+                    },
                 },
             },
             'exceptions': {
@@ -548,9 +589,35 @@ class luno(Exchange, ImplicitAPI):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             status = self.safe_string(market, 'trading_status')
+            # Luno's published schedule is categorical, not a single pair. Entry-tier
+            # rates below are read from Luno's own Help Centre fee article for the ZAR
+            # market; markets quoted in other fiat currencies are left on the
+            # exchange-wide default until their schedules are verified the same way.
+            fiats = ['ZAR']
+            # live-but-unverified counters, kept on the exchange-wide default; the market
+            # list is geo-filtered so self is a superset of any one region's view, and
+            # ZARU is Luno's tokenized rand("ZAR Universal"), not fiat, but equally unverified
+            unverifiedQuotes = ['MYR', 'NGN', 'IDR', 'KES', 'UGX', 'AUD', 'GBP', 'EUR', 'USD', 'ZARU']
+            stablecoins = ['USDT', 'USDC']
+            taker = None
+            maker = None
+            if self.in_array(quote, fiats):
+                if self.in_array(base, stablecoins):
+                    taker = self.parse_number('0.002')
+                    maker = self.parse_number('-0.0001')  # a rebate, not a charge
+                else:
+                    taker = self.parse_number('0.006')
+                    maker = self.parse_number('0.004')
+            elif not self.in_array(quote, unverifiedQuotes):
+                # stablecoin-quoted(BTC/USDT) and crypto-quoted(ETH/BTC, SOL/ADA) books
+                # are both in Luno's crypto/crypto column
+                taker = self.parse_number('0.001')
+                maker = self.parse_number('0.0008')
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
+                'taker': taker,
+                'maker': maker,
                 'base': base,
                 'quote': quote,
                 'settle': None,

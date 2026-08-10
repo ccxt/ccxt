@@ -9,7 +9,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, Inva
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { ecdsa, eddsa } from './base/functions/crypto.js';
-import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, Position, NullableDict, FeeString, Status, Endpoint, List } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, Position, NullableDict, FeeString, Status, Endpoint, List } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -52,6 +52,7 @@ export default class woofipro extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': false,
@@ -62,6 +63,7 @@ export default class woofipro extends Exchange {
                 'createTrailingAmountOrder': false,
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': true,
+                'editOrder': true,
                 'fetchAccounts': false,
                 'fetchAllGreeks': false,
                 'fetchBalance': true,
@@ -114,8 +116,8 @@ export default class woofipro extends Exchange {
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
-                'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
@@ -1027,6 +1029,154 @@ export default class woofipro extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const rows = this.safeList (data, 'rows', []);
         return this.parseFundingRates (rows, symbols);
+    }
+
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "sum_unitary_funding": 26522.3,
+        //         "est_funding_rate": 0.0001,
+        //         "last_funding_rate": 0.00010041,
+        //         "next_funding_time": 1786032000000,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        //
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (ticker, 'timestamp');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, '24h_high'),
+            'low': this.safeString (ticker, '24h_low'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeString (ticker, '24h_open'),
+            'close': this.safeString (ticker, '24h_close'),
+            'last': this.safeString (ticker, '24h_close'),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, '24h_volume'),
+            'quoteVolume': this.safeString (ticker, '24h_amount'),
+            'indexPrice': this.safeString (ticker, 'index_price'),
+            'markPrice': this.safeString (ticker, 'mark_price'),
+            'info': ticker,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1PublicGetPublicFuturesSymbol (this.extend (request, params));
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "sum_unitary_funding": 26522.3,
+        //         "est_funding_rate": 0.0001,
+        //         "last_funding_rate": 0.00010041,
+        //         "next_funding_time": 1786032000000,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        // }
+        //
+        const data = this.safeDict (response, 'data', {});
+        data['timestamp'] = this.safeInteger (response, 'timestamp');
+        return this.parseTicker (data, market);
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        symbols = this.marketSymbols (symbols);
+        const response = await this.v1PublicGetPublicFutures (params);
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "rows": [{
+        //             "symbol": "PERP_BTC_USDC",
+        //             "index_price": 64185.4,
+        //             "mark_price": 64171.0,
+        //             "sum_unitary_funding": 26522.3,
+        //             "est_funding_rate": 0.0001,
+        //             "last_funding_rate": 0.00010041,
+        //             "next_funding_time": 1786032000000,
+        //             "open_interest": 110.64612,
+        //             "24h_open": 64105.6,
+        //             "24h_close": 64180.0,
+        //             "24h_high": 64941.0,
+        //             "24h_low": 63837.6,
+        //             "24h_volume": 102.2817,
+        //             "24h_amount": 6595662.199482
+        //         }]
+        //     }
+        // }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
+        const timestamp = this.safeInteger (response, 'timestamp');
+        const result = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const marketId = this.safeString (row, 'symbol', '');
+            if ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id)) {
+                continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            }
+            const ticker = this.extend ({ 'timestamp': timestamp }, row);
+            result.push (this.parseTicker (ticker));
+        }
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     /**

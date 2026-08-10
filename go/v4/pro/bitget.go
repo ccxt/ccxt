@@ -514,7 +514,7 @@ func (this *BitgetCore) WatchBidsAsks(optionalArgs ...any) <-chan any {
 		var market any = this.Market(ccxt.GetValue(symbols, 0))
 		var instType any = nil
 		var uta any = nil
-		utaparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "uta", false)
+		utaparamsVariable := this.HandleOptionAndParams(params, "watchBidsAsks", "uta", false)
 		uta = ccxt.GetValue(utaparamsVariable, 0)
 		params = ccxt.GetValue(utaparamsVariable, 1)
 		instTypeparamsVariable := this.GetInstType("watchBidsAsks", market, uta, params)

@@ -11,6 +11,9 @@
 * [fetchMarkets](#fetchmarkets)
 * [fetchTickers](#fetchtickers)
 * [fetchBidsAsks](#fetchbidsasks)
+* [fetchLastPrices](#fetchlastprices)
+* [fetchMarkPrice](#fetchmarkprice)
+* [fetchMarkPrices](#fetchmarkprices)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchTrades](#fetchtrades)
@@ -217,6 +220,70 @@ weex.fetchBidsAsks (symbols, params?)
 ```
 
 
+<a name="fetchLastPrices" id="fetchlastprices"></a>
+
+### fetchLastPrices{docsify-ignore}
+fetches the last price for multiple markets
+
+**Kind**: instance method of [<code>weex</code>](#weex)  
+**Returns**: <code>object</code> - a dictionary of lastprice structures
+
+**See**: https://www.weex.com/api-doc/spot/MarketDataAPI/GetTickerInfo  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the last prices for, all spot markets are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+weex.fetchLastPrices (symbols?, params?)
+```
+
+
+<a name="fetchMarkPrice" id="fetchmarkprice"></a>
+
+### fetchMarkPrice{docsify-ignore}
+fetches mark price for the market
+
+**Kind**: instance method of [<code>weex</code>](#weex)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://www.weex.com/api-doc/contract/Market_API/GetSymbolPrice  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the mark price for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.priceType | <code>string</code> | No | "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the ticker |
+
+
+```javascript
+weex.fetchMarkPrice (symbol, params?)
+```
+
+
+<a name="fetchMarkPrices" id="fetchmarkprices"></a>
+
+### fetchMarkPrices{docsify-ignore}
+fetches mark prices for multiple markets
+
+**Kind**: instance method of [<code>weex</code>](#weex)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the mark prices for, all contract markets are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+weex.fetchMarkPrices (symbols?, params?)
+```
+
+
 <a name="fetchOrderBook" id="fetchorderbook"></a>
 
 ### fetchOrderBook{docsify-ignore}
@@ -380,12 +447,13 @@ query for balance and get the amount of funds available for trading or funds loc
 
 - https://www.weex.com/api-doc/spot/AccountAPI/GetAccountBalance // spot
 - https://www.weex.com/api-doc/contract/Account_API/GetAccountBalance // contract
+- https://www.weex.com/api-doc/contract/demo/GetAccountBalance // contract in sandbox mode
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.type | <code>string</code> | No | 'spot' or 'swap' (default is 'spot') |
+| params.type | <code>string</code> | No | 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default) |
 
 
 ```javascript
@@ -431,6 +499,7 @@ Create an order on the exchange
 - https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder // contract
 - https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder // contract trigger
 - https://www.weex.com/api-doc/contract/Transaction_API/PlaceTpSlOrder // contract take profit / stop loss
+- https://www.weex.com/api-doc/contract/demo/PlaceOrder // contract in sandbox mode
 
 
 | Param | Type | Required | Description |
@@ -487,6 +556,7 @@ helper method for creating contract orders
 
 - https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder
 - https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder
+- https://www.weex.com/api-doc/contract/demo/PlaceOrder // sandbox mode
 
 
 | Param | Type | Required | Description |
@@ -672,6 +742,7 @@ fetches information on multiple closed orders made by the user
 
 - https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
 - https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+- https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
 
 
 | Param | Type | Required | Description |
@@ -701,6 +772,7 @@ fetches information on multiple canceled orders made by the user
 
 - https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
 - https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+- https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
 
 
 | Param | Type | Required | Description |
@@ -751,7 +823,11 @@ fetches information on multiple closed and canceled orders made by the user
 **Kind**: instance method of [<code>weex</code>](#weex)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract  
+**See**
+
+- https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+- https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -865,7 +941,11 @@ fetch all open positions
 **Kind**: instance method of [<code>weex</code>](#weex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://www.weex.com/api-doc/contract/Account_API/GetAllPositions  
+**See**
+
+- https://www.weex.com/api-doc/contract/Account_API/GetAllPositions
+- https://www.weex.com/api-doc/contract/demo/GetAllPositions // sandbox mode
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
