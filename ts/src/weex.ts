@@ -1270,7 +1270,7 @@ export default class weex extends Exchange {
         //         "indexPrice": "2082.75"
         //     }
         //
-        // fetchMarkPrice (markPrice is copied from the raw 'price' field by fetchMarkPrice before parsing)
+        // fetchMarkPrice (markPrice or indexPrice is copied from the raw 'price' field by fetchMarkPrice before parsing, depending on the requested priceType)
         //     {
         //         "symbol": "ETHUSDT",
         //         "price": "1929.18",
@@ -1385,7 +1385,7 @@ export default class weex extends Exchange {
      * @see https://www.weex.com/api-doc/contract/Market_API/GetSymbolPrice
      * @param {string} symbol unified symbol of the market to fetch the mark price for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.priceType] "MARK" (default) or "INDEX"
+     * @param {string} [params.priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the ticker
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async fetchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
@@ -1396,9 +1396,11 @@ export default class weex extends Exchange {
         if (!market['contract']) {
             throw new NotSupported (this.id + ' fetchMarkPrice() supports contract markets only');
         }
+        let priceType: Str = undefined;
+        [ priceType, params ] = this.handleOptionAndParams (params, 'fetchMarkPrice', 'priceType', 'MARK'); // the endpoint defaults to INDEX
         const request: Dict = {
             'symbol': market['id'],
-            'priceType': 'MARK', // the endpoint defaults to INDEX
+            'priceType': priceType,
         };
         const response = await this.contractGetCapiV3MarketSymbolPrice (this.extend (request, params));
         //
@@ -1410,7 +1412,11 @@ export default class weex extends Exchange {
         //
         // normalize here instead of falling back to 'price' in parseTicker, so a bare 'price' field in other payloads can never silently become the mark price
         const ticker: Dict = this.extend ({}, response);
-        ticker['markPrice'] = this.safeString (ticker, 'price');
+        if (priceType === 'INDEX') {
+            ticker['indexPrice'] = this.safeString (ticker, 'price');
+        } else {
+            ticker['markPrice'] = this.safeString (ticker, 'price');
+        }
         return this.parseTicker (ticker, market);
     }
 
