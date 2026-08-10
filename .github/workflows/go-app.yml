@@ -208,7 +208,7 @@ jobs:
 
   live-tests:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, linux, x64, go ]
     steps:
       - uses: actions/checkout@v5
         with:
