@@ -1210,7 +1210,7 @@ fetch all open positions
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols, the exchange filters server-side when exactly one symbol is provided |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -1344,7 +1344,7 @@ fetches the auto deleveraging rank and risk percentage for a list of symbols
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols, the exchange filters server-side when exactly one symbol is provided |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
