@@ -2032,7 +2032,7 @@ export class BaseExchange {
     }
 
     isDictionary (value: any): boolean {
-        return (value !== undefined) && (typeof value === 'object') && !Array.isArray (value);
+        return (value !== undefined) && (value !== null) && (typeof value === 'object') && !Array.isArray (value);
     }
 
     exceptionMessage (exc: any, includeStack: boolean = true): string {
