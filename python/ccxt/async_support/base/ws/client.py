@@ -391,12 +391,15 @@ class Client(object):
         await self.aiohttp_close()
 
     async def aiohttp_close(self):
-        if not self.closed():
-            await self.connection.close()
-        # these will end automatically once self.closed() = True
-        # so we don't need to cancel them
+        # cancel the keepalive before closing the transport, matching the php
+        # client's teardown ordering, otherwise a ping tick during the close
+        # await writes into the closing transport and raises out of the ping
+        # task as unretrieved noise, see
+        # https://github.com/ccxt/ccxt/issues/22075
         if self.ping_looper:
             self.ping_looper.cancel()
+        if not self.closed():
+            await self.connection.close()
 
     async def ping_loop(self):
         if self.verbose:
@@ -422,4 +425,14 @@ class Client(object):
                     except Exception as e:
                         self.on_error(e)
                 else:
-                    await self.connection.ping()
+                    try:
+                        await self.connection.ping()
+                    except Exception as e:
+                        # the transport can enter closing between the loop
+                        # condition and the write, a server initiated close or
+                        # a network drop, which raised out of the ping task as
+                        # unretrieved noise, see
+                        # https://github.com/ccxt/ccxt/issues/22075
+                        if not self.closed():
+                            self.on_error(e)
+                        return
