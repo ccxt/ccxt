@@ -1433,7 +1433,7 @@ export default class weex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        symbols = this.marketSymbols (symbols, 'swap'); // reject non-contract symbols instead of silently filtering the result to an empty dict
         const response = await this.contractGetCapiV3MarketPremiumIndex (params);
         //
         //     [
