@@ -161,6 +161,31 @@ Milestone 5 — Docs and CI
   be re-run here (missing `ast-transpiler` source), so the generated
   `.jl` files are NOT hand-patched; fix belongs in `build/juliaTranspiler.ts`.
 
+- **Differential parse audit (83 exchanges × 1384 fixtures vs JS-reference).**
+  Drove the shipped transpiled parsers against recorded `response` fixtures,
+  comparing field-by-field to the TS `parsedResponse`. The 5 committed
+  exchanges (binance/bybit/okx/kraken/coinbase) show **0 mismatches** — proving
+  the harness faithful. 24/83 exchanges are fully clean. 604 divergences remain,
+  root-caused to 4 categories: (1) `utf8encode` arity — `BaseMethods.jl:760`
+  aliases `TextEncoder().encode()` to the 1-arg `functions.utf8encode`, but
+  callers pass extra positional args (`MethodError`); (2) `eddsa` undefined —
+  `ts/src/base/functions/crypto.ts:172` `eddsa(req,secret,curve)` is used by
+  backpack/modetrade/pro-binance but never ported into `functions.jl`
+  (`UndefVarError`); (3) `BadSymbol` from fixtures using symbols absent from
+  the loaded markets file; (4) `N/A` strict `Float64` parse. (1) and (2) are
+  genuine Julia runtime/transpiler gaps; fixing them needs the generator /
+  regenerator (unavailable here), so they are reported, not patched. Evidence:
+  `{SCRATCH}/diff_parse_audit.log` + `diff_parse_evidence.md`.
+
+- **Live public-endpoint integration test added (`test/groups/live_public.jl`).**
+  Drives loadMarkets/fetchTicker/fetchOHLCV/fetchOrderBook for 8 verified
+  majors on the **real network** (no keys, no funds). Asserts structure only;
+  skips honestly when offline. 96/96 assertions pass live; registered in
+  `runtests.jl` and part of the full `all` run. This is the strongest
+  automatable proof the transpiled package "works" and the practical
+  substitute for the key-gated authenticated sandbox step (blocked on human
+  testnet registration).
+
 Milestone 6 — Repackage Python test harness
 
 - Keep tests_impl.py compatible so tests_init.py can rerun or reselect the same harness file repeatedly, minimizing the residual risk of traffic/selectivity issues during full coverage runs like binance.
