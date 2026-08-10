@@ -1,0 +1,227 @@
+---
+title: "How fast is CCXT in each of its six languages? We measured every layer"
+description: A like-for-like benchmark of CCXT across all six languages — JavaScript, Python, PHP, C#, Go, and Java. We instrument the library to separate network from processing, measure latency with the round-trip removed, benchmark raw parsing throughput and memory, and dig into why the two compiled languages end up the slowest.
+author: CCXT Team
+date: 2026-07-14T10:00:00Z
+tags: [engineering, performance, benchmark]
+---
+
+CCXT ships the *same* trading API from a single TypeScript source, transpiled into six
+languages. The obvious question: **does the language you pick change performance?** Is a PHP bot
+slower than a Go one? Does Python use more memory? Is a compiled language always the fastest?
+
+The answer has three layers, and they don't agree with each other. So we measured all three,
+across all six languages — JavaScript (Node), Python, PHP, C#, Go, and Java:
+
+1. **REST latency** — is a `fetchOrderBook` call slower in one language than another?
+2. **The library's own speed, with the network removed** — how fast does each language actually
+   *parse* an order book?
+3. **Memory** — how much does each runtime carry?
+
+The code is in the repo
+([`examples/benchmarks/`](https://github.com/ccxt/ccxt/tree/master/examples/benchmarks)) and
+you can reproduce every number.
+
+## 1. REST latency: it's the network, not the library
+
+Every CCXT request flows through two base methods: `fetch()` (the HTTP layer) and, inside it,
+`parseJson()` (JSON decode). We subclass the exchange and wrap those two methods so every call
+reports its own wire time and decode time — then `processing = total − network`. (Go has no
+dynamic dispatch, so it uses an opt-in `Profile` flag we added to the base `fetch`.) 60 calls ×
+3 runs against Coinbase `BTC/USD`, p50, with a connection warmup so nothing pays a cold start.
+
+Here's the same call, traced in each language on one shared log time axis:
+
+![One fetchOrderBook call traced in each language: nested spans on a shared log axis](/images/benchmarks/rest-trace-compare.png)
+
+In every language the library's own work — the orange and purple tails — is a **2–6 ms sliver on
+a ~40–200 ms network round-trip**. JavaScript, Python, and Go all land at ~41–45 ms total, which
+is just the wire.
+
+![Where REST latency goes: network round-trip vs CCXT processing, per language](/images/benchmarks/rest-trace-waterfall.png)
+
+**PHP is the outlier at ~205 ms — but its parse tail is 3.1 ms, same as everyone else.** The
+other ~200 ms is its ReactPHP HTTP client, which opens a fresh connection per request (no
+keep-alive pool), so it pays the TCP+TLS handshake every call — not order-book parsing. For REST,
+then, latency is the network; the language barely matters. (We instrumented four languages here;
+C# and Java call the same unified methods and are equally network-bound.)
+
+## 2. Latency with the network removed — where languages actually diverge
+
+The network hides everything interesting. So the second test removes it entirely: parse a
+synthetic 1,000-level order book — `parseJson` + `parseOrderBook`, the CPU-bound core of every
+response — in a tight offline loop, and measure how long one parse takes. This is your latency
+floor when the data is already in hand: backtesting on historical data, or replaying a deep book.
+
+![Parse latency with the network removed, all six languages](/images/benchmarks/load-parse-latency.png)
+
+Now the languages spread across **more than 6×**, and the order is not what "compiled vs
+interpreted" would predict:
+
+- **JavaScript and Java tie at the top (~0.44 ms each)** — their mature JITs turn the hot loop
+  into specialized machine code.
+- **PHP (1.67 ms)** sits in the middle.
+- **Python (2.20 ms), Go (2.62 ms), and C# (2.77 ms) cluster at the bottom** — and yes, that puts
+  the two *compiled* languages *below* interpreted Python.
+
+We also tried swapping Python's standard-library `json` for the fast Rust parser
+[`orjson`](https://github.com/ijl/orjson) — shown as its own row (`BENCH_ORJSON=1`). It shaves
+about 3% (2.20 → 2.13 ms) and no more: JSON decoding just isn't the bottleneck. The dominant cost
+is CCXT's unified `parseOrderBook`, which a faster byte-reader can't touch. The next section is
+why — and why the compiled languages land where they do.
+
+## 3. Why are the two compiled languages the slowest?
+
+This surprised us, so we dug into Go. The answer is not a measurement error — it's the
+transpilation model, and it's the same story for C#.
+
+Splitting Go's 2.63 ms parse: `parseJson` is 0.87 ms and `parseOrderBook` is 1.83 ms. Inside
+`parseOrderBook`, the cost is spread evenly across parsing each of the ~2,000 price levels — not
+one hot spot. The reason is that CCXT's Go mirrors JavaScript's *dynamic* semantics:
+
+- every price and amount is an `interface{}` box (Go's `any`), decoded via `json.UseNumber` plus
+  a recursive re-normalization pass;
+- every field read (`GetValue`), every append (`AppendToArray` on `*any`), and every number
+  coercion (`SafeFloat` → a type switch) is a generic, runtime-typed helper;
+- `SortBy`'s numeric comparator even calls `reflect.TypeOf(...).Kind()` on both operands of every
+  comparison — a latent cost that stays cheap only because live order books arrive pre-sorted.
+
+C# lands right next to Go (362 ops/s) because the AST transpiler emits the identical
+`object`-boxing pattern — and it uses no `dynamic`, so this is plain boxing and virtual dispatch.
+
+So why are Java and JavaScript ~6× faster on the *same* boxed, dynamic code? **Tracing/tiered
+JITs.** V8 and HotSpot watch the hot loop, specialize on the object shapes, and eliminate the
+boxing at runtime. Go's ahead-of-time compiler and .NET's JIT don't specialize this
+`any`/`object` pattern nearly as aggressively, so the boxing and type switches run on every
+iteration — which is how two compiled languages end up slower than interpreted Python and PHP.
+
+The number is real, and it's the deliberate tradeoff of one-source-of-truth transpilation: a
+hand-written Go parser using `[]float64` and `sort.Slice` would be an order of magnitude faster —
+but then it wouldn't be generated from the single TypeScript source that keeps all six languages
+in lockstep. For the network-bound REST path (§1) it costs nothing; for a tight parse loop, it's
+the whole story.
+
+| Language | Runtime | Parse latency | Throughput |
+|---|---|---|---|
+| JavaScript | Node 22 | 0.44 ms | 2,293 /s |
+| Java | OpenJDK 21 | 0.44 ms | 2,280 /s |
+| PHP | 8.4 | 1.67 ms | 598 /s |
+| Python (orjson) | 3.11 | 2.13 ms | 469 /s |
+| Python | 3.11 | 2.20 ms | 454 /s |
+| Go | 1.25 | 2.62 ms | 381 /s |
+| C# | .NET 8 | 2.77 ms | 362 /s |
+
+## 4. Memory
+
+Holding the parsed books plus the runtime baseline, peak resident memory splits by runtime, and
+the ranking flips again:
+
+![Peak memory under parsing load, all six languages](/images/benchmarks/load-memory.png)
+
+**JavaScript is leanest (425 MB)**; Go, Python, and C# cluster around 675–690 MB; PHP's
+associative arrays push it to 966 MB; and **Java's JVM, which reserves a large heap up front, is
+heaviest at ~1.8 GB**. That last figure is baseline-driven — a production JVM with a capped
+`-Xmx` would be far lower — but it's the honest OS footprint out of the box, and the reason the
+fastest parser is also the hungriest. If you run hundreds of instances per host, Node and Go keep
+the smallest footprint.
+
+## 5. WebSocket: maintaining a live order book
+
+The REST path is network-bound and the load test is pure compute; the WebSocket path is in
+between — Coinbase's book is ~43,000 levels, updated many times a second, and every delta merges
+into it. We watch it with `watchOrderBook` (four languages) and measure the **steady-state** CPU
+per delta — the first update builds the whole snapshot, a large one-time cost we time separately
+and exclude here:
+
+![WebSocket CPU per order-book update by language](/images/benchmarks/ws-cpu-per-update.png)
+
+- **Python: 0.6 ms** — dramatically the cheapest.
+- **JavaScript (11.0 ms) and PHP (11.7 ms)** sit in the middle.
+- **Go: 18.7 ms** — the most expensive per delta.
+
+That 18× spread is not an apples-to-oranges comparison: we checked, and every language holds the
+same book (~45,500 levels after the snapshot). The difference is in how each one *inserts* into
+it. All of them keep the side sorted and do a binary search plus a shift, which is O(n) per new
+price level — but the constant factor varies wildly. CPython's `list.insert` is a single C-level
+`memmove`. CCXT's JavaScript side does **two** shifts per insert, and one of them —
+`this.index.copyWithin(index + 1, index, this.index.length)` — walks the *entire allocated* index
+buffer (sized to `length × 2`) rather than just the live portion, on an `Array` subclass that
+doesn't get V8's fast-elements treatment. Go and PHP pay the same O(n) shift over boxed values.
+
+In other words: this gap is a property of the per-language order-book implementation, not of the
+language itself, and the JS insert path looks like a genuine optimization opportunity.
+
+None of this changes data freshness (the exchange's push rate sets that, and all four track it at
+~50 ms between updates); it decides how much CPU headroom is left for your strategy while the book
+stays current. Note the one-time snapshot build ranges from ~1 s (Python, JavaScript, Go) to ~9 s
+in PHP.
+
+| Language | Snapshot build | Steady gap p50 | Updates/s | CPU/update (steady) | Peak RSS |
+|---|---|---|---|---|---|
+| Python | 0.97 s | 49.7 ms | 19.8 | 0.6 ms | 162 MB |
+| JavaScript | 1.69 s | 49.2 ms | 20.7 | 11.0 ms | 180 MB |
+| PHP | 8.97 s | 49.8 ms | 16.7 | 11.7 ms | 116 MB |
+| Go | 1.33 s | 50.1 ms | 17.4 | 18.7 ms | 105 MB |
+
+## Takeaways
+
+- **For REST, pick the language you like.** Latency is the network round-trip; CCXT's own
+  processing is a 2–6 ms sliver everywhere. PHP's higher wall time is its HTTP client (a fresh
+  connection per request), not the library.
+- **When you parse at volume, the runtime's JIT is everything.** JavaScript and Java parse ~6×
+  faster than PHP, Python, Go, and C# — and the two compiled languages, Go and C#, land *slowest*
+  — because the transpiled code is boxing-heavy and only a mature tracing JIT specializes it away.
+- **Memory favors Node and Go.** They keep the smallest footprints; the JVM is fastest but
+  hungriest out of the box.
+- **For high-frequency WebSocket books, Python is remarkably cheap** (~0.6 ms of CPU per delta)
+  and Go is the most expensive (~19 ms); PHP's real cost is the one-time snapshot build, not the
+  deltas.
+- **Bandwidth is a wash** — same protocol, same bytes, every language.
+
+There's no single "fastest CCXT." There's a fastest CCXT *for your workload* — and now there's a
+six-language benchmark you can run to find yours.
+
+## Run it yourself
+
+The full harness — `bench.mjs`, `bench.py`, `bench.php`, the Go program, and the C#/Java load
+benchmarks — is in
+[`examples/benchmarks/`](https://github.com/ccxt/ccxt/tree/master/examples/benchmarks):
+
+```bash
+# REST / WebSocket / offline parse-load, per language
+node   examples/benchmarks/bench.mjs rest
+python examples/benchmarks/bench.py  ws
+php    examples/benchmarks/bench.php load
+go run ./benchmark load                    # from the go/ module root
+dotnet run -c Release --project cs/benchmark load
+./gradlew :benchmark:run --args=load       # from java/
+
+# ...or run every language and mode, aggregated into tables:
+node examples/benchmarks/run.mjs
+```
+
+There's also an **interactive, animated trace explorer** —
+[`examples/benchmarks/trace-explorer.html`](https://github.com/ccxt/ccxt/blob/master/examples/benchmarks/trace-explorer.html)
+— where you can replay one `fetchOrderBook` call in each language, toggle a linear/log time axis,
+and hover any span for its exact share of the trace.
+
+## Methodology & caveats
+
+- **The network/processing split is measured, not inferred.** We wrap `fetch` and `parseJson`
+  (Go: an opt-in `Profile` flag) so every call reports its own wire and decode time, and the
+  measured network span is always less than the call total.
+- **The load test is offline and deterministic.** The same synthetic 1,000-level book (integer
+  values, identical across languages), time-boxed to 8 s, so it measures pure parse throughput.
+  `getrusage` CPU counts all threads, so for multi-threaded runtimes (Go's GC, the JVM)
+  single-threaded wall-clock throughput — not CPU-per-op — is the fair number.
+- **WebSocket CPU is steady-state.** The first `watchOrderBook` builds the entire snapshot — a
+  large one-time cost — so we time it separately and start the CPU counter only afterward; the
+  reported CPU/update is the incremental delta cost, not the snapshot amortized across updates.
+- **Memory is peak RSS** at the end of the load run (parse loop + 2,000 retained books). It
+  includes the runtime baseline, which is the point: the JVM's large default heap is real memory.
+  Per-object deltas are unreliable on runtimes that pre-commit heap, so we report the OS peak.
+- **One machine, one location, through a policy proxy.** Absolute REST milliseconds are relative
+  comparisons, not production latency; the network/processing split is what makes them comparable.
+- **Same CCXT version (4.5.65) everywhere**, generated from one TypeScript source. Runtimes:
+  Node 22, Python 3.11, PHP 8.4, .NET 8, Go 1.25, OpenJDK 21. REST/WebSocket cover four languages;
+  the offline load test covers all six.

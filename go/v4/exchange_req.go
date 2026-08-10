@@ -10,6 +10,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func (this *Exchange) Fetch(url any, method any, headers any, body any) chan any {
@@ -161,6 +162,10 @@ func (this *Exchange) Fetch(url any, method any, headers any, body any) chan any
 
 		// strings.NewReader()
 		// Send the request
+		var httpStart time.Time
+		if this.Profile {
+			httpStart = time.Now()
+		}
 		resp, err := this.httpClient.Do(req)
 
 		// Read the response body
@@ -202,11 +207,20 @@ func (this *Exchange) Fetch(url any, method any, headers any, body any) chan any
 			}
 		}
 
+		if this.Profile {
+			this.ProfileHttpMs = float64(time.Since(httpStart).Microseconds()) / 1000.0
+		}
 		responseHeaders := HeaderToMap(resp.Header)
 
 		// Use ParseJSON to handle JSON parsing with proper number normalization
 		var result any
-		result = ParseJSON(string(respBody))
+		if this.Profile {
+			jsonStart := time.Now()
+			result = ParseJSON(string(respBody))
+			this.ProfileJsonMs = float64(time.Since(jsonStart).Microseconds()) / 1000.0
+		} else {
+			result = ParseJSON(string(respBody))
+		}
 
 		if result == nil {
 			// If ParseJSON failed, fallback to raw string

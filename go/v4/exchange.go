@@ -103,6 +103,9 @@ type Exchange struct {
 	Last_response_headers any
 	LastResponseHeaders   any
 	Last_http_response    any
+	Profile               bool    // opt-in benchmark instrumentation (see examples/benchmarks)
+	ProfileHttpMs         float64 // time in the last HTTP layer call (wire + body read)
+	ProfileJsonMs         float64 // time decoding the last response JSON
 	LastRequestBody       any
 	Last_request_body     any
 	Last_request_url      any
